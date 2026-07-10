@@ -1,0 +1,400 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.wrapper;
+
+import org.gradle.internal.file.locking.ExclusiveFileAccessManager;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Formatter;
+import java.util.List;
+import java.util.Locale;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
+
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static org.gradle.internal.file.PathTraversalChecker.safePathName;
+import static org.gradle.wrapper.Download.safeUri;
+
+public class Install {
+    public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
+    public static final String SHA_256 = ".sha256";
+
+    public static final int DEFAULT_NETWORK_RETRIES = 0;
+    public static final int DEFAULT_NETWORK_RETRY_BACK_OFF_MS = 500;
+
+    private static final int BROKEN_ZIP_RETRIES = 3;
+
+    private final Logger logger;
+    private final IDownload download;
+    private final PathAssembler pathAssembler;
+    private final ExclusiveFileAccessManager exclusiveFileAccessManager = new ExclusiveFileAccessManager(120000, 200);
+
+    public Install(Logger logger, IDownload download, PathAssembler pathAssembler) {
+        this.logger = logger;
+        this.download = download;
+        this.pathAssembler = pathAssembler;
+    }
+
+    public File createDist(final WrapperConfiguration configuration) throws Exception {
+        final URI distributionUrl = configuration.getDistribution();
+
+        final PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
+        final File distDir = localDistribution.getDistributionDir();
+        final File localZipFile = localDistribution.getZipFile();
+
+        return exclusiveFileAccessManager.access(localZipFile, () -> {
+            final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
+            if (distDir.isDirectory() && markerFile.isFile()) {
+                InstallCheck installCheck = verifyDistributionRoot(distDir, distDir.getAbsolutePath());
+                if (installCheck.isVerified()) {
+                    return installCheck.gradleHome;
+                }
+                // Distribution is invalid. Try to reinstall.
+                System.err.println(installCheck.failureMessage);
+                markerFile.delete();
+            }
+
+            fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
+
+            InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
+            if (installCheck.isVerified()) {
+                setExecutablePermissions(installCheck.gradleHome);
+                markerFile.createNewFile();
+                localZipFile.delete();
+                return installCheck.gradleHome;
+            }
+            // Distribution couldn't be installed.
+            throw new RuntimeException(installCheck.failureMessage);
+        });
+    }
+
+    private void fetchDistribution(File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
+        String distributionSha256Sum = configuration.getDistributionSha256Sum();
+        boolean failed = false;
+        int retries = BROKEN_ZIP_RETRIES;
+        do {
+            try {
+                boolean needsDownload = !localZipFile.isFile() || failed;
+                if (needsDownload) {
+                    forceFetch(localZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryBackOffMs());
+                }
+
+                deleteLocalTopLevelDirs(distDir);
+
+                verifyDownloadChecksum(configuration.getDistribution().toASCIIString(), localZipFile, distributionSha256Sum);
+
+                unzipLocal(localZipFile, distDir);
+                failed = false;
+            } catch (ZipException e) {
+                if (retries >= BROKEN_ZIP_RETRIES && distributionSha256Sum == null) {
+                    distributionSha256Sum = fetchDistributionSha256Sum(configuration, localZipFile);
+                }
+                failed = true;
+                retries--;
+                if(retries <= 0){
+                    throw new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
+                }
+            }
+        } while (failed);
+    }
+
+    private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
+        URI distribution = configuration.getDistribution();
+        try {
+            URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
+            File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);
+
+            forceFetch(tmpZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryBackOffMs());
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(tmpZipFile.toPath()), StandardCharsets.UTF_8))) {
+                return reader.readLine();
+            }
+        } catch (Exception e) {
+            logger.log("Could not fetch hash for " + safeUri(distribution) + ".");
+            logger.log("Reason: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void unzipLocal(File localZipFile, File distDir) throws IOException {
+        try {
+            unzip(localZipFile, distDir);
+        } catch (IOException e) {
+            logger.log("Could not unzip " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath() + ".");
+            logger.log("Reason: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    private void deleteLocalTopLevelDirs(final File distDir) {
+        List<File> topLevelDirs = listDirs(distDir);
+        for (File dir : topLevelDirs) {
+            logger.log("Deleting directory " + dir.getAbsolutePath());
+            deleteDir(dir);
+        }
+    }
+
+    private void forceFetch(File localTargetFile, URI distributionUrl, int networkRetries, int networkRetryBackOffMs) throws Exception {
+
+        // negative retry parameter values will be handled as the defaults
+        networkRetries = networkRetries >= 0 ? networkRetries : DEFAULT_NETWORK_RETRIES;
+        networkRetryBackOffMs = networkRetryBackOffMs >= 0 ? networkRetryBackOffMs : DEFAULT_NETWORK_RETRY_BACK_OFF_MS;
+
+        logger.log(String.format("Fetching distribution%s.",
+            networkRetries <= 0 ? "" : String.format(" (retrying %d times, with an initial back off of %d ms)", networkRetries, networkRetryBackOffMs)
+        ));
+
+        int attempts = networkRetries + 1;
+        long currentBackOffMs = networkRetryBackOffMs;
+        Exception lastException = null;
+        for (int attempt = 1; attempt <= attempts; attempt++) {
+            try {
+                File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
+                tempDownloadFile.delete();
+
+                logger.log("Downloading " + safeUri(distributionUrl));
+                download.download(distributionUrl, tempDownloadFile);
+                if (localTargetFile.exists()) {
+                    localTargetFile.delete();
+                }
+                tempDownloadFile.renameTo(localTargetFile);
+
+                return;
+            } catch (IOException ioException) {
+                lastException = ioException;
+
+                logger.log(String.format("Attempt %d/%d failed. Reason: %s",
+                    attempt,
+                    attempts,
+                    ioException.getMessage()));
+
+                if (attempt < attempts) {
+                    Thread.sleep(currentBackOffMs);
+                    currentBackOffMs *= 2;
+                }
+            }
+        }
+
+        throw lastException;
+    }
+
+    static String calculateSha256Sum(File file) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        try (InputStream fis = Files.newInputStream(file.toPath())) {
+            int n = 0;
+            byte[] buffer = new byte[4096];
+            while (n != -1) {
+                n = fis.read(buffer);
+                if (n > 0) {
+                    md.update(buffer, 0, n);
+                }
+            }
+        }
+
+        byte[] byteData = md.digest();
+        StringBuilder hexString = new StringBuilder();
+        for (byte byteDatum : byteData) {
+            String hex = Integer.toHexString(0xff & byteDatum);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+
+        return hexString.toString();
+    }
+
+    private InstallCheck verifyDistributionRoot(File distDir, String distributionDescription) {
+        List<File> dirs = listDirs(distDir);
+        if (dirs.isEmpty()) {
+            return InstallCheck.failure(format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
+        }
+        if (dirs.size() != 1) {
+            return InstallCheck.failure(format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
+        }
+
+        File gradleHome = dirs.get(0);
+        if (BootstrapMainStarter.findLauncherJar(gradleHome) == null) {
+            return InstallCheck.failure(format("Gradle distribution '%s' does not appear to contain a Gradle distribution.", distributionDescription));
+        }
+        return InstallCheck.success(gradleHome);
+    }
+
+    private void verifyDownloadChecksum(String sourceUrl, File localZipFile, String expectedSum) throws Exception {
+        if (expectedSum == null) {
+            return;
+        }
+        // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
+        String actualSum = calculateSha256Sum(localZipFile);
+        if (expectedSum.equals(actualSum)) {
+            return;
+        }
+
+        localZipFile.delete();
+        String message = format("Verification of Gradle distribution failed!%n" +
+                "%n" +
+                "Your Gradle distribution may have been tampered with.%n" +
+                "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n" +
+                "%n" +
+                "Distribution Url: %s%n" +
+                "Download Location: %s%n" +
+                "Expected checksum: '%s'%n" +
+                "Actual checksum:   '%s'%n" +
+                "Visit https://gradle.org/release-checksums/ to verify the checksums of official distributions. If your build uses a custom distribution, see with its provider.",
+            sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum);
+        throw new RuntimeException(message);
+    }
+
+    @SuppressWarnings("MixedMutabilityReturnType")
+    private List<File> listDirs(File distDir) {
+        if (!distDir.exists()) {
+            return emptyList();
+        }
+        File[] files = distDir.listFiles();
+        if (files == null) {
+            return emptyList();
+        }
+
+        List<File> dirs = new ArrayList<>();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                dirs.add(file);
+            }
+        }
+        return dirs;
+    }
+
+    private void setExecutablePermissions(File gradleHome) {
+        if (isWindows()) {
+            return;
+        }
+        File gradleCommand = new File(gradleHome, "bin/gradle");
+        String errorMessage = null;
+        try {
+            ProcessBuilder pb = new ProcessBuilder("chmod", "755", gradleCommand.getCanonicalPath());
+            Process p = pb.start();
+            if (p.waitFor() != 0) {
+                BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
+                Formatter stdout = new Formatter();
+                String line;
+                while ((line = is.readLine()) != null) {
+                    stdout.format("%s%n", line);
+                }
+                errorMessage = stdout.toString();
+            }
+        } catch (IOException e) {
+            errorMessage = e.getMessage();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            errorMessage = e.getMessage();
+        }
+        if (errorMessage != null) {
+            logger.log("Could not set executable permissions for: " + gradleCommand.getAbsolutePath());
+        }
+    }
+
+    private boolean isWindows() {
+        String osName = System.getProperty("os.name").toLowerCase(Locale.US);
+        return osName.contains("windows");
+    }
+
+    private boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            if (children != null) {
+                for (String child : children) {
+                    boolean success = deleteDir(new File(dir, child));
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // The directory is now empty so delete it
+        return dir.delete();
+    }
+
+    private void unzip(File zip, File dest) throws IOException {
+        try (ZipFile zipFile = new ZipFile(zip)) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+
+                File destFile = new File(dest, safePathName(entry.getName()));
+                if (entry.isDirectory()) {
+                    destFile.mkdirs();
+                    continue;
+                }
+
+                try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(destFile.toPath()))) {
+                    copyInputStream(zipFile.getInputStream(entry), outputStream);
+                }
+            }
+        }
+    }
+
+    private void copyInputStream(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len;
+
+        while ((len = in.read(buffer)) >= 0) {
+            out.write(buffer, 0, len);
+        }
+
+        in.close();
+        out.close();
+    }
+
+    private static class InstallCheck {
+        private final File gradleHome;
+        private final String failureMessage;
+
+        private static InstallCheck failure(String message) {
+            return new InstallCheck(null, message);
+        }
+
+        private static InstallCheck success(File gradleHome) {
+            return new InstallCheck(gradleHome, null);
+        }
+
+        private InstallCheck(File gradleHome, String failureMessage) {
+            this.gradleHome = gradleHome;
+            this.failureMessage = failureMessage;
+        }
+
+        private boolean isVerified() {
+            return gradleHome != null;
+        }
+    }
+
+}

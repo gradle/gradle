@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="1.0">
+	<info organisation="test"
+		module="projectB"
+		revision="2.1.5"
+	/>
+	<configurations>
+		<conf name="runtime" visibility="public"/>
+		<conf name="default" visibility="public" extends="runtime"/>
+	</configurations>
+	<publications>
+		<artifact name="projectB" type="jar" ext="jar" conf="runtime"/>
+	</publications>
+</ivy-module>

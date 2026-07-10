@@ -1,0 +1,245 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.fixtures.problems
+
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.internal.jvm.SupportedJavaVersions
+
+class KnownProblemIds {
+
+    static void assertIsKnown(ReceivedProblem problem) {
+        assert problem != null
+        def definition = problem.definition
+        def knownDefinition = KNOWN_DEFINITIONS.find { it ->
+            def pattern = it.key
+            definition.id.fqid ==~ pattern
+        }?.value
+        assert knownDefinition != null: "Unknown problem id: ${definition.id.fqid}"
+        assert knownDefinition instanceof List: "Known problem definition must be a list of expected display names"
+        def definitionWithMatchingDisplayName = knownDefinition.find { definition.id.displayName ==~ it }
+        assert definitionWithMatchingDisplayName != null, "Unexpected display name for problem: '${definition.id.displayName}"
+
+        def groupFqid = groupOf(definition.id.fqid)
+        while (groupFqid != null) {
+            def group = KNOWN_GROUPS[groupFqid]
+            assert group != null: "Unknown problem group: ${groupFqid}"
+            groupFqid = groupOf(groupFqid)
+        }
+    }
+
+    private static def groupOf(String fqid) {
+        int idx = fqid.lastIndexOf(':')
+        if (idx > 0) {
+            return fqid.substring(0, idx)
+        } else {
+            return null
+        }
+    }
+
+    private static final Map<String, String> KNOWN_GROUPS = [
+        // Top level
+        'problems-api': 'Problems API',
+        'validation': 'Validation',
+        'configuration-usage': 'Configuration usage',
+        'compilation': 'Compilation',
+        'daemon-toolchain' : 'Daemon toolchain',
+        'dependency-version-catalog': 'Version catalog',
+        'deprecation': 'Deprecation',
+        'packaging': 'Packaging',
+        'plugin-application': 'Plugin application',
+        'task-selection': 'Task selection',
+
+        // Sub-groups
+        'packaging:signing': 'Signing',
+        'compilation:groovy-dsl': 'Groovy DSL script compilation',
+        'compilation:java': 'Java compilation',
+        'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
+        'validation:property-validation': 'Property validation problems',
+        'validation:type-validation': 'Gradle type validation',
+        'validation:configuration-cache': 'Configuration cache',
+
+        // dependency resolution failures
+        'dependency-variant-resolution': 'Dependency variant resolution',
+
+        // DCL
+        'scripts:dcl-schema': 'DCL Schema issues',
+
+        // groups from integration tests
+        'generic': 'Generic',
+        'sample-problems': 'Sample Problems',
+        'scripts': 'Scripts',
+        'root': 'root',
+    ]
+
+    /**
+     * This map is used to validate that problems reported have known IDs, and display name.
+     * <p>
+     * Both the key and value is handled as a regular expression if the value is too dynamic.
+     */
+    private static final HashMap<String, List<String>> KNOWN_DEFINITIONS = [
+        'problems-api:missing-id': ['Problem id must be specified'],
+        'problems-api:unsupported-additional-data': ['Unsupported additional data type'],
+        'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
+        'compilation:groovy-dsl:compilation-failed': ['Groovy DSL script compilation problem'],
+        // Flexible java compilation categories
+        // The end of the category is matched with a regex, as there are many possible endings (and also changes with JDK versions)
+        // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
+        'compilation:java:compiler.*' : ['.*'],
+        'compilation:java:initialization-failed': ['Java compilation initialization error'],
+        'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
+        'dependency-version-catalog:accessor-name-clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.displayName],
+        'dependency-version-catalog:alias-not-finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.displayName],
+        'dependency-version-catalog:invalid-dependency-notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.displayName],
+        'dependency-version-catalog:invalid-toml-definition': [VersionCatalogProblemId.INVALID_TOML_DEFINITION.displayName],
+        'dependency-version-catalog:invalid-version-notation': [VersionCatalogProblemId.INVALID_VERSION_NOTATION.displayName],
+        'dependency-version-catalog:reserved-alias-name': [VersionCatalogProblemId.RESERVED_ALIAS_NAME.displayName],
+        'dependency-version-catalog:catalog-file-does-not-exist': [VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST.displayName],
+        'dependency-version-catalog:toml-syntax-error': [VersionCatalogProblemId.TOML_SYNTAX_ERROR.displayName],
+        'dependency-version-catalog:too-many-import-files': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName],
+        'dependency-version-catalog:too-many-import-invocation': [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.displayName],
+        'dependency-version-catalog:no-import-files': [VersionCatalogProblemId.NO_IMPORT_FILES.displayName],
+        'deprecation:implicit-lookup-of-methods-in-parent-projects': ['Implicit lookup of methods in parent projects has been deprecated.'],
+        'deprecation:implicit-lookup-of-properties-in-parent-projects': ['Implicit lookup of properties in parent projects has been deprecated.'],
+        'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
+        'deprecation:custom-task-action': ['Custom Task action has been deprecated.'],
+        'deprecation:the-buildneeded-task-has-been-deprecated': ['The buildNeeded task has been deprecated.'],
+        'deprecation:the-builddependents-task-has-been-deprecated': ['The buildDependents task has been deprecated.'],
+        'deprecation:executing-gradle-on-jvm-versions-and-lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower has been deprecated.'],
+        'deprecation:included-build-script': ['Included build script has been deprecated.'],
+        'deprecation:included-build-task': ['Included build task has been deprecated.'],
+        'deprecation:init-script': ['Init script has been deprecated.'],
+        'deprecation:plugin': ['Plugin has been deprecated.'],
+        'deprecation:plugin-script': ['Plugin script has been deprecated.'],
+        'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption': ['The detachedConfiguration1 configuration has been deprecated for consumption.'],
+        'deprecation:configurations-acting-as-both-root-and-variant': ['Configurations should not act as both a resolution root and a variant simultaneously.'],
+        'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl': ['Properties should be assigned using the \'propName = value\' syntax. Setting a property via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL has been deprecated.'],
+        'deprecation:querying-the-output-of-an-artifact-transform-from-a-task-action-without-declaring-it-as-a-task-input': ['Querying the output of an artifact transform from a task action without declaring it as a task input has been deprecated.'],
+        'deprecation:repository-jcenter' : ['The RepositoryHandler.jcenter\\(\\) method has been deprecated.'],
+        'root:test-problem': ['test problem'],
+        'task-selection:no-matches': ['No matches', 'cannot locate task'],
+        'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection': ['error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''],
+        'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported': ['registration of listener on \'Gradle.buildFinished\' is unsupported'],
+        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
+        'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems': ['Isolated Projects problems are dangerously ignored'],
+        'packaging:signing:no-configured-signatory': ['No configured signatory'],
+        'plugin-application:target-type-mismatch': ['Unexpected plugin type'],
+        'task-selection:ambiguous-matches': ['Ambiguous matches'],
+        'task-selection:selection-failed': ['Selection failed'],
+        'task-selection:empty-path': ['Empty path'],
+        'task-selection:missing-task-name': ['Missing task name'],
+        'task-selection:empty-segments': ['Empty segments'],
+        'validation:property-validation:annotation-invalid-in-context': ['Invalid annotation in context'],
+        'validation:property-validation:cannot-use-optional-on-primitive-types': ['Property should be annotated with @Optional'],
+        'validation:property-validation:cacheable-transform-cant-use-absolute-sensitivity': ['Property declared to be sensitive to absolute paths'],
+        'validation:property-validation:cannot-write-output': ['Property is not writable'],
+        'validation:property-validation:cannot-write-to-reserved-location': ['Cannot write to reserved location'],
+        'validation:property-validation:conflicting-annotations': ['Type has conflicting annotation'],
+        'validation:property-validation:ignored-property-must-not-be-annotated': ['Has wrong combination of annotations'],
+        'validation:property-validation:implicit-dependency': ['Property has implicit dependency'],
+        'validation:property-validation:incompatible-annotations': ['Incompatible annotations'],
+        'validation:property-validation:incorrect-use-of-input-annotation': ['Incorrect use of @Input annotation'],
+        'validation:property-validation:input-file-does-not-exist': ['Input file does not exist'],
+        'validation:property-validation:missing-annotation': ['Missing annotation'],
+        'validation:property-validation:missing-normalization-annotation': ['Missing normalization'],
+        'validation:property-validation:nested-map-unsupported-key-type': ['Unsupported nested map key'],
+        'validation:property-validation:nested-type-unsupported': ['Nested type unsupported'],
+        'validation:property-validation:mutable-type-with-setter': ['Mutable type with setter'],
+        'validation:property-validation:private-getter-must-not-be-annotated': ['Private property with wrong annotation'],
+        'validation:property-validation:unexpected-input-file-type': ['Unexpected input file type'],
+        'validation:property-validation:unsupported-notation': ['Property has unsupported value'],
+        'validation:property-validation:unknown-implementation': ['Unknown property implementation'],
+        'validation:property-validation:unknown-implementation-nested': ['Unknown property implementation'],
+        'validation:property-validation:unsupported-value-type': ['Unsupported value type'],
+        'validation:property-validation:unsupported-value-type-for-input': ['Unsupported value type for @Input annotation'],
+        'validation:property-validation:service-reference-must-be-a-build-service': ['Property has @ServiceReference annotation'],
+        'validation:property-validation:value-not-set': ['Value not set'],
+        'validation:type-validation:ignored-annotations-on-method': ['Ignored annotations on method'],
+        'validation:type-validation:invalid-use-of-type-annotation': ['Incorrect use of type annotation'],
+        'validation:type-validation:not-cacheable-without-reason': ['Not cacheable without reason'],
+        'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
+        // Dynamic fqid until the CC class-encoding failure path emits a stable problem ID.
+        'validation:configuration-cache:class-.*-cannot-be-encoded-because.*': ['(?s)Class .* cannot be encoded because.*'],
+        'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
+        'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
+
+        // dependency resolution failures
+        'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],
+        'dependency-variant-resolution:configuration-not-consumable': ['Configuration selected by name is not consumable'],
+        'dependency-variant-resolution:configuration-does-not-exist': ['Configuration selected by name does not exist'],
+        'dependency-variant-resolution:ambiguous-variants': ['Multiple variants exist that would match the request'],
+        'dependency-variant-resolution:no-compatible-variants': ['No variants exist that would match the request'],
+        'dependency-variant-resolution:no-variants-with-matching-capabilities': ['No variants exist with capabilities that would match the request'],
+        'dependency-variant-resolution:no-version-satisfies' : ['No version satisfies the constraints'],
+        'dependency-variant-resolution:capability-conflict' : ['Module rejected due to a capability conflict'],
+
+        'dependency-variant-resolution:ambiguous-artifact-transform': ['Multiple artifacts transforms exist that would satisfy the request'],
+        'dependency-variant-resolution:no-compatible-artifact': ['No artifacts exist that would match the request'],
+        'dependency-variant-resolution:ambiguous-artifacts': ['Multiple artifacts exist that would match the request'],
+        'dependency-variant-resolution:unknown-artifact-selection-failure': ['Unknown artifact selection failure'],
+
+        'dependency-variant-resolution:incompatible-multiple-nodes': ['Incompatible nodes of a single component were selected'],
+
+        'dependency-variant-resolution:unknown-resolution-failure': ['Unknown resolution failure'],
+
+        // DCL schema building issues:
+        // The messages might be reworded, keeping them as a wildcard for now
+        'scripts:dcl-schema:declaration-visible-and-hidden': ['.*'],
+        'scripts:dcl-schema:declaration-hidden-type-used-in-definition': ['.*'],
+        'scripts:dcl-schema:illegal-usage-of-type-parameter-bound-by-class': ['.*'],
+        'scripts:dcl-schema:illegal-variance-in-parameterized-type-usage': ['.*'],
+        'scripts:dcl-schema:non-classifiable-type': ['.*'],
+        'scripts:dcl-schema:unit-adding-function-with-lambda': ['.*'],
+        'scripts:dcl-schema:unrecognized-member': ['.*'],
+        'scripts:dcl-schema:unsupported-generic-container-type': ['.*'],
+        'scripts:dcl-schema:unsupported-map-factory': ['.*'],
+        'scripts:dcl-schema:unsupported-nullable-read-only-property': ['.*'],
+        'scripts:dcl-schema:unsupported-nullable-type': ['.*'],
+        'scripts:dcl-schema:unsupported-pair-factory': ['.*'],
+        'scripts:dcl-schema:unsupported-type-parameter-as-container-type': ['.*'],
+        'scripts:dcl-schema:unsupported-vararg-type': ['.*'],
+        'scripts:dcl-schema:unsafe-non-interface-type': ['.*'],
+        'scripts:dcl-schema:unsafe-non-abstract-member': ['.*'],
+        'scripts:dcl-schema:unsafe-inject-property': ['.*'],
+        'scripts:dcl-schema:unsafe-java-bean-property': ['.*'],
+        'scripts:dcl-schema:unsafe-non-pure-function': ['.*'],
+        'scripts:dcl-schema:unsafe-because-has-hidden-members': ['.*'],
+        'scripts:dcl-schema:unsafe-because-has-non-public-members': ['.*'],
+
+        // integration test problems
+        'deprecation:some-indirect-deprecation': ['Some indirect deprecation has been deprecated.'],
+        'deprecation:some-invocation-feature': ['Some invocation feature has been deprecated.'],
+        'deprecation:thing': ['Thing has been deprecated.'],
+        'deprecation:typed-task': ['Typed task has been deprecated.'],
+        'deprecation:type-invalidtask-property-inputfile-test-problem-.*' : ['.*'],
+        'generic:deprecation:plugin': ['DisplayName'],
+        'generic:type': ['label'],
+        'generic:type0': ['This is the heading problem text0'],
+        'generic:type1': ['This is the heading problem text1'],
+        'generic:type2': ['This is the heading problem text2'],
+        'generic:type3': ['This is the heading problem text3'],
+        'generic:type4': ['This is the heading problem text4'],
+        'generic:type5': ['This is the heading problem text5'],
+        'generic:type6': ['This is the heading problem text6'],
+        'generic:type7': ['This is the heading problem text7'],
+        'generic:type8': ['This is the heading problem text8'],
+        'generic:type9': ['This is the heading problem text9'],
+        'generic:type11': ['inner'],
+        'generic:type12': ['outer'],
+        'sample-problems:prototype-project': ['Project is a prototype'],
+        'scripts:multiple-scripts': ['Multiple scripts'],
+    ]
+}

@@ -1,0 +1,20 @@
+plugins {
+    application
+}
+
+val myBuildGroup = "My app build"
+
+// tag::app-grouping[]
+tasks.build {
+    group = myBuildGroup
+}
+
+tasks.check {
+    group = myBuildGroup
+    description = "Runs checks (including tests)."
+}
+
+tasks.named("run") {
+    group = myBuildGroup
+}
+// end::app-grouping[]

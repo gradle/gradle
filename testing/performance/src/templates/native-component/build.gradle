@@ -1,0 +1,9 @@
+apply plugin: 'c'
+
+model {
+    components {
+        <% moduleCount.times { %>
+        lib${it+1}(NativeLibrarySpec)
+        <% } %>
+    }
+}

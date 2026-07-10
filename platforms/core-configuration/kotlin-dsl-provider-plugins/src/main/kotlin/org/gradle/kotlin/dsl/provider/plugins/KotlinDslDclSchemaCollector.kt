@@ -1,0 +1,197 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.kotlin.dsl.provider.plugins
+
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.TargetTypeInformation
+import org.gradle.api.reflect.TypeOf
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence
+import org.gradle.declarative.dsl.schema.ConfigureFromGetterOrigin
+import org.gradle.declarative.dsl.schema.ContainerElementFactory
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
+import org.gradle.internal.declarativedsl.analysis.dataOfTypeOrNull
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
+import org.gradle.kotlin.dsl.accessors.NestedModelEntry
+import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
+import org.gradle.kotlin.dsl.provider.plugins.schema.TypeProjection
+import org.gradle.kotlin.dsl.provider.plugins.schema.TypeProjectionKind
+import org.gradle.kotlin.dsl.provider.plugins.schema.parameterizedTypeOfRawGenericClass
+import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+
+data class KotlinDslDclSchema(
+    val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>,
+    val nestedModels: List<NestedModelEntry<TypeOf<*>>>,
+    val projectFeatures: List<ProjectFeatureEntry<TypeOf<*>>>
+)
+
+/**
+ * A utility on top of [KotlinDslDclSchemaCollector] that encapsulates the preparation of the arguments and
+ * the collection of the DCL schema parts that are relevant to Kotlin DSL.
+ */
+internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(target: Any, targetScope: ClassLoaderScope): KotlinDslDclSchema? {
+    fun projectTypeRegistryOf(target: Any): ProjectFeatureDeclarations? =
+        when (target) {
+            is Project -> target.serviceOf<ProjectFeatureDeclarations>()
+            is Settings -> target.serviceOf<ProjectFeatureDeclarations>()
+            else -> null
+        }
+
+    fun dclInterpretationSequenceFor(target: Any): InterpretationSequence? {
+        val schemaBuildingResult = when (target) {
+            is Project -> target.serviceOf<InterpretationSchemaBuilder>().getEvaluationSchemaForScript(DeclarativeScriptContext.ProjectScript)
+            is SettingsInternal -> target.serviceOf<InterpretationSchemaBuilder>().getEvaluationSchemaForScript(DeclarativeScriptContext.SettingsScript)
+            else -> null
+        }
+        return (schemaBuildingResult as? InterpretationSchemaBuildingResult.InterpretationSequenceAvailable)?.sequence
+    }
+
+    val containerElementFactories = dclInterpretationSequenceFor(target)?.let { interpretationSequence ->
+        collectContainerFactories(interpretationSequence, targetScope)
+    } ?: return null
+
+    val projectTypes = projectTypeRegistryOf(target)?.let(::collectProjectTypes) ?: return null
+    val nestedModels = dclInterpretationSequenceFor(target)?.let { interpretationSequence ->
+        collectNestedModels(interpretationSequence, targetScope)
+    } ?: return null
+
+    return KotlinDslDclSchema(containerElementFactories, nestedModels, projectTypes)
+}
+
+
+@ServiceScope(Scope.UserHome::class)
+internal interface KotlinDslDclSchemaCollector {
+    fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>>
+    fun collectNestedModels(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): NestedModels
+    fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>>
+}
+
+internal class CachedKotlinDslDclSchemaCollector(
+    private val cache: KotlinDslDclSchemaCache,
+    private val delegate: KotlinDslDclSchemaCollector
+) : KotlinDslDclSchemaCollector {
+    override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> =
+        cache.getOrPutContainerElementFactories(interpretationSequence, classLoaderScope) { delegate.collectContainerFactories(interpretationSequence, classLoaderScope) }
+
+    override fun collectNestedModels(
+        interpretationSequence: InterpretationSequence,
+        classLoaderScope: ClassLoaderScope
+    ): NestedModels =
+        cache.getOrPutNestedModels(interpretationSequence, classLoaderScope) { delegate.collectNestedModels(interpretationSequence, classLoaderScope) }
+
+    override fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>> =
+        cache.getOrPutProjectTypes(projectFeatureDeclarations) { delegate.collectProjectTypes(projectFeatureDeclarations) }
+}
+
+internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector {
+    override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> {
+        val classLoader = classLoaderScope.localClassLoader
+
+        return interpretationSequence.steps.flatMap { step ->
+            val analysisSchema = step.evaluationSchemaForStep.analysisSchema
+            val typeRefContext = SchemaTypeRefContext(analysisSchema)
+            val types = analysisSchema.dataClassTypesByFqName.values.filterIsInstance<DataClass>()
+            types.flatMap { type ->
+                type.memberFunctions.mapNotNull { function ->
+                    function.metadata.dataOfTypeOrNull<ContainerElementFactory>()?.let { factory ->
+                        val elementDclType = typeRefContext.resolveRef(factory.elementType) as? DataClass
+                            ?: return@let null
+                        val elementType = typeOf(elementDclType, classLoader)
+                            ?: return@let null
+                        // Since the invoke operator for NDOCs has just `NDOC<T>` as the receiver (but not the more concrete type), we should generalize the accessor to NDOC<T> even if the
+                        // container type is more specific. It's OK since the accessor name is based on the element type and there should not be different accessors for one element type.
+                        val containerType = parameterizedTypeOfRawGenericClass(listOf(TypeProjection(elementType.concreteClass, TypeProjectionKind.NONE)), NamedDomainObjectContainer::class.java)
+                        ContainerElementFactoryEntry(function.simpleName, containerType, elementType)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun collectNestedModels(
+        interpretationSequence: InterpretationSequence,
+        classLoaderScope: ClassLoaderScope
+    ): NestedModels {
+        val classLoader = classLoaderScope.localClassLoader
+
+        return interpretationSequence.steps.flatMap { step ->
+            val analysisSchema = step.evaluationSchemaForStep.analysisSchema
+            val typeRefContext = SchemaTypeRefContext(analysisSchema)
+
+            analysisSchema.dataClassTypesByFqName.values.flatMap { type ->
+                when (type) {
+                    is DataClass -> type.memberFunctions.filter { it.metadata.any { item -> item is ConfigureFromGetterOrigin } }.mapNotNull { function ->
+                        val nestedModelType = (function.semantics as? FunctionSemantics.ConfigureSemantics)?.configuredType?.let(typeRefContext::resolveRef)
+                            as? DataClass ?: return@mapNotNull null
+                        val ownerClass = typeOf(type, classLoader) ?: return@mapNotNull null
+                        val nestedModelClass = typeOf(nestedModelType, classLoader) ?: return@mapNotNull null
+                        NestedModelEntry(function.simpleName, ownerClass, nestedModelClass)
+                    }
+                    else -> emptyList()
+                }
+            }
+        }.distinct()
+    }
+
+    private fun typeOf(dclDataClass: DataClass, classLoader: ClassLoader): TypeOf<*>? {
+        fun loadClassOrNull(className: String): Class<*>? = try {
+            classLoader.loadClass(className)
+        } catch (_: ClassNotFoundException) {
+            null
+        }
+
+        val loadedClass = loadClassOrNull(dclDataClass.javaTypeName)
+            ?: return null
+
+        val typeArgs = dclDataClass.javaTypeArgumentTypeNames.map {
+            loadClassOrNull(it) ?: return null
+        }
+
+        return if (typeArgs.isNotEmpty()) {
+            parameterizedTypeOfRawGenericClass(typeArgs.map(::TypeProjection), loadedClass)
+        } else{
+            TypeOf.typeOf(loadedClass)
+        }
+    }
+
+    override fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>> =
+        projectFeatureDeclarations.projectFeatureImplementations.entries.map { (name, implementations) ->
+            implementations.map { implementation ->
+                val targetType = when (val target = implementation.targetDefinitionType) {
+                    is TargetTypeInformation.DefinitionTargetTypeInformation -> TypeOf.typeOf(target.definitionType)
+                    is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
+                        parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), Definition::class.java)
+
+                    else -> error("Unexpected target type $target")
+                }
+                ProjectFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
+            }
+        }.flatten()
+
+}

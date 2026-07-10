@@ -1,0 +1,446 @@
+/*
+ * Copyright 2021 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.cc.impl
+
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import spock.lang.Issue
+
+class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def fixture = new ConfigurationCacheFixture(this)
+
+    def "restores task fields whose value is a #kind Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaTask extends DefaultTask {
+
+                    // Test with serializable lambdas that should work as-is, as well as non-serializable lambdas which should
+                    // be forced to become serializable by the instrumentation:
+                    public interface NonSerializableSupplier<T> {
+                        T get();
+                    }
+                    public interface SerializableSupplier<T> extends java.io.Serializable {
+                        T get();
+                    }
+
+                    private SerializableSupplier<Integer> serializableSupplier;
+                    private NonSerializableSupplier<Integer> nonSerializableSupplier;
+
+                    public void setSerializableSupplier(SerializableSupplier<Integer> supplier) {
+                        this.serializableSupplier = supplier;
+                    }
+
+                    public void setNonSerializableSupplier(NonSerializableSupplier<Integer> supplier) {
+                        this.nonSerializableSupplier = supplier;
+                    }
+
+                    public void setNonInstanceCapturingLambda() {
+                        final int i = getName().length();
+                        setSerializableSupplier(() -> i);
+                        setNonSerializableSupplier(() -> i);
+                    }
+
+                    public void setInstanceCapturingLambda() {
+                        setSerializableSupplier(() -> getName().length());
+                        setNonSerializableSupplier(() -> getName().length());
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        System.out.println("this.serializableSupplier.get() -> " + this.serializableSupplier.get());
+                        System.out.println("this.nonSerializableSupplier.get() -> " + this.nonSerializableSupplier.get());
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                $expression
+            }
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("this.serializableSupplier.get() -> 2\nthis.nonSerializableSupplier.get() -> 2")
+
+        where:
+        kind                     | expression
+        "instance capturing"     | "setInstanceCapturingLambda()"
+        "non-instance capturing" | "setNonInstanceCapturingLambda()"
+    }
+
+    def "capturing prohibited types in serializable lambdas is reported as a problem"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import java.util.*;
+                import java.util.function.Supplier;
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+                import org.gradle.api.artifacts.Configuration;
+                import org.gradle.api.file.SourceDirectorySet;
+
+                public class LambdaTask extends DefaultTask {
+                    private List<Supplier<String>> suppliers = new ArrayList<>();
+
+                    public void addSupplier(Supplier<String> supplier) {
+                        suppliers.add(supplier);
+                    }
+
+                    public void addSupplierWithConfiguration() {
+                        Configuration c = getProject().getConfigurations().create("test");
+                        addSupplier(() -> "configuration name is " + c.getName());
+                    }
+
+                    public void addSupplierWithSourceDirectorySet() {
+                        SourceDirectorySet s = getProject().getObjects().sourceDirectorySet("test", "test");
+                        addSupplier(() -> "source directory set name is " + s.getName());
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        for (Supplier<String> supplier : suppliers) {
+                            System.out.println("supplier -> " + supplier.get());
+                        }
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                addSupplierWithConfiguration()
+                addSupplierWithSourceDirectorySet()
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            loadsAfterStore = false
+            [Configuration.class, SourceDirectorySet.class].each {
+                serializationProblem(
+                    "Task `:ok` of type `my.LambdaTask`: cannot serialize a lambda that captures or accepts a parameter of type '" +
+                        it.name +
+                        "' as these are not supported with the configuration cache"
+                )
+            }
+        }
+        outputContains("supplier -> configuration name is test")
+        outputContains("supplier -> source directory set name is test")
+    }
+
+
+    def "restores task with action and spec that are Java lambdas"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    public void apply(Project project) {
+                        $type value = $expression;
+                        project.getTasks().register("ok", task -> {
+                            task.doLast(t -> {
+                                System.out.println(task.getName() + " action value is " + value);
+                            });
+                            task.onlyIf(t -> {
+                                System.out.println(task.getName() + " spec value is " + value);
+                                return true;
+                            });
+                        });
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("ok action value is ${value}")
+        outputContains("ok spec value is ${value}")
+
+        where:
+        type      | expression | value
+        "String"  | '"value"'  | "value"
+        "int"     | "12"       | "12"
+        "boolean" | "true"     | "true"
+    }
+
+    def "restores task with Transformer implemented by Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    public void apply(Project project) {
+                        project.getTasks().register("ok", task -> {
+                            Transformer<String, String> tx = String::toUpperCase;
+                            task.doLast(t -> {
+                                System.out.println(tx.transform(task.getName()) + "!");
+                            });
+                        });
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("OK!")
+    }
+
+    def "restores task with CommandLineArgumentProvider implemented by Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+                import org.gradle.process.CommandLineArgumentProvider;
+
+                import java.util.Collections;
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    public void apply(Project project) {
+                        project.getTasks().register("ok", task -> {
+                            CommandLineArgumentProvider cmdLineArgumentProvider = () -> Collections.singleton("-Dfoo=bar");
+                            task.doLast(t -> {
+                                System.out.println("args: " + cmdLineArgumentProvider.asArguments());
+                            });
+                        });
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("args: [-Dfoo=bar]")
+    }
+
+    def "lambda serialization can handle implementation methods with the same name"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+
+                import javax.inject.Inject;
+
+                class TaskA extends DefaultTask {
+                    @Inject
+                    public TaskA() { }
+                }
+
+                class TaskB extends DefaultTask {
+                    @Inject
+                    public TaskB() { }
+                }
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    // Use these overloads as lambda implementation methods - they should appear in SerializedLambda
+                    static void foo(TaskA taskA) { }
+                    static void foo(TaskB taskB) { }
+
+                    @Override
+                    public void apply(Project project) {
+                        Action<? super TaskA> actionA = LambdaPlugin::foo;
+                        Action<? super TaskB> actionB = LambdaPlugin::foo;
+
+                        project.getTasks().register("a", TaskA.class, task -> task.doLast(a -> actionA.execute((TaskA) a)));
+                        project.getTasks().register("b", TaskB.class, task -> task.doLast(b -> actionB.execute((TaskB) b)));
+                    }
+                }
+            """
+        }
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        configurationCacheRun("a", "b")
+        configurationCacheRun("a", "b")
+
+        then:
+        succeeds("a", "b")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32607")
+    def "can serialize property with circular reference in a lambda"() {
+        javaFile("buildSrc/src/main/java/com/example/MyTask.java", """
+            package com.example;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Internal;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class MyTask extends DefaultTask {
+                @Internal
+                abstract Property<String> getValue();
+
+                @TaskAction
+                public void action() {
+                    System.out.println("value = " + getValue().getOrNull());
+                }
+            }
+        """)
+
+        javaFile("buildSrc/src/main/java/com/example/MyPlugin.java", """
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            import java.io.File;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project p) {
+                    var environment = p.getProviders().systemProperty("some.property");
+                    p.getTasks().register("run", MyTask.class, task -> {
+                        var value = task.getValue();
+                        value.set(environment.map(v -> v + System.identityHashCode(value)));
+                    });
+                }
+            }
+        """)
+
+        buildFile """
+            apply plugin: com.example.MyPlugin
+        """
+
+        when:
+        configurationCacheRun("run", "-Dsome.property=some value")
+
+        then:
+        outputContains("some value")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22920")
+    def "report identifies #kind by impl method when it appears in property trace"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import java.util.function.Supplier;
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaTask extends DefaultTask {
+                    private Supplier<String> supplier;
+
+                    public void setSupplier(Supplier<String> supplier) {
+                        this.supplier = supplier;
+                    }
+
+                    public void captureProject() {
+                        Project p = getProject();
+                        setSupplier(() -> "project name is " + p.getName());
+                    }
+
+                    public void captureProjectBoundRef() {
+                        Project p = getProject();
+                        setSupplier(p::getName);
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        System.out.println("supplier -> " + supplier.get());
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                ${setupCall}()
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        problems.htmlReport(failure.error).assertContents {
+            problemsWithStackTraceCount = 0
+            withProblem("cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.") {
+                at(":ok").at("supplier").at("lambda of type java.util.function.Supplier returning java.lang.String").at(expectedCapturedArgs)
+            }
+            ignoringUnexpectedInputs()
+        }
+
+        where:
+        kind               | setupCall                | expectedCapturedArgs
+        "lambda body"      | "captureProject"         | "captured state from method my.LambdaTask.captureProject"
+        "bound method ref" | "captureProjectBoundRef" | "bound receiver of method org.gradle.api.Project.getName"
+    }
+}

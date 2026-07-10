@@ -1,0 +1,850 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.plugin.devel.tasks
+
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.api.problems.Severity
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import spock.lang.Issue
+
+class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implements ValidatePluginsTrait {
+
+    def "supports recursive types"() {
+        groovyTaskSource << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            class MyTask extends DefaultTask {
+                @Nested
+                Tree tree
+
+                public static class Tree {
+                    @Optional @Nested
+                    Tree left
+
+                    @Optional @Nested
+                    Tree right
+
+                    String nonAnnotated
+                }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(1)
+
+        and:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'tree.nonAnnotated\' is missing an input or output annotation'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
+            solutions == [
+                'Add an input or output annotation',
+                'Mark it as @Internal',
+            ]
+            additionalData.asMap == [
+                'parentPropertyName' : 'tree',
+                'typeName' : 'MyTask',
+                'propertyName' : 'nonAnnotated',
+            ]
+            originLocations == []
+        }
+
+    }
+
+    def "task cannot have property with annotation @#ann.simpleName"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @${ann.simpleName}
+                String getThing() {
+                    return null;
+                }
+
+                @Nested
+                Options getOptions() {
+                    return null;
+                }
+
+                public static class Options {
+                    @${ann.simpleName}
+                    String getNestedThing() {
+                        return null;
+                    }
+                }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(2)
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            contextualLabel == "Type \'MyTask\' property \'options.nestedThing\' is annotated with invalid property type @$ann.simpleName"
+            details == "The '@${ann.simpleName}' annotation cannot be used in this context"
+            solutions == [
+                'Remove the property',
+                'Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference',
+            ]
+            additionalData.asMap == [
+                'parentPropertyName' : 'options',
+                'typeName' : 'MyTask',
+                'propertyName' : 'nestedThing',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            contextualLabel == "Type 'MyTask' property 'thing' is annotated with invalid property type @$ann.simpleName"
+            details == "The '@${ann.simpleName}' annotation cannot be used in this context"
+            solutions == [
+                'Remove the property',
+                'Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'thing',
+            ]
+            originLocations == []
+        }
+
+        where:
+        ann << [InputArtifact, InputArtifactDependencies]
+    }
+
+    def "can enable stricter validation"() {
+        enableProblemsApiCheck()
+        buildFile << """
+            dependencies {
+                implementation localGroovy()
+            }
+            def strictProp = providers.gradleProperty("strict")
+            validatePlugins.enableStricterValidation = strictProp.present
+        """
+
+        groovyTaskSource << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import org.gradle.work.*
+
+            @DisableCachingByDefault(because = "test task")
+            class MyTask extends DefaultTask {
+                @InputFile
+                File fileProp
+
+                @InputFiles
+                Set<File> filesProp
+
+                @InputDirectory
+                File dirProp
+
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver fileResolver
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+
+        when:
+        file("gradle.properties").text = "strict=true"
+
+        then:
+        assertValidationFailsWith(3)
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-normalization-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'dirProp\' is annotated with @InputDirectory but missing a normalization strategy'
+            details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
+            solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'dirProp',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-normalization-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'fileProp\' is annotated with @InputFile but missing a normalization strategy'
+            details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
+            solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'fileProp',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(2)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-normalization-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'filesProp\' is annotated with @InputFiles but missing a normalization strategy'
+            details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
+            solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'filesProp',
+            ]
+            originLocations == []
+        }
+    }
+
+    def "can validate task classes using external types"() {
+        buildFile << """
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'com.typesafe:config:1.3.2'
+            }
+        """
+
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.io.File;
+            import com.typesafe.config.Config;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+
+                @Optional @Input
+                public Config getConfig() { return null; }
+
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+    }
+
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
+    def "can validate task classes using types from other projects"() {
+        settingsFile << """
+            include 'lib'
+        """
+
+        buildFile << """
+            allprojects {
+                ${mavenCentralRepository()}
+            }
+
+            project(':lib') {
+                apply plugin: 'java'
+
+                dependencies {
+                    implementation 'com.typesafe:config:1.3.2'
+                }
+            }
+
+            dependencies {
+                implementation project(':lib')
+            }
+        """
+
+        source("lib/src/main/java/MyUtil.java") << """
+            import com.typesafe.config.Config;
+
+            public class MyUtil {
+                public Config getConfig() {
+                    return null;
+                }
+            }
+        """
+
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+
+                @Input
+                public MyUtil getUtil() { return new MyUtil(); }
+
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37091")
+    def "can validate task classes extending a superclass that uses #dependencyScope dependencies"() {
+        settingsFile << """include("internal-types")"""
+
+        file("internal-types/build.gradle") << """
+            plugins {
+                id("java")
+            }
+        """
+
+        file("internal-types/src/main/java/com/example/internal/InternalType.java") << """
+            package com.example.internal;
+
+            public class InternalType {
+                private final String value;
+                public InternalType(String value) { this.value = value; }
+                public String getValue() { return value; }
+            }
+        """
+
+        file("build.gradle") << """
+            dependencies {
+                compileOnly(gradleApi())
+                $dependencyScope(project(":internal-types"))
+            }
+        """
+
+        // The base task uses the dependency type in a private field only.
+        // To verify that the fix makes validation work correctly (not just skipping the class),
+        // MyTask includes a deliberate validation error (unannotated property) that must be reported.
+        source("src/main/java/MyBaseTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import com.example.internal.InternalType;
+
+            @DisableCachingByDefault(because = "test task")
+            public abstract class MyBaseTask extends DefaultTask {
+                private final InternalType internal = new InternalType("hello");
+
+                @TaskAction
+                public void execute() {
+                    System.out.println(internal.getValue());
+                }
+            }
+        """
+
+        javaTaskSource << """
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends MyBaseTask {
+                public String getUnannotatedProperty() {
+                    return "value";
+                }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(1)
+
+        and:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'unannotatedProperty\' is missing an input or output annotation'
+            originLocations == []
+        }
+
+        where:
+        dependencyScope << [
+            // Privately used dependencies should not trigger validation failures:
+            'implementation',
+            // It is also common to depend on another Gradle plugin with a compileOnly dependency:
+            'compileOnly'
+        ]
+    }
+
+    protected createMyTransformAction() {
+        file("src/main/java/MyTransformAction.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
+            import java.io.*;
+
+            @DisableCachingByDefault(because = "test transform action")
+            public abstract class MyTransformAction implements TransformAction {
+                // Should be ignored because it's not a getter
+                public void getVoid() {
+                }
+
+                // Should be ignored because it's not a getter
+                public int getWithParameter(int count) {
+                    return count;
+                }
+
+                // Ignored because static
+                public static int getStatic() {
+                    return 0;
+                }
+
+                // Ignored because injected
+                @javax.inject.Inject
+                public abstract org.gradle.api.internal.file.FileResolver getInjected();
+
+                // Valid because it is annotated
+                @InputArtifact
+                @PathSensitive(PathSensitivity.NONE)
+                public abstract Provider<FileSystemLocation> getGoodInput();
+
+                // Invalid because it has no annotation
+                public long getBadTime() {
+                    return System.currentTimeMillis();
+                }
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                public String getOldThing() {
+                    return null;
+                }
+
+                // Unsupported annotation
+                @InputFile
+                public abstract File getInputFile();
+            }
+        """
+    }
+
+    def "can validate properties of an artifact transform action"() {
+        createMyTransformAction()
+
+        expect:
+        assertValidationFailsWith(3)
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            contextualLabel == 'Type \'MyTransformAction\' property \'inputFile\' is annotated with invalid property type @InputFile'
+            details == 'The \'@InputFile\' annotation cannot be used in this context'
+            solutions == [
+                'Remove the property',
+                'Use a different annotation, e.g one of @Inject, @InputArtifact or @InputArtifactDependencies',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTransformAction',
+                'propertyName' : 'inputFile',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTransformAction\' property \'badTime\' is missing an input annotation'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
+            solutions == [
+                'Add an input annotation',
+                'Mark it as @Internal',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTransformAction',
+                'propertyName' : 'badTime',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(2)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTransformAction\' property \'oldThing\' is missing an input annotation'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
+            solutions == [
+                'Add an input annotation',
+                'Mark it as @Internal',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTransformAction',
+                'propertyName' : 'oldThing',
+            ]
+            originLocations == []
+        }
+    }
+
+    def "can validate properties of an artifact transform parameters object"() {
+        file("src/main/java/MyTransformParameters.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
+            import java.io.*;
+
+            public interface MyTransformParameters extends TransformParameters {
+                // Should be ignored because it's not a getter
+                void getVoid();
+
+                // Should be ignored because it's not a getter
+                int getWithParameter(int count);
+
+                // Ignored because injected
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver getInjected();
+
+                // Valid because it is annotated
+                @InputFile
+                @PathSensitive(PathSensitivity.NONE)
+                File getGoodFileInput();
+
+                // Valid
+                @Incremental
+                @InputFiles
+                @PathSensitive(PathSensitivity.NONE)
+                FileCollection getGoodIncrementalInput();
+
+                // Valid
+                @Input
+                String getGoodInput();
+                void setGoodInput(String value);
+
+                // Invalid because only file inputs can be incremental
+                @Incremental
+                @Input
+                String getIncrementalNonFileInput();
+                void setIncrementalNonFileInput(String value);
+
+                // Invalid because it has no annotation
+                long getBadTime();
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                String getOldThing();
+
+                // Unsupported annotation
+                @InputArtifact
+                File getInputFile();
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(4)
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'inputFile\' is annotated with invalid property type @InputArtifact'
+            details == 'The \'@InputArtifact\' annotation cannot be used in this context'
+            solutions == [
+                'Remove the property',
+                'Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'inputFile',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:incompatible-annotations'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'incrementalNonFileInput\' is annotated with @Incremental but that is not allowed for \'Input\' properties'
+            details == 'This modifier is used in conjunction with a property of type \'Input\' but this doesn\'t have semantics'
+            solutions == [ 'Remove the \'@Incremental\' annotation' ]
+            additionalData.asMap == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'incrementalNonFileInput',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(2)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'badTime\' is missing an input annotation'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
+            solutions == [
+                'Add an input annotation',
+                'Mark it as @Internal',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'badTime',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(3)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'oldThing\' is missing an input annotation'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
+            solutions == [
+                'Add an input annotation',
+                'Mark it as @Internal',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'oldThing',
+            ]
+            originLocations == []
+        }
+
+    }
+
+    def "detects missing DisableCachingByDefault annotations"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        file("src/main/java/MyTransformAction.java") << """
+            import org.gradle.api.artifacts.transform.*;
+
+            public abstract class MyTransformAction implements TransformAction<TransformParameters.None> {
+            }
+        """
+        buildFile << """
+            validatePlugins.enableStricterValidation = true
+        """
+
+        expect:
+        assertValidationFailsWith(2)
+
+         and:
+         verifyAll(receivedProblem(0)) {
+             severity == Severity.ERROR
+             fqid == 'validation:type-validation:not-cacheable-without-reason'
+             contextualLabel == 'Type \'MyTask\' must be annotated either with @CacheableTask or with @DisableCachingByDefault'
+             details == 'The task author should make clear why a task is not cacheable'
+             solutions == [
+                 'Add @DisableCachingByDefault(because = ...)',
+                 'Add @CacheableTask',
+                 'Add @UntrackedTask(because = ...)',
+             ]
+             additionalData.asMap == [ 'typeName' : 'MyTask' ]
+             originLocations == []
+         }
+         verifyAll(receivedProblem(1)) {
+             severity == Severity.ERROR
+             fqid == 'validation:type-validation:not-cacheable-without-reason'
+             contextualLabel == 'Type \'MyTransformAction\' must be annotated either with @CacheableTransform or with @DisableCachingByDefault'
+             details == 'The transform action author should make clear why a transform action is not cacheable'
+             solutions == [
+                 'Add @DisableCachingByDefault(because = ...)',
+                 'Add @CacheableTransform',
+             ]
+             additionalData.asMap == [ 'typeName' : 'MyTransformAction' ]
+             originLocations == []
+         }
+    }
+
+    def "untracked tasks don't need a disable caching by default reason"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            @UntrackedTask(because = "untracked for validation test")
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        buildFile << """
+            validatePlugins.enableStricterValidation = true
+        """
+
+        expect:
+        assertValidationSucceeds()
+    }
+
+    def "can not use ResolvedArtifactResult as task input annotated with @#annotation"() {
+        given:
+        source("src/main/java/NestedBean.java") << """
+            import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+
+            public interface NestedBean {
+
+                @$annotation
+                Property<ResolvedArtifactResult> getNestedInput();
+            }
+        """
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault
+            public abstract class MyTask extends DefaultTask {
+
+                private final NestedBean nested = getProject().getObjects().newInstance(NestedBean.class);
+
+                @$annotation
+                public ResolvedArtifactResult getDirect() { return null; }
+
+                @$annotation
+                public Provider<ResolvedArtifactResult> getProviderInput() { return getPropertyInput(); }
+
+                @$annotation
+                public abstract Property<ResolvedArtifactResult> getPropertyInput();
+
+                @$annotation
+                public abstract SetProperty<ResolvedArtifactResult> getSetPropertyInput();
+
+                @$annotation
+                public abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
+
+                @$annotation
+                public abstract MapProperty<String, ResolvedArtifactResult> getMapPropertyInput();
+
+                @Nested
+                public NestedBean getNestedBean() { return nested; }
+            }
+        """
+
+        expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
+        assertValidationFailsWith(7)
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unsupported-value-type'
+            contextualLabel == "Type 'MyTask' property 'direct' has @$annotation annotation used on property of type 'ResolvedArtifactResult'"
+            details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
+            solutions == [
+                'Extract artifact metadata and annotate with @Input',
+                'Extract artifact files and annotate with @InputFiles',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'direct',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unsupported-value-type'
+            contextualLabel == "Type 'MyTask' property 'listPropertyInput' has @$annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'"
+            details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
+            solutions == [
+                'Extract artifact metadata and annotate with @Input',
+                'Extract artifact files and annotate with @InputFiles',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'listPropertyInput',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(2)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unsupported-value-type'
+            contextualLabel == "Type 'MyTask' property 'mapPropertyInput' has @$annotation annotation used on property of type 'MapProperty<String, ResolvedArtifactResult>'"
+            details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
+            solutions == [
+                'Extract artifact metadata and annotate with @Input',
+                'Extract artifact files and annotate with @InputFiles',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'mapPropertyInput',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(3)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unsupported-value-type'
+            contextualLabel == "Type 'MyTask' property 'nestedBean.nestedInput' has @$annotation annotation used on property of type 'Property<ResolvedArtifactResult>'"
+            details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
+            solutions == [
+                'Extract artifact metadata and annotate with @Input',
+                'Extract artifact files and annotate with @InputFiles',
+            ]
+            additionalData.asMap == [
+                'parentPropertyName' : 'nestedBean',
+                'typeName' : 'MyTask',
+                'propertyName' : 'nestedInput',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(4)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unsupported-value-type'
+            contextualLabel == "Type 'MyTask' property 'propertyInput' has @$annotation annotation used on property of type 'Property<ResolvedArtifactResult>'"
+            details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
+            solutions == [
+                'Extract artifact metadata and annotate with @Input',
+                'Extract artifact files and annotate with @InputFiles',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'propertyInput',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(5)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unsupported-value-type'
+            contextualLabel == "Type 'MyTask' property 'providerInput' has @$annotation annotation used on property of type 'Provider<ResolvedArtifactResult>'"
+            details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
+            solutions == [
+                'Extract artifact metadata and annotate with @Input',
+                'Extract artifact files and annotate with @InputFiles',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'providerInput',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(6)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unsupported-value-type'
+            contextualLabel == "Type 'MyTask' property 'setPropertyInput' has @$annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'"
+            details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
+            solutions == [
+                'Extract artifact metadata and annotate with @Input',
+                'Extract artifact files and annotate with @InputFiles',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'setPropertyInput',
+            ]
+            originLocations == []
+        }
+
+        where:
+        annotation   | _
+        "Input"      | _
+        "InputFile"  | _
+        "InputFiles" | _
+    }
+}
+

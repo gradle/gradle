@@ -1,0 +1,315 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.kotlin.dsl.provider.plugins.precompiled
+
+
+import org.gradle.api.GradleException
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.provider.ListProperty
+import org.gradle.kotlin.dsl.support.KotlinScriptHashing
+import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
+import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
+import org.jetbrains.kotlin.lexer.KotlinLexer
+import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.NameUtils
+import java.io.File
+import java.util.Locale
+
+
+internal
+class PrecompiledScriptPluginFactory {
+    private val lexer = KotlinLexer()
+
+    fun create(scriptFile: File): PrecompiledScriptPlugin {
+
+        val scriptFileName = scriptFile.name
+        val scriptText = convertLineSeparatorsToUnix(scriptFile.readText())
+        val packageName = lexer.packageNameOf(scriptText)
+        val scriptTypeMatch = KotlinScriptTypeMatch.forName(scriptFileName)!!
+        val scriptType = scriptTypeMatch.scriptType
+        val scriptExtension = scriptTypeMatch.match.value
+
+        val fileNameWithoutScriptExtension = fileNameWithoutScriptExtension(
+            scriptFile,
+            scriptExtension,
+            scriptType
+        )
+        val simplePluginAdapterClassName = fileNameWithoutScriptExtension
+            .kebabCaseToPascalCase()
+            .asJavaIdentifier() + "Plugin"
+
+        fun packagePrefixed(id: String) =
+            packageName?.let { "$it.$id" } ?: id
+
+        return PrecompiledScriptPlugin(
+            scriptFile = scriptFile,
+            scriptFileName = scriptFileName,
+            scriptText = scriptText,
+            hashString = KotlinScriptHashing.hashOfNormalisedString(scriptText),
+            scriptType = scriptType,
+            targetType = when (scriptType) {
+                KotlinScriptType.PROJECT -> Project::class.qualifiedName
+                KotlinScriptType.SETTINGS -> Settings::class.qualifiedName
+                KotlinScriptType.INIT -> Gradle::class.qualifiedName
+            },
+            packageName = packageName,
+            id = packagePrefixed(fileNameWithoutScriptExtension),
+            implementationClass = packagePrefixed(simplePluginAdapterClassName),
+            compiledScriptTypeName = packagePrefixed(scriptClassNameForFile(scriptFile)),
+            simplePluginAdapterClassName = simplePluginAdapterClassName,
+        )
+    }
+
+    private fun fileNameWithoutScriptExtension(scriptFile: File, scriptExtension: String, scriptType: KotlinScriptType): String =
+        scriptFile.name.removeSuffix(scriptExtension)
+            .also { name -> validateFileNameWithoutScriptExtension(name, scriptType, scriptFile) }
+
+    private fun validateFileNameWithoutScriptExtension(
+        fileNameWithoutScriptExtension: String,
+        scriptType: KotlinScriptType,
+        scriptFile: File,
+    ) {
+        if (fileNameWithoutScriptExtension.isEmpty()) {
+            val scriptTypeMessage = when (scriptType) {
+                KotlinScriptType.INIT -> "<plugin-id>.init.gradle.kts"
+                KotlinScriptType.SETTINGS -> "<plugin-id>.settings.gradle.kts"
+                KotlinScriptType.PROJECT -> TODO("This should not happen, please report an issue.")
+            }
+            throw GradleException("Precompiled script '${normaliseFileSeparators(scriptFile.absolutePath)}' file name is invalid, please rename it to '$scriptTypeMessage'.")
+        }
+    }
+}
+
+internal
+class PrecompiledScriptPlugin internal constructor(
+    internal val scriptFile: File,
+    val scriptFileName: String,
+    val scriptText: String,
+    val hashString: String,
+    val scriptType: KotlinScriptType,
+    val targetType: String?,
+    val packageName: String?,
+    /**
+     * Gradle plugin id inferred from the script file name and package declaration (if any).
+     */
+    val id: String,
+    /**
+     * Fully qualified name for the [Plugin] implementation class.
+     *
+     * The [Plugin] implementation class adapts the precompiled script class
+     * to the Gradle [Plugin] protocol and it is automatically generated by
+     * the `generateScriptPluginAdapters` task.
+     */
+    val implementationClass: String,
+    /**
+     * Fully qualified name
+     */
+    val compiledScriptTypeName: String,
+    val simplePluginAdapterClassName: String,
+)
+
+
+internal
+fun scriptPluginFilesOf(plugins: ListProperty<PrecompiledScriptPlugin>) =
+    plugins.map { it.map { it.scriptFile }.toSet() }
+
+
+private
+fun KotlinLexer.packageNameOf(code: String): String? {
+    start(code)
+
+    // Based on: https://kotlinlang.org/docs/reference/grammar.html#kotlinFile
+    //
+    // The only elements Kotlin script grammar allows before the package statement
+    // are the shebang line and file annotations.
+    //
+    // If neither of them is there, then we know that the package statement is
+    // right at the beginning of the script, if present at all, so we can do a
+    // very simple and cheap search for it.
+    //
+    // Otherwise, we must do a bit more involved searching.
+
+    skipWhiteSpaceAndComments()
+    return if (hasShebangLine() || hasFileAnnotations()) extensiveSearchForPackageName()
+    else simpleSearchForPackageName()
+}
+
+
+private
+fun KotlinLexer.hasShebangLine(): Boolean {
+
+    if (tokenType != KtTokens.HASH) {
+        return false
+    }
+
+    val mark = currentPosition
+    advance()
+
+    val hasShebangLine = tokenType == KtTokens.EXCL
+
+    restore(mark)
+    return hasShebangLine
+}
+
+
+private
+fun KotlinLexer.hasFileAnnotations(): Boolean {
+
+    if (tokenType != KtTokens.AT) {
+        return false
+    }
+
+    val mark = currentPosition
+    advance()
+
+    val hasFileAnnotation = tokenType == KtTokens.IDENTIFIER && tokenText == "file"
+
+    restore(mark)
+    return hasFileAnnotation
+}
+
+
+private
+fun KotlinLexer.simpleSearchForPackageName(): String? =
+    when (tokenType) {
+        KtTokens.PACKAGE_KEYWORD -> {
+            advance()
+            skipWhiteSpaceAndComments()
+            parseQualifiedName()
+        }
+
+        else -> null
+    }
+
+
+private
+fun KotlinLexer.extensiveSearchForPackageName(): String? {
+    while (hasFurtherTokens() && !packageDefinitionFound() && !tooLateForPackageStatement()) {
+        advance()
+    }
+
+    if (packageDefinitionFound()) {
+        advance()
+        skipWhiteSpaceAndComments()
+        return parseQualifiedName()
+    }
+
+    return null
+}
+
+
+private
+fun KotlinLexer.hasFurtherTokens() = tokenType != null
+
+
+private
+fun KotlinLexer.packageDefinitionFound() = tokenType == KtTokens.PACKAGE_KEYWORD
+
+
+private
+val packageParsingAbortIdentifiers = setOf("import", "buildscript", "plugins", "pluginManagement", "initscript")
+
+
+// Set of tokens that indicate we've gone too far past where a package declaration could appear.
+// Extracted as a module-level constant to avoid creating a new Set instance on every method call.
+private
+val tokensToStopAt = setOf(
+    KtTokens.IMPORT_KEYWORD,
+    // Using LBRACE instead of CLASS_KEYWORD/INTERFACE_KEYWORD/OBJECT_KEYWORD because:
+    // 1. File annotations (like @file:OptIn(SomeClass::class)) can contain the keyword "class"
+    //    without representing an actual class declaration
+    // 2. All meaningful declarations (class, interface, object, function) that indicate
+    //    we're past the package declaration will have a left brace '{' token
+    // 3. File annotations cannot contain brace tokens, so this reliably distinguishes
+    //    between keywords in annotations vs actual declarations
+    KtTokens.LBRACE,
+    KtTokens.VAL_KEYWORD,
+    KtTokens.VAR_KEYWORD,
+    KtTokens.WHILE_KEYWORD,
+    KtTokens.FOR_KEYWORD,
+    KtTokens.DO_KEYWORD,
+    KtTokens.TYPE_ALIAS_KEYWORD,
+)
+
+
+private
+fun KotlinLexer.tooLateForPackageStatement(): Boolean {
+    // based on https://kotlinlang.org/docs/reference/grammar.html#script
+
+    if (tokenType == KtTokens.IDENTIFIER && tokenText in packageParsingAbortIdentifiers) {
+        return true
+    }
+
+    return tokenType in tokensToStopAt
+}
+
+
+private
+fun KotlinLexer.parseQualifiedName(): String =
+    StringBuilder().run {
+        while (tokenType == KtTokens.IDENTIFIER || tokenType == KtTokens.DOT) {
+            append(tokenText)
+            advance()
+        }
+        toString()
+    }
+
+
+private
+fun KotlinLexer.skipWhiteSpaceAndComments() {
+    while (tokenType in KtTokens.WHITE_SPACE_OR_COMMENT_BIT_SET) {
+        advance()
+    }
+}
+
+
+private
+fun scriptClassNameForFile(file: File) =
+    NameUtils.getScriptNameForFile(file.name).asString()
+
+
+private
+fun CharSequence.kebabCaseToPascalCase() =
+    kebabCaseToCamelCase().uppercaseFirstChar()
+
+
+private val KEBAB_PATTERN = "-[a-z]".toRegex()
+
+private
+fun CharSequence.kebabCaseToCamelCase() =
+    replace(KEBAB_PATTERN) { it.value.drop(1).uppercase(Locale.US) }
+
+
+private
+fun CharSequence.asJavaIdentifier() =
+    replaceBy { if (it.isJavaIdentifierPart()) it else '_' }.let {
+        if (it.first().isJavaIdentifierStart()) it
+        else "_$it"
+    }
+
+
+private
+inline fun CharSequence.replaceBy(f: (Char) -> Char) =
+    StringBuilder(length).let { builder ->
+        forEach { char -> builder.append(f(char)) }
+        builder.toString()
+    }

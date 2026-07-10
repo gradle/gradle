@@ -1,0 +1,35 @@
+plugins {
+    id("java-library")
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::lenient-resolution-dependencies[]
+dependencies {
+    implementation("does:not:exist")
+    implementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
+}
+// end::lenient-resolution-dependencies[]
+
+abstract class ResolveFiles extends DefaultTask {
+
+    @InputFiles
+    abstract ConfigurableFileCollection getFiles()
+
+    @TaskAction
+    void print() {
+        files.each {
+            println(it.name)
+        }
+    }
+}
+
+// tag::resolve-lenient[]
+tasks.register("resolveLenient", ResolveFiles) {
+    files.from(configurations.runtimeClasspath.incoming.artifactView {
+        lenient = true
+    }.files)
+}
+// end::resolve-lenient[]

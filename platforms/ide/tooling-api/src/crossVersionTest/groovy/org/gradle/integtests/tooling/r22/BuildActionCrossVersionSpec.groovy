@@ -1,0 +1,109 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.tooling.r22
+
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.ProjectConnection
+
+import java.nio.file.Files
+
+class BuildActionCrossVersionSpec extends ToolingApiSpecification {
+    def "can change the implementation of an action"() {
+        // Make sure we reuse the same daemon
+        toolingApi.requireIsolatedDaemons()
+
+        given:
+        File implJar = buildActionJar("""
+            public class ActionImpl implements ${BuildAction.name}<java.io.File> {
+                public java.io.File execute(${BuildController.name} controller) {
+                    try {
+                        return new java.io.File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+                    } catch (java.net.URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        """)
+
+        def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
+        def action1 = cl1.loadClass("ActionImpl").getConstructor().newInstance()
+
+        when:
+        File actualJar1 = withConnection { ProjectConnection connection ->
+            connection.action(action1).run()
+        }
+        cl1.close()
+        Files.delete(implJar.toPath())
+
+        then:
+        actualJar1 != implJar
+        actualJar1.name == implJar.name
+
+        when:
+        implJar = buildActionJar("""
+            public class ActionImpl implements ${BuildAction.name}<String> {
+                public String execute(${BuildController.name} controller) {
+                    return getClass().getProtectionDomain().getCodeSource().getLocation().toString();
+                }
+            }
+        """)
+
+        def cl2 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
+        def action2 = cl2.loadClass("ActionImpl").getConstructor().newInstance()
+
+        String result2 = withConnection { ProjectConnection connection ->
+            connection.action(action2).run()
+        }
+        cl2.close()
+        Files.delete(implJar.toPath())
+
+        then:
+        def actualJar2 = new File(new URI(result2))
+        actualJar2 != implJar
+        actualJar2 != actualJar1
+        actualJar2.name == implJar.name
+
+        cleanup:
+        cl1?.close()
+        cl2?.close()
+    }
+
+    private File buildActionJar(String actionContent) {
+        file("other/settings.gradle").text = """
+            rootProject.name = 'other'
+        """
+        file("other/build.gradle").text = """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(gradleApi())
+            }
+        """
+        file('other/src/main/java/ActionImpl.java').text = actionContent
+
+        connector(file("other"))
+            .connect()
+            .newBuild()
+            .forTasks("jar")
+            .run()
+
+        return file("other/build/libs/other.jar")
+    }
+}

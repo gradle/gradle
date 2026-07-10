@@ -1,0 +1,536 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.plugins.ide.internal.tooling;
+
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.Strings;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateLookup;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.EclipsePlugin;
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
+import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
+import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
+import org.gradle.plugins.ide.eclipse.model.AccessRule;
+import org.gradle.plugins.ide.eclipse.model.BuildCommand;
+import org.gradle.plugins.ide.eclipse.model.Classpath;
+import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
+import org.gradle.plugins.ide.eclipse.model.Container;
+import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
+import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
+import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.gradle.plugins.ide.eclipse.model.Library;
+import org.gradle.plugins.ide.eclipse.model.Link;
+import org.gradle.plugins.ide.eclipse.model.Output;
+import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
+import org.gradle.plugins.ide.eclipse.model.SourceFolder;
+import org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary;
+import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProjectNameProvider;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultAccessRule;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultClasspathAttribute;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseBuildCommand;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseClasspathContainer;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseExternalDependency;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseJavaSourceSettings;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseLinkedResource;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseOutputLocation;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProject;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProjectDependency;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProjectNature;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirectory;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.tooling.model.GradleModuleVersion;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.model.eclipse.EclipseRuntime;
+import org.gradle.tooling.model.eclipse.EclipseWorkspace;
+import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
+import org.gradle.util.Path;
+import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.GUtil;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
+
+    private static final String ECLIPSE_PROJECT_MODEL_NAME = EclipseProject.class.getName();
+    private static final String ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME = HierarchicalEclipseProject.class.getName();
+
+    private final GradleProjectBuilderInternal gradleProjectBuilder;
+    private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
+
+    private boolean projectDependenciesOnly;
+    private DefaultEclipseProject result;
+    private List<DefaultEclipseProject> eclipseProjects;
+    private TasksFactory tasksFactory;
+    private DefaultGradleProject rootGradleProject;
+    private ProjectIdentity currentProjectId;
+    private EclipseRuntime eclipseRuntime;
+    private Map<String, Boolean> projectOpenStatus = new HashMap<>();
+
+    @VisibleForTesting
+    public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
+        this.gradleProjectBuilder = gradleProjectBuilder;
+        this.uniqueProjectNameProvider = uniqueProjectNameProvider;
+    }
+
+    public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, ProjectStateLookup projectStateLookup) {
+        this(gradleProjectBuilder, new EclipseModelAwareUniqueProjectNameProvider(projectStateLookup));
+    }
+
+    @Override
+    public boolean canBuild(String modelName) {
+        return modelName.equals(ECLIPSE_PROJECT_MODEL_NAME) || modelName.equals(ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME);
+    }
+
+    @Override
+    public Class<EclipseRuntime> getParameterType() {
+        return EclipseRuntime.class;
+    }
+
+    @Override
+    public Object buildAll(String modelName, EclipseRuntime eclipseRuntime, Project project) {
+        this.eclipseRuntime = eclipseRuntime;
+        List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
+        HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
+        projectsInBuild.removeAll(gatherExternalProjects((ProjectInternal) project.getRootProject(), projects));
+        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
+
+        return buildAll(modelName, project);
+    }
+
+    public static boolean isProjectOpen(EclipseWorkspaceProject project) {
+        // TODO we should refactor this to general, compatibility mapping solution, as we have it for model loading. See HasCompatibilityMapping class.
+        try {
+            return project.isOpen();
+        } catch (UnsupportedMethodException e) {
+            // isOpen was added in gradle 5.6. for 5.5 we default to true
+            return true;
+        }
+    }
+
+    @Override
+    public DefaultEclipseProject buildAll(String modelName, Project project) {
+        boolean includeTasks = modelName.equals(ECLIPSE_PROJECT_MODEL_NAME);
+        tasksFactory = new TasksFactory(includeTasks);
+        projectDependenciesOnly = modelName.equals(ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME);
+        currentProjectId = ((ProjectInternal) project).getProjectIdentity();
+        eclipseProjects = new ArrayList<>();
+        ProjectInternal root = (ProjectInternal) project.getRootProject();
+        ProjectState rootProjectState = root.getOwner();
+        rootGradleProject = gradleProjectBuilder.buildForRoot(project);
+        tasksFactory.collectTasks(root);
+        applyEclipsePlugin(rootProjectState, new HashSet<>());
+        deduplicateProjectNames(root);
+        buildHierarchy(rootProjectState);
+        populate(rootProjectState);
+        return result;
+    }
+
+    private void deduplicateProjectNames(ProjectInternal root) {
+        uniqueProjectNameProvider.setReservedProjectNames(calculateReservedProjectNames(root, eclipseRuntime));
+        for (Project project : root.getAllprojects()) {
+            EclipseModel eclipseModel = project.getExtensions().findByType(EclipseModel.class);
+            if (eclipseModel != null) {
+                eclipseModel.getProject().setName(uniqueProjectNameProvider.getUniqueName(((ProjectInternal) project).getProjectIdentity()));
+            }
+        }
+    }
+
+    private static void applyEclipsePlugin(ProjectState rootState, Set<Path> alreadyProcessed) {
+        BuildState build = rootState.getOwner();
+        build.getProjects().applyToMutableStateOfAllProjects(access -> {
+            for (Project p : access.getMutableModel(rootState).getAllprojects()) {
+                p.getPluginManager().apply(EclipsePlugin.class);
+            }
+        });
+        for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
+            BuildState target = reference.getTarget();
+            if (target instanceof IncludedBuildState) {
+                target.ensureProjectsConfigured();
+                if (alreadyProcessed.add(target.getIdentityPath())) {
+                    applyEclipsePlugin(target.getProjects().getRootProject(), alreadyProcessed);
+                }
+            }
+        }
+    }
+
+    private DefaultEclipseProject buildHierarchy(ProjectState projectState) {
+        List<DefaultEclipseProject> children = new ArrayList<>();
+        for (ProjectState child : projectState.getChildProjects()) {
+            children.add(buildHierarchy(child));
+        }
+
+        record NameAndDescription(String name, String description) {}
+
+        NameAndDescription data = projectState.fromMutableState(project -> {
+            EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
+            org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
+
+            String name = internalProject.getName();
+            String description = GUtil.elvis(internalProject.getComment(), null);
+            return new NameAndDescription(name, description);
+        });
+        String path = projectState.getIdentity().getProjectPath().asString();
+        File projectDir = projectState.getProjectDir();
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(data.name, path, data.description, projectDir, children).setGradleProject(rootGradleProject.findByPath(path));
+
+        for (DefaultEclipseProject child : children) {
+            child.setParent(eclipseProject);
+        }
+        addProject(projectState, eclipseProject);
+        return eclipseProject;
+    }
+
+    private void addProject(ProjectState project, DefaultEclipseProject eclipseProject) {
+        if (project.getIdentity().equals(currentProjectId)) {
+            result = eclipseProject;
+        }
+        eclipseProjects.add(eclipseProject);
+    }
+
+    private void populate(ProjectState p) {
+        p.applyToMutableState(project -> {
+            EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
+
+            boolean projectDependenciesOnly = this.projectDependenciesOnly;
+
+            ClasspathElements classpathElements = gatherClasspathElements(projectOpenStatus, eclipseModel.getClasspath(), projectDependenciesOnly);
+
+            DefaultEclipseProject eclipseProject = findEclipseProject(project);
+
+            eclipseProject.setClasspath(classpathElements.getExternalDependencies());
+            eclipseProject.setProjectDependencies(classpathElements.getProjectDependencies());
+            eclipseProject.setSourceDirectories(classpathElements.getSourceDirectories());
+            eclipseProject.setClasspathContainers(classpathElements.getClasspathContainers());
+            eclipseProject.setOutputLocation(classpathElements.getEclipseOutputLocation() != null ? classpathElements.getEclipseOutputLocation() : new DefaultEclipseOutputLocation("bin"));
+            eclipseProject.setAutoBuildTasks(!TaskDependencyUtil.getDependenciesForInternalUse(eclipseModel.getAutoBuildTasks(), null).isEmpty());
+
+            org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
+
+            XmlFileContentMerger projectFile = eclipseModel.getProject().getFile();
+            if (projectFile == null) {
+                xmlProject.configure(eclipseModel.getProject());
+            } else {
+                eclipseModel.getProject().mergeXmlProject(xmlProject);
+            }
+
+            populateEclipseProjectTasks(eclipseProject, tasksFactory.getTasks(project));
+            populateEclipseProject(eclipseProject, xmlProject);
+            populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
+        });
+
+        for (ProjectState childProject : p.getChildProjects()) {
+            populate(childProject);
+        }
+    }
+
+    public static ClasspathElements gatherClasspathElements(Map<String, Boolean> projectOpenStatus, EclipseClasspath eclipseClasspath, boolean projectDependenciesOnly) {
+        ClasspathElements classpathElements = new ClasspathElements();
+        eclipseClasspath.setProjectDependenciesOnly(projectDependenciesOnly);
+
+        List<ClasspathEntry> classpathEntries;
+        if (eclipseClasspath.getFile() == null) {
+            classpathEntries = eclipseClasspath.resolveDependencies();
+        } else {
+            Classpath classpath = new Classpath(eclipseClasspath.getFileReferenceFactory());
+            eclipseClasspath.mergeXmlClasspath(classpath);
+            classpathEntries = classpath.getEntries();
+        }
+
+        final Map<String, DefaultEclipseProjectDependency> projectDependencyMap = new LinkedHashMap<>();
+
+        for (ClasspathEntry entry : classpathEntries) {
+            //we don't handle Variables at the moment because users didn't request it yet
+            //and it would probably push us to add support in the tooling api to retrieve the variable mappings.
+            if (entry instanceof Library) {
+                AbstractLibrary library = (AbstractLibrary) entry;
+                final File file = library.getLibrary().getFile();
+                final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
+                final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
+                DefaultEclipseExternalDependency dependency;
+                ModuleVersionIdentifier moduleVersionId = library.getModuleVersion();
+                GradleModuleVersion moduleVersion = null;
+                if (moduleVersionId != null) {
+                    moduleVersion = new DefaultGradleModuleVersion(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion());
+                }
+                if (entry instanceof UnresolvedLibrary) {
+                    UnresolvedLibrary unresolvedLibrary = (UnresolvedLibrary) entry;
+                    dependency = DefaultEclipseExternalDependency.createUnresolved(file, javadoc, source, moduleVersion, library.isExported(), createAttributes(library), createAccessRules(library), unresolvedLibrary.getAttemptedSelector().getDisplayName());
+                } else {
+                    dependency = DefaultEclipseExternalDependency.createResolved(file, javadoc, source, moduleVersion, library.isExported(), createAttributes(library), createAccessRules(library));
+                }
+                classpathElements.getExternalDependencies().add(dependency);
+            } else if (entry instanceof ProjectDependency) {
+                final ProjectDependency projectDependency = (ProjectDependency) entry;
+                // By removing the leading "/", this is no longer a "path" as defined by Eclipse
+                final String path = Strings.CS.removeStart(projectDependency.getPath(), "/");
+                boolean isProjectOpen = projectOpenStatus.getOrDefault(path, true);
+                if (!isProjectOpen) {
+                    final File source = projectDependency.getPublicationSourcePath() == null ? null : projectDependency.getPublicationSourcePath().getFile();
+                    final File javadoc = projectDependency.getPublicationJavadocPath() == null ? null : projectDependency.getPublicationJavadocPath().getFile();
+                    classpathElements.getExternalDependencies().add(DefaultEclipseExternalDependency.createResolved(projectDependency.getPublication().getFile(), javadoc, source, null, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency)));
+                    classpathElements.getBuildDependencies().add(projectDependency.getBuildDependencies());
+                } else {
+                    DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
+                    projectDependencyMap.merge(path, dependency, (oldDependency, newDependency) -> !hasTestSourcesAttribute(oldDependency) && hasTestSourcesAttribute(newDependency) ? oldDependency : newDependency);
+                }
+            } else if (entry instanceof SourceFolder) {
+                final SourceFolder sourceFolder = (SourceFolder) entry;
+                String path = sourceFolder.getPath();
+                List<String> excludes = sourceFolder.getExcludes();
+                List<String> includes = sourceFolder.getIncludes();
+                String output = sourceFolder.getOutput();
+                classpathElements.getSourceDirectories().add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder), createAccessRules(sourceFolder)));
+            } else if (entry instanceof Container) {
+                final Container container = (Container) entry;
+                classpathElements.getClasspathContainers().add(new DefaultEclipseClasspathContainer(container.getPath(), container.isExported(), createAttributes(container), createAccessRules(container)));
+            } else if (entry instanceof Output) {
+                classpathElements.setEclipseOutputLocation(new DefaultEclipseOutputLocation(((Output) entry).getPath()));
+            }
+        }
+        classpathElements.getProjectDependencies().addAll(projectDependencyMap.values());
+        return classpathElements;
+    }
+
+    private static void populateEclipseProjectTasks(DefaultEclipseProject eclipseProject, Iterable<Task> projectTasks) {
+        List<DefaultEclipseTask> tasks = new ArrayList<>();
+        for (Task t : projectTasks) {
+            tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
+        }
+        eclipseProject.setTasks(tasks);
+    }
+
+    private static void populateEclipseProject(DefaultEclipseProject eclipseProject, org.gradle.plugins.ide.eclipse.model.Project xmlProject) {
+        List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<>();
+        for (Link r : xmlProject.getLinkedResources()) {
+            linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
+        }
+        eclipseProject.setLinkedResources(linkedResources);
+
+        List<DefaultEclipseProjectNature> natures = new ArrayList<>();
+        for (String n : xmlProject.getNatures()) {
+            natures.add(new DefaultEclipseProjectNature(n));
+        }
+        eclipseProject.setProjectNatures(natures);
+
+        List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<>();
+        for (BuildCommand b : xmlProject.getBuildCommands()) {
+            Map<String, String> arguments = new LinkedHashMap<>();
+            for (Map.Entry<String, String> entry : b.getArguments().entrySet()) {
+                arguments.put(convertGString(entry.getKey()), convertGString(entry.getValue()));
+            }
+            buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), arguments));
+        }
+        eclipseProject.setBuildCommands(buildCommands);
+    }
+
+    private static void populateEclipseProjectJdt(DefaultEclipseProject eclipseProject, EclipseJdt jdt) {
+        if (jdt != null) {
+            eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings().setSourceLanguageLevel(jdt.getSourceCompatibility()).setTargetBytecodeVersion(jdt.getTargetCompatibility()).setJdk(DefaultInstalledJdk.current()));
+        }
+    }
+
+    private DefaultEclipseProject findEclipseProject(final Project project) {
+        return CollectionUtils.findFirst(eclipseProjects, element -> element.getGradleProject().getPath().equals(project.getPath()));
+    }
+
+    private static List<DefaultClasspathAttribute> createAttributes(AbstractClasspathEntry classpathEntry) {
+        List<DefaultClasspathAttribute> result = new ArrayList<>();
+        Map<String, Object> attributes = classpathEntry.getEntryAttributes();
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            Object value = entry.getValue();
+            result.add(new DefaultClasspathAttribute(convertGString(entry.getKey()), value == null ? "" : value.toString()));
+        }
+        return result;
+    }
+
+    private static List<DefaultAccessRule> createAccessRules(AbstractClasspathEntry classpathEntry) {
+        List<DefaultAccessRule> result = new ArrayList<>();
+        for (AccessRule accessRule : classpathEntry.getAccessRules()) {
+            result.add(createAccessRule(accessRule));
+        }
+        return result;
+    }
+
+    private static DefaultAccessRule createAccessRule(AccessRule accessRule) {
+        int kindCode;
+        String kind = accessRule.getKind();
+        switch (kind) {
+            case "accessible":
+            case "0":
+                kindCode = 0;
+                break;
+            case "nonaccessible":
+            case "1":
+                kindCode = 1;
+                break;
+            case "discouraged":
+            case "2":
+                kindCode = 2;
+                break;
+            default:
+                kindCode = 0;
+                break;
+        }
+        return new DefaultAccessRule(kindCode, accessRule.getPattern());
+    }
+
+    private static List<ProjectState> collectAllProjects(List<ProjectState> all, GradleInternal gradle, Set<Gradle> allBuilds) {
+        all.addAll(gradle.getOwner().getProjects().getAllProjects());
+        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
+            BuildState target = reference.getTarget();
+            if (target instanceof IncludedBuildState) {
+                target.ensureProjectsConfigured();
+                GradleInternal build = target.getMutableModel();
+                if (!allBuilds.contains(build)) {
+                    allBuilds.add(build);
+                    collectAllProjects(all, build, allBuilds);
+                }
+            }
+        }
+        return all;
+    }
+
+    private GradleInternal getRootBuild(GradleInternal gradle) {
+        if (gradle.getParent() == null) {
+            return gradle;
+        }
+        return gradle.getParent();
+    }
+
+    @SuppressWarnings("MixedMutabilityReturnType")
+    private List<String> calculateReservedProjectNames(ProjectInternal rootProject, EclipseRuntime parameter) {
+        if (parameter == null) {
+            return Collections.emptyList();
+        }
+
+        EclipseWorkspace workspace = parameter.getWorkspace();
+        if (workspace == null) {
+            return Collections.emptyList();
+        }
+
+        List<EclipseWorkspaceProject> projects = workspace.getProjects();
+        if (projects == null) {
+            return Collections.emptyList();
+        }
+
+        List<String> reservedProjectNames = new ArrayList<>();
+        List<EclipseWorkspaceProject> externalProjects = gatherExternalProjects(rootProject, projects);
+        for (EclipseWorkspaceProject externalProject : externalProjects) {
+            reservedProjectNames.add(externalProject.getName());
+        }
+
+        return reservedProjectNames;
+    }
+
+    private List<EclipseWorkspaceProject> gatherExternalProjects(ProjectInternal rootProject, List<EclipseWorkspaceProject> projects) {
+        // The eclipse workspace contains projects from root and included builds. Check projects from all builds
+        // so that models built for included builds do not consider projects from parent builds as external.
+        Set<File> gradleProjectLocations = collectAllProjects(new ArrayList<>(), getRootBuild(rootProject.getGradle()), new HashSet<>()).stream().map(p -> p.getProjectDir().getAbsoluteFile()).collect(Collectors.toSet());
+        List<EclipseWorkspaceProject> externalProjects = new ArrayList<>();
+        for (EclipseWorkspaceProject project : projects) {
+            if (project == null || project.getLocation() == null || project.getName() == null || project.getLocation() == null) {
+                continue;
+            }
+            if (!gradleProjectLocations.contains(project.getLocation().getAbsoluteFile())) {
+                externalProjects.add(project);
+            }
+        }
+        return externalProjects;
+    }
+
+    private static boolean hasTestSourcesAttribute(DefaultEclipseProjectDependency projectDependency) {
+        return projectDependency.getClasspathAttributes().stream().anyMatch(attribute -> EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY.equals(attribute.getName()) && EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE.equals(attribute.getValue()));
+    }
+
+
+    /*
+     * Groovy manipulates the JVM to let GString extend String.
+     * Whenever we have a Set or Map containing Strings, it might also
+     * contain GStrings. This breaks deserialization on the client.
+     * This method forces GString to String conversion.
+     */
+    private static String convertGString(CharSequence original) {
+        return original.toString();
+    }
+
+    public static class ClasspathElements {
+        private final List<DefaultEclipseExternalDependency> externalDependencies = new ArrayList<>();
+        private final List<DefaultEclipseProjectDependency> projectDependencies = new ArrayList<>();
+        private final List<DefaultEclipseSourceDirectory> sourceDirectories = new ArrayList<>();
+        private final List<DefaultEclipseClasspathContainer> classpathContainers = new ArrayList<>();
+        private final List<TaskDependency> buildDependencies = new ArrayList<>();
+        private DefaultEclipseOutputLocation eclipseOutputLocation;
+
+        public List<DefaultEclipseExternalDependency> getExternalDependencies() {
+            return externalDependencies;
+        }
+
+        public List<DefaultEclipseProjectDependency> getProjectDependencies() {
+            return projectDependencies;
+        }
+
+        public List<DefaultEclipseSourceDirectory> getSourceDirectories() {
+            return sourceDirectories;
+        }
+
+        public List<DefaultEclipseClasspathContainer> getClasspathContainers() {
+            return classpathContainers;
+        }
+
+        public List<TaskDependency> getBuildDependencies() {
+            return buildDependencies;
+        }
+
+        public DefaultEclipseOutputLocation getEclipseOutputLocation() {
+            return eclipseOutputLocation;
+        }
+
+        public void setEclipseOutputLocation(DefaultEclipseOutputLocation eclipseOutputLocation) {
+            this.eclipseOutputLocation = eclipseOutputLocation;
+        }
+    }
+}

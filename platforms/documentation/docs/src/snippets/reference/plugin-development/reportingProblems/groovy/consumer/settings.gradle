@@ -1,0 +1,3 @@
+pluginManagement {
+    includeBuild("../plugin")
+}

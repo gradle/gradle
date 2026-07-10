@@ -1,0 +1,162 @@
+body {
+    font-family: sans-serif;
+    font-size: 12pt;
+    margin: 3em;
+    color: #444;
+}
+
+h2 {
+    font-size: 14pt;
+    margin-top: 2em;
+}
+
+h3 {
+    margin-top: 2em;
+    margin-bottom: 1.4em;
+}
+
+#footer {
+    margin-top: 4em;
+    font-size: 8pt;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table.history, table.test-details {
+    margin-top: 20px;
+    font-size: 10pt;
+}
+
+th, td {
+    white-space: nowrap;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 12px;
+    padding-right: 12px;
+    text-align: left;
+    vertical-align: bottom;
+}
+
+th.numeric, td.numeric {
+    text-align: right;
+}
+
+.empty {
+    color: #a0a0a0;
+    font-size: 8pt;
+}
+
+.more-detail {
+    color: #a0a0a0;
+    font-size: 8pt;
+}
+
+td.more-detail {
+    text-align: left;
+    padding-left: 0;
+}
+
+.table-row-even {
+    background-color: #ecf4fa;
+}
+
+.min-value {
+    color: #008000;
+}
+
+.max-value {
+    color: red;
+}
+
+.details {
+    padding-top: 5px;
+    font-size: 10pt;
+}
+
+#controls {
+    float: right;
+    text-align: right;
+    font-size: 10pt;
+}
+
+#controls label {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #f1f1f1;;
+}
+
+nav li {
+    float: left;
+}
+
+nav li a {
+    display: block;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+nav li a:hover {
+    background-color: #00c489;
+    color: white;
+}
+
+.charts {
+    display: inline-block;
+}
+
+.chart {
+    width: 1000px;
+    height: 280px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.chart p {
+    font-size: 8pt;
+    color: #a0a0a0;
+    text-align: center;
+}
+
+#tooltip {
+    position: absolute;
+    display: none;
+    font-size: 10pt;
+    background-color: #fee;
+    border: solid 1px #fdd;
+    opacity: 0.80;
+    padding: 3px;
+}
+
+a.commit-link {
+    text-decoration: none;
+    color: #444;
+    padding: 3px 5px;
+}
+
+a.compare-link {
+    text-decoration: none;
+    color: #a0a0a0;
+    font-size: 8pt;
+    padding: 3px 5px;
+}
+
+a.chart-legend {
+    text-decoration: none;
+    color: #444;
+    padding: 3px 5px;
+}
+
+a:hover.commit-link, a:hover.compare-link, a:hover.chart-legend {
+    background-color: #00c489;
+    color: white;
+}

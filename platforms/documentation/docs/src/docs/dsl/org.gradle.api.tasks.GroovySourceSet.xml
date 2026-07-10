@@ -1,0 +1,34 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>groovy</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>groovy</td>
+                <td><literal>[<replaceable>${project.projectDir}</replaceable>/src/<replaceable>${sourceSet.name}</replaceable>/groovy]</literal></td>
+            </tr>
+            <tr>
+                <td>allGroovy</td>
+                <td><literal>[groovy]</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>groovy</td>
+            </tr>
+        </table>
+    </section>
+</section>

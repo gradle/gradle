@@ -1,0 +1,17 @@
+${fileComment.multilineComment}${packageDecl.statement}
+import ${basePackagePrefix.raw}list.LinkedList
+
+import static ${basePackagePrefix.raw}utilities.StringUtils.join
+import static ${basePackagePrefix.raw}utilities.StringUtils.split
+import static ${basePackagePrefix.raw}app.MessageUtils.getMessage
+
+import org.apache.commons.text.WordUtils
+
+class App {
+    static void main(String[] args) {
+        LinkedList tokens
+        tokens = split(getMessage())
+        String result = join(tokens)
+        println(WordUtils.capitalize(result))
+    }
+}

@@ -1,0 +1,13 @@
+def taskX = tasks.register('taskX') {
+    doLast {
+        println 'taskX'
+    }
+}
+def taskY = tasks.register('taskY') {
+    doLast {
+        println 'taskY'
+    }
+}
+taskY.configure {
+    mustRunAfter taskX
+}

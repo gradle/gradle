@@ -1,0 +1,526 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.provider;
+
+import org.gradle.api.Action;
+import org.gradle.api.Describable;
+import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.state.ModelObject;
+import org.jspecify.annotations.Nullable;
+
+import java.util.function.Function;
+
+/**
+ * Provides a state pattern implementation for values that are finalizable and support conventions.
+ *
+ * <h2>Finalization</h2>
+ * See {@link org.gradle.api.provider.HasConfigurableValue} and {@link HasConfigurableValueInternal}.
+ *
+ * <h2>Conventions</h2>
+ * See {@link org.gradle.api.provider.SupportsConvention}.
+ *
+ * @param <S> the type of the value
+ */
+public abstract class ValueState<S> {
+    private static final ValueState<Object> FINALIZED_VALUE = new FinalizedValue<>();
+
+    /**
+     * Creates a new non-finalized state.
+     */
+    public static <S> ValueState<S> newState(PropertyHost host) {
+        return new ValueState.NonFinalizedValue<>(host);
+    }
+
+    /**
+     * Creates a new non-finalized state.
+     *
+     * @param copier when the value is mutable, a shallow-copying function should be provided to avoid
+     * sharing of mutable state between effective values and convention values
+     */
+    public static <S> ValueState<S> newState(PropertyHost host, Function<S, S> copier) {
+        return new ValueState.NonFinalizedValueWithCopier<>(host, copier);
+    }
+
+    public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
+
+    /**
+     * Returns the state to replace this state once is finalized.
+     */
+    public abstract ValueState<S> finalState();
+
+    /**
+     * Sets a new convention value, replacing the existing one if set.
+     *
+     * @param convention the new convention value
+     */
+    public abstract void setConvention(S convention);
+
+    public abstract void disallowChanges();
+
+    public abstract boolean isDisallowChanges();
+
+    public abstract void finalizeOnNextGet();
+
+    public abstract void disallowUnsafeRead();
+
+    /**
+     * Marks this value state as being explicitly assigned. Does not remember the given value in any way.
+     *
+     * @param value the new explicitly assigned value
+     * @return the very <code>value</code> given
+     */
+    //TODO-RC rename this or the overload as they have significantly different semantics
+    public abstract S explicitValue(S value);
+
+    /**
+     * Returns <code>value</code> if this value state is marked as explicit, otherwise returns the given <code>defaultValue</code>.
+     *
+     * Note that "default value" is not related to the convention value, though they are easy to confuse.
+     * A default value is a fallback value that is sensible to the caller, in the absence of the explicit value.
+     * The default value is not related in any way to the convention value.
+     *
+     * @param value the current explicit value
+     * @param defaultValue the default value
+     * @return the given value, if this value state is not explicit, or given default value
+     */
+    //TODO-RC rename this or the overload as they have significantly different semantics
+    public abstract S explicitValue(S value, S defaultValue);
+
+    /**
+     * Applies a new convention value, which replaces the existing convention value.
+     *
+     * Returns the given <code>value</code> if this value state is explicit, otherwise returns the new convention value.
+     *
+     * This is similar to calling {@link #setConvention(Object)} followed by {@link #explicitValue(Object, Object)}.
+     *
+     * @param value the current explicit value
+     * @param convention the new convention
+     * @return the given value, if this value state is not explicit, otherwise the new convention value
+     */
+    public abstract S applyConvention(S value, S convention);
+
+    /**
+     * Marks this value state as being non-explicit. Returns the convention, if any.
+     */
+    public abstract S implicitValue(S convention);
+
+    public abstract S implicitValue();
+
+    public abstract boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
+
+    public abstract void beforeMutate(Describable displayName);
+
+    public abstract ValueSupplier.ValueConsumer forUpstream(ValueSupplier.ValueConsumer consumer);
+
+    public boolean isFinalized() {
+        return this == FINALIZED_VALUE;
+    }
+
+    /**
+     * Is this state final or on its way for being finalized?
+     */
+    public abstract boolean isFinalizing();
+
+    public void finalizeOnReadIfNeeded(Describable displayName, @Nullable ModelObject effectiveProducer, ValueSupplier.ValueConsumer consumer, Action<ValueSupplier.ValueConsumer> finalizeNow) {
+        if (maybeFinalizeOnRead(displayName, effectiveProducer, consumer)) {
+            finalizeNow.execute(forUpstream(consumer));
+        }
+    }
+
+    public void disallowChangesAndFinalizeOnNextGet() {
+        disallowChanges();
+        finalizeOnNextGet();
+    }
+
+    public abstract boolean isExplicit();
+
+    /**
+     * Retrieves the current convention.
+     */
+    public abstract S convention();
+
+    /**
+     * Marks this value as being explicitly set with
+     * the current value assigned to the convention.
+     */
+    public abstract S setToConvention();
+
+    /**
+     * Marks this value as being explicitly set with
+     * the current value assigned to the convention,
+     * unless it is already an explicit value.
+     */
+    public abstract S setToConventionIfUnset(S value);
+
+    public abstract void markAsUpgradedPropertyValue();
+
+    public abstract boolean isUpgradedPropertyValue();
+
+    public abstract void warnOnUpgradedPropertyValueChanges();
+
+    /**
+     * We create one ValueState for every Property in the build. To lower the overall cost of
+     * each Property, this implementation uses bitset flags instead of separate booleans.
+     *
+     * This also splits out ValueStates with copiers into {@link NonFinalizedValueWithCopier}.
+     * This saves memory by making the class smaller and removing padding for alignment.
+     *
+     * NOTE: Care must be taken to not increase the size of this structure.
+     *
+     * In a build like Gradle's, we have greater than 1 million instances of ValueState.
+     * Adding a single reference can greatly effect the size of this structure and increase
+     * memory consumption in a hard to see way.
+     *
+     * ValueState currently uses 21 bytes plus 3 bytes of padding to maintain a 8-byte alignment (24 bytes overall).
+     * One reference is 4 bytes, which would force this structure to use 7 bytes of padding (32 bytes overall).
+     */
+    private static class NonFinalizedValue<S> extends ValueState<S> {
+        private static final byte EXPLICIT_VALUE = 1;
+        private static final byte FINALIZE_ON_NEXT_GET = 1 << 1;
+        private static final byte DISALLOW_CHANGES = 1 << 2;
+        private static final byte DISALLOW_UNSAFE_READ = 1 << 3;
+        private static final byte IS_UPGRADED_PROPERTY_VALUE = 1 << 4;
+        private static final byte WARN_ON_UPGRADED_PROPERTY_CHANGES = 1 << 5;
+
+        private final PropertyHost host;
+        private byte flags;
+        private S convention;
+
+        public NonFinalizedValue(PropertyHost host) {
+            this.host = host;
+        }
+
+        @Override
+        public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
+            if ((flags & DISALLOW_UNSAFE_READ) != 0) {
+                String reason = host.beforeRead(producer);
+                if (reason != null) {
+                    throw new IllegalStateException(cannotFinalizeValueOf(displayName, reason));
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public ValueState<S> finalState() {
+            return Cast.uncheckedCast(FINALIZED_VALUE);
+        }
+
+        @Override
+        public boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
+            if ((flags & DISALLOW_UNSAFE_READ) != 0 || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead) {
+                String reason = host.beforeRead(producer);
+                if (reason != null) {
+                    throw new IllegalStateException(cannotQueryValueOf(displayName, reason));
+                }
+            }
+            return (flags & FINALIZE_ON_NEXT_GET) != 0 || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead;
+        }
+
+        @Override
+        public ValueSupplier.ValueConsumer forUpstream(ValueSupplier.ValueConsumer consumer) {
+            if ((flags & DISALLOW_UNSAFE_READ) != 0) {
+                return ValueSupplier.ValueConsumer.DisallowUnsafeRead;
+            } else {
+                return consumer;
+            }
+        }
+
+        @Override
+        public void beforeMutate(Describable displayName) {
+            if ((flags & DISALLOW_CHANGES) != 0) {
+                throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
+            } else if ((flags & WARN_ON_UPGRADED_PROPERTY_CHANGES) != 0) {
+                String shownDisplayName = displayName.getDisplayName();
+                DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
+                    // this should only happen in Gradle 10, when Provider API migration will come to the mainline,
+                    // so forbidding it must wait until Gradle 11
+                    .startingWithGradle11("changing property value of " + shownDisplayName + " at execution time will become an error")
+                    // TODO add documentation
+                    .undocumented()
+                    .nagUser();
+            }
+        }
+
+        @Override
+        public void disallowChanges() {
+            flags |= DISALLOW_CHANGES;
+        }
+
+        @Override
+        public boolean isDisallowChanges() {
+            return (flags & DISALLOW_CHANGES) != 0;
+        }
+
+        @Override
+        public void finalizeOnNextGet() {
+            flags |= FINALIZE_ON_NEXT_GET;
+        }
+
+        @Override
+        public void disallowUnsafeRead() {
+            flags |= DISALLOW_UNSAFE_READ | FINALIZE_ON_NEXT_GET;
+        }
+
+        @Override
+        public boolean isFinalizing() {
+            return (flags & FINALIZE_ON_NEXT_GET) != 0;
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return (flags & EXPLICIT_VALUE) != 0;
+        }
+
+        @Override
+        public S convention() {
+            return convention;
+        }
+
+        @Override
+        public S setToConvention() {
+            flags |= EXPLICIT_VALUE;
+            return shallowCopy(convention);
+        }
+
+        protected S shallowCopy(S toCopy) {
+            return toCopy;
+        }
+
+        @Override
+        public S setToConventionIfUnset(S value) {
+            if ((flags & EXPLICIT_VALUE) == 0) {
+                return setToConvention();
+            }
+            return value;
+        }
+
+        @Override
+        public void markAsUpgradedPropertyValue() {
+            flags |= IS_UPGRADED_PROPERTY_VALUE;
+        }
+
+        @Override
+        public boolean isUpgradedPropertyValue() {
+            return (flags & IS_UPGRADED_PROPERTY_VALUE) != 0;
+        }
+
+        @Override
+        public void warnOnUpgradedPropertyValueChanges() {
+            flags |= WARN_ON_UPGRADED_PROPERTY_CHANGES;
+        }
+
+        @Override
+        public S explicitValue(S value) {
+            flags |= EXPLICIT_VALUE;
+            return value;
+        }
+
+        @Override
+        public S explicitValue(S value, S defaultValue) {
+            if ((flags & EXPLICIT_VALUE) == 0) {
+                return defaultValue;
+            }
+            return value;
+        }
+
+        @Override
+        public S implicitValue() {
+            flags &= ~EXPLICIT_VALUE;
+            return shallowCopy(convention);
+        }
+
+        @Override
+        public S implicitValue(S newConvention) {
+            setConvention(newConvention);
+            return implicitValue();
+        }
+
+        @Override
+        public S applyConvention(S value, S convention) {
+            this.convention = convention;
+            if ((flags & EXPLICIT_VALUE) == 0) {
+                return shallowCopy(convention);
+            } else {
+                return value;
+            }
+        }
+
+        @Override
+        public void setConvention(S convention) {
+            this.convention = convention;
+        }
+
+        private String cannotFinalizeValueOf(Describable displayName, String reason) {
+            return cannot("finalize", displayName, reason);
+        }
+
+        private String cannotQueryValueOf(Describable displayName, String reason) {
+            return cannot("query", displayName, reason);
+        }
+
+        private String cannot(String what, Describable displayName, String reason) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Cannot " + what + " the value of ");
+            formatter.append(displayName.getDisplayName());
+            formatter.append(" because ");
+            formatter.append(reason);
+            formatter.append(".");
+            return formatter.toString();
+        }
+    }
+
+    private static class NonFinalizedValueWithCopier<S> extends NonFinalizedValue<S> {
+        private final Function<S, S> copier;
+
+        public NonFinalizedValueWithCopier(PropertyHost host, Function<S, S> copier) {
+            super(host);
+            this.copier = copier;
+        }
+
+        @Override
+        protected S shallowCopy(S toCopy) {
+            return copier.apply(toCopy);
+        }
+    }
+
+    private static class FinalizedValue<S> extends ValueState<S> {
+        @Override
+        public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
+            return false;
+        }
+
+        @Override
+        public void disallowChanges() {
+            // Finalized, so already cannot change
+        }
+
+        @Override
+        public boolean isDisallowChanges() {
+            return true;
+        }
+
+        @Override
+        public void finalizeOnNextGet() {
+            // Finalized already
+        }
+
+        @Override
+        public void disallowUnsafeRead() {
+            // Finalized already so read is safe
+        }
+
+        @Override
+        public boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
+            // Already finalized
+            return false;
+        }
+
+        @Override
+        public void beforeMutate(Describable displayName) {
+            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", displayName.getDisplayName()));
+        }
+
+        @Override
+        public ValueSupplier.ValueConsumer forUpstream(ValueSupplier.ValueConsumer consumer) {
+            throw unexpected();
+        }
+
+        @Override
+        public S explicitValue(S value) {
+            throw unexpected();
+        }
+
+        @Override
+        public S explicitValue(S value, S defaultValue) {
+            throw unexpected();
+        }
+
+        @Override
+        public S applyConvention(S value, S convention) {
+            throw unexpected();
+        }
+
+        @Override
+        public S implicitValue() {
+            throw unexpected();
+        }
+
+        @Override
+        public S implicitValue(S defaultValue) {
+            throw unexpected();
+        }
+
+        @Override
+        public boolean isFinalizing() {
+            return true;
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return true;
+        }
+
+        @Override
+        public S convention() {
+            return null;
+        }
+
+        @Override
+        public S setToConvention() {
+            throw unexpected();
+        }
+
+        @Override
+        public S setToConventionIfUnset(S value) {
+            throw unexpected();
+        }
+
+        @Override
+        public void markAsUpgradedPropertyValue() {
+            // No special behaviour is needed for already finalized values, so let's ignore
+        }
+
+        @Override
+        public boolean isUpgradedPropertyValue() {
+            return false;
+        }
+
+        @Override
+        public void warnOnUpgradedPropertyValueChanges() {
+            // No special behaviour is needed for already finalized values, so let's ignore
+        }
+
+        @Override
+        public ValueState<S> finalState() {
+            // TODO - it is currently possible for multiple threads to finalize a property instance concurrently (https://github.com/gradle/gradle/issues/12811)
+            // This should be strict
+            return this;
+        }
+
+        @Override
+        public void setConvention(S convention) {
+            throw unexpected();
+        }
+
+        private UnsupportedOperationException unexpected() {
+            return new UnsupportedOperationException("Valued object is in an unexpected state.");
+        }
+    }
+}

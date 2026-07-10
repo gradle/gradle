@@ -1,0 +1,14 @@
+plugins {
+    `java-library`
+}
+
+group = "org.sample"
+version = "1.0"
+
+repositories {
+    mavenCentral()
+}
+
+println("propertiesFileMessage = ${findProperty("propertiesFileMessage")}")
+println("systemMessage = ${System.getProperty("systemMessage")}")
+println("propertiesMessage = ${findProperty("propertiesMessage")}")

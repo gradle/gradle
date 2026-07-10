@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="1.0">
+	<info organisation="test"
+		module="projectA"
+		revision="1.2"
+	/>
+	<configurations>
+		<conf name="runtime" visibility="public"/>
+		<conf name="default" visibility="public" extends="runtime"/>
+		<conf name="api" visibility="public"/>
+	</configurations>
+	<publications>
+		<artifact name="projectA" type="jar" ext="jar" conf="*"/>
+	</publications>
+    <dependencies>
+        <dependency org="test" name="projectB" rev="1.5" conf="runtime->default"/>
+        <dependency org="test" name="projectB" rev="1.5" conf="api->compileTime"/>
+    </dependencies>
+</ivy-module>

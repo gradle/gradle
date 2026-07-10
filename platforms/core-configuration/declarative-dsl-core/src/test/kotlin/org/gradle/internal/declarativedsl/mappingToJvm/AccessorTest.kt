@@ -1,0 +1,165 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.declarativedsl.mappingToJvm
+
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataTopLevelFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultSettingsExtensionAccessorIdentifier
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
+import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.ExtractionResult
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionMetadata
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionResult
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
+import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
+import org.gradle.internal.declarativedsl.schemaBuilder.plus
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.typeOf
+
+
+@OptIn(LossySchemaBuildingOperation::class)
+class AccessorTest {
+    @Test
+    fun `uses custom accessor in mapping to JVM`() {
+        val resolution = schema.resolve(
+            """
+            configureCustomInstance {
+                x = 123
+                enum = B
+            }""".trimIndent()
+        )
+        assertEquals(123, runtimeInstanceFromResult(resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.x)
+        assertEquals(Enum.B, runtimeInstanceFromResult(resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.enum)
+    }
+
+    @Test
+    fun `triggers the custom accessor with empty block`() {
+        val resolution = schema.resolve("configureCustomInstance { }")
+        assertTrue(runtimeInstanceFromResult(resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.isInitialized())
+    }
+
+
+    @Test
+    fun `accesses receiver from runtime lambda argument mapping to JVM`() {
+        val resolution = schema.resolve(
+            """
+            configureLambdaArgument {
+                x = 123
+            }
+            configureLambdaArgumentWithCustomInterface {
+                y = "test"
+            }""".trimIndent()
+        )
+        val runtimeInstanceFromResult = runtimeInstanceFromResult(resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver)
+        assertEquals(123, runtimeInstanceFromResult.myLambdaReceiver.x)
+        assertEquals("test", runtimeInstanceFromResult.myLambdaReceiver.y)
+    }
+
+    // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
+    val runtimeCustomAccessors = object : RuntimeCustomAccessors {
+        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType =
+            if (receiverObject is MyReceiver && accessor.accessorIdentifier.name == "test")
+                InstanceAndPublicType.unknownPublicType(receiverObject.myHiddenInstance.value)
+            else InstanceAndPublicType.NULL
+    }
+
+    // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
+    val functionContributorWithCustomAccessor = object : FunctionExtractor {
+        override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<FunctionExtractionResult> {
+            return if (kClass == MyReceiver::class) {
+                val objectType = host.containerTypeRef(Configured::class).orError()
+                listOf(
+                    ExtractionResult.Extracted(
+                        DefaultDataMemberFunction(
+                            host.modelTypeRef(typeOf<MyReceiver>()).orError(),
+                            "configureCustomInstance",
+                            emptyList(),
+                            false,
+                            FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                                ConfigureAccessorInternal.DefaultExtension(objectType, DefaultSettingsExtensionAccessorIdentifier("test")),
+                                FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                                objectType,
+                                FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+                            )
+                        ),
+                        FunctionExtractionMetadata(listOf())
+                    )
+                )
+            } else emptyList()
+        }
+
+        override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction>? = null
+    }
+
+    val configureLambdas = kotlinFunctionAsConfigureLambda + treatInterfaceAsConfigureLambda(MyFunctionalInterface::class)
+
+    val schema = schemaFromTypes(
+        MyReceiver::class,
+        this::class.nestedClasses,
+        functionExtractor = DefaultFunctionExtractor(configureLambdas) + functionContributorWithCustomAccessor
+    )
+
+    internal
+    class MyReceiver {
+        val myLambdaReceiver = Configured()
+
+        @Suppress("unused")
+        fun configureLambdaArgument(configure: Configured.() -> Unit) {
+            configure(myLambdaReceiver)
+        }
+
+        @Suppress("unused")
+        fun configureLambdaArgumentWithCustomInterface(configure: MyFunctionalInterface<Configured>) {
+            configure.action(myLambdaReceiver)
+        }
+
+        val myHiddenInstance = lazy { Configured() }
+    }
+
+    internal
+    interface MyFunctionalInterface<in T> {
+        @HiddenInDefinition
+        fun action(t: T)
+    }
+
+    internal
+    class Configured {
+        var x: Int = 0
+        var y: String = ""
+        var enum: Enum = Enum.A
+    }
+
+    enum class Enum {
+        A, B, C
+    }
+}

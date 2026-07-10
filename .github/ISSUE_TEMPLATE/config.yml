@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask for help
+    url: http://help.gradle.org/
+    about: If you need help with Gradle or have a usage question, please reach our community instead of creating an issue.

@@ -1,0 +1,56 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * Adds all tasks available in the build to the task graph.
+ */
+
+if (!gradle.rootBuild) {
+    return
+}
+
+String SCHEDULE_ALL_TASK = "scheduleAll"
+
+assert gradle.startParameter.dryRun : "--dry-run is required"
+assert gradle.startParameter.taskNames.contains(SCHEDULE_ALL_TASK) : "A task request for `$SCHEDULE_ALL_TASK` is required"
+
+def excludedTaskNames = [
+    // This happens on a simple build, but not on gradle/gradle:
+    // Configuration cache state could not be cached: field `__toolchainDownloadUrls__` of task `:updateDaemonJvm` of type `org.gradle.buildconfiguration.tasks.UpdateDaemonJvm`: error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'
+    //   > Invalid task configuration
+    //     Toolchain download repositories have not been configured.
+    "updateDaemonJvm",
+
+    // avoid cycles as these are added synthetically as dependencies/dependents by the Java plugin
+    JavaBasePlugin.BUILD_NEEDED_TASK_NAME,
+    JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME,
+
+    // avoid self-dependencies
+    SCHEDULE_ALL_TASK
+]
+
+def excludedTaskTypes = [
+    // https://github.com/gradle/gradle/issues/35797
+    PropertyReportTask
+]
+
+gradle.lifecycle.afterProject { Project p ->
+    p.tasks.register(SCHEDULE_ALL_TASK).configure { anchor ->
+        anchor.dependsOn p.tasks.matching { t ->
+            !excludedTaskTypes.any { it.isAssignableFrom(t.class) } && !excludedTaskNames.contains(t.name)
+        }
+    }
+}

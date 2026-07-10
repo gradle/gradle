@@ -1,0 +1,5 @@
+org.gradle.internal.service.scopes.CoreServices
+org.gradle.caching.internal.BuildCacheServices
+org.gradle.internal.service.scopes.ExecutionServices
+org.gradle.internal.service.scopes.VirtualFileSystemServices
+org.gradle.internal.build.event.BuildEventServices

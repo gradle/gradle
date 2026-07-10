@@ -1,0 +1,285 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
+class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
+    def "methods defined in project build script are visible to descendant projects"() {
+        createDirs("child1")
+        settingsFile << """
+rootProject.name = 'root'
+include 'child1'
+"""
+        buildFile """
+def doSomething(def value) {
+    return "{" + value + "}"
+}
+private String doSomethingElse(def value) {
+    return "[" + value + "]"
+}
+println "root: " + doSomething(10)
+println "root: " + doSomethingElse(10)
+"""
+        file("child1/build.gradle") << """
+println "child: " + doSomething(11)
+println "child: " + doSomethingElse(11)
+"""
+
+        expect:
+        // Invoke twice to exercise script caching
+        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+        expectParentMethodAccessDeprecation('doSomethingElse', ':child1', "root project 'root'")
+        succeeds()
+        outputContains("root: {10}")
+        outputContains("root: [10]")
+        outputContains("child: {11}")
+        outputContains("child: [11]")
+
+        and:
+        if (GradleContextualExecuter.notConfigCache) {
+            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+            expectParentMethodAccessDeprecation('doSomethingElse', ':child1', "root project 'root'")
+        }
+        succeeds()
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains("root: {10}")
+            outputContains("root: [10]")
+            outputContains("child: {11}")
+            outputContains("child: [11]")
+        } else {
+            outputDoesNotContain("root:")
+            outputDoesNotContain("child:")
+        }
+    }
+
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
+    def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
+        createDirs("child1")
+        settingsFile << """
+rootProject.name = 'root'
+include 'child1'
+"""
+        buildFile << """
+def doSomething(def value) {
+    return "{" + value + "}"
+}
+private String doSomethingElse(def value) {
+    return "[" + value + "]"
+}
+apply from: 'script.gradle'
+"""
+        file("child1/build.gradle") << """
+apply from: '../script.gradle'
+"""
+        file("script.gradle") << """
+println project.path + " - " + doSomething(12)
+println project.path + " - " + doSomethingElse(12)
+"""
+
+        expect:
+        // Invoke twice to exercise script caching
+        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+        expectParentMethodAccessDeprecation('doSomethingElse', ':child1', "root project 'root'")
+        succeeds()
+        outputContains(": - {12}")
+        outputContains(": - [12]")
+        outputContains(":child1 - {12}")
+        outputContains(":child1 - [12]")
+
+        and:
+        if (GradleContextualExecuter.notConfigCache) {
+            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+            expectParentMethodAccessDeprecation('doSomethingElse', ':child1', "root project 'root'")
+        }
+        succeeds()
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains(": - {12}")
+            outputContains(": - [12]")
+            outputContains(":child1 - {12}")
+            outputContains(":child1 - [12]")
+        } else {
+            outputDoesNotContain(": -")
+            outputDoesNotContain("child:")
+        }
+    }
+
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
+    def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
+        createDirs("child1")
+        settingsFile << """
+rootProject.name = 'root'
+include 'child1'
+"""
+        buildFile << """
+def doSomething(def value) {
+    return value.toString()
+}
+"""
+        file("child1/build.gradle") << """
+println "child: " + doSomething(11)
+"""
+
+        expect:
+        // Invoke twice to exercise script caching
+        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+        succeeds()
+        outputContains("child: 11")
+
+        and:
+        if (GradleContextualExecuter.notConfigCache) {
+            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+        }
+        succeeds()
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains("child: 11")
+        } else {
+            outputDoesNotContain("child:")
+        }
+    }
+
+    def "properties defined in project build script are not visible to descendant projects"() {
+        createDirs("child1")
+        settingsFile << "include 'child1'"
+        buildFile << """
+def getProp1() {
+    return "abc"
+}
+
+@groovy.transform.Field
+String prop2
+
+@groovy.transform.Field
+String prop3 = "abc"
+
+int prop4 = 12
+
+prop2 = prop1
+
+assert prop1 == "abc"
+assert prop2 == "abc"
+assert prop3 == "abc"
+assert prop4 == 12
+"""
+        file("child1/build.gradle") << """
+try {
+    prop1
+    assert false
+} catch(MissingPropertyException e) {
+    assert e.property == 'prop1'
+}
+try {
+    prop2
+    assert false
+} catch(MissingPropertyException e) {
+    assert e.property == 'prop2'
+}
+try {
+    prop3
+    assert false
+} catch(MissingPropertyException e) {
+    assert e.property == 'prop3'
+}
+try {
+    prop4
+    assert false
+} catch(MissingPropertyException e) {
+    assert e.property == 'prop4'
+}
+println "child1 ok"
+"""
+
+        expect:
+        // Invoke twice to exercise script caching
+        succeeds()
+        outputContains("child1 ok")
+
+        and:
+        succeeds()
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains("child1 ok")
+        } else {
+            outputDoesNotContain("child1")
+        }
+    }
+
+    def "properties defined in project build script are not visible to script plugins"() {
+        createDirs("child1")
+        settingsFile << "include 'child1'"
+        buildFile << """
+def getProp1() {
+    return "abc"
+}
+
+@groovy.transform.Field
+String prop2
+
+prop2 = prop1
+
+assert prop1 == "abc"
+assert prop2 == "abc"
+apply from: 'script.gradle'
+"""
+        file("child1/build.gradle") << """
+apply from: '../script.gradle'
+"""
+
+        file("script.gradle") << """
+try {
+    prop1
+    assert false
+} catch(MissingPropertyException e) {
+    assert e.property == 'prop1'
+}
+try {
+    prop2
+    assert false
+} catch(MissingPropertyException e) {
+    assert e.property == 'prop2'
+}
+println project.path + " ok"
+"""
+
+        expect:
+        // Invoke twice to exercise script caching
+        succeeds()
+        outputContains(": ok")
+        outputContains(":child1 ok")
+
+        and:
+        succeeds()
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains(": ok")
+            outputContains(":child1 ok")
+        } else {
+            outputDoesNotContain(": ok")
+            outputDoesNotContain(":child1")
+        }
+    }
+
+    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName) {
+        executer.expectDocumentedDeprecationWarning("Implicit lookup of methods in parent projects has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Method '${methodName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
+            "This lookup was initiated by a dynamic invocation in the build script. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_lookup_in_parent_projects")
+    }
+}

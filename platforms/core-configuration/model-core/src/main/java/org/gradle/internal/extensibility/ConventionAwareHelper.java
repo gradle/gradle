@@ -1,0 +1,212 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.extensibility;
+
+import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileSystemLocationProperty;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.file.FileSystemLocationPropertyInternal;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.provider.HasMultipleValues;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SupportsConvention;
+import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DocumentedFailure;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.jspecify.annotations.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+
+import static org.gradle.internal.UncheckedException.uncheckedCall;
+
+@SuppressWarnings("FieldNamingConvention")
+public class ConventionAwareHelper implements ConventionMapping {
+    //prefix internal fields with _ so that they don't get into the way of propertyMissing()
+    private final IConventionAware _source;
+    // These are properties that could have convention mapping applied to them
+    private final Set<String> _propertyNames;
+    // These are properties that should not be allowed to use convention mapping
+    private final Set<String> _ineligiblePropertyNames;
+
+    private final Map<String, MappedPropertyImpl> _mappings = new HashMap<>();
+
+    public ConventionAwareHelper(IConventionAware source) {
+        this._source = source;
+        this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
+        this._ineligiblePropertyNames = new HashSet<>();
+    }
+
+    private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
+        if (!_propertyNames.contains(propertyName)) {
+            throw new InvalidUserDataException(
+                "You can't map a property that does not exist: propertyName=" + propertyName);
+        }
+
+        Class<? extends IConventionAware> sourceType = _source.getClass();
+
+        // Route ConventionMapping("oldName") to the renamed lazy property's `.convention()` API
+        // (e.g. CreateStartScripts: getOutputDir File -> getOutputDirectory DirectoryProperty).
+        // The eager getter is kept as a backward-compat bridge but external plugins still register conventions with the old name.
+        String renamedProperty = ProviderApiMigrationConventionHelper.findRenamedProperty(sourceType, propertyName);
+        if (renamedProperty != null) {
+            propertyName = renamedProperty;
+        }
+
+        if (_ineligiblePropertyNames.contains(propertyName)) {
+            Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
+            // When there's a convention-supporting object, use its `.convention()` method instead
+            // This is something we added to support properties migrated in the future from
+            // Java bean to Property where old code uses ConventionMapping to set conventions.
+            if (getter != null && SupportsConvention.class.isAssignableFrom(getter.getReturnType())) {
+                SupportsConvention target;
+                try {
+                    target = Cast.uncheckedNonnullCast(getter.invoke(_source));
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new IllegalStateException(String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName), e);
+                }
+                if (!mapConventionOn(target, mapping)) {
+                    throw new IllegalStateException(String.format(
+                        "Unexpected convention-supporting type %s used in property %s.%s", getter.getReturnType().getName(), sourceType.getSimpleName(), propertyName));
+                }
+            } else {
+                throw DocumentedFailure.builder()
+                    .withSummary("Using internal convention mapping with a Provider backed property.")
+                    .withUpgradeGuideSection(7, "convention_mapping")
+                    .build();
+            }
+        } else {
+            _mappings.put(propertyName, mapping);
+        }
+        return mapping;
+    }
+
+    private boolean mapConventionOn(SupportsConvention target, MappedPropertyImpl mapping) {
+        if (target instanceof FileSystemLocationProperty) {
+            FileSystemLocationPropertyInternal<?> asFileSystemLocationProperty = Cast.uncheckedNonnullCast(target);
+            asFileSystemLocationProperty.conventionFromAnyFile(new DefaultProvider<>(() -> mapping.getValue()));
+        } else if (target instanceof Property) {
+            Property<Object> asProperty = Cast.uncheckedNonnullCast(target);
+            asProperty.convention(new DefaultProvider<>(() -> mapping.getValue()));
+        } else if (target instanceof MapProperty) {
+            MapProperty<Object, Object> asMapProperty = Cast.uncheckedNonnullCast(target);
+            DefaultProvider<Map<Object, Object>> convention = new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue()));
+            asMapProperty.convention(convention);
+        } else if (target instanceof HasMultipleValues) {
+            HasMultipleValues<Object> asCollectionProperty = Cast.uncheckedNonnullCast(target);
+            asCollectionProperty.convention(new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue())));
+        } else if (target instanceof ConfigurableFileCollection) {
+            ConfigurableFileCollection asFileCollection = Cast.uncheckedNonnullCast(target);
+            asFileCollection.convention((Callable) () -> mapping.getValue());
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public MappedProperty map(String propertyName, final Closure<?> value) {
+        return map(propertyName, new MappedPropertyImpl() {
+            @Override
+            public Object doGetValue() {
+                return value.call();
+            }
+        });
+    }
+
+    @Override
+    public MappedProperty map(String propertyName, final Callable<?> value) {
+        return map(propertyName, new MappedPropertyImpl() {
+            @Override
+            public Object doGetValue() {
+                return uncheckedCall(value);
+            }
+        });
+    }
+
+    public void propertyMissing(String name, Object value) {
+        if (value instanceof Closure) {
+            map(name, Cast.<Closure<?>>uncheckedNonnullCast(value));
+        } else {
+            throw new MissingPropertyException(name, getClass());
+        }
+    }
+
+    @Override
+    public void ineligible(String propertyName) {
+        _ineligiblePropertyNames.add(propertyName);
+    }
+
+    @Override
+    public <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue) {
+        if (isExplicitValue) {
+            return actualValue;
+        }
+
+        T returnValue = actualValue;
+        if (_mappings.containsKey(propertyName)) {
+            boolean useMapping = true;
+            if (actualValue instanceof Collection && !((Collection<?>) actualValue).isEmpty()) {
+                useMapping = false;
+            } else if (actualValue instanceof Map && !((Map<?, ?>) actualValue).isEmpty()) {
+                useMapping = false;
+            }
+            if (useMapping) {
+                returnValue = Cast.uncheckedNonnullCast(_mappings.get(propertyName).getValue());
+            }
+        }
+        return returnValue;
+    }
+
+    private static abstract class MappedPropertyImpl implements MappedProperty {
+        private boolean haveValue;
+        private boolean cache;
+        private Object cachedValue;
+
+        @Nullable
+        public Object getValue() {
+            if (!cache) {
+                return doGetValue();
+            }
+            if (!haveValue) {
+                cachedValue = doGetValue();
+                haveValue = true;
+            }
+            return cachedValue;
+        }
+
+        @Override
+        public void cache() {
+            cache = true;
+            cachedValue = null;
+        }
+
+        @Nullable
+        abstract Object doGetValue();
+    }
+}

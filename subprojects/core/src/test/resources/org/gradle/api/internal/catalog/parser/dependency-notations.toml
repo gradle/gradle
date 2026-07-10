@@ -1,0 +1,33 @@
+[libraries]
+simple = { group = "foo", name = "bar", version = "1.0" }
+simple-with-rich1 = { group = "foo", name = "bar", version = { prefer = "1.0" } }
+simple-with-rich2 = { group = "foo", name = "bar", version.prefer = "1.0" }
+simple-with-rich3 = { group = "foo", name = "bar", version.require = "1.0" }
+simple-with-rich4 = { group = "foo", name = "bar", version.strictly = "1.0" }
+simple-with-rich5 = { group = "foo", name = "bar", version = { rejectAll = true } }
+simple-with-rich6 = { group = "foo", name = "bar", version = { require = "1.0", reject = ["1.1", "1.2"] } }
+
+shortcut = "g:a:1.0"
+
+indirect.module = "g:b"
+indirect.version = "1.2"
+
+incremental.group = "group"
+incremental.name = "name"
+incremental.version.prefer = "1.1"
+incremental.version.require = "[1.0, 2.0["
+
+incremental2.module = "group:name"
+incremental2.version = { strictly = "[1.0, 2.0[", prefer = "1.5" }
+
+groovy-with-ref = { group = "org.codehaus.groovy", name = "groovy", version.ref = "groovy" }
+groovy-with-ref2 = { group = "org.codehaus.groovy", name = "groovy", version.ref = "rich-groovy" }
+groovy-with-ref3 = { group = "org.codehaus.groovy", name = "groovy", version.ref = "version-with-bang" }
+
+strict-with-bang = "g:a:1.1!!"
+strict-with-bang-and-range = { module="g:a", version="[1.0,2.0]!!1.1"}
+
+[versions]
+groovy = "2.5.6"
+rich-groovy = { strictly = "[2.5, 3.0[", prefer = "2.5.6" }
+version-with-bang="1.7!!"

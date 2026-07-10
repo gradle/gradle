@@ -1,0 +1,517 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.internal.extensibility;
+
+import groovy.lang.Closure;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
+import org.codehaus.groovy.runtime.GeneratedClosure;
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.metaobject.AbstractDynamicObject;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.CompositeDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
+import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.gradle.util.internal.TextUtil.capitalize;
+
+/**
+ * A {@link DynamicObject} implementation that provides extensibility.
+ *
+ * This is the dynamic object implementation that "enhanced" objects expose.
+ *
+ * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
+ */
+public class ExtensibleDynamicObject extends AbstractDynamicObject implements HierarchicalDynamicObject {
+
+    public enum Location {
+        BeforeConventionNotInherited, BeforeConvention, AfterConvention
+    }
+
+    private final AbstractDynamicObject dynamicDelegate;
+    private final DefaultExtensionContainer extensionContainer;
+    private final DynamicObject extraPropertiesDynamicObject;
+
+    @Nullable
+    private DynamicObject beforeConventionNotInherited;
+    @Nullable
+    private DynamicObject beforeConvention;
+    @Nullable
+    private DynamicObject afterConvention;
+
+    // Combines the bean, extra properties, conventions, and extensions into a single lookup.
+    // Does not include the parent hierarchy — parent is walked separately.
+    private CompositeDynamicObject delegateObjects;
+    @Nullable
+    private HierarchicalDynamicObject parent;
+    private boolean failOnParentAccess;
+    // Thread safety: only accessed while the project lock is held during configuration.
+    // Callers are expected to set/clear this around a single lookup using try/finally.
+    @Nullable
+    private CallerContext callerContext;
+
+    /**
+     * Describes how a property/method lookup was initiated, used to annotate the parent-walk
+     * deprecation message with caller-specific detail.
+     *
+     * <p>External callers set the context on the {@link ExtensibleDynamicObject} of the project
+     * (or script) issuing the lookup via {@link #setCallerContext(CallerContext)} immediately
+     * before invoking a lookup method, and restore the previous value in a {@code finally} block.
+     * When a lookup walks into the parent, the context currently set on the referrer's dynamic
+     * object is read to enrich the deprecation message.
+     */
+    public static final class CallerContext {
+
+        /**
+         * The phrase describing how the lookup was initiated, slotted into the deprecation message
+         * after {@code "This lookup was initiated by "}. Includes its own quoting where appropriate.
+         */
+        private final String description;
+
+        private CallerContext(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        /**
+         * Holder class to avoid initialization-order surprises between the outer class and its
+         * instances.
+         */
+        public static final class Instances {
+            /** {@code project.property("foo")}. */
+            public static final CallerContext PROPERTY = new CallerContext("'property()'");
+            /** {@code project.findProperty("foo")}. */
+            public static final CallerContext FIND_PROPERTY = new CallerContext("'findProperty()'");
+            /** {@code project.hasProperty("foo")}. */
+            public static final CallerContext HAS_PROPERTY = new CallerContext("'hasProperty()'");
+            /** {@code project.getProperty("foo")}. */
+            public static final CallerContext GET_PROPERTY = new CallerContext("'getProperty()'");
+            /** Kotlin DSL {@code val foo by project} property delegation. */
+            public static final CallerContext KOTLIN_DELEGATION = new CallerContext("'val ... by project'");
+            /** Implicit reference in a Groovy build script (e.g. bare {@code foo} or {@code foo()}). */
+            public static final CallerContext BUILD_SCRIPT = new CallerContext("a dynamic invocation in the build script");
+
+            private Instances() {}
+        }
+    }
+
+    public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
+        this(delegate, new BeanDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
+    }
+
+    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, InstanceGenerator instanceGenerator) {
+        this(delegate, dynamicDelegate, new DefaultExtensionContainer(instanceGenerator));
+    }
+
+    @SuppressWarnings("this-escape")
+    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, DefaultExtensionContainer convention) {
+        this.dynamicDelegate = dynamicDelegate;
+        this.extensionContainer = convention;
+        this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
+
+        updateDelegates();
+    }
+
+    private void updateDelegates() {
+        List<DynamicObject> delegates = new ArrayList<>(5);
+        delegates.add(dynamicDelegate);
+        delegates.add(extraPropertiesDynamicObject);
+        if (beforeConventionNotInherited != null) {
+            delegates.add(beforeConventionNotInherited);
+        }
+        if (beforeConvention != null) {
+            delegates.add(beforeConvention);
+        }
+        delegates.add(extensionContainer.getExtensionsAsDynamicObject());
+        if (afterConvention != null) {
+            delegates.add(afterConvention);
+        }
+        this.delegateObjects = new CompositeDynamicObject(delegates, this::getDisplayName);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return dynamicDelegate.getDisplayName();
+    }
+
+    @Nullable
+    @Override
+    public Class<?> getPublicType() {
+        return dynamicDelegate.getPublicType();
+    }
+
+    @Override
+    public boolean hasUsefulDisplayName() {
+        return dynamicDelegate.hasUsefulDisplayName();
+    }
+
+    public ExtraPropertiesExtension getDynamicProperties() {
+        return extensionContainer.getExtraProperties();
+    }
+
+    @Override
+    @Nullable
+    public HierarchicalDynamicObject getParent() {
+        return parent;
+    }
+
+    public void setParent(@Nullable HierarchicalDynamicObject parent) {
+        this.parent = parent;
+    }
+
+    /**
+     * Enables strict mode for parent-project property/method lookup. When set, any property or
+     * method that resolves through the parent chain causes the build to fail with an
+     * {@link InvalidUserCodeException} at the lookup site. Used to opt into the eventual
+     * Gradle 10 behavior early or to enforce zero parent-walking in CI builds.
+     *
+     * @see org.gradle.api.internal.project.DefaultProject#FAIL_ON_PARENT_PROPERTY_LOOKUP
+     */
+    public void setFailOnParentAccess(boolean failOnParentAccess) {
+        this.failOnParentAccess = failOnParentAccess;
+    }
+
+    /**
+     * Returns the {@link CallerContext} currently set on this dynamic object via
+     * {@link #setCallerContext(CallerContext)}, or {@code null} if none is active. Callers wrap a
+     * lookup by capturing this value, setting their own context, and restoring the captured value
+     * in a {@code finally} block.
+     */
+    @Nullable
+    public CallerContext getCallerContext() {
+        return callerContext;
+    }
+
+    /**
+     * Sets the {@link CallerContext} for the next property/method lookup. Callers must restore the
+     * previous context (see {@link #getCallerContext()}) in a {@code finally} block after the
+     * lookup completes.
+     */
+    public void setCallerContext(@Nullable CallerContext callerContext) {
+        this.callerContext = callerContext;
+    }
+
+    public ExtensionContainer getExtensions() {
+        return extensionContainer;
+    }
+
+    public void addObject(DynamicObject object, Location location) {
+        switch (location) {
+            case BeforeConventionNotInherited:
+                beforeConventionNotInherited = object;
+                break;
+            case BeforeConvention:
+                beforeConvention = object;
+                break;
+            case AfterConvention:
+                afterConvention = object;
+        }
+        updateDelegates();
+    }
+
+    /**
+     * Returns the inheritable properties and methods of this object.
+     *
+     * @return an object containing the inheritable properties and methods of this object.
+     */
+    public HierarchicalDynamicObject getInheritable() {
+        return new InheritedDynamicObject();
+    }
+
+    private DynamicObject snapshotInheritable() {
+        List<DynamicObject> delegates = new ArrayList<>(4);
+        delegates.add(extraPropertiesDynamicObject);
+        if (beforeConvention != null) {
+            delegates.add(beforeConvention);
+        }
+        delegates.add(extensionContainer.getExtensionsAsDynamicObject());
+        return new CompositeDynamicObject(delegates, dynamicDelegate::getDisplayName);
+    }
+
+    @Override
+    public boolean hasProperty(String name) {
+        if (delegateObjects.hasProperty(name)) {
+            return true;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            if (parent.hasProperty(name)) {
+                failOnParentAccessIfNeeded("property", name, parent);
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
+    @Override
+    public DynamicInvokeResult tryGetProperty(String name) {
+        DynamicInvokeResult result = delegateObjects.tryGetProperty(name);
+        if (result.isFound()) {
+            return result;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            result = parent.tryGetProperty(name);
+            if (result.isFound()) {
+                failOnParentAccessIfNeeded("property", name, parent);
+                return result;
+            }
+            parent = parent.getParent();
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    @Override
+    public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
+        return delegateObjects.trySetProperty(name, value);
+    }
+
+    @Override
+    public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+        return delegateObjects.trySetPropertyWithoutInstrumentation(name, value);
+    }
+
+    @Override
+    @Deprecated
+    public Map<String, @Nullable Object> getProperties() {
+        Map<String, @Nullable Object> properties = new HashMap<>();
+
+        // Push parent properties in reverse order, giving priority
+        // to child properties.
+        Deque<HierarchicalDynamicObject> parents = new ArrayDeque<>(5);
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            parents.push(parent);
+            parent = parent.getParent();
+        }
+        while ((parent = parents.poll()) != null) {
+            properties.putAll(parent.getProperties());
+        }
+
+        properties.putAll(delegateObjects.getProperties());
+        properties.put("properties", properties);
+        return properties;
+    }
+
+    @Override
+    public boolean hasMethod(String name, @Nullable Object... arguments) {
+        if (delegateObjects.hasMethod(name, arguments)) {
+            return true;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            if (parent.hasMethod(name, arguments)) {
+                failOnParentAccessIfNeeded("method", name, parent);
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
+    private DynamicInvokeResult doTryInvokeMethod(String name, @Nullable Object... arguments) {
+        DynamicInvokeResult result = delegateObjects.tryInvokeMethod(name, arguments);
+        if (result.isFound()) {
+            return result;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            result = parent.tryInvokeMethod(name, arguments);
+            if (result.isFound()) {
+                failOnParentAccessIfNeeded("method", name, parent);
+                return result;
+            }
+            parent = parent.getParent();
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    private void failOnParentAccessIfNeeded(String memberKind, String memberName, DynamicObject resolvedParent) {
+        if (failOnParentAccess) {
+            throw new InvalidUserCodeException(
+                "Implicit parent-project " + memberKind + " lookup is not allowed: "
+                    + memberKind + " '" + memberName + "' was resolved from " + resolvedParent.getDisplayName()
+                    + " for " + getDisplayName() + ". "
+                    + "Define '" + memberName + "' explicitly in " + getDisplayName()
+                    + ", or unset the org.gradle.internal.fail-on-parent-property-lookup system property."
+            );
+        }
+        DeprecationLogger.deprecateAction("Implicit lookup of " + pluralize(memberKind) + " in parent projects")
+            .withContext(buildDeprecationContext(memberKind, memberName, resolvedParent))
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_implicit_lookup_in_parent_projects")
+            .nagUser();
+    }
+
+    private String buildDeprecationContext(String memberKind, String memberName, DynamicObject resolvedParent) {
+        String context = capitalize(memberKind) + " '" + memberName + "' was not declared in " + getDisplayName()
+            + " and was resolved from " + resolvedParent.getDisplayName() + ".";
+        if (callerContext != null) {
+            return context + " This lookup was initiated by " + callerContext.getDescription() + ".";
+        }
+        return context;
+    }
+
+    private static String pluralize(String memberKind) {
+        return "property".equals(memberKind) ? "properties" : memberKind + "s";
+    }
+
+    @Override
+    public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
+        // First, try to find an actual method on delegates or parents
+        DynamicInvokeResult result = doTryInvokeMethod(name, arguments);
+        if (result.isFound()) {
+            return result;
+        }
+
+        // No method found — fall back to looking for a property with the method name
+        // whose value can be invoked (Closure, NamedDomainObjectContainer, or callable)
+        DynamicInvokeResult propertyResult = tryGetProperty(name);
+        if (!propertyResult.isFound()) {
+            return DynamicInvokeResult.notFound();
+        }
+
+        Object property = propertyResult.getValue();
+
+        // Closure property: invoke it as a method via doCall
+        if (property instanceof Closure) {
+            Closure<?> closure = (Closure<?>) property;
+            closure.setResolveStrategy(Closure.DELEGATE_FIRST);
+            BeanDynamicObject dynamicObject = new BeanDynamicObject(closure);
+            result = dynamicObject.tryInvokeMethod("doCall", arguments);
+            if (!result.isFound() && !(closure instanceof GeneratedClosure)) {
+                return DynamicInvokeResult.found(closure.call(arguments));
+            }
+            return result;
+        }
+
+        // NamedDomainObjectContainer property: configure it with the closure argument
+        if (property instanceof NamedDomainObjectContainer && arguments.length == 1 && arguments[0] instanceof Closure) {
+            ((NamedDomainObjectContainer<?>) property).configure((Closure<?>) arguments[0]);
+            return DynamicInvokeResult.found();
+        }
+
+        // Any other callable property: try invoking call() on it
+        DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(property);
+        if (dynamicObject.hasMethod("call", arguments)) {
+            return dynamicObject.tryInvokeMethod("call", arguments);
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    private class InheritedDynamicObject implements HierarchicalDynamicObject {
+
+        @Override
+        public @Nullable HierarchicalDynamicObject getParent() {
+            return parent;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return dynamicDelegate.getDisplayName();
+        }
+
+        @Override
+        public void setProperty(String name, @Nullable Object value) {
+            throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
+                dynamicDelegate.getDisplayName()));
+        }
+
+        @Override
+        public MissingPropertyException getMissingProperty(String name) {
+            return dynamicDelegate.getMissingProperty(name);
+        }
+
+        @Override
+        public MissingPropertyException setMissingProperty(String name) {
+            return dynamicDelegate.setMissingProperty(name);
+        }
+
+        @Override
+        public MissingMethodException methodMissingException(String name, @Nullable Object... params) {
+            return dynamicDelegate.methodMissingException(name, params);
+        }
+
+        @Override
+        public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
+            setProperty(name, value);
+            return DynamicInvokeResult.found();
+        }
+
+        @Override
+        public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+            setProperty(name, value);
+            return DynamicInvokeResult.found();
+        }
+
+        @Override
+        public boolean hasProperty(String name) {
+            return snapshotInheritable().hasProperty(name);
+        }
+
+        @Override
+        @Nullable
+        public Object getProperty(String name) {
+            return snapshotInheritable().getProperty(name);
+        }
+
+        @Override
+        public DynamicInvokeResult tryGetProperty(String name) {
+            return snapshotInheritable().tryGetProperty(name);
+        }
+
+        @Override
+        public Map<String, ? extends @Nullable Object> getProperties() {
+            return snapshotInheritable().getProperties();
+        }
+
+        @Override
+        public boolean hasMethod(String name, @Nullable Object... arguments) {
+            return snapshotInheritable().hasMethod(name, arguments);
+        }
+
+        @Override
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
+            return snapshotInheritable().tryInvokeMethod(name, arguments);
+        }
+
+        @Override
+        @Nullable
+        public Object invokeMethod(String name, @Nullable Object... arguments) {
+            return snapshotInheritable().invokeMethod(name, arguments);
+        }
+
+    }
+}

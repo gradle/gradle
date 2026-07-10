@@ -1,0 +1,13 @@
+name: Comment on a closed issue
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  reconsider_closed_issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: gradle/issue-management-action/issue-comment-triage@v2

@@ -1,0 +1,129 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.service.scopes;
+
+import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.code.DefaultUserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.sink.OutputEventListenerManager;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationsParameters;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.DefaultBuildOperationExecutor;
+import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
+import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
+import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
+import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
+import org.gradle.internal.operations.trace.BuildOperationJfrEmitter;
+import org.gradle.internal.operations.trace.BuildOperationTrace;
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.work.DefaultResourceLockStatistics;
+import org.gradle.internal.work.DefaultWorkerLeaseService;
+import org.gradle.internal.work.DefaultWorkerLimits;
+import org.gradle.internal.work.ProjectParallelExecutionController;
+import org.gradle.internal.work.ResourceLockStatistics;
+import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerLimits;
+
+public class CoreCrossBuildSessionServices implements ServiceRegistrationProvider {
+
+    @Provides
+    void configure(ServiceRegistration registration) {
+        registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
+        registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
+    }
+
+    @Provides
+    ResourceLockStatistics createResourceLockStatistics(
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationsParameters buildOperationsParameters
+    ) {
+        if (buildOperationsParameters.emitLockingOperations()) {
+            return new DefaultResourceLockStatistics(buildOperationRunner);
+        } else {
+            return ResourceLockStatistics.NO_OP;
+        }
+    }
+
+    @Provides
+    WorkerLimits createWorkerLimits(CrossBuildSessionParameters buildSessionParameters) {
+        return new DefaultWorkerLimits(buildSessionParameters.getStartParameter().getMaxWorkerCount());
+    }
+
+    @Provides
+    BuildOperationExecutor createBuildOperationExecutor(
+        BuildOperationRunner buildOperationRunner,
+        CurrentBuildOperationRef currentBuildOperationRef,
+        WorkerLeaseService workerLeaseService,
+        ExecutorFactory executorFactory,
+        WorkerLimits workerLimits
+    ) {
+        return new DefaultBuildOperationExecutor(
+            buildOperationRunner,
+            currentBuildOperationRef,
+            new DefaultBuildOperationQueueFactory(workerLeaseService),
+            executorFactory,
+            workerLimits
+        );
+    }
+
+    @Provides
+    UserCodeApplicationContext createUserCodeApplicationContext() {
+        return new DefaultUserCodeApplicationContext();
+    }
+
+    @Provides
+    ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+        return new DefaultListenerBuildOperationDecorator(buildOperationRunner, userCodeApplicationContext);
+    }
+
+    @Provides
+    LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        return new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationProgressEventEmitter);
+    }
+
+    @Provides
+    BuildOperationTrace createBuildOperationTrace(InternalOptions internalOptions, CrossBuildSessionParameters parameters, BuildOperationListenerManager buildOperationListenerManager) {
+        return new BuildOperationTrace(parameters.getUserActionRootDirectory(), internalOptions, buildOperationListenerManager);
+    }
+
+    @Provides
+    BuildOperationJfrEmitter createBuildOperationJfrEmitter(InternalOptions internalOptions, BuildOperationListenerManager buildOperationListenerManager) {
+        return new BuildOperationJfrEmitter(internalOptions, buildOperationListenerManager);
+    }
+
+    @Provides
+    BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager generalListenerManager) {
+        return new BuildOperationNotificationBridge(buildOperationListenerManager, generalListenerManager);
+    }
+
+    @Provides
+    BuildOperationNotificationValve createBuildOperationNotificationValve(BuildOperationNotificationBridge buildOperationNotificationBridge) {
+        return buildOperationNotificationBridge.getValve();
+    }
+}

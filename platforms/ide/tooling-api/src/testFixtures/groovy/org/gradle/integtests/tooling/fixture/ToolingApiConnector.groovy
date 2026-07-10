@@ -1,0 +1,95 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.tooling.fixture
+
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.gradle.tooling.internal.consumer.Distribution
+
+class ToolingApiConnector extends GradleConnector {
+    GradleConnector connector
+    private final OutputStream stdout
+    private final OutputStream stderr
+    private final File javaHome
+
+    ToolingApiConnector(GradleConnector connector, File javaHome, OutputStream stdout, OutputStream stderr) {
+        this.stderr = stderr
+        this.stdout = stdout
+        this.connector = connector
+        this.javaHome = javaHome
+    }
+
+    ToolingApiConnector setDistribution(Distribution distribution) {
+        ((DefaultGradleConnector) connector).distribution = distribution
+        this
+    }
+
+    Distribution getDistribution() {
+        return ((DefaultGradleConnector) connector).distribution
+    }
+
+    ProjectConnection connect() {
+        new ToolingApiConnection(connector.connect(), javaHome, stdout, stderr) as ProjectConnection
+    }
+
+    @Override
+    void disconnect() {
+        connector.disconnect()
+    }
+
+    ToolingApiConnector searchUpwards(boolean searchUpwards) {
+        connector.searchUpwards(searchUpwards)
+        this
+    }
+
+    @Override
+    GradleConnector useInstallation(File gradleHome) {
+        connector.useInstallation(gradleHome)
+        this
+    }
+
+    @Override
+    GradleConnector useGradleVersion(String gradleVersion) {
+        connector.useGradleVersion(gradleVersion)
+        this
+    }
+
+    @Override
+    GradleConnector useDistribution(URI gradleDistribution) {
+        connector.useDistribution(gradleDistribution)
+        this
+    }
+
+    @Override
+    GradleConnector useBuildDistribution() {
+        connector.useBuildDistribution()
+        this
+    }
+
+    @Override
+    GradleConnector forProjectDirectory(File projectDir) {
+        connector.forProjectDirectory(projectDir)
+        this
+    }
+
+    @Override
+    GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
+        connector.useGradleUserHomeDir(gradleUserHomeDir)
+        this
+    }
+}

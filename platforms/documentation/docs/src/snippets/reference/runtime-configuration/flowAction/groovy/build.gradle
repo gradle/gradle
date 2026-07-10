@@ -1,0 +1,44 @@
+import org.gradle.api.flow.FlowAction
+import org.gradle.api.flow.FlowParameters
+import org.gradle.api.flow.FlowProviders
+import org.gradle.api.flow.FlowScope
+import org.gradle.api.flow.BuildWorkResult
+import javax.inject.Inject
+
+// tag::flow-action[]
+abstract class PrintBuildResultPlugin implements Plugin<Project> {
+
+    @Inject
+    abstract FlowScope getFlowScope()
+
+    @Inject
+    abstract FlowProviders getFlowProviders()
+
+    @Override
+    void apply(Project target) {
+        flowScope.always(BuildResultPrinter) {
+            parameters.buildResult.set(flowProviders.buildWorkResult)
+        }
+    }
+}
+
+abstract class BuildResultPrinter implements FlowAction<BuildResultPrinter.Parameters> {
+
+    interface Parameters extends FlowParameters {
+        @Input
+        Property<BuildWorkResult> getBuildResult()
+    }
+
+    @Override
+    void execute(Parameters parameters) {
+        def result = parameters.buildResult.get()
+        if (result.failure.isPresent()) {
+            println "Build failed: ${result.failure.get().message}"
+        } else {
+            println "Build succeeded"
+        }
+    }
+}
+// end::flow-action[]
+
+apply plugin: PrintBuildResultPlugin

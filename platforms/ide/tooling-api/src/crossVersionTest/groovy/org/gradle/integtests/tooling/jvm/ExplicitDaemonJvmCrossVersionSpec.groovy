@@ -1,0 +1,364 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+package org.gradle.integtests.tooling.jvm
+
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.tooling.ConfigurableLauncher
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.model.GradleProject
+
+/**
+ * Abstract class to test the JVM version compatibility of the tooling API where the tooling
+ * API client JVM is different than the daemon JVM. Subclasses implement the various ways of
+ * specifying the daemon JDK version.
+ */
+@TargetGradleVersion("current") // Supporting multiple Gradle versions is more work.
+abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
+
+    def setup() {
+        requireDaemons()
+        disableDaemonJavaVersionDeprecationFiltering()
+    }
+
+    /**
+     * Configure this build to use the given JVM.
+     */
+    void configureBuild(int majorVersion, File javaHome) { }
+
+    /**
+     * Configure the tooling API launcher to use the given JVM.
+     */
+    void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, File javaHome) { }
+
+    // region Unsupported JVM
+
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    def "fails to run a build with unsupported java version"() {
+        given:
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+
+        when:
+        fails { connection ->
+            def launcher = connection.newBuild()
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.message.startsWith("Could not execute build using ")
+        e.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.majorVersion)
+
+        where:
+        jdk << getUnsupportedJdks()
+    }
+
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    def "fails to fetch model with unsupported java version"() {
+        given:
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+
+        when:
+        fails { connection ->
+            def launcher = connection.model(GradleProject)
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.get()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.message.startsWith("Could not fetch model of type 'GradleProject' using ")
+        e.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.majorVersion)
+
+        where:
+        jdk << getUnsupportedJdks()
+    }
+
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    def "fails to run action with unsupported java version"() {
+        given:
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+
+        when:
+        fails { connection ->
+            def launcher = connection.action(new GetBuildJvmAction())
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.message.startsWith("Could not run build action using ")
+        e.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.majorVersion)
+
+        where:
+        jdk << getUnsupportedJdks()
+    }
+
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    def "fails to run tests with unsupported java version"() {
+        given:
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+
+        when:
+        fails { connection ->
+            def launcher = connection.newTestLauncher().withJvmTestClasses("SomeTest")
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.message.startsWith("Could not execute tests using ")
+        e.cause.message == SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.majorVersion)
+
+        where:
+        jdk << getUnsupportedJdks()
+    }
+
+    // endregion
+
+    // region Deprecated JVM
+
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    def "running a build with deprecated Java versions is deprecated"() {
+        given:
+        def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
+
+        captureJavaHome()
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
+
+         when:
+        succeeds { connection ->
+            def launcher = connection.newBuild()
+             configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        assertDaemonUsedJvm(jdk.javaHome)
+    }
+
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    def "fetching a model with deprecated Java versions is deprecated"() {
+        given:
+        def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
+
+        captureJavaHome()
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
+
+        when:
+        succeeds { connection ->
+            def launcher = connection.model(GradleProject)
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.get()
+        }
+
+        then:
+        assertDaemonUsedJvm(jdk.javaHome)
+    }
+
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    def "running an action with deprecated Java versions is deprecated"() {
+        given:
+        def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
+
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
+
+        when:
+        def javaHome = succeeds { connection ->
+            def launcher = connection.action(new GetBuildJvmAction())
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        // Using startsWith since the returned `javaHome` may have /jre in its path
+        javaHome.absoluteFile.getPath().startsWith(jdk.javaHome.absoluteFile.getPath())
+    }
+
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    def "running tests with deprecated Java versions is deprecated"() {
+        given:
+        def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
+
+        writeTestFiles()
+        captureJavaHome()
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
+
+        when:
+        succeeds { connection ->
+            def launcher = connection.newTestLauncher().withJvmTestClasses("SomeTest")
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        assertDaemonUsedJvm(jdk.javaHome)
+    }
+
+    // endregion
+
+    // region Supported JVM
+
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    def "can run build with non deprecated Java versions without warning"() {
+        given:
+        def jdk = asJavaInfo(AvailableJavaHomes.nonDeprecatedDaemonJdk)
+
+        captureJavaHome()
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+
+        when:
+        succeeds { connection ->
+            def launcher = connection.newBuild()
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        assertDaemonUsedJvm(jdk.javaHome)
+    }
+
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    def "can fetch model with non deprecated Java versions without warning"() {
+        given:
+        def jdk = asJavaInfo(AvailableJavaHomes.nonDeprecatedDaemonJdk)
+
+        captureJavaHome()
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+
+        when:
+        succeeds { connection ->
+            def launcher = connection.model(GradleProject)
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.get()
+        }
+
+        then:
+        assertDaemonUsedJvm(jdk.javaHome)
+    }
+
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    def "can run action with non deprecated Java versions without warning"() {
+        given:
+        def jdk = asJavaInfo(AvailableJavaHomes.nonDeprecatedDaemonJdk)
+
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+
+        when:
+        def javaHome = succeeds { connection ->
+            def launcher = connection.action(new GetBuildJvmAction())
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        // Using startsWith since the returned `javaHome` may have /jre in its path
+        javaHome.absoluteFile.getPath().startsWith(jdk.javaHome.absoluteFile.getPath())
+    }
+
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    def "can run tests with non deprecated Java versions without warning"() {
+        given:
+        def jdk = asJavaInfo(AvailableJavaHomes.nonDeprecatedDaemonJdk)
+
+        writeTestFiles()
+        captureJavaHome()
+        configureBuild(jdk.majorVersion, jdk.javaHome)
+
+        when:
+        succeeds { connection ->
+            def launcher = connection.newTestLauncher().withJvmTestClasses("SomeTest")
+            configureLauncher(launcher, jdk.javaHome)
+            launcher.run()
+        }
+
+        then:
+        assertDaemonUsedJvm(jdk.javaHome)
+    }
+
+    // Using dynamic Groovy since we cannot reference the Jvm type here -- due to Tooling API test weirdness
+    private static JvmInfo asJavaInfo(def jvm) {
+        new JvmInfo(jvm.javaVersionMajor, jvm.javaHome)
+    }
+
+    /**
+     * Wraps the Jvm type, as that class can not be included as part of a
+     * tooling API
+     */
+    static class JvmInfo {
+
+        final int majorVersion
+        final File javaHome
+
+        JvmInfo(int majorVersion, File javaHome) {
+            this.majorVersion = majorVersion
+            this.javaHome = javaHome
+        }
+
+        int getMajorVersion() {
+            return majorVersion
+        }
+
+        File getJavaHome() {
+            return javaHome
+        }
+
+        // used in parameterized tests' names
+        @Override
+        String toString() {
+            return "JDK " + majorVersion;
+        }
+    }
+
+    // endregion
+
+    private static List<JvmInfo> getUnsupportedJdks() {
+        AvailableJavaHomes.getUnsupportedDaemonJdks().collect { asJavaInfo(it) }
+    }
+
+    void writeTestFiles() {
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test.useJUnitJupiter()
+        """
+        file("src/test/java/SomeTest.java") << """
+            class SomeTest {
+                @org.junit.jupiter.api.Test
+                public void test() {}
+            }
+        """
+    }
+
+}

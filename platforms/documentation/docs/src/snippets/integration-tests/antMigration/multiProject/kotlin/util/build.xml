@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="util" default="build" basedir=".">
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="target"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" debug="true"/>
+    </target>
+
+    <target name="package" depends="build">
+        <jar destfile="${build.dir}/lib/hello-app.jar" basedir="${classes.dir}"/>
+    </target>
+
+    <target name="build" depends="compile"/>
+</project>

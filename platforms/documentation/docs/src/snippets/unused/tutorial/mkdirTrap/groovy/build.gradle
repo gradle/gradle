@@ -1,0 +1,16 @@
+def classesDir = file('build/classes')
+classesDir.mkdirs()
+tasks.register('clean', Delete) {
+    delete 'build'
+}
+tasks.register('compile') {
+    dependsOn 'clean'
+    def localClassesDir = classesDir
+    doLast {
+        if (!localClassesDir.isDirectory()) {
+            println 'The class directory does not exist. I can not operate'
+            // do something
+        }
+        // do something
+    }
+}

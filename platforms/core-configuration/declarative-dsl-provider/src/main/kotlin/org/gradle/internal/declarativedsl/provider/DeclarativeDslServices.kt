@@ -1,0 +1,108 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.declarativedsl.provider
+
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.initialization.SharedModelDefaults
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.model.ObjectFactory
+import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.interpreter.DeclarativeKotlinScriptEvaluator
+import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.interpreter.MemoizedInterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.interpreter.StoringInterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.interpreter.defaultDeclarativeScriptEvaluator
+import org.gradle.internal.declarativedsl.interpreter.defaults.ActionBasedModelDefaultsHandler
+import org.gradle.internal.declarativedsl.interpreter.defaults.DeclarativeModelDefaultsHandler
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices
+import org.gradle.features.internal.binding.ModelDefaultsHandler
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import java.io.File
+
+
+class DeclarativeDslServices : AbstractGradleModuleServices() {
+    override fun registerBuildServices(registration: ServiceRegistration) {
+        registration.addProvider(BuildServices)
+    }
+
+    override fun registerProjectServices(registration: ServiceRegistration) {
+        registration.addProvider(ProjectServices)
+    }
+}
+
+
+internal
+object BuildServices : ServiceRegistrationProvider {
+
+    fun configure(listenerManager: ListenerManager, serviceRegistration: ServiceRegistration) {
+        serviceRegistration.add(SettingsUnderInitialization::class.java, SettingsUnderInitialization(listenerManager))
+    }
+
+    @Provides
+    fun createDeclarativeKotlinScriptEvaluator(
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
+        schemaBuilder: InterpretationSchemaBuilder
+    ): DeclarativeKotlinScriptEvaluator {
+        return defaultDeclarativeScriptEvaluator(schemaBuilder, projectFeatureDeclarations)
+    }
+
+    @Provides
+    fun createInterpretationSchemaBuilder(
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
+        buildLayoutFactory: BuildLayoutFactory,
+        settingsUnderInitialization: SettingsUnderInitialization,
+        gradleInternal: GradleInternal
+    ): InterpretationSchemaBuilder =
+        MemoizedInterpretationSchemaBuilder(
+            StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, projectFeatureDeclarations), buildLayoutFactory.settingsDir(gradleInternal))
+        )
+
+    @Provides
+    fun createDeclarativeModelDefaultsHandler(
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
+        interpretationSchemaBuilder: InterpretationSchemaBuilder,
+        objectFactory: ObjectFactory
+    ): ModelDefaultsHandler {
+        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, projectFeatureDeclarations, interpretationSchemaBuilder)
+    }
+
+    private
+    fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
+        getLayoutFor(gradle.startParameter.toBuildLayoutConfiguration()).settingsDir
+}
+
+internal object ProjectServices : ServiceRegistrationProvider {
+
+    @Provides
+    fun createActionBasedModelDefaultsHandler(
+        sharedModelDefaults: SharedModelDefaults,
+        projectLayout: ProjectLayout,
+        projectFeatureDeclarations: ProjectFeatureDeclarations
+    ): ModelDefaultsHandler {
+        return ActionBasedModelDefaultsHandler(
+            sharedModelDefaults as SharedModelDefaultsInternal,
+            projectLayout,
+            projectFeatureDeclarations,
+        )
+    }
+}

@@ -1,0 +1,489 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.declarative.dsl.tooling.builders.r89
+
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataMemberFunction
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+
+import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
+import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
+import org.gradle.internal.declarativedsl.dom.DataStructuralEqualityKt
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.fromLanguageTree.LanguageTreeToDomKt
+import org.gradle.internal.declarativedsl.evaluator.main.AnalysisDocumentUtils
+import org.gradle.internal.declarativedsl.evaluator.main.SimpleAnalysisEvaluator
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinksResolver.AssignmentResolutionResult.Assigned
+import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
+import org.gradle.internal.declarativedsl.parsing.ParserKt
+import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
+import org.gradle.util.GradleVersion
+
+@TargetGradleVersion(">=9.5")
+@ToolingApiVersion('>=9.5')
+class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
+
+    def setup() {
+        settingsFile.delete() //we are using a declarative settings file
+    }
+
+    def 'can obtain model containing project schema, even in the presence of errors in project scripts'() {
+        given:
+        file("settings.gradle.dcl") << """
+            rootProject.name = "test"
+            include(":a")
+            include(":b")
+        """
+
+        file("a/build.gradle.dcl") << " !%@ unpassable crappy crap"
+
+        file("b/build.gradle.dcl") << ""
+
+        when:
+        DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class)
+
+        then:
+        model != null
+
+        def schema = model.getProjectSchema()
+        !schema.dataClassTypesByFqName.isEmpty()
+    }
+
+    def 'model is obtained without configuring the project'() {
+        given:
+        file("settings.gradle.dcl") << """
+            rootProject.name = "test"
+            include(":a")
+        """
+
+        file("a/build.gradle.dcl") << ""
+
+        when:
+        def listener = new ConfigurationPhaseMonitoringListener()
+        DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class, listener)
+
+        then:
+        model != null
+        listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
+    }
+
+    def 'schema contains custom project types from included build'() {
+        given:
+        withSoftwareTypePlugins(targetVersion).prepareToExecute()
+
+        file("settings.gradle.dcl") << ecosystemPluginInSettings
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class)
+
+        then:
+        model != null
+
+        def schema = model.getProjectSchema()
+        def topLevelReceiverType = schema.topLevelReceiverType
+        def projectFeatures = featuresDeclaredFor(topLevelReceiverType)
+
+        projectFeatures.collect { it.accessorIdentifier.name }.containsAll(["testSoftwareType", "anotherSoftwareType"])
+        projectFeatures.every { it.bindingTargetStrategy.toString() == "ToDefinition" }
+
+        and:
+        def testSoftwareType = schema.dataClassTypesByFqName.find { key, value -> key.simpleName == "TestSoftwareTypeExtension" }.value as DataClass
+        def testSoftwareTypeFeatures = featuresDeclaredFor(testSoftwareType)
+
+        testSoftwareTypeFeatures.collect { it.accessorIdentifier.name } == ["feature"]
+        testSoftwareTypeFeatures.every { it.bindingTargetStrategy.toString() == "ToBuildModel" }
+    }
+
+    private static def featuresDeclaredFor(DataClass receiver) {
+        def dataMemberFunctions = receiver.memberFunctions.findAll { it instanceof DataMemberFunction }
+        return dataMemberFunctions.findAll { it.semantics instanceof FunctionSemantics.AccessAndConfigure }
+            .findAll { it.semantics.accessor instanceof ConfigureAccessor.ProjectFeature }
+            .collect {it.semantics.accessor }
+    }
+
+    def 'interpretation sequences obtained via TAPI are suitable for analysis'() {
+        given:
+        withSoftwareTypePlugins(targetVersion).prepareToExecute()
+
+        file("settings.gradle.dcl") << """
+            $ecosystemPluginInSettings
+            defaults {
+                testSoftwareType {
+                    id = "default"
+                    foo {
+                        ${targetVersion >= GradleVersion.version("8.14") ? 'baz = listOf("qux")' : ''}
+                    }
+                }
+            }
+        """
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareTypeFoo(targetVersion)
+
+        when:
+        DeclarativeSchemaModel model = fetchSchemaModel(DeclarativeSchemaModel.class)
+
+        then:
+        def evaluator = SimpleAnalysisEvaluator.@Companion.withSchema(model.settingsSequence, model.projectSequence)
+        def settings = evaluator.evaluate("settings.gradle.dcl", file("settings.gradle.dcl").text)
+        def project = evaluator.evaluate("build.gradle.dcl", file("build.gradle.dcl").text)
+
+        ["settingsPluginManagement", "settingsPlugins", "settingsDefaults", "settings"].toSet() == settings.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
+        ["project"].toSet() == project.stepResults.keySet().collect { it.stepIdentifier.key }.toSet()
+
+        and: 'defaults get properly applied'
+        // check the conventions in the resolution results, they should be there, and it is independent of the DOM overlay
+        def projectEvaluated = project.stepResults.values()[0] as EvaluationResult.Evaluated<AnalysisStepResult>
+        projectEvaluated.stepResult.propertyLinkTrace.finalAssignments.entrySet().any {
+            it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "default"
+        }
+
+        when: 'the build and settings files contain errors'
+        def settingsWithErrors = evaluator.evaluate("settings.gradle.dcl", file("settings.gradle.dcl").text.replace("id", "unresolvedId"))
+        def projectWithErrors = evaluator.evaluate("build.gradle.dcl", file("build.gradle.dcl").text + "\nunresolvedToTestErrorHandling()")
+
+        then: 'the client can still produce a build file document with conventions applied from settings'
+        documentIsEquivalentTo(
+            """
+            testSoftwareType {
+                unresolvedId = "default"
+                foo {
+                    bar = "baz"
+                    ${targetVersion >= GradleVersion.version("8.14") ? """
+                    baz = listOf("qux")
+                    baz += listOf("quux")
+                    """ : ''}
+                }
+            }
+            unresolvedToTestErrorHandling()
+            """,
+            AnalysisDocumentUtils.INSTANCE.documentWithModelDefaults(settingsWithErrors, projectWithErrors).document
+        )
+    }
+
+    static String getEcosystemPluginInSettings() {
+        """
+        pluginManagement {
+            includeBuild("plugins")
+        }
+        plugins {
+            id("com.example.test-software-type")
+        }
+        """.stripMargin()
+    }
+
+    static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() {
+        return """
+            testSoftwareType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
+    }
+
+    static String declarativeScriptThatConfiguresOnlyTestSoftwareTypeFoo(GradleVersion targetVersion) {
+        return """
+            testSoftwareType {
+                foo {
+                    bar = "baz"
+                    ${targetVersion >= GradleVersion.version("8.14") ? """
+                    baz += listOf("quux")
+                    """ : ""}
+                }
+            }
+        """
+    }
+
+    PluginBuilder withSoftwareTypePlugins(GradleVersion gradleVersion = GradleVersion.current()) {
+        def pluginBuilder = new PluginBuilder(file("plugins"))
+        pluginBuilder.addPluginId("com.example.test-software-type-impl", "SoftwareTypeImplPlugin")
+        pluginBuilder.addPluginId("com.example.another-software-type-impl", "AnotherSoftwareTypeImplPlugin")
+        pluginBuilder.addPluginId("com.example.test-software-type", "SoftwareTypeRegistrationPlugin")
+
+        pluginBuilder.file("src/main/java/org/gradle/test/TestSoftwareTypeExtension.java") << """
+            package org.gradle.test;
+
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+            import org.gradle.api.Action;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import org.gradle.features.binding.Definition;
+            import org.gradle.features.binding.BuildModel;
+
+            import java.util.ArrayList;
+            import javax.inject.Inject;
+
+            public abstract class TestSoftwareTypeExtension implements Definition<TestSoftwareTypeExtension.Model> {
+                private final Foo foo;
+
+                @Inject
+                public TestSoftwareTypeExtension(ObjectFactory objects) {
+                    this.foo = objects.newInstance(Foo.class);
+                    this.foo.getBar().set("bar");
+
+                    getId().convention("<no id>");
+                }
+
+                public abstract Property<String> getId();
+
+                @HiddenInDefinition
+                public Foo getFoo() {
+                    return foo;
+                }
+
+                public void foo(Action<? super Foo> action) {
+                    action.execute(foo);
+                }
+
+                public abstract static class Foo {
+                    public Foo() {
+                        this.getBar().convention("nothing");
+                        ${gradleVersion >= GradleVersion.version("8.14") ? """
+                        this.getBaz().convention(new ArrayList<>());
+                        """ : ""}
+                    }
+
+                    public abstract Property<String> getBar();
+
+                    ${gradleVersion >= GradleVersion.version("8.14") ? """
+                    public abstract ListProperty<String> getBaz();
+                    """ : ""}
+                }
+
+                public interface Feature extends Definition<BuildModel.None> {
+                    abstract Property<String> getSomeFeatureProperty();
+                }
+
+                static class Model implements BuildModel { }
+            }
+        """
+
+        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeExtension.java") << """
+            package org.gradle.test;
+
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.api.Action;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+
+            import javax.inject.Inject;
+
+            public abstract class AnotherSoftwareTypeExtension extends TestSoftwareTypeExtension {
+                @Inject
+                public AnotherSoftwareTypeExtension(ObjectFactory objects) {
+                    super(objects);
+                }
+            }
+        """
+
+        pluginBuilder.file("src/main/java/org/gradle/test/SoftwareTypeImplPlugin.java") << """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.tasks.Nested;
+            import javax.inject.Inject;
+            import org.gradle.features.annotations.BindsProjectType;
+            import org.gradle.features.annotations.BindsProjectFeature;
+            import org.gradle.features.binding.ProjectTypeBinding;
+            import org.gradle.features.binding.ProjectFeatureBinding;
+            import org.gradle.features.binding.ProjectTypeBindingBuilder;
+            import org.gradle.features.binding.ProjectFeatureBindingBuilder;
+            import org.gradle.features.binding.ProjectTypeApplyAction;
+            import org.gradle.features.binding.ProjectFeatureApplyAction;
+            import org.gradle.features.binding.ProjectFeatureApplicationContext;
+            import org.gradle.features.binding.BuildModel;
+            import org.gradle.features.binding.Definition;
+
+            @BindsProjectType(SoftwareTypeImplPlugin.TypeBinding.class)
+            @BindsProjectFeature(SoftwareTypeImplPlugin.FeatureBinding.class)
+            abstract public class SoftwareTypeImplPlugin implements Plugin<Project> {
+                static class TypeBinding implements ProjectTypeBinding {
+                    public void bind(ProjectTypeBindingBuilder builder) {
+                        builder.bindProjectType("testSoftwareType", TestSoftwareTypeExtension.class, TypeApplyAction.class)
+                        .withUnsafeDefinition();
+                    }
+                }
+
+                static abstract class TypeApplyAction implements ProjectTypeApplyAction<TestSoftwareTypeExtension, TestSoftwareTypeExtension.Model> {
+                    @javax.inject.Inject public TypeApplyAction() { }
+
+                    @javax.inject.Inject
+                    abstract protected Project getProject();
+
+                    @Override
+                    public void apply(ProjectFeatureApplicationContext context, TestSoftwareTypeExtension definition, TestSoftwareTypeExtension.Model model) {
+                        getProject().getTasks().register("printConfiguration", DefaultTask.class, task -> {
+                            task.doLast("print restricted extension content", t -> {
+                                System.out.println("id = " + definition.getId().get());
+                                System.out.println("bar = " + definition.getFoo().getBar().get());
+
+                                ${gradleVersion >= GradleVersion.version("8.14") ? """
+                                System.out.println("baz = " + definition.getFoo().getBaz().get());
+                                """ : ""}
+                            });
+                        });
+                    }
+                }
+
+                static class FeatureBinding implements ProjectFeatureBinding {
+                    public void bind(ProjectFeatureBindingBuilder builder) {
+                        builder.bindProjectFeatureToBuildModel("feature", TestSoftwareTypeExtension.Feature.class, TestSoftwareTypeExtension.Model.class, FeatureApplyAction.class);
+                    }
+                }
+
+                static abstract class FeatureApplyAction implements ProjectFeatureApplyAction<TestSoftwareTypeExtension.Feature, BuildModel.None, Definition<TestSoftwareTypeExtension.Model>> {
+                    @javax.inject.Inject public FeatureApplyAction() { }
+
+                    @Override
+                    public void apply(ProjectFeatureApplicationContext context, TestSoftwareTypeExtension.Feature definition, BuildModel.None model, Definition<TestSoftwareTypeExtension.Model> parent) {
+                        System.out.println("Configuring feature with property: " + definition.getSomeFeatureProperty().get());
+                    }
+                }
+
+                @Inject
+                abstract protected ObjectFactory getObjectFactory();
+
+                @Override
+                public void apply(Project target) {
+                    System.out.println("Applying " + getClass().getSimpleName());
+                }
+            }
+        """
+        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeImplPlugin.java") << """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.tasks.Nested;
+            import javax.inject.Inject;
+            import org.gradle.features.annotations.BindsProjectType;
+            import org.gradle.features.binding.ProjectTypeBinding;
+            import org.gradle.features.binding.ProjectTypeBindingBuilder;
+            import org.gradle.features.binding.ProjectTypeApplyAction;
+            import org.gradle.features.binding.ProjectFeatureApplicationContext;
+
+            @BindsProjectType(AnotherSoftwareTypeImplPlugin.Binding.class)
+            abstract public class AnotherSoftwareTypeImplPlugin implements Plugin<Project> {
+                static class Binding implements ProjectTypeBinding {
+                    public void bind(ProjectTypeBindingBuilder builder) {
+                        builder.bindProjectType("anotherSoftwareType", TestSoftwareTypeExtension.class, ApplyAction.class)
+                            .withUnsafeDefinition();
+                    }
+                }
+
+                static abstract class ApplyAction implements ProjectTypeApplyAction<TestSoftwareTypeExtension, TestSoftwareTypeExtension.Model> {
+                    @javax.inject.Inject public ApplyAction() { }
+                    @Override public void apply(ProjectFeatureApplicationContext context, TestSoftwareTypeExtension definition, TestSoftwareTypeExtension.Model model) { }
+                }
+
+                @Inject
+                abstract protected ObjectFactory getObjectFactory();
+
+                @Override
+                public void apply(Project target) {
+                    System.out.println("Applying " + getClass().getSimpleName());
+                }
+            }
+        """
+
+        pluginBuilder.file("src/main/java/org/gradle/test/SoftwareTypeRegistrationPlugin.java") << """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.internal.SettingsInternal;
+            import org.gradle.features.annotations.RegistersProjectFeatures;
+
+            @SuppressWarnings("UnstableApiUsage")
+            @RegistersProjectFeatures({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
+            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
+                @Override
+                public void apply(Settings target) {
+                }
+            }
+        """
+
+        return pluginBuilder
+    }
+
+    private <T> T fetchSchemaModel(Class<T> modelType, ProgressListener listener = null) {
+        toolingApi.withConnection({ connection ->
+            def model = connection.model(modelType)
+            if (listener != null) {
+                model.addProgressListener(listener)
+            }
+            model.get()
+        })
+    }
+
+    private static boolean documentIsEquivalentTo(
+        String expectedDocumentText,
+        def actualDocument // can't declare it as DeclarativeDocument, throws NCDFE from the test runner (???)
+    ) {
+        def doc = actualDocument as DeclarativeDocument
+        def parsed = ParserKt.parse(expectedDocumentText)
+        def languageTree = new DefaultLanguageTreeBuilder().build(
+            parsed, new SourceIdentifier("test")
+        )
+        def expectedDocument = LanguageTreeToDomKt.toDocument(languageTree)
+        DataStructuralEqualityKt.structurallyEqualsAsData(doc, expectedDocument)
+    }
+
+    private static final class ConfigurationPhaseMonitoringListener implements ProgressListener {
+
+        boolean hasSeenSomeEvents = false
+        final List<ProgressEvent> configPhaseStartEvents = new ArrayList<>()
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            hasSeenSomeEvents = true
+            if (event instanceof BuildPhaseStartEvent) {
+                BuildPhaseStartEvent buildPhaseStartEvent = (BuildPhaseStartEvent) event
+                if (buildPhaseStartEvent.descriptor.buildPhase.startsWith("CONFIGURE")) {
+                    configPhaseStartEvents.add(event)
+                }
+            }
+        }
+    }
+}

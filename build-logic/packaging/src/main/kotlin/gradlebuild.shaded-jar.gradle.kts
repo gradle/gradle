@@ -1,0 +1,202 @@
+/*
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import gradlebuild.basics.capitalize
+import gradlebuild.basics.classanalysis.Attributes
+import gradlebuild.basics.decapitalize
+import gradlebuild.shade.ArtifactTypes.buildReceiptType
+import gradlebuild.shade.ArtifactTypes.classTreesType
+import gradlebuild.shade.ArtifactTypes.entryPointsType
+import gradlebuild.shade.ArtifactTypes.manifestsType
+import gradlebuild.shade.ArtifactTypes.relocatedClassesAndAnalysisType
+import gradlebuild.shade.ArtifactTypes.relocatedClassesType
+import gradlebuild.shade.extension.ShadedJarExtension
+import gradlebuild.shade.tasks.ShadedJar
+import gradlebuild.shade.transforms.FindBuildReceipt
+import gradlebuild.shade.transforms.FindClassTrees
+import gradlebuild.shade.transforms.FindEntryPoints
+import gradlebuild.shade.transforms.FindManifests
+import gradlebuild.shade.transforms.FindRelocatedClasses
+import gradlebuild.shade.transforms.ShadeClasses
+
+
+plugins {
+    id("gradlebuild.module-identity")
+}
+
+val shadedJarExtension = extensions.create<ShadedJarExtension>("shadedJar", createConfigurationToShade())
+
+registerTransforms()
+
+val shadedJarTask = addShadedJarTask()
+
+addInstallShadedJarTask(shadedJarTask)
+addShadedJarVariant(shadedJarTask)
+configureShadedSourcesJarVariant()
+
+plugins.withId("gradlebuild.publish-public-libraries") {
+    gradleModule {
+        // Since all of our dependencies are shaded, we don't care if they are published or not.
+        // Hackily declare this project as non-published to skip the verification.
+        published = false
+    }
+}
+
+fun registerTransforms() {
+    dependencies {
+        registerTransform(ShadeClasses::class) {
+            from.attribute(Attributes.artifactType, "jar")
+                .attribute(Attributes.minified, true)
+            to.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
+            parameters {
+                shadowPackage = "org.gradle.internal.impldep"
+                keepPackages = shadedJarExtension.keepPackages
+                unshadedPackages = shadedJarExtension.unshadedPackages
+                ignoredPackages = shadedJarExtension.ignoredPackages
+            }
+        }
+
+        registerTransform(FindRelocatedClasses::class) {
+            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
+            to.attribute(Attributes.artifactType, relocatedClassesType)
+        }
+        registerTransform(FindEntryPoints::class) {
+            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
+            to.attribute(Attributes.artifactType, entryPointsType)
+        }
+        registerTransform(FindClassTrees::class) {
+            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
+            to.attribute(Attributes.artifactType, classTreesType)
+        }
+        registerTransform(FindManifests::class) {
+            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
+            to.attribute(Attributes.artifactType, manifestsType)
+        }
+        registerTransform(FindBuildReceipt::class) {
+            from.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
+            to.attribute(Attributes.artifactType, buildReceiptType)
+        }
+    }
+}
+
+fun createConfigurationToShade() = configurations.create("jarsToShade") {
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+    attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    dependencies.addAllLater(provider {
+        listOf(
+            project.dependencies.create(project),
+            project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies")))
+        )
+    })
+}
+
+fun addShadedJarTask(): TaskProvider<ShadedJar> {
+    val configurationToShade = shadedJarExtension.shadedConfiguration
+    val moduleIdentity = gradleModule.identity
+    val shadedJarFile: Provider<String> = moduleIdentity.baseName.zip(moduleIdentity.version) { baseName, version ->
+        "shaded-jar/${baseName}-shaded-${version.baseVersion.version}.jar"
+    }
+
+    return tasks.register("${project.name.kebabToCamel()}ShadedJar", ShadedJar::class) {
+        jarFile = layout.buildDirectory.file(shadedJarFile)
+        classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
+        entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
+        relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))
+        manifests.from(configurationToShade.artifactViewForType(manifestsType))
+        buildReceiptFile.from(configurationToShade.artifactViewForType(buildReceiptType))
+    }
+}
+
+fun addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
+    val installPathProperty = "${project.name.kebabToCamel()}ShadedJarInstallPath"
+    val installPath: Provider<File> = providers.gradleProperty(installPathProperty).orElse("").map {
+        val file = if (it.isEmpty()) null else File(it)
+        require(file?.isAbsolute == true) { "Property $installPathProperty is required and must be absolute!" }
+        file
+    }
+    tasks.register<Copy>("install${project.name.kebabToPascal()}ShadedJar") {
+        from(shadedJarTask.map { it.jarFile })
+        into(installPath.map { it.parentFile })
+        rename { installPath.map { it.name }.get() }
+    }
+}
+
+fun addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
+    val implementation = configurations.getByName("implementation")
+    val shadedImplementation = configurations.create("shadedImplementation") {
+        isCanBeResolved = false
+        isCanBeConsumed = false
+    }
+    implementation.extendsFrom(shadedImplementation)
+
+    val shadedRuntimeElements = configurations.create("shadedRuntimeElements") {
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 6)
+        }
+        extendsFrom(shadedImplementation)
+        outgoing.artifact(shadedJarTask) {
+            name = gradleModule.identity.baseName.get()
+            type = "jar"
+        }
+    }
+
+    // publish only the shaded variant
+    val javaComponent = components["java"] as AdhocComponentWithVariants
+    javaComponent.addVariantsFromConfiguration(shadedRuntimeElements) { }
+    javaComponent.withVariantsFromConfiguration(configurations["runtimeElements"]) {
+        skip()
+    }
+    javaComponent.withVariantsFromConfiguration(configurations["apiElements"]) {
+        skip()
+    }
+}
+
+fun configureShadedSourcesJarVariant() {
+    val implementation = configurations.getByName("implementation")
+    val sourcesPath = configurations.create("sourcesPath") {
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        extendsFrom(implementation)
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
+        }
+    }
+    tasks.named<Jar>("sourcesJar") {
+        from(sourcesPath.incoming.artifactView { lenient(true) }.files)
+    }
+    val sourcesElements = configurations.getByName("sourcesElements")
+    sourcesElements.attributes {
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
+    }
+}
+
+fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artifactView {
+    attributes.attribute(Attributes.artifactType, artifactTypeName)
+}.files
+
+fun String.kebabToPascal() = split("-").joinToString("") { it.capitalize() }
+
+fun String.kebabToCamel() = kebabToPascal().decapitalize()

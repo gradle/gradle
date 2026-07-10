@@ -1,0 +1,294 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.declarativedsl
+
+import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Namer
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer
+import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
+import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
+import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
+import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
+import org.gradle.internal.declarativedsl.ndoc.ContainersSchemaComponent
+import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingIssue
+import org.gradle.internal.declarativedsl.schemaBuilder.basicTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.gradle.internal.declarativedsl.schemaUtils.findType
+import org.gradle.internal.declarativedsl.schemaUtils.hasFunctionNamed
+import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
+import org.gradle.internal.declarativedsl.schemaUtils.typeFor
+import org.gradle.internal.reflect.Instantiator
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+
+class ContainersSchemaComponentTest {
+    @Test
+    fun `imports container members into the schema`() {
+        assertEquals(setOf("containerOne", "containerTwo"), schema.analysisSchema.typeFor<TopLevel>().memberFunctions.map { it.simpleName }.toSet())
+        assertEquals(setOf("containerThree", "containerSubtype"), schema.analysisSchema.typeFor<Two>().memberFunctions.map { it.simpleName }.toSet())
+    }
+
+    @Test
+    fun `uses element type names for factory function names`() {
+        listOf("one", "two", "customFactoryName").forEach { name ->
+            assertTrue(schema.analysisSchema.findType { type: DataClass -> type.hasFunctionNamed(name) } != null)
+        }
+    }
+
+    @Test
+    fun `discovers types used as container elements`() {
+        assertTrue(schema.analysisSchema.dataClassTypesByFqName.keys.map { it.qualifiedName }.containsAll(listOf(One::class.qualifiedName, Two::class.qualifiedName, Three::class.qualifiedName)))
+    }
+
+    @Test
+    fun `each container only has its own element factories`() {
+        val containerOneFunctionSemantics = schema.analysisSchema.typeFor<TopLevel>().singleFunctionNamed("containerOne").function.semantics
+        val configuredTypeRef = (containerOneFunctionSemantics as FunctionSemantics.AccessAndConfigure).configuredType
+        val configuredType = SchemaTypeRefContext(schema.analysisSchema).resolveRef(configuredTypeRef) as DataClass
+        assertTrue(configuredType.hasFunctionNamed("one"))
+        assertFalse(configuredType.hasFunctionNamed("two"))
+    }
+
+    @Test
+    fun `detects illegal hidden type usages in container elements`() {
+        assertThrows<DeclarativeDslSchemaBuildingException> {
+            schemaFromTypes(
+                UsesHiddenContainerElement::class,
+                typeDiscovery = CompositeTypeDiscovery(
+                    listOf(basicTypeDiscovery(kotlinFunctionAsConfigureLambda)) + ContainersSchemaComponent().typeDiscovery()
+                )
+            )
+        }.run {
+            assertEquals(
+                """
+                |Type 'org.gradle.internal.declarativedsl.Hidden' is a hidden type and cannot be directly used.
+                |  Appears as hidden:
+                |    - type 'org.gradle.internal.declarativedsl.Hidden' is annotated as hidden
+                |  Illegal usages:
+                |    - referenced from member 'val org.gradle.internal.declarativedsl.UsesHiddenContainerElement.container: org.gradle.api.NamedDomainObjectContainer<org.gradle.internal.declarativedsl.Hidden>'
+                """.trimMargin(),
+                message
+            )
+        }
+    }
+
+    @Test
+    fun `can create elements during object conversion`() {
+        val receiver = TopLevel()
+
+        AnalysisAndConversionStepRunner(AnalysisStepRunner())
+            .runInterpretationSequenceStep(
+                scriptIdentifier = "test",
+                scriptSource = """
+                    containerOne {
+                        one("nameOne") {
+                            x = 1
+                        }
+                    }
+
+                    containerTwo {
+                        two("nameTwo") {
+                            y = 2
+                            containerThree {
+                                customFactoryName("nameThree") {
+                                    z = 3
+                                }
+                                customFactoryName("nameThirty") {
+                                    z = 30
+                                }
+                            }
+                            containerSubtype {
+                                customFactoryName("nameThreeHundred") {
+                                    z = 300
+                                }
+                                configuringInSubtype { // check that the runtime function resolver distinguishes between the synthetic element factory and other functions
+                                    z = 301
+                                }
+                                w = 4
+                            }
+                        }
+                    }
+                """.trimIndent(),
+                SimpleInterpretationSequenceStepWithConversion("test", emptySet()) { schema },
+                ConversionStepContext(receiver, { javaClass.classLoader }, { javaClass.classLoader }, AnalysisStepContext(emptyList(), emptyList()), true)
+            )
+
+        receiver.containerOne.single().run {
+            assertEquals("nameOne", name)
+            assertEquals(1, x)
+        }
+        receiver.getContainerTwo().single().run {
+            assertEquals("nameTwo", name)
+            assertEquals(2, y)
+
+            assertEquals(
+                setOf("nameThree" to 3, "nameThirty" to 30),
+                containerThree.map { it.name to it.z }.toSet()
+            )
+
+            assertEquals(
+                setOf("nameThreeHundred" to 300, "configuringInSubtype" to 301),
+                containerSubtype.map { it.name to it.z }.toSet()
+            )
+            assertEquals(4, containerSubtype.w)
+        }
+    }
+
+    @Test
+    fun `can import out-projected type argument for container element type`() {
+        val schema = buildEvaluationAndConversionSchema(UsesOutProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }.analysisSchema
+        val typeRefContext = SchemaTypeRefContext(schema)
+        val topLevelType = schema.typeFor<UsesOutProjectedElementType>()
+        topLevelType.singleFunctionNamed("container").function.run {
+            val containerType = typeRefContext.resolveRef((semantics as FunctionSemantics.ConfigureSemantics).configuredType) as DataClass
+            val elementFactory = containerType.singleFunctionNamed("charSequence").function
+            val elementType = typeRefContext.resolveRef((elementFactory.semantics as FunctionSemantics.ConfigureSemantics).configuredType) as DataClass
+            assertEquals(CharSequence::class.qualifiedName, elementType.name.qualifiedName)
+        }
+        assertTrue(topLevelType.properties.none { it.name == "container" })
+    }
+
+    @Test
+    fun `reports an error on an in-projected NDOC`() {
+        val schema = buildEvaluationAndConversionSchema(UsesInProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }
+        schema.analysisSchemaBuildingFailures.single().run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage>(issue)
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.ClassContext && it.qualifiedName == UsesInProjectedElementType::class.qualifiedName })
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.MemberContext && it.memberSignature == "container" })
+        }
+    }
+
+    @Test
+    fun `reports an error on an star-projected NDOC`() {
+        val schema = buildEvaluationAndConversionSchema(UsesStarProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }
+        schema.analysisSchemaBuildingFailures.single().run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage>(issue)
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.ClassContext && it.qualifiedName == UsesStarProjectedElementType::class.qualifiedName })
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.MemberContext && it.memberSignature == "container" })
+        }
+    }
+
+    private val schema by lazy { buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) { gradleDslGeneralSchema() } }
+
+    class TopLevel {
+        val containerOne: NamedDomainObjectContainer<One> = container(One::class.java)
+
+        fun getContainerTwo(): NamedDomainObjectContainer<Two> = containerTwo
+
+        private val containerTwo = container(Two::class.java)
+    }
+
+    class One(private val name: String) : Named {
+        var x: Int = 0
+
+        override fun getName(): String = name
+    }
+
+    class Two(private val name: String) : Named {
+        val containerThree: NamedDomainObjectContainer<Three> = container(Three::class.java)
+
+        val containerSubtype: NdocSubtype = NdocSubtype()
+
+        var y: Int = 0
+
+        @HiddenInDefinition
+        override fun getName(): String = name
+    }
+
+    @ElementFactoryName("customFactoryName")
+    class Three(private val name: String) : Named {
+        var z: Int = 0
+
+        override fun getName(): String = name
+    }
+
+    class NdocSubtype : AbstractNamedDomainObjectContainer<Three>(
+        Three::class.java,
+        object : Instantiator {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : Any> newInstance(type: Class<out T>, vararg parameters: Any?): T =
+                type.constructors.single().newInstance(*parameters) as T
+        },
+        Namer(Three::getName),
+        CollectionCallbackActionDecorator.NOOP
+    ) {
+        var w: Int = 0
+
+        @Suppress("unused")
+        fun configuringInSubtype(configure: Three.() -> Unit) {
+            maybeCreate("configuringInSubtype").let(configure)
+        }
+
+        override fun doCreate(name: String): Three = Three(name)
+    }
+}
+
+private fun <T : Any> container(type: Class<T>): NamedDomainObjectContainer<T> = object : AbstractNamedDomainObjectContainer<T>(
+    type,
+    mock<Instantiator> { mock ->
+        on { mock.newInstance<Any>(any(), any()) }.then { invocation ->
+            (invocation.getArgument(0) as Class<*>).constructors.single().newInstance(invocation.getArgument(1))
+        }
+    },
+    CollectionCallbackActionDecorator.NOOP
+) {
+    override fun doCreate(name: String): T = instantiator.newInstance(type, name)
+}
+
+@HiddenInDefinition
+private class Hidden
+
+private interface UsesHiddenContainerElement {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<Hidden>
+}
+
+private interface UsesOutProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<out CharSequence>
+}
+
+private interface UsesInProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<in CharSequence>
+}
+
+private interface UsesStarProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<*>
+}

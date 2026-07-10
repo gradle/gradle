@@ -1,0 +1,2 @@
+[libraries]
+test.module = ":bar"

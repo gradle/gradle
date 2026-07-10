@@ -1,0 +1,43 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>groovy</literal> plugin <overrides>Default with <literal>java</literal> plugin</overrides></td>
+                </tr>
+            </thead>
+            <tr>
+                <td>groovyOptions</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>options</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>source</td>
+                <td><literal><replaceable>sourceSet</replaceable>.groovy</literal></td>
+            </tr>
+            <tr>
+                <td>groovyClasspath</td>
+                <td>Groovy library found on <literal>classpath</literal></td>
+            </tr>
+            <tr>
+                <td>javaLauncher</td>
+                <td><literal>java.toolchain</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

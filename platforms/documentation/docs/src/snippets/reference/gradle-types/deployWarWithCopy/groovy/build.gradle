@@ -1,0 +1,9 @@
+plugins {
+    id 'war'
+}
+
+tasks.register("deployToTomcat", Copy) {
+    from war
+    into layout.projectDirectory.dir('tomcat/webapps')
+    doNotTrackState("Deployment directory contains unreadable files")
+}

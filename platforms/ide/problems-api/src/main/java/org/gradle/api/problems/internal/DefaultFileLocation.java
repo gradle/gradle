@@ -1,0 +1,53 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.problems.internal;
+
+import com.google.common.base.Objects;
+import org.gradle.api.problems.FileLocation;
+
+import java.io.Serializable;
+
+public class DefaultFileLocation implements FileLocation, Serializable {
+    private final String path;
+
+    protected DefaultFileLocation(String path) {
+        this.path = path;
+    }
+
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    public static FileLocation from(String path) {
+        return new DefaultFileLocation(path);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultFileLocation)) {
+            return false;
+        }
+        DefaultFileLocation that = (DefaultFileLocation) o;
+        return Objects.equal(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(path);
+    }
+}

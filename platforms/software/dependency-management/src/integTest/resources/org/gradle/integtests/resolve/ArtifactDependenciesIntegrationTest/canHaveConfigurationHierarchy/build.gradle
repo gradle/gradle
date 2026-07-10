@@ -1,0 +1,24 @@
+configurations {
+    compile
+    runtime { extendsFrom compile }
+}
+dependencies {
+    repositories {
+        ivy {
+            artifactPattern(projectDir.absolutePath + '/[artifact]-[revision].jar')
+            ivyPattern(projectDir.absolutePath + '/[module]-[revision]-ivy.xml')
+        }
+    }
+    compile("test:projectA:1.2") {
+        targetConfiguration = "api"
+    }
+    runtime("test:projectA:1.2")
+    runtime("test:projectB:1.5") {
+        targetConfiguration = "extraRuntime"
+    }
+}
+
+file("projectA-1.2.jar").text = ''
+file("projectB-1.5.jar").text = ''
+file("projectB-api-1.5.jar").text = ''
+file("projectB-extraRuntime-1.5.jar").text = ''

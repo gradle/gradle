@@ -1,0 +1,181 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.kotlin.dsl.provider
+
+import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
+import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.groovy.scripts.internal.ScriptSourceHasher
+import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.FileCollectionSnapshotter
+import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
+import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
+import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
+import org.gradle.kotlin.dsl.normalization.KotlinDslCompileAvoidanceClasspathHashCache
+import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
+import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.plugin.management.internal.PluginHandler
+import org.gradle.plugin.use.internal.PluginRequestApplicator
+import java.nio.file.Path
+
+
+internal
+const val KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY =
+    "org.gradle.kotlin.dsl.scriptCompilationAvoidance"
+
+
+internal
+object BuildServices : ServiceRegistrationProvider {
+
+    @Provides
+    fun createKotlinScriptClassPathProvider(
+        gradleProperties: GradleProperties,
+        moduleRegistry: ModuleRegistry,
+        classPathRegistry: ClassPathRegistry,
+        classLoaderScopeRegistry: ClassLoaderScopeRegistry,
+        dependencyFactory: DependencyFactory,
+    ) =
+
+        KotlinScriptClassPathProvider(
+            gradleProperties,
+            moduleRegistry,
+            dependencyFactory,
+            classPathRegistry,
+            classLoaderScopeRegistry.coreAndPluginsScope,
+        )
+
+    @Provides
+    fun createPluginRequestsHandler(
+        pluginRequestApplicator: PluginRequestApplicator,
+        pluginHandler: PluginHandler
+    ) =
+
+        PluginRequestsHandler(pluginRequestApplicator, pluginHandler)
+
+    @Provides
+    fun createClassPathModeExceptionCollector() =
+        ClassPathModeExceptionCollector()
+
+    @Provides
+    @Suppress("LongParameterList")
+    fun createKotlinScriptEvaluator(
+        buildLayoutFactory: BuildLayoutFactory,
+        classPathProvider: KotlinScriptClassPathProvider,
+        classloadingCache: KotlinScriptClassloadingCache,
+        pluginRequestsHandler: PluginRequestsHandler,
+        pluginRequestApplicator: PluginRequestApplicator,
+        embeddedKotlinProvider: EmbeddedKotlinProvider,
+        classPathModeExceptionCollector: ClassPathModeExceptionCollector,
+        kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
+        scriptSourceHasher: ScriptSourceHasher,
+        classpathHasher: ClasspathHasher,
+        implicitImports: ImplicitImports,
+        progressLoggerFactory: ProgressLoggerFactory,
+        buildOperationRunner: BuildOperationRunner,
+        cachedClasspathTransformer: CachedClasspathTransformer,
+        scriptExecutionListener: ScriptExecutionListener,
+        executionEngine: ExecutionEngine,
+        workspaceProvider: KotlinDslWorkspaceProvider,
+        @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer,
+        fileCollectionFactory: FileCollectionFactory,
+        inputFingerprinter: InputFingerprinter,
+        internalOptions: InternalOptions,
+        gradleProperties: GradleProperties,
+        startParameterInternal: StartParameterInternal,
+        transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
+        gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
+        propertyUpgradeReportConfig: PropertyUpgradeReportConfig
+    ): KotlinScriptEvaluator =
+
+        StandardKotlinScriptEvaluator(
+            classPathProvider,
+            classloadingCache,
+            pluginRequestApplicator,
+            pluginRequestsHandler,
+            embeddedKotlinProvider,
+            classPathModeExceptionCollector,
+            kotlinScriptBasePluginsApplicator,
+            scriptSourceHasher,
+            classpathHasher,
+            implicitImports,
+            progressLoggerFactory,
+            buildOperationRunner,
+            cachedClasspathTransformer,
+            scriptExecutionListener,
+            executionEngine,
+            workspaceProvider,
+            fileCollectionFactory,
+            inputFingerprinter,
+            internalOptions,
+            gradleProperties,
+            buildLayoutFactory.getBuildTreeRootDir(startParameterInternal),
+            transformFactoryForLegacy,
+            gradleCoreTypeRegistry,
+            propertyUpgradeReportConfig
+        )
+
+    // project.gradle.root.settings may not be available when we compile scripts,
+    // e.g. init scripts or scripts for included builds
+    // we need to compute the root directory from the start parameters
+    private fun BuildLayoutFactory.getBuildTreeRootDir(startParameter: StartParameterInternal): Path =
+        getLayoutFor(startParameter.toBuildLayoutConfiguration()).rootDirectory
+            .toPath().toAbsolutePath().normalize()
+
+    @Provides
+    fun createCompileClasspathHasher(
+        kotlinDslCompileAvoidanceClasspathHashCache: KotlinDslCompileAvoidanceClasspathHashCache,
+        fileCollectionSnapshotter: FileCollectionSnapshotter,
+        fileCollectionFactory: FileCollectionFactory,
+        classpathFingerprinter: ClasspathFingerprinter
+    ): ClasspathHasher =
+        DefaultClasspathHasher(
+            fileCollectionSnapshotter,
+            if (isKotlinScriptCompilationAvoidanceEnabled) {
+                KotlinCompileClasspathFingerprinter(kotlinDslCompileAvoidanceClasspathHashCache)
+            } else {
+                classpathFingerprinter
+            },
+            fileCollectionFactory
+        )
+
+    @Provides
+    fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =
+        KotlinCompilerContextDisposer(listenerManager)
+
+    private
+    val isKotlinScriptCompilationAvoidanceEnabled: Boolean
+        get() = System.getProperty(KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY, "true") == "true"
+}

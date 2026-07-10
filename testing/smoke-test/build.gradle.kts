@@ -1,0 +1,215 @@
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.buildCommitId
+import gradlebuild.basics.flakyTestStrategy
+import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
+import gradlebuild.integrationtests.configureTestSourceSetInIde
+import gradlebuild.integrationtests.tasks.SmokeTest
+import gradlebuild.performance.generator.tasks.RemoteProject
+
+plugins {
+    id("gradlebuild.internal.java")
+    id("gradlebuild.android-home-warmup")
+}
+
+val smokeTestSourceSet = sourceSets.create("smokeTest") {
+    compileClasspath += sourceSets.main.get().output
+    runtimeClasspath += sourceSets.main.get().output
+}
+
+configureTestSourceSetInIde(smokeTestSourceSet)
+
+jvmCompile {
+    addCompilationFrom(smokeTestSourceSet)
+}
+
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(smokeTestSourceSet.name)
+    }
+}
+
+addDependenciesAndConfigurations("smoke")
+
+val smokeTestImplementation = configurations.getByName("smokeTestImplementation")
+val smokeTestDistributionRuntimeOnly = configurations.getByName("smokeTestDistributionRuntimeOnly")
+val smokeTestBinDistribution = configurations.getByName("smokeTestBinDistribution")
+val smokeTestSrcDistribution = configurations.getByName("smokeTestSrcDistribution")
+
+dependencies {
+    testFixturesImplementation(projects.internalIntegTesting)
+
+    smokeTestImplementation(projects.baseServices)
+    smokeTestImplementation(projects.coreApi)
+    smokeTestImplementation(projects.testKit)
+    smokeTestImplementation(projects.launcher)
+    smokeTestImplementation(projects.persistentCache)
+    smokeTestImplementation(projects.internalIntegTesting)
+    smokeTestImplementation(projects.internalTesting)
+    smokeTestImplementation(projects.jvmServices)
+    smokeTestImplementation(projects.buildOption)
+    smokeTestImplementation(projects.processServices)
+    smokeTestImplementation(libs.commonsIo)
+    smokeTestImplementation(libs.groovyJson)
+    smokeTestImplementation(libs.commonsHttpclient)
+    smokeTestImplementation(libs.jgit)
+    smokeTestImplementation(testLibs.spock)
+    smokeTestImplementation(testLibs.junitPlatform)
+    smokeTestImplementation(libs.jacksonDatabind)
+
+    smokeTestImplementation(testFixtures(projects.buildProcessServices))
+    smokeTestImplementation(testFixtures(projects.core))
+    smokeTestImplementation(testFixtures(projects.modelReflect))
+    smokeTestImplementation(testFixtures(projects.pluginDevelopment))
+    smokeTestImplementation(testFixtures(projects.testingBase))
+    smokeTestImplementation(testFixtures(projects.kotlinDslToolingBuilders))
+    smokeTestImplementation(testFixtures(projects.toolingApi))
+    smokeTestImplementation(testFixtures(projects.versionControl))
+
+    smokeTestDistributionRuntimeOnly(projects.distributionsFull)
+    // These will make the bin and src distribution available through `IntegrationTestBuildContext`
+    smokeTestBinDistribution(projects.distributionsFull)
+    smokeTestSrcDistribution(projects.distributionsFull)
+}
+
+androidHomeWarmup {
+    rootProjectDir = project.layout.projectDirectory.dir("../..")
+    sdkVersions.set(
+        listOf(
+            SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.1"),
+        ),
+    )
+}
+
+tasks {
+
+    /**
+     * Android project git URI and commit.
+     * Configured via gradle property: androidSmokeTestProjectRef=https://github.com/gradle/nowinandroid.git#<commitId>
+     *
+     * Note that you can change it to `file:///path/to/your/nowinandroid-clone/.git#<commitId>`
+     * if you need to iterate quickly on changes to it.
+     */
+    val androidProject = register<RemoteProject>("androidProject") {
+        setRemoteUriAndRefFromGradleProperty("androidSmokeTestProjectRef")
+    }
+
+    val gradleBuildCurrent = register<RemoteProject>("gradleBuildCurrent") {
+        remoteUri = rootDir.absolutePath
+        ref = buildCommitId
+    }
+
+    val remoteProjects = arrayOf(androidProject, gradleBuildCurrent)
+
+    if (BuildEnvironment.isCiServer) {
+        remoteProjects.forEach { remoteProject ->
+            remoteProject {
+                doNotTrackState("Do a full checkout on CI")
+            }
+        }
+    }
+
+    register<Delete>("cleanRemoteProjects") {
+        remoteProjects.forEach { remoteProject ->
+            delete(remoteProject.map { it.outputDirectory })
+        }
+    }
+
+    fun SmokeTest.configureForSmokeTest(remoteProjectOutputFiles: Any? = null, includes: List<String> = emptyList(), excludes: List<String> = emptyList()) {
+        group = "Verification"
+        testClassesDirs = smokeTestSourceSet.output.classesDirs
+        classpath = smokeTestSourceSet.runtimeClasspath
+        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
+        inputs.property("androidSdkRootIsSet", System.getenv("ANDROID_SDK_ROOT") != null)
+
+        if (remoteProjectOutputFiles != null) {
+            inputs.files(remoteProjectOutputFiles)
+                .withPropertyName("remoteProjectsSource")
+                .ignoreEmptyDirectories()
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+        }
+        useJUnitPlatform {
+            filter {
+                isFailOnNoMatchingTests = (flakyTestStrategy != FlakyTestStrategy.ONLY)
+                includes.forEach { includeTestsMatching(it) }
+                excludes.forEach { excludeTestsMatching(it) }
+            }
+        }
+    }
+
+    fun SmokeTest.configureForSmokeTest(remoteProject: TaskProvider<RemoteProject>, includes: List<String> = emptyList(), excludes: List<String> = emptyList()) {
+        configureForSmokeTest(remoteProject.map { it.outputDirectory }, includes, excludes)
+    }
+
+    val gradleBuildTestPattern = "org.gradle.smoketests.GradleBuild*SmokeTest"
+
+    val androidProjectTestPattern = "org.gradle.smoketests.AndroidProject*SmokeTest"
+
+    register<SmokeTest>("smokeTest") {
+        description = "Runs Smoke tests"
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
+    }
+
+    register<SmokeTest>("configCacheSmokeTest") {
+        description = "Runs Smoke tests with the configuration cache"
+        systemProperty("org.gradle.integtest.executer", "configCache")
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
+
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("isolatedProjectsSmokeTest") {
+        description = "Runs Smoke tests with Isolated Projects"
+        systemProperty("org.gradle.integtest.executer", "isolatedProjects")
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
+
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("gradleBuildSmokeTest") {
+        description = "Runs Smoke tests against the Gradle build"
+        configureForSmokeTest(gradleBuildCurrent.map {
+            project.fileTree(it.outputDirectory) {
+                exclude("platforms/*/*/src/**")
+                exclude("subprojects/*/src/**")
+                exclude(".idea/**")
+                exclude(".github/**")
+                exclude(".teamcity/**")
+            }
+        }, includes = listOf(gradleBuildTestPattern))
+    }
+
+    register<SmokeTest>("androidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+        jvmArgs("-Xmx700m")
+
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("configCacheAndroidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests with the configuration cache"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+        jvmArgs("-Xmx700m")
+        systemProperty("org.gradle.integtest.executer", "configCache")
+
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("isolatedProjectsAndroidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests with IsolatedProjects"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+        jvmArgs("-Xmx700m")
+        systemProperty("org.gradle.integtest.executer", "isolatedProjects")
+
+        dependsOn("androidHomeWarmup")
+    }
+}
+
+errorprone {
+    nullawayEnabled = true
+}

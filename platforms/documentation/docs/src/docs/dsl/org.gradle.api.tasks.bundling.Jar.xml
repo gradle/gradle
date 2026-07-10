@@ -1,0 +1,27 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>metadataCharset</td>
+                <td><literal>UTF-8</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

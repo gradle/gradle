@@ -1,0 +1,26 @@
+// tag::create-uber-jar-example[]
+plugins {
+    id 'java'
+}
+
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'commons-io:commons-io:2.6'
+}
+
+tasks.register('uberJar', Jar) {
+    archiveClassifier = 'uber'
+
+    from sourceSets.main.output
+
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+}
+// end::create-uber-jar-example[]

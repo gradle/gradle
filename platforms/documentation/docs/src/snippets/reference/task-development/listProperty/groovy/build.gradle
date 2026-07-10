@@ -1,0 +1,44 @@
+abstract class Producer extends DefaultTask {
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void produce() {
+        String message = 'Hello, World!'
+        def output = outputFile.get().asFile
+        output.text = message
+        logger.quiet("Wrote '${message}' to ${output}")
+    }
+}
+
+abstract class Consumer extends DefaultTask {
+    @InputFiles
+    abstract ListProperty<RegularFile> getInputFiles()
+
+    @TaskAction
+    void consume() {
+        inputFiles.get().each { inputFile ->
+            def input = inputFile.asFile
+            def message = input.text
+            logger.quiet("Read '${message}' from ${input}")
+        }
+    }
+}
+
+def producerOne = tasks.register('producerOne', Producer)
+def producerTwo = tasks.register('producerTwo', Producer)
+tasks.register('consumer', Consumer) {
+    // Connect the producer task outputs to the consumer task input
+    // Don't need to add task dependencies to the consumer task. These are automatically added
+    inputFiles.add(producerOne.get().outputFile)
+    inputFiles.add(producerTwo.get().outputFile)
+}
+
+// Set values for the producer tasks lazily
+// Don't need to update the consumer.inputFiles property. This is automatically updated as producer.outputFile changes
+producerOne.configure { outputFile = layout.buildDirectory.file('one.txt') }
+producerTwo.configure { outputFile = layout.buildDirectory.file('two.txt') }
+
+// Change the build directory.
+// Don't need to update the task properties. These are automatically updated as the build directory changes
+layout.buildDirectory = layout.projectDirectory.dir('output')

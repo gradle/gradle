@@ -1,0 +1,336 @@
+import gradlebuild.basics.configurationCacheEnabledForDocsTests
+import gradlebuild.basics.repoRoot
+import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
+import gradlebuild.basics.util.getSingleFileProvider
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
+import gradlebuild.integrationtests.configureTestSourceSetInIde
+import gradlebuild.integrationtests.model.GradleDistribution
+import java.io.FileFilter
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import org.gradle.docs.internal.tasks.CheckLinks
+import org.gradle.docs.samples.internal.tasks.InstallSample
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
+    id("gradlebuild.internal.java")
+    id("gradlebuild.documentation")
+    id("org.gradle.samples")
+    id("gradlebuild.android-home-warmup")
+}
+
+configureTestSourceSetInIde(sourceSets.docsTest.get())
+
+androidHomeWarmup {
+    rootProjectDir = project.layout.projectDirectory.dir("../../..")
+    sdkVersions.set(
+        listOf(
+            // Used by declaringConfigurations-android and declaringConfigurations-kmp (AGP 9.0.1)
+            SdkVersion(compileSdk = 36, buildTools = "36.1.0", agpVersion = "9.0.1"),
+
+            // Used by structuring-software-projects/android-app snippet (AGP 8.9.0)
+            SdkVersion(compileSdk = 28, buildTools = "35.0.0", agpVersion = "8.9.0"),
+        ),
+    )
+}
+
+configurations {
+    consumable("gradleFullDocsElements") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
+        }
+    }
+}
+
+configurations {
+    named("docsTestRuntimeClasspath") {
+        extendsFrom(configurations.getByName("integTestDistributionRuntimeOnly"))
+    }
+}
+
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(sourceSets.docsTest.name)
+    }
+}
+
+dependencies {
+    // generate Javadoc for the full Gradle distribution
+    runtimeOnly(project(":distributions-full"))
+
+    userGuideTask(buildLibs.xalan)
+    userGuideTask(buildLibs.xerces)
+    userGuideTask(buildLibs.xslthl)
+
+    userGuideStyleSheets(variantOf(buildLibs.docbook) { classifier("resources"); artifactType("zip") })
+
+    testImplementation(project(":base-services"))
+    testImplementation(project(":core"))
+    testImplementation(libs.jsoup)
+    testImplementation(libs.commonsHttpclient)
+    testImplementation(testLibs.httpmime)
+
+    docsTestImplementation(platform(project(":distributions-dependencies")))
+    docsTestImplementation(project(":internal-integ-testing"))
+    docsTestImplementation(project(":base-services"))
+    docsTestImplementation(project(":logging"))
+    docsTestImplementation(testLibs.junit)
+    docsTestRuntimeOnly(testLibs.junitPlatform)
+
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
+}
+
+jvmCompile {
+    addCompilationFrom(sourceSets.docsTest)
+}
+
+gradleDocumentation {
+    gradleVersion = project.version.toString()
+    javadocs {
+        val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
+        javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }
+        minJdkVersion = jvmVersion
+        javadocReferenceUrl = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/specs/man/javadoc.html") }
+        javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
+        groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
+        groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }
+    }
+}
+
+tasks.named<Sync>("stageDocs") {
+    // Add samples to generated documentation
+    from(samples.distribution.renderedDocumentation) {
+        into("samples")
+    }
+}
+
+samples {
+    // TODO: Do this lazily so we don't need to walk the filesystem during configuration
+    // iterate through each snippets and record their names and locations
+    val directoriesOnly = FileFilter { it.isDirectory }
+    val snippetsRoot = file("src/snippets")
+    val variantDirNames = setOf("groovy", "kotlin", "common", "tests", "tests-groovy", "tests-kotlin", "tests-common")
+
+    // Recursively find snippet directories (those containing a groovy/ or kotlin/ variant subdirectory)
+    val snippetDirs = mutableListOf<File>()
+    fun findSnippets(dir: File) {
+        for (child in dir.listFiles(directoriesOnly).orEmpty()) {
+            if (child.name in variantDirNames || child.name == "integration-tests" || child.name == "unused") continue
+            if (File(child, "kotlin").exists() || File(child, "groovy").exists()) {
+                snippetDirs.add(child)
+            } else {
+                findSnippets(child)
+            }
+        }
+    }
+    findSnippets(snippetsRoot)
+
+    snippetDirs.forEach { snippetDir ->
+        val relativePath = snippetsRoot.toPath().relativize(snippetDir.toPath()).toString()
+        val id = org.gradle.docs.internal.StringUtils.toLowerCamelCase("snippet-${relativePath.replace(File.separatorChar, '-')}")
+        publishedSamples.create(id) {
+            description = "Snippet from $snippetDir"
+            category = "Other"
+            readmeFile = file("src/snippets/default-readme.adoc")
+            sampleDirectory = snippetDir
+            promoted = false
+        }
+    }
+}
+
+// Use the version of Gradle being built, not the version of Gradle used to build,
+// also don't validate distribution url, since it is just a local distribution
+tasks.named<Wrapper>("generateWrapperForSamples") {
+    gradleVersion = project.version.toString()
+    validateDistributionUrl = false
+}
+
+// TODO: The rich console to plain text is flaky
+tasks.named("checkAsciidoctorSampleContents") {
+    enabled = false
+}
+
+// exclude (unused and non-existing) wrapper of development Gradle version, as well as README, because the timestamp in the Gradle version break the cache
+tasks.withType<InstallSample>().configureEach {
+    if (name.contains("ForTest")) {
+        excludes.add("gradle/wrapper/**")
+        excludes.add("README")
+    }
+}
+
+tasks.named("quickTest") {
+    dependsOn("checkDeadInternalLinks")
+}
+
+// TODO add some kind of test precondition support in sample test conf
+tasks.named<Test>("docsTest") {
+    useJUnitPlatform()
+
+    dependsOn("androidHomeWarmup")
+
+    // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
+    // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
+    // so it uses the Gradle distribution from the running build. This is not correct, because
+    // we want to verify that the samples work with the Gradle distribution being built.
+    val installationEnvProvider = objects.newInstance<GradleInstallationForTestEnvironmentProvider>().apply {
+        gradleDistribution.homeDir.fileProvider(configurations.integTestDistributionRuntimeClasspath.getSingleFileProvider())
+        samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
+        repoRoot = project.repoRoot()
+    }
+    jvmArgumentProviders.add(installationEnvProvider)
+
+    // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
+    testClassesDirs = sourceSets.docsTest.get().output.classesDirs
+    // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
+    systemProperties.clear()
+
+    filter {
+        if (!javaVersion.isJava11Compatible) {
+            // This test sets source and target compatibility to 11
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dsl-apis-accessors_*")
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-other-topics-gradle-version_*_testKitFunctionalTestSpockGradleDistribution")
+        }
+
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            // AGP AND KMP are tested on Java 17 only
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dependency-management-declaring-dependencies-declaring-configurations-*")
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
+            // Kotlin does not yet support 25 JDK target
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-use-convention-plugins-do_kotlin*")
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
+            // PMD doesn't support Java 26
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-core-plugins-code-quality*")
+            // There is a bug in either AGP or the JDK which causes JdkImageTransform to fail with Java 26
+            // https://issuetracker.google.com/issues/486844145
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dependency-management-declaring-dependencies-declaring-configurations-kmp*")
+        }
+
+        if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-platforms-native-*")
+        }
+    }
+
+    filter {
+        // TODO(https://github.com/gradle/gradle/issues/22538)
+        excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-platforms-jvm-cross-compilation_*_crossCompilation")
+    }
+
+    if (project.configurationCacheEnabledForDocsTests) {
+        systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
+        systemProperty("org.gradle.integtest.executer", "configCache")
+
+        // Substring markers identifying groups of tests excluded when docsTest runs with the configCache
+        // executer. Loaded from the resource file alongside SampleFailureMessageFormatter, which uses the
+        // same list at test runtime — that file is the single source of truth. Each marker is used two ways:
+        //   - wrapped as "*${marker}*" for the excludeTestsMatching glob below, and
+        //   - matched directly against --tests CLI patterns in the pre-flight check below.
+        val configCacheExcludedTestGroups = providers.fileContents(
+            layout.projectDirectory.file("src/main/resources/non-config-cache-compatible-snippets.txt")
+        ).asText.map { text ->
+            text.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        }.get()
+
+        // Pre-flight: if every --tests pattern targets one of the excluded groups above, Gradle's default
+        // "No tests found" message hides the real cause. Replace it with a message that names the property
+        // the user must clear.
+        val testTask = this
+        doFirst {
+            val cliPatterns = (testTask.filter as DefaultTestFilter).commandLineIncludePatterns
+            if (cliPatterns.isNotEmpty() && cliPatterns.all { p -> configCacheExcludedTestGroups.any { p.contains(it) } }) {
+                throw GradleException(
+                    "All --tests filters target tests that are excluded from docsTest when " +
+                        "enableConfigurationCacheForDocsTests=true.\n" +
+                        "  Filters: ${cliPatterns.joinToString(", ") { "'$it'" }}\n" +
+                        "  Set enableConfigurationCacheForDocsTests=false (or remove it from gradle.properties) to run these samples."
+                )
+            }
+        }
+
+        // Individual snippets excluded when docsTest runs with the configCache executer.
+        // The categories (unsupported / third-party / not-yet-supported / to-be-fixed) are
+        // documented as comment headers in the file. All entries are treated identically here.
+        // Opt in to run them with -PrunBrokenConfigurationCacheDocsTests=true.
+        val brokenTests = providers.fileContents(
+            layout.projectDirectory.file("src/main/resources/broken-config-cache-snippets.txt")
+        ).asText.map { text ->
+            text.lines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.startsWith("#") }
+        }.get()
+
+        filter {
+            configCacheExcludedTestGroups.forEach { excludeTestsMatching("*${it}*") }
+
+            brokenTests.forEach { testName ->
+                val testMask = "org.gradle.docs.samples.*.$testName"
+                if (project.runBrokenForConfigurationCacheDocsTests) {
+                    includeTestsMatching(testMask)
+                } else {
+                    excludeTestsMatching(testMask)
+                }
+            }
+        }
+    } else {
+        filter {
+            excludeTestsMatching("*WithCC*")
+        }
+    }
+}
+
+// Publications for the docs subproject:
+
+configurations {
+    named("gradleFullDocsElements") {
+        outgoing.artifact(project.gradleDocumentation.documentationRenderedRoot) {
+            builtBy(tasks.named("docs"))
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn(tasks.named("checkstyleApi"))
+}
+
+// TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126
+abstract class GradleInstallationForTestEnvironmentProvider : CommandLineArgumentProvider {
+
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:InputDirectory
+    abstract val samplesdir: DirectoryProperty
+
+    @get:Nested
+    abstract val gradleDistribution: GradleDistribution
+
+    @get:Internal
+    abstract val repoRoot: DirectoryProperty
+
+    override fun asArguments(): Iterable<String> {
+        return listOf(
+            "-DintegTest.gradleHomeDir=${gradleDistribution.homeDir.get().asFile}",
+            "-DintegTest.samplesdir=${samplesdir.get().asFile}",
+            "-DintegTest.gradleUserHomeDir=${repoRoot.dir("intTestHomeDir/${gradleDistribution.name.get()}").get().asFile}"
+        )
+    }
+}
+
+tasks.withType<CheckLinks>().configureEach {
+    enabled = !gradle.startParameter.taskNames.contains("docs:docsTest")
+}
+
+tasks.register("checkLinks") {
+    dependsOn(tasks.withType<CheckLinks>())
+}
+
+errorprone {
+    nullawayEnabled = true
+}

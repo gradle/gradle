@@ -1,0 +1,5 @@
+apply plugin: 'idea'
+idea.project.jdkName = '1.6'
+project('a') {
+    apply plugin: 'idea'
+}

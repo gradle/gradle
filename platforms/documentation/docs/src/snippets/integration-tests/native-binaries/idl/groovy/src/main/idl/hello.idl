@@ -1,0 +1,16 @@
+This is not a real IDL file, just a dummy file that is used to demonstrate generated sources from idl inputs.
+This file contains a HEADER section and a SOURCE section, which are parsed to generate the actual header and source files.
+The generated files have the same name as the idl file, with the extension replaced by '.h' or '.c'.
+
+HEADER <<<
+void hello();
+>>>
+--------------
+SOURCE <<<
+#include <stdio.h>
+#include "hello.h"
+
+void hello () {
+  printf("Hello from generated source!!\n");
+}
+>>>

@@ -1,0 +1,11 @@
+import myKotlin.TheTargetType
+import myKotlin.TheTargetTypeKt
+
+def receiver = new TheTargetType()
+def aReference = ""
+
+// tag::kotlin-from-groovy[]
+TheTargetTypeKt.kotlinExtensionFunction(receiver, "parameters", 42, aReference)
+// end::kotlin-from-groovy[]
+
+apply from: 'build.gradle.kts'

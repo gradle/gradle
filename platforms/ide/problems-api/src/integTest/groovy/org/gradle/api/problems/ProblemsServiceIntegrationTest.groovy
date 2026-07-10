@@ -1,0 +1,558 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.problems
+
+import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.problems.internal.StackTraceLocation
+import org.gradle.api.problems.internal.TaskLocation
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import spock.lang.Issue
+
+import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
+
+class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
+
+    public static final int PROBLEM_LOCATION_LINE = 23
+
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
+    def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
+        buildFile getProblemReportingScript(taskActionMethodBody)
+    }
+
+    def "can emit a problem with minimal configuration"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {}
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'generic:type'
+            definition.id.displayName == 'label'
+            definition.severity == Severity.WARNING
+            with(oneLocation(StackTraceLocation).fileLocation) {
+                length == -1
+                column == -1
+                line == PROBLEM_LOCATION_LINE
+                path == buildFile.absolutePath
+            }
+            with(oneLocation(TaskLocation)) {
+                buildTreePath == ':reportProblem'
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38091")
+    def "problem from an included build task has a build-tree-qualified path"() {
+        given:
+        settingsFile """
+            includeBuild("included-lib")
+        """
+        file("included-lib/settings.gradle") << "rootProject.name = 'included-lib'"
+        file("included-lib/build.gradle") << getProblemReportingScript("""
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {}
+        """)
+
+        when:
+        run(":included-lib:reportProblem")
+
+        then:
+        verifyAll(receivedProblem) {
+            with(oneLocation(TaskLocation)) {
+                buildTreePath == ':included-lib:reportProblem'
+            }
+        }
+    }
+
+    // This test will fail when the deprecated space-assignment syntax is removed.
+    // Once this happens we need to find another test to validate the behavior.
+    @Issue("https://github.com/gradle/gradle/issues/31980")
+    def "correct location for space-assignment deprecation"() {
+        buildFile '''
+            class GroovyTask extends DefaultTask {
+                @Input
+                def String prop
+                void doStuff(Action<Task> action) { action.execute(this) }
+            }
+            tasks.withType(GroovyTask) { conventionMapping.prop = { '[default]' } }
+            task test(type: GroovyTask)
+            test {
+                description 'does something'
+            }
+'''
+
+        executer.expectDocumentedDeprecationWarning(
+            "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10. Use assignment ('description = <value>') instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
+        )
+
+        expect:
+        succeeds("test")
+        verifyAll(receivedProblem(0)) {
+            definition.id.fqid == 'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl'
+            definition.id.displayName == """Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."""
+            originLocations.size() == 1
+            //guarantee no duplicate locations
+            originLocations.size() == 1
+            with(originLocations[0] as StackTraceLocation) {
+                with(fileLocation as LineInFileLocation) {
+                    length == -1
+                    column == -1
+                    line == 10
+                    path == buildFile.absolutePath
+                }
+            }
+            contextualLocations.empty
+        }
+    }
+
+    def "can emit a problem with stack location"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.stackLocation()
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'generic:type'
+            definition.id.displayName == 'label'
+            with(oneLocation(StackTraceLocation)) {
+                with(fileLocation as LineInFileLocation) {
+                    length == -1
+                    column == -1
+                    line == PROBLEM_LOCATION_LINE
+                    path == buildFile.absolutePath
+                }
+                stackTrace.find { it.className == 'ProblemReportingTask' && it.methodName == 'run' }
+            }
+        }
+
+    }
+
+    def "can emit a problem with documentation"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.documentedAt("https://example.org/doc")
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        receivedProblem.definition.documentationLink.url == 'https://example.org/doc'
+    }
+
+    def "can emit a problem with offset location"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.offsetInFileLocation("test-location", 1, 2)
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            originLocations.size() == 1
+            with(originLocations[0] as OffsetInFileLocation) {
+                path == 'test-location'
+                offset == 1
+                length == 2
+            }
+            with(contextualLocations[0] as TaskLocation) {
+                buildTreePath == ':reportProblem'
+            }
+        }
+    }
+
+    def "can emit a problem with file and line number"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.lineInFileLocation("test-location", 1, 2)
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            originLocations.size() == 1
+            with(originLocations[0] as LineInFileLocation) {
+                length == -1
+                column == 2
+                line == 1
+                path == 'test-location'
+            }
+            contextualLocations.size() == 1
+            (contextualLocations.get(0) as TaskLocation).buildTreePath == ':reportProblem'
+        }
+    }
+
+    def "can emit a problem with a solution"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.solution("solution")
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        receivedProblem.solutions == ['solution']
+    }
+
+    def "can emit a problem with exception cause"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.withException(new RuntimeException("test"))
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            exception.message == 'test'
+            exception.stacktrace.length() > 0
+        }
+    }
+
+    def "can emit a problem with additional data"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.additionalDataInternal(org.gradle.api.problems.internal.GeneralDataSpec) {
+                    it.put('key','value')
+                }
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        receivedProblem.additionalData.asMap == ['key': 'value']
+    }
+
+    def "cannot set additional data with different type"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
+                    it.put('key','value')
+                }
+                .additionalData(org.gradle.api.problems.internal.DeprecationDataSpec) {
+                    it.put('key2','value2')
+                }
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    def "cannot emit a problem with invalid additional data"() {
+        given:
+        buildFile 'class InvalidData implements AdditionalData {}'
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.additionalDataInternal(InvalidData) {}
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'problems-api:unsupported-additional-data'
+            definition.id.displayName == 'Unsupported additional data type'
+            with(oneLocation(StackTraceLocation).fileLocation as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == PROBLEM_LOCATION_LINE
+                path == buildFile.absolutePath
+            }
+        }
+    }
+
+    def "can throw a problem with a wrapper exception"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().throwing(new RuntimeException('test'), problemId) {
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            exception.message == 'test'
+            definition.severity == Severity.ERROR
+        }
+    }
+
+    def "can rethrow a caught exception"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            try {
+                problems.getReporter().throwing(new RuntimeException("test"), ${ProblemId.name}.create("type11", "inner", problemGroup)) {
+                }
+            } catch (RuntimeException ex) {
+                problems.getReporter().throwing(ex, ${ProblemId.name}.create("type12", "outer", problemGroup)) {
+                }
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        receivedProblem(0).definition.id.displayName == 'inner'
+        receivedProblem(1).definition.id.displayName == 'outer'
+    }
+
+    def "problem progress events are not aggregated"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            for (int i = 0; i < 10; i++) {
+                problems.getReporter().report(problemId) {
+                    it.solution("solution \$i")
+                }
+            }
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        10.times { index ->
+            verifyAll(receivedProblem(index)) {
+                definition.id.displayName == 'label'
+                definition.id.name == 'type'
+                definition.severity == Severity.WARNING
+                solutions == ["solution $index"]
+            }
+        }
+    }
+
+    def problemsReportHtmlName = "problems-report.html"
+    def problemsReportOutputPrefix = "[Incubating] Problems report is available at: "
+    def problemsReportOutputDirectory = "build/reports/problems"
+
+    def "problem progress events in report"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            for (int i = 0; i < 10; i++) {
+                problems.getReporter().report(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup)) {
+                    it.details("This is a huge amount of extremely and very relevant details for this problem\$i")
+                        .solution("solution")
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("--problems-report")
+        run("reportProblem")
+
+
+        then:
+        testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+
+        output.contains(problemsReportOutputPrefix)
+
+        10.times { num ->
+            verifyAll(receivedProblem(num)) {
+                definition.id.displayName == "This is the heading problem text$num"
+                definition.id.name == "type$num"
+                definition.severity == Severity.WARNING
+                details == "This is a huge amount of extremely and very relevant details for this problem$num"
+                solutions == ["solution"]
+            }
+        }
+    }
+
+    def "problem report can be disabled"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            for (int i = 0; i < 10; i++) {
+                problems.getReporter().report(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup)) {
+                    it.details("This is a huge amount of extremely and very relevant details for this problem\$i")
+                        .solution("solution")
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("--no-problems-report")
+        run("reportProblem")
+
+        then:
+        !testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+        !output.contains(problemsReportOutputPrefix)
+
+        10.times { num ->
+            verifyAll(receivedProblem(num)) {
+                definition.id.displayName == "This is the heading problem text$num"
+                definition.id.name == "type$num"
+                details == "This is a huge amount of extremely and very relevant details for this problem$num"
+                solutions == ["solution"]
+            }
+        }
+    }
+
+    def "problem report message is not rendered in the output if --warning-mode=none is set"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.contextualLabel("Some problem")
+            }
+        """
+
+        when:
+        executer.withWarningMode(WarningMode.None)
+        run("reportProblem")
+
+        then:
+        testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+        !output.contains(problemsReportOutputPrefix)
+        receivedProblem != null
+    }
+
+    def "problems are rendered on the console when WarningMode=all configured"() {
+        given:
+        withReportProblemTask """
+            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("sample-problems", "Sample Problems");
+            ${ProblemId.name} problemId = ${ProblemId.name}.create("prototype-project", "Project is a prototype", problemGroup)
+            problems.getReporter().report(problemId) { spec ->
+                spec.contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
+                spec.details("Complex build logic like the Problems API usage should be integrated into plugins")
+                spec.solution("Look up the samples index for real-life examples")
+                spec.documentedAt("https://example.com/some-problem")
+                spec.lineInFileLocation("/path/to/script", 20)
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        outputContains """
+Problem found: Project is a prototype (id: sample-problems:prototype-project)
+  This is a prototype and not a guideline for modeling real-life projects
+    Complex build logic like the Problems API usage should be integrated into plugins
+    For more information, please refer to https://example.com/some-problem.
+    Location: /path/to/script line 20
+    Possible solution: Look up the samples index for real-life examples.
+        """
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'sample-problems:prototype-project'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35914")
+    def "build failure message does not contain duplicate information"() {
+        given:
+        disableProblemsApiCheck()
+        def solution = 'Look up the samples index for real-life examples'
+        def docLink = 'https://example.com/some-problem'
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().throwing(new RuntimeException(), problemId) { spec ->
+                spec.solution("$solution")
+                spec.documentedAt("$docLink")
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        errorOutput.count(solution) == 1
+        errorOutput.count(docLink) == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36719")
+    def "minimal DeprecationLogger nagging can emit problems"() {
+        setup:
+        ignoreCleanupAssertions()
+        buildFile << """
+            org.gradle.internal.deprecation.DeprecationLogger
+                .deprecate("Feature")
+                .willBeRemovedInGradle10()
+                .undocumented()
+                .nagUser()
+        """
+        executer.expectDocumentedDeprecationWarning("Feature has been deprecated. This is scheduled to be removed in Gradle 10.")
+
+        expect:
+        succeeds("help")
+        verifyAll(receivedProblem) {
+            it.definition.id.group.name == 'deprecation'
+        }
+    }
+
+    static String problemIdScript() {
+        """${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
+           ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)"""
+    }
+}

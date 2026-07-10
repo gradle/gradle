@@ -1,0 +1,40 @@
+++++
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = { // TO DO - complete me
+    "sec:dependency_substitution_rules": "resolution_rules.html#sec:dependency-substitution-rules",
+    "ssub:artifact_dependencies": "declaring_dependencies_basics.html#sec:dependency-types",
+    "sec:refreshing-dependencies": "dependency_caching.html#sec:refreshing-dependencies",
+    "sec:module_substitution": "resolution_rules.html#sec:project-to-module-substitution",
+    "sec:dependency_resolution": "declaring_configurations.html#sec:dependency-resolution",
+    "sub:file_dependencies": "declaring_dependencies_basics.html#sec:file-dependencies",
+    "sec:repositories": "declaring_repositories_basics.html#declaring-repositories-basics",
+    "sub:controlling_caching": "dependency_caching.html#sec:controlling-dynamic-version-caching",
+    "sec:dependency_cache": "dependency_caching.html#sec:dependency-cache",
+    "file-dependencies": "declaring_dependencies_basics.html#sec:file-dependencies",
+    "sub:exclude_transitive_dependencies": "how_to_exclude_transitive_dependencies.html#how_to_exclude_transitive_dependencies",
+    "sub:version_conflicts": "dependency_constraints_conflicts.html#sub:resolving-version-conflicts",
+    "sub:maven_local": "supported_repository_types.html#sec:maven-local",
+    "sub:cache_refresh": "dependency_caching.html#sec:refreshing-dependencies",
+    "sec:how_to_declare_your_dependencies": "declaring_dependencies_basics.html#declaring-dependencies-basics",
+    "sub:project_dependencies": "native_software.html#sec:project_dependencies",
+    "sec:what-are-dependency-configurations": "declaring_configurations.html#declaring-dependency-configurations",
+    "sub:ephemeral-ci-cache": "dependency_caching.html#sec:ephemeral-ci-cache",
+    "sub:dynamic_versions_and_changing_modules": "dependency_versions.html#sec:dynamic-versions-and-changing-modules",
+    "sub:cache_offline": "dependency_caching.html#sec:controlling-dependency-caching-command-line",
+    "sub:client_module_dependencies": "upgrading_version_8.html#declaring_client_module_dependencies",
+    "sub:resolution-strategy": "dependency_caching.html#sec:resolution-strategy",
+};
+
+const defaultRedirect = "resolution_rules.html";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
+++++

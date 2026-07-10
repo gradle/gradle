@@ -1,0 +1,95 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.plugins.instrumentation
+
+import org.apache.commons.lang3.StringUtils
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.binding.ProjectFeatureBindingBuilder
+import org.gradle.features.binding.ProjectFeatureBinding
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectFeatureApplyAction
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
+import org.gradle.api.plugins.java.HasJavaSources.JavaSources
+import org.gradle.features.registration.TaskRegistrar
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+import javax.inject.Inject
+
+@BindsProjectFeature(InstrumentClassesProjectFeaturePlugin.Binding::class)
+class InstrumentClassesProjectFeaturePlugin : Plugin<Project> {
+
+    /**
+     * javaLibrary {
+     *     sources {
+     *         javaSources("main") {
+     *             instrument {
+     *             }
+     *         }
+     *     }
+     * }
+     */
+    class Binding : ProjectFeatureBinding {
+        override fun bind(builder: ProjectFeatureBindingBuilder) {
+            builder.bindProjectFeatureToDefinition(
+                "instrument",
+                InstrumentClassesDefinition::class,
+                JavaSources::class,
+                ApplyAction::class
+            )
+        }
+
+        abstract class ApplyAction : ProjectFeatureApplyAction<InstrumentClassesDefinition, InstrumentClassesModel, JavaSources> {
+            @get:Inject
+            abstract val taskRegistrar: TaskRegistrar
+
+            override fun apply(
+                context: ProjectFeatureApplicationContext,
+                definition: InstrumentClassesDefinition,
+                buildModel: InstrumentClassesModel,
+                parentDefinition: JavaSources
+            ) {
+                val instrumentClassesTask = taskRegistrar.register("instrument" + StringUtils.capitalize(parentDefinition.name) + "Classes", InstrumentClasses::class.java) { task ->
+                    task.group = LifecycleBasePlugin.BUILD_GROUP
+                    task.description = "Instruments the ${parentDefinition.name} classes."
+                    task.bytecodeDir.set(context.getBuildModel(parentDefinition).byteCodeDir)
+                    task.instrumentedClassesDir.set(definition.destinationDirectory)
+                }
+
+                buildModel.instrumentedClassesDirectory.set(instrumentClassesTask.map { it.instrumentedClassesDir.get() })
+            }
+        }
+    }
+
+    @CacheableTask
+    abstract class InstrumentClasses : DefaultTask() {
+        @get:InputFiles
+        @get:Classpath
+        abstract val bytecodeDir: DirectoryProperty
+
+        @get:OutputDirectory
+        abstract val instrumentedClassesDir: DirectoryProperty
+    }
+
+    override fun apply(target: Project) = Unit
+}

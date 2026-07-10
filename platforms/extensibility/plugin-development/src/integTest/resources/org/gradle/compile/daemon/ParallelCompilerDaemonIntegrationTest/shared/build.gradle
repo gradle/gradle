@@ -1,0 +1,13 @@
+subprojects {
+    apply plugin: "groovy"
+
+    dependencies {
+        implementation localGroovy()
+    }
+
+    compileJava.options.fork = true
+
+    // force creation of multiple daemons for Java compilation by alternating between two distinct sets of JVM args
+    def count = (project.name - "project") as int
+    compileJava.options.forkOptions.jvmArgs = count % 2 ? ["-dsa"] : ["-esa"]
+}

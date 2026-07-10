@@ -1,0 +1,622 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.kotlin.dsl.accessors
+
+import org.gradle.api.Action
+import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.reflect.TypeOf.parameterizedTypeOf
+import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
+import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
+import org.gradle.kotlin.dsl.fixtures.compileToDirectory
+import org.gradle.kotlin.dsl.fixtures.eval
+import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
+import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.mockito.ArgumentMatchers.anyMap
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.same
+import java.io.File
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier.PUBLIC
+import java.lang.reflect.Modifier.STATIC
+
+
+class ProjectAccessorsClassPathTest : AbstractDslTest() {
+
+    @Test
+    fun `#buildAccessorsFor (Kotlin types)`() {
+
+        // given:
+        val schema =
+            TypedProjectSchema(
+                extensions = listOf(
+                    entry<Project, () -> Unit>("function0"),
+                    entry<Project, (String) -> Unit>("function1"),
+                    entry<Project, (Int, Double) -> Boolean>("function2")
+                ),
+                containerElements = listOf(),
+                tasks = listOf(),
+                configurations = listOf(),
+                modelDefaults = listOf(),
+                projectFeatureEntries = emptyList(),
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
+            )
+
+        val function0 = mock<() -> Unit>()
+        val function1 = mock<(String) -> Unit>()
+        val function2 = mock<(Int, Double) -> Boolean>()
+        val extensions = mock<ExtensionContainerInternal> {
+            on { getByName("function0") } doReturn function0
+            on { getByName("function1") } doReturn function1
+            on { getByName("function2") } doReturn function2
+        }
+        val project = mock<ProjectInternal> {
+            on { getExtensions() } doReturn extensions
+        }
+
+        // when:
+        evalWithAccessorsFor(
+            schema = schema,
+            target = project,
+            script = """
+                val a: () -> Unit = function0
+                val b: (String) -> Unit = function1
+                val c: (Int, Double) -> Boolean = function2
+            """
+        )
+
+        // then:
+        inOrder(extensions) {
+            verify(extensions).getByName("function0")
+            verify(extensions).getByName("function1")
+            verify(extensions).getByName("function2")
+        }
+    }
+
+    @Test
+    fun `#buildAccessorsFor (bytecode)`() {
+
+        testAccessorsBuiltBy(::buildAccessorsFor)
+    }
+
+    @Test
+    fun `#buildAccessorsFor (source)`() {
+
+        testAccessorsBuiltBy(::buildAccessorsFromSourceFor)
+    }
+
+    @Test
+    fun `#buildAccessorsToJars produces valid JARs with classes, sources and module metadata`() {
+
+        // given:
+        val schema =
+            TypedProjectSchema(
+                extensions = listOf(
+                    entry<Project, SourceSetContainer>("sourceSets"),
+                ),
+                containerElements = listOf(),
+                tasks = listOf(
+                    entry<TaskContainer, Delete>("clean")
+                ),
+                configurations = listOf(ConfigurationEntry("api")),
+                modelDefaults = listOf(),
+                projectFeatureEntries = emptyList(),
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
+            )
+
+        val classesJar = newFile("classes.jar")
+        val sourcesJar = newFile("sources.jar")
+
+        // when:
+        buildAccessorsToJars(schema, testRuntimeClassPath, classesJar, sourcesJar)
+
+        // then: classes JAR contains loadable .class entries
+        val classEntries = java.util.zip.ZipFile(classesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".class") }.toList()
+        }
+        assert(classEntries.isNotEmpty()) {
+            "Expected .class entries in classes JAR"
+        }
+        withClassLoaderFor(classesJar) {
+            classEntries.forEach { entry ->
+                val className = entry.removeSuffix(".class").replace('/', '.')
+                val clazz = loadClass(className)
+                assert(clazz.declaredMethods.isNotEmpty()) {
+                    "Expected accessor methods in $className"
+                }
+            }
+        }
+
+        // and: classes JAR contains Kotlin module metadata
+        val metadataEntries = java.util.zip.ZipFile(classesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".kotlin_module") }.toList()
+        }
+        assertEquals(listOf("META-INF/classes.kotlin_module"), metadataEntries)
+
+        // and: sources JAR contains .kt files under the correct package path
+        val sourceEntries = java.util.zip.ZipFile(sourcesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".kt") }.toList()
+        }
+        assert(sourceEntries.isNotEmpty()) {
+            "Expected .kt source entries in sources JAR"
+        }
+        assert(sourceEntries.all { it.startsWith("org/gradle/kotlin/dsl/") }) {
+            "Expected all sources under org/gradle/kotlin/dsl/, found: $sourceEntries"
+        }
+    }
+
+    @Test
+    fun `#buildAccessorsToJars accessor classes work at runtime`() {
+
+        testAccessorsBuiltBy(::buildAccessorsToJarsDirect)
+    }
+
+    private
+    fun buildAccessorsToJarsDirect(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File): AccessorsRoots {
+        val classesJar = File(binDir, "classes.jar")
+        val sourcesJar = File(srcDir, "sources.jar")
+        buildAccessorsToJars(schema, classPath, classesJar, sourcesJar)
+        return AccessorsRoots(DefaultClassPath.of(classesJar), DefaultClassPath.of(sourcesJar))
+    }
+
+    @Test
+    fun `#buildAccessorsFor (deprecated configurations)`() {
+        val schema =
+            TypedProjectSchema(
+                extensions = listOf(),
+                containerElements = listOf(),
+                tasks = listOf(),
+                configurations = listOf(
+                    ConfigurationEntry("api"),
+                    ConfigurationEntry("implementation"),
+                    ConfigurationEntry("compile", listOf("api", "implementation"))
+                ),
+                modelDefaults = listOf(),
+                projectFeatureEntries = emptyList(),
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
+            )
+
+        val srcDir = newFolder("src")
+
+        val compiledBinDir = newFolder("compiledBin")
+        buildAccessorsFromSourceFor(schema, testRuntimeClassPath, srcDir, compiledBinDir)
+
+        val generatedBinDir = newFolder("generatedBin")
+        buildAccessorsFor(schema, testRuntimeClassPath, srcDir = newFolder("ignored"), generatedBinDir)
+
+        fun checkConfigurationAccessors(classesDir: File) {
+            val accessorsDir = File(classesDir, "org/gradle/kotlin/dsl")
+
+            withClassLoaderFor(classesDir) {
+                schema.configurations.forEach { config ->
+                    val name = config.target
+                    val className = "${name.uppercaseFirstChar()}ConfigurationAccessorsKt"
+
+                    require(File(accessorsDir, "$className.class").exists())
+
+                    loadClass("org.gradle.kotlin.dsl.$className").run {
+                        dependencyHandlerExtensionMethods(name).forEach {
+                            val shouldBeDeprecated = config.hasDeclarationDeprecations() || isDeprecatedAccessor(it)
+                            assertEquals(
+                                "The accessor for '${config.target}' should be ${if (shouldBeDeprecated) "" else "not "} deprecated in $classesDir",
+                                shouldBeDeprecated,
+                                isDeprecated(it),
+                            )
+
+                            // The multi-string accessor is always deprecated, advising single-string notation,
+                            // and for a configuration deprecated for declaration it also appends that configuration's
+                            // own declaration-deprecation message.
+                            if (isDeprecatedAccessor(it)) {
+                                val message = deprecationMessageOf(it)!!
+                                assertTrue(
+                                    "The multi-string accessor for '${config.target}' should advise single-string notation in $classesDir, but was: $message",
+                                    message.startsWith("Use single-string notation or DependencyFactory instead")
+                                )
+                                if (config.hasDeclarationDeprecations()) {
+                                    assertTrue(
+                                        "The multi-string accessor for the deprecated configuration '${config.target}' should append its declaration-deprecation message in $classesDir, but was: $message",
+                                        message.contains(". The ${config.target} configuration has been deprecated for dependency declaration.")
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        checkConfigurationAccessors(compiledBinDir)
+        checkConfigurationAccessors(generatedBinDir)
+    }
+
+    /**
+     * Determines whether the method is the multi-string accessor, which is deprecated
+     * for removal in Gradle 10.
+     */
+    private
+    fun isDeprecatedAccessor(method: Method): Boolean =
+        method.parameters.map { it.type } == listOf(
+            DependencyHandler::class.java, String::class.java, String::class.java, String::class.java,
+            String::class.java, String::class.java, String::class.java, Action::class.java
+        )
+
+    private fun deprecationMessageOf(method: Method): String? =
+        method.getAnnotation(Deprecated::class.java)?.message
+
+    @Test
+    fun `#buildAccessorsFor (default package types)`() {
+
+        // given:
+        val defaultPackageTypes = classPathWith {
+            publicClass("ExtensionReceiver")
+            publicInterface("Entry")
+            publicInterface("Element", "Entry")
+            publicInterface("CustomTask", Task::class.qualifiedName!!)
+        }
+        withClassLoaderFor(defaultPackageTypes) {
+            val entryType = schemaTypeFor("Entry")
+            val schema =
+                TypedProjectSchema(
+                    extensions = listOf(
+                        ProjectSchemaEntry(schemaTypeFor("ExtensionReceiver"), "extension", entryType)
+                    ),
+                    containerElements = listOf(
+                        ProjectSchemaEntry(namedDomainObjectContainerOf(entryType), "element", schemaTypeFor("Element"))
+                    ),
+                    tasks = listOf(
+                        ProjectSchemaEntry(SchemaType.of<TaskContainer>(), "task", schemaTypeFor("CustomTask"))
+                    ),
+                    configurations = listOf(),
+                    modelDefaults = listOf(),
+                    projectFeatureEntries = emptyList(),
+                    containerElementFactories = listOf(),
+                    nestedModelEntries = listOf()
+                )
+
+            val srcDir = newFolder("src")
+            val binDir = newFolder("bin")
+
+            // when:
+            buildAccessorsFromSourceFor(
+                schema,
+                testRuntimeClassPath + defaultPackageTypes,
+                srcDir,
+                binDir
+            )
+
+            // then:
+            require(
+                kotlinFilesIn(srcDir).isNotEmpty()
+            )
+        }
+    }
+
+    private
+    fun Class<*>.dependencyHandlerExtensionMethods(name: String): List<Method> {
+        return declaredMethods.filter(Method::isPublicStatic)
+            .filter { it.name == name }
+            .filter { it.parameterCount > 0 }
+            .filter { it.parameterTypes[0].simpleName == "DependencyHandler" }
+    }
+
+    private
+    fun isDeprecated(it: Method) = it.annotations.map { it.annotationClass }.contains(Deprecated::class)
+
+    private
+    fun buildAccessorsFromSourceFor(
+        schema: TypedProjectSchema,
+        classPath: ClassPath,
+        srcDir: File,
+        binDir: File
+    ): AccessorsRoots {
+        buildAccessorsFor(
+            schema,
+            classPath,
+            srcDir,
+            newFolder("ignored")
+        )
+        require(
+            compileToDirectory(
+                binDir,
+                "bin",
+                kotlinFilesIn(srcDir),
+                classPath.asFiles
+            )
+        )
+        return AccessorsRoots(DefaultClassPath.of(binDir), DefaultClassPath.of(srcDir))
+    }
+
+    private
+    fun kotlinFilesIn(srcDir: File) =
+        srcDir.walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
+
+    private
+    fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> AccessorsRoots) {
+
+        // given:
+        val schema =
+            TypedProjectSchema(
+                extensions = listOf(
+                    entry<Project, SourceSetContainer>("sourceSets"),
+                    entry<Project, NamedDomainObjectContainer<Named>>("buildTypes")
+                ),
+                containerElements = listOf(
+                    entry<SourceSetContainer, SourceSet>("main")
+                ),
+                tasks = listOf(
+                    entry<TaskContainer, Delete>("clean")
+                ),
+                configurations = listOf(ConfigurationEntry("api")),
+                modelDefaults = listOf(),
+                projectFeatureEntries = emptyList(),
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
+            )
+
+        val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()
+        val configurations = mock<RoleBasedConfigurationContainerInternal> {
+            on { named(any<String>(), any<Class<Configuration>>()) } doReturn apiConfiguration
+        }
+        val sourceSet = mock<NamedDomainObjectProvider<SourceSet>>()
+        val sourceSets = mock<SourceSetContainer> {
+            on { named(any<String>(), eq(SourceSet::class.java)) } doReturn sourceSet
+        }
+        val extensions = mock<ExtensionContainerInternal> {
+            on { getByName(any()) } doReturn sourceSets
+        }
+        val constraint = mock<DependencyConstraint>()
+        val constraints = mock<DependencyConstraintHandler> {
+            on { add(any(), any()) } doReturn constraint
+            on { add(any(), any(), any()) } doReturn constraint
+        }
+        val dependency = mock<ExternalModuleDependency>()
+        val projectDependency = mock<ProjectDependency>()
+        val dependencies = mock<DependencyHandler> {
+            on { create(any()) } doReturn dependency
+            on { getConstraints() } doReturn constraints
+            on { project(anyMap<String, Any?>()) } doReturn projectDependency
+            on { project(any<String>()) } doReturn projectDependency
+        }
+        val clean = mock<TaskProvider<Delete>>()
+        val tasks = mock<TaskContainerInternal> {
+            on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
+        }
+        val project = mock<ProjectInternal> {
+            on { getConfigurations() } doReturn configurations
+            on { getExtensions() } doReturn extensions
+            on { getDependencies() } doReturn dependencies
+            on { getTasks() } doReturn tasks
+        }
+
+        // when:
+        evalWithAccessorsFor(
+            schema = schema,
+            target = project,
+            buildAccessorsFor = buildAccessorsFor,
+            script = """
+                val a: NamedDomainObjectProvider<Configuration> = configurations.api
+
+                val b: Dependency? = dependencies.api("module")
+
+                val c: SourceSetContainer = sourceSets
+
+                val d: Unit = sourceSets {}
+
+                val e: NamedDomainObjectProvider<SourceSet> = sourceSets.main
+
+                val f: TaskProvider<Delete> = tasks.clean
+
+                val g: Dependency? = dependencies.api("module") {
+                    val module: ExternalModuleDependency = this
+                }
+
+                val h: Unit = buildTypes {
+                    val container: NamedDomainObjectContainer<Named> = this
+                }
+
+                val k: DependencyConstraint = dependencies.constraints.api("direct:accessor:1.0")
+                val l: DependencyConstraint = dependencies.constraints.api("direct:accessor-with-action") {
+                    val constraint: DependencyConstraint = this
+                }
+
+                val projectDependency = dependencies.project(":core")
+                val m: ProjectDependency = dependencies.api(projectDependency) {
+                    val dependency: ProjectDependency = this
+                }
+
+                val n: ExternalModuleDependency = dependencies.api(group = "g", name = "n")
+
+                val o: ExternalModuleDependency = dependencies.api(group = "g", name = "n") {
+                    val dependency: ExternalModuleDependency = this
+                }
+
+                fun Project.canUseAccessorsFromConfigurationsScope() {
+                    configurations {
+                        api {
+                            outgoing.variants
+                        }
+                    }
+                }
+
+                fun Project.canUseContainerElementAccessors() {
+                    sourceSets {
+                        main {
+                        }
+                    }
+                }
+            """
+        )
+
+        // then:
+        inOrder(
+            project,
+            configurations,
+            apiConfiguration,
+            extensions,
+            sourceSets,
+            dependencies,
+            tasks,
+            constraints
+        ) {
+            // val a
+            verify(project).configurations
+            verify(configurations).named("api", Configuration::class.java)
+
+            // val b
+            verify(project).dependencies
+            verify(dependencies).add("api", "module")
+
+            // val c
+            verify(project).extensions
+            verify(extensions).getByName("sourceSets")
+
+            // val d
+            verify(project).extensions
+            verify(extensions).configure(eq("sourceSets"), any<Action<*>>())
+
+            // val e
+            verify(project).extensions
+            verify(extensions).getByName("sourceSets")
+            verify(sourceSets).named("main", SourceSet::class.java)
+
+            // val f
+            verify(project).tasks
+            verify(tasks).named("clean", Delete::class.java)
+
+            // val g
+            verify(project).dependencies
+            verify(dependencies).create("module")
+            verify(dependencies).add("api", dependency)
+
+            // val h
+            verify(project).extensions
+            verify(extensions).configure(eq("buildTypes"), any<Action<*>>())
+
+            // val k
+            verify(project).dependencies
+            verify(dependencies).constraints
+            verify(constraints).add(eq("api"), eq("direct:accessor:1.0"))
+
+            // val l
+            verify(project).dependencies
+            verify(dependencies).constraints
+            verify(constraints).add(eq("api"), eq("direct:accessor-with-action"), any())
+
+            // val m
+            verify(project).dependencies
+            verify(dependencies).project(":core")
+            verify(project).dependencies
+            verify(dependencies).add(eq("api"), same(projectDependency))
+
+            // val n
+            verify(project).dependencies
+            verify(dependencies).create(mapOf("group" to "g", "name" to "n"))
+            verify(dependencies).add("api", dependency)
+
+            // val o
+            verify(project).dependencies
+            verify(dependencies).create(mapOf("group" to "g", "name" to "n"))
+            verify(dependencies).add("api", dependency)
+
+            verifyNoMoreInteractions()
+        }
+    }
+
+    private
+    fun evalWithAccessorsFor(
+        schema: TypedProjectSchema,
+        target: Project,
+        script: String,
+        classPath: ClassPath = testRuntimeClassPath,
+        buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> AccessorsRoots = ::buildAccessorsFor
+    ) {
+
+        val srcDir = newFolder("src")
+        val binDir = newFolder("bin")
+
+        val roots = buildAccessorsFor(schema, classPath, srcDir, binDir)
+
+        eval(
+            script = script,
+            target = target,
+            buildTreeRootDir = root,
+            baseCacheDir = kotlinDslEvalBaseCacheDir,
+            baseTempDir = kotlinDslEvalBaseTempDir,
+            scriptCompilationClassPath = roots.bin + classPath,
+            scriptRuntimeClassPath = roots.bin
+        )
+    }
+
+    private
+    fun buildAccessorsFor(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File): AccessorsRoots {
+        withSynchronousIO {
+            buildAccessorsFor(schema, classPath, srcDir, binDir)
+        }
+        return AccessorsRoots(DefaultClassPath.of(binDir), DefaultClassPath.of(srcDir))
+    }
+}
+
+
+private
+data class AccessorsRoots(val bin: ClassPath, val src: ClassPath)
+
+
+internal
+fun namedDomainObjectContainerOf(elementType: SchemaType) =
+    SchemaType(parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType.value))
+
+
+internal
+inline fun <reified ReceiverType, reified EntryType> entry(name: String): ProjectSchemaEntry<SchemaType> =
+    ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<EntryType>())
+
+
+private
+fun Method.isPublicStatic() = (modifiers and STATIC == STATIC) &&
+    (modifiers and PUBLIC == PUBLIC)

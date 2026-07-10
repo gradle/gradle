@@ -1,0 +1,55 @@
+/*
+ * Copyright 2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal
+
+import org.gradle.internal.buildoption.Option
+import org.gradle.test.fixtures.ExpectDeprecation
+import spock.lang.Specification
+
+class StartParameterInternalTest extends Specification {
+
+    // The running build's start parameter is a StartParameterInternal, so copying it via the public
+    // (deprecated) methods must still nag at runtime even though dispatch lands on the override.
+    @ExpectDeprecation("The StartParameter.newInstance() method has been deprecated")
+    def 'copying the internal start parameter via newInstance is deprecated'() {
+        expect:
+        new StartParameterInternal().newInstance() != null
+    }
+
+    @ExpectDeprecation("The StartParameter.newBuild() method has been deprecated")
+    def 'copying the internal start parameter via newBuild is deprecated'() {
+        expect:
+        new StartParameterInternal().newBuild() != null
+    }
+
+    def 'copying the internal start parameter for internal use does not nag'() {
+        expect:
+        new StartParameterInternal().newInstanceInternal() != null
+        new StartParameterInternal().newBuildInternal() != null
+    }
+
+    @ExpectDeprecation("The StartParameter.isConfigurationCacheRequested property has been deprecated")
+    def 'can query whether configuration caching is requested'() {
+        def parameter = new StartParameterInternal()
+
+        expect:
+        !parameter.configurationCacheRequested
+
+        parameter.setConfigurationCache(Option.Value.defaultValue(true))
+        parameter.configurationCacheRequested
+    }
+}

@@ -1,0 +1,53 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// dot -Tpng src/docs/userguide/img/cpp-application-configurations.dot > src/docs/userguide/img/cpp-application-configurations.png
+digraph cppApplicationConfigurations {
+  graph [ dpi = 100, fontname="Sans"];
+  node [fontname = "Sans"];
+  edge [fontname = "Sans"];
+  node [shape=rectangle, fixedsize=true, width=2.5, height=0.5];
+
+  subgraph central {
+    node[style=filled, fillcolor=white]
+    implementation -> mainVariantImplementation [style=invis, weight=1000]
+    mainVariantImplementation -> implementation [headport=s, tailport=n]
+
+    mainVariantImplementation[label=<main<i>Variant</i>Implementation>]
+  }
+
+  subgraph left {
+    node[style=filled, fillcolor="#cfe2f3"]
+    cppCompileVariant -> nativeLinkVariant -> nativeRuntimeVariant [style=invis, weight=1000]
+
+    cppCompileVariant[label=<cppCompile<i>Variant</i> (R)>]
+    nativeLinkVariant[label=<nativeLink<i>Variant</i> (R)>]
+    nativeRuntimeVariant[label=<nativeRuntime<i>Variant</i> (R)>]
+  }
+
+  subgraph right {
+    node[style=filled, fillcolor="#ea9999"]
+    variantRuntimeElements [weight=1000]
+
+    variantRuntimeElements[label=<<i>variant</i>RuntimeElements (C)>]
+  }
+
+  // Ensure the order is preserved
+  {rank=same cppCompileVariant implementation}
+  {rank=same mainVariantImplementation nativeLinkVariant variantRuntimeElements}
+  nativeLinkVariant -> mainVariantImplementation -> variantRuntimeElements [style=invis]
+
+  {cppCompileVariant, nativeLinkVariant, nativeRuntimeVariant} -> mainVariantImplementation [headport=w, tailport=e]
+  variantRuntimeElements -> mainVariantImplementation [headport=e, tailport=w]
+}

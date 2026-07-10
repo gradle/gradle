@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::disable-verification[]
+configurations {
+    myConfiguration {
+        resolutionStrategy {
+            disableDependencyVerification()
+        }
+    }
+}
+// end::disable-verification[]

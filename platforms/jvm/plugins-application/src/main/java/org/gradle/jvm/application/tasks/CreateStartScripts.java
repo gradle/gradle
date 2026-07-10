@@ -1,0 +1,460 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.jvm.application.tasks;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.plugins.AppEntryPoint;
+import org.gradle.api.internal.plugins.MainClass;
+import org.gradle.api.internal.plugins.MainModule;
+import org.gradle.api.internal.plugins.StartScriptGenerator;
+import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
+import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
+import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
+import org.gradle.jvm.application.scripts.ScriptGenerator;
+import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
+import org.gradle.util.internal.GUtil;
+import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
+
+import javax.inject.Inject;
+import java.io.File;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
+
+/**
+ * Creates start scripts for launching JVM applications.
+ * <p>
+ * Example:
+ * <pre class='autoTested'>
+ * task createStartScripts(type: CreateStartScripts) {
+ *   outputDir = file('build/sample')
+ *   mainClass = 'org.gradle.test.Main'
+ *   applicationName = 'myApp'
+ *   classpath = files('path/to/some.jar')
+ * }
+ * </pre>
+ * <p>
+ * Note: the Gradle {@code "application"} plugin adds a pre-configured task of this type named {@code "startScripts"}.
+ * <p>
+ * The task generates separate scripts targeted at Microsoft Windows environments and UNIX-like environments (e.g. Linux, macOS).
+ * The actual generation is implemented by the {@link #getWindowsStartScriptGenerator()} and {@link #getUnixStartScriptGenerator()} properties, of type {@link ScriptGenerator}.
+ * <p>
+ * Example:
+ * <pre class='autoTested'>
+ * task createStartScripts(type: CreateStartScripts) {
+ *   unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
+ *   windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
+ * }
+ *
+ * class CustomUnixStartScriptGenerator implements ScriptGenerator {
+ *   void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
+ *     // implementation
+ *   }
+ * }
+ *
+ * class CustomWindowsStartScriptGenerator implements ScriptGenerator {
+ *   void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
+ *     // implementation
+ *   }
+ * }
+ * </pre>
+ * <p>
+ * The default generators are of the type {@link TemplateBasedScriptGenerator}, with default templates.
+ * This templates can be changed via the {@link TemplateBasedScriptGenerator#setTemplate(TextResource)} method.
+ * <p>
+ * The default implementations used by this task use <a href="https://docs.groovy-lang.org/latest/html/documentation/template-engines.html#_simpletemplateengine">Groovy's SimpleTemplateEngine</a>
+ * to parse the template, with the following variables available:
+ * <ul>
+ * <li>{@code applicationName} - See {@link JavaAppStartScriptGenerationDetails#getApplicationName()}.</li>
+ * <li>{@code gitRef} - See {@link JavaAppStartScriptGenerationDetails#getGitRef()}.</li>
+ * <li>{@code optsEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getOptsEnvironmentVar()}.</li>
+ * <li>{@code exitEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getExitEnvironmentVar()}.</li>
+ * <li>{@code moduleEntryPoint} - The module entry point, or {@code null} if none. Will also include the main class name if present, in the form {@code [moduleName]/[className]}.</li>
+ * <li>{@code mainClassName} - The main class name, or usually {@code ""} if none. For legacy reasons, this may be set to {@code --module [moduleEntryPoint]} when using a main module.
+ * This behavior should not be relied upon and may be removed in a future release.</li>
+ * <li>{@code entryPointArgs} - The arguments to be used on the command-line to enter the application, as a joined string. It should be inserted before the program arguments.</li>
+ * <li>{@code defaultJvmOpts} - See {@link JavaAppStartScriptGenerationDetails#getDefaultJvmOpts()}.</li>
+ * <li>{@code appNameSystemProperty} - See {@link JavaAppStartScriptGenerationDetails#getAppNameSystemProperty()}.</li>
+ * <li>{@code appHomeRelativePath} - The path, relative to the script's own path, of the app home.</li>
+ * <li>{@code classpath} - See {@link JavaAppStartScriptGenerationDetails#getClasspath()}. It is already encoded as a joined string.</li>
+ * <li>{@code modulePath} (different capitalization) - See {@link JavaAppStartScriptGenerationDetails#getModulePath()}. It is already encoded as a joined string.</li>
+ * </ul>
+ * <p>
+ * The encoded paths expect a variable named {@code APP_HOME} to be present in the script, set to the application home directory which can be resolved using {@code appHomeRelativePath}.
+ * </p>
+ * <p>
+ * Example:
+ * <pre>
+ * task createStartScripts(type: CreateStartScripts) {
+ *   unixStartScriptGenerator.template = resources.text.fromFile('customUnixStartScript.txt')
+ *   windowsStartScriptGenerator.template = resources.text.fromFile('customWindowsStartScript.txt')
+ * }
+ * </pre>
+ */
+@DisableCachingByDefault(because = "Not worth caching")
+public abstract class CreateStartScripts extends ConventionTask {
+
+    private String executableDir = "bin";
+    private Iterable<String> defaultJvmOpts = new LinkedList<>();
+    private String applicationName;
+    private String optsEnvironmentVar;
+    private String exitEnvironmentVar;
+    private FileCollection classpath;
+    private final ModularitySpec modularity;
+    private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
+    private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
+
+    @SuppressWarnings("this-escape")
+    public CreateStartScripts() {
+        getGitRef().convention("HEAD");
+        this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
+        getUnixScriptFile().convention(getOutputDirectory().file(getProviderFactory().provider(this::getApplicationName)));
+        getWindowsScriptFile().convention(getOutputDirectory().file(getProviderFactory().provider(() -> getApplicationName() + ".bat")));
+    }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
+
+    @Inject
+    protected abstract JavaModuleDetector getJavaModuleDetector();
+
+    /**
+     * The environment variable to use to provide additional options to the JVM.
+     */
+    @Nullable
+    @Optional
+    @Input
+    @ToBeReplacedByLazyProperty
+    public String getOptsEnvironmentVar() {
+        if (GUtil.isTrue(optsEnvironmentVar)) {
+            return optsEnvironmentVar;
+        }
+
+        if (!GUtil.isTrue(getApplicationName())) {
+            return null;
+        }
+
+        return GUtil.toConstant(getApplicationName()) + "_OPTS";
+    }
+
+    /**
+     * The environment variable to use to control exit value (Windows only).
+     *
+     * @deprecated No longer used in the default start script templates. Will be removed in Gradle 10.
+     */
+    @Nullable
+    @Optional
+    @Input
+    @Deprecated
+    public String getExitEnvironmentVar() {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "getExitEnvironmentVar()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_exit_environment_var")
+            .nagUser();
+        return computeExitEnvironmentVar();
+    }
+
+    @Nullable
+    private String computeExitEnvironmentVar() {
+        if (GUtil.isTrue(exitEnvironmentVar)) {
+            return exitEnvironmentVar;
+        }
+
+        if (!GUtil.isTrue(getApplicationName())) {
+            return null;
+        }
+
+        return GUtil.toConstant(getApplicationName()) + "_EXIT_CONSOLE";
+    }
+
+    /**
+     * Returns the full path to the Unix script. The target directory is represented by the output directory, the file name is the application name without a file extension.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    @Internal
+    public abstract RegularFileProperty getUnixScriptFile();
+
+    /**
+     * Returns the full path to the Unix script. The target directory is represented by the output directory, the file name is the application name without a file extension.
+     */
+    @ReplacedBy("unixScriptFile")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getUnixScriptFile() instead", willBeDeprecated = true)
+    public File getUnixScript() {
+        return getUnixScriptFile().isPresent() ? getUnixScriptFile().get().getAsFile() : null;
+    }
+
+    /**
+     * Returns the full path to the Windows script. The target directory is represented by the output directory, the file name is the application name plus the file extension .bat.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    @Internal
+    public abstract RegularFileProperty getWindowsScriptFile();
+
+    /**
+     * Returns the full path to the Windows script. The target directory is represented by the output directory, the file name is the application name plus the file extension .bat.
+     */
+    @ReplacedBy("windowsScriptFile")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWindowsScriptFile() instead", willBeDeprecated = true)
+    public File getWindowsScript() {
+        return getWindowsScriptFile().isPresent() ? getWindowsScriptFile().get().getAsFile() : null;
+    }
+
+    /**
+     * The directory to write the scripts into.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDirectory();
+
+    /**
+     * The directory to write the scripts into.
+     */
+    @ReplacedBy("outputDirectory")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getOutputDirectory() instead", willBeDeprecated = true)
+    public File getOutputDir() {
+        return getOutputDirectory().isPresent() ? getOutputDirectory().get().getAsFile() : null;
+    }
+
+    public void setOutputDir(@Nullable File outputDir) {
+        getOutputDirectory().set(outputDir);
+        getOutputDirectory().convention(getObjectFactory().directoryProperty().fileValue(outputDir));
+    }
+
+    /**
+     * The directory to write the scripts into in the distribution.
+     *
+     * @since 4.5
+     */
+    @Input
+    @ToBeReplacedByLazyProperty
+    public String getExecutableDir() {
+        return executableDir;
+    }
+
+    /**
+     * The directory to write the scripts into in the distribution.
+     *
+     * @since 4.5
+     */
+    public void setExecutableDir(String executableDir) {
+        this.executableDir = executableDir;
+    }
+
+    /**
+     * The main module name used to start the modular Java application.
+     *
+     * @since 6.4
+     */
+    @Optional
+    @Input
+    public abstract Property<String> getMainModule();
+
+    /**
+     * The main class name used to start the Java application.
+     *
+     * @since 6.4
+     */
+    @Optional
+    @Input
+    public abstract Property<String> getMainClass();
+
+    /**
+     * The application's default JVM options. Defaults to an empty list.
+     */
+    @Nullable
+    @Optional
+    @Input
+    @ToBeReplacedByLazyProperty
+    public Iterable<String> getDefaultJvmOpts() {
+        return defaultJvmOpts;
+    }
+
+    public void setDefaultJvmOpts(@Nullable Iterable<String> defaultJvmOpts) {
+        this.defaultJvmOpts = defaultJvmOpts;
+    }
+
+    /**
+     * The application's name.
+     */
+    @Nullable
+    @Input
+    @ToBeReplacedByLazyProperty
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(@Nullable String applicationName) {
+        this.applicationName = applicationName;
+    }
+
+    /**
+     * The Git revision or tag.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    @Optional
+    @Input
+    public abstract Property<String> getGitRef();
+
+    public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
+        this.optsEnvironmentVar = optsEnvironmentVar;
+    }
+
+    @Deprecated
+    public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "setExitEnvironmentVar(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_exit_environment_var")
+            .nagUser();
+        this.exitEnvironmentVar = exitEnvironmentVar;
+    }
+
+    /**
+     * The class path for the application.
+     */
+    @Nullable
+    @Classpath
+    @Optional
+    @ToBeReplacedByLazyProperty
+    public FileCollection getClasspath() {
+        return classpath;
+    }
+
+    /**
+     * Returns the module path handling for executing the main class.
+     *
+     * @since 6.4
+     */
+    @Nested
+    public ModularitySpec getModularity() {
+        return modularity;
+    }
+
+    public void setClasspath(@Nullable FileCollection classpath) {
+        this.classpath = classpath;
+    }
+
+    /**
+     * The UNIX-like start script generator.
+     * <p>
+     * Defaults to an implementation of {@link TemplateBasedScriptGenerator}.
+     */
+    @Nested
+    public ScriptGenerator getUnixStartScriptGenerator() {
+        return unixStartScriptGenerator;
+    }
+
+    public void setUnixStartScriptGenerator(ScriptGenerator unixStartScriptGenerator) {
+        this.unixStartScriptGenerator = unixStartScriptGenerator;
+    }
+
+    /**
+     * The Windows start script generator.
+     * <p>
+     * Defaults to an implementation of {@link TemplateBasedScriptGenerator}.
+     */
+    @Nested
+    public ScriptGenerator getWindowsStartScriptGenerator() {
+        return windowsStartScriptGenerator;
+    }
+
+    public void setWindowsStartScriptGenerator(ScriptGenerator windowsStartScriptGenerator) {
+        this.windowsStartScriptGenerator = windowsStartScriptGenerator;
+    }
+
+    @TaskAction
+    public void generate() {
+        StartScriptGenerator generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
+        JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
+        generator.setApplicationName(getApplicationName());
+        generator.setGitRef(getGitRef().get());
+        generator.setEntryPoint(getEntryPoint());
+        generator.setDefaultJvmOpts(getDefaultJvmOpts());
+        generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
+        // Skipping use of getExitEnvironmentVar() to avoid deprecation warning
+        generator.setExitEnvironmentVar(computeExitEnvironmentVar());
+        generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(getMainModule().isPresent(), getClasspath())));
+        generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(getMainModule().isPresent(), getClasspath())));
+        if (StringUtils.isEmpty(getExecutableDir())) {
+            generator.setScriptRelPath(getUnixScriptFile().get().getAsFile().getName());
+        } else {
+            generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScriptFile().get().getAsFile().getName());
+        }
+        generator.generateUnixScript(getUnixScriptFile().get().getAsFile());
+        generator.generateWindowsScript(getWindowsScriptFile().get().getAsFile());
+    }
+
+    private AppEntryPoint getEntryPoint() {
+        if (getMainModule().isPresent()) {
+            return new MainModule(getMainModule().get(), getMainClass().getOrNull());
+        }
+        return new MainClass(getMainClass().getOrElse(""));
+    }
+
+    @Input
+    @ToBeReplacedByLazyProperty(unreported = true, comment = "Skipped for report since method is protected")
+    protected Iterable<String> getRelativeClasspath() {
+        //a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not support
+        //serializing Iterators directly
+        final FileCollection classpathNullable = getClasspath();
+        if (classpathNullable == null) {
+            return Collections.emptyList();
+        }
+        return getRelativePath(classpathNullable);
+    }
+
+    private Iterable<String> getRelativePath(FileCollection path) {
+        return path.getFiles().stream().map(input -> "lib/" + input.getName()).collect(Collectors.toCollection(Lists::newArrayList));
+    }
+
+}

@@ -1,0 +1,92 @@
+import gradlebuild.basics.googleApisJs
+
+plugins {
+    id("gradlebuild.internal.java")
+}
+
+description = "Collection of test fixtures for performance tests, internal use only"
+
+sourceSets {
+    main {
+        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
+        errorprone.enabled = false
+    }
+}
+
+val reports = configurations.create("reports")
+val flamegraph = configurations.create("flamegraph")
+configurations.compileOnly { extendsFrom(flamegraph) }
+
+repositories {
+    googleApisJs()
+}
+
+dependencies {
+    reports(variantOf(libs.jquery) { artifactType("js") })
+    reports(variantOf(testLibs.flot) { classifier("min"); artifactType("js") })
+
+    api(projects.baseServices)
+    api(projects.internalDistributionTesting)
+
+    runtimeOnly(projects.coreApi)
+    api(projects.internalTesting)
+    api(projects.stdlibJavaExtensions)
+    api(projects.reportRendering)
+    api(projects.time)
+    api(projects.toolingApi)
+
+    api(testLibs.gradleProfiler) { because("Consumers need to instantiate BuildMutators") }
+    api(testLibs.gradleProfilerBuildAction)
+    api(testLibs.gradleProfilerBuildOperationsMeasuring)
+    api(libs.guava)
+    api(libs.groovy)
+    api(libs.jacksonAnnotations)
+    api(libs.jatl)
+    api(libs.jspecify)
+    api(testLibs.junit)
+    api(testLibs.spock)
+
+    implementation(projects.classloaders)
+    implementation(projects.concurrent)
+    implementation(projects.core)
+    implementation(projects.internalIntegTesting)
+    implementation(projects.languageNative)
+    implementation(projects.projectFeaturesApi)
+    implementation(testFixtures(projects.platformNative))
+
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.groovyJson)
+    implementation(libs.jacksonCore)
+    implementation(libs.jacksonDatabind)
+    implementation(libs.slf4jApi)
+    implementation(testLibs.commonsMath)
+    implementation(testLibs.hikariCP)
+    implementation(testLibs.joptSimple)
+    implementation(testLibs.junit5JupiterApi)
+
+    runtimeOnly(libs.jclToSlf4j)
+    runtimeOnly(testLibs.mySqlConnector)
+
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("Generated Java test projects apply java/eclipse/idea, which require the full distribution to run.")
+    }
+}
+
+val reportResources = tasks.register<Copy>("reportResources") {
+    from(reports)
+    into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
+}
+
+sourceSets.main {
+    output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
+}
+
+tasks.jar {
+    inputs.files(flamegraph)
+        .withPropertyName("flamegraph")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    from(files(provider{ flamegraph.map { zipTree(it) } }))
+}
+

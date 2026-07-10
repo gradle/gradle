@@ -1,0 +1,7 @@
+...
+
+> Task :hello SKIPPED
+Skipping task ':hello' as task onlyIf 'there is no property skipHello' is false.
+:hello (Thread[included builds,5,main]) completed. Took 0.018 secs.
+
+BUILD SUCCESSFUL in 13s

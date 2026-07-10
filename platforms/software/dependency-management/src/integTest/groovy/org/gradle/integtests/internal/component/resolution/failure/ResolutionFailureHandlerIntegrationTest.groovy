@@ -1,0 +1,1310 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.internal.component.resolution.failure
+
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
+import org.gradle.internal.component.resolution.failure.exception.ConflictingConstraintsException
+import org.gradle.internal.component.resolution.failure.exception.GraphValidationException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure
+import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
+
+/**
+ * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
+ * variant selection failures.
+ * <p>
+ * It can also build a text report demonstrating all these errors in a single place by running
+ * the [generateFailureShowcase] method, which is marked with [spock.lang.Ignore] so it doesn't
+ * run as part of a typical test run.  It is useful for viewing and comparing the behavior of
+ * different types of failures.
+ * <p>
+ * These tests are ordered according to the different categories of {@link ResolutionFailure}.
+ */
+class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
+    // region Component Selection failures
+    def "demonstrate conflicting version constraints failure"() {
+        conflictingVersionConstraints.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(conflictingVersionConstraints)
+
+        and: "Has error output"
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
+        failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
+4.1.0
+4.5.3""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsViewingDocs("Run with :dependencyInsight --configuration resolveMe --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
+        assertSuggestsViewingDocs("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-version-satisfies'
+            additionalData.asMap['requestTarget'] == "org.apache.httpcomponents:httpclient"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_VERSION_SATISFIES.name()
+            additionalData.asMap['problemDisplayName'] == "No version satisfies the constraints"
+        }
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                additionalData.asMap == [ 'trace' : 'task `:forceResolution` of type `Build_gradle$ForceResolution`' ]
+            }
+        }
+    }
+
+    def "demonstrate multiple selected variants with the same capabilities failure"() {
+        multipleSelectedVariantsWithSameCapabilities.prepare()
+
+        expect:
+        fails "forceResolution"
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'test'.")
+        assertFullMessageCorrect("""     Required by:
+         root project 'test'
+      > Module 'org.example:test' has been rejected:
+           Cannot select module with conflict on capability 'org:example:test-nonconflicting' also provided by ['root project 'test'' (c2)]""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsViewingDocs("Capability conflicts are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/component_capabilities.html#sub:capabilities.")
+        assertSuggestsViewingDocs("Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/component_capabilities.html#sec:selecting-between-candidates.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:capability-conflict'
+            additionalData.asMap['requestTarget'] == "org.example:test"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CAPABILITY_CONFLICT.name()
+            additionalData.asMap['problemDisplayName'] == "Module rejected due to a capability conflict"
+        }
+    }
+    // endregion Component Selection failures
+
+    // region Variant Selection failures
+    def "demonstrate ambiguous graph variant selection failure with single disambiguating value for project"() {
+        ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. There are several available matching variants of root project 'example'
+        The only attribute distinguishing these variants is 'shape'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'round' selects variant: 'blueRoundElements'
+          - Value: 'square' selects variant: 'blueSquareElements'
+          - Value: 'triangle' selects variant: 'blueTriangleElements'""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+        assertSuggestsViewingDocs("Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['requestTarget'] == "root project 'example'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
+        }
+    }
+
+    def "demonstrate ambiguous graph variant without single disambiguating value selection failure for project"() {
+        ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of root project 'example':
+          - blueRoundTransparentElements
+          - blueSquareOpaqueElements
+          - blueSquareTransparentElements
+        All of them match the consumer attributes:
+          - Variant 'blueRoundTransparentElements' capability ':example:unspecified' declares attribute 'color' with value 'blue':
+              - Unmatched attributes:
+                  - Provides opacity 'transparent' but the consumer didn't ask for it
+                  - Provides shape 'round' but the consumer didn't ask for it
+          - Variant 'blueSquareOpaqueElements' capability ':example:unspecified' declares attribute 'color' with value 'blue':
+              - Unmatched attributes:
+                  - Provides opacity 'opaque' but the consumer didn't ask for it
+                  - Provides shape 'square' but the consumer didn't ask for it
+          - Variant 'blueSquareTransparentElements' capability ':example:unspecified' declares attribute 'color' with value 'blue':
+              - Unmatched attributes:
+                  - Provides opacity 'transparent' but the consumer didn't ask for it
+                  - Provides shape 'square' but the consumer didn't ask for it""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['requestTarget'] == "root project 'example'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
+        }
+    }
+
+    def "demonstrate ambiguous graph variant selection failure with single disambiguating value for externalDep"() {
+        ambiguousGraphVariantForExternalDep.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(ambiguousGraphVariantForExternalDep)
+
+        and: "Has error output"
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
+        assertFullMessageCorrect("""   > Could not resolve com.squareup.okhttp3:okhttp:4.4.0.
+     Required by:
+         root project 'example'
+      > The consumer was configured to find attribute 'org.gradle.category' with value 'documentation'. There are several available matching variants of com.squareup.okhttp3:okhttp:4.4.0
+        The only attribute distinguishing these variants is 'org.gradle.docstype'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'javadoc' selects variant: 'javadocElements'
+          - Value: 'sources' selects variant: 'sourcesElements'""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['requestTarget'] == "com.squareup.okhttp3:okhttp:4.4.0"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
+        }
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                additionalData.asMap == ['trace': 'task `:forceResolution` of type `Build_gradle$ForceResolution`']
+            }
+        }
+    }
+
+    def "demonstrate no matching graph variants selection failure for project"() {
+        noMatchingGraphVariantsForProject.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(noMatchingGraphVariantsForProject)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""   > Could not resolve root project 'example'.
+     Required by:
+         root project 'example'
+      > No matching variant of root project 'example' was found. The consumer was configured to find attribute 'color' with value 'green' but:
+          - Variant 'default':
+              - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['requestTarget'] == "root project 'example'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
+        }
+    }
+
+    def "demonstrate no matching graph variants selection failure for externalDep"() {
+        noMatchingGraphVariantsForExternalDep.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(noMatchingGraphVariantsForExternalDep)
+
+        and: "Has error output"
+        failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
+        assertFullMessageCorrect("""      > No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:
+          - Variant 'apiElements':
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
+          - Variant 'javadocElements':
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'documentation' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
+          - Variant 'runtimeElements':
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
+          - Variant 'sourcesElements':
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'documentation' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['requestTarget'] == "com.squareup.okhttp3:okhttp:4.4.0"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
+        }
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
+                additionalData.asMap == ['trace': 'task `:forceResolution` of type `Build_gradle$ForceResolution`']
+            }
+        }
+    }
+
+    def 'demonstrate incompatible requested configuration failure'() {
+        incompatibleRequestedConfiguration.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(incompatibleRequestedConfiguration)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""     Required by:
+         root project 'example'
+      > Configuration 'mismatch' in root project 'example' does not match the consumer attributes
+        Configuration 'mismatch':
+          - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
+""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:configuration-not-compatible'
+            additionalData.asMap['requestTarget'] == "mismatch"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CONFIGURATION_NOT_COMPATIBLE.name()
+            additionalData.asMap['problemDisplayName'] == "Configuration selected by name is not compatible"
+        }
+    }
+
+    def "demonstrate no variants exist"() {
+        noGraphVariantsExistForProject.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(noGraphVariantsExistForProject)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve project ':producer'.")
+        assertFullMessageCorrect("""     Required by:
+         root project 'example'
+      > No matching variant of project ':producer' was found. The consumer was configured to find attribute 'color' with value 'green' but:
+          - No variants exist.""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['requestTarget'] == "project ':producer'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
+        }
+    }
+
+    def "demonstrate configuration not found selection failure"() {
+        configurationNotFound.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(configurationNotFound)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""Required by:
+         root project 'example'
+      > A dependency was declared on configuration 'absent' of 'root project 'example'' but no variant with that configuration name exists.""")
+
+        and: "Helpful resolutions are provided"
+        failure.assertHasResolution("To determine which configurations are available in the target root project 'example', run :outgoingVariants.")
+        assertSuggestsReviewingAlgorithm()
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:configuration-does-not-exist'
+            additionalData.asMap['requestTarget'] == "absent"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CONFIGURATION_DOES_NOT_EXIST.name()
+            additionalData.asMap['problemDisplayName'] == "Configuration selected by name does not exist"
+        }
+    }
+    // endregion Variant Selection failure
+
+    // region Graph Validation failures
+    // endregion Graph Validation failures
+
+    // region Artifact Selection failures
+    def "demonstrate incompatible artifact variants exception"() {
+        incompatibleArtifactVariants.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(incompatibleArtifactVariants)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""     Required by:
+         root project 'example'
+      > Multiple incompatible variants of org.example:example:1.0 were selected:
+           - Variant blueElementsCapability1 has attributes {color=blue}
+           - Variant greenElementsCapability2 has attributes {color=green}""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
+            additionalData.asMap['requestTarget'] == "org.example:example:1.0"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.INCOMPATIBLE_MULTIPLE_NODES.name()
+            additionalData.asMap['problemDisplayName'] == "Incompatible nodes of a single component were selected"
+        }
+    }
+
+    def "demonstrate no matching artifact variants exception"() {
+        noMatchingArtifactVariants.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(noMatchingArtifactVariants)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFullMessageCorrect("""   > No variants of root project 'example' match the consumer attributes:
+       - Configuration ':myElements' declares attribute 'color' with value 'blue':
+           - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+       - Configuration ':myElements' variant 'secondary' declares attribute 'color' with value 'blue':
+           - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:no-compatible-artifact'
+            additionalData.asMap['requestTarget'] == "root project 'example'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
+            additionalData.asMap['problemDisplayName'] == "No artifacts exist that would match the request"
+        }
+    }
+
+    def "demonstrate ambiguous artifact transforms exception"() {
+        ambiguousArtifactTransforms.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(ambiguousArtifactTransforms)
+
+        and: "Has error output"
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFullMessageCorrect("""   > Found multiple transformation chains that produce a variant of 'root project 'example'' with requested attributes:
+       - color 'red'
+       - shape 'round'
+     Found the following transformation chains:
+       - From configuration ':roundBlueLiquidElements':
+           - With source attributes:
+               - color 'blue'
+               - shape 'round'
+               - state 'liquid'
+           - Candidate transformation chains:
+               - Transformation chain: 'BrokenTransform':
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - state 'liquid'
+                       - To attributes:
+                           - color 'red'
+                           - state 'gas'
+               - Transformation chain: 'BrokenTransform':
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - state 'liquid'
+                       - To attributes:
+                           - color 'red'
+                           - state 'solid'""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestRunningArtifactTransformsReport()
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:transform-ambiguity.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+            additionalData.asMap['requestTarget'] == "root project 'example'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
+        }
+    }
+
+    def "demonstrate ambiguous artifact variants exception"() {
+        ambiguousArtifactVariants.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(ambiguousArtifactVariants)
+
+        and: "Has error output"
+        assertFailureDescriptionCorrect()
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        assertFullMessageCorrect("""   > More than one variant of root project 'example' matches the consumer attributes:
+       - Configuration ':default' variant 'v1'
+       - Configuration ':default' variant 'v2'""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-artifacts'
+            additionalData.asMap['requestTarget'] == "root project 'example'"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple artifacts exist that would match the request"
+        }
+    }
+    // endregion Artifact Selection failures
+
+    // region dependencyInsight failures
+    /**
+     * Running the dependencyInsight report can also generate a variant selection failure, but this
+     * does <strong>NOT</strong> cause the task to fail.
+     */
+    def "demonstrate dependencyInsight report no matching capabilities failure"() {
+        setupDependencyInsightFailure()
+
+        expect:
+        succeeds "dependencyInsight", "--configuration", "compileClasspath", "--dependency", "gson"
+
+        String basicOutput = """   Failures:
+      - Could not resolve com.google.code.gson:gson:2.8.5."""
+        String fullOutput = """          - Unable to find a variant of 'com.google.code.gson:gson:2.8.5' with the requested capability: feature 'test-fixtures':
+               - Variant 'compile' provides 'com.google.code.gson:gson:2.8.5'
+               - Variant 'enforced-platform-compile' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
+               - Variant 'enforced-platform-runtime' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
+               - Variant 'javadoc' provides 'com.google.code.gson:gson:2.8.5'
+               - Variant 'platform-compile' provides 'com.google.code.gson:gson-derived-platform:2.8.5'
+               - Variant 'platform-runtime' provides 'com.google.code.gson:gson-derived-platform:2.8.5'
+               - Variant 'runtime' provides 'com.google.code.gson:gson:2.8.5'
+               - Variant 'sources' provides 'com.google.code.gson:gson:2.8.5'"""
+
+        outputContains(basicOutput)
+        outputContains(fullOutput)
+
+        and: "No problems are reported when running a report, even if a variant selection failure occurs"
+        getCollectedProblems().size() == 0
+    }
+    // endregion dependencyInsight failures
+
+    // region other tests
+    def "artifact view resolution problems are not reported when lenient artifactView is used"() {
+        given:
+        ignoreCleanupAssertions = true // We just care that there are problems in this test, we don't need to verify their contents
+
+        buildKotlinFile << """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
+            val matter = Attribute.of("state", String::class.java)
+
+            configurations {
+                consumable("roundBlueLiquidElements") {
+                    attributes.attribute(shape, "round")
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(matter, "liquid")
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                    // Initially request only round
+                    attributes.attribute(shape, "round")
+                }
+            }
+
+            abstract class BrokenTransform : TransformAction<TransformParameters.None> {
+                override fun transform(outputs: TransformOutputs) {
+                    throw AssertionError("Should not actually be selected to run")
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":"))
+
+                // Register 2 transforms that both will move blue -> red, but also do
+                // something else to another irrelevant attribute in order to make them
+                // unique from each other
+                registerTransform(BrokenTransform::class.java) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(matter, "liquid")
+                    to.attribute(matter, "solid")
+                }
+                registerTransform(BrokenTransform::class.java) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(matter, "liquid")
+                    to.attribute(matter, "gas")
+                }
+            }
+
+            tasks.register("forceResolution") {
+                inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
+                    lenient($lenient)
+                    attributes.attribute(color, "red")
+                }.artifacts.artifactFiles)
+
+                doLast {
+                    inputs.files.files.forEach { println(it) }
+                }
+            }
+        """
+
+        when:
+        if (shouldSucceed) {
+            succeeds "forceResolution", "--stacktrace"
+        } else {
+            fails "forceResolution", "--stacktrace"
+        }
+
+        then:
+        if (!shouldSucceed) {
+            failure.assertHasErrorOutput("Caused by: " + ArtifactSelectionException.class.getName())
+        }
+        shouldReportProblems == !getCollectedProblems().isEmpty()
+
+        where:
+        lenient || shouldSucceed | shouldReportProblems
+        true    || true          | false
+        false   || false         | true
+    }
+    // endregion other tests
+
+    // region error showcase
+    @SuppressWarnings('UnnecessaryQualifiedReference')
+    @spock.lang.Ignore("This test is used to generate a summary of all possible errors, it shouldn't usually be run as part of testing")
+    def "generate resolution failure showcase report"() {
+        given:
+        // Escape to the root of the dependency-management project, to put these reports in build output dir so it isn't auto-deleted when test completes
+        File reportFile = testDirectory.parentFile.parentFile.parentFile.parentFile.file("reports/tests/resolution-failure-showcase.txt")
+
+        when:
+        generateFailureShowcase(reportFile)
+
+        then:
+        assertAllExceptionsInShowcase(reportFile)
+
+        println("Resolution error showcase report available at: ${reportFile.toURI()}")
+    }
+
+    private void generateFailureShowcase(TestFile reportFile) {
+        StringBuilder reportBuilder = new StringBuilder()
+        demonstrations.each {
+            buildKotlinFile.text = ""
+            it.prepare()
+
+            fails "forceResolution"
+
+            reportBuilder.append("----------------------------------------------------------------------------------------------------\n")
+            reportBuilder.append("${it.name}\n")
+            reportBuilder.append(result.getError())
+            reportBuilder.append("\n")
+        }
+
+        reportFile.text = reportBuilder.toString()
+    }
+
+    private void assertAllExceptionsInShowcase(TestFile reportFile) {
+        String report = reportFile.text
+        demonstrations.each {
+            report.contains(it.name)
+            report.contains("Caused by: " + it.exception.getName())
+        }
+    }
+
+    @SuppressWarnings('GroovyAccessibility')
+    private static class Demonstration {
+        private final String name
+        private final Class<AbstractResolutionFailureException> exception
+        private final Class<? extends ResolutionFailure> failure
+        private final Closure setup
+
+        private Demonstration(String name, Class<AbstractResolutionFailureException> exception, Class<? extends ResolutionFailure> failure, Closure setup) {
+            this.name = name
+            this.exception = exception
+            this.failure = failure
+            this.setup = setup
+        }
+
+        void prepare() {
+            setup.call()
+        }
+    }
+
+    private final Demonstration conflictingVersionConstraints = new Demonstration("Conflicting version constraints", ConflictingConstraintsException.class, ModuleRejectedFailure.class, this.&setupConflictingVersionConstraints)
+    private final Demonstration ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project with single disambiguating attribute)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute)
+    private final Demonstration ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project without single disambiguating attribute)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute)
+    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionByAttributesException.class, AmbiguousVariantsFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
+    private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", VariantSelectionByAttributesException.class, NoCompatibleVariantsFailure.class, this.&setupNoMatchingGraphVariantsFailureForProject)
+    private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", VariantSelectionByAttributesException.class, NoCompatibleVariantsFailure.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
+    private final Demonstration noGraphVariantsExistForProject = new Demonstration("No variants exist (project dependency)", VariantSelectionByAttributesException.class, NoCompatibleVariantsFailure.class, this.&setupNoGraphVariantsExistFailureForProject)
+
+    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionByNameException.class, ConfigurationNotCompatibleFailure.class, this.&setupConfigurationNotCompatibleFailureForProject)
+    private final Demonstration configurationNotFound = new Demonstration("Configuration not found", VariantSelectionByNameException.class, ConfigurationDoesNotExistFailure.class, this.&setupConfigurationNotFound)
+
+    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactSelectionException.class, NoCompatibleArtifactFailure.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
+    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactSelectionException.class, AmbiguousArtifactTransformsFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
+    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactSelectionException.class, AmbiguousArtifactsFailure.class, this.&setupAmbiguousArtifactsFailureForProject)
+
+    private final Demonstration multipleSelectedVariantsWithSameCapabilities = new Demonstration("Multiple selected variants with the same capabilities", VariantSelectionByAttributesException.class, ConfigurationNotCompatibleFailure.class, this.&setupMultipleConfigurationsWithSameCapabilities)
+
+    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible graph variants", GraphValidationException.class, IncompatibleMultipleNodesValidationFailure.class, this.&setupIncompatibleMultipleNodesValidationFailureForProject)
+
+    private final List<Demonstration> demonstrations = [
+        ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute,
+        ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute,
+        ambiguousGraphVariantForExternalDep,
+        noMatchingGraphVariantsForProject,
+        noMatchingGraphVariantsForExternalDep,
+        noGraphVariantsExistForProject,
+
+        incompatibleRequestedConfiguration,
+        configurationNotFound,
+
+        noMatchingArtifactVariants,
+        ambiguousArtifactTransforms,
+        ambiguousArtifactVariants,
+
+        incompatibleArtifactVariants,
+        multipleSelectedVariantsWithSameCapabilities
+    ]
+    // endregion error showcase
+
+    // region setup
+    def setup() {
+        enableProblemsApiCheck()
+
+        settingsKotlinFile << """
+            rootProject.name = "example"
+        """
+    }
+
+    private void setupMultipleConfigurationsWithSameCapabilities() {
+        settingsKotlinFile << """
+            rootProject.name = "test"
+        """
+
+        buildKotlinFile << """
+            group = "org.example"
+            version = "1.0"
+
+            configurations {
+                create("c1") {
+                    isCanBeConsumed = true
+                    outgoing {
+                        capability("org:example:test-nonconflicting")
+                        capability("org:example:test-conflicting")
+                    }
+                }
+
+                create("c2") {
+                    isCanBeConsumed = true
+                    outgoing {
+                        capability("org:example:test-conflicting")
+                    }
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(mapOf("path" to ":", "configuration" to "c1")))
+                add("myDependencies", project(mapOf("path" to ":", "configuration" to "c2")))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupConfigurationNotFound() {
+        buildKotlinFile << """
+            configurations {
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":", "absent"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupAmbiguousArtifactsFailureForProject() {
+        buildKotlinFile << """
+            configurations {
+                consumable("default") {
+                    outgoing {
+                        variants {
+                            create("v1")
+                            create("v2")
+                        }
+                    }
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupAmbiguousArtifactTransformFailureForProject() {
+        buildKotlinFile << """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
+            val matter = Attribute.of("state", String::class.java)
+
+            configurations {
+                consumable("roundBlueLiquidElements") {
+                    attributes.attribute(shape, "round")
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(matter, "liquid")
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                    // Initially request only round
+                    attributes.attribute(shape, "round")
+                }
+            }
+
+            abstract class BrokenTransform : TransformAction<TransformParameters.None> {
+                override fun transform(outputs: TransformOutputs) {
+                    throw AssertionError("Should not actually be selected to run")
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":"))
+
+                // Register 2 transforms that both will move blue -> red, but also do
+                // something else to another irrelevant attribute in order to make them
+                // unique from each other
+                registerTransform(BrokenTransform::class.java) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(matter, "liquid")
+                    to.attribute(matter, "solid")
+                }
+                registerTransform(BrokenTransform::class.java) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(matter, "liquid")
+                    to.attribute(matter, "gas")
+                }
+            }
+
+            tasks.register("forceResolution") {
+                inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
+                    attributes.attribute(color, "red")
+                }.artifacts.artifactFiles)
+
+                doLast {
+                    inputs.files.files.forEach { println(it) }
+                }
+            }
+        """
+    }
+
+    private void setupNoMatchingArtifactVariantsFailureForProject() {
+        buildKotlinFile << """
+            val artifactType = Attribute.of("artifactType", String::class.java)
+            val color = Attribute.of("color", String::class.java)
+
+            configurations {
+                consumable("myElements") {
+                    attributes.attribute(color, "blue")
+
+                    outgoing {
+                        variants {
+                            create("secondary") {
+                                // Without artifacts on the variant, we would get a AmbiguousArtifactVariantsException - need a mismatch with the derived artifact type of "jar"
+                                artifact(file("secondary.jar"))
+                            }
+                        }
+
+                        artifacts {
+                            artifact(file("implicit.jar"))
+                        }
+                    }
+                }
+            }
+
+            configurations {
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+
+                    // We need to match the "myElements" configuration, then the AV will look at its variants
+                    attributes.attribute(color, "blue")
+                    // Without requesting this special attribute that mismatches the derived value of "jar", we would get a successful result that pulls implicit.jar
+                    attributes.attribute(artifactType, "dll")
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupConflictingVersionConstraints() {
+        buildKotlinFile << """
+            repositories {
+                mavenCentral()
+            }
+
+            configurations {
+                dependencyScope("deps")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("deps"))
+                }
+            }
+
+            dependencies {
+                add("deps", "org.apache.httpcomponents:httpclient")
+                constraints {
+                    add("deps", "org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.5.3")
+                        }
+                    }
+                    add("deps", "org.apache.httpcomponents:httpclient") {
+                        version {
+                            strictly("4.1.0")
+                        }
+                    }
+                }
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute() {
+        buildKotlinFile << """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
+
+            configurations {
+                consumable("blueRoundElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "round")
+                }
+                consumable("blueSquareElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "square")
+                }
+                consumable("blueTriangleElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "triangle")
+                }
+
+                dependencyScope("blueFilesDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("blueFilesDependencies"))
+                    attributes.attribute(color, "blue")
+                }
+            }
+
+            dependencies {
+                add("blueFilesDependencies", project(":"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute() {
+        buildKotlinFile << """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
+            val opacity = Attribute.of("opacity", String::class.java)
+
+            configurations {
+                consumable("blueRoundTransparentElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "round")
+                    attributes.attribute(opacity, "transparent")
+                }
+                consumable("blueSquareOpaqueElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "square")
+                    attributes.attribute(opacity, "opaque")
+                }
+                consumable("blueSquareTransparentElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "square")
+                    attributes.attribute(opacity, "transparent")
+                }
+
+                dependencyScope("blueFilesDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("blueFilesDependencies"))
+                    attributes.attribute(color, "blue")
+                }
+            }
+
+            dependencies {
+                add("blueFilesDependencies", project(":"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupAmbiguousGraphVariantFailureForExternalDep() {
+        buildKotlinFile << """
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            configurations {
+                dependencyScope("myLibs")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myLibs"))
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category::class.java, Category.DOCUMENTATION))
+                    }
+                }
+            }
+
+            dependencies {
+                add("myLibs", "com.squareup.okhttp3:okhttp:4.4.0")
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupNoMatchingGraphVariantsFailureForProject() {
+        buildKotlinFile << """
+            plugins {
+                id("base")
+            }
+
+            val color = Attribute.of("color", String::class.java)
+
+            configurations {
+                getByName("default") {
+                    attributes.attribute(color, "blue")
+                }
+
+                dependencyScope("defaultDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("defaultDependencies"))
+                    attributes.attribute(color, "green")
+                }
+            }
+
+            dependencies {
+                add("defaultDependencies", project(":"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupNoMatchingGraphVariantsFailureForExternalDep() {
+        buildKotlinFile << """
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            configurations {
+                dependencyScope("myLibs")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myLibs"))
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category::class.java, "non-existent-format"))
+                    }
+                }
+            }
+
+            dependencies {
+                add("myLibs", "com.squareup.okhttp3:okhttp:4.4.0")
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupNoGraphVariantsExistFailureForProject() {
+        settingsKotlinFile << """
+            include("producer")
+        """
+
+        buildKotlinFile << """
+            plugins {
+                id("base")
+            }
+
+            val color = Attribute.of("color", String::class.java)
+
+            configurations {
+                dependencyScope("defaultDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("defaultDependencies"))
+                    attributes.attribute(color, "green")
+                }
+            }
+
+            dependencies {
+                add("defaultDependencies", project(":producer"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+
+        file("producer/build.gradle.kts").touch()
+    }
+
+    private void setupConfigurationNotCompatibleFailureForProject() {
+        buildKotlinFile << """
+            plugins {
+                id("base")
+            }
+
+            val color = Attribute.of("color", String::class.java)
+
+            configurations {
+                configurations.create("mismatch") {
+                    attributes.attribute(color, "blue")
+                }
+
+                dependencyScope("defaultDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("defaultDependencies"))
+                    attributes.attribute(color, "green")
+                }
+            }
+
+            dependencies {
+                add("defaultDependencies", project(":", "mismatch"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupIncompatibleMultipleNodesValidationFailureForProject() {
+        buildKotlinFile << """
+            group = "org.example"
+            version = "1.0"
+
+            val color = Attribute.of("color", String::class.java)
+
+            // TODO: Can't use dependencyScope here yet, as it doesn't support capabilities
+            val incompatible = configurations.create("incompatible") {
+                isCanBeDeclared = true
+                isCanBeConsumed = false
+                isCanBeResolved = false
+            }
+
+            configurations {
+                consumable("blueElementsCapability1") {
+                    attributes.attribute(color, "blue")
+                    outgoing {
+                        capability("org.example:cap1:1.0")
+                    }
+                }
+                consumable("blueElementsCapability2") {
+                    attributes.attribute(color, "blue")
+                    outgoing {
+                        capability("org.example:cap2:1.0")
+                    }
+                }
+
+                consumable("greenElementsCapability1") {
+                    attributes.attribute(color, "green")
+                    outgoing {
+                        capability("org.example:cap1:1.0")
+                    }
+                }
+                consumable("greenElementsCapability2") {
+                    attributes.attribute(color, "green")
+                    outgoing {
+                        capability("org.example:cap2:1.0")
+                    }
+                }
+
+                resolvable("resolveMe") {
+                    extendsFrom(incompatible)
+                }
+            }
+
+            dependencies {
+                add("incompatible", project(":")) {
+                    attributes {
+                        attribute(color, "blue")
+                    }
+                    capabilities {
+                        requireCapability("org.example:cap1:1.0")
+                    }
+                }
+                add("incompatible", project(":")) {
+                    attributes {
+                        attribute(color, "green")
+                    }
+                    capabilities {
+                        requireCapability("org.example:cap2:1.0")
+                    }
+                }
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupDependencyInsightFailure() {
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+                `java-test-fixtures`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            dependencies {
+                // Adds a dependency on the test fixtures of Gson, however this
+                // project doesn't publish such a thing
+                implementation(testFixtures("com.google.code.gson:gson:2.8.5"))
+            }
+        """
+
+    }
+
+    private String forceConsumerResolution() {
+        return """
+            abstract class ForceResolution : DefaultTask() {
+                @get:InputFiles
+                abstract val resolvedFiles: ConfigurableFileCollection
+            }
+
+            tasks.register<ForceResolution>("forceResolution") {
+                resolvedFiles.from(configurations.getByName("resolveMe"))
+                doLast {
+                    resolvedFiles.forEach { println(it) }
+                }
+            }
+        """
+    }
+    // endregion setup
+
+    // region assertions
+    private void assertFullMessageCorrect(String identifyingFragment) {
+        identifyingFragment.eachLine {
+            failure.assertHasErrorOutput(it.trim())
+        }
+    }
+
+    private void assertSuggestRunningArtifactTransformsReport() {
+        failure.assertHasResolution("Run the :artifactTransforms report to see the available artifact transforms.")
+    }
+
+    private void assertSuggestsReviewingAlgorithm() {
+        assertSuggestsViewingDocs("Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#sec:abm_algorithm.")
+    }
+
+    private void assertSuggestsViewingDocs(String resolution) {
+        failure.assertHasResolution(resolution)
+    }
+
+    private void assertResolutionFailsAsExpected(Demonstration demonstration) {
+        fails "forceResolution", "--stacktrace", "--info"
+
+        outputContains("Variant Selection Exception: " + demonstration.exception.getName() + " caused by Resolution Failure: " + demonstration.failure.getName())
+        failure.assertHasErrorOutput("Caused by: " + demonstration.exception.getName())
+    }
+
+    private void assertFailureDescriptionCorrect(String elementDesc = "dependencies") {
+        failure.assertHasDescription("Could not determine the $elementDesc of task ':forceResolution'.")
+    }
+    // endregion assertions
+}

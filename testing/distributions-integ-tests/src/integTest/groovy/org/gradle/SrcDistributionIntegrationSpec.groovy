@@ -1,0 +1,106 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle
+
+import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.util.internal.ToBeImplemented
+
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
+class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
+
+    @Override
+    String getDistributionLabel() {
+        "src"
+    }
+
+    @Override
+    int getDistributionSizeMiB() {
+        return 76
+    }
+
+    @Override
+    int getLibJarsCount() {
+        0
+    }
+
+    @Requires(OsTestPreconditions.NotWindows)
+    def sourceZipContents() {
+        given:
+        TestFile contentsDir = unpackDistribution()
+
+        expect:
+        !contentsDir.file(".git").exists()
+
+        when:
+        executer.with {
+            inDirectory(contentsDir)
+            usingExecutable('gradlew')
+            // we add implicit Xmx1024m in AbstractGradleExecuter.getImplicitBuildJvmArgs()
+            // that's too small for this build
+            useOnlyRequestedJvmOpts()
+            withTasks(':distributions-full:binDistributionZip')
+            withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
+            withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            withArgument("-Dorg.gradle.java.installations.auto-download=false")
+            withArgument("-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String)
+            withEnvironmentVars([BUILD_BRANCH: System.getProperty("gradleBuildBranch"), BUILD_COMMIT_ID: System.getProperty("gradleBuildCommitId")])
+            withWarningMode(WarningMode.None)
+            noDeprecationChecks()
+        }.run()
+
+        then:
+        File binZip = contentsDir.file("packaging/distributions-full/build/distributions").listFiles().find() { it.name.endsWith("-bin.zip") }
+        binZip.exists()
+
+        when:
+        def unzipDestination = contentsDir.file('build/distributions/unzip')
+        binZip.unzipTo(unzipDestination)
+
+        then:
+        TestFile unpackedRoot = new TestFile(unzipDestination.listFiles().first())
+        unpackedRoot.file("bin/gradle").exists()
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/21114")
+    @Requires(OsTestPreconditions.NotWindows)
+    def "source distribution must contain generated sources"() {
+        given:
+        TestFile contentsDir = unpackDistribution()
+
+        when:
+        def generatedSourceName = "/org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt"
+        def foundGeneratedSources = false
+        contentsDir.eachFileRecurse {
+            if (it.absolutePath.endsWith(generatedSourceName)) {
+                foundGeneratedSources = true
+            }
+        }
+
+        then:
+        // TODO: remove negation when fixed
+        !foundGeneratedSources
+    }
+
+}

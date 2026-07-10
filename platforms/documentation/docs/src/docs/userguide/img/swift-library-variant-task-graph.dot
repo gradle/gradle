@@ -1,0 +1,34 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// dot -Tpng src/docs/userguide/img/swift-library-variant-task-graph.dot > src/docs/userguide/img/swift-library-variant-task-graph.png
+digraph swiftLibraryVariantTaskGraph {
+  graph [ dpi = 100, fontname="Sans"];
+  node [fontname = "Sans"];
+  edge [fontname = "Sans"];
+  node [shape=rectangle, fixedsize=true, width=2.5, height=0.5];
+  node [style="dashed,filled", fillcolor=grey]
+  rankdir=LR
+
+  compileVariantSwift -> {linkVariant, createVariant} -> assembleVariant [dir=back, style=dashed]
+  compileVariantSwift[label=<compile<i>Variant</i>Swift>]
+  linkVariant[label=<link<i>Variant</i>>]
+  createVariant[label=<create<i>Variant</i>>]
+  assembleVariant[label=<assemble<i>Variant</i>>]
+
+  // Adds linkage text between link* and create*
+  linkVariant -> linkageText -> createVariant [style=invis]
+  {rank=same linkVariant linkageText createVariant}
+  linkageText[shape=plain, label="and/or\n(see note)"]
+}

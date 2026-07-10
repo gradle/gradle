@@ -1,0 +1,1255 @@
+/*
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.resolve.catalog
+
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
+import org.gradle.api.problems.FileLocation
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.junit.Rule
+import spock.lang.Issue
+
+class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest {
+    final ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
+
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
+    @Rule
+    final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
+
+    TestFile tomlFile = testDirectory.file("gradle/libs.versions.toml")
+
+    String getCommon() {
+        """
+            plugins {
+                id("java-library")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+        """
+    }
+
+    def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
+        tomlFile << """[libraries]
+foo = "org.gradle.test:lib:1.0"
+"""
+
+        buildFile """
+            apply plugin: 'java-library'
+
+            tasks.register("verifyExtension") {
+                def lib = libs.foo
+                doLast {
+                    assert lib instanceof Provider
+                    def dep = lib.get()
+                    assert dep instanceof MinimalExternalModuleDependency
+                    assert dep.module.group == 'org.gradle.test'
+                    assert dep.module.name == 'lib'
+                    assert dep.versionConstraint.requiredVersion == '1.0'
+                }
+            }
+        """
+
+        when:
+        run 'verifyExtension'
+
+        then:
+        operations.hasOperation("Executing generation of dependency accessors for libs")
+
+        when: "no change in settings"
+        run 'verifyExtension'
+
+        then: "extension is not regenerated"
+        !operations.hasOperation("Executing generation of dependency accessors for libs")
+
+        when: "adding a library to the model"
+        tomlFile << """
+bar = {group="org.gradle.test", name="bar", version="1.0"}
+"""
+        run 'verifyExtension'
+        then: "extension is regenerated"
+        operations.hasOperation("Executing generation of dependency accessors for libs")
+
+        when: "updating a version in the model"
+        tomlFile.text = tomlFile.text.replace('{group="org.gradle.test", name="bar", version="1.0"}', '"org.gradle.test:bar:1.1"')
+        run 'verifyExtension'
+
+        then: "extension is not regenerated"
+        !operations.hasOperation("Executing generation of dependency accessors for libs")
+        outputDoesNotContain 'Type-safe dependency accessors is an incubating feature.'
+    }
+
+    def "can use the generated extension to declare a dependency"() {
+        tomlFile << """[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation libs.my.lib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
+    def "can use the generated extension to declare a dependency and override the version"() {
+        tomlFile << """[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation(libs.my.lib) {
+                    version {
+                        require '1.1'
+                    }
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.1')
+            }
+        }
+    }
+
+    void "can add several dependencies at once using a bundle"() {
+        tomlFile << """[libraries]
+lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+lib2.module = "org.gradle.test:lib2"
+lib2.version = "1.0"
+
+[bundles]
+myBundle = ["lib", "lib2"]
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation(libs.bundles.myBundle)
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22552")
+    void "can add several dependencies at once using a bundle with DependencyHandler#addProvider"() {
+        tomlFile << """[libraries]
+lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+lib2.module = "org.gradle.test:lib2"
+lib2.version = "1.0"
+
+[bundles]
+myBundle = ["lib", "lib2"]
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                addProvider("implementation", libs.bundles.myBundle)
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
+
+    void "overriding the version of a bundle overrides the version of all dependencies of the bundle"() {
+        tomlFile << """[libraries]
+lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+lib2.module = "org.gradle.test:lib2"
+lib2.version = "1.0"
+
+[bundles]
+myBundle = ["lib", "lib2"]
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation(libs.bundles.myBundle) {
+                    version {
+                        require '1.1'
+                    }
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.1')
+                module('org.gradle.test:lib2:1.1')
+            }
+        }
+    }
+
+
+    def "extension can be used in any subproject"() {
+        tomlFile << """[libraries]
+lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+"""
+        settingsFile << """
+            include ':other'
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation project(":other")
+            }
+        """
+
+        file("other/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation libs.lib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(":other", "test:other:") {
+                    module('org.gradle.test:lib:1.0')
+                }
+            }
+        }
+    }
+
+    def "libraries extension is not visible in buildSrc"() {
+        disableProblemsApiCheck()
+
+        tomlFile << """[libraries]
+lib = "org.gradle.test:lib:1.0"
+"""
+        file("buildSrc/build.gradle") << """
+            dependencies {
+                implementation libs.lib
+            }
+        """
+
+        when:
+        fails ':help'
+
+        then: "extension is not generated if there are no libraries defined"
+        failure.assertHasCause("Could not get unknown property 'libs' for object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler")
+    }
+
+    def "libraries extension can be made visible to buildSrc"() {
+        tomlFile << """[libraries]
+lib = "org.gradle.test:lib:1.0"
+"""
+        file("buildSrc/settings.gradle") << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        from(files("../gradle/libs.versions.toml"))
+                    }
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            repositories {
+                maven { url = "${mavenHttpRepo.uri}" }
+            }
+            dependencies {
+                implementation libs.lib
+            }
+        """
+
+        when:
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.0').publish()
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then: "extension is not generated if there are no libraries defined"
+        succeeds 'help'
+    }
+
+    def "buildSrc and main project have different libraries extensions"() {
+        tomlFile << """[libraries]
+lib="org.gradle.test:lib:1.0"
+"""
+        file("buildSrc/gradle/libs.versions.toml") << """[libraries]
+build-src-lib="org.gradle.test:buildsrc-lib:1.0"
+"""
+        file("buildSrc/build.gradle") << """
+            repositories {
+                maven { url = "${mavenHttpRepo.uri}" }
+            }
+
+            dependencies {
+                implementation libs.build.src.lib
+            }
+        """
+        buildFile """
+            $common
+
+            dependencies {
+                implementation libs.lib
+            }
+        """
+
+        def buildSrcLib = mavenHttpRepo.module('org.gradle.test', 'buildsrc-lib', '1.0').publish()
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.0').publish()
+
+        when:
+        buildSrcLib.pom.expectGet()
+        buildSrcLib.artifact.expectGet()
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
+    def "included builds use their own libraries extension"() {
+        file("included/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            group = 'com.acme'
+            version = 'zloubi'
+
+            dependencies {
+                implementation libs.from.included
+            }
+        """
+        file("included/gradle/libs.versions.toml") << """[libraries]
+from-included="org.gradle.test:other:1.1"
+"""
+        file("included/settings.gradle") << """
+            rootProject.name = 'included'
+
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = "${mavenHttpRepo.uri}" }
+                }
+            }
+        """
+
+        settingsFile """
+            includeBuild 'included'
+        """
+
+        buildFile """
+            $common
+
+            dependencies {
+                implementation 'com.acme:included:1.0'
+            }
+        """
+        def lib = mavenHttpRepo.module('org.gradle.test', 'other', '1.1').publish()
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:zloubi") {
+                    compositeSubstitute()
+                    configuration = "runtimeElements"
+                    module('org.gradle.test:other:1.1')
+                }
+            }
+        }
+    }
+
+    def "model from TOML file and settings is merged if settings use the same extension name"() {
+        tomlFile << """[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def other = mavenHttpRepo.module("org.gradle.test", "other", "1.0").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation libs.my.lib
+                implementation libs.other
+            }
+        """
+        settingsFile """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        library('other', 'org.gradle.test:other:1.0')
+                    }
+                }
+            }
+        """
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        other.pom.expectGet()
+        other.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:other:1.0')
+            }
+        }
+    }
+
+    // documents the existing behavior
+    def "TOML file wins over settings"() {
+        tomlFile << """[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation libs.my.lib
+            }
+        """
+        settingsFile """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        library('my-lib', 'org.gradle.test:lib:1.0')
+                    }
+                }
+            }
+        """
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        outputContains "Duplicate entry for alias 'my.lib': dependency {group='org.gradle.test', name='lib', version='1.0'} is replaced with dependency {group='org.gradle.test', name='lib', version='1.1'}"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.1')
+            }
+        }
+    }
+
+    @Requires(TestExecutionPreconditions.NotConfigCached)
+    // This test explicitly checks the configuration cache behavior
+    def "changing the TOML file invalidates the configuration cache"() {
+        def cc = new ConfigurationCacheFixture(this)
+        tomlFile << """[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile.text = """
+            plugins {
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation libs.my.lib
+            }
+
+            tasks.register("resolve", Resolve) {
+                input.from(configurations.runtimeClasspath)
+            }
+
+            class Resolve extends DefaultTask {
+                @InputFiles
+                final ConfigurableFileCollection input = project.objects.fileCollection()
+
+                @TaskAction
+                void doSomething() {
+                    println input.files.name
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        withConfigurationCache()
+        succeeds ':resolve'
+
+        then:
+        cc.assertStateStored()
+
+        when:
+        withConfigurationCache()
+        succeeds ':resolve'
+
+        then:
+        cc.assertStateLoaded()
+
+        when:
+        tomlFile << """
+my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
+"""
+        withConfigurationCache()
+        succeeds ':resolve'
+
+        then:
+        cc.assertStateRecreated {
+            fileChanged("gradle/libs.versions.toml")
+        }
+    }
+
+    def "can change the default extension name"() {
+        tomlFile << """[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        settingsFile """
+            dependencyResolutionManagement {
+                defaultLibrariesExtensionName = 'myLibs'
+            }
+        """
+        buildFile """
+            $common
+
+            dependencies {
+                implementation myLibs.my.lib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+    }
+
+    def "can use version references"() {
+        tomlFile << """[versions]
+lib = "1.0"
+rich = { strictly = "[1.0, 2.0]", prefer = "1.1" }
+
+[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.ref="lib"}
+my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation libs.my.lib
+                implementation libs.my.other.lib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.rootMetaData.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                edge('org.gradle.test:lib2:{strictly [1.0, 2.0]; prefer 1.1}', 'org.gradle.test:lib2:1.1')
+            }
+        }
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST
+    )
+    @Issue("https://github.com/gradle/gradle/issues/15029")
+    def "reasonable error message if an imported catalog doesn't exist"() {
+        def path = file("missing.toml")
+        settingsFile """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        from(files("missing.toml"))
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':help'
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:catalog-file-does-not-exist'
+            definition.id.displayName == 'Import of external catalog file failed'
+            contextualLabel == 'In version catalog libs, import of external catalog file failed'
+            details == "File \'${file('missing.toml').absolutePath}\' doesn\'t exist"
+            definition.documentationLink.url
+            ('catalog_file_does_not_exist')
+            solutions == ['Make sure that the catalog file \'missing.toml\' exists before importing it']
+        }
+    }
+
+    def "can use nested versions, libraries and bundles"() {
+        tomlFile << """
+[versions]
+commons-lib = "1.0"
+
+[libraries]
+my-lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
+my-lib2 = {group = "org.gradle.test", name="lib2", version.ref="commons-lib"}
+
+[bundles]
+my-bundle = ["my-lib"]
+other-bundle = ["my-lib", "my-lib2"]
+
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation libs.bundles.my.bundle
+                implementation libs.bundles.other.bundle
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/16845")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "should not swallow invalid TOML parse errors"() {
+        enableProblemsApiCheck()
+
+        tomlFile << """
+[versions]
+// This is an invalid comment format
+commons-lib = "1.0"
+
+[libraries]
+lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
+
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            definition.id.displayName == 'TOML syntax error'
+            contextualLabel == "Unexpected '/', expected a newline or end-of-input"
+            details == 'TOML syntax invalid'
+            definition.documentationLink.url
+            ('toml_syntax_error')
+            solutions == ['Fix the TOML file according to the syntax described at https://toml.io']
+            oneLocation(FileLocation).path == tomlFile.absolutePath
+        }
+    }
+
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "has multiple TOML parse errors"() {
+        enableProblemsApiCheck()
+
+        tomlFile << """
+# missing key values
+[plugins]
+key=
+key2=
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            definition.id.displayName == 'TOML syntax error'
+            contextualLabel == 'Unexpected end of line, expected \', ", \'\'\', """, a number, a boolean, a date/time, an array, or a table'
+            details == 'TOML syntax invalid'
+            definition.documentationLink.url
+            ('toml_syntax_error')
+            solutions == ['Fix the TOML file according to the syntax described at https://toml.io']
+            oneLocation(FileLocation).path == tomlFile.absolutePath
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            definition.id.displayName == 'TOML syntax error'
+            contextualLabel == 'Unexpected end of line, expected \', ", \'\'\', """, a number, a boolean, a date/time, an array, or a table'
+            details == 'TOML syntax invalid'
+            definition.documentationLink.url
+            ('toml_syntax_error')
+            solutions == ['Fix the TOML file according to the syntax described at https://toml.io']
+            oneLocation(FileLocation).path == tomlFile.absolutePath
+        }
+    }
+
+
+    private GradleExecuter withConfigurationCache() {
+        executer.withArgument("--configuration-cache")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called with file collection containing more than one file"() {
+        file('gradle/a.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-a-lib = { group = "com.mycompany", name="myalib", version.ref="some" }
+"""
+        file('gradle/b.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
+"""
+
+        settingsFile """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(files("gradle/a.versions.toml", "gradle/b.versions.toml"))
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:too-many-import-files'
+            definition.id.displayName == VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName
+            contextualLabel == "In version catalog testLibs, ${VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName.uncapitalize()}"
+            details == 'The import consists of multiple files'
+            definition.documentationLink.url
+            ('too_many_import_files')
+            solutions == ['Only import a single file']
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called with an empty file collection"() {
+        settingsFile """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(files())
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:no-import-files'
+            definition.id.displayName == VersionCatalogProblemId.NO_IMPORT_FILES.displayName
+            contextualLabel == "In version catalog testLibs, ${VersionCatalogProblemId.NO_IMPORT_FILES.displayName.uncapitalize()}"
+            details == 'The imported dependency doesn\'t resolve into any file'
+            definition.documentationLink.url
+            ('no_import_files')
+            solutions == ['Check the import statement, it should resolve into a single file']
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called multiple times"() {
+        file('gradle/a.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-a-lib = { group = "com.mycompany", name="myalib", version.ref="some" }
+"""
+        file('gradle/b.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
+"""
+
+        settingsFile """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(file("gradle/a.versions.toml"))
+            from(file("gradle/b.versions.toml"))
+        }
+    }
+}
+"""
+
+        when:
+        executer.withStacktraceEnabled()
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:too-many-import-invocation'
+            definition.id.displayName == VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.displayName
+            contextualLabel == 'In version catalog testLibs, you can only call the \'from\' method a single time'
+            details == 'The method was called more than once'
+            definition.documentationLink.url
+            ('too_many_import_invocation')
+            solutions == ['Remove further usages of the method call']
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20060")
+    def "no name conflicting of accessors"() {
+        def lib1 = mavenHttpRepo.module("com.company", "a", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("com.companylibs", "b", "1.0").publish()
+        def lib3 = mavenHttpRepo.module("com.companyLibs", "c", "1.0").publish()
+
+        def lib4 = mavenHttpRepo.module("com.company", "d", "1.0").publish()
+        def lib5 = mavenHttpRepo.module("com.company", "e", "1.0").publish()
+
+        tomlFile << """
+            [versions]
+            version-libs-v1 = "1.0"
+            versionLibs-v2 = "2.0"
+            versionlibs-v3 = "3.0"
+
+            [libraries]
+            com-company-libs-a = "com.company:a:1.0"
+            com-companylibs-b = "com.companylibs:b:1.0"
+            com-companyLibs-c = "com.companyLibs:c:1.0"
+
+            com-company-d = "com.company:d:1.0"
+            com-company-e = "com.company:e:1.0"
+
+            [bundles]
+            com-company-libs-bundle = ["com-company-d"]
+            com-companylibs-bundle = ["com-company-e"]
+
+            [plugins]
+            p-some-plugin-p1 = "plugin1:1.0"
+            p-somePlugin-p2 = "plugin2:1.0"
+        """
+
+        buildFile """
+            $common
+
+            dependencies {
+                implementation libs.com.company.libs.a
+                implementation libs.com.companylibs.b
+                implementation libs.com.companyLibs.c
+
+                implementation libs.bundles.com.company.libs.bundle
+                implementation libs.bundles.com.companylibs.bundle
+            }
+
+            tasks.register('checkVersions') {
+                assert libs.versions.version.libs.v1.get() == '1.0'
+                assert libs.versions.versionLibs.v2.get() == '2.0'
+                assert libs.versions.versionlibs.v3.get() == '3.0'
+            }
+
+            tasks.register('checkPlugins') {
+                assert libs.plugins.p.some.plugin.p1.get().getPluginId() == 'plugin1'
+                assert libs.plugins.p.somePlugin.p2.get().getPluginId() == 'plugin2'
+            }
+        """
+
+        when:
+        lib1.pom.expectGet()
+        lib1.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+        lib3.pom.expectGet()
+        lib3.artifact.expectGet()
+
+        lib4.pom.expectGet()
+        lib4.artifact.expectGet()
+        lib5.pom.expectGet()
+        lib5.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+        run ':checkVersions'
+        run ':checkPlugins'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('com.company:a:1.0')
+                module('com.companylibs:b:1.0')
+                module('com.companyLibs:c:1.0')
+
+                module('com.company:d:1.0')
+                module('com.company:e:1.0')
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "short group:name notation suggests using .module in error"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test:lib"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:invalid-dependency-notation'
+            definition.id.displayName == 'Invalid dependency notation'
+            contextualLabel == "In version catalog libs, on alias 'my-lib' notation 'org.gradle.test:lib' is not a valid dependency notation"
+            details == 'When using a string to declare library coordinates, you must use a valid dependency notation'
+            definition.documentationLink.url
+            ('invalid_dependency_notation')
+            solutions == [
+                'Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2',
+                'To declare without a version, use \'my-lib.module\' instead, i.e.: my-lib.module = "org.gradle.test:lib"',
+            ]
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "notation without colon does not suggest using .module"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:invalid-dependency-notation'
+            definition.id.displayName == 'Invalid dependency notation'
+            contextualLabel == "In version catalog libs, on alias 'my-lib' notation 'org.gradle.test' is not a valid dependency notation"
+            details == 'When using a string to declare library coordinates, you must use a valid dependency notation'
+            definition.documentationLink.url
+            ('invalid_dependency_notation')
+            solutions == ['Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2']
+        }
+    }
+
+    // This might be an opportunity for a better error message WRT to classifier/extension in version catalog
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "notation without extra colon does not suggest using .module"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test:lib:1.0:classifier"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:invalid-dependency-notation'
+            definition.id.displayName == 'Invalid dependency notation'
+            contextualLabel == "In version catalog libs, on alias 'my-lib' notation 'org.gradle.test:lib:1.0:classifier' is not a valid dependency notation"
+            details == 'When using a string to declare library coordinates, you must use a valid dependency notation'
+            definition.documentationLink.url
+            ('invalid_dependency_notation')
+            solutions == ['Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2']
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "short group:name notation is allowed using .module"() {
+        tomlFile << """[libraries]
+my-lib.module = "org.gradle.test:lib"
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile """
+            $common
+
+            dependencies {
+                implementation libs.my.lib
+                constraints {
+                    implementation "org.gradle.test:lib:1.0"
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint('org.gradle.test:lib:1.0', 'org.gradle.test:lib:1.0')
+                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.0') {
+                    byConstraint()
+                }
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35539")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "reasonable error message when dotted keys are used as library aliases"() {
+        tomlFile << """[libraries]
+flyway.core = { module = "org.flywaydb:flyway-core" }
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            definition.id.displayName == 'TOML syntax error'
+            contextualLabel == "In version catalog libs, entry 'flyway.core' is not a valid alias"
+            details == 'Dots (.) in TOML keys create nested entries and cannot be used in alias names'
+            definition.documentationLink.url
+            ('toml_syntax_error')
+            solutions == ["Use '-' or '_' separators instead of '.' or a nested entry, e.g. 'flyway-core'"]
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35539")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "reasonable error message when multiple dotted keys are used as library aliases"() {
+        tomlFile << """[libraries]
+flyway.core = { module = "org.flywaydb:flyway-core" }
+flyway.postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            definition.id.displayName == 'TOML syntax error'
+            contextualLabel == "In version catalog libs, entries 'flyway.core' and 'flyway.postgresql' are not valid aliases"
+            details == 'Dots (.) in TOML keys create nested entries and cannot be used in alias names'
+            definition.documentationLink.url
+            ('toml_syntax_error')
+            solutions == ["Use '-' or '_' separators instead of '.' or a nested entry, e.g. 'flyway-core'"]
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35539")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "reasonable error message when dotted keys are used as plugin aliases"() {
+        tomlFile << """[plugins]
+kotlin.jvm = "org.jetbrains.kotlin.jvm:1.9.0"
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            definition.id.displayName == 'TOML syntax error'
+            contextualLabel == "In version catalog libs, entry 'kotlin.jvm' is not a valid alias"
+            details == 'Dots (.) in TOML keys create nested entries and cannot be used in alias names'
+            definition.documentationLink.url
+            ('toml_syntax_error')
+            solutions == ["Use '-' or '_' separators instead of '.' or a nested entry, e.g. 'kotlin-jvm'"]
+        }
+    }
+
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "reasonable error message when dotted keys are used as version aliases"() {
+        tomlFile << """[versions]
+jackson = { strictly = "2.21.1" }
+$alias = $declaration
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            definition.id.displayName == 'TOML syntax error'
+            contextualLabel == "In version catalog libs, entry '${alias}' is not a valid alias"
+            details == 'Dots (.) in TOML keys create nested entries and cannot be used in alias names'
+            definition.documentationLink.url == docUrlFor('toml_syntax_error')
+            solutions == ["Use '-' or '_' separators instead of '.' or a nested entry, e.g. '${alias.split('\\.')[0]}-${alias.split('\\.')[1]}'".toString()]
+        }
+
+        where:
+        alias         | declaration
+        "kotlin.jvm"  | '{ strictly = "1.9.0" }'
+        "spring.core" | '"2.9.0"'
+    }
+}

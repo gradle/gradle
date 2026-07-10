@@ -1,0 +1,8 @@
+println 'nestedBuild quiet'
+logger.info 'nestedBuild info'
+
+task log {
+    doLast {
+        println 'nestedBuild task quiet'
+    }
+}

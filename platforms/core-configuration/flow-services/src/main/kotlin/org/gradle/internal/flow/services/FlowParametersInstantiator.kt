@@ -1,0 +1,128 @@
+/*
+ * Copyright 2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.flow.services
+
+import com.google.common.collect.ImmutableList
+import org.gradle.api.flow.FlowParameters
+import org.gradle.api.internal.parameters.NoneParameters
+import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
+import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemReporterInternal
+import org.gradle.api.problems.internal.ProblemsInternal
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.ServiceReference
+import org.gradle.api.tasks.Input
+import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.properties.PropertyValue
+import org.gradle.internal.properties.PropertyVisitor
+import org.gradle.internal.execution.WorkValidationException
+import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
+import java.util.Optional
+
+
+@ServiceScope(Scope.Build::class)
+internal
+class FlowParametersInstantiator(
+    inspectionSchemeFactory: InspectionSchemeFactory,
+    instantiatorFactory: InstantiatorFactory,
+    services: ServiceRegistry
+) {
+    fun <P : FlowParameters> newInstance(parametersType: Class<P>, configure: (P) -> Unit): P {
+        val parameters: P = if (parametersType == FlowParameters.None::class.java) {
+            @Suppress("UNCHECKED_CAST")
+            NoneParameters.singletonOf(FlowParameters.None::class.java) as P
+        } else {
+            instantiator.newInstance(parametersType)
+        }
+        configure(parameters)
+        // TODO(mlopatkin) this doesn't prevent late binding to a task output (e.g. there can be a Property in the chain that is set later).
+        validate(parametersType, parameters)
+        return parameters
+    }
+
+    private
+    fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
+        val errors = ImmutableList.builder<ProblemInternal>()
+        inspection.propertyWalker.visitProperties(
+            parameters,
+            object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }, problemsService) {
+                override fun recordError(problem: ProblemInternal) {
+                    errors.add(problem)
+                }
+
+                override fun recordWarning(problem: ProblemInternal) = Unit
+            },
+            object : PropertyVisitor {
+                override fun visitServiceReference(propertyName: String, optional: Boolean, value: PropertyValue, serviceName: String?, buildServiceType: Class<out BuildService<*>>) {
+                    value.maybeFinalizeValue()
+                }
+
+                override fun visitInputProperty(propertyName: String, value: PropertyValue, optional: Boolean) {
+                    value.taskDependencies.visitDependencies(
+                        object : AbstractTaskDependencyResolveContext() {
+                            override fun add(dependency: Any) {
+                                errors.add(
+                                    problemReporterInternal.internalCreate {
+                                        id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
+                                        contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
+                                    }
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+        )
+        val builtErrors = errors.build()
+        if (builtErrors.isNotEmpty()) {
+            val exception = WorkValidationException.withSummaryForType(type, builtErrors.size)
+            throw problemReporterInternal.throwing(exception, builtErrors)
+        }
+    }
+
+    private
+    val problemReporterInternal: ProblemReporterInternal
+        get() = problemsService.internalReporter
+
+    private
+    val instantiator by lazy {
+        instantiatorFactory.decorateScheme().withServices(services).instantiator()
+    }
+
+    private
+    val problemsService = services.get(ProblemsInternal::class.java)
+
+    private
+    val inspection by lazy {
+        inspectionSchemeFactory.inspectionScheme(
+            listOf(
+                Input::class.java,
+                ServiceReference::class.java,
+            ),
+            listOf(
+                org.gradle.api.tasks.Optional::class.java
+            ),
+            emptyList(),
+            instantiatorFactory.decorateScheme()
+        )
+    }
+}

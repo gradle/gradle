@@ -1,0 +1,119 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.declarativedsl.evaluator.conversion
+
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.declarativedsl.evaluator.runner.InterpretationSequenceStepRunner
+import org.gradle.internal.declarativedsl.evaluator.runner.StepContext
+import org.gradle.internal.declarativedsl.evaluator.runner.StepResult
+import org.gradle.internal.declarativedsl.mappingToJvm.CompositeCustomAccessors
+import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessorsWithPostProcessing
+
+
+data class ConversionStepContext(
+    val targetObject: Any,
+    val scopeClassLoader: () -> ClassLoader,
+    val parentScopeClassLoader: () -> ClassLoader,
+    val analysisStepContext: AnalysisStepContext,
+    val isFinal: Boolean
+) : StepContext
+
+typealias ConversionEvaluationResult = EvaluationResult<ConversionStepResult, ConversionStepResult>
+
+sealed interface ConversionStepResult : StepResult {
+    data class ConversionSucceeded(
+        val analysisResult: AnalysisStepResult.PassedAnalysisStepResult
+    ) : ConversionStepResult
+
+    data class ConversionNotApplicable(
+        val analysisResult: AnalysisStepResult.PassedAnalysisStepResult
+    ) : ConversionStepResult
+
+    data class AnalysisFailed(
+        val partialAnalysisResult: AnalysisStepResult,
+    ) : ConversionStepResult
+
+    data object CannotRunStep : ConversionStepResult
+}
+
+
+class AnalysisAndConversionStepRunner(
+    private val analysisStepRunner: InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult.PassedAnalysisStepResult, AnalysisStepResult>,
+) : InterpretationSequenceStepRunner<ConversionStepContext, ConversionStepResult, ConversionStepResult> {
+
+    override fun runInterpretationSequenceStep(
+        scriptIdentifier: String,
+        scriptSource: String,
+        step: InterpretationSequenceStep,
+        stepContext: ConversionStepContext
+    ): ConversionEvaluationResult = when (val analysisResult = analysisStepRunner.runInterpretationSequenceStep(scriptIdentifier, scriptSource, step, stepContext.analysisStepContext)) {
+        is EvaluationResult.NotEvaluated ->
+            EvaluationResult.NotEvaluated(analysisResult.stageFailures, ConversionStepResult.AnalysisFailed(analysisResult.partialStepResult))
+
+        is EvaluationResult.Evaluated ->
+            if (step is InterpretationSequenceStepWithConversion<*>) {
+                val evaluationSchema = step.evaluationSchemaForStep
+                val resolutionResult = analysisResult.stepResult.propertyLinkTrace.resolvedPropertyLinksResolutionResult
+
+                val classLoaderForConversion = if (step.features.any { it is InterpretationStepFeature.RunsBeforeClassScopeIsReady }) {
+                    stepContext.parentScopeClassLoader
+                } else {
+                    stepContext.scopeClassLoader
+                }
+
+                applyReflectionToJvmObjectConversion(evaluationSchema, step, stepContext, classLoaderForConversion, resolutionResult)
+
+                EvaluationResult.Evaluated(ConversionStepResult.ConversionSucceeded(analysisResult.stepResult))
+            } else EvaluationResult.Evaluated(ConversionStepResult.ConversionNotApplicable(analysisResult.stepResult))
+    }
+
+    private
+    fun <R : Any> applyReflectionToJvmObjectConversion(
+        evaluationSchema: EvaluationAndConversionSchema,
+        step: InterpretationSequenceStepWithConversion<R>,
+        context: ConversionStepContext,
+        getScopeClassLoader: () -> ClassLoader,
+        resolutionResult: ResolutionResult
+    ) {
+        val target = context.targetObject
+        val conversionSchema = evaluationSchema.conversionSchemaForScriptTarget(target)
+        val propertyResolver = CompositePropertyResolver(conversionSchema.runtimePropertyResolvers)
+        val functionResolver = CompositeFunctionResolver(conversionSchema.runtimeFunctionResolvers)
+        val customAccessors = CompositeCustomAccessors(conversionSchema.runtimeCustomAccessors)
+
+        val topLevelReceiver = step.getTopLevelReceiverFromTarget(target)
+        val converter = DeclarativeReflectionToObjectConverter(
+            emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors, getScopeClassLoader
+        )
+        converter.applyConversion(resolutionResult)
+
+        if (context.isFinal) {
+            // Run any post-processing required by custom accessors
+            conversionSchema.runtimeCustomAccessors.filterIsInstance<RuntimeCustomAccessorsWithPostProcessing>().forEach { it.postProcess() }
+        }
+
+        step.whenEvaluated(target, topLevelReceiver)
+    }
+}

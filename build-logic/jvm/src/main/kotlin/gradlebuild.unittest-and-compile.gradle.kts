@@ -1,0 +1,448 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import com.gradle.develocity.agent.gradle.internal.test.PredictiveTestSelectionConfigurationInternal
+import com.gradle.develocity.agent.gradle.internal.test.TestDistributionConfigurationInternal
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.accessors.kotlinMainSourceSet
+import gradlebuild.basics.develocityServerUrl
+import gradlebuild.basics.flakyTestStrategy
+import gradlebuild.basics.maxParallelForks
+import gradlebuild.basics.maxTestDistributionLocalExecutors
+import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.maxTestDistributionRemoteExecutors
+import gradlebuild.basics.predictiveTestSelectionEnabled
+import gradlebuild.basics.rerunAllTests
+import gradlebuild.basics.testDistributionDogfoodingTag
+import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.basics.testDistributionServerUrl
+import gradlebuild.basics.testJavaVendor
+import gradlebuild.basics.testJavaVersion
+import gradlebuild.basics.testing.excludeSpockAnnotation
+import gradlebuild.basics.testing.includeSpockAnnotation
+import gradlebuild.filterEnvironmentVariables
+import gradlebuild.identity.extension.GradleModuleExtension
+import gradlebuild.identity.extension.ModuleTargetRuntimes
+import gradlebuild.jvm.JvmCompileExtension
+import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
+import org.gradle.internal.jvm.JpmsConfiguration
+import org.gradle.internal.os.OperatingSystem
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.time.Duration
+
+plugins {
+    groovy
+    idea // Need to apply the idea plugin, so the extended configuration is taken into account on sync
+    id("gradlebuild.module-jar")
+    id("gradlebuild.dependency-modules")
+    id("gradlebuild.jvm-compile")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release = provider {
+        throw GradleException("This task '${name}' is not associated with a compilation. Associate it with a compilation on the '${JvmCompileExtension.NAME}' extension.")
+    }
+}
+
+val gradleModule = the<GradleModuleExtension>()
+the<JvmCompileExtension>().apply {
+    compilations {
+        configureEach {
+            // Everything compiles to Java 17 by default
+            targetJvmVersion = 17
+        }
+    }
+    addCompilationFrom(sourceSets.main) {
+        // For the production code, we derive the JVM version from the target runtime
+        targetJvmVersion = gradleModule.computedRuntimes.computeProductionJvmTargetVersion()
+    }
+    addCompilationFrom(sourceSets.test)
+}
+
+addDependencies()
+configureCompileDefaults()
+addCompileAllTasks()
+configureSourcesVariant()
+configureTests()
+
+tasks.registerCITestDistributionLifecycleTasks()
+
+fun configureCompileDefaults() {
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.add("-parameters")
+        configureCompileTask(options)
+    }
+    tasks.withType<GroovyCompile>().configureEach {
+        groovyOptions.encoding = "utf-8"
+        configureCompileTask(options)
+    }
+}
+
+/**
+ * Given the declared target platforms of a given Gradle module, determine
+ * the JVM version that the production code should target.
+ */
+fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
+    // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
+    val targetRuntimeJavaVersions = mapOf(
+        client to 8,
+        daemon to 17,
+        worker to 8
+    )
+
+    // By default, compile to 17. This ensures projects that do not declare any target runtimes
+    // can successfully resolve their classpaths. Then, `:checkTargetRuntimes` will ensure that
+    // each project declares the proper target runtimes. Note that `:checkTargetRuntimes` cannot
+    // execute unless all project classpaths can be successfully resolved.
+    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(17)
+}
+
+fun configureSourcesVariant() {
+    java {
+        withSourcesJar()
+    }
+
+    // TODO: This should not be necessary anymore now that we have variant reselection.
+    configurations.create("transitiveSourcesElements") {
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(configurations.implementation.get())
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
+        }
+        val main = sourceSets.main.get()
+        main.java.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
+        main.groovy.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
+        main.resources.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
+        pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+            kotlinMainSourceSet.srcDirs.forEach {
+                outgoing.artifact(it)
+            }
+        }
+    }
+}
+
+fun configureCompileTask(options: CompileOptions) {
+    options.encoding = "utf-8"
+    options.isIncremental = true
+    options.isFork = true
+    options.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
+    options.forkOptions.memoryMaximumSize = "1g"
+    options.compilerArgs.addAll(mutableListOf("-Xlint:-options", "-Xlint:-path"))
+}
+
+fun addDependencies() {
+    if (project.name == "gradle-kotlin-dsl-accessors") return
+    val libs = project.versionCatalogs.named("libs")
+    val testLibs = project.versionCatalogs.named("testLibs")
+
+    dependencies {
+        testCompileOnly(testLibs.findLibrary("junit").get())
+        testRuntimeOnly(testLibs.findLibrary("junit5Vintage").get())
+        testImplementation(libs.findLibrary("groovy").get())
+        testImplementation(libs.findLibrary("groovyAnt").get())
+        testImplementation(libs.findLibrary("groovyJson").get())
+        testImplementation(testLibs.findLibrary("groovyTest").get())
+        testImplementation(libs.findLibrary("groovyXml").get())
+        testImplementation(testLibs.findLibrary("spock").get())
+        testImplementation(testLibs.findLibrary("junit5Vintage").get())
+        testImplementation(testLibs.findLibrary("spockJUnit4").get())
+        testImplementation(testLibs.findLibrary("mockitoCore").get())
+        testImplementation(testLibs.findLibrary("develocityTestAnnotation").get())
+        testRuntimeOnly(testLibs.findLibrary("bytebuddy").get())
+        testRuntimeOnly(testLibs.findLibrary("objenesis").get())
+        testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
+
+        // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
+        val platformImplementation = configurations.create("platformImplementation")
+        configurations["compileClasspath"].extendsFrom(platformImplementation)
+        configurations["runtimeClasspath"].extendsFrom(platformImplementation)
+        configurations["testCompileClasspath"].extendsFrom(platformImplementation)
+        configurations["testRuntimeClasspath"].extendsFrom(platformImplementation)
+        // use lazy API to not attempt to find platform project during script compilation
+        platformImplementation.dependencies.addLater(provider {
+            project.dependencies.platform(project.dependencies.create(project(":distributions-dependencies")))
+        })
+    }
+}
+
+fun addCompileAllTasks() {
+    tasks.register("compileAll") {
+        description = "Compile all source code, including main, test, integTest, crossVersionTest, testFixtures, etc."
+        val compileTasks = project.tasks.matching {
+            it is JavaCompile || it is GroovyCompile || it is KotlinCompile
+        }
+        dependsOn(compileTasks)
+    }
+
+    tasks.register("compileAllProduction") {
+        description = "Compile all production source code, usually only main and testFixtures."
+        val compileTasks = project.tasks.matching {
+            // Currently, we compile everything since the Groovy compiler is not deterministic enough.
+            (it is JavaCompile || it is GroovyCompile || it is KotlinCompile)
+        }
+        dependsOn(compileTasks)
+    }
+}
+
+fun Test.configureSpock() {
+    systemProperty("spock.configuration", "GradleBuildSpockConfig.groovy")
+}
+
+fun Test.configureFlakyTest() {
+    when (project.flakyTestStrategy) {
+        FlakyTestStrategy.INCLUDE -> {}
+        FlakyTestStrategy.EXCLUDE -> {
+            excludeSpockAnnotation("org.gradle.test.fixtures.Flaky")
+            (options as JUnitPlatformOptions).excludeTags("org.gradle.test.fixtures.Flaky")
+        }
+
+        FlakyTestStrategy.ONLY -> {
+            // Note there is an issue: https://github.com/spockframework/spock/issues/1288
+            // JUnit Platform `includeTags` works before Spock engine, thus excludes all spock tests.
+            // As a workaround, we tag all non-spock integration tests and use `includeTags(none() | Flaky)` here.
+            (options as JUnitPlatformOptions).includeTags("none() | org.gradle.test.fixtures.Flaky")
+            includeSpockAnnotation("org.gradle.test.fixtures.Flaky")
+        }
+    }
+}
+
+fun Test.runWithJavaVersion(testJvmVersion: JavaLanguageVersion) {
+    javaLauncher = project.javaToolchains.launcherFor {
+        languageVersion = testJvmVersion
+        if (project.testJavaVendor.isPresent) {
+            vendor = project.testJavaVendor
+        }
+    }
+
+    if (testJvmVersion.canCompileOrRun(9)) {
+        val argProvider = objects.newInstance(AddOpensArgumentProvider::class.java).apply {
+            jvmVersion = testJvmVersion.asInt()
+            unitTest = provider { isUnitTest() }
+            embedded = provider { usesEmbeddedExecuter() }
+        }
+        jvmArgumentProviders.add(argProvider)
+    }
+}
+
+internal
+abstract class AddOpensArgumentProvider : CommandLineArgumentProvider {
+    @get:Input
+    abstract val jvmVersion: Property<Int>
+
+    @get:Input
+    abstract val unitTest: Property<Boolean>
+
+    @get:Input
+    abstract val embedded: Property<Boolean>
+
+    override fun asArguments(): Iterable<String> =
+        JpmsConfiguration.forDaemonProcesses(jvmVersion.get(), true)
+}
+
+fun Test.addOsAsInputs() {
+    // Add OS as inputs since tests on different OS may behave differently https://github.com/gradle/gradle-private/issues/2831
+    // the version currently differs between our dev infrastructure, so we only track the name and the architecture
+    inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
+}
+
+fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
+
+/**
+ * If enabled, test JVM will inherit the DEVELOCITY_ACCESS_TOKEN
+ * environment variable. This allows build scans to be published for integration tests.
+ */
+fun Test.inheritedEnvVars(): List<String> = when {
+    project.name == "smoke-test" -> listOf("DEVELOCITY_ACCESS_KEY", "DEVELOCITY_SERVER_URL", "DEVELOCITY_EDGE_DISCOVERY", "CI")
+    else -> emptyList()
+}
+
+fun Test.usesEmbeddedExecuter() = systemProperties["org.gradle.integtest.executer"]?.equals("embedded") ?: false
+
+fun Test.configureRerun() {
+    if (project.rerunAllTests.get()) {
+        doNotTrackState("All tests should re-run")
+    }
+}
+
+fun Test.determineMaxRetries() = when {
+    project.flakyTestStrategy == FlakyTestStrategy.ONLY -> 4
+    else -> 2
+}
+
+fun Test.determineMaxFailures() = when {
+    project.flakyTestStrategy == FlakyTestStrategy.ONLY -> Integer.MAX_VALUE
+    else -> 10
+}
+
+fun configureTests() {
+    normalization {
+        runtimeClasspath {
+            // Ignore the build receipt as it is not relevant for tests and changes between each execution
+            ignore("org/gradle/build-receipt.properties")
+        }
+    }
+
+    tasks.withType<Test>().configureEach {
+
+        configureAndroidUserHome()
+        filterEnvironmentVariables(inheritedEnvVars())
+
+        maxParallelForks = project.maxParallelForks
+
+        jvmArgumentProviders.add(CiEnvironmentProvider(this))
+        runWithJavaVersion(JavaLanguageVersion.of(project.testJavaVersion))
+
+        if (name != "archTest") {
+            // TODO distinguish archTest and other tests
+            addOsAsInputs()
+        }
+        configureRerun()
+
+        if (BuildEnvironment.isCiServer) {
+            develocity.testRetry {
+                maxRetries.convention(determineMaxRetries())
+                maxFailures = determineMaxFailures()
+            }
+        }
+
+        useJUnitPlatform()
+        configureSpock()
+        configureFlakyTest()
+
+        extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
+            this as TestDistributionConfigurationInternal
+            server = uri(testDistributionServerUrl.orElse("https://gbt-td.grdev.net"))
+
+            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject() && !isKotlinDslToolingBuilders()) {
+                enabled = true
+                project.maxTestDistributionPartitionSecond?.apply {
+                    preferredMaxDuration = Duration.ofSeconds(this)
+                }
+                maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
+                maxLocalExecutors = project.maxTestDistributionLocalExecutors
+
+                if (maxLocalExecutors.orNull != 0) {
+                    localOnly {
+                        includeAnnotationClasses.addAll("org.gradle.testdistribution.LocalOnly")
+                    }
+                }
+
+                val dogfoodingTag = testDistributionDogfoodingTag.getOrElse("gbt-dogfooding")
+                if (BuildEnvironment.isCiServer) {
+                    when {
+                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", dogfoodingTag)
+                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", dogfoodingTag)
+                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", dogfoodingTag)
+                    }
+                } else {
+                    requirements = listOf(dogfoodingTag)
+                }
+            }
+        }
+
+        if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
+            // Falling back to https://ge.gradle.org when absent (e.g. GitHub actions for contributor PRs,
+            // which use a public Build Scan instance).
+            // Don't move this line into the lambda as it may cause config cache problems
+            val ptsServerUrl = project.develocityServerUrl.getOrElse("https://ge.gradle.org")
+            extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
+                this as PredictiveTestSelectionConfigurationInternal
+                server = uri(ptsServerUrl)
+                enabled.convention(project.predictiveTestSelectionEnabled)
+            }
+        }
+    }
+}
+
+fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
+
+fun Project.isNativeProject() = name.contains("native")
+
+fun Project.isKotlinDslToolingBuilders() = name.contains("kotlin-dsl-tooling-builders")
+
+/**
+ * Whether the project supports running with predictive test selection.
+ *
+ * Our performance tests don't work with PTS, yet.
+ * Smoke and soak tests are hard to grasp for PTS, that is why we run them without.
+ * When running on Windows with PTS, SimplifiedKotlinScriptEvaluatorTest fails. See https://github.com/gradle/gradle-private/issues/3615.
+ */
+fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl", "smoke-ide-test").contains(name)
+
+/**
+ * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
+ */
+fun TaskContainer.registerCITestDistributionLifecycleTasks() {
+    val ciGroup = "CI Lifecycle"
+
+    register("quickTest") {
+        description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
+        group = ciGroup
+    }
+
+    register("platformTest") {
+        description = "Run all unit, integration and cross-version (against latest release) tests in forking execution mode"
+        group = ciGroup
+    }
+
+    register("quickFeedbackCrossVersionTest") {
+        description = "Run cross-version tests against a limited set of versions"
+        group = ciGroup
+    }
+
+    register("allVersionsIntegMultiVersionTest") {
+        description = "Run all multi-version integration tests with all version to cover"
+        group = ciGroup
+    }
+
+    register("parallelTest") {
+        description = "Run all integration tests in parallel execution mode: each Gradle execution started in a test run with --parallel"
+        group = ciGroup
+    }
+
+    register("noDaemonTest") {
+        description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
+        group = ciGroup
+    }
+
+    register("configCacheTest") {
+        description = "Run all integration tests with instant execution"
+        group = ciGroup
+    }
+
+    register("forceRealizeDependencyManagementTest") {
+        description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
+        group = ciGroup
+    }
+}
+
+// https://github.com/gradle/gradle-private/issues/3380
+fun Test.configureAndroidUserHome() {
+    val androidUserHomeForTest = project.layout.buildDirectory.dir("androidUserHomeForTest/$name").get().asFile.absolutePath
+    environment["ANDROID_PREFS_ROOT"] = androidUserHomeForTest
+    environment["ANDROID_USER_HOME"] = androidUserHomeForTest
+}

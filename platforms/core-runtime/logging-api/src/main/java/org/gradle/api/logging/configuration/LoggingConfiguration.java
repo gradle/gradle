@@ -1,0 +1,106 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.logging.configuration;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+
+/**
+ * A {@code LoggingConfiguration} defines the logging settings for a Gradle build.
+ */
+@NotToBeMigratedToLazy
+public interface LoggingConfiguration {
+    /**
+     * Returns the minimum logging level to use. All log messages with a lower log level are ignored.
+     * Defaults to {@link LogLevel#LIFECYCLE}.
+     */
+    LogLevel getLogLevel();
+
+    /**
+     * Specifies the minimum logging level to use. All log messages with a lower log level are ignored.
+     */
+    void setLogLevel(LogLevel logLevel);
+
+    /**
+     * Returns the style of logging output that should be written to the console.
+     * Defaults to {@link ConsoleOutput#Auto}
+     */
+    ConsoleOutput getConsoleOutput();
+
+    /**
+     * Returns the type of characters that should be written to the console.
+     * Defaults to {@link ConsoleUnicodeSupport#Auto}
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    ConsoleUnicodeSupport getConsoleUnicodeSupport();
+
+    /**
+     * Specifies the style of logging output that should be written to the console.
+     */
+    void setConsoleOutput(ConsoleOutput consoleOutput);
+
+    /**
+     * Specifies the use of Unicode characters in the console output.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    void setConsoleUnicodeSupport(ConsoleUnicodeSupport unicodeSupport);
+
+    /**
+     * Specifies which type of warnings should be written to the console.
+     *
+     * @since 4.5
+     */
+    WarningMode getWarningMode();
+
+    /**
+     * Specifies which type of warnings should be written to the console.
+     *
+     * @since 4.5
+     */
+    void setWarningMode(WarningMode warningMode);
+
+    /**
+     * Whether the build may prompt the user for input on the console. Defaults to {@code true}.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    boolean isInteractive();
+
+    /**
+     * Sets whether the build may prompt the user for input on the console.
+     *
+     * @since 9.7.0
+     */
+    @Incubating
+    void setInteractive(boolean interactive);
+
+    /**
+     * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.
+     */
+    ShowStacktrace getShowStacktrace();
+
+    /**
+     * Sets the detail that should be included in stacktraces.
+     */
+    void setShowStacktrace(ShowStacktrace showStacktrace);
+}

@@ -1,0 +1,17 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
+
+repositories {
+    mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        register('appInfoPlugin') {
+            id = 'app-info-plugin'
+            implementationClass = 'AppInfoPlugin'
+        }
+    }
+}

@@ -1,0 +1,149 @@
+plugins {
+    id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.kotlin-experimental-contracts")
+    id("gradlebuild.cross-version-tests")
+}
+
+description = "Configuration cache implementation"
+
+// The integration tests in this project do not need to run in 'config cache' mode.
+tasks.configCacheIntegTest {
+    enabled = false
+}
+
+// The integration tests in this project do not need to run in 'isolated projects' mode.
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
+
+dependencies {
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.buildOption)
+    api(projects.concurrent)
+    api(projects.configurationCacheBase)
+    api(projects.configurationProblemsBase)
+    api(projects.coreSerializationCodecs)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.processServices)
+    api(projects.dependencyManagement)
+    api(projects.fileTemp)
+    api(projects.graphSerialization)
+    api(projects.loggingApi)
+    api(projects.native)
+    api(projects.resources)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.snapshots)
+    api(projects.startParameter)
+    api(projects.stdlibJavaExtensions)
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.kotlinStdlib)
+
+    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(projects.buildCacheCore)
+    implementation(projects.buildDiscovery)
+    implementation(projects.buildDiscoveryImpl)
+    implementation(projects.buildProcessServices)
+    implementation(projects.classpath)
+    implementation(projects.classloaders)
+    implementation(projects.coreFlowServicesApi)
+    implementation(projects.coreKotlinExtensions)
+    implementation(projects.dependencyManagementSerializationCodecs)
+    implementation(projects.encryptionServices)
+    implementation(projects.enterpriseOperations)
+    implementation(projects.execution)
+    implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
+    implementation(projects.fileWatching)
+    implementation(projects.files)
+    implementation(projects.flowServices)
+    implementation(projects.functional)
+    implementation(projects.hashing)
+    implementation(projects.inputTracking)
+    implementation(projects.instrumentationAgentServices)
+    implementation(projects.reflectionServices)
+    implementation(projects.logging)
+    implementation(projects.messaging)
+    implementation(projects.modelCore)
+    implementation(projects.normalization)
+    implementation(projects.persistentCache)
+    implementation(projects.pluginUse)
+    implementation(projects.problemsApi)
+    implementation(projects.scopedPersistentCache)
+    implementation(projects.serialization)
+    implementation(projects.stdlibKotlinExtensions)
+    implementation(projects.stdlibSerializationCodecs)
+    implementation(projects.toolingApi)
+
+    implementation(libs.guava)
+    implementation(libs.fastutil)
+    implementation(libs.kryo)
+    implementation(libs.slf4jApi)
+
+    compileOnly(libs.jspecify)
+
+    runtimeOnly(projects.beanSerializationServices)
+    runtimeOnly(projects.compositeBuilds)
+    runtimeOnly(projects.resourcesHttp)
+    // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
+    runtimeOnly(projects.workers)
+
+    runtimeOnly(libs.kotlinReflect)
+
+    testImplementation(projects.beanSerializationServices)
+    testImplementation(testFixtures(projects.beanSerializationServices))
+    testImplementation(projects.io)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testLibs.mockitoKotlin)
+    testImplementation(testLibs.kotlinxCoroutinesDebug)
+
+    testRuntimeOnly(projects.distributionsCore) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+
+    integTestImplementation(projects.cli)
+    integTestImplementation(projects.ide)
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.launcher)
+    integTestImplementation(projects.platformJvm)
+    integTestImplementation(projects.testKit)
+    integTestImplementation(projects.toolingApi)
+    integTestImplementation(projects.workers)
+
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.guava)
+    integTestImplementation(libs.inject)
+    integTestImplementation(testLibs.playwright)
+
+    integTestImplementation(testFixtures(projects.toolingApi))
+    integTestImplementation(testFixtures(projects.kotlinDslToolingBuilders))
+    integTestImplementation(testFixtures(projects.dependencyManagement))
+    integTestImplementation(testFixtures(projects.jacoco))
+    integTestImplementation(testFixtures(projects.modelReflect))
+    integTestImplementation(testFixtures(projects.processServices))
+
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
+    }
+
+    crossVersionTestImplementation(projects.cli)
+    crossVersionTestImplementation(projects.internalIntegTesting)
+
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+
+gradleModule {
+    computedRuntimes {
+        // Auto-generated by `:checkTargetRuntimes --fix`
+        daemon = true
+    }
+}
+
+packageCycles {
+    excludePatterns.add("org/gradle/internal/cc/**")
+}

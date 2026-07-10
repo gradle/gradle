@@ -1,0 +1,123 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.test.fixtures.server.http
+
+import io.netty.channel.ChannelHandlerContext
+import io.netty.handler.codec.http.HttpRequest
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.junit.rules.ExternalResource
+import org.littleshoot.proxy.HttpFilters
+import org.littleshoot.proxy.HttpFiltersSourceAdapter
+import org.littleshoot.proxy.HttpProxyServer
+import org.littleshoot.proxy.ProxyAuthenticator
+import org.littleshoot.proxy.impl.DefaultHttpProxyServer
+
+import java.util.concurrent.atomic.AtomicInteger
+
+/**
+ * A Proxy Server used for testing that proxies are correctly supported.
+ */
+class TestProxyServer extends ExternalResource {
+    int port
+
+    private HttpProxyServer proxyServer
+    private AtomicInteger requestCountInternal = new AtomicInteger()
+
+    @Override
+    protected void after() {
+        stop()
+    }
+
+    int getRequestCount() {
+        requestCountInternal.get()
+    }
+
+    void start(final String expectedUsername = null, final String expectedPassword = null) {
+        startHttpProxy(expectedUsername, expectedPassword)
+    }
+
+    private void startHttpProxy(String expectedUsername, String expectedPassword) {
+        def filters = new HttpFiltersSourceAdapter() {
+            HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
+                requestCountInternal.incrementAndGet()
+                return super.filterRequest(originalRequest, ctx)
+            }
+
+            @Override
+            int getMaximumRequestBufferSizeInBytes() {
+                // Enable request buffering via HttpObjectAggregator so the proxy can handle
+                // HTTP/1.1 Expect: 100-Continue requests (used for PUT/POST through authenticated proxies).
+                // Without this, the proxy cannot relay the 100 Continue interim response properly.
+                return 10 * 1024 * 1024
+            }
+        }
+
+        def proxyAuthenticator = null
+        if (expectedUsername != null && expectedPassword != null) {
+            proxyAuthenticator = new ProxyAuthenticator() {
+                @Override
+                boolean authenticate(String userName, String password) {
+                    return userName == expectedUsername && password == expectedPassword
+                }
+
+                @Override
+                String getRealm() {
+                    return null
+                }
+            }
+        }
+
+        proxyServer = DefaultHttpProxyServer.bootstrap()
+            .withPort(0)
+            .withFiltersSource(filters)
+            .withProxyAuthenticator(proxyAuthenticator)
+            .start()
+
+        port = proxyServer.getListenAddress().getPort()
+    }
+
+    @Override
+    String toString() {
+        if (port > 0) {
+            return "HTTP proxy: $port"
+        }
+        return "HTTP proxy (not started)"
+    }
+
+    void stop() {
+        proxyServer?.stop()
+    }
+
+    void configureProxy(GradleExecuter executer, String proxyScheme, String userName = null, String password = null) {
+        configureProxyHost(executer, proxyScheme)
+
+        if (userName) {
+            executer.withArgument("-D${proxyScheme}.proxyUser=${userName}")
+        }
+        if (password) {
+            executer.withArgument("-D${proxyScheme}.proxyPassword=${password}")
+        }
+    }
+
+    void configureProxyHost(GradleExecuter executer, String proxyScheme) {
+        assert port > 0
+        executer.withArgument("-D${proxyScheme}.proxyHost=localhost")
+        executer.withArgument("-D${proxyScheme}.proxyPort=${port}")
+        // use proxy even when accessing localhost
+        executer.withArgument("-Dhttp.nonProxyHosts=")
+    }
+}
+

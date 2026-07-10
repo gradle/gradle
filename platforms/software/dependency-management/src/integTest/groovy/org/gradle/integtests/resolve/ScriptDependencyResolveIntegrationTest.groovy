@@ -1,0 +1,162 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.resolve
+
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Issue
+
+// TODO: Merge with BuildscriptResolutionIntegrationTest
+class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
+    @Issue("gradle/gradle#15378")
+    def "strict resolution strategy can be used when resolving a script classpath from settings"() {
+        given:
+        mavenRepo().module("org.gradle", "test", "1.45").publish()
+        mavenRepo().module("org.gradle", "test", "1.46").publish()
+
+        and:
+        settingsFile << """
+buildscript {
+    repositories { maven { url = "${mavenRepo().uri}" } }
+    configurations.classpath {
+        resolutionStrategy {
+            failOnVersionConflict()
+        }
+    }
+    dependencies {
+        classpath "org.gradle:test:1.45"
+        classpath "org.gradle:test:1.46"
+    }
+}
+
+rootProject.name = 'testproject'
+"""
+        expect:
+        fails "help"
+        failureHasCause("Conflict found for module 'org.gradle:test': between versions 1.46 and 1.45")
+    }
+
+    @Issue("gradle/gradle#19300")
+    def 'carries implicit constraint for log4j-core'() {
+        given:
+        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '2.17.1').publish()
+
+        and:
+        settingsFile << """
+            buildscript {
+                repositories { maven { url = "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core"
+                }
+            }
+
+            rootProject.name = 'testproject'
+        """
+
+        buildFile << """
+            buildscript {
+                repositories { maven { url = "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core"
+                }
+            }
+        """
+
+        expect:
+        succeeds 'buildEnvironment'
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.17.1; reject [2.0, 2.17.1)} -> 2.17.1 (c)')
+    }
+
+    @Issue("gradle/gradle#19300")
+    def 'fails if build attempts to force vulnerable log4j-core'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'testproject'
+        """
+
+        buildFile << """
+            buildscript {
+                repositories { maven { url = "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core:2.14.1!!"
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+        failureCauseContains('Cannot find a version of \'org.apache.logging.log4j:log4j-core\' that satisfies the version constraints')
+    }
+
+    @Issue("gradle/gradle#19300")
+    def 'allows to upgrade log4j to 3.x one day'() {
+        given:
+        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '3.1.0').publish()
+        buildFile << """
+            buildscript {
+                repositories { maven { url = "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core:3.1.0"
+                }
+            }
+        """
+
+        expect:
+        succeeds 'buildEnvironment'
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.17.1; reject [2.0, 2.17.1)} -> 3.1.0 (c)')
+    }
+
+    def "can use configuration closure in buildscript block"() {
+        buildFile << """
+            buildscript {
+                configurations {
+                    classpath {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "bar"))
+                        }
+                    }
+                }
+                assert configurations.classpath.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == "bar"
+            }
+
+            assert configurations.empty
+        """
+
+        expect:
+        succeeds "help"
+    }
+
+    def "can use configuration closure in buildscript block in Kotlin DSL"() {
+        buildKotlinFile << """
+            buildscript {
+                configurations {
+                    named("classpath") {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("bar"))
+                        }
+                    }
+                }
+                assert(configurations.named("classpath").get().attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == "bar")
+            }
+
+            assert(configurations.isEmpty())
+        """
+
+        expect:
+        succeeds "help"
+    }
+}

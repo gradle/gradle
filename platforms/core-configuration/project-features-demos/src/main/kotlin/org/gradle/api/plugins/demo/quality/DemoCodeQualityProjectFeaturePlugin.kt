@@ -1,0 +1,121 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.plugins.demo.quality
+
+import org.apache.commons.lang3.StringUtils
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectFeatureApplyAction
+import org.gradle.features.binding.ProjectFeatureBindingBuilder
+import org.gradle.features.binding.ProjectFeatureBinding
+import org.gradle.features.dsl.bindProjectFeatureToBuildModel
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
+import org.gradle.api.plugins.java.HasSources
+import org.gradle.api.plugins.java.JvmOutputs
+import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.features.registration.TaskRegistrar
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+import javax.inject.Inject
+
+@BindsProjectFeature(DemoCodeQualityProjectFeaturePlugin.Binding::class)
+class DemoCodeQualityProjectFeaturePlugin : Plugin<Project> {
+    /**
+     * javaLibrary {
+     *     sources {
+     *         javaSources("main") {
+     *             demoSourceQuality {
+     *             }
+     *             demoBytecodeQuality {
+     *             }
+     *         }
+     *     }
+     * }
+     *
+     * groovyLibrary {
+     *     sources {
+     *         groovySources("main") {
+     *             demoSourceQuality {
+     *             }
+     *             demoBytecodeQuality {
+     *             }
+     *         }
+     *     }
+     * }
+     */
+    class Binding : ProjectFeatureBinding {
+        override fun bind(builder: ProjectFeatureBindingBuilder) {
+            builder.bindProjectFeatureToDefinition(
+                "demoSourceQuality",
+                DemoCodeQualityDefinition::class,
+                HasSources.Sources::class,
+                SourceQualityApplyAction::class
+            )
+
+            builder.bindProjectFeatureToBuildModel(
+                "demoBytecodeQuality",
+                DemoCodeQualityDefinition::class,
+                JvmOutputs::class,
+                BytecodeQualityApplyAction::class
+            )
+        }
+
+        abstract class SourceQualityApplyAction : ProjectFeatureApplyAction<DemoCodeQualityDefinition, DemoCodeQualityModel, HasSources.Sources<*>> {
+            @get:Inject
+            abstract val taskRegistrar: TaskRegistrar
+
+            override fun apply(
+                context: ProjectFeatureApplicationContext,
+                definition: DemoCodeQualityDefinition,
+                buildModel: DemoCodeQualityModel,
+                parentDefinition: HasSources.Sources<*>
+            ) {
+                val codeQualityTask = taskRegistrar.register("check" + StringUtils.capitalize(parentDefinition.name) + "DemoSourceQuality", Checkstyle::class.java) { task ->
+                    task.group = LifecycleBasePlugin.VERIFICATION_GROUP
+                    task.description = "Runs DemoCodeQuality on the ${parentDefinition.name} source set."
+                    task.source(parentDefinition.sourceDirectories)
+                }
+
+                buildModel.reports = codeQualityTask.map { it.reports }
+            }
+        }
+
+        abstract class BytecodeQualityApplyAction : ProjectFeatureApplyAction<DemoCodeQualityDefinition, DemoCodeQualityModel, Definition<JvmOutputs>> {
+            @get:Inject
+            abstract val taskRegistrar: TaskRegistrar
+
+            override fun apply(
+                context: ProjectFeatureApplicationContext,
+                definition: DemoCodeQualityDefinition,
+                buildModel: DemoCodeQualityModel,
+                parentDefinition: Definition<JvmOutputs>
+            ) {
+                val targetModel = context.getBuildModel(parentDefinition)
+
+                taskRegistrar.register("check" + StringUtils.capitalize(targetModel.name) + "DemoBytecodeQuality", DefaultTask::class.java) { task ->
+                    task.group = LifecycleBasePlugin.VERIFICATION_GROUP
+                    task.description = "Runs DemoCodeQuality on ${targetModel.name} resulting bytecode."
+                }
+            }
+        }
+    }
+
+    override fun apply(target: Project) = Unit
+}

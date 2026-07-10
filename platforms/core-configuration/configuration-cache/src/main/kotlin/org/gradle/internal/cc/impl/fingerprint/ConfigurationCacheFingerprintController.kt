@@ -1,0 +1,545 @@
+/*
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.cc.impl.fingerprint
+
+import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.properties.GradlePropertiesController
+import org.gradle.api.internal.properties.GradlePropertyScope
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.initialization.buildsrc.BuildSrcDetector
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
+import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
+import org.gradle.internal.cc.impl.InputTrackingState
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
+import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.configuration.problems.CommonReport
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.encryption.EncryptionService
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.FileCollectionSnapshotter
+import org.gradle.internal.execution.WorkExecutionTracker
+import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
+import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.extensions.core.directoryChildrenNamesHash
+import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.instrumentation.agent.AgentStatus
+import org.gradle.internal.scripts.ProjectScopedScriptResolution
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.service.scopes.ParallelListener
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.Path
+import org.gradle.util.internal.BuildCommencedTimeProvider
+import java.io.File
+import java.net.URI
+import java.nio.file.Files
+import java.util.function.Supplier
+
+
+/**
+ * Coordinates the writing and reading of the configuration cache fingerprint.
+ */
+@ServiceScope(Scope.BuildTree::class)
+@Suppress("LongParameterList")
+internal
+class ConfigurationCacheFingerprintController internal constructor(
+    private val startParameter: ConfigurationCacheStartParameter,
+    private val modelParameters: BuildModelParameters,
+    private val inputFileCheckerHost: ConfigurationCacheInputFileChecker.Host,
+    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
+    fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
+    private val listenerManager: ListenerManager,
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
+    private val report: CommonReport,
+    private val problemFactory: ProblemFactory,
+    private val workExecutionTracker: WorkExecutionTracker,
+    private val inputTrackingState: InputTrackingState,
+    private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
+    private val agentStatus: AgentStatus,
+    private val problems: ProblemsListener,
+    private val encryptionService: EncryptionService,
+    private val configurationTimeBarrier: ConfigurationTimeBarrier,
+    private val buildStateRegistry: BuildStateRegistry,
+    private val propertiesController: GradlePropertiesController,
+    private val fingerprintEventHandler: ConfigurationCacheFingerprintEventHandler,
+) : Stoppable, ProjectScopedScriptResolution {
+
+    interface Host {
+        val valueSourceProviderFactory: ValueSourceProviderFactory
+    }
+
+    private
+    val fileCollectionFingerprinter =
+        fingerprinterRegistry.getFingerprinter(
+            DefaultFileNormalizationSpec.from(
+                InputNormalizer.ABSOLUTE_PATH,
+                DirectorySensitivity.DEFAULT,
+                LineEndingSensitivity.DEFAULT
+            )
+        )
+
+    private
+    abstract class WritingState {
+
+        open fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState =
+            illegalStateFor("start")
+
+        open fun pause(): WritingState =
+            illegalStateFor("pause")
+
+        open fun commit(
+            buildScopedFingerprint: ConfigurationCacheStateFile,
+            projectScopedFingerprint: ConfigurationCacheStateFile
+        ): WritingState =
+            illegalStateFor("commit")
+
+        open fun append(fingerprint: ProjectSpecificFingerprint): Unit =
+            illegalStateFor("append")
+
+        open fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T =
+            illegalStateFor("resolveScriptsForProject")
+
+        open fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T =
+            illegalStateFor("collectFingerprintForProject")
+
+        open fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path): Unit =
+            illegalStateFor("projectObserved")
+
+        abstract fun dispose(): WritingState
+
+        private
+        fun illegalStateFor(operation: String): Nothing = error(
+            "'$operation' is illegal while in '${javaClass.simpleName}' state."
+        )
+    }
+
+    private
+    inner class Idle : WritingState() {
+
+        override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
+            val buildScopedFile = parameters.assignBuildScopedSpoolFile()
+            val projectScopedFile = parameters.assignProjectScopedSpoolFile()
+            val fingerprintWriter = ConfigurationCacheFingerprintWriter(
+                CacheFingerprintWriterHost(),
+                parameters.writerContextFor(buildScopedFile),
+                parameters.writerContextFor(projectScopedFile),
+                fileCollectionFactory,
+                directoryFileTreeFactory,
+                workExecutionTracker,
+                inputTrackingState,
+                buildStateRegistry
+            )
+            addListener(fingerprintWriter)
+            return Writing(
+                fingerprintWriter,
+                buildScopedFile,
+                projectScopedFile
+            )
+        }
+
+        override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
+            // Ignore scripts resolved while loading from cache
+            return action()
+        }
+
+        override fun dispose(): WritingState =
+            this
+    }
+
+    private
+    inner class Writing(
+        private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
+        private val buildScopedSpoolFile: StateFile,
+        private val projectScopedSpoolFile: StateFile
+    ) : WritingState() {
+
+        override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
+            return this
+        }
+
+        override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
+            return fingerprintWriter.runCollectingFingerprintForProject(project, keepAlive = true, action)
+        }
+
+        override fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
+            return fingerprintWriter.runCollectingFingerprintForProject(project, keepAlive, action)
+        }
+
+        override fun pause(): WritingState {
+            removeListener(fingerprintWriter)
+            return Paused(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
+        }
+
+        override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
+            fingerprintWriter.projectObserved(consumingProjectPath, targetProjectPath)
+        }
+
+        override fun dispose() =
+            pause().dispose()
+    }
+
+    private
+    inner class Paused(
+        private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
+        private val buildScopedSpoolFile: StateFile,
+        private val projectScopedSpoolFile: StateFile
+    ) : WritingState() {
+
+        override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
+            addListener(fingerprintWriter)
+            // Continue with the current spool file, rather than starting a new one
+            return Writing(fingerprintWriter, this.buildScopedSpoolFile, this.projectScopedSpoolFile)
+        }
+
+        override fun pause(): WritingState {
+            return this
+        }
+
+        override fun append(fingerprint: ProjectSpecificFingerprint) {
+            fingerprintWriter.append(fingerprint)
+        }
+
+        override fun commit(
+            buildScopedFingerprint: ConfigurationCacheStateFile,
+            projectScopedFingerprint: ConfigurationCacheStateFile
+        ): WritingState {
+            closeStreams()
+            buildScopedFingerprint.moveFrom(buildScopedSpoolFile.file)
+            projectScopedFingerprint.moveFrom(projectScopedSpoolFile.file)
+            return Committed()
+        }
+
+        override fun dispose(): WritingState {
+            closeStreams()
+            buildScopedSpoolFile.delete()
+            projectScopedSpoolFile.delete()
+            return Idle()
+        }
+
+        override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
+            if (!atConfigurationTime()) {
+                return
+            }
+
+            error("Unexpected project dependency observed outside of fingerprinting: consumer=$consumingProjectPath, target=$targetProjectPath")
+        }
+
+        private
+        fun closeStreams() {
+            fingerprintWriter.close()
+        }
+
+        private
+        fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
+    }
+
+    private
+    class Committed : WritingState() {
+        override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
+            // Ignore scripts resolved while loading from cache
+            return action()
+        }
+
+        override fun dispose(): WritingState {
+            return this
+        }
+    }
+
+    private
+    var writingState: WritingState = Idle()
+
+    private
+    val projectComponentObservationListener = ProjectObservationListener(this)
+
+    @ParallelListener
+    private class ProjectObservationListener(
+        private val controller: ConfigurationCacheFingerprintController
+    ) : ProjectComponentObservationListener {
+        override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) =
+            controller.writingState.projectObserved(consumingProjectPath, targetProjectPath)
+    }
+
+    // Start fingerprinting if not already started and not already committed,
+    // This should be strict, but currently this method may be called multiple times when a
+    // build invocation both runs tasks and queries models
+    fun maybeStartCollectingFingerprint(parameters: ConfigurationCacheFingerprintStartParameters) {
+        writingState = writingState.maybeStart(parameters)
+    }
+
+    fun stopCollectingFingerprint() {
+        writingState = writingState.pause()
+    }
+
+    fun commitFingerprintTo(
+        buildScopedFingerprint: ConfigurationCacheStateFile,
+        projectScopedFingerprint: ConfigurationCacheStateFile
+    ) {
+        writingState = writingState.commit(buildScopedFingerprint, projectScopedFingerprint)
+    }
+
+    override fun <T : Any> resolveScriptsForProject(project: ProjectIdentity, action: Supplier<T>): T {
+        return writingState.resolveScriptsForProject(project) { action.get() }
+    }
+
+    /**
+     * Runs the given action that is specific to the given project and associates any build inputs read by the current thread
+     * with the project.
+     *
+     * @param keepAlive whether the information associated with the project must be kept alive for future requests (for input deduplication, for example)
+     */
+    fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
+        return writingState.runCollectingFingerprintForProject(
+            project,
+            // always keep project context alive when building models since model requests can come at any point
+            keepAlive || modelParameters.isModelBuilding,
+            action
+        )
+    }
+
+    override fun stop() {
+        writingState = writingState.dispose()
+    }
+
+    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host) =
+        fingerprintChecker(host).run {
+            checkBuildScopedFingerprint()
+        }
+
+    suspend fun ReadContext.checkProjectScopedFingerprint(host: Host) =
+        fingerprintChecker(host).run {
+            checkProjectScopedFingerprint()
+        }
+
+    suspend fun ReadContext.collectFingerprintForReusedProjects(host: Host, reusedProjects: Set<Path>): Unit =
+        fingerprintChecker(host).run {
+            visitEntriesForProjects(reusedProjects) { fingerprint ->
+                writingState.append(fingerprint)
+            }
+        }
+
+    private
+    fun fingerprintChecker(host: Host): ConfigurationCacheFingerprintChecker =
+        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host))
+
+    private
+    fun addListener(fingerprintWriter: ConfigurationCacheFingerprintWriter) {
+        // Never removed, as stateful listeners cannot be removed after events have been emitted
+        // TODO(mlopatkin): move it into fingerprintEventHandler
+        listenerManager.addListener(projectComponentObservationListener)
+
+        fingerprintEventHandler.setDelegate(fingerprintWriter)
+    }
+
+    private
+    fun removeListener(fingerprintWriter: ConfigurationCacheFingerprintWriter) {
+        fingerprintEventHandler.clearDelegate(fingerprintWriter)
+    }
+
+    private
+    inner class CacheFingerprintWriterHost :
+        ConfigurationCacheFingerprintWriter.Host {
+
+        override val isFineGrainedPropertyTracking: Boolean
+            get() = startParameter.isFineGrainedPropertyTracking
+
+        override val isEncrypted: Boolean
+            get() = encryptionService.isEncrypting
+
+        override val encryptionKeyHashCode: HashCode
+            get() = encryptionService.encryptionKeyHashCode
+
+        override val gradleUserHomeDir: File
+            get() = startParameter.gradleUserHomeDir
+
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
+
+        override val allInitScripts: List<File>
+            get() = startParameter.allInitScripts
+
+        override val buildStartTime: Long
+            get() = buildCommencedTimeProvider.currentTime
+
+        override val cacheIntermediateModels: Boolean
+            get() = modelParameters.isCachingModelBuilding
+
+        override val modelAsProjectDependency: Boolean
+            get() = modelParameters.isModelAsProjectDependency
+
+        override val ignoreInputsDuringConfigurationCacheStore: Boolean
+            get() = startParameter.isIgnoreInputsDuringStore
+
+        override val instrumentationAgentUsed: Boolean
+            get() = agentStatus.isAgentInstrumentationEnabled
+
+        override val ignoredFileSystemCheckInputs: String?
+            get() = startParameter.ignoredFileSystemCheckInputs
+
+        override fun hashCodeOf(file: File): HashCode =
+            inputFileCheckerHost.hashCodeOf(file)
+
+        override fun hashCodeOfDirectoryChildrenNames(file: File): HashCode =
+            directoryChildrenNamesHash(file)
+
+        override fun displayNameOf(file: File): String =
+            inputFileCheckerHost.displayNameOf(file)
+
+        override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode {
+            val snapshot = fileCollectionSnapshotter.snapshot(fileCollection)
+            return fileCollectionFingerprinter.fingerprint(snapshot, null).hash
+        }
+
+        override fun reportInput(input: PropertyProblem) =
+            report.onInput(input)
+
+        override fun reportProblem(
+            exception: Throwable?,
+            documentationSection: DocumentationSection?,
+            message: StructuredMessageBuilder
+        ) =
+            problems.onProblem(
+                problemFactory.problem(
+                    StructuredMessage.build(message),
+                    exception,
+                    documentationSection
+                )
+            )
+
+        override fun location(consumer: String?) =
+            problemFactory.locationForCaller(consumer)
+    }
+
+    private
+    inner class CacheFingerprintCheckerHost(
+        private val host: Host
+    ) : ConfigurationCacheFingerprintChecker.Host,
+        ConfigurationCacheInputFileChecker.Host by inputFileCheckerHost {
+
+        override val isEncrypted: Boolean
+            get() = encryptionService.isEncrypting
+
+        override val encryptionKeyHashCode: HashCode
+            get() = encryptionService.encryptionKeyHashCode
+
+        override val gradleUserHomeDir: File
+            get() = startParameter.gradleUserHomeDir
+
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
+
+        override val allInitScripts: List<File>
+            get() = startParameter.allInitScripts
+
+        override val buildStartTime: Long
+            get() = buildCommencedTimeProvider.currentTime
+
+        override val invalidateCoupledProjects: Boolean
+            get() = modelParameters.isInvalidateCoupledProjects
+
+        override val ignoreInputsDuringConfigurationCacheStore: Boolean
+            get() = startParameter.isIgnoreInputsDuringStore
+
+        override val instrumentationAgentUsed: Boolean
+            get() = agentStatus.isAgentInstrumentationEnabled
+
+        override val ignoredFileSystemCheckInputs: String?
+            get() = startParameter.ignoredFileSystemCheckInputs
+
+        override fun hashCodeOfDirectoryContent(file: File): HashCode =
+            directoryChildrenNamesHash(file)
+
+        override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode {
+            val snapshot = fileCollectionSnapshotter.snapshot(fileCollection)
+            return fileCollectionFingerprinter.fingerprint(snapshot, null).hash
+        }
+
+        override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
+            (host.valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
+                obtainedValue.valueSourceType,
+                obtainedValue.valueSourceParametersType,
+                obtainedValue.valueSourceParameters
+            )
+
+        override fun isRemoteScriptUpToDate(uri: URI): Boolean =
+            remoteScriptUpToDateChecker.isUpToDate(uri)
+
+        override fun hasValidBuildSrc(candidateBuildSrc: File): Boolean {
+            return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
+        }
+
+        override fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File) {
+            when (propertyScope) {
+                is GradlePropertyScope.Build -> {
+                    propertiesController.loadGradleProperties(
+                        propertyScope.buildIdentifier,
+                        propertiesDir,
+                        true
+                    )
+                }
+
+                is GradlePropertyScope.Project -> {
+                    propertiesController.loadGradleProperties(
+                        propertyScope.projectIdentity,
+                        propertiesDir,
+                    )
+                }
+
+                else -> error("Unsupported propertyScope $propertyScope")
+            }
+        }
+
+        override fun gradleProperty(
+            propertyScope: GradlePropertyScope,
+            propertyName: String
+        ): Any? = propertiesController
+            .getGradleProperties(propertyScope)
+            .findUnsafe(propertyName)
+
+        override fun gradlePropertiesPrefixedBy(
+            propertyScope: GradlePropertyScope,
+            prefix: String
+        ): Map<String, String> = propertiesController
+            .getGradleProperties(propertyScope)
+            .getPropertiesWithPrefix(prefix)
+    }
+
+    private
+    fun StateFile.delete() {
+        if (file.exists()) {
+            Files.delete(file.toPath())
+        }
+    }
+}

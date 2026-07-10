@@ -1,0 +1,181 @@
+
+@page {
+    size: A4;
+    padding: 0;
+    margin: 2cm;
+}
+
+@page contentpage {
+    margin-bottom: 2.2cm;
+    @bottom-right {
+        content: 'Page ' counter(page) ' of ' counter(pages);
+        font-family: 'Lucida Grande','Lucida Sans Unicode','Lucida Sans','Geneva','Verdana',sans-serif;
+        font-size: 10pt;
+        color: #777777;
+        padding-bottom: 1.2cm;
+        vertical-align: bottom;
+    }
+}
+
+body {
+    font-size: 10pt;
+    margin: 0;
+    margin-bottom: 2cm;
+    padding: 0;
+    padding-bottom: 2cm;
+}
+
+/*
+ * Override colour -> black and white
+ */
+body, div, td {
+    color: black;
+}
+
+h1, h2, h3, h4, h5 {
+    color: black;
+}
+
+a {
+    color: black;
+}
+
+/*
+ * Book title page
+ */
+
+.titlepage h1.title {
+    font-size: 360%;
+    margin: 0;
+    color: black;
+}
+
+.titlepage h2.subtitle {
+    font-size: 240%;
+    margin: 0;
+    color: black;
+}
+
+.titlepage .releaseinfo {
+    margin-top: 50%;
+    font-size: 180%;
+    color: black;
+}
+
+.book .titlepage div.title {
+    text-align: right;
+    page-break-after: always;
+    border: none;
+    background-color: white;
+    margin: 0;
+    padding-top: 24%;
+    padding-left: 0;
+    padding-right: 5%;
+    padding-bottom: 0;
+}
+
+.toc {
+    page-break-before: always;
+}
+
+.toc * {
+    line-height: 120%;
+}
+
+/**
+ * Chapter and Appendix title page
+ */
+
+.chapter {
+    page: contentpage;
+    page-break-before: always;
+}
+
+.appendix {
+    page: contentpage;
+    page-break-before: always;
+}
+
+.chapter > .titlepage h1 {
+    font-size: 240%;
+    text-align: right;
+}
+
+.chapter > .titlepage h2 {
+    font-size: 400%;
+    text-align: right;
+}
+
+.chapter > .titlepage {
+    margin-bottom: 4em;
+}
+
+.appendix > .titlepage h1 {
+    font-size: 240%;
+    text-align: right;
+}
+
+.appendix > .titlepage h2 {
+    font-size: 400%;
+    text-align: right;
+}
+
+.appendix > .titlepage {
+    margin-bottom: 4em;
+}
+
+.section .titlepage {
+    page-break-after: avoid;
+}
+
+p {
+    text-align: justify;
+}
+
+/**
+ * Examples
+ */
+
+.example .title {
+    text-align: left;
+    white-space: nowrap;
+    color: #666666
+}
+
+.example {
+    page-break-inside: avoid;
+}
+
+.figure .title {
+    text-align: left;
+    white-space: nowrap;
+    color: #666666
+}
+
+.figure {
+    page-break-inside: avoid;
+}
+
+.figure img {
+    width: 100%;
+}
+
+.table .title {
+    text-align: left;
+    white-space: nowrap;
+    color: #666666
+}
+
+.table {
+    page-break-inside: avoid;
+}
+
+.programlisting {
+    page-break-inside: avoid;
+    font-size: 90%;
+}
+
+.screen {
+    page-break-inside: avoid;
+    font-size: 90%;
+}

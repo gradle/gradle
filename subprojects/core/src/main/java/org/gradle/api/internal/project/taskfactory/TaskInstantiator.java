@@ -1,0 +1,51 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.project.taskfactory;
+
+import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+
+@ServiceScope(Scope.Project.class)
+public class TaskInstantiator implements NamedEntityInstantiator<Task> {
+
+    private static final Object[] NO_PARAMS = new Object[0];
+
+    private final TaskIdentityFactory taskIdentityFactory;
+    private final ITaskFactory taskFactory;
+    private final ProjectInternal project;
+    private final UserCodeApplicationContext userCodeApplicationContext;
+
+    public TaskInstantiator(TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory, ProjectInternal project, UserCodeApplicationContext userCodeApplicationContext) {
+        this.taskIdentityFactory = taskIdentityFactory;
+        this.taskFactory = taskFactory;
+        this.project = project;
+        this.userCodeApplicationContext = userCodeApplicationContext;
+    }
+
+    @Override
+    public <S extends Task> S create(String name, Class<S> type) {
+        UserCodeApplicationContext.Application current = userCodeApplicationContext.current();
+        UserCodeSource userCodeSource = current != null ? current.getSource() : null;
+        return taskFactory.create(taskIdentityFactory.create(name, type, project, userCodeSource), NO_PARAMS);
+    }
+
+}

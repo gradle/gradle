@@ -1,0 +1,69 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.tasks.testing.processors;
+
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.detection.TestDetector;
+import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
+import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.work.WorkerLeaseService;
+
+public class TestMainAction implements Runnable {
+    private final TestDetector detector;
+    private final TestDefinitionProcessor<?> processor;
+    private final TestResultProcessor resultProcessor;
+    private final WorkerLeaseService workerLeaseService;
+    private final Clock clock;
+    private final Object rootTestSuiteId;
+    private final String displayName;
+
+    public TestMainAction(TestDetector detector, TestDefinitionProcessor<?> processor, TestResultProcessor resultProcessor, WorkerLeaseService workerLeaseService, Clock clock, Object rootTestSuiteId, String displayName) {
+        this.detector = detector;
+        this.processor = processor;
+        this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
+        this.workerLeaseService = workerLeaseService;
+        this.clock = clock;
+        this.rootTestSuiteId = rootTestSuiteId;
+        this.displayName = displayName;
+    }
+
+    @Override
+    public void run() {
+        TestDescriptorInternal suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName);
+        resultProcessor.started(suite, new TestStartEvent(clock.getCurrentTime()));
+
+        try {
+            processor.startProcessing(resultProcessor);
+
+            try {
+                detector.detect();
+            } finally {
+                // Release worker lease while waiting for tests to complete
+                workerLeaseService.blocking(processor::stop);
+            }
+        } catch (Throwable ex) {
+            resultProcessor.failure(suite.getId(), TestFailure.fromTestFrameworkFailure(ex));
+        } finally {
+            resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
+        }
+    }
+}

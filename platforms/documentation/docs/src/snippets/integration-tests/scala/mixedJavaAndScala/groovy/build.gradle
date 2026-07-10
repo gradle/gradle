@@ -1,0 +1,17 @@
+plugins {
+    id("scala")
+}
+
+version = 1.0
+
+repositories {
+    mavenCentral()
+}
+
+scala {
+    scalaVersion = "2.13.12"
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}

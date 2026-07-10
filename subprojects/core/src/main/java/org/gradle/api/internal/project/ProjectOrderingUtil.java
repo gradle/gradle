@@ -1,0 +1,103 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal.project;
+
+import org.gradle.api.Project;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
+public class ProjectOrderingUtil {
+
+    /**
+     * Returns a new collection, containing all direct and transitive child projects of
+     * the given project, in order.
+     * <p>
+     * If you are writing new code and want to use this, consider if you really need to.
+     * Most operations should be scoped to a single project. Why do you need all transitive
+     * subprojects at the same time?
+     */
+    public static List<ProjectState> orderedSubprojectsOf(ProjectState projectState) {
+        List<ProjectState> result = new ArrayList<>();
+        visitSubprojectsUnordered(projectState, result::add);
+        result.sort(ProjectOrderingUtil::compare);
+        return result;
+    }
+
+    /**
+     * Returns a new collection, containing the given project and all direct and transitive child
+     * projects of that project.
+     * <p>
+     * If you are writing new code and want to use this, consider if you really need to.
+     * Most operations should be scoped to a single project. Why do you need all transitive
+     * subprojects at the same time?
+     */
+    public static List<ProjectState> orderedAllProjectsOf(ProjectState projectState) {
+        List<ProjectState> result = new ArrayList<>();
+        visitSubprojectsUnordered(projectState, result::add);
+        result.add(projectState);
+        result.sort(ProjectOrderingUtil::compare);
+        return result;
+    }
+
+    /**
+     * Visits all direct and transitive child projects of this project in no particular order.
+     */
+    private static void visitSubprojectsUnordered(ProjectState project, Consumer<? super ProjectState> visitor) {
+        project.getUnorderedChildProjects().forEach(child -> {
+            visitor.accept(child);
+            visitSubprojectsUnordered(child, visitor);
+        });
+    }
+
+    public static int compare(Project left, Project right) {
+        return compare(owner(left), owner(right));
+    }
+
+    public static int compare(ProjectState left, ProjectState right) {
+        return compare(left.getIdentity(), right.getIdentity());
+    }
+
+    public static int compare(ProjectIdentity left, ProjectIdentity right) {
+        int buildCompare = left.getBuildPath().compareTo(right.getBuildPath());
+        if (buildCompare != 0) {
+            return buildCompare;
+        }
+
+        int depthCompare = depthCompare(left, right);
+        if (depthCompare != 0) {
+            return depthCompare;
+        }
+
+        return left.getProjectPath().compareTo(right.getProjectPath());
+    }
+
+    public static int depthCompare(Project left, Project right) {
+        return depthCompare(owner(left).getIdentity(), owner(right).getIdentity());
+    }
+
+    public static int depthCompare(ProjectIdentity left, ProjectIdentity right) {
+        return Integer.compare(left.getProjectDepth(), right.getProjectDepth());
+    }
+
+    private static ProjectState owner(Project project) {
+        if (!(project instanceof ProjectInternal)) {
+            throw new IllegalArgumentException("Unexpected Project implementation");
+        }
+        return ((ProjectInternal) project).getOwner();
+    }
+}

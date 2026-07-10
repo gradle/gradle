@@ -1,0 +1,74 @@
+/*
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.enterprise.impl;
+
+import org.gradle.StartParameter;
+import org.gradle.internal.buildtree.BuildActionModelRequirements;
+import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
+import org.jspecify.annotations.Nullable;
+
+public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePluginConfig {
+
+    private final BuildScanRequest buildScanRequest;
+    private final boolean taskExecutingBuild;
+    private final boolean autoApplied;
+    @Nullable
+    private final String develocityUrl;
+
+    public DefaultGradleEnterprisePluginConfig(
+        BuildActionModelRequirements requirements,
+        StartParameter startParameter,
+        GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus
+    ) {
+        this.buildScanRequest = buildScanRequest(startParameter);
+        this.taskExecutingBuild = requirements.isRunsTasks();
+        this.autoApplied = autoAppliedStatus.isAutoApplied();
+        this.develocityUrl = ((StartParameterInternal) startParameter).getDevelocityUrl();
+    }
+
+    @Override
+    public BuildScanRequest getBuildScanRequest() {
+        return buildScanRequest;
+    }
+
+    @Override
+    public boolean isTaskExecutingBuild() {
+        return taskExecutingBuild;
+    }
+
+    @Override
+    public boolean isAutoApplied() {
+        return autoApplied;
+    }
+
+    @Nullable
+    @Override
+    public String getDevelocityUrl() {
+        return develocityUrl;
+    }
+
+    private BuildScanRequest buildScanRequest(StartParameter startParameter) {
+        if (startParameter.isNoBuildScan()) {
+            return BuildScanRequest.SUPPRESSED;
+        } else if (startParameter.isBuildScan()) {
+            return BuildScanRequest.REQUESTED;
+        } else {
+            return BuildScanRequest.NONE;
+        }
+    }
+}

@@ -1,0 +1,7 @@
+apply plugin: 'war'
+
+java.sourceCompatibility = 6
+
+dependencies {
+    implementation project(":common")
+}

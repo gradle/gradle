@@ -1,0 +1,167 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package gradlebuild.buildutils.tasks
+
+import spock.lang.Specification
+
+class UpdateKotlinVersionsTest extends Specification {
+
+    def previousVersions = [
+        "1.9.10", "1.9.25", "1.9.24", "1.9.20", "1.9.20-RC2", "1.9.0", "1.9.0-Beta",
+        "1.8.22, 1.8.0, 1.8.0-Beta",
+    ]
+    def minimumSupported = "1.9.10"
+
+    def "latest patch version"() {
+        given:
+        def allVersions = ["2.0.30", "2.0.20", "2.0.10", "2.0.0"] + previousVersions
+
+        when:
+        def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
+
+        then:
+        selected == ["1.9.10", "1.9.25", "2.0.30"]
+    }
+
+    def "beta of latest patch version"() {
+        given:
+        def allVersions = [
+            "2.0.30-Beta2", "2.0.30-Beta1",
+            "2.0.20", "2.0.20-Beta1",
+            "2.0.10", "2.0.10-Beta1",
+            "2.0.0", "2.0.0-RC1", "2.0.0-Beta1",
+        ] + previousVersions
+
+        when:
+        def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
+
+        then:
+        selected == ["1.9.10", "1.9.25", "2.0.20", "2.0.30-Beta2"]
+    }
+
+
+    def "rc of latest patch version"() {
+        given:
+        def allVersions = [
+            "2.0.30-RC1", "2.0.30-Beta1",
+            "2.0.20",
+            "2.0.10",
+            "2.0.0", "2.0.0-RC1", "2.0.0-Beta1",
+        ] + previousVersions
+
+        when:
+        def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
+
+        then:
+        selected == ["1.9.10", "1.9.25", "2.0.20", "2.0.30-RC1"]
+    }
+
+    def "beta and rc of two latest patch versions"() {
+        given:
+        def allVersions = [
+            "2.0.40-Beta2", "2.0.40-Beta1",
+            "2.0.30-RC1", "2.0.30-Beta1",
+            "2.0.20", "2.0.20-RC1",
+            "2.0.10", "2.0.10-RC1",
+            "2.0.0", "2.0.0-RC1", "2.0.0-Beta1",
+        ] + previousVersions
+
+        when:
+        def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
+
+        then:
+        selected == ["1.9.10", "1.9.25", "2.0.20", "2.0.30-RC1", "2.0.40-Beta2"]
+    }
+
+    def "fails is minimumSupported is not available"() {
+        given:
+        def allVersions = ["2.0.0", "2.0.0-RC1", "2.0.0-Beta1"]
+
+        when:
+        UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Minimum supported '1.9.10' was not found in available versions: [2.0.0, 2.0.0-RC1, 2.0.0-Beta1]"
+    }
+
+    def "previous minor keeps its latest stable alongside a newer RC"() {
+        // Regression test: before the fix, when a newer minor published its first pre-release
+        // (e.g. 2.4.0-Beta1), the previous minor's selection switched from the per-patch logic to
+        // "pick the top-sorted version", letting a -RC for the next patch (2.3.21-RC) displace the
+        // last stable (2.3.20). That caused `latestStable` to fall back from 2.3.20 to 2.2.21 and
+        // broke AGP alpha07 smoke tests.
+        given:
+        def allVersions = [
+            "2.4.0-Beta1",
+            "2.3.21-RC",
+            "2.3.20", "2.3.20-RC3", "2.3.20-Beta2",
+            "2.3.10", "2.3.10-RC",
+            "2.3.0", "2.3.0-RC", "2.3.0-Beta1",
+            "2.2.21", "2.2.21-RC",
+            "2.1.21",
+            "2.0.21", "2.0.0",
+        ]
+
+        when:
+        def selected = UpdateKotlinVersions.selectVersionsFrom("2.0.0", allVersions)
+
+        then:
+        selected == ["2.0.0", "2.0.21", "2.1.21", "2.2.21", "2.3.20", "2.3.21-RC", "2.4.0-Beta1"]
+    }
+
+    def "previous minor with no stable patch is dropped"() {
+        // If a minor never shipped a stable, we don't want to leave orphan pre-releases pinned
+        // in the test matrix — they would stick around forever. Skip the minor entirely in that
+        // case; the current minor's pre-release still covers upcoming Kotlin.
+        given:
+        def allVersions = [
+            "2.4.0-Beta1",
+            "2.3.0-RC2", "2.3.0-RC", "2.3.0-Beta1",
+            "2.2.21",
+            "2.1.21",
+            "2.0.21", "2.0.0",
+        ]
+
+        when:
+        def selected = UpdateKotlinVersions.selectVersionsFrom("2.0.0", allVersions)
+
+        then:
+        selected == ["2.0.0", "2.0.21", "2.1.21", "2.2.21", "2.4.0-Beta1"]
+    }
+
+    def "two-digit patch numbers in the current minor do not collide"() {
+        // Regression test: the old algorithm grouped patches by `String.take(5)`, so "2.3.20" and
+        // "2.3.21-RC" hashed to the same bucket "2.3.2" and the RC was silently swallowed. The
+        // refactored algorithm groups by the parsed `micro` integer so adjacent two-digit patches
+        // stay distinct.
+        given:
+        def allVersions = [
+            "2.3.21-RC",
+            "2.3.20",
+            "2.3.10",
+            "2.3.0",
+            "2.2.21", "2.1.21", "2.0.21", "2.0.0",
+        ]
+
+        when:
+        def selected = UpdateKotlinVersions.selectVersionsFrom("2.0.0", allVersions)
+
+        then:
+        selected == ["2.0.0", "2.0.21", "2.1.21", "2.2.21", "2.3.20", "2.3.21-RC"]
+    }
+}

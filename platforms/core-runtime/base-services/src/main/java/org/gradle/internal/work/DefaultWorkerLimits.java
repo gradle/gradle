@@ -1,0 +1,42 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.work;
+
+public final class DefaultWorkerLimits implements WorkerLimits {
+    // Chosen since this value is used by kotlinx coroutines for their own IO scheduler:
+    // https://github.com/Kotlin/kotlinx.coroutines/blob/1f521941faad4d2ee9c8236a7d5fa2c62eaa6b7d/kotlinx-coroutines-core/jvm/src/scheduling/Dispatcher.kt#L67
+    private static final int MIN_UNCONSTRAINED_PARALLELISM = 64;
+
+    private final int maxWorkerCount;
+
+    public DefaultWorkerLimits(int maxWorkerCount) {
+        if (maxWorkerCount < 1) {
+            throw new IllegalArgumentException("maxWorkerCount must be at least 1");
+        }
+        this.maxWorkerCount = maxWorkerCount;
+    }
+
+    @Override
+    public int getMaxWorkerCount() {
+        return maxWorkerCount;
+    }
+
+    @Override
+    public int getMaxUnconstrainedWorkerCount() {
+        return Math.max(MIN_UNCONSTRAINED_PARALLELISM, maxWorkerCount);
+    }
+}

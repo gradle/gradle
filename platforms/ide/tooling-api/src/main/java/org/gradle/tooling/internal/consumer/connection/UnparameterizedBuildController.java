@@ -1,0 +1,231 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.tooling.internal.consumer.connection;
+
+import org.gradle.api.Action;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.FetchModelResult;
+import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
+import org.gradle.tooling.internal.consumer.DefaultFetchModelResult;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.ProjectModel;
+import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.internal.Exceptions;
+import org.jspecify.annotations.Nullable;
+
+import java.io.File;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
+abstract class UnparameterizedBuildController extends HasCompatibilityMapping implements BuildController {
+    private final ProtocolToModelAdapter adapter;
+    private final ObjectGraphAdapter resultAdapter;
+    private final ModelMapping modelMapping;
+    protected final VersionDetails gradleVersion;
+    private final File rootDir;
+
+    public UnparameterizedBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
+        super(gradleVersion);
+        this.adapter = adapter;
+        // Treat all models returned to the action as part of the same object graph
+        this.resultAdapter = adapter.newGraph();
+        this.modelMapping = modelMapping;
+        this.gradleVersion = gradleVersion;
+        this.rootDir = rootDir;
+    }
+
+    @Override
+    public <T> T getModel(Class<T> modelType) throws UnknownModelException {
+        return getModel(null, modelType);
+    }
+
+    @Override
+    public <T> T findModel(Class<T> modelType) {
+        return findModel(null, modelType);
+    }
+
+    @Override
+    public GradleBuild getBuildModel() {
+        return getModel(null, GradleBuild.class);
+    }
+
+    @Override
+    public <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException {
+        return getModel(target, modelType, null, null);
+    }
+
+    @Override
+    public <T> T findModel(Model target, Class<T> modelType) {
+        return findModel(target, modelType, null, null);
+    }
+
+    @Override
+    public <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
+        return getModel(null, modelType, parameterType, parameterInitializer);
+    }
+
+    @Override
+    public <T, P> T findModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
+        return findModel(null, modelType, parameterType, parameterInitializer);
+    }
+
+    @Override
+    public <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
+        try {
+            return getModel(target, modelType, parameterType, parameterInitializer);
+        } catch (UnknownModelException e) {
+            // Ignore
+            return null;
+        }
+    }
+
+    @Override
+    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException {
+        Object originalTarget = unpackModelTarget(target);
+        ModelIdentifier modelIdentifier = getModelIdentifierFromModelType(modelType);
+        P parameter = initializeParameter(parameterType, parameterInitializer);
+
+        BuildResult<?> result;
+        try {
+            result = getModel(originalTarget, modelIdentifier, parameter);
+        } catch (InternalUnsupportedModelException e) {
+            throw Exceptions.unknownModel(modelType, e);
+        }
+
+        return adaptModel(target, modelType, result.getModel());
+    }
+
+    protected <T> T adaptModel(@Nullable Model target, Class<T> modelType, Object model) {
+        ViewBuilder<T> viewBuilder = resultAdapter.builder(modelType);
+        applyCompatibilityMapping(viewBuilder, new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
+        return viewBuilder.build(model);
+    }
+
+    protected <T> ModelIdentifier getModelIdentifierFromModelType(Class<T> modelType) {
+        return modelMapping.getModelIdentifierFromModelType(modelType);
+    }
+
+    @Nullable
+    protected Object unpackModelTarget(@Nullable Model target) {
+        return target == null ? null : adapter.unpack(target);
+    }
+
+    protected static <P> P initializeParameter(@Nullable Class<P> parameterType, Action<? super P> parameterInitializer) {
+        validateParameters(parameterType, parameterInitializer);
+        if (parameterType != null) {
+            // TODO: move this to ObjectFactory
+            P parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class<?>[]{parameterType}, new ToolingParameterProxy()));
+            parameterInitializer.execute(parameter);
+            return parameter;
+        } else {
+            return null;
+        }
+    }
+
+    private static <P> void validateParameters(@Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+        if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null)) {
+            throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parameterized model request.");
+        }
+
+        if (parameterType != null) {
+            ToolingParameterProxy.validateParameter(parameterType);
+        }
+    }
+
+    private static String getProjectPath(@Nullable Model target) {
+        if (target instanceof ProjectModel) {
+            return ((ProjectModel) target).getProjectIdentifier().getProjectPath();
+        } else {
+            return ":";
+        }
+    }
+
+    protected abstract BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException;
+
+    @Override
+    public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
+        return false;
+    }
+
+    @Override
+    public <T> List<T> run(Collection<? extends BuildAction<? extends T>> actions) {
+        List<T> results = new ArrayList<T>(actions.size());
+        List<Throwable> failures = new ArrayList<Throwable>();
+        for (BuildAction<? extends T> action : actions) {
+            try {
+                T result = action.execute(this);
+                results.add(result);
+            } catch (Throwable t) {
+                failures.add(t);
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new MultipleBuildOperationFailures(failures, null);
+        }
+        return results;
+    }
+
+    @Override
+    public void send(Object value) {
+        throw new UnsupportedVersionException(String.format("Gradle version %s does not support streaming values to the client.", gradleVersion.getVersion()));
+    }
+
+    @Override
+    public <M> FetchModelResult<M> fetch(Class<M> modelType) {
+        return fetch(null, modelType, null, null);
+    }
+
+    @Override
+    public <M> FetchModelResult<M> fetch(Model target, Class<M> modelType) {
+        return fetch(target, modelType, null, null);
+    }
+
+    @Override
+    public <M, P> FetchModelResult<M> fetch(Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+        return fetch(null, modelType, parameterType, parameterInitializer);
+    }
+
+    /**
+     * This is implemented just for backward compatibility.
+     * Actual implementation for newer Gradle versions is {@link FetchAwareBuildControllerAdapter#fetch(Model, Class, Class, Action)}
+     */
+    @Override
+    public <M, P> FetchModelResult<M> fetch(@Nullable Model target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+        try {
+            Object model = getModel(target, modelType, parameterType, parameterInitializer);
+            return DefaultFetchModelResult.success(uncheckedNonnullCast(model));
+        } catch (Exception e) {
+            return DefaultFetchModelResult.failure(e);
+        }
+    }
+}

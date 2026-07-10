@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>util.util.parent</groupId>
+        <artifactId>util-parent</artifactId>
+        <version>3</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>util</groupId>
+    <artifactId>util</artifactId>
+    <version>2.5</version>
+    <packaging>jar</packaging>
+    <repositories>
+        <repository>
+            <id>local-remote</id>
+            <name>Local Test Repository</name>
+            <layout>default</layout>
+            <url>LOCAL_MAVEN_REPO_URL</url>
+        </repository>
+    </repositories>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

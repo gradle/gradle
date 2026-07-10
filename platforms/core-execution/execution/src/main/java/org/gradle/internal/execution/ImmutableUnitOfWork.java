@@ -1,0 +1,54 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.execution;
+
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * A unit of work that will only be executed atomically and its outputs be reused indefinitely from an immutable workspace.
+ */
+public interface ImmutableUnitOfWork extends UnitOfWork {
+    /**
+     * Returns the {@link ImmutableWorkspaceProvider} to allocate a workspace to execution this work in.
+     */
+    ImmutableWorkspaceProvider getWorkspaceProvider();
+
+    /**
+     * @deprecated Immutable work should only have immutable inputs.
+     *
+     * TODO Move this method to {@link MutableUnitOfWork}
+     */
+    @Override
+    @Deprecated
+    default void visitMutableInputs(InputVisitor visitor) {}
+
+    @Override
+    default List<String> getAllOutputLocationsForInvalidation(File workspace) {
+        // For immutable work we can just invalidate the entire workspace
+        return Collections.singletonList(workspace.getAbsolutePath());
+    }
+
+    @Override
+    default List<String> getCachedOutputLocationsForInvalidation(File workspace) {
+        // For immutable work we can just invalidate the entire workspace
+        return Collections.singletonList(workspace.getAbsolutePath());
+    }
+}

@@ -1,0 +1,14 @@
+plugins {
+    id 'xctest'
+}
+
+// tag::test-filtering[]
+xctest {
+    binaries.configureEach {
+        runTask.get().configure {
+            // include all tests from test class
+            filter.includeTestsMatching "SomeIntegTest.*" // or `"Testing.SomeIntegTest.*"` on macOS
+        }
+    }
+}
+// end::test-filtering[]

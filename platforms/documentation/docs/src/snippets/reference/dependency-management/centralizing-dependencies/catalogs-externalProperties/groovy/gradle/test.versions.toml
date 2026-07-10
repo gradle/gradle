@@ -1,0 +1,7 @@
+# The "errorProne" and "kotlin" versions are injected
+# programmatically in settings.gradle.kts — do not
+# declare them here.
+
+[libraries]
+errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorProne" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

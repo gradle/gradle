@@ -1,0 +1,96 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal;
+
+import org.gradle.internal.buildoption.FeatureFlag;
+import org.jspecify.annotations.Nullable;
+
+public class FeaturePreviews {
+
+    /**
+     * Feature previews that can be turned on.
+     * A feature that is no longer relevant will have the {@code active} flag set to {@code false}.
+     */
+    public enum Feature implements FeatureFlag {
+        GROOVY_COMPILATION_AVOIDANCE(true, null),
+        TYPESAFE_PROJECT_ACCESSORS(true, null),
+        STABLE_CONFIGURATION_CACHE(true, "org.gradle.configuration-cache.stable"),
+        /**
+         * When enabled, service usage must be explicitly declared, or deprecation warnings will be issued.
+         * <p>
+         *     This functionality used to be behind {@link #STABLE_CONFIGURATION_CACHE}, but since it triggers false
+         *     positives and does not cover several required scenarios
+         *     (services used by work that is not tasks, services used at configuration time),
+         *     it is now behind a specific (internal) feature, used only by some internal tests.
+         * </p>
+         */
+        INTERNAL_BUILD_SERVICE_USAGE(true, null),
+        /**
+         * When enabled, child projects do not implicitly resolve properties or methods
+         * from their parent projects. Opts the build into the Gradle 10 behavior early.
+         * The deprecation warning that fires for implicit lookups from parent projects in
+         * Vintage mode will be silent under this preview because the lookup is disabled
+         * at the source.
+         */
+        NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS(true, null),
+        /**
+         * This exists to test inactive feature previews
+         */
+        ALWAYS_INACTIVE(false, null),
+        /**
+         * Whether to use improved dependency graph sort ordering. With this feature enabled:
+         *
+         * <ul>
+         *  <li>{@link org.gradle.api.artifacts.ResolutionStrategy.SortOrder#DEFAULT} will sort the graph in a traditional BFS order.</li>
+         *  <li>{@link org.gradle.api.artifacts.ResolutionStrategy.SortOrder#CONSUMER_FIRST} will sort the graph in a topological order.</li>
+         *  <li>{@link org.gradle.api.artifacts.ResolutionStrategy.SortOrder#DEPENDENCY_FIRST} will sort the graph in a reverse topological order.</li>
+         * </ul>
+         *
+         * @see <a href="https://docs.gradle.org/nightly/userguide/upgrading_version_9.html#dependency_resolution_ordering">Upgrade Guide</a>
+         */
+        ENHANCED_GRAPH_ORDERING(true, null);
+
+        public static Feature withName(String name) {
+            try {
+                return valueOf(name);
+            } catch (IllegalArgumentException e) {
+                // Re-wording to exception message to get rid of the fqcn it contains
+                throw new IllegalArgumentException("There is no feature named " + name);
+            }
+        }
+
+        private final boolean active;
+        private final String systemPropertyName;
+
+        Feature(boolean active, @Nullable String systemPropertyName) {
+            this.active = active;
+            this.systemPropertyName = systemPropertyName;
+        }
+
+        /**
+         * Returns whether the feature is still relevant.
+         */
+        public boolean isActive() {
+            return active;
+        }
+
+        @Nullable
+        @Override
+        public String getSystemPropertyName() {
+            return systemPropertyName;
+        }
+    }
+}

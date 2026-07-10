@@ -1,0 +1,11 @@
+plugins {
+    id("scala")
+}
+
+repositories {
+    mavenCentral()
+}
+
+scala {
+    scalaVersion = "3.0.1"
+}

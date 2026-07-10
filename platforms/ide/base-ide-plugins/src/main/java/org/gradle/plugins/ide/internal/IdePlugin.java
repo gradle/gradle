@@ -1,0 +1,241 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.plugins.ide.internal;
+
+import com.google.common.base.Optional;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Action;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Delete;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.plugins.ide.IdeWorkspace;
+import org.gradle.process.ExecOperations;
+
+import javax.inject.Inject;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+
+public abstract class IdePlugin implements Plugin<Project> {
+    private static final Logger LOGGER = Logging.getLogger(IdePlugin.class);
+
+    private TaskProvider<Task> lifecycleTask;
+    private TaskProvider<Delete> cleanTask;
+    protected Project project;
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
+    /**
+     * Returns the path to the correct Gradle distribution to use. The wrapper of the generating project will be used only if the execution context of the currently running Gradle is in the Gradle home (typical of a wrapper execution context). If this isn't the case, we try to use the current Gradle home, if available, as the distribution. Finally, if nothing matches, we default to the system-wide Gradle distribution.
+     *
+     * @param project the Gradle project generating the IDE files
+     * @return path to Gradle distribution to use within the generated IDE files
+     */
+    public static String toGradleCommand(Project project) {
+        Gradle gradle = project.getGradle();
+        Optional<String> gradleWrapperPath = Optional.absent();
+
+        Project rootProject = project.getRootProject();
+        String gradlewExtension = OperatingSystem.current().isWindows() ? ".bat" : "";
+        File gradlewFile = rootProject.file("gradlew" + gradlewExtension);
+        if (gradlewFile.exists()) {
+            gradleWrapperPath = Optional.of(gradlewFile.getAbsolutePath());
+        }
+
+        if (gradle.getGradleHomeDir() != null) {
+            if (gradleWrapperPath.isPresent() && gradle.getGradleHomeDir().getAbsolutePath().startsWith(gradle.getGradleUserHomeDir().getAbsolutePath())) {
+                return gradleWrapperPath.get();
+            }
+            return gradle.getGradleHomeDir().getAbsolutePath() + "/bin/gradle";
+        }
+
+        return gradleWrapperPath.or("gradle");
+    }
+
+    @Override
+    public void apply(Project target) {
+        project = target;
+        lifecycleTask = target.getTasks().register(getLifecycleTaskName());
+        cleanTask = target.getTasks().register(cleanName(getLifecycleTaskName()), Delete.class, new Action<Delete>() {
+            @Override
+            public void execute(Delete task) {
+                task.setGroup("IDE");
+                if (shouldDeprecateLifecycleTask()) {
+                    task.doFirst(deprecateTaskAction());
+                }
+            }
+        });
+        lifecycleTask.configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.setGroup("IDE");
+                task.shouldRunAfter(cleanTask);
+                if (shouldDeprecateLifecycleTask()) {
+                    task.doFirst(deprecateTaskAction());
+                }
+            }
+        });
+        onApply(target);
+    }
+
+    public TaskProvider<? extends Task> getLifecycleTask() {
+        return lifecycleTask;
+    }
+
+    public TaskProvider<? extends Task> getCleanTask() {
+        return cleanTask;
+    }
+
+    protected String cleanName(String taskName) {
+        return String.format("clean%s", StringUtils.capitalize(taskName));
+    }
+
+    public void addWorker(Task worker) {
+        addWorker(project.getTasks().named(worker.getName()), worker.getName());
+    }
+
+    public void addWorker(TaskProvider<? extends Task> worker, String workerName) {
+        addWorker(worker, workerName, true);
+    }
+
+    public void addWorker(Task worker, boolean includeInClean) {
+        addWorker(project.getTasks().named(worker.getName()), worker.getName(), includeInClean);
+    }
+
+    public void addWorker(final TaskProvider<? extends Task> worker, String workerName, boolean includeInClean) {
+        lifecycleTask.configure(dependsOn(worker));
+        final TaskProvider<Delete> cleanWorker = project.getTasks().register(cleanName(workerName), Delete.class, new Action<Delete>() {
+            @Override
+            public void execute(Delete cleanWorker) {
+                cleanWorker.delete(worker);
+                cleanWorker.doFirst(deprecateTaskAction());
+            }
+        });
+
+        if (includeInClean) {
+            cleanTask.configure(dependsOn(cleanWorker));
+        }
+
+        // Always schedule the generation task after the clean task
+        worker.configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.shouldRunAfter(cleanWorker);
+            }
+        });
+    }
+
+    protected static Action<? super Task> dependsOn(final Task taskDependency) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(taskDependency);
+            }
+        };
+    }
+
+    protected static Action<? super Task> dependsOn(final TaskProvider<? extends Task> taskProvider) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(taskProvider);
+            }
+        };
+    }
+
+    private static Action<Task> deprecateTaskAction() {
+        return SerializableLambdas.action(task -> DeprecationLogger.deprecateTask(task.getName())
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "ide_task_deprecation")
+            .nagUser());
+    }
+
+    protected static Action<? super Task> withDescription(final String description) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.setDescription(description);
+            }
+        };
+    }
+
+    protected void onApply(Project target) {
+    }
+
+    protected void addWorkspace(final IdeWorkspace workspace) {
+        lifecycleTask.configure(new Action<Task>() {
+            @Override
+            public void execute(Task lifecycleTask) {
+                String displayName = workspace.getDisplayName();
+                Provider<? extends FileSystemLocation> location = workspace.getLocation();
+                lifecycleTask.doLast(SerializableLambdas.action(t -> {
+                    LOGGER.lifecycle(String.format("Generated %s at %s", displayName, new ConsoleRenderer().asClickableFileUrl(location.get().getAsFile())));
+                }));
+            }
+        });
+
+        project.getTasks().register("open" + StringUtils.capitalize(getLifecycleTaskName()), new Action<Task>() {
+            @Override
+            public void execute(Task openTask) {
+                openTask.dependsOn(lifecycleTask);
+                openTask.setGroup("IDE");
+                openTask.setDescription("Opens the " + workspace.getDisplayName());
+
+                ExecOperations execOperations = getExecOperations();
+                if (shouldDeprecateLifecycleTask()) {
+                    openTask.doFirst(deprecateTaskAction());
+                }
+                openTask.doLast(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        if (OperatingSystem.current().isMacOsX()) {
+                            execOperations.exec(execSpec -> execSpec.commandLine("open", workspace.getLocation().get()));
+                        } else {
+                            try {
+                                Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());
+                            } catch (IOException e) {
+                                throw UncheckedException.throwAsUncheckedException(e);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    protected abstract String getLifecycleTaskName();
+
+    protected boolean shouldDeprecateLifecycleTask() {
+        return false;
+    };
+
+    public boolean isRoot() {
+        return project.getParent() == null;
+    }
+}

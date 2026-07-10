@@ -1,0 +1,82 @@
+name: "Open a bot PR"
+description: "Commit the current working-tree changes onto a branch, push it, and open a PR as bot-gradle (optionally asking the merge bot to test and merge)."
+
+inputs:
+  branch:
+    description: "Branch to create the changes on and open the PR from"
+    required: true
+  title:
+    description: "PR title (also used as the PR body)"
+    required: true
+  message:
+    description: "Commit message"
+    required: true
+  reviewer:
+    description: "Reviewer to request on the PR"
+    required: true
+  labels:
+    description: "Comma-separated labels to apply to the PR"
+    required: false
+  bot-command:
+    description: "@bot-gradle comment to post: 'test and merge' tests then auto-merges, 'test <pipeline>' tests only, empty posts nothing"
+    required: false
+    default: "test and merge"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v6
+      with:
+        role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
+        aws-region: "eu-central-1"
+    - name: Get bot token
+      uses: aws-actions/aws-secretsmanager-get-secrets@v3
+      with:
+        secret-ids: |
+          BOT_GRADLE_GITHUB_TOKEN, gha/gradle/_all/BOT_GRADLE_GITHUB_TOKEN
+    - name: Commit, push, and open PR
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ env.BOT_GRADLE_GITHUB_TOKEN }}
+        BRANCH: ${{ inputs.branch }}
+        PR_TITLE: ${{ inputs.title }}
+        COMMIT_MSG: ${{ inputs.message }}
+        REVIEWER: ${{ inputs.reviewer }}
+        LABELS: ${{ inputs.labels }}
+        BOT_COMMAND: ${{ inputs.bot-command }}
+      run: |
+        set -euo pipefail
+        if [ -z "$(git status --porcelain)" ]; then
+          echo "No changes."
+          exit 0
+        fi
+
+        # Don't touch the branch if a PR is already open: someone may be working on it.
+        if [ -n "$(gh pr list --state open --head "$BRANCH" --json number --jq '.[].number')" ]; then
+          echo "An open PR for $BRANCH already exists; skipping."
+          exit 0
+        fi
+
+        git config user.name  "bot-gradle"
+        git config user.email "bot-gradle@gradle.com"
+        git checkout -B "$BRANCH"
+        git add -A
+        git commit -s -m "$COMMIT_MSG"
+
+        # Replace any stale branch left behind by a previously-closed PR.
+        git push origin --delete "$BRANCH" 2>/dev/null || true
+        git push origin "$BRANCH"
+
+        label_arg=()
+        [ -n "$LABELS" ] && label_arg=(--label "$LABELS")
+        gh pr create \
+          --base master \
+          --title "$PR_TITLE" \
+          --body "$PR_TITLE" \
+          --reviewer "$REVIEWER" \
+          "${label_arg[@]}"
+
+        if [ -n "$BOT_COMMAND" ]; then
+          gh pr comment "$BRANCH" --body "@bot-gradle $BOT_COMMAND"
+        fi

@@ -1,0 +1,12 @@
+{
+    "formatVersion": "1.0",
+    "component": {
+        "group": "org.gradle.test",
+        "module": "publishTest",
+        "version": "1.9",
+        "attributes": {
+            "org.gradle.status": "milestone",
+            "quality": "canary"
+        }
+    }
+}

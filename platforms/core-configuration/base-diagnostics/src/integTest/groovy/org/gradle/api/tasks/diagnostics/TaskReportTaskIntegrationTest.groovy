@@ -1,0 +1,551 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.tasks.diagnostics
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
+
+class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
+    private final static String[] TASKS_REPORT_TASK = ['tasks'] as String[]
+    private final static String[] TASKS_DETAILED_REPORT_TASK = TASKS_REPORT_TASK + ['--all'] as String[]
+    private final static String GROUP = 'Hello world'
+    private final static String GROUP_1 = 'Group 1'
+    private final static String GROUP_2 = 'Group 2'
+
+    def "shows Default task defined in build file when run with --provenance"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--provenance"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHello (registered in build file 'build.gradle')""")
+    }
+
+    def "shows Default tasks with same name defined in multiple projects when run with --provenance]"() {
+        given:
+        settingsFile << "include 'sub1', 'sub2'"
+
+        file('sub1/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+        file('sub2/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--provenance", "--all"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sub1:sayHello (registered in build file 'sub1${File.separatorChar}build.gradle')
+sub2:sayHello (registered in build file 'sub2${File.separatorChar}build.gradle')""")
+    }
+
+    def "shows Custom task defined in build file when run with --provenance"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+class HelloTask extends DefaultTask {
+    final Property<String> message = project.objects.property(String).convention("Hello!")
+
+    @TaskAction def sayHello() {
+        println(message.get())
+    }
+}
+
+task sayHi(type: HelloTask) {
+    group = 'Build'
+    message = 'Hi!'
+}"""
+
+        when:
+        succeeds "tasks", "--provenance"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHi (registered in build file 'build.gradle')""")
+    }
+
+    def "shows Default task defined in build file when run with --types"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--types"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHello (org.gradle.api.DefaultTask)""")
+    }
+
+    def "shows Default tasks with same name defined in multiple projects when run with --types"() {
+        given:
+        settingsFile << "include 'sub1', 'sub2'"
+
+        file('sub1/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+        file('sub2/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--types", "--all"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sub1:sayHello (org.gradle.api.DefaultTask)
+sub2:sayHello (org.gradle.api.DefaultTask)""")
+    }
+
+    def "shows Custom task defined in build file when run with --types"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+class HelloTask extends DefaultTask {
+    final Property<String> message = project.objects.property(String).convention("Hello!")
+
+    @TaskAction def sayHello() {
+        println(message.get())
+    }
+}
+
+task sayHi(type: HelloTask) {
+    group = 'Build'
+    message = 'Hi!'
+}"""
+
+        when:
+        succeeds "tasks", "--types"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHi (HelloTask)""")
+    }
+
+    def "shows type and provenance for Default task defined in build file when run with --types and --provenance"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--types", "--provenance"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHello (org.gradle.api.DefaultTask) (registered in build file 'build.gradle')""")
+    }
+
+    def "always renders task rule running #tasks"() {
+        given:
+        buildFile << """
+            tasks.addRule("Pattern: ping<ID>") { String taskName ->
+                if (taskName.startsWith("ping")) {
+                    task(taskName) {
+                        doLast {
+                            println "Pinging: " + (taskName - 'ping')
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds tasks
+
+        then:
+        output.contains("""
+Rules
+-----
+Pattern: ping<ID>
+""")
+        where:
+        tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
+    }
+
+    def "renders tasks with and without group running #tasks"() {
+        given:
+        buildFile << """
+            task a {
+                group = '$GROUP'
+            }
+
+            task b
+        """
+
+        when:
+        succeeds tasks
+
+        then:
+        output.contains("""
+$helloWorldGroupHeader
+a
+""") == rendersGroupedTask
+        output.contains("""
+$otherGroupHeader
+b
+""") == rendersUngroupedTask
+
+        where:
+        tasks                      | rendersGroupedTask | rendersUngroupedTask
+        TASKS_REPORT_TASK          | true               | false
+        TASKS_DETAILED_REPORT_TASK | true               | true
+    }
+
+    def "renders task with dependencies without group in detailed report running #tasks"() {
+        given:
+        buildFile << """
+            task a
+
+            task b {
+                dependsOn a
+            }
+        """
+
+        when:
+        succeeds tasks
+
+        then:
+        output.contains("""
+$otherGroupHeader
+a
+b
+""") == rendersTasks
+
+        where:
+        tasks                      | rendersTasks
+        TASKS_REPORT_TASK          | false
+        TASKS_DETAILED_REPORT_TASK | true
+    }
+
+    def "renders grouped task with dependencies in detailed report running #tasks"() {
+        given:
+        buildFile << """
+            task a {
+                group = '$GROUP'
+            }
+
+            task b {
+                group = '$GROUP'
+                dependsOn a
+            }
+        """
+
+        when:
+        succeeds tasks
+
+        then:
+        output.contains("""
+$helloWorldGroupHeader
+a
+b
+""")
+
+        where:
+        tasks                      | rendersTasks
+        TASKS_REPORT_TASK          | true
+        TASKS_DETAILED_REPORT_TASK | true
+    }
+
+    def "renders tasks in given groups running [tasks, --groups=Group 1]"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << twoGroupsTasks()
+
+        when:
+        succeeds "tasks", "--groups=Group 1"
+
+        then:
+        output.contains("$GROUP_1 tasks")
+        !output.contains("$GROUP_2 tasks")
+        !output.contains("Build Setup")
+    }
+
+    def "renders tasks in given groups running [tasks, --groups=Group 1, --groups=Group 2]"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << twoGroupsTasks()
+
+        when:
+        succeeds "tasks", "--groups=Group 1", "--groups=Group 2"
+
+        then:
+        output.contains("$GROUP_1 tasks")
+        output.contains("$GROUP_2 tasks")
+        !output.contains("Build Setup")
+    }
+
+    def "renders tasks given by group and groups running [tasks, --group=Group 1, --groups=Group 2]"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << twoGroupsTasks()
+
+        when:
+        succeeds "tasks", "--group=Group 1", "--groups=Group 2"
+
+        then:
+        output.contains("$GROUP_1 tasks")
+        output.contains("$GROUP_2 tasks")
+        !output.contains("Build Setup")
+    }
+
+    def "renders tasks in a multi-project build running [tasks]"() {
+        given:
+        settingsFile << "include 'sub1', 'sub2'"
+        buildFile << """
+            task a {
+                group = '$GROUP'
+            }
+            task c
+        """
+        file("sub1/build.gradle") << """
+            task a {
+                group = '$GROUP'
+            }
+            task b
+        """
+        file("sub2/build.gradle") << """
+            task a {
+                group = '$GROUP'
+            }
+            task b
+        """
+
+        when:
+        succeeds TASKS_REPORT_TASK
+
+        then:
+        output.contains("""
+$helloWorldGroupHeader
+a
+""")
+        !output.contains("""
+$otherGroupHeader
+c
+""")
+    }
+
+    def "renders tasks in a multi-project build running [tasks, --all]"() {
+        given:
+        settingsFile << "include 'sub1', 'sub2'"
+        buildFile << """
+            task a {
+                group = '$GROUP'
+            }
+            task c
+        """
+        file("sub1/build.gradle") << """
+            task a {
+                group = '$GROUP'
+            }
+            task b
+        """
+        file("sub2/build.gradle") << """
+            task a {
+                group = '$GROUP'
+            }
+            task b
+        """
+
+        when:
+        succeeds TASKS_DETAILED_REPORT_TASK
+
+        then:
+        output.contains("""
+$helloWorldGroupHeader
+a
+sub1:a
+sub2:a
+""")
+        output.contains("""
+$otherGroupHeader
+sub1:b
+sub2:b
+c
+""")
+    }
+
+    def "task selector description is taken from task that TaskNameComparator considers to be of lowest ordering"() {
+        given:
+        settingsFile << """
+include 'sub1'
+include 'sub2'
+"""
+        file("sub1/build.gradle") << """
+            task alpha {
+                group = '$GROUP'
+                description = 'ALPHA_in_sub1'
+            }
+        """
+        file("sub2/build.gradle") << """
+            task alpha {
+                group = '$GROUP'
+                description = 'ALPHA_in_sub2'
+            }
+        """
+
+        when:
+        succeeds TASKS_REPORT_TASK
+
+        then:
+        output.contains """
+$helloWorldGroupHeader
+alpha - ALPHA_in_sub1
+"""
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-2023")
+    def "can deal with tasks with named task dependencies that are created by rules"() {
+        when:
+        buildFile << getBuildScriptContent()
+
+        then:
+        succeeds TASKS_DETAILED_REPORT_TASK
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-2023")
+    def "can deal with tasks with named task dependencies that are created by rules - multiproject"() {
+        when:
+        settingsFile << "include 'module'"
+
+        file("module/build.gradle") << getBuildScriptContent()
+
+        then:
+        succeeds TASKS_DETAILED_REPORT_TASK
+    }
+
+    def "can run multiple task reports in parallel"() {
+        given:
+        def projects = (1..100).collect {"project$it"}
+        createDirs(projects as String[])
+        settingsFile << "include '${projects.join("', '")}'"
+
+        expect:
+        succeeds(":tasks", *projects.collect { "$it:tasks" }, "--parallel")
+    }
+
+    protected static String getBuildScriptContent() {
+        """
+            tasks.addRule("test rule") {
+                if (it.startsWith("autoCreate")) {
+                    def name = it - "autoCreate"
+                    name = name[0].toLowerCase() + name[1..-1]
+                    if (tasks.findByName(name)) {
+                        project.tasks.create(it)
+                    }
+                }
+            }
+
+            // Source task must be alphabetically before task that is created by dependency
+            task aaa { dependsOn("autoCreateFoo") }
+            task foo
+        """
+    }
+
+    static String getHelloWorldGroupHeader() {
+        getGroupHeader(GROUP)
+    }
+
+    static String getOtherGroupHeader() {
+        getGroupHeader('Other')
+    }
+
+    private static String getGroupHeader(String group) {
+        String header = "$group tasks"
+        """$header
+${'-' * header.length()}"""
+    }
+
+
+    static String twoGroupsTasks() {
+        """
+            task task1 {
+                group = "$GROUP_1"
+            }
+            task task2 {
+                group = "$GROUP_2"
+            }
+        """
+    }
+}

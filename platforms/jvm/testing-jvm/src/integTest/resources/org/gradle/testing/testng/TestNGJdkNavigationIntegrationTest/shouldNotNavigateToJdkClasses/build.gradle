@@ -1,0 +1,14 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.testng:testng:6.9.13.3'
+    testImplementation 'org.apache.felix:org.osgi.foundation:1.2.0'
+}
+
+test {
+    useTestNG()
+}

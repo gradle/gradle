@@ -1,0 +1,127 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.plugins.signing.signatory.pgp;
+
+import org.bouncycastle.bcpg.BCPGOutputStream;
+import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPSecretKey;
+import org.bouncycastle.openpgp.PGPSignature;
+import org.bouncycastle.openpgp.PGPSignatureGenerator;
+import org.bouncycastle.openpgp.PGPUtil;
+import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.UncheckedException;
+import org.gradle.plugins.signing.signatory.SignatorySupport;
+import org.gradle.plugins.signing.signatory.internal.pgp.PgpSignatoryUtil;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+/**
+ * PGP signatory from PGP key and password.
+ */
+public class PgpSignatory extends SignatorySupport {
+
+    private final String name;
+    private final Provider<PGPSecretKey> secretKey;
+    private final Provider<PGPPrivateKey> privateKey;
+
+    /**
+     * Creates a PGP signatory from secret and private key.
+     * <p>
+     * <b>Warning</b>: the dependencies of providers aren't exposed anywhere.
+     * Consider using {@link PgpSignatoryFactory} to create instances of this class instead.
+     *
+     * @param name the name of the signatory
+     * @param secretKey the secret key
+     * @param privateKey the private key extracted from the secret key
+     */
+    PgpSignatory(String name, Provider<PGPSecretKey> secretKey, Provider<PGPPrivateKey> privateKey) {
+        this.name = name;
+        this.secretKey = secretKey;
+        this.privateKey = privateKey;
+    }
+
+    // This is a legacy constructor. It is a public API, so it has to be preserved, but it shouldn't be used internally.
+    public PgpSignatory(String name, PGPSecretKey secretKey, String password) {
+        this(name, Providers.of(secretKey), Providers.of(PgpSignatoryUtil.extractPrivateKey(secretKey, password)));
+    }
+
+    @Override
+    public final String getName() {
+        return name;
+    }
+
+    /**
+     * Exhausts {@code toSign}, and writes the signature to {@code signatureDestination}.
+     *
+     * The caller is responsible for closing the streams, though the output WILL be flushed.
+     */
+    @Override
+    public void sign(InputStream toSign, OutputStream signatureDestination) {
+        PGPSignatureGenerator generator = createSignatureGenerator();
+        try {
+            feedGeneratorWith(toSign, generator);
+
+            PGPSignature signature = generator.generate();
+            writeSignatureTo(signatureDestination, signature);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (PGPException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
+    public String getKeyId() {
+        PgpKeyId id = new PgpKeyId(secretKey.get().getKeyID());
+        return id.getAsHex();
+    }
+
+    private void feedGeneratorWith(InputStream toSign, PGPSignatureGenerator generator) throws IOException {
+        byte[] buffer = new byte[1024];
+        int read = toSign.read(buffer);
+        while (read > 0) {
+            generator.update(buffer, 0, read);
+            read = toSign.read(buffer);
+        }
+    }
+
+    private void writeSignatureTo(OutputStream signatureDestination, PGPSignature pgpSignature) throws IOException {
+        // BCPGOutputStream seems to do some internal buffering, it's unclear whether it's strictly required here though
+        BCPGOutputStream bufferedOutput = new BCPGOutputStream(signatureDestination);
+        pgpSignature.encode(bufferedOutput);
+        bufferedOutput.flush();
+    }
+
+    public PGPSignatureGenerator createSignatureGenerator() {
+        try {
+            PGPPublicKey publicKey = this.secretKey.get().getPublicKey();
+            PGPPrivateKey privateKey = this.privateKey.get();
+
+            BcPGPContentSignerBuilder builder = new BcPGPContentSignerBuilder(publicKey.getAlgorithm(), PGPUtil.SHA512);
+            PGPSignatureGenerator generator = new PGPSignatureGenerator(builder, publicKey);
+            generator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
+            return generator;
+        } catch (PGPException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+}

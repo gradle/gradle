@@ -1,0 +1,16 @@
+plugins {
+    id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
+    id("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
+}
+
+description = "Provides plugins that create update tasks for the Gradle build"
+
+dependencies {
+    implementation(projects.jvm)
+    implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+    implementation(buildLibs.gson)
+    implementation(buildLibs.jsoup)
+    implementation(libs.asm)
+    implementation(libs.maven3RepositoryMetadata)
+}

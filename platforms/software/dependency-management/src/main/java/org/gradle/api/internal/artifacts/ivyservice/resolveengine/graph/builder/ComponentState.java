@@ -1,0 +1,404 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
+import org.gradle.internal.component.model.ComponentIdGenerator;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
+import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.StreamSupport;
+
+/**
+ * Resolution state for a given component
+ */
+public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
+    private final ComponentIdentifier componentIdentifier;
+    private final ModuleVersionIdentifier id;
+    private final ComponentMetaDataResolver resolver;
+    private final List<NodeState> nodes = new LinkedList<>();
+    private final Long resultId;
+    private final ModuleResolveState module;
+    private final List<ComponentSelectionDescriptorInternal> selectionCauses = new ArrayList<>();
+    private final int hashCode;
+
+    private volatile ComponentGraphResolveState resolveState;
+    private volatile ComponentGraphSpecificResolveState graphResolveState;
+
+    /**
+     * An evicted component has been evicted and will never (*), ever be chosen starting from the moment it is evicted.
+     * Either because it has been excluded, or because conflict resolution selected a different version.
+     *
+     * // TODO: (*) This invariant was originally stated, but existing logic in practice
+     * violated this condition. We should clarify whether we intend for this invariant to hold
+     * and if so how we can enforce it.
+     */
+    private boolean evicted = false;
+
+    private @Nullable  ModuleVersionResolveException metadataResolveFailure;
+    private ModuleSelectors<SelectorState> selectors;
+    private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
+
+    private boolean rejected;
+    private boolean root;
+
+    ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
+        this.resultId = resultId;
+        this.module = module;
+        this.id = id;
+        this.componentIdentifier = componentIdentifier;
+        this.resolver = resolver;
+        this.hashCode = 31 * id.hashCode() ^ Long.hashCode(resultId);
+    }
+
+    @Override
+    public String toString() {
+        return id.toString();
+    }
+
+    @Override
+    public String getVersion() {
+        return id.getVersion();
+    }
+
+    @Override
+    public long getResultId() {
+        return resultId;
+    }
+
+    @Override
+    public ModuleVersionIdentifier getId() {
+        return id;
+    }
+
+    @Nullable
+    @Override
+    public String getRepositoryName() {
+        return graphResolveState.getRepositoryName();
+    }
+
+    @Override
+    public ModuleVersionIdentifier getModuleVersion() {
+        return id;
+    }
+
+    @Nullable
+    public ModuleVersionResolveException getMetadataResolveFailure() {
+        return metadataResolveFailure;
+    }
+
+    public DependencyGraphBuilder.VisitState getVisitState() {
+        return visitState;
+    }
+
+    public void setVisitState(DependencyGraphBuilder.VisitState visitState) {
+        this.visitState = visitState;
+    }
+
+    public List<NodeState> getNodes() {
+        return nodes;
+    }
+
+    @Override
+    public ModuleResolveState getModule() {
+        return module;
+    }
+
+    @Override
+    @Nullable
+    public ComponentGraphResolveMetadata getMetadataOrNull() {
+        resolve();
+        if (resolveState == null) {
+            return null;
+        } else {
+            return resolveState.getMetadata();
+        }
+    }
+
+    public ComponentGraphResolveMetadata getMetadata() {
+        resolve();
+        return resolveState.getMetadata();
+    }
+
+    @Override
+    public ComponentGraphResolveState getResolveState() {
+        resolve();
+        assert resolveState != null;
+        return resolveState;
+    }
+
+    @Nullable
+    public ComponentGraphResolveState getResolveStateOrNull() {
+        resolve();
+        return resolveState;
+    }
+
+    @Override
+    public ComponentIdentifier getComponentId() {
+        // Use the resolved component id if available: this ensures that Maven Snapshot ids are correctly reported
+        if (resolveState != null) {
+            return resolveState.getId();
+        }
+        return componentIdentifier;
+    }
+
+    public void setSelectors(ModuleSelectors<SelectorState> selectors) {
+        this.selectors = selectors;
+    }
+
+    /**
+     * Returns true if this module version can be resolved quickly (already resolved or local)
+     *
+     * @return true if it has been resolved in a cheap way
+     */
+    public boolean alreadyResolved() {
+        return resolveState != null || metadataResolveFailure != null;
+    }
+
+    public void resolve() {
+        if (alreadyResolved()) {
+            return;
+        }
+
+        if (module.isVirtualPlatform()) {
+            // Modules have registered as participants of this platform via belongsTo.
+            // This means the platform is virtual. Resolve with synthetic virtual platform
+            // metadata without attempting a real download.
+            resolveAsVirtualPlatform();
+            return;
+        }
+
+        ComponentOverrideMetadata componentOverrideMetadata;
+        if (selectors != null && selectors.size() > 0) {
+            // Taking the first selector here to determine the 'changing' status is our best bet to get the selector that will most likely be chosen in the end.
+            // As selectors are sorted accordingly (see ModuleSelectors.SELECTOR_COMPARATOR).
+            SelectorState firstSelector = selectors.first();
+
+            componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelector.isChanging(), selectors.getFirstDependencyArtifact());
+        } else {
+            componentOverrideMetadata = DefaultComponentOverrideMetadata.EMPTY;
+        }
+
+        DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
+        resolver.resolve(componentIdentifier, componentOverrideMetadata, result);
+
+        if (result.getFailure() != null) {
+            metadataResolveFailure = result.getFailure();
+            return;
+        }
+        resolveState = result.getState();
+        graphResolveState = result.getGraphState();
+    }
+
+    /**
+     * Create a new virtual platform state and resolve this component using that state.
+     */
+    void resolveAsVirtualPlatform() {
+        ResolveState resolveState = module.getResolveState();
+        ComponentIdGenerator idGenerator = resolveState.getIdGenerator();
+        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentIdentifier, id);
+        LenientPlatformGraphResolveState virtualPlatformState = new LenientPlatformGraphResolveState(
+            idGenerator.nextComponentId(),
+            idGenerator.nextVariantId(),
+            metadata,
+            module.getPlatformState(),
+            resolveState
+        );
+
+        setState(virtualPlatformState, ComponentGraphSpecificResolveState.EMPTY_STATE);
+    }
+
+    public void setState(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
+        this.resolveState = state;
+        this.graphResolveState = graphState;
+        this.metadataResolveFailure = null;
+    }
+
+    public void addNode(NodeState node) {
+        nodes.add(node);
+    }
+
+    private @Nullable ComponentSelectionReasonInternal cachedReason;
+
+    @Override
+    public ComponentSelectionReasonInternal getSelectionReason() {
+        if (cachedReason == null) {
+            cachedReason = computeReason();
+        }
+        return cachedReason;
+    }
+
+    private ComponentSelectionReasonInternal computeReason() {
+        if (root) {
+            return ComponentSelectionReasons.root();
+        }
+
+        ImmutableSet.Builder<ComponentSelectionDescriptorInternal> builder = ImmutableSet.builder();
+        for (SelectorState selectorState : module.getSelectors()) {
+            if (selectorState.getFailure() == null) {
+                selectorState.visitSelectionReasons(builder::add);
+            }
+        }
+
+        module.visitAllIncomingEdges(incomingEdge -> incomingEdge.visitSelectionReasons(builder::add));
+
+        builder.addAll(VersionConflictResolutionDetails.mergeCauses(selectionCauses));
+        return ComponentSelectionReasons.of(builder.build());
+    }
+
+    boolean hasStrongOpinion() {
+        return StreamSupport.stream(module.getSelectors().spliterator(), false)
+            .filter(s -> s.getFailure() == null)
+            .anyMatch(SelectorState::hasStrongOpinion);
+    }
+
+    @Override
+    public void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor) {
+        selectionCauses.add(componentSelectionDescriptor);
+    }
+
+    public void setRoot() {
+        this.root = true;
+    }
+
+    public boolean isRoot() {
+        return root;
+    }
+
+    @Override
+    public List<ResolvedGraphVariant> getSelectedVariants() {
+        ImmutableList.Builder<ResolvedGraphVariant> builder = ImmutableList.builder();
+        addSelectedVariants(builder::add);
+        return builder.build();
+    }
+
+    private void addSelectedVariants(Consumer<ResolvedGraphVariant> consumer) {
+        for (NodeState node : nodes) {
+            if (node.isSelected()) {
+                consumer.accept(node);
+            }
+        }
+    }
+
+    @Override
+    public List<ComponentState> getDependents() {
+        List<ComponentState> incoming = new ArrayList<>(nodes.size());
+        for (NodeState node : nodes) {
+            for (EdgeState dependencyEdge : node.getIncomingEdges()) {
+                incoming.add(dependencyEdge.getFrom().getComponent());
+            }
+        }
+        return incoming;
+    }
+
+    public boolean isNotEvicted() {
+        return !evicted;
+    }
+
+    void evict() {
+        this.evicted = true;
+    }
+
+    void unEvict() {
+        this.evicted = false;
+    }
+
+    @Override
+    public void reject() {
+        this.rejected = true;
+    }
+
+    @Override
+    public boolean isRejected() {
+        return rejected;
+    }
+
+    public String getRejectedErrorMessage() {
+        return new ComponentRejectedMessageBuilder().buildFailureMessage(module);
+    }
+
+    @Override
+    public Set<VirtualPlatformState> getPlatformOwners() {
+        return module.getPlatformOwners();
+    }
+
+    @Override
+    public VirtualPlatformState getPlatformState() {
+        return module.getPlatformState();
+    }
+
+    public ImmutableCapability getImplicitCapability() {
+        return resolveState.getDefaultCapability();
+    }
+
+    public boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
+        int count = 0;
+        for (NodeState node : nodes) {
+            if (node.isSelectedByVariantAwareResolution()) {
+                count++;
+                if (count == 2) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ComponentState that = (ComponentState) o;
+
+        return that.resultId.equals(resultId);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
+}

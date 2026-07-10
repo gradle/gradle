@@ -1,0 +1,82 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+class Helper(private val providers: ProviderFactory) {
+    val originalUrls: Map<String, String> = mapOf(
+        "mavencentral" to "https://repo.maven.apache.org/maven2/",
+        "google" to "https://dl.google.com/dl/android/maven2/",
+        "gradle" to "https://repo.gradle.org/gradle/repo",
+        "gradle-prod-plugins" to "https://plugins.gradle.org/m2",
+        "gradlejavascript" to "https://repo.gradle.org/gradle/javascript-public",
+        "gradle-public" to "https://repo.gradle.org/gradle/public",
+        "gradle-enterprise-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates",
+        "android-studio-installers" to "https://redirector.gvt1.com/edgedl/android/studio",
+        "jetbrains-ide-installers" to "https://download.jetbrains.com",
+    )
+
+    val mirrorUrls: Map<String, String> =
+        providers.environmentVariable("REPO_MIRROR_URLS").orNull
+            ?.ifBlank { null }
+            ?.split(',')
+            ?.associate { nameToUrl ->
+                val (name, url) = nameToUrl.split(':', limit = 2)
+                name to url
+            }
+            ?: emptyMap()
+
+    fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").orNull?.toBoolean() == true
+
+    fun isCI() = providers.environmentVariable("CI").isPresent()
+
+    fun withMirrors(handler: RepositoryHandler) {
+        if (!isCI()) {
+            return
+        }
+        handler.all {
+            if (this is UrlArtifactRepository) {
+                // see https://github.com/gradle/gradle/issues/37612
+                @Suppress("USELESS_ELVIS")
+                val currentUrl = this.url?.toString() ?: return@all
+                originalUrls.forEach { name, originalUrl ->
+                    if (normalizeUrl(originalUrl) == normalizeUrl(currentUrl) && mirrorUrls.containsKey(name)) {
+                        mirrorUrls.get(name)?.let { this.setUrl(it) }
+                    }
+                }
+            }
+        }
+    }
+
+    fun normalizeUrl(url: String): String {
+        val result = url.replace("https://", "http://")
+        return if (result.endsWith("/")) result else "$result/"
+    }
+}
+
+with(Helper(providers)) {
+    gradle.lifecycle.beforeProject {
+        buildscript.configurations["classpath"].incoming.beforeResolve {
+            withMirrors(buildscript.repositories)
+        }
+        afterEvaluate {
+            withMirrors(repositories)
+        }
+    }
+
+    gradle.settingsEvaluated {
+        withMirrors(settings.pluginManagement.repositories)
+    }
+}

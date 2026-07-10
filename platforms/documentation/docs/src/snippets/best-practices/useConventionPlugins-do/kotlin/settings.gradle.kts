@@ -1,0 +1,15 @@
+// tag::do-this[]
+pluginManagement {
+    includeBuild("build-logic") // <1>
+}
+// end::do-this[]
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
+rootProject.name = "useConventionPlugins-do"
+
+include(":project-a", ":project-b")
