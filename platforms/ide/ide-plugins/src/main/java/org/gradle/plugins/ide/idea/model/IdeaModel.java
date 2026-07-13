@@ -23,10 +23,6 @@ import org.gradle.api.Action;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
-// TODO(eclipse/idea): this branch also removes public API that was never deprecated because it became unreachable with
-//  the file generation removal; it must be deprecated in Gradle 9.x before this ships: IdeaModel.targetVersion,
-//  IdeaModel.pathVariables, IdeaModule.pathVariables, IdeaProject.projectLibraries and the types ProjectLibrary,
-//  Module, Project, Workspace (idea XML) and Jdt, Facet, WtpFacet, WtpComponent, WbDependentModule (eclipse XML)
 /**
  * DSL-friendly model of the IDEA project information.
  * First point of entry when it comes to customizing the IDEA generation.

@@ -35,9 +35,6 @@ import java.util.Map;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
-// TODO: this branch also removes eclipse XML types that were never deprecated because they became unreachable
-//  with the file generation removal; they must be deprecated in Gradle 9.x before this ships: Jdt, Facet,
-//  WtpFacet, WtpComponent, WbDependentModule (see the matching TODO on IdeaModel for the idea side)
 /**
  * DSL-friendly model of the Eclipse project information.
  * First point of entry for customizing Eclipse project generation.
@@ -151,8 +148,6 @@ public abstract class EclipseModel {
         this.jdt = jdt;
     }
 
-    // TODO(eclipse/idea): revoke the Gradle 9.x deprecation of eclipse.wtp — the component configuration feeds the
-    //  WTP classpath attributes surfaced via the Tooling API, so it must survive the file-generation removal
     /**
      * Configures eclipse wtp information
      * <p>
@@ -165,9 +160,6 @@ public abstract class EclipseModel {
         return wtp;
     }
 
-    /**
-     * Set {@link EclipseWtp}.
-     */
     public void setWtp(EclipseWtp wtp) {
         this.wtp = wtp;
     }

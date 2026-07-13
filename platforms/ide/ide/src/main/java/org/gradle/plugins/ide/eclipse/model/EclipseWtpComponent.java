@@ -32,8 +32,6 @@ import java.util.Map;
 import java.util.Set;
 
 
-// TODO(eclipse/idea): revoke the Gradle 9.x deprecation of this type — its configuration feeds the WTP classpath
-//  attributes surfaced via the Tooling API, so it must survive the file-generation removal
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
  * <p>

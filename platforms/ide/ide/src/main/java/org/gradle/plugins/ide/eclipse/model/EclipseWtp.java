@@ -19,12 +19,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
-import javax.inject.Inject;
-
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
-// TODO(eclipse/idea): revoke the Gradle 9.x deprecation of this type — the component configuration feeds the
-//  WTP classpath attributes surfaced via the Tooling API, so it must survive the file-generation removal
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin
  * <p>
@@ -55,10 +51,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class EclipseWtp {
 
     private EclipseWtpComponent component;
-
-    @Inject
-    public EclipseWtp() {
-    }
 
     /**
      * Configures wtp component.
