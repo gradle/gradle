@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 /**
  * Prototype coverage for Maven settings.xml mirror support, behind the
@@ -113,6 +114,74 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         outputContains("Maven mirror 'selective' with mirrorOf 'external:*' is not supported and will be ignored (only '*' is supported).")
         outputDoesNotContain("Applying Maven mirror")
         file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "changing maven settings invalidates the configuration cache when mirrors are enabled"() {
+        given:
+        def mirrorRepo1 = mavenHttpRepo("mirror1")
+        def mirrorRepo2 = mavenHttpRepo("mirror2")
+        mirrorRepo1.module("org.test", "projectA", "1.0").publish().allowAll()
+        mirrorRepo2.module("org.test", "projectA", "1.0").publish().allowAll()
+        writeMirrorSettings(mirrorRepo1.uri.toString())
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        when:
+        using m2
+        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        outputContains("Applying Maven mirror 'test-mirror' for repository 'MavenRepo': ${RepositoryHandler.MAVEN_CENTRAL_URL} -> ${mirrorRepo1.uri}")
+
+        when:
+        writeMirrorSettings(mirrorRepo2.uri.toString())
+        using m2
+        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+        outputContains("Applying Maven mirror 'test-mirror' for repository 'MavenRepo': ${RepositoryHandler.MAVEN_CENTRAL_URL} -> ${mirrorRepo2.uri}")
+
+        and: "the invalidation reason is only logged when not in quiet configuration cache mode"
+        GradleContextualExecuter.configCache || output.contains("Maven settings.xml content has changed")
+    }
+
+    def "changing maven settings does not invalidate the configuration cache when mirrors are disabled"() {
+        given:
+        def originalRepo = mavenHttpRepo("original")
+        def mirrorRepo = mavenHttpRepo("mirror")
+        originalRepo.module("org.test", "projectA", "1.0").publish().allowAll()
+        writeMirrorSettings(mirrorRepo.uri.toString())
+
+        buildFile << """
+            repositories {
+                maven { url = '${originalRepo.uri}' }
+            }
+        """
+
+        when:
+        using m2
+        executer.withArgument("--configuration-cache")
+        run 'retrieve'
+
+        then:
+        outputDoesNotContain("Applying Maven mirror")
+
+        when:
+        writeMirrorSettings(mirrorRepo.uri.toString(), "*", "another-mirror")
+        using m2
+        executer.withArgument("--configuration-cache")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry reused.")
+        outputDoesNotContain("Applying Maven mirror")
     }
 
     private void writeMirrorSettings(String mirrorUrl, String mirrorOf = "*", String id = "test-mirror") {

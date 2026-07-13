@@ -77,31 +77,19 @@ The prototype logs a lifecycle warning when the mirror URL uses `http` (also cov
 
 ## 6. Configuration cache
 
-Two inputs need to be CC-safe:
+Two inputs need to be CC-safe; both are handled in this cut:
 
-- **The feature flag** — read via `ProviderFactory.gradleProperty("org.gradle.internal.mavenMirrors")`. The build-scoped `ProviderFactory` (registered in `BuildScopeServices`) is injected into the resolver service. Gradle-property reads through `ProviderFactory` are tracked CC inputs. Done in this cut.
-- **The settings.xml contents** — in this cut the parse is an ambient read at configuration time. Under CC this means: the mirrored URLs are baked into the cached configuration, and *editing settings.xml does not invalidate the cache entry*. A stale mirror will be used until something else invalidates the cache. Accepted for the prototype (the flag itself is tracked, so toggling the feature invalidates).
+- **The feature flag** — read via `ProviderFactory.gradleProperty("org.gradle.internal.mavenMirrors")`. The build-scoped `ProviderFactory` (registered in `BuildScopeServices`) is injected into the resolver service. Gradle-property reads through `ProviderFactory` are tracked CC inputs.
+- **The settings.xml contents** — tracked via `MavenSettingsChecksumValueSource`, a `ValueSource` that hashes the user and global settings.xml files (without parsing them). The resolver obtains it *only when the feature flag is on*, so builds with the flag off carry no settings.xml entry in their CC fingerprint. Value sources are re-evaluated at cache-load time, so editing settings.xml invalidates the cached configuration with the reason `Maven settings.xml content has changed` (the value source implements `Describable`).
 
-Sketch for the real fix: wrap the parse in a `ValueSource`, since value sources are re-evaluated at cache-load time to check the fingerprint:
+Design choices worth noting:
 
-```java
-public abstract class MavenWildcardMirrorValueSource
-        implements ValueSource<MirroredRepository, ValueSourceParameters.None> {
-    @Override
-    public @Nullable MirroredRepository obtain() {
-        // construct DefaultMavenSettingsProvider(new DefaultMavenFileLocations()) directly
-        // (value sources cannot inject build services), parse, return the first *-mirror or null
-    }
-}
-// in the resolver service:
-Provider<MirroredRepository> mirror = providerFactory.of(MavenWildcardMirrorValueSource.class, spec -> {});
-```
-
-`MirroredRepository` (id + URL) is a small serializable value, so it fits the value-source contract. Caveat to resolve in the real design: the value source re-runs `buildSettings()` (expensive, may spawn a process) on every CC fingerprint check; a cheaper fingerprint (settings.xml file content via `providerFactory.fileContents`) plus the parse behind it may be the better trade.
+- The value source returns a *checksum*, not the parsed mirror. The fingerprint check on every CC-hit build therefore only hashes two small files; the expensive `buildSettings()` parse still happens at most once per build and only when a Maven repository URL is actually finalized.
+- Value sources cannot inject build-scoped services, so the value source constructs `DefaultMavenFileLocations` itself to locate the files. This duplicates the location logic entry point (not the logic), and means the `M2_HOME`/`user.home` inputs behind it are not individually tracked — acceptable for the prototype.
 
 ## What the spike changes
 
-- New: `mvnsettings/MavenMirrorResolver.java` (internal interface + `MirroredRepository` value), `mvnsettings/DefaultMavenMirrorResolver.java`.
+- New: `mvnsettings/MavenMirrorResolver.java` (internal interface + `MirroredRepository` value), `mvnsettings/DefaultMavenMirrorResolver.java`, `mvnsettings/MavenSettingsChecksumValueSource.java` (CC input tracking).
 - `DependencyManagementBuildScopeServices`: registers the resolver (build scope).
 - `DefaultDependencyManagementServices.createBaseRepositoryFactory` / `DefaultBaseRepositoryFactory`: thread the resolver through to Maven repo construction.
 - `DefaultMavenArtifactRepository`: nullable resolver field; `validateUrl()` applies the mirror and logs `Applying Maven mirror '<id>' for repository '<name>': <original> -> <mirror>` (once per rewrite target).
@@ -111,6 +99,5 @@ Provider<MirroredRepository> mirror = providerFactory.of(MavenWildcardMirrorValu
 
 1. **Auth**: mirror credentials (Maven `<server>` matching by mirror id) + not leaking original-repo credentials to the mirror host.
 2. **`mirrorOf` matching semantics**: `external:*`, `!excludes`, id lists, per-repo matching by repository id (requires a mapping from Gradle repo names to Maven repo ids — non-obvious).
-3. **CC input tracking** for settings.xml (value source, above).
-4. **Repository identity/reporting**: descriptor should expose original + mirror; build scans and the resolution cache key need a deliberate decision.
-5. **Surface**: environment-variable/DSL opt-in story, interaction with `dependencyResolutionManagement` repositories and repository content filtering, Ivy repos, documentation.
+3. **Repository identity/reporting**: descriptor should expose original + mirror; build scans and the resolution cache key need a deliberate decision.
+4. **Surface**: environment-variable/DSL opt-in story, interaction with `dependencyResolutionManagement` repositories and repository content filtering, Ivy repos, documentation.

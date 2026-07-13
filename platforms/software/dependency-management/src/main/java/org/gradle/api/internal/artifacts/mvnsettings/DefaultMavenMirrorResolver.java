@@ -75,6 +75,11 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
         if (!isEnabled()) {
             return null;
         }
+        // Obtaining the value source registers the settings.xml checksum as a build input,
+        // so that the configuration cache is invalidated when the Maven settings change.
+        // This only happens when the feature is enabled: the property read above is the
+        // only input registered otherwise.
+        providerFactory.of(MavenSettingsChecksumValueSource.class, spec -> {}).getOrNull();
         MirroredRepository selected = null;
         try {
             for (Mirror mirror : settingsProvider.buildSettings().getMirrors()) {

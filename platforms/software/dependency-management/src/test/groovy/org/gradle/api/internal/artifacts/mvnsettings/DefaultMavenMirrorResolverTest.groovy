@@ -144,6 +144,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
 
     private void featureEnabled() {
         providerFactory.gradleProperty(DefaultMavenMirrorResolver.ENABLE_PROPERTY) >> Providers.of("true")
+        providerFactory.of(MavenSettingsChecksumValueSource, _) >> Providers.notDefined()
     }
 
     private void mirrors(Mirror... mirrors) {
