@@ -34,8 +34,11 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
     public static final String SINCE_MISMATCH_ERROR_MESSAGE = "Has invalid @since: it should be %s, but currently is %s";
     public static final String SINCE_INCONSISTENT_ERROR_MESSAGE = "Has inconsistent @since: %s";
 
+    private final boolean sinceRequired;
+
     public SinceAnnotationRule(Map<String, Object> params) {
         super(params);
+        this.sinceRequired = params.get("sinceRequired") == null || (Boolean) params.get("sinceRequired");
     }
 
     @Override
@@ -47,18 +50,22 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
 
         SinceTagStatus since = getRepository().getSince(member);
         if (since instanceof SinceTagStatus.Present present) {
-            if (present.getVersion().equals(getCurrentVersion())){
+            if (present.getVersion().equals(getCurrentVersion())) {
                 return null;
-            } else {
-                return acceptOrReject(member, Violation.error(member, String.format(SINCE_MISMATCH_ERROR_MESSAGE, getCurrentVersion(), present.getVersion())));
             }
+            return reject(member, String.format(SINCE_MISMATCH_ERROR_MESSAGE, getCurrentVersion(), present.getVersion()));
         } else if (since instanceof SinceTagStatus.Inconsistent inconsistent) {
-            return acceptOrReject(member, Violation.error(member, String.format(SINCE_INCONSISTENT_ERROR_MESSAGE, inconsistent.getVersions())));
+            return reject(member, String.format(SINCE_INCONSISTENT_ERROR_MESSAGE, inconsistent.getVersions()));
         } else if (since instanceof SinceTagStatus.Missing) {
-            return acceptOrReject(member, Violation.error(member, SINCE_ERROR_MESSAGE + getCurrentVersion()));
+            return sinceRequired ? reject(member, SINCE_ERROR_MESSAGE + getCurrentVersion()) : null;
         } else {
             throw new IllegalStateException("Unknown status: " + since);
         }
+    }
+
+    private Violation reject(JApiCompatibility member, String message) {
+        Violation error = Violation.error(member, message);
+        return sinceRequired ? acceptOrReject(member, error) : error;
     }
 
     private boolean shouldSkipViolationCheckFor(JApiCompatibility member) {
