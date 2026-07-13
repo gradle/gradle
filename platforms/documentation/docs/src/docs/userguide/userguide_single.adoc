@@ -40,6 +40,7 @@ include::getting_started.adoc[leveloffset=+2]
 include::installation.adoc[leveloffset=+2]
 
 // Upgrading Gradle
+include::upgrading_major_version_10.adoc[leveloffset=+2]
 include::upgrading_version_9.adoc[leveloffset=+2]
 include::upgrading_major_version_9.adoc[leveloffset=+2]
 include::upgrading_version_8.adoc[leveloffset=+2]

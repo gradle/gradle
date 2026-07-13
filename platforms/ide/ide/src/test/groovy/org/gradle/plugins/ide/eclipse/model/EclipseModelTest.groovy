@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
-import org.gradle.api.XmlProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
@@ -79,12 +78,10 @@ class EclipseModelTest extends Specification {
         model.wtp.component.pathVariables == [one: new File('.')]
     }
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.api.XmlFileContentMerger.withXml). This behavior has been deprecated.")
     def "can configure project with Actions"() {
         given:
-        def xmlTransformer = Mock(XmlTransformer)
-        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
-        def xmlAction = {} as Action<XmlProvider>
+        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [new XmlTransformer()])
+        def mergeAction = {} as Action<Project>
         model.project = TestUtil.newInstance(EclipseProject, xmlMerger)
 
         when: "configure project"
@@ -94,24 +91,22 @@ class EclipseModelTest extends Specification {
         model.project.comment == 'something'
 
         when: "configure project file"
-        model.project.file({ fcm -> fcm.xmlTransformer } as Action<XmlFileContentMerger>)
+        model.project.file({ fcm -> fcm.whenMerged } as Action<XmlFileContentMerger>)
 
         then:
-        1 * xmlMerger.getXmlTransformer()
+        1 * xmlMerger.getWhenMerged()
 
-        when: "configure project XML"
-        model.project.file.withXml(xmlAction)
+        when: "register a merge hook"
+        model.project.file.whenMerged(mergeAction)
 
         then:
-        1 * xmlTransformer.addAction(xmlAction)
+        !model.project.file.whenMerged.empty
     }
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.api.XmlFileContentMerger.withXml). This behavior has been deprecated.")
     def "can configure classpath with Actions"() {
         given:
-        def xmlTransformer = Mock(XmlTransformer)
-        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
-        def xmlAction = {} as Action<XmlProvider>
+        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [new XmlTransformer()])
+        def mergeAction = {} as Action<Classpath>
         model.classpath.file = xmlMerger
 
         when: "configure classpath"
@@ -121,16 +116,16 @@ class EclipseModelTest extends Specification {
         model.classpath.downloadJavadoc
 
         when: "configure classpath file"
-        model.classpath.file({ fcm -> fcm.xmlTransformer } as Action<XmlFileContentMerger>)
+        model.classpath.file({ fcm -> fcm.whenMerged } as Action<XmlFileContentMerger>)
 
         then:
-        1 * xmlMerger.getXmlTransformer()
+        1 * xmlMerger.getWhenMerged()
 
-        when: "configure classpath XML"
-        model.classpath.file.withXml(xmlAction)
+        when: "register a merge hook"
+        model.classpath.file.whenMerged(mergeAction)
 
         then:
-        1 * xmlTransformer.addAction(xmlAction)
+        !model.classpath.file.whenMerged.empty
     }
 
     def "can configure jdt with Actions"() {

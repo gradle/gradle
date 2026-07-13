@@ -33,6 +33,38 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.api.XmlFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.XmlFileContentMerger.getXmlTransformer()",
+            "acceptation": "Removed with the IDE file generation removal; withXml and the transformer only affected the generated files; to be deprecated in Gradle 9.x before this ships",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.XmlFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.XmlFileContentMerger.setXmlTransformer(org.gradle.internal.xml.XmlTransformer)",
+            "acceptation": "Removed with the IDE file generation removal; withXml and the transformer only affected the generated files; to be deprecated in Gradle 9.x before this ships",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.XmlFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.XmlFileContentMerger.withXml(groovy.lang.Closure)",
+            "acceptation": "Removed with the IDE file generation removal; withXml and the transformer only affected the generated files; to be deprecated in Gradle 9.x before this ships",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.XmlFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.XmlFileContentMerger.withXml(org.gradle.api.Action)",
+            "acceptation": "Removed with the IDE file generation removal; withXml and the transformer only affected the generated files; to be deprecated in Gradle 9.x before this ships",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.plugins.ide.eclipse.EclipsePlugin",
             "member": "Class org.gradle.plugins.ide.eclipse.EclipsePlugin",
             "acceptation": "Method of the internal IdePlugin base class, removed together with the IDE file generation tasks",

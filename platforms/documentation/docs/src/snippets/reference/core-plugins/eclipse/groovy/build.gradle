@@ -16,34 +16,13 @@ plugins {
 // end::use-eclipse-plugin[]
 // end::use-eclipse-wtp-plugin[]
 
-// tag::module-before-merged[]
 // tag::module-when-merged[]
 eclipse.classpath.file {
-// end::module-when-merged[]
-    beforeMerged { classpath ->
-        classpath.entries.removeAll { entry -> entry.kind == 'lib' || entry.kind == 'var' }
-    }
-// end::module-before-merged[]
-// tag::module-when-merged[]
     whenMerged { classpath ->
         classpath.entries.findAll { entry -> entry.kind == 'lib' }*.exported = false
     }
-// tag::module-before-merged[]
 }
-// end::module-before-merged[]
 // end::module-when-merged[]
-
-// tag::project-before-merged[]
-eclipse.project.file.beforeMerged { project ->
-    project.natures.clear()
-}
-// end::project-before-merged[]
-
-// tag::classpath-with-xml[]
-eclipse.classpath.file.withXml { provider ->
-    provider.asNode().appendNode('classpathentry', [kind: 'output', path: 'custom-bin'])
-}
-// end::classpath-with-xml[]
 
 sourceSets {
     integTest

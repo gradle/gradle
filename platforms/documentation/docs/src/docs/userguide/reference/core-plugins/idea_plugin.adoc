@@ -33,7 +33,7 @@ include::sample[dir="snippets/reference/core-plugins/idea/kotlin",files="build.g
 include::sample[dir="snippets/reference/core-plugins/idea/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
-NOTE: The IDE file generation tasks that this plugin used to contribute (`idea`, `ideaProject`, `ideaModule`, `ideaWorkspace`, `openIdea` and the associated `clean*` tasks) were deprecated in Gradle 9 and have been removed. Use IDEA's built-in Gradle integration to import the project instead. See the <<upgrading_version_9.adoc#ide_task_deprecation,upgrade guide>> for details.
+NOTE: The IDE file generation tasks that this plugin used to contribute (`idea`, `ideaProject`, `ideaModule`, `ideaWorkspace`, `openIdea` and the associated `clean*` tasks) were deprecated in Gradle 9 and have been removed. Use IDEA's built-in Gradle integration to import the project instead. See the <<upgrading_major_version_10.adoc#ide_task_removal,upgrade guide>> for details.
 
 [[sec:idea_configuration]]
 == Configuration

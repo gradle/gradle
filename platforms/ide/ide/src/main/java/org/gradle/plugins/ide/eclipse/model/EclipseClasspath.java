@@ -98,15 +98,14 @@ import java.util.Set;
  * }
  * </pre>
  *
- * For tackling edge cases, users can perform advanced configuration on the resulting XML file.
- * It is also possible to affect the way that the Eclipse plugin merges the existing configuration
+ * For tackling edge cases, users can perform advanced configuration on the classpath model
  * via beforeMerged and whenMerged closures.
  * <p>
  * The beforeMerged and whenMerged closures receive a {@link Classpath} object.
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTestedWithDeprecations'>
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'
@@ -115,20 +114,13 @@ import java.util.Set;
  * eclipse {
  *   classpath {
  *     file {
- *       //if you want to mess with the resulting XML in whatever way you fancy
- *       withXml {
- *         def node = it.asNode()
- *         node.appendNode('xml', 'is what I love')
- *       }
- *
- *       //closure executed after .classpath content is loaded from existing file
- *       //but before gradle build information is merged
+ *       //closure executed on the empty model
+ *       //before gradle build information is merged
  *       beforeMerged { classpath -&gt;
  *         //you can tinker with the {@link Classpath} here
  *       }
  *
- *       //closure executed after .classpath content is loaded from existing file
- *       //and after gradle build information is merged
+ *       //closure executed after gradle build information is merged
  *       whenMerged { classpath -&gt;
  *         //you can tinker with the {@link Classpath} here
  *       }
