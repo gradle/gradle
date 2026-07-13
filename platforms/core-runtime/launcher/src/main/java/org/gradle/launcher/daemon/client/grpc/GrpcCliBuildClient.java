@@ -23,11 +23,11 @@ import org.gradle.launcher.daemon.client.DaemonClientConnection;
 import org.gradle.launcher.daemon.client.DaemonConnector;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.tooling.grpc.proto.BuildEvent;
-import org.gradle.tooling.grpc.proto.BuildRequest;
-import org.gradle.tooling.grpc.proto.OutputLine;
-import org.gradle.tooling.grpc.proto.Span;
-import org.gradle.tooling.grpc.proto.ToolingGrpc;
+import org.gradle.tooling.internal.grpc.proto.BuildEvent;
+import org.gradle.tooling.internal.grpc.proto.BuildRequest;
+import org.gradle.tooling.internal.grpc.proto.OutputLine;
+import org.gradle.tooling.internal.grpc.proto.Span;
+import org.gradle.tooling.internal.grpc.proto.ToolingGrpc;
 
 import java.io.File;
 import java.net.InetAddress;

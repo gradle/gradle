@@ -101,10 +101,19 @@ publicAbiOnly.dependencies.addLater(provider {
     dependencies.platform(dependencies.create(project(":distributions-dependencies")))
 })
 
+// com.google.android:annotations is a compile-only annotation library pulled transitively by the
+// gRPC tooling API prototype. It is not needed at runtime, and because its jar is named
+// "annotations-<version>.jar" it collides with org.jetbrains:annotations in the distribution
+// (per-jar .properties naming and the build-logic compile classpath), so keep it out of every
+// distribution.
+val excludedDistributionModules: Configuration.() -> Unit = {
+    exclude(group = "com.google.android", module = "annotations")
+}
+
 // Configurations to resolve dependencies
-val runtimeClasspath = libraryResolver("runtimeClasspath", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
+val runtimeClasspath = libraryResolver("runtimeClasspath", listOf(coreRuntimeOnly, pluginsRuntimeOnly)).apply(excludedDistributionModules)
 runtimeClasspath.description = "Resolves to all Jars that need to be in the distribution including all transitive dependencies"
-val coreRuntimeClasspath = libraryResolver("coreRuntimeClasspath", listOf(coreRuntimeOnly))
+val coreRuntimeClasspath = libraryResolver("coreRuntimeClasspath", listOf(coreRuntimeOnly)).apply(excludedDistributionModules)
 coreRuntimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
 val agentsRuntimeClasspath = libraryResolver("agentsRuntimeClasspath", listOf(agentsRuntimeOnly))
 agentsRuntimeClasspath.description = "Resolves to all Jars that need to be added as agents"
@@ -115,7 +124,7 @@ val gradlePublicAbiRuntimeClasspath = apiLibraryResolver("gradlePublicAbiRuntime
 gradlePublicAbiRuntimeClasspath.description = "Resolves the public API ABI jar and its transitive dependencies (used to populate the module registry's dependency list for that jar)"
 val gradleScriptPath = startScriptResolver("gradleScriptPath", ":gradle-cli-main")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
-val sourcesPath = sourcesResolver("sourcesPath", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
+val sourcesPath = sourcesResolver("sourcesPath", listOf(coreRuntimeOnly, pluginsRuntimeOnly)).apply(excludedDistributionModules)
 sourcesPath.description = "Resolves the source code of all Gradle modules Jars (required for the All distribution)"
 val docsPath = docsResolver("docsPath", ":docs")
 docsPath.description = "Resolves to the complete Gradle documentation - automatically adds dependency to the :docs project"

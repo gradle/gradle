@@ -34,7 +34,7 @@ dependencies {
     api(projects.startParameter)
 
     // The client is able to run builds, so uses core and other projects
-    implementation(projects.core)
+    api(projects.core)
     api(projects.launcher)
 
     implementation(libs.commonsLang)

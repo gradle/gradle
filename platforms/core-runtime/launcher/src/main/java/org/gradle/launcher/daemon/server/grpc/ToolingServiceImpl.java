@@ -57,17 +57,17 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.tooling.grpc.proto.BuildEnvironment;
-import org.gradle.tooling.grpc.proto.BuildEvent;
-import org.gradle.tooling.grpc.proto.BuildRequest;
-import org.gradle.tooling.grpc.proto.BuildResult;
-import org.gradle.tooling.grpc.proto.ModelRequest;
-import org.gradle.tooling.grpc.proto.ModelResponse;
-import org.gradle.tooling.grpc.proto.ModelType;
-import org.gradle.tooling.grpc.proto.OutputLine;
-import org.gradle.tooling.grpc.proto.Span;
-import org.gradle.tooling.grpc.proto.StyledOutput;
-import org.gradle.tooling.grpc.proto.ToolingGrpc;
+import org.gradle.tooling.internal.grpc.proto.BuildEnvironment;
+import org.gradle.tooling.internal.grpc.proto.BuildEvent;
+import org.gradle.tooling.internal.grpc.proto.BuildRequest;
+import org.gradle.tooling.internal.grpc.proto.BuildResult;
+import org.gradle.tooling.internal.grpc.proto.ModelRequest;
+import org.gradle.tooling.internal.grpc.proto.ModelResponse;
+import org.gradle.tooling.internal.grpc.proto.ModelType;
+import org.gradle.tooling.internal.grpc.proto.OutputLine;
+import org.gradle.tooling.internal.grpc.proto.Span;
+import org.gradle.tooling.internal.grpc.proto.StyledOutput;
+import org.gradle.tooling.internal.grpc.proto.ToolingGrpc;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -257,13 +257,13 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         // Progress events are structural UI signals; stream them regardless of log level.
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent start = (ProgressStartEvent) event;
-            return progress(org.gradle.tooling.grpc.proto.ProgressType.PROGRESS_START, start.getDescription(), start.getStatus());
+            return progress(org.gradle.tooling.internal.grpc.proto.ProgressType.PROGRESS_START, start.getDescription(), start.getStatus());
         }
         if (event instanceof ProgressCompleteEvent) {
-            return progress(org.gradle.tooling.grpc.proto.ProgressType.PROGRESS_COMPLETE, "", ((ProgressCompleteEvent) event).getStatus());
+            return progress(org.gradle.tooling.internal.grpc.proto.ProgressType.PROGRESS_COMPLETE, "", ((ProgressCompleteEvent) event).getStatus());
         }
         if (event instanceof ProgressEvent) {
-            return progress(org.gradle.tooling.grpc.proto.ProgressType.PROGRESS_STATUS, "", ((ProgressEvent) event).getStatus());
+            return progress(org.gradle.tooling.internal.grpc.proto.ProgressType.PROGRESS_STATUS, "", ((ProgressEvent) event).getStatus());
         }
         // Log/styled output: only build-facing levels (LIFECYCLE+), not daemon/netty DEBUG/INFO noise.
         if (!isUserVisible(event.getLogLevel())) {
@@ -285,9 +285,9 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         return null;
     }
 
-    private static BuildEvent progress(org.gradle.tooling.grpc.proto.ProgressType type, @Nullable String description, @Nullable String status) {
+    private static BuildEvent progress(org.gradle.tooling.internal.grpc.proto.ProgressType type, @Nullable String description, @Nullable String status) {
         return BuildEvent.newBuilder()
-            .setProgress(org.gradle.tooling.grpc.proto.ProgressEvent.newBuilder()
+            .setProgress(org.gradle.tooling.internal.grpc.proto.ProgressEvent.newBuilder()
                 .setType(type)
                 .setDescription(description == null ? "" : description)
                 .setStatus(status == null ? "" : status)
@@ -327,55 +327,55 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         return level == null || level.compareTo(LogLevel.LIFECYCLE) >= 0;
     }
 
-    private static org.gradle.tooling.grpc.proto.LogLevel mapLevel(org.gradle.api.logging.@Nullable LogLevel level) {
+    private static org.gradle.tooling.internal.grpc.proto.LogLevel mapLevel(org.gradle.api.logging.@Nullable LogLevel level) {
         if (level == null) {
-            return org.gradle.tooling.grpc.proto.LogLevel.LOG_LEVEL_UNSPECIFIED;
+            return org.gradle.tooling.internal.grpc.proto.LogLevel.LOG_LEVEL_UNSPECIFIED;
         }
         switch (level) {
             case QUIET:
-                return org.gradle.tooling.grpc.proto.LogLevel.QUIET;
+                return org.gradle.tooling.internal.grpc.proto.LogLevel.QUIET;
             case WARN:
-                return org.gradle.tooling.grpc.proto.LogLevel.WARN;
+                return org.gradle.tooling.internal.grpc.proto.LogLevel.WARN;
             case LIFECYCLE:
-                return org.gradle.tooling.grpc.proto.LogLevel.LIFECYCLE;
+                return org.gradle.tooling.internal.grpc.proto.LogLevel.LIFECYCLE;
             case INFO:
-                return org.gradle.tooling.grpc.proto.LogLevel.INFO;
+                return org.gradle.tooling.internal.grpc.proto.LogLevel.INFO;
             case DEBUG:
-                return org.gradle.tooling.grpc.proto.LogLevel.DEBUG;
+                return org.gradle.tooling.internal.grpc.proto.LogLevel.DEBUG;
             case ERROR:
-                return org.gradle.tooling.grpc.proto.LogLevel.ERROR;
+                return org.gradle.tooling.internal.grpc.proto.LogLevel.ERROR;
             default:
-                return org.gradle.tooling.grpc.proto.LogLevel.LOG_LEVEL_UNSPECIFIED;
+                return org.gradle.tooling.internal.grpc.proto.LogLevel.LOG_LEVEL_UNSPECIFIED;
         }
     }
 
-    private static org.gradle.tooling.grpc.proto.Style mapStyle(StyledTextOutput.Style style) {
+    private static org.gradle.tooling.internal.grpc.proto.Style mapStyle(StyledTextOutput.Style style) {
         switch (style) {
             case Header:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_HEADER;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_HEADER;
             case UserInput:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_USER_INPUT;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_USER_INPUT;
             case Identifier:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_IDENTIFIER;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_IDENTIFIER;
             case Description:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_DESCRIPTION;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_DESCRIPTION;
             case ProgressStatus:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_PROGRESS_STATUS;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_PROGRESS_STATUS;
             case Success:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_SUCCESS;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_SUCCESS;
             case SuccessHeader:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_SUCCESS_HEADER;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_SUCCESS_HEADER;
             case Failure:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_FAILURE;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_FAILURE;
             case FailureHeader:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_FAILURE_HEADER;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_FAILURE_HEADER;
             case Info:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_INFO;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_INFO;
             case Error:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_ERROR;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_ERROR;
             case Normal:
             default:
-                return org.gradle.tooling.grpc.proto.Style.STYLE_NORMAL;
+                return org.gradle.tooling.internal.grpc.proto.Style.STYLE_NORMAL;
         }
     }
 }

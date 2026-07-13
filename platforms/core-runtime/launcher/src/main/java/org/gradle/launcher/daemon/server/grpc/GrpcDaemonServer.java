@@ -47,6 +47,12 @@ public class GrpcDaemonServer implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(GrpcDaemonServer.class);
 
+    // Opt-in: the gRPC server is only hosted when the daemon is started with this system property.
+    // Off by default so ordinary daemons behave exactly as before - hosting a Netty server in every
+    // daemon otherwise perturbs daemon lifecycle (cancellation, expiration, reuse, file locking).
+    // The prototype's sample build enables it via org.gradle.jvmargs (see prototype/sample).
+    public static final String ENABLED_PROPERTY = "org.gradle.internal.tooling.grpc";
+
     private final BuildExecutor buildExecutor;
     private final LoggingOutputInternal loggingOutput;
     private final BuildLayoutFactory buildLayoutFactory;
@@ -67,6 +73,9 @@ public class GrpcDaemonServer implements Stoppable {
     }
 
     public void start(byte[] token, DaemonStateControl stateControl) {
+        if (!Boolean.getBoolean(ENABLED_PROPERTY)) {
+            return;
+        }
         try {
             ToolingServiceImpl service = new ToolingServiceImpl(buildExecutor, loggingOutput, stateControl, buildLayoutFactory, userHomeServiceRegistry);
             Server started = NettyServerBuilder.forAddress(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0))

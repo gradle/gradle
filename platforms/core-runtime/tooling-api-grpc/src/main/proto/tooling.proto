@@ -22,7 +22,7 @@ package gradle.tooling.grpc;
 import "google/protobuf/any.proto";
 
 option java_multiple_files = true;
-option java_package = "org.gradle.tooling.grpc.proto";
+option java_package = "org.gradle.tooling.internal.grpc.proto";
 option java_outer_classname = "ToolingProto";
 
 service Tooling {

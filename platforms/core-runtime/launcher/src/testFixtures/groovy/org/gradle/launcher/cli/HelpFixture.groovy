@@ -104,6 +104,8 @@ Daemon:
   --daemon                           Uses the Gradle daemon to run the build. Starts the daemon if it is not running.
   --no-daemon                        Runs the build without the Gradle daemon. Useful occasionally if you have configured Gradle to always run with the daemon by default.
   --foreground                       Starts the Gradle daemon in the foreground.
+  --grpc                             Prototype (Target beta): runs the build by talking to the daemon over the gRPC tooling API instead of the internal protocol.
+  --grpc-endpoint                    Prototype (Target beta): finds or starts a daemon and prints its gRPC tooling API endpoint and token.
   --status                           Shows the status of running and recently stopped Gradle daemons.
   --stop                             Stops the Gradle daemon if it is running.
 

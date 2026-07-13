@@ -26,10 +26,10 @@ import org.gradle.launcher.daemon.server.api.DaemonStateControl
 import org.gradle.launcher.exec.BuildActionResult
 import org.gradle.launcher.exec.BuildExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.grpc.proto.BuildEnvironment
-import org.gradle.tooling.grpc.proto.ModelRequest
-import org.gradle.tooling.grpc.proto.ModelResponse
-import org.gradle.tooling.grpc.proto.ModelType
+import org.gradle.tooling.internal.grpc.proto.BuildEnvironment
+import org.gradle.tooling.internal.grpc.proto.ModelRequest
+import org.gradle.tooling.internal.grpc.proto.ModelResponse
+import org.gradle.tooling.internal.grpc.proto.ModelType
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import org.junit.Rule

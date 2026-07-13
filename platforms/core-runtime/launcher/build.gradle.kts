@@ -49,9 +49,13 @@ dependencies {
     // It should be split up, but for now, add dependencies on both the client and daemon pieces
     api(projects.clientServices)
     api(projects.daemonServices)
+    api(projects.toolingApiGrpc)
 
     api(libs.guava)
     api(libs.jspecify)
+    // Prototype native gRPC tooling API (Target beta)
+    api(libs.grpcApi)
+    api(libs.grpcStub)
 
     implementation(projects.buildProcessServices)
     implementation(projects.processServices)
@@ -60,7 +64,6 @@ dependencies {
     implementation(projects.collections)
     implementation(projects.enterpriseOperations)
     implementation(projects.io)
-    implementation(projects.toolingApiGrpc)
 
     implementation(libs.slf4jApi)
     // Required directly by CliTextPrinter (uses Ant Main and Groovy ReleaseInfo)
@@ -68,6 +71,7 @@ dependencies {
     implementation(libs.groovy)
     // Prototype native gRPC tooling API server hosted in the daemon (Target beta)
     implementation(libs.grpcNettyShaded)
+    implementation(libs.protobufJava)
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)

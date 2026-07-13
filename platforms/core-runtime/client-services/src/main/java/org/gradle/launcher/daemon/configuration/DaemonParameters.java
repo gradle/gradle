@@ -245,6 +245,9 @@ public class DaemonParameters {
 
     public void setGrpcEndpoint(boolean grpcEndpoint) {
         this.grpcEndpoint = grpcEndpoint;
+        if (grpcEndpoint) {
+            enableInDaemonGrpcServer();
+        }
     }
 
     public boolean isGrpc() {
@@ -253,6 +256,17 @@ public class DaemonParameters {
 
     public void setGrpc(boolean grpc) {
         this.grpc = grpc;
+        if (grpc) {
+            enableInDaemonGrpcServer();
+        }
+    }
+
+    private void enableInDaemonGrpcServer() {
+        // The in-daemon gRPC server (see GrpcDaemonServer) is opt-in. This is an immutable system
+        // property (see JvmOptions.IMMUTABLE_SYSTEM_PROPERTIES), so it becomes a daemon JVM launch
+        // argument: the server is started at daemon startup, and the daemon is not shared with
+        // ordinary builds (the flag is part of the daemon compatibility spec).
+        jvmOptions.systemProperty("org.gradle.internal.tooling.grpc", "true");
     }
 
     public Map<String, String> getEnvironmentVariables() {

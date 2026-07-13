@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
+import org.gradle.api.plugins.quality.Checkstyle
+
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 description = "Prototype native gRPC tooling API wire contract (generated stubs). Target beta."
 
-// This module contains protoc/grpc-generated Java that does not follow Gradle's strict
-// no-warning policy. Disable Error Prone and -Werror for the generated sources.
+// This module is entirely protoc/grpc-generated Java that does not follow Gradle's strict
+// no-warning policy. Disable Error Prone, -Werror and Checkstyle for the generated sources.
 sourceSets {
     main {
         errorprone.enabled = false
@@ -30,13 +32,19 @@ sourceSets {
 tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.remove("-Werror")
 }
+tasks.withType<Checkstyle>().configureEach {
+    enabled = false
+}
 
 dependencies {
     api(libs.grpcApi)
     api(libs.grpcStub)
-    api(libs.grpcProtobuf)
     api(libs.protobufJava)
-    api(libs.jspecify)
+    api(libs.guava)
+
+    implementation(libs.grpcProtobuf)
+
+    compileOnly(libs.jspecify)
 }
 
 gradleModule {

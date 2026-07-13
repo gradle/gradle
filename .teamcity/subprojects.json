@@ -1659,6 +1659,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "tooling-api-grpc",
+    "path": "platforms/core-runtime/tooling-api-grpc",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "tooling-api-provider",
     "path": "platforms/core-runtime/tooling-api-provider",
     "unitTests": false,

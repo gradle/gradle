@@ -109,6 +109,7 @@
             <trusting group="commons-logging" name="commons-logging"/>
          </trusted-key>
          <trusted-key id="0E18EAE07B7774EAC5DB3F2113BB90CE8EAFBE37" group="com.microsoft.playwright"/>
+         <trusted-key id="0F07D1201BDDAB67CFB84EB479752DB6C966F0B8" group="com.google.android" name="annotations" version="4.1.1.4"/>
          <trusted-key id="120D6F34E627ED3A772EBBFE55C7E5E701832382">
             <trusting group="org.snakeyaml" name="snakeyaml-engine"/>
             <trusting group="org.yaml" name="snakeyaml"/>
@@ -200,6 +201,7 @@
          <trusted-key id="3690C240CE51B4670D30AD1C38EE757D69184620" group="org.tukaani" name="xz"/>
          <trusted-key id="3872ED7D5904493D23D78FA2C4C8CB73B1435348" group="^com[.]android[.]tools($|([.].*))" regex="true"/>
          <trusted-key id="3A4D86C56CA99373B6D8953DBE84D764623A3644" group="org.brotli" name="dec"/>
+         <trusted-key id="3C7C956B0ADCE8A006F392201E516D29843497DC" group="com.google.protobuf"/>
          <trusted-key id="3CA154339EDB344CA831FC65FEAA650EB6DA6579" group="org.atteo" name="evo-inflector"/>
          <trusted-key id="3CAC6E7DC43343FF75ECBAC27E6EB7BB6A7712DC" group="net.sourceforge.nekohtml" name="nekohtml"/>
          <trusted-key id="3F05DDA9F317301E927136D417A27CE7A60FF5F0" group="io.opentelemetry"/>
@@ -390,7 +392,10 @@
             <trusting group="org.codehaus.plexus"/>
             <trusting group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
          </trusted-key>
-         <trusted-key id="B02335AA54CCF21E52BBF9ABD9C565AA72BA2FDD" group="io.grpc" name="grpc-context"/>
+         <trusted-key id="B02335AA54CCF21E52BBF9ABD9C565AA72BA2FDD">
+            <trusting group="io.grpc"/>
+            <trusting group="io.grpc" name="grpc-context"/>
+         </trusted-key>
          <trusted-key id="B1FC0E1FA329669191F8306F5BCEE695141E6086" group="javax.enterprise" name="cdi-api"/>
          <trusted-key id="B41089A2DA79B0FA5810252872385FF0AF338D52" group="joda-time" name="joda-time"/>
          <trusted-key id="B6E73D84EA4FCC47166087253FAAD2CD5ECBB314">
@@ -419,6 +424,7 @@
          <trusted-key id="C328250FE23A2420814521EC0EB69F76FD171538" group="io.airlift" name="slice"/>
          <trusted-key id="C3EB67E869C31CC00755038F0A07E0E55E45F65B" group="jcifs" name="jcifs"/>
          <trusted-key id="C44A68FD10FF456C91E2757D18088D07854014B3" group="org.scala-lang.modules" name="scala-parallel-collections_2.13"/>
+         <trusted-key id="C6F7D1C804C821F49AF3BFC13AD93C3C677A106E" group="io.perfmark" name="perfmark-api" version="0.25.0"/>
          <trusted-key id="C70B844F002F21F6D2B9C87522E44AC0622B91C3" group="com.beust" name="jcommander"/>
          <trusted-key id="C7BE5BCC9FEC15518CFDA882B0F3710FA64900E7">
             <trusting group="com.google.code.gson" name="gson"/>

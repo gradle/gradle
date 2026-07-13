@@ -68,7 +68,10 @@ public class JvmOptions {
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JAVA_SECURITY_PROPERTIES_KEY, JDK_ENABLE_ADS_KEY,
         SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY,
         // Gradle specific
-        HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
+        HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY,
+        // Prototype: opts the daemon into hosting the in-daemon gRPC tooling API server. Must be a
+        // launch argument so it is set when the daemon starts the server (see GrpcDaemonServer).
+        "org.gradle.internal.tooling.grpc"
     );
 
     // Store this because Locale.default is mutable and we want the unchanged default
