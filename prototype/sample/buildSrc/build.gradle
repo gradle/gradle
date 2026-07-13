@@ -1,0 +1,16 @@
+// buildSrc for the sample build: builds the "IDE" plugin that contributes a tooling model.
+// The plugin bundles its OWN protobuf-java (implementation), so the model type and protobuf
+// runtime live in the plugin classloader - never shared with the Gradle daemon. The daemon
+// only ever sees the serialized google.protobuf.Any bytes the builder returns.
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly gradleApi()
+    implementation 'com.google.protobuf:protobuf-java:3.21.12'
+}

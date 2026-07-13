@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.grpc;
 
+import com.google.protobuf.Any;
 import io.grpc.stub.StreamObserver;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
@@ -30,8 +31,11 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -64,11 +68,16 @@ import org.gradle.tooling.grpc.proto.OutputLine;
 import org.gradle.tooling.grpc.proto.Span;
 import org.gradle.tooling.grpc.proto.StyledOutput;
 import org.gradle.tooling.grpc.proto.ToolingGrpc;
+import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -86,12 +95,14 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
     private final LoggingOutputInternal loggingOutput;
     private final DaemonStateControl stateControl;
     private final BuildLayoutFactory buildLayoutFactory;
+    private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
-    public ToolingServiceImpl(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, DaemonStateControl stateControl, BuildLayoutFactory buildLayoutFactory) {
+    public ToolingServiceImpl(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, DaemonStateControl stateControl, BuildLayoutFactory buildLayoutFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
         this.buildExecutor = buildExecutor;
         this.loggingOutput = loggingOutput;
         this.stateControl = stateControl;
         this.buildLayoutFactory = buildLayoutFactory;
+        this.userHomeServiceRegistry = userHomeServiceRegistry;
     }
 
     @Override
@@ -154,13 +165,14 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
     @Override
     public void queryModel(ModelRequest request, StreamObserver<ModelResponse> responseObserver) {
         try {
-            if (request.getType() == ModelType.MODEL_TASKS) {
-                // Richer models (tasks/dependencies) need a model-projection layer: the model is produced
-                // and serialized inside a build session, and the build-session-scoped PayloadSerializer /
-                // model builders are not available at the daemon-global gRPC layer. Documented follow-up.
+            if (!request.getModelName().isEmpty()) {
+                // Plugin-contributed model: run it through the real build-model pipeline and forward
+                // the plugin's protobuf Any bytes to the client, wrapped in ModelResponse.model_any.
+                responseObserver.onNext(queryPluginModel(request));
+            } else if (request.getType() == ModelType.MODEL_TASKS) {
                 responseObserver.onNext(ModelResponse.newBuilder()
                     .setSuccess(false)
-                    .setError("MODEL_TASKS is not implemented in the prototype; it requires a model-projection layer.")
+                    .setError("MODEL_TASKS is not implemented; query a plugin-contributed model by name instead.")
                     .build());
             } else {
                 BuildEnvironment env = BuildEnvironment.newBuilder()
@@ -175,6 +187,70 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
             responseObserver.onNext(ModelResponse.newBuilder().setSuccess(false).setError(String.valueOf(t.getMessage())).build());
         }
         responseObserver.onCompleted();
+    }
+
+    /**
+     * Answers a query for a plugin-contributed model. Runs a {@link BuildModelAction} through the
+     * daemon's {@link BuildExecutor} - the same pipeline the Kryo/TAPI model request uses, which
+     * configures the target project and invokes the registered {@code ToolingModelBuilder}. The
+     * builder returns the bytes of a {@code google.protobuf.Any}; we deserialize that result and
+     * forward the Any to the client. The daemon never references the plugin's model type.
+     */
+    private ModelResponse queryPluginModel(ModelRequest request) throws Exception {
+        File projectDir = new File(request.getProjectDir());
+        StartParameterInternal startParameter = toStartParameter(Collections.<String>emptyList(), projectDir);
+
+        BuildAction action = new BuildModelAction(startParameter, request.getModelName(), false, new BuildEventSubscriptions(Collections.emptySet()));
+        BuildActionParameters parameters = new DefaultBuildActionParameters(
+            System.getProperties(),
+            System.getenv(),
+            projectDir,
+            startParameter.getLogLevel(),
+            false,
+            ClassPath.EMPTY);
+
+        AtomicReference<BuildActionResult> resultRef = new AtomicReference<>();
+        stateControl.runCommand(() -> {
+            BuildRequestContext context = new DefaultBuildRequestContext(
+                new DefaultBuildRequestMetaData(new DefaultBuildClientMetaData(new GradleLauncherMetaData()), System.currentTimeMillis(), false),
+                stateControl.getCancellationToken(),
+                NO_OP_EVENT_CONSUMER);
+            resultRef.set(buildExecutor.execute(action, parameters, context));
+        }, "gRPC tooling API model query");
+
+        BuildActionResult result = resultRef.get();
+        if (result == null || result.hasFailure()) {
+            RuntimeException failure = result == null ? null : result.getException();
+            String error = failure != null ? String.valueOf(failure.getMessage()) : "Model query failed";
+            return ModelResponse.newBuilder().setSuccess(false).setError(error).build();
+        }
+
+        Object model = deserializeResult(startParameter, result.getResult());
+        if (!(model instanceof byte[])) {
+            return ModelResponse.newBuilder().setSuccess(false)
+                .setError("Model '" + request.getModelName() + "' did not return protobuf Any bytes (got "
+                    + (model == null ? "null" : model.getClass().getName()) + ").").build();
+        }
+        Any any = Any.parseFrom((byte[]) model);
+        return ModelResponse.newBuilder().setSuccess(true).setModelAny(any).build();
+    }
+
+    /**
+     * Deserializes a build-model result. The result was serialized inside the build session by the
+     * build-scoped {@link PayloadSerializer}; here at the daemon-global gRPC layer we obtain a
+     * {@link PayloadSerializer} through the user-home service registry to reconstruct it. For a
+     * {@code byte[]} model this only touches JDK classloaders, so no plugin classes are needed.
+     */
+    private @Nullable Object deserializeResult(StartParameterInternal startParameter, @Nullable SerializedPayload payload) {
+        if (payload == null) {
+            return null;
+        }
+        ServiceRegistry services = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
+        try {
+            return services.get(PayloadSerializer.class).deserialize(payload);
+        } finally {
+            userHomeServiceRegistry.release(services);
+        }
     }
 
     private static @Nullable BuildEvent toBuildEvent(OutputEvent event) {
@@ -220,6 +296,10 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
     }
 
     private StartParameterInternal toStartParameter(BuildRequest request) {
+        return toStartParameter(request.getArgsList(), new File(request.getProjectDir()));
+    }
+
+    private StartParameterInternal toStartParameter(List<String> args, File projectDir) {
         // Reuse Gradle's real CLI converter chain so all flags, -P/-D, gradle.properties merge, etc. apply.
         CommandLineParser parser = new CommandLineParser();
         parser.allowUnknownOptions();
@@ -232,9 +312,9 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         buildLayoutConverter.configure(parser);
         startParameterConverter.configure(parser);
 
-        ParsedCommandLine parsed = parser.parse(request.getArgsList());
+        ParsedCommandLine parsed = parser.parse(args);
         InitialProperties initialProperties = initialPropertiesConverter.convert(parsed);
-        BuildLayoutResult layout = buildLayoutConverter.convert(initialProperties, parsed, new File(request.getProjectDir()));
+        BuildLayoutResult layout = buildLayoutConverter.convert(initialProperties, parsed, projectDir);
         AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, layout);
 
         StartParameterInternal startParameter = new StartParameterInternal();

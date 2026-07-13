@@ -199,14 +199,17 @@ public class DaemonServices implements ServiceRegistrationProvider {
         ListenerManager listenerManager,
         BuildExecutor buildExecutor,
         BuildLayoutFactory buildLayoutFactory,
+        GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
         DaemonDir daemonDir
     ) {
         // Prototype (Target beta): a gRPC tooling API server hosted in the daemon, reusing the
-        // same BuildExecutor and logging output the Kryo command pipeline uses.
+        // same BuildExecutor and logging output the Kryo command pipeline uses. The user-home
+        // service registry lets QueryModel deserialize a model result (see ToolingServiceImpl).
         GrpcDaemonServer grpcDaemonServer = new GrpcDaemonServer(
             buildExecutor,
             loggingManager,
             buildLayoutFactory,
+            userHomeServiceRegistry,
             daemonDir.getVersionedDir(),
             daemonContext.getUid()
         );

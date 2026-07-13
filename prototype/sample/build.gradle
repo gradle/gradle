@@ -1,4 +1,10 @@
 // Tiny throwaway project to exercise the prototype gRPC tooling API.
+// Every project applies the "IDE" plugin (from buildSrc) so each contributes an
+// IdeProjectModel tooling model that the native client can query per project.
+allprojects {
+    apply plugin: com.example.ide.IdeModelPlugin
+}
+
 tasks.register('hello') {
     doLast {
         println 'Hello from the gRPC-driven build!'

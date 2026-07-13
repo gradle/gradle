@@ -23,6 +23,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.LoggingOutputInternal;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.jspecify.annotations.Nullable;
@@ -49,23 +50,25 @@ public class GrpcDaemonServer implements Stoppable {
     private final BuildExecutor buildExecutor;
     private final LoggingOutputInternal loggingOutput;
     private final BuildLayoutFactory buildLayoutFactory;
+    private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
     private final File daemonVersionedDir;
     private final String uid;
 
     private @Nullable Server server;
     private @Nullable File endpointFile;
 
-    public GrpcDaemonServer(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, BuildLayoutFactory buildLayoutFactory, File daemonVersionedDir, String uid) {
+    public GrpcDaemonServer(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, BuildLayoutFactory buildLayoutFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, File daemonVersionedDir, String uid) {
         this.buildExecutor = buildExecutor;
         this.loggingOutput = loggingOutput;
         this.buildLayoutFactory = buildLayoutFactory;
+        this.userHomeServiceRegistry = userHomeServiceRegistry;
         this.daemonVersionedDir = daemonVersionedDir;
         this.uid = uid;
     }
 
     public void start(byte[] token, DaemonStateControl stateControl) {
         try {
-            ToolingServiceImpl service = new ToolingServiceImpl(buildExecutor, loggingOutput, stateControl, buildLayoutFactory);
+            ToolingServiceImpl service = new ToolingServiceImpl(buildExecutor, loggingOutput, stateControl, buildLayoutFactory, userHomeServiceRegistry);
             Server started = NettyServerBuilder.forAddress(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0))
                 .addService(ServerInterceptors.intercept(service, new TokenAuthInterceptor(token)))
                 .build()

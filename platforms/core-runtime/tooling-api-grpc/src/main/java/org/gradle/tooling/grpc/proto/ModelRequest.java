@@ -18,6 +18,8 @@ private static final long serialVersionUID = 0L;
   private ModelRequest() {
     projectDir_ = "";
     type_ = 0;
+    modelName_ = "";
+    projectPath_ = "";
   }
 
   @java.lang.Override
@@ -87,6 +89,10 @@ private static final long serialVersionUID = 0L;
   public static final int TYPE_FIELD_NUMBER = 2;
   private int type_ = 0;
   /**
+   * <pre>
+   * legacy built-in path (BuildEnvironment); used when model_name is empty
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.ModelType type = 2;</code>
    * @return The enum numeric value on the wire for type.
    */
@@ -94,12 +100,110 @@ private static final long serialVersionUID = 0L;
     return type_;
   }
   /**
+   * <pre>
+   * legacy built-in path (BuildEnvironment); used when model_name is empty
+   * </pre>
+   *
    * <code>.gradle.tooling.grpc.ModelType type = 2;</code>
    * @return The type.
    */
   @java.lang.Override public org.gradle.tooling.grpc.proto.ModelType getType() {
     org.gradle.tooling.grpc.proto.ModelType result = org.gradle.tooling.grpc.proto.ModelType.forNumber(type_);
     return result == null ? org.gradle.tooling.grpc.proto.ModelType.UNRECOGNIZED : result;
+  }
+
+  public static final int MODEL_NAME_FIELD_NUMBER = 3;
+  @SuppressWarnings("serial")
+  private volatile java.lang.Object modelName_ = "";
+  /**
+   * <pre>
+   * plugin-contributed model to query (the ToolingModelBuilder model name); takes precedence
+   * </pre>
+   *
+   * <code>string model_name = 3;</code>
+   * @return The modelName.
+   */
+  @java.lang.Override
+  public java.lang.String getModelName() {
+    java.lang.Object ref = modelName_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      modelName_ = s;
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * plugin-contributed model to query (the ToolingModelBuilder model name); takes precedence
+   * </pre>
+   *
+   * <code>string model_name = 3;</code>
+   * @return The bytes for modelName.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getModelNameBytes() {
+    java.lang.Object ref = modelName_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      modelName_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int PROJECT_PATH_FIELD_NUMBER = 4;
+  @SuppressWarnings("serial")
+  private volatile java.lang.Object projectPath_ = "";
+  /**
+   * <pre>
+   * target project path (e.g. ":app"); empty targets the default/root project
+   * </pre>
+   *
+   * <code>string project_path = 4;</code>
+   * @return The projectPath.
+   */
+  @java.lang.Override
+  public java.lang.String getProjectPath() {
+    java.lang.Object ref = projectPath_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      projectPath_ = s;
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * target project path (e.g. ":app"); empty targets the default/root project
+   * </pre>
+   *
+   * <code>string project_path = 4;</code>
+   * @return The bytes for projectPath.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getProjectPathBytes() {
+    java.lang.Object ref = projectPath_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      projectPath_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
   }
 
   private byte memoizedIsInitialized = -1;
@@ -122,6 +226,12 @@ private static final long serialVersionUID = 0L;
     if (type_ != org.gradle.tooling.grpc.proto.ModelType.MODEL_BUILD_ENVIRONMENT.getNumber()) {
       output.writeEnum(2, type_);
     }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(modelName_)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, modelName_);
+    }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(projectPath_)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, projectPath_);
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -137,6 +247,12 @@ private static final long serialVersionUID = 0L;
     if (type_ != org.gradle.tooling.grpc.proto.ModelType.MODEL_BUILD_ENVIRONMENT.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(2, type_);
+    }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(modelName_)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, modelName_);
+    }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(projectPath_)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, projectPath_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -156,6 +272,10 @@ private static final long serialVersionUID = 0L;
     if (!getProjectDir()
         .equals(other.getProjectDir())) return false;
     if (type_ != other.type_) return false;
+    if (!getModelName()
+        .equals(other.getModelName())) return false;
+    if (!getProjectPath()
+        .equals(other.getProjectPath())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -171,6 +291,10 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getProjectDir().hashCode();
     hash = (37 * hash) + TYPE_FIELD_NUMBER;
     hash = (53 * hash) + type_;
+    hash = (37 * hash) + MODEL_NAME_FIELD_NUMBER;
+    hash = (53 * hash) + getModelName().hashCode();
+    hash = (37 * hash) + PROJECT_PATH_FIELD_NUMBER;
+    hash = (53 * hash) + getProjectPath().hashCode();
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -302,6 +426,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = 0;
       projectDir_ = "";
       type_ = 0;
+      modelName_ = "";
+      projectPath_ = "";
       return this;
     }
 
@@ -340,6 +466,12 @@ private static final long serialVersionUID = 0L;
       }
       if (((from_bitField0_ & 0x00000002) != 0)) {
         result.type_ = type_;
+      }
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.modelName_ = modelName_;
+      }
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.projectPath_ = projectPath_;
       }
     }
 
@@ -395,6 +527,16 @@ private static final long serialVersionUID = 0L;
       if (other.type_ != 0) {
         setTypeValue(other.getTypeValue());
       }
+      if (!other.getModelName().isEmpty()) {
+        modelName_ = other.modelName_;
+        bitField0_ |= 0x00000004;
+        onChanged();
+      }
+      if (!other.getProjectPath().isEmpty()) {
+        projectPath_ = other.projectPath_;
+        bitField0_ |= 0x00000008;
+        onChanged();
+      }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -431,6 +573,16 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000002;
               break;
             } // case 16
+            case 26: {
+              modelName_ = input.readStringRequireUtf8();
+              bitField0_ |= 0x00000004;
+              break;
+            } // case 26
+            case 34: {
+              projectPath_ = input.readStringRequireUtf8();
+              bitField0_ |= 0x00000008;
+              break;
+            } // case 34
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -522,6 +674,10 @@ private static final long serialVersionUID = 0L;
 
     private int type_ = 0;
     /**
+     * <pre>
+     * legacy built-in path (BuildEnvironment); used when model_name is empty
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.ModelType type = 2;</code>
      * @return The enum numeric value on the wire for type.
      */
@@ -529,6 +685,10 @@ private static final long serialVersionUID = 0L;
       return type_;
     }
     /**
+     * <pre>
+     * legacy built-in path (BuildEnvironment); used when model_name is empty
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.ModelType type = 2;</code>
      * @param value The enum numeric value on the wire for type to set.
      * @return This builder for chaining.
@@ -540,6 +700,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * legacy built-in path (BuildEnvironment); used when model_name is empty
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.ModelType type = 2;</code>
      * @return The type.
      */
@@ -549,6 +713,10 @@ private static final long serialVersionUID = 0L;
       return result == null ? org.gradle.tooling.grpc.proto.ModelType.UNRECOGNIZED : result;
     }
     /**
+     * <pre>
+     * legacy built-in path (BuildEnvironment); used when model_name is empty
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.ModelType type = 2;</code>
      * @param value The type to set.
      * @return This builder for chaining.
@@ -563,12 +731,200 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * legacy built-in path (BuildEnvironment); used when model_name is empty
+     * </pre>
+     *
      * <code>.gradle.tooling.grpc.ModelType type = 2;</code>
      * @return This builder for chaining.
      */
     public Builder clearType() {
       bitField0_ = (bitField0_ & ~0x00000002);
       type_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object modelName_ = "";
+    /**
+     * <pre>
+     * plugin-contributed model to query (the ToolingModelBuilder model name); takes precedence
+     * </pre>
+     *
+     * <code>string model_name = 3;</code>
+     * @return The modelName.
+     */
+    public java.lang.String getModelName() {
+      java.lang.Object ref = modelName_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        modelName_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <pre>
+     * plugin-contributed model to query (the ToolingModelBuilder model name); takes precedence
+     * </pre>
+     *
+     * <code>string model_name = 3;</code>
+     * @return The bytes for modelName.
+     */
+    public com.google.protobuf.ByteString
+        getModelNameBytes() {
+      java.lang.Object ref = modelName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        modelName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * plugin-contributed model to query (the ToolingModelBuilder model name); takes precedence
+     * </pre>
+     *
+     * <code>string model_name = 3;</code>
+     * @param value The modelName to set.
+     * @return This builder for chaining.
+     */
+    public Builder setModelName(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      modelName_ = value;
+      bitField0_ |= 0x00000004;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * plugin-contributed model to query (the ToolingModelBuilder model name); takes precedence
+     * </pre>
+     *
+     * <code>string model_name = 3;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearModelName() {
+      modelName_ = getDefaultInstance().getModelName();
+      bitField0_ = (bitField0_ & ~0x00000004);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * plugin-contributed model to query (the ToolingModelBuilder model name); takes precedence
+     * </pre>
+     *
+     * <code>string model_name = 3;</code>
+     * @param value The bytes for modelName to set.
+     * @return This builder for chaining.
+     */
+    public Builder setModelNameBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      modelName_ = value;
+      bitField0_ |= 0x00000004;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object projectPath_ = "";
+    /**
+     * <pre>
+     * target project path (e.g. ":app"); empty targets the default/root project
+     * </pre>
+     *
+     * <code>string project_path = 4;</code>
+     * @return The projectPath.
+     */
+    public java.lang.String getProjectPath() {
+      java.lang.Object ref = projectPath_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        projectPath_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <pre>
+     * target project path (e.g. ":app"); empty targets the default/root project
+     * </pre>
+     *
+     * <code>string project_path = 4;</code>
+     * @return The bytes for projectPath.
+     */
+    public com.google.protobuf.ByteString
+        getProjectPathBytes() {
+      java.lang.Object ref = projectPath_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        projectPath_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * target project path (e.g. ":app"); empty targets the default/root project
+     * </pre>
+     *
+     * <code>string project_path = 4;</code>
+     * @param value The projectPath to set.
+     * @return This builder for chaining.
+     */
+    public Builder setProjectPath(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      projectPath_ = value;
+      bitField0_ |= 0x00000008;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * target project path (e.g. ":app"); empty targets the default/root project
+     * </pre>
+     *
+     * <code>string project_path = 4;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearProjectPath() {
+      projectPath_ = getDefaultInstance().getProjectPath();
+      bitField0_ = (bitField0_ & ~0x00000008);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * target project path (e.g. ":app"); empty targets the default/root project
+     * </pre>
+     *
+     * <code>string project_path = 4;</code>
+     * @param value The bytes for projectPath to set.
+     * @return This builder for chaining.
+     */
+    public Builder setProjectPathBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      projectPath_ = value;
+      bitField0_ |= 0x00000008;
       onChanged();
       return this;
     }

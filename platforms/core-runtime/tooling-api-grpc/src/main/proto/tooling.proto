@@ -19,6 +19,8 @@ syntax = "proto3";
 
 package gradle.tooling.grpc;
 
+import "google/protobuf/any.proto";
+
 option java_multiple_files = true;
 option java_package = "org.gradle.tooling.grpc.proto";
 option java_outer_classname = "ToolingProto";
@@ -109,7 +111,9 @@ enum Style {
 
 message ModelRequest {
   string project_dir = 1;
-  ModelType type = 2;
+  ModelType type = 2;         // legacy built-in path (BuildEnvironment); used when model_name is empty
+  string model_name = 3;      // plugin-contributed model to query (the ToolingModelBuilder model name); takes precedence
+  string project_path = 4;    // target project path (e.g. ":app"); empty targets the default/root project
 }
 
 enum ModelType {
@@ -123,6 +127,10 @@ message ModelResponse {
   oneof model {
     BuildEnvironment build_environment = 3;
     TaskList tasks = 4;
+    // Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+    // protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+    // this envelope, not the schema inside.
+    google.protobuf.Any model_any = 5;
   }
 }
 

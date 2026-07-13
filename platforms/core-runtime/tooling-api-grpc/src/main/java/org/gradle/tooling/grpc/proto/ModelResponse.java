@@ -51,6 +51,7 @@ private static final long serialVersionUID = 0L;
           com.google.protobuf.AbstractMessage.InternalOneOfEnum {
     BUILD_ENVIRONMENT(3),
     TASKS(4),
+    MODEL_ANY(5),
     MODEL_NOT_SET(0);
     private final int value;
     private ModelCase(int value) {
@@ -70,6 +71,7 @@ private static final long serialVersionUID = 0L;
       switch (value) {
         case 3: return BUILD_ENVIRONMENT;
         case 4: return TASKS;
+        case 5: return MODEL_ANY;
         case 0: return MODEL_NOT_SET;
         default: return null;
       }
@@ -197,6 +199,55 @@ private static final long serialVersionUID = 0L;
     return org.gradle.tooling.grpc.proto.TaskList.getDefaultInstance();
   }
 
+  public static final int MODEL_ANY_FIELD_NUMBER = 5;
+  /**
+   * <pre>
+   * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+   * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+   * this envelope, not the schema inside.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any model_any = 5;</code>
+   * @return Whether the modelAny field is set.
+   */
+  @java.lang.Override
+  public boolean hasModelAny() {
+    return modelCase_ == 5;
+  }
+  /**
+   * <pre>
+   * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+   * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+   * this envelope, not the schema inside.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any model_any = 5;</code>
+   * @return The modelAny.
+   */
+  @java.lang.Override
+  public com.google.protobuf.Any getModelAny() {
+    if (modelCase_ == 5) {
+       return (com.google.protobuf.Any) model_;
+    }
+    return com.google.protobuf.Any.getDefaultInstance();
+  }
+  /**
+   * <pre>
+   * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+   * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+   * this envelope, not the schema inside.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any model_any = 5;</code>
+   */
+  @java.lang.Override
+  public com.google.protobuf.AnyOrBuilder getModelAnyOrBuilder() {
+    if (modelCase_ == 5) {
+       return (com.google.protobuf.Any) model_;
+    }
+    return com.google.protobuf.Any.getDefaultInstance();
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -223,6 +274,9 @@ private static final long serialVersionUID = 0L;
     if (modelCase_ == 4) {
       output.writeMessage(4, (org.gradle.tooling.grpc.proto.TaskList) model_);
     }
+    if (modelCase_ == 5) {
+      output.writeMessage(5, (com.google.protobuf.Any) model_);
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -246,6 +300,10 @@ private static final long serialVersionUID = 0L;
     if (modelCase_ == 4) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(4, (org.gradle.tooling.grpc.proto.TaskList) model_);
+    }
+    if (modelCase_ == 5) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(5, (com.google.protobuf.Any) model_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -276,6 +334,10 @@ private static final long serialVersionUID = 0L;
         if (!getTasks()
             .equals(other.getTasks())) return false;
         break;
+      case 5:
+        if (!getModelAny()
+            .equals(other.getModelAny())) return false;
+        break;
       case 0:
       default:
     }
@@ -303,6 +365,10 @@ private static final long serialVersionUID = 0L;
       case 4:
         hash = (37 * hash) + TASKS_FIELD_NUMBER;
         hash = (53 * hash) + getTasks().hashCode();
+        break;
+      case 5:
+        hash = (37 * hash) + MODEL_ANY_FIELD_NUMBER;
+        hash = (53 * hash) + getModelAny().hashCode();
         break;
       case 0:
       default:
@@ -444,6 +510,9 @@ private static final long serialVersionUID = 0L;
       if (tasksBuilder_ != null) {
         tasksBuilder_.clear();
       }
+      if (modelAnyBuilder_ != null) {
+        modelAnyBuilder_.clear();
+      }
       modelCase_ = 0;
       model_ = null;
       return this;
@@ -498,6 +567,10 @@ private static final long serialVersionUID = 0L;
       if (modelCase_ == 4 &&
           tasksBuilder_ != null) {
         result.model_ = tasksBuilder_.build();
+      }
+      if (modelCase_ == 5 &&
+          modelAnyBuilder_ != null) {
+        result.model_ = modelAnyBuilder_.build();
       }
     }
 
@@ -562,6 +635,10 @@ private static final long serialVersionUID = 0L;
           mergeTasks(other.getTasks());
           break;
         }
+        case MODEL_ANY: {
+          mergeModelAny(other.getModelAny());
+          break;
+        }
         case MODEL_NOT_SET: {
           break;
         }
@@ -616,6 +693,13 @@ private static final long serialVersionUID = 0L;
               modelCase_ = 4;
               break;
             } // case 34
+            case 42: {
+              input.readMessage(
+                  getModelAnyFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              modelCase_ = 5;
+              break;
+            } // case 42
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -1034,6 +1118,202 @@ private static final long serialVersionUID = 0L;
       modelCase_ = 4;
       onChanged();
       return tasksBuilder_;
+    }
+
+    private com.google.protobuf.SingleFieldBuilderV3<
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> modelAnyBuilder_;
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     * @return Whether the modelAny field is set.
+     */
+    @java.lang.Override
+    public boolean hasModelAny() {
+      return modelCase_ == 5;
+    }
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     * @return The modelAny.
+     */
+    @java.lang.Override
+    public com.google.protobuf.Any getModelAny() {
+      if (modelAnyBuilder_ == null) {
+        if (modelCase_ == 5) {
+          return (com.google.protobuf.Any) model_;
+        }
+        return com.google.protobuf.Any.getDefaultInstance();
+      } else {
+        if (modelCase_ == 5) {
+          return modelAnyBuilder_.getMessage();
+        }
+        return com.google.protobuf.Any.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     */
+    public Builder setModelAny(com.google.protobuf.Any value) {
+      if (modelAnyBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        model_ = value;
+        onChanged();
+      } else {
+        modelAnyBuilder_.setMessage(value);
+      }
+      modelCase_ = 5;
+      return this;
+    }
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     */
+    public Builder setModelAny(
+        com.google.protobuf.Any.Builder builderForValue) {
+      if (modelAnyBuilder_ == null) {
+        model_ = builderForValue.build();
+        onChanged();
+      } else {
+        modelAnyBuilder_.setMessage(builderForValue.build());
+      }
+      modelCase_ = 5;
+      return this;
+    }
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     */
+    public Builder mergeModelAny(com.google.protobuf.Any value) {
+      if (modelAnyBuilder_ == null) {
+        if (modelCase_ == 5 &&
+            model_ != com.google.protobuf.Any.getDefaultInstance()) {
+          model_ = com.google.protobuf.Any.newBuilder((com.google.protobuf.Any) model_)
+              .mergeFrom(value).buildPartial();
+        } else {
+          model_ = value;
+        }
+        onChanged();
+      } else {
+        if (modelCase_ == 5) {
+          modelAnyBuilder_.mergeFrom(value);
+        } else {
+          modelAnyBuilder_.setMessage(value);
+        }
+      }
+      modelCase_ = 5;
+      return this;
+    }
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     */
+    public Builder clearModelAny() {
+      if (modelAnyBuilder_ == null) {
+        if (modelCase_ == 5) {
+          modelCase_ = 0;
+          model_ = null;
+          onChanged();
+        }
+      } else {
+        if (modelCase_ == 5) {
+          modelCase_ = 0;
+          model_ = null;
+        }
+        modelAnyBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     */
+    public com.google.protobuf.Any.Builder getModelAnyBuilder() {
+      return getModelAnyFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     */
+    @java.lang.Override
+    public com.google.protobuf.AnyOrBuilder getModelAnyOrBuilder() {
+      if ((modelCase_ == 5) && (modelAnyBuilder_ != null)) {
+        return modelAnyBuilder_.getMessageOrBuilder();
+      } else {
+        if (modelCase_ == 5) {
+          return (com.google.protobuf.Any) model_;
+        }
+        return com.google.protobuf.Any.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+     * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+     * this envelope, not the schema inside.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any model_any = 5;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+        getModelAnyFieldBuilder() {
+      if (modelAnyBuilder_ == null) {
+        if (!(modelCase_ == 5)) {
+          model_ = com.google.protobuf.Any.getDefaultInstance();
+        }
+        modelAnyBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                (com.google.protobuf.Any) model_,
+                getParentForChildren(),
+                isClean());
+        model_ = null;
+      }
+      modelCase_ = 5;
+      onChanged();
+      return modelAnyBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

@@ -20,6 +20,9 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 PROTO = os.path.join(REPO, "platforms", "core-runtime", "tooling-api-grpc", "src", "main", "proto", "tooling.proto")
+# The "IDE" vendor's own model schema. The client is built from this file, exactly like the
+# daemon-side plugin is; that shared knowledge is what lets the client decode the Any.
+IDE_PROTO = os.path.join(HERE, "ide_model.proto")
 
 ENDPOINT_RE = re.compile(r"(127\.0\.0\.1:\d+) (\S+)\s*$")
 
@@ -27,14 +30,22 @@ ENDPOINT_RE = re.compile(r"(127\.0\.0\.1:\d+) (\S+)\s*$")
 def ensure_stubs():
     gen = os.path.join(tempfile.gettempdir(), "gradle_grpc_proto_gen")
     os.makedirs(gen, exist_ok=True)
+    import grpc_tools
     from grpc_tools import protoc
     proto_dir = os.path.dirname(PROTO)
+    # grpc_tools ships the well-known types (google/protobuf/*.proto) but does not add them to the
+    # include path automatically when explicit -I dirs are passed; add its bundled _proto dir so
+    # tooling.proto's `import "google/protobuf/any.proto"` resolves.
+    wkt = os.path.join(os.path.dirname(grpc_tools.__file__), "_proto")
     rc = protoc.main([
         "protoc",
         "-I" + proto_dir,
+        "-I" + HERE,
+        "-I" + wkt,
         "--python_out=" + gen,
         "--grpc_python_out=" + gen,
         PROTO,
+        IDE_PROTO,
     ])
     if rc != 0:
         raise SystemExit("protoc codegen failed")
@@ -118,6 +129,26 @@ def query_model(stub, pb, model, project_dir, token):
         print("  java home:      %s" % env.java_home)
         print("  java version:   %s" % env.java_version)
         return 0
+    if model == "project":
+        # Query a plugin-contributed model by name. The response carries a google.protobuf.Any
+        # whose schema Gradle does not know; we decode it with the vendor proto the client shares
+        # with the daemon-side plugin.
+        import ide_model_pb2 as ide
+        request = pb.ModelRequest(project_dir=project_dir, model_name="com.example.ide.IdeProjectModel")
+        response = stub.QueryModel(request, metadata=metadata)
+        if not response.success:
+            print("[query] failed: %s" % response.error, file=sys.stderr)
+            return 1
+        ide_model = ide.IdeProjectModel()
+        if not response.model_any.Unpack(ide_model):
+            print("[query] Any did not match IdeProjectModel (type_url=%s)" % response.model_any.type_url, file=sys.stderr)
+            return 1
+        print("IdeProjectModel (type_url=%s):" % response.model_any.type_url)
+        print("  project path: %s" % ide_model.project_path)
+        print("  project name: %s" % ide_model.project_name)
+        print("  build dir:    %s" % ide_model.build_dir)
+        print("  plugins:      %s" % ", ".join(ide_model.plugin_ids))
+        return 0
     raise SystemExit("Unknown model: %s" % model)
 
 
@@ -127,8 +158,10 @@ def main():
                         help="Path to the gradle launcher (or set GRADLE_BIN)")
     parser.add_argument("--project-dir", default=os.path.join(HERE, "sample"),
                         help="Build to run/query (default: bundled sample project)")
-    parser.add_argument("--query", choices=["env"], default=None,
+    parser.add_argument("--query", choices=["env", "project"], default=None,
                         help="Query a model instead of running a build")
+    parser.add_argument("--target", choices=["root", "app", "lib"], default="root",
+                        help="For --query project: which sample project to target (per-project model)")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -140,6 +173,10 @@ def main():
     import tooling_pb2_grpc as pb_grpc
 
     project_dir = os.path.abspath(args.project_dir)
+    # Per-project targeting: point the query at a subproject dir so the daemon's default project
+    # (and thus the model it builds) is that subproject.
+    if args.query == "project" and args.target != "root":
+        project_dir = os.path.join(project_dir, args.target)
 
     print("[helper] gradle --grpc-endpoint ...", file=sys.stderr)
     endpoint, token = get_endpoint(args.gradle, project_dir)

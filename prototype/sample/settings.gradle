@@ -1,1 +1,3 @@
 rootProject.name = 'grpc-sample'
+include ':app'
+include ':lib'

@@ -1,0 +1,2 @@
+// A subproject with an extra plugin applied, so its IdeProjectModel differs from :lib.
+apply plugin: 'base'

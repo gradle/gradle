@@ -55,5 +55,38 @@ public interface ModelResponseOrBuilder extends
    */
   org.gradle.tooling.grpc.proto.TaskListOrBuilder getTasksOrBuilder();
 
+  /**
+   * <pre>
+   * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+   * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+   * this envelope, not the schema inside.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any model_any = 5;</code>
+   * @return Whether the modelAny field is set.
+   */
+  boolean hasModelAny();
+  /**
+   * <pre>
+   * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+   * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+   * this envelope, not the schema inside.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any model_any = 5;</code>
+   * @return The modelAny.
+   */
+  com.google.protobuf.Any getModelAny();
+  /**
+   * <pre>
+   * Plugin-contributed model, wrapped in Any. The type-url identifies the plugin's
+   * protobuf message; a client built against the same .proto unpacks it. Gradle owns only
+   * this envelope, not the schema inside.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any model_any = 5;</code>
+   */
+  com.google.protobuf.AnyOrBuilder getModelAnyOrBuilder();
+
   public org.gradle.tooling.grpc.proto.ModelResponse.ModelCase getModelCase();
 }
