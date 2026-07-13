@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
 import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
@@ -50,6 +51,8 @@ import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Cast;
@@ -71,6 +74,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -82,6 +86,7 @@ import java.util.Set;
 
 @SuppressWarnings("this-escape")
 public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository<MavenRepositoryDescriptor> implements MavenArtifactRepository, ResolutionAwareRepository {
+    private static final Logger LOGGER = Logging.getLogger(DefaultMavenArtifactRepository.class);
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = (repoName, metadata, artifactResolver) -> true;
 
     private final Transformer<String, MavenArtifactRepository> describer;
@@ -100,6 +105,8 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     private final ChecksumService checksumService;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
+    private final @Nullable MavenMirrorResolver mavenMirrorResolver;
+    private @Nullable URI mirrorAppliedTo;
 
     @Inject
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -119,7 +126,8 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                           ChecksumService checksumService,
                                           ProviderFactory providerFactory,
-                                          VersionParser versionParser
+                                          VersionParser versionParser,
+                                          @Nullable MavenMirrorResolver mavenMirrorResolver
     ) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, versionParser);
         this.describer = describer;
@@ -137,6 +145,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         this.checksumService = checksumService;
         this.metadataSources.setDefaults();
         this.instantiatorFactory = instantiatorFactory;
+        this.mavenMirrorResolver = mavenMirrorResolver;
     }
 
     @Override
@@ -247,7 +256,22 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
     @NonNull
     protected URI validateUrl() {
-        return urlArtifactRepository.validateUrl();
+        return applyMavenMirror(urlArtifactRepository.validateUrl());
+    }
+
+    private URI applyMavenMirror(URI url) {
+        if (mavenMirrorResolver == null) {
+            return url;
+        }
+        return mavenMirrorResolver.mirrorFor(url)
+            .map(mirror -> {
+                if (!url.equals(mirrorAppliedTo)) {
+                    mirrorAppliedTo = url;
+                    LOGGER.lifecycle("Applying Maven mirror '{}' for repository '{}': {} -> {}", mirror.getId(), getName(), url, mirror.getUrl());
+                }
+                return mirror.getUrl();
+            })
+            .orElse(url);
     }
 
     @Override

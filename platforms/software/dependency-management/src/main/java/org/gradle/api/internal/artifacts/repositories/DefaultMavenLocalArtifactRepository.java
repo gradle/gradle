@@ -67,7 +67,8 @@ public abstract class DefaultMavenLocalArtifactRepository extends DefaultMavenAr
                                                ChecksumService checksumService,
                                                VersionParser versionParser
     ) {
-        super(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser);
+        // mavenLocal() is the local repository, not a remote one: never apply Maven mirrors to it (null MavenMirrorResolver)
+        super(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser, null);
         this.checksumService = checksumService;
     }
 
