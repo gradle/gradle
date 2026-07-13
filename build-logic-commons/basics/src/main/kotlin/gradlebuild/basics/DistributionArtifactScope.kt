@@ -22,16 +22,25 @@ import org.gradle.api.attributes.Attribute
 /**
  * Marks variants of a Gradle distribution collector project.
  * <p>
- * The standard runtime variant of a distribution collector (e.g. `:distributions-full`) publishes
- * every packaged artifact — including `runtime-api-info.jar`.  This means that tasks that depend
- * on it rely on the tasks that build it, which scan the entire codebase's classes and sources.
- * Variants advertising a value can here expose only a subset, skipping the packaging metadata
- * pipeline for consumers that don't need it.
+ * A distribution collector (e.g. `:distributions-full`) exposes multiple consumable runtime
+ * variants that differ in how much of the packaging pipeline they include.  This attribute
+ * distinguishes them so consumers can opt into a narrower artifact set.
  * <p>
- * Consumers targeting a narrower scope declare a value in their request; the standard runtime
- * variant does not declare this attribute at all.
+ * Every runtime variant of a collector declares a value.  Consumers that don't declare a value
+ * fall back to `STANDARD` via the disambiguation rule registered in the packaging plugin.
  */
 enum class DistributionArtifactScope {
+    /**
+     * The full runtime artifact set — every packaged JAR the collector publishes, including
+     * `runtime-api-info.jar` and its metadata-derivation task subtree (relocated package list,
+     * plugins manifest, instrumented super-types merge, upgraded properties merge, DSL meta,
+     * api mapping, default imports).
+     * <p>
+     * Advertised by the standard `runtime` variant of each collector; also selected by consumers
+     * that don't declare a `DistributionArtifactScope` value in their request.
+     */
+    STANDARD,
+
     /**
      * Only the transitively-resolved module JARs (via the collector's `coreRuntimeOnly` and
      * `pluginsRuntimeOnly` buckets) plus the Kotlin DSL extensions JAR.
