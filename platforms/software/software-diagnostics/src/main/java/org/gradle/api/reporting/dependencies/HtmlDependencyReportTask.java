@@ -35,6 +35,8 @@ import org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
+import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.serialization.Cached;
@@ -135,14 +137,25 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
         return ProjectsWithConfigurations.from(
             getProjects(),
             ProjectDetails::withNameAndPath,
-            HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo
+            this::getConfigurationsForProject
         );
     }
 
-    private static Stream<? extends ConfigurationDetails> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
-        return project.getConfigurations().stream()
+    private Stream<? extends ConfigurationDetails> getConfigurationsForProject(Project project) {
+        if (getConfigurations() == null) {
+            return project.getConfigurations().stream()
+                .map(ConfigurationInternal.class::cast)
+                .filter(c -> c.isDeclarableByExtension())
+                .map(ConfigurationDetails::of);
+        }
+
+        ProjectIdentity projectIdentity = ((ProjectInternal) project).getProjectIdentity();
+
+        return getConfigurations().stream()
             .map(ConfigurationInternal.class::cast)
-            .filter(c -> c.isDeclarableByExtension())
+            .filter(configuration ->
+                projectIdentity.equals(configuration.getDomainObjectContext().getProjectIdentity())
+            )
             .map(ConfigurationDetails::of);
     }
 }
