@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.DistributionArtifactScope
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicApiVariants
@@ -334,6 +335,26 @@ consumableVariant("api", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(run
 consumableSourcesVariant("transitiveSources", listOf(coreRuntimeOnly, pluginsRuntimeOnly), gradleApiKotlinExtensions.map { it.destinationDirectory })
 // A platform variant without 'runtime-api-info' artifact such that distributions can depend on each other
 consumablePlatformVariant("runtimePlatform", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
+
+// A runtime variant exposing just the module JARs of this distribution — the transitively-resolved
+// core + plugin module JARs plus the Kotlin DSL extensions jar — WITHOUT the runtime-api-info jar
+// and its metadata-derivation task subtree (relocated package list, plugins manifest,
+// instrumented super-types merge, upgraded properties merge, DSL meta, api mapping, default imports).
+//
+// Consumers that only need module bytecode for classpath scanning (e.g. architecture-test)
+// should select this variant to keep the packaging metadata pipeline off their critical path.
+//
+// Distinguished from the standard `runtime` variant by DistributionArtifactScope. Keeping the
+// distinguisher on a dedicated custom attribute (rather than overloading LibraryElements) lets
+// Gradle's default variant-matching behavior handle transitive resolution: dependencies that do
+// not declare DistributionArtifactScope (regular library projects like :daemon-server) remain
+// compatible with the request via Gradle's "producer-missing attribute = compatible" default.
+consumableVariant("runtimeJarsOnly", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(gradleApiKotlinExtensionsJar)) {
+    configureAsRuntimeElements(objects)
+    attributes {
+        attribute(DistributionArtifactScope.attribute, DistributionArtifactScope.RUNTIME_ONLY)
+    }
+}
 
 // A lifecycle task to build all the distribution zips for publishing
 val buildDists = tasks.register("buildDists")
