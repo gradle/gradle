@@ -2,5 +2,10 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(.claude/skills/gradle-code-review/gradle-code-review.sh:*)"
+    ]
   }
 }
