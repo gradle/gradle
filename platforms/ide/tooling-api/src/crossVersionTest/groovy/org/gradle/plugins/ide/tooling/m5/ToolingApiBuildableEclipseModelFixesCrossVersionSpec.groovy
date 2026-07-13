@@ -42,7 +42,7 @@ class ToolingApiBuildableEclipseModelFixesCrossVersionSpec extends ToolingApiSpe
 
     @Issue("GRADLE-1529")
     //this is just one of the ways of fixing the problem. See the issue for details
-    // TODO: bump the upper bound to 10.0.0 before merging — it must be the version the file generation tasks are removed in
+    // TODO(eclipse/idea): bump the upper bound to 10.0.0 before merging — it must be the version the file generation tasks are removed in
     @TargetGradleVersion("<9.7.0")
     def "should hide not executable tasks when necessary for a multi module build"() {
         file('build.gradle').text = '''

@@ -18,9 +18,11 @@ package org.gradle.smoketests
 
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import spock.lang.Ignore
 
 
 @Requires(JdkVersionTestPreconditions.Jdk25OrLater)
+@Ignore("Bundled com.diffplug.eclipse.apt plugin calls the removed EclipseJdt.getFile()") // TODO(eclipse/idea): pester author to upgrade
 class MicronautPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     String getBuildScriptConfigurationForValidation() {

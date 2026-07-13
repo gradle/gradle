@@ -16,6 +16,9 @@
 
 package org.gradle.smoketests
 
+import spock.lang.Ignore
+
+@Ignore("References the removed GenerateIdeaModule task") // TODO(eclipse/idea): pester author to upgrade
 class AvroPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {

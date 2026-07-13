@@ -112,7 +112,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         return ideaModel;
     }
 
-    // TODO: decide what to do with the scala/idea plugin combination. Removing IdeaScalaConfigurer (whose output
+    // TODO(eclipse/idea): decide what to do with the scala/idea plugin combination. Removing IdeaScalaConfigurer (whose output
     //  only reached the generated ipr/iml files) made the two plugins fully independent — potentially something to
     //  document. It also means idea+scala can now be used with Isolated Projects: the failure guarding the
     //  cross-project Scala SDK wiring is gone together with that wiring.

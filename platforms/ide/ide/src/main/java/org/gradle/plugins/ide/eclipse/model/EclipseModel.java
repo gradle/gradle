@@ -151,7 +151,7 @@ public abstract class EclipseModel {
         this.jdt = jdt;
     }
 
-    // TODO: revoke the Gradle 9.x deprecation of eclipse.wtp — the component configuration feeds the
+    // TODO(eclipse/idea): revoke the Gradle 9.x deprecation of eclipse.wtp — the component configuration feeds the
     //  WTP classpath attributes surfaced via the Tooling API, so it must survive the file-generation removal
     /**
      * Configures eclipse wtp information

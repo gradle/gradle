@@ -23,7 +23,7 @@ import javax.inject.Inject;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
-// TODO: revoke the Gradle 9.x deprecation of this type — the component configuration feeds the
+// TODO(eclipse/idea): revoke the Gradle 9.x deprecation of this type — the component configuration feeds the
 //  WTP classpath attributes surfaced via the Tooling API, so it must survive the file-generation removal
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin
