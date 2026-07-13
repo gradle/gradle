@@ -280,7 +280,7 @@ This means that the property `classpath` changed and some file on the runtime cl
 Looking deeper into this, we actually see that the inputs for the task `processResources` changed in that project, too.
 Finally, we find this in our build file:
 
-<SampleScripts sample_name="normalization" basename="build" tag="versionInfo" />
+<SampleScripts sample_name="normalization" basename="build" tag="versionInfo" source_dir="snippets/optimizing-builds/build-cache/normalization" />
 
 Since properties files stored by Java’s `Properties.store` method contain a timestamp, this will cause a change to the runtime classpath every time the build runs.
 In order to solve this problem see <Xref page="common-caching-problems" section="Non-repeatable task outputs">non-repeatable task outputs</Xref> or use <Xref page="build-cache-concepts" section="Better reuse via input normalization">input normalization</Xref>.

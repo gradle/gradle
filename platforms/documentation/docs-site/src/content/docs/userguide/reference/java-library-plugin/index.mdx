@@ -15,7 +15,7 @@ All the source sets, tasks and configurations exposed by the Java plugin are imp
 
 To use the Java Library plugin, include the following in your build script:
 
-<SampleScripts sample_name="java-library-quickstart" basename="build" tag="use-plugin" />
+<SampleScripts sample_name="java-library-quickstart" basename="build" tag="use-plugin" source_dir="snippets/reference/platforms/jvm/javaLibraryQuickstart" />
 
 ## API and implementation separation
 
@@ -24,7 +24,7 @@ The key difference between the standard Java plugin and the Java Library plugin 
 The plugin exposes two <Xref page="dependency-configurations" section="Understanding dependency configurations">configurations</Xref> that can be used to declare dependencies: `api` and `implementation`.
 The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
-<SampleScripts sample_name="java-library-quickstart" basename="build" tag="dependencies" />
+<SampleScripts sample_name="java-library-quickstart" basename="build" tag="dependencies" source_dir="snippets/reference/platforms/jvm/javaLibraryQuickstart" />
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile classpath of consumers. Dependencies found in the `implementation` configuration will, on the other hand, not be exposed to consumers, and therefore not leak into the consumers' compile classpath. This comes with several benefits:
 
@@ -130,7 +130,7 @@ On the other hand, the `ExceptionUtils` type, coming from the `commons-lang` lib
 
 Therefore, we can deduce that `httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency. This conclusion translates into the following declaration in the build script:
 
-<SampleScripts sample_name="java-library" basename="build" tag="dependencies" />
+<SampleScripts sample_name="java-library" basename="build" tag="dependencies" source_dir="snippets/reference/dependency-management/publishing/javaLibrary" />
 
 ## Dependency configurations
 
@@ -245,7 +245,7 @@ For now, please refer to [documentation on the Java Module System](https://www.o
 Java Modules also have a version that is encoded as part of the module identity in the `module-info.class` file.
 This version can be inspected when a module is running.
 
-<SampleScripts sample_name="module" basename="build" tag="declareVersion" />
+<SampleScripts sample_name="module" basename="build" tag="declareVersion" source_dir="snippets/reference/platforms/jvm/module" />
 
 ### Using libraries that are not modules
 
@@ -260,7 +260,7 @@ A third case are traditional libraries that provide no module information at all
 Gradle puts such libraries on the classpath instead of the module path.
 The classpath is then treated as one module (the so called _unnamed_ module) by Java.
 
-<SampleScripts sample_name="module" basename="build" tag="dependencies" />
+<SampleScripts sample_name="module" basename="build" tag="dependencies" source_dir="snippets/reference/platforms/jvm/module" />
 
 ```java
 module org.gradle.sample.lib {
@@ -285,7 +285,7 @@ This corresponds to the behaviour of Gradle versions \<7.0.
 
 To make this work, you need to set `modularity.inferModulePath = false` on the Java extension (for all tasks) or on individual tasks.
 
-<SampleScripts sample_name="module-disabled" basename="build" tag="disableModulePath" />
+<SampleScripts sample_name="module-disabled" basename="build" tag="disableModulePath" source_dir="snippets/reference/platforms/jvm/module-disabled" />
 
 ### Building an automatic module
 
@@ -298,7 +298,7 @@ Adding an `Automatic-Module-Name` is a good first step (most popular OSS librari
 
 To turn a normal Java project into an _automatic module_, just add the manifest entry with the module name:
 
-<SampleScripts sample_name="module" basename="build" tag="automaticModuleName" />
+<SampleScripts sample_name="module" basename="build" tag="automaticModuleName" source_dir="snippets/reference/platforms/jvm/module" />
 
 :::note
 ===

@@ -1,5 +1,5 @@
 ---
-import { Code } from "@astrojs/starlight/components";
+import { Code, Tabs, TabItem } from "@astrojs/starlight/components";
 import { getPageScopedSamplePath } from "../../lib/samples";
 import { selectSampleContent } from "../../lib/sample-tags";
 
@@ -10,9 +10,18 @@ interface Props {
   lang?: string;
   title?: string;
   tag?: string;
+  /** Upstream snippet dir relative to docs/src/ — enables "View source on GitHub". */
+  source_dir?: string;
 }
 
-const { sample_name, sample, path, lang, title, tag } = Astro.props;
+const { sample_name, sample, path, lang, title, tag, source_dir } = Astro.props;
+
+const GITHUB_BASE = "https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src";
+
+function sourceMeta(resolvedPath: string): string | undefined {
+  if (!source_dir) return undefined;
+  return `sourceUrl="${GITHUB_BASE}/${source_dir}/${resolvedPath}"`;
+}
 
 const samplePath = getPageScopedSamplePath(
   Astro.url.pathname,
@@ -24,15 +33,6 @@ const sampleFiles = import.meta.glob("/src/samples/**/*", {
   import: "default",
   eager: true,
 }) as Record<string, string>;
-
-const filePath = `/src/samples/${samplePath}/${path}`;
-const content = sampleFiles[filePath];
-
-if (content === undefined) {
-  throw new Error(`Sample file '${path}' not found in sample '${samplePath}'.`);
-}
-
-const displayContent = selectSampleContent(content, tag, filePath);
 
 function inferLanguage(filename: string): string {
   if (filename.endsWith(".gradle.kts") || filename.endsWith(".kt")) return "kotlin";
@@ -47,8 +47,75 @@ function inferLanguage(filename: string): string {
   return "text";
 }
 
-const codeLang = lang ?? inferLanguage(path);
-const codeTitle = title ?? path;
+interface Variant {
+  label: string;
+  resolvedPath: string;
+  content: string;
+}
+
+// The converter tokenizes per-DSL source files ({lang} directory segments,
+// {srcExt} for .kt/.groovy) so paired includes arrive as one template.
+// Expand it per language; plain paths resolve as a single file.
+const VARIANTS = [
+  { key: "kotlin", label: "Kotlin", srcExt: "kt" },
+  { key: "groovy", label: "Groovy", srcExt: "groovy" },
+  { key: "dcl", label: "DCL", srcExt: "dcl" },
+] as const;
+
+const isTemplate = path.includes("{lang}") || path.includes("{srcExt}");
+const variants: Variant[] = [];
+
+if (isTemplate) {
+  for (const v of VARIANTS) {
+    const resolved = path.replaceAll("{lang}", v.key).replaceAll("{srcExt}", v.srcExt);
+    const filePath = `/src/samples/${samplePath}/${resolved}`;
+    const content = sampleFiles[filePath];
+    if (content !== undefined && content.trim().length > 0) {
+      variants.push({
+        label: v.label,
+        resolvedPath: resolved,
+        content: selectSampleContent(content, tag, filePath),
+      });
+    }
+  }
+  if (variants.length === 0) {
+    throw new Error(`No variant of sample file '${path}' found in sample '${samplePath}'.`);
+  }
+} else {
+  const filePath = `/src/samples/${samplePath}/${path}`;
+  const content = sampleFiles[filePath];
+  if (content === undefined) {
+    throw new Error(`Sample file '${path}' not found in sample '${samplePath}'.`);
+  }
+  variants.push({ label: "", resolvedPath: path, content: selectSampleContent(content, tag, filePath) });
+}
+
+// Identical content across variants (e.g. the same .java file shipped in both
+// DSL variants of a snippet) needs no tabs.
+const allIdentical = variants.every((v) => v.content === variants[0].content);
+const single = variants.length === 1 || allIdentical ? variants[0] : null;
 ---
 
-<Code code={displayContent} lang={codeLang} title={codeTitle} />
+{
+  single ? (
+    <Code
+      code={single.content}
+      lang={lang ?? inferLanguage(single.resolvedPath)}
+      title={title ?? single.resolvedPath}
+      meta={sourceMeta(single.resolvedPath)}
+    />
+  ) : (
+    <Tabs syncKey="script-language">
+      {variants.map((v) => (
+        <TabItem label={v.label}>
+          <Code
+            code={v.content}
+            lang={lang ?? inferLanguage(v.resolvedPath)}
+            title={title ?? v.resolvedPath}
+            meta={sourceMeta(v.resolvedPath)}
+          />
+        </TabItem>
+      ))}
+    </Tabs>
+  )
+}

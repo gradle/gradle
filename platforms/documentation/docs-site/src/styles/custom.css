@@ -65,11 +65,29 @@ header.header {
   border-bottom: 1px solid var(--gradle-header-line);
 }
 
-/* Rounded, bordered search control */
+/* Search control, CF style: white field (page background in dark mode) with a
+ * hairline border, and the keyboard hint as separate bordered key chips */
 header.header site-search button[data-open-modal] {
   border: 1px solid var(--gradle-header-line);
   border-radius: 0.5rem;
-  background-color: var(--gradle-hover-fill);
+  background-color: var(--sl-color-bg);
+  color: var(--sl-color-gray-2);
+}
+
+/* Starlight nests <kbd><kbd>⌘</kbd><kbd>K</kbd></kbd>: the outer element is
+ * just a container — only the inner keys get the CF-style chip treatment. */
+header.header site-search button[data-open-modal] > kbd {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+}
+
+header.header site-search button[data-open-modal] > kbd kbd {
+  background-color: var(--sl-color-bg);
+  border: 1px solid var(--gradle-header-line);
+  border-radius: 0.25rem;
+  padding-inline: 0.35rem;
+  color: var(--sl-color-gray-3);
 }
 
 /* ---------------------------------------------------------------------------
@@ -99,7 +117,6 @@ header.header site-search button[data-open-modal] {
 .sidebar-content details > summary:hover {
   background-color: var(--gradle-teal-tint);
   color: var(--gradle-blue);
-  font-weight: 700;
 }
 
 :root[data-theme="dark"] .sidebar-content a:hover,
@@ -248,12 +265,6 @@ starlight-toc a[aria-current="true"] {
   border-radius: var(--gradle-content-radius);
 }
 
-/* Content images (screenshots are often mostly white and vanish on the page
- * background): hairline border + shared radius so they read as objects. */
-.sl-markdown-content img {
-  border: 1px solid var(--gradle-header-line);
-  border-radius: var(--gradle-content-radius);
-}
 
 /* Callout explanation lists (<CalloutList>): numbered bubbles matching the
  * ones the gradle-callouts EC plugin renders inside code blocks. */

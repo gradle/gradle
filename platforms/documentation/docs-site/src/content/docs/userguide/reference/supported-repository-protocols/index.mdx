@@ -29,23 +29,23 @@ Below are examples of how to declare repositories using various protocols:
 
 **Declaring HTTP-based Maven and Ivy Repositories**
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-repository-no-auth" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-repository-no-auth" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 **Declaring an SFTP Protocol for a Repository**
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-repository-auth" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-repository-auth" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 **Declaring an S3-Backed Maven and Ivy Repository**
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-s3-repository" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-s3-repository" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 **Declaring an S3-Backed Maven and Ivy Repository Using IAM**
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-s3-repository-with-iam" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-s3-repository-with-iam" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 **Declaring a GCS-Backed Maven and Ivy Repository**
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-gcs-repository" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-ivy-gcs-repository" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 ## Configuring authentication schemes
 
@@ -60,7 +60,7 @@ When explicitly declared, only those specified schemes will be used.
 
 You can specify credentials for Maven repositories secured by basic authentication using <JavaDocLink class="org.gradle.api.credentials.PasswordCredentials" />:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="authenticated-maven-repo" />
+<SampleScripts sample_name="define-repository" basename="build" tag="authenticated-maven-repo" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 :::note
 When the <Xref page="configuration-cache" section="Configuration Cache">Configuration Cache</Xref> is enabled, credentials passed to a repository may be consumed at configuration time and become part of the cached build configuration.
@@ -72,7 +72,7 @@ See <Xref page="configuration-cache-requirements" section="Handling of Credentia
 
 To configure a repository to use only <JavaDocLink class="org.gradle.authentication.http.DigestAuthentication" />:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="digest-authentication" />
+<SampleScripts sample_name="define-repository" basename="build" tag="digest-authentication" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 #### Supported Authentication Schemes
 
@@ -103,13 +103,13 @@ By default, Gradle submits credentials only when a server responds with an authe
 However, some servers might respond with a different code (e.g., GitHub returns a 404) that could cause dependency resolution to fail.
 In such cases, you can configure Gradle to send credentials preemptively by explicitly using the <JavaDocLink class="org.gradle.authentication.http.BasicAuthentication" /> scheme:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="preemptive-authentication" />
+<SampleScripts sample_name="define-repository" basename="build" tag="preemptive-authentication" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 ### Using HTTP header authentication
 
 For Maven repositories that require token-based, OAuth2, or other HTTP header-based authentication, you can use <JavaDocLink class="org.gradle.api.credentials.HttpHeaderCredentials" /> and <JavaDocLink class="org.gradle.authentication.http.HttpHeaderAuthentication" />:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="header-authenticated-maven-repo" />
+<SampleScripts sample_name="define-repository" basename="build" tag="header-authenticated-maven-repo" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 ### AWS S3 repositories configuration
 
@@ -239,7 +239,7 @@ Gradle provides an <JavaDocLink class="org.gradle.api.artifacts.repositories.Aut
 
 For example, consider the following repository configuration:
 
-<SampleScripts sample_name="publishing-credentials" basename="build" tag="repositories" />
+<SampleScripts sample_name="publishing-credentials" basename="build" tag="repositories" source_dir="snippets/reference/dependency-management/declaring-repositories/publishing-credentials" />
 
 In this example, the username and password are automatically looked up from properties named `mySecureRepositoryUsername` and `mySecureRepositoryPassword`.
 

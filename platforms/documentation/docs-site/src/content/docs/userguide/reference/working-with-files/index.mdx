@@ -28,7 +28,7 @@ Where possible, you should use tasks, task properties, and <Xref page="propertie
 
 For example, if you create a task that packages the compiled classes of a Java application,  you should use an implementation similar to this:
 
-<SampleScripts sample_name="sample-java-project" basename="build" tag="link-task-properties" />
+<SampleScripts sample_name="sample-java-project" basename="build" tag="link-task-properties" source_dir="snippets/reference/gradle-types/sampleJavaProject" />
 
 The `compileJava` task is the source of the files to package, and the project property `archivesDirPath` stores the location of the archives, as we are likely to use it elsewhere in the build.
 
@@ -45,7 +45,7 @@ The original eager getter is preserved as a backward-compatible bridge, and a ne
 
 The two getters share the same underlying state: a value set through one is observable through the other.
 
-<SampleScripts sample_name="lazy-file-variants" basename="build" tag="lazy-javadoc-destination" />
+<SampleScripts sample_name="lazy-file-variants" basename="build" tag="lazy-javadoc-destination" source_dir="snippets/reference/gradle-types/lazyFileVariants" />
 
 Existing builds continue to work without modification, and new build logic can configure the property directly through its lazy form.
 
@@ -81,7 +81,7 @@ The <GroovyDocLink class="org.gradle.api.file.ProjectLayout" /> class is used to
 It provides methods to retrieve paths to the project directory, build directory, settings file, and other important locations within the project’s file structure.
 This class is particularly useful when you need to work with files in a build script or plugin in different project paths:
 
-<SampleScripts sample_name="sample-java-project" basename="build" tag="inner-link-task-properties" />
+<SampleScripts sample_name="sample-java-project" basename="build" tag="inner-link-task-properties" source_dir="snippets/reference/gradle-types/sampleJavaProject" />
 
 You can learn more about the `ProjectLayout` class in <Xref page="service-injection" section="`ProjectLayout`">Services</Xref>.
 
@@ -99,7 +99,7 @@ Gradle can make no guarantees about the location of the CWD, which means builds 
 
 Here are some examples of using the `file()` method with different types of arguments:
 
-<SampleScripts sample_name="file" basename="build" tag="simple-params" />
+<SampleScripts sample_name="file" basename="build" tag="simple-params" source_dir="snippets/reference/gradle-types/file" />
 
 As you can see, you can pass strings, `File` instances and `https://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html[Path]` instances to the `file()` method, all of which result in an absolute `File` object.
 
@@ -111,7 +111,7 @@ To use a path relative to the _settings_ directory, access the <GroovyDocLink cl
 
 For example:
 
-<SampleScripts sample_name="misc" basename="build" subpath="project2" tag="using-root-dir-property" />
+<SampleScripts sample_name="misc" basename="build" subpath="project2" tag="using-root-dir-property" source_dir="snippets/reference/gradle-types/misc" />
 
 Let’s say you’re working on a multi-project build in the directory: `dev/projects/AcmeHealth`.
 The build script above is at: `AcmeHealth/subprojects/AcmePatientRecordLib/build.gradle`.
@@ -154,7 +154,7 @@ You can also pass in tasks as arguments if they have defined outputs.
 As with the <GroovyDocLink class="org.gradle.api.Project" method="file(java.lang.Object)" /> method covered in the [previous section](#sec:single_file_paths), all relative paths are evaluated relative to the current project directory.
 The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, lists, or  `https://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html[Path]s`:
 
-<SampleScripts sample_name="file-collections" basename="build" tag="simple-params" />
+<SampleScripts sample_name="file-collections" basename="build" tag="simple-params" source_dir="snippets/reference/gradle-types/fileCollections" />
 
 File collections have important attributes in Gradle.
 They can be:
@@ -167,7 +167,7 @@ They can be:
 _Lazy creation_ of a file collection is useful when evaluating the files that make up a collection when a build runs.
 In the following example, we query the file system to find out what files exist in a particular directory and then make those into a file collection:
 
-<SampleScripts sample_name="file-collections" basename="build" tag="closure" />
+<SampleScripts sample_name="file-collections" basename="build" tag="closure" source_dir="snippets/reference/gradle-types/fileCollections" />
 
 ```bash
 $ ./gradlew -q list
@@ -191,7 +191,7 @@ In both approaches, the file collection is treated as a set of `File` instances,
 The following example demonstrates such iteration.
 It also demonstrates how you can convert file collections to other types using the `as` operator (or supported properties):
 
-<SampleScripts sample_name="file-collections" basename="build" tag="usage" />
+<SampleScripts sample_name="file-collections" basename="build" tag="usage" source_dir="snippets/reference/gradle-types/fileCollections" />
 
 You can also see at the end of the example _how to combine file collections_ using the `+` and `-` operators to merge and subtract them.
 An important feature of the resulting file collections is that they are _live_.
@@ -206,7 +206,7 @@ Suppose you want to use a subset of a file collection.
 In that case, you can take advantage of the <JavaDocLink class="org.gradle.api.file.FileCollection" method="filter-org.gradle.api.specs.Spec-">FileCollection.filter(org.gradle.api.specs.Spec)</JavaDocLink> method to determine which files to "keep".
 In the following example, we create a new collection that consists of only the files that end with `.txt` in the source collection:
 
-<SampleScripts sample_name="file-collections" basename="build" tag="filtering-file-collections" />
+<SampleScripts sample_name="file-collections" basename="build" tag="filtering-file-collections" source_dir="snippets/reference/gradle-types/fileCollections" />
 
 ```bash
 $ ./gradlew -q filterTextFiles
@@ -235,13 +235,13 @@ Alternatively, you can remove all doubt by explicitly using <JavaDocLink class="
 
 Here are some examples of the different types of arguments that the `source` property can take:
 
-<SampleScripts sample_name="input-files" basename="build" tag="set-input-files" />
+<SampleScripts sample_name="input-files" basename="build" tag="set-input-files" source_dir="snippets/reference/gradle-types/inputFiles" />
 
 One other thing to note is that properties like `source` have corresponding methods in core Gradle tasks.
 Those methods follow the convention of _appending_ to collections of values rather than replacing them.
 Again, this method accepts any of the types supported by the [files()](#sec:file_collections) method, as shown here:
 
-<SampleScripts sample_name="input-files" basename="build" tag="add-input-files" />
+<SampleScripts sample_name="input-files" basename="build" tag="add-input-files" source_dir="snippets/reference/gradle-types/inputFiles" />
 
 As this is a common convention, we recommend that you follow it in your own custom tasks.
 Specifically, if you plan to add a method to configure a collection-based property, make sure the method appends rather than replaces values.
@@ -264,7 +264,7 @@ The simplest way to create a file tree is to pass a file or directory path to th
 This will create a tree of all the files and directories in that base directory (but not the base directory itself).
 The following example demonstrates how to use this method and how to filter the files and directories using Ant-style patterns:
 
-<SampleScripts sample_name="file-trees" basename="build" tag="define" />
+<SampleScripts sample_name="file-trees" basename="build" tag="define" source_dir="snippets/reference/gradle-types/fileTrees" />
 
 You can see more examples of supported patterns in the API docs for <JavaDocLink class="org.gradle.api.tasks.util.PatternFilterable" />.
 
@@ -273,7 +273,7 @@ For the complete default exclude list, see [the Ant manual](http://ant.apache.or
 
 If those default excludes prove problematic, you can work around the issue by changing the default excludes in the settings script:
 
-<SampleScripts sample_name="copy" basename="settings" tag="change-default-exclusions" />
+<SampleScripts sample_name="copy" basename="settings" tag="change-default-exclusions" source_dir="snippets/reference/gradle-types/copy" />
 
 :::danger
 Gradle does not support changing default excludes during the execution phase.
@@ -288,7 +288,7 @@ You can do many of the same things with file trees that you can with file collec
 You can also traverse file trees using the <JavaDocLink class="org.gradle.api.file.FileTree" method="visit-org.gradle.api.Action-">FileTree.visit(org.gradle.api.Action)</JavaDocLink> method.
 All of these techniques are demonstrated in the following example:
 
-<SampleScripts sample_name="file-trees" basename="build" tag="use" />
+<SampleScripts sample_name="file-trees" basename="build" tag="use" source_dir="snippets/reference/gradle-types/fileTrees" />
 
 ## Copying files
 
@@ -316,7 +316,7 @@ One solution is the <GroovyDocLink class="org.gradle.api.Project" method="copySp
 This allows you to create a copy spec outside a task, which can then be attached to an appropriate task using the <JavaDocLink class="org.gradle.api.file.CopySpec" method="with-org.gradle.api.file.CopySpec...-">CopySpec.with(org.gradle.api.file.CopySpec…​)</JavaDocLink> method.
 The following example demonstrates how this is done:
 
-<SampleScripts sample_name="copy" basename="build" tag="standalone-copyspec" />
+<SampleScripts sample_name="copy" basename="build" tag="standalone-copyspec" source_dir="snippets/reference/gradle-types/copy" />
 
 Both the `copyAssets` and `distApp` tasks will process the static resources under `src/main/webapp`, as specified by `webAssetsSpec`.
 
@@ -331,7 +331,7 @@ Suppose you encounter a scenario in which you want to apply the same copy config
 In that case, you can share the configuration block directly without using `copySpec()`.
 Here’s an example that has two independent tasks that happen to want to process image files only:
 
-<SampleScripts sample_name="copy" basename="build" tag="shared-copy-patterns" />
+<SampleScripts sample_name="copy" basename="build" tag="shared-copy-patterns" source_dir="snippets/reference/gradle-types/copy" />
 
 In this case, we assign the copy configuration to its own variable and apply it to whatever `from()` specification we want.
 This doesn’t just work for inclusions but also exclusions, file renaming, and file content filtering.
@@ -351,7 +351,7 @@ We need separate filter patterns for those two sets of files.
 The solution is to use _child specifications_, which can be applied to both `from()` and `into()` declarations.
 The following task definition does the necessary work:
 
-<SampleScripts sample_name="sample-java-project" basename="build" tag="nested-specs" />
+<SampleScripts sample_name="sample-java-project" basename="build" tag="nested-specs" source_dir="snippets/reference/gradle-types/sampleJavaProject" />
 
 Notice how the `src/dist` configuration has a nested inclusion specification; it is the child copy spec.
 You can, of course, add content filtering and renaming here as required.
@@ -378,7 +378,7 @@ This can be useful for doing things such as installing your application, creatin
 
 Here is an example that maintains a copy of the project’s runtime dependencies in the `build/libs` directory:
 
-<SampleScripts sample_name="sync" basename="build" tag="copy-dependencies" />
+<SampleScripts sample_name="sync" basename="build" tag="copy-dependencies" source_dir="snippets/reference/gradle-types/sync" />
 
 You can also perform the same function in your own tasks with the <GroovyDocLink class="org.gradle.api.Project" method="sync(org.gradle.api.Action)" /> method.
 
@@ -388,7 +388,7 @@ You can copy a file by creating an instance of Gradle’s builtin <GroovyDocLink
 
 This example mimics copying a generated report into a directory that will be packed into an archive, such as a ZIP or TAR:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-single-file-example" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-single-file-example" source_dir="snippets/reference/gradle-types/copy" />
 
 The file and directory paths are then used to specify what file to copy using <GroovyDocLink class="org.gradle.api.tasks.Copy" method="from(java.lang.Object[])">Copy.from(java.lang.Object…​)</GroovyDocLink> and which directory to copy it to using <GroovyDocLink class="org.gradle.api.tasks.Copy" method="into(java.lang.Object)" />.
 
@@ -396,7 +396,7 @@ Although hard-coded paths make for simple examples, they make the build brittle.
 Using a reliable, single source of truth, such as a task or shared project property, is better.
 In the following modified example, we use a report task defined elsewhere that has the report’s location stored in its `outputFile` property:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-single-file-example-with-task-properties" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-single-file-example-with-task-properties" source_dir="snippets/reference/gradle-types/copy" />
 
 We have also assumed that the reports will be archived by `archiveReportsTask`, which provides us with the directory that will be archived and hence where we want to put the copies of the reports.
 
@@ -404,7 +404,7 @@ We have also assumed that the reports will be archived by `archiveReportsTask`, 
 
 You can extend the previous examples to multiple files very easily by providing multiple arguments to `from()`:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-multiple-files-example" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-multiple-files-example" source_dir="snippets/reference/gradle-types/copy" />
 
 Two files are now copied into the archive directory.
 
@@ -414,7 +414,7 @@ But what if you want to copy all the PDFs in a directory without specifying each
 To do this, attach inclusion and/or exclusion patterns to the copy specification.
 Here, we use a string pattern to include PDFs only:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-multiple-files-with-flat-filter-example" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-multiple-files-with-flat-filter-example" source_dir="snippets/reference/gradle-types/copy" />
 
 One thing to note, as demonstrated in the following diagram, is that only the PDFs that reside directly in the `reports` directory are copied:
 
@@ -422,7 +422,7 @@ One thing to note, as demonstrated in the following diagram, is that only the PD
 
 You can include files in subdirectories by using an Ant-style glob pattern (`**/*`), as done in this updated example:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-multiple-files-with-deep-filter-example" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-multiple-files-with-deep-filter-example" source_dir="snippets/reference/gradle-types/copy" />
 
 This task has the following effect:
 
@@ -436,7 +436,7 @@ If you want to copy the files without the directory structure, you must use an e
 You may need to copy files as well as the directory structure in which they reside.
 This is the default behavior when you specify a directory as the `from()` argument, as demonstrated by the following example that copies everything in the `reports` directory, including all its subdirectories, to the destination:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-directory-example" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-directory-example" source_dir="snippets/reference/gradle-types/copy" />
 
 The key aspect that users need help with is controlling how much of the directory structure goes to the destination.
 In the above example, do you get a `toArchive/reports` directory, or does everything in `reports` go straight into `toArchive`?
@@ -445,7 +445,7 @@ The answer is the latter. If a directory is part of the `from()` path, then it _
 So how do you ensure that `reports` itself is copied across, but not any other directory in `${layout.buildDirectory}`?
 The answer is to add it as an include pattern:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-directory-including-itself-example" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-directory-including-itself-example" source_dir="snippets/reference/gradle-types/copy" />
 
 You’ll get the same behavior as before except with one extra directory level in the destination, i.e., `toArchive/reports`.
 
@@ -491,7 +491,7 @@ Something else to consider is what type of thing a file path refers to:
 Here is an example that uses multiple `from()` specifications, each with a different argument type.
 You will probably also notice that `into()` is configured lazily using a closure (in Groovy) or a Provider (in Kotlin) — a technique that also works with `from()`:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-task-2" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-task-2" source_dir="snippets/reference/gradle-types/copy" />
 
 Note that the lazy configuration of `into()` is different from a [child specification](#sub:using_child_copy_specifications), even though the syntax is similar.
 Keep an eye on the number of arguments to distinguish between them.
@@ -511,7 +511,7 @@ The solution is to use the <GroovyDocLink class="org.gradle.api.Project" method=
 Configuring it with a copy spec works like the `Copy` task.
 Here’s a trivial example:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-method" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-method" source_dir="snippets/reference/gradle-types/copy" />
 
 The above example demonstrates the basic syntax and also highlights two major limitations of using the `copy()` method:
 
@@ -523,7 +523,7 @@ As such, if you use the `copy()` method as part of a task action, you must expli
 
 The following example shows how to work around these limitations using the dynamic API for task inputs and outputs:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-method-with-dependency" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-method-with-dependency" source_dir="snippets/reference/gradle-types/copy" />
 
 These limitations make it preferable to use the `Copy` task wherever possible because of its built-in support for incremental building and task dependency inference.
 That is why the `copy()` method is intended for use by <Xref page="custom-tasks" section="Advanced Tasks">custom tasks</Xref> that need to copy files as part of their function.
@@ -540,12 +540,12 @@ Gradle allows you to do this as part of a copy specification using the `rename()
 
 The following example removes the "-staging" marker from the names of any files that have it:
 
-<SampleScripts sample_name="copy" basename="build" tag="rename-on-copy-example" />
+<SampleScripts sample_name="copy" basename="build" tag="rename-on-copy-example" source_dir="snippets/reference/gradle-types/copy" />
 
 As in the above example, you can use regular expressions for this or closures that use more complex logic to determine the target filename.
 For example, the following task truncates filenames:
 
-<SampleScripts sample_name="copy" basename="build" tag="truncate-names-example" />
+<SampleScripts sample_name="copy" basename="build" tag="truncate-names-example" source_dir="snippets/reference/gradle-types/copy" />
 
 As with filtering, you can also rename a subset of files by configuring it as part of a child specification on a `from()`.
 
@@ -560,7 +560,7 @@ It demonstrates the two options for renaming:
 Regular expressions are a flexible approach to renaming, particularly as Gradle supports regex groups that allow you to remove and replace parts of the source filename.
 The following example shows how you can remove the string "-staging" from any filename that contains it using a simple regular expression:
 
-<SampleScripts sample_name="copy" basename="build" tag="rename-files" />
+<SampleScripts sample_name="copy" basename="build" tag="rename-files" source_dir="snippets/reference/gradle-types/copy" />
 
 You can use any regular expression supported by the Java `https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html[Pattern]` class and the substitution string.
 The second argument of `rename()` works on the same principles as the `https://docs.oracle.com/javase/8/docs/api/java/util/regex/Matcher.html#appendReplacement(java.lang.StringBuffer,%20java.lang.String)[Matcher.appendReplacement()]` method.
@@ -590,7 +590,7 @@ These methods are typically used with Ant-style include or exclude patterns, as 
 You can also perform more complex logic by using a closure that takes a <JavaDocLink class="org.gradle.api.file.FileTreeElement" /> and returns `true` if the file should be included or `false` otherwise.
 The following example demonstrates both forms, ensuring that only `.html` and `.jsp` files are copied, except for those `.html` files with the word "DRAFT" in their content:
 
-<SampleScripts sample_name="copy" basename="build" tag="copy-task-with-patterns" />
+<SampleScripts sample_name="copy" basename="build" tag="copy-task-with-patterns" source_dir="snippets/reference/gradle-types/copy" />
 
 A question you may ask yourself at this point is what happens when inclusion and exclusion patterns overlap? Which pattern wins? Here are the basic rules:
 
@@ -613,7 +613,7 @@ Transforming the content of files while they are being copied involves basic tem
 
 The following example demonstrates several forms of filtering, including token substitution using the <JavaDocLink class="org.gradle.api.file.CopySpec" method="expand-java.util.Map-">CopySpec.expand(java.util.Map)</JavaDocLink> method and another using <JavaDocLink class="org.gradle.api.file.CopySpec" method="filter-java.lang.Class-">CopySpec.filter(java.lang.Class)</JavaDocLink> with an [Ant filter](https://ant.apache.org/manual/Types/filterchain.html):
 
-<SampleScripts sample_name="copy" basename="build" tag="filter-files" />
+<SampleScripts sample_name="copy" basename="build" tag="filter-files" source_dir="snippets/reference/gradle-types/copy" />
 
 The `filter()` method has two variants, which behave differently:
 
@@ -655,7 +655,7 @@ The exception are archive tasks, see [Reproducible archives](#sec:reproducible_a
 
 **Setting file permissions for files and directories**
 
-<SampleScripts sample_name="copy" basename="build" tag="file-permissions" />
+<SampleScripts sample_name="copy" basename="build" tag="file-permissions" source_dir="snippets/reference/gradle-types/copy" />
 
 For a detailed description of file permissions, see <JavaDocLink class="org.gradle.api.file.FilePermissions" /> and <JavaDocLink class="org.gradle.api.file.UserClassFilePermissions" />.
 For details on the convenience method used in the samples, see <JavaDocLink class="org.gradle.api.file.ConfigurableFilePermissions" method="unix-java.lang.String-">ConfigurableFilePermissions.unix(String)</JavaDocLink>.
@@ -671,7 +671,7 @@ It’s also possible to set permissions for a specific file. See the following e
 
 **Setting file permissions for a specific file**
 
-<SampleScripts sample_name="copy" basename="build" tag="file-specific-permissions" />
+<SampleScripts sample_name="copy" basename="build" tag="file-specific-permissions" source_dir="snippets/reference/gradle-types/copy" />
 
 :::note
 Setting file permissions explicitly for a file doesn’t support `UP-TO-DATE` checks, so a task using this setting will always run.
@@ -693,14 +693,14 @@ It’s important to note that `renameTo()` has some limitations and platform-spe
 In this example, the `moveFile` task uses the `Copy` task type to specify the source and destination directories.
 Inside the `doLast` closure, it uses `File.renameTo()` to move the file from the source directory to the destination directory:
 
-<SampleScripts sample_name="working-with-files-file-ops" basename="build" tag="move-rename" />
+<SampleScripts sample_name="working-with-files-file-ops" basename="build" tag="move-rename" source_dir="snippets/reference/gradle-types/workingWithFiles-fileOps" />
 
 ### Using the `Copy` task
 
 In this example, the `moveFile` task copies the file `source.txt` to the destination directory and renames it to `new_name.txt` in the process.
 This achieves a similar effect to moving a file.
 
-<SampleScripts sample_name="working-with-files-file-ops" basename="build" tag="move-copy" />
+<SampleScripts sample_name="working-with-files-file-ops" basename="build" tag="move-copy" source_dir="snippets/reference/gradle-types/workingWithFiles-fileOps" />
 
 ## Deleting files and directories
 
@@ -713,13 +713,13 @@ You must specify which files and directories to delete in a way supported by the
 
 For example, the following task deletes the entire contents of a build’s output directory:
 
-<SampleScripts sample_name="misc" basename="build" tag="delete-example" />
+<SampleScripts sample_name="misc" basename="build" tag="delete-example" source_dir="snippets/reference/gradle-types/misc" />
 
 If you want more control over which files are deleted, you can’t use inclusions and exclusions the same way you use them for copying files.
 Instead, you use the built-in filtering mechanisms of `FileCollection` and `FileTree`.
 The following example does just that to clear out temporary files from a source directory:
 
-<SampleScripts sample_name="misc" basename="build" tag="delete-with-filter-example" />
+<SampleScripts sample_name="misc" basename="build" tag="delete-with-filter-example" source_dir="snippets/reference/gradle-types/misc" />
 
 ### Using `Project.delete()`
 
@@ -746,7 +746,7 @@ Creating archives looks a lot like copying, with all the same features.
 
 The simplest case involves archiving the entire contents of a directory, which this example demonstrates by creating a ZIP of the `toArchive` directory:
 
-<SampleScripts sample_name="copy" basename="build" tag="create-archive-example" />
+<SampleScripts sample_name="copy" basename="build" tag="create-archive-example" source_dir="snippets/reference/gradle-types/copy" />
 
 Notice how we specify the destination and name of the archive instead of an `into()`: both are required. You often won’t see them explicitly set because most projects apply the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref>.
 It provides some conventional values for those properties.
@@ -761,7 +761,7 @@ For example, let’s say you want to package all PDFs into a `docs` directory in
 This `docs` directory doesn’t exist in the source location, so you must create it as part of the archive.
 You do this by adding an `into()` declaration for just the PDFs:
 
-<SampleScripts sample_name="archives-with-base-plugin" basename="build" tag="create-archive-with-base-plugin-example" />
+<SampleScripts sample_name="archives-with-base-plugin" basename="build" tag="create-archive-with-base-plugin-example" source_dir="snippets/reference/gradle-types/archivesWithBasePlugin" />
 
 As you can see, you can have multiple `from()` declarations in a copy specification, each with its own configuration.
 See [Using child copy specifications](#sub:using_child_copy_specifications) for more information on this feature.
@@ -795,7 +795,7 @@ The main convention is provided by the <Xref page="base-plugin" section="The Bas
 
 The following example comes from a project named `archive-naming`, hence the `myZip` task creates an archive named `archive-naming-1.0.zip`:
 
-<SampleScripts sample_name="archive-naming" basename="build" tag="zip-task" />
+<SampleScripts sample_name="archive-naming" basename="build" tag="zip-task" source_dir="snippets/reference/gradle-types/archiveNaming" />
 
 ```bash
 $ ./gradlew -q myZip
@@ -819,7 +819,7 @@ It does not provide values for the other properties.
 
 This example — from the same project as the one above — configures just the `archiveBaseName` property, overriding the default value of the project name:
 
-<SampleScripts sample_name="archive-naming" basename="build" tag="zip-task-with-custom-base-name" />
+<SampleScripts sample_name="archive-naming" basename="build" tag="zip-task-with-custom-base-name" source_dir="snippets/reference/gradle-types/archiveNaming" />
 
 ```bash
 $ ./gradlew -q myCustomZip
@@ -832,7 +832,7 @@ customName-1.0.zip
 You can also override the default `archiveBaseName` value for _all_ the archive tasks in your build by configuring the `archivesName` property in the `base` block, as demonstrated by the following example.
 The block is defined by the `base` plugin and backed by the `BasePluginExtension` class.
 
-<SampleScripts sample_name="archives-changed-base-name" basename="build" />
+<SampleScripts sample_name="archives-changed-base-name" basename="build" source_dir="snippets/reference/gradle-types/archivesChangedBaseName" />
 
 ```bash
 $ ./gradlew -q echoNames
@@ -914,7 +914,7 @@ Or you can merge one archive into another.
 
 Here are some simple examples of creating archive-based file trees:
 
-<SampleScripts sample_name="file-trees" basename="build" tag="archive-trees" />
+<SampleScripts sample_name="file-trees" basename="build" tag="archive-trees" source_dir="snippets/reference/gradle-types/fileTrees" />
 
 You can see a practical example of extracting an archive file [in the unpacking archives section](#sec:unpacking_archives_example) below.
 
@@ -948,7 +948,7 @@ while keeping the archives reproducible.
 
 If desired, you can revert individual aspects of reproducible archives.
 
-<SampleScripts sample_name="archives" basename="build" tag="revert-reproducible" />
+<SampleScripts sample_name="archives" basename="build" tag="revert-reproducible" source_dir="snippets/reference/gradle-types/archives" />
 
 <CalloutList>
 
@@ -986,7 +986,7 @@ It can be used to complement reproducibility by using a meaningful, verifiable t
 
 For example, the `SOURCE_DATE_EPOCH` environment variable can be set to the Unix timestamp from the most recent git commit using `git log -1 --format=%ct`, and then used in the Gradle build:
 
-<SampleScripts sample_name="archives" basename="build" tag="reproducible-timestamp" />
+<SampleScripts sample_name="archives" basename="build" tag="reproducible-timestamp" source_dir="snippets/reference/gradle-types/archives" />
 
 :::note
 Timestamp resolution and range vary by archive format.
@@ -1007,7 +1007,7 @@ The two functions of interest are <GroovyDocLink class="org.gradle.api.Project" 
 
 That file tree can then be used in a `from()` specification, like so:
 
-<SampleScripts sample_name="archives" basename="build" tag="unpack-archive-example" />
+<SampleScripts sample_name="archives" basename="build" tag="unpack-archive-example" source_dir="snippets/reference/gradle-types/archives" />
 
 As with a normal copy, you can control which files are unpacked via [filters](#sec:filtering_files) and even [rename files](#sec:renaming_files) as they are unpacked.
 
@@ -1015,7 +1015,7 @@ More advanced processing can be handled by the <GroovyDocLink class="org.gradle.
 For example, you might need to extract different subtrees of the archive into different paths within the destination directory.
 The following sample uses the method to extract the files within the archive’s `libs` directory into the root destination directory, rather than into a `libs` subdirectory:
 
-<SampleScripts sample_name="archives" basename="build" tag="unpack-archive-subset-example" />
+<SampleScripts sample_name="archives" basename="build" tag="unpack-archive-subset-example" source_dir="snippets/reference/gradle-types/archives" />
 
 <CalloutList>
 
@@ -1049,7 +1049,7 @@ This plugin packages your project classes and dependencies into a single JAR fil
 To copy the contents of other JAR files into the application JAR, use the <GroovyDocLink class="org.gradle.api.Project" method="zipTree(java.lang.Object)" /> method and the <GroovyDocLink class="org.gradle.api.tasks.bundling.Jar" /> task.
 This is demonstrated by the `uberJar` task in the following example:
 
-<SampleScripts sample_name="archives-with-java-plugin" basename="build" tag="create-uber-jar-example" />
+<SampleScripts sample_name="archives-with-java-plugin" basename="build" tag="create-uber-jar-example" source_dir="snippets/reference/gradle-types/archivesWithJavaPlugin" />
 
 In this case, we’re taking the runtime dependencies of the project — `configurations.runtimeClasspath.files` — and wrapping each of the JAR files with the `zipTree()` method.
 The result is a collection of ZIP file trees, the contents of which are copied into the uber JAR alongside the application classes.
@@ -1065,7 +1065,7 @@ In cases where you need to create a directory manually, you can use the standard
 
 Here is a simple example that creates a single `images` directory in the project folder:
 
-<SampleScripts sample_name="misc" basename="build" tag="mkdir-example" />
+<SampleScripts sample_name="misc" basename="build" tag="mkdir-example" source_dir="snippets/reference/gradle-types/misc" />
 
 As described in the [Apache Ant manual](https://ant.apache.org/manual/Tasks/mkdir.html), the `mkdir` task will automatically create all necessary directories in the given path.
 It will do nothing if the directory already exists.
@@ -1075,7 +1075,7 @@ It will do nothing if the directory already exists.
 You can create directories in Gradle using the `mkdir` method, which is available in the <JavaDocLink class="org.gradle.api.Project" method="mkdir-java.lang.Object-">`Project` object</JavaDocLink>.
 This method takes a `File` object or a `String` representing the path of the directory to be created:
 
-<SampleScripts sample_name="working-with-files-file-ops" basename="build" tag="create-dirs" />
+<SampleScripts sample_name="working-with-files-file-ops" basename="build" tag="create-dirs" source_dir="snippets/reference/gradle-types/workingWithFiles-fileOps" />
 
 ## Installing executables
 
@@ -1087,7 +1087,7 @@ You can use a `Copy` task to install the executable into shared directories like
 The installation directory probably contains many other executables, some of which may even be unreadable by Gradle.
 To support the unreadable files in the `Copy` task’s destination directory and to avoid time consuming up-to-date checks, you can use <GroovyDocLink class="org.gradle.api.Task" method="doNotTrackState(java.lang.String)">Task.doNotTrackState()</GroovyDocLink>:
 
-<SampleScripts sample_name="install-executable" basename="build" />
+<SampleScripts sample_name="install-executable" basename="build" source_dir="snippets/reference/gradle-types/installExecutable" />
 
 ## Deploying single files into application servers
 
@@ -1100,4 +1100,4 @@ Since you are deploying a single file, the destination directory of the `Copy` i
 The deployment directory sometimes does contain unreadable files like named pipes, so Gradle may have problems doing up-to-date checks.
 In order to support this use-case, you can use <GroovyDocLink class="org.gradle.api.Task" method="doNotTrackState(java.lang.String)">Task.doNotTrackState()</GroovyDocLink>:
 
-<SampleScripts sample_name="deploy-war-with-copy" basename="build" />
+<SampleScripts sample_name="deploy-war-with-copy" basename="build" source_dir="snippets/reference/gradle-types/deployWarWithCopy" />

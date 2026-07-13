@@ -73,13 +73,13 @@ Versions are ordered based on the following rules:
 
 When you declare a version using the shorthand notation, then the version is considered a [required version](#sec:required-version):
 
-<SampleScripts sample_name="declaring-dependencies-concrete-version" basename="build" tag="required-version" />
+<SampleScripts sample_name="declaring-dependencies-concrete-version" basename="build" tag="required-version" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion" />
 
 This means the minimum version will be `1.7.15` and it can be optimistically upgraded by the engine.
 
 To enforce a [strict version](#sec:strict-version) and ensure that only the specified version of a dependency is used, rejecting any other versions even if they would normally be compatible:
 
-<SampleScripts sample_name="declaring-dependencies-concrete-version" basename="build" tag="rich-version-intro" />
+<SampleScripts sample_name="declaring-dependencies-concrete-version" basename="build" tag="rich-version-intro" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion" />
 
 Gradle supports a model for **rich version** declarations, allowing you to combine different levels of version specificity.
 
@@ -144,11 +144,11 @@ Dynamic versions are supported.
 
 Rich version declaration is accessed through the `version` DSL method on a dependency or constraint declaration, which gives you access to <JavaDocLink class="org.gradle.api.artifacts.MutableVersionConstraint" />:
 
-<SampleScripts sample_name="declaring-dependencies-concrete-version" basename="build" tag="rich-version" />
+<SampleScripts sample_name="declaring-dependencies-concrete-version" basename="build" tag="rich-version" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion" />
 
 To enforce [strict versions](#sec:strict-version), you can also use the `!!` notation:
 
-<SampleScripts sample_name="declaring-dependencies-concrete-version" basename="build" tag="strict-shorthand" />
+<SampleScripts sample_name="declaring-dependencies-concrete-version" basename="build" tag="strict-shorthand" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion" />
 
 The notation `[1.7, 1.8[!!1.7.25` above is equivalent to:
 
@@ -210,7 +210,7 @@ Let’s say a project uses the [`HttpClient` library](https://hc.apache.org/http
 However, the production source code of the project requires an API from `Commons Codec` `1.9` which is no longer available in `1.10`.
 The dependency version can be enforced by declaring it as `strict` it in the build script:
 
-<SampleScripts sample_name="managing-transitive-dependencies-force-for-dependency" basename="build" tag="force-using-strictly" />
+<SampleScripts sample_name="managing-transitive-dependencies-force-for-dependency" basename="build" tag="force-using-strictly" source_dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-forceForDependency" />
 
 ### Consequences of using strict versions
 
@@ -230,7 +230,7 @@ Then if a consumer chooses `1.1` (or any other version in the range), the build 
 
 For larger projects, it’s advisable to declare **dependencies without versions** and manage versions using <Xref page="platforms" section="Platforms">platforms</Xref>:
 
-<SampleScripts sample_name="declaring-dependencies-without-version" basename="build" tag="dependencies-without-version" />
+<SampleScripts sample_name="declaring-dependencies-without-version" basename="build" tag="dependencies-without-version" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-withoutVersion" />
 
 This approach centralizes version management, including transitive dependencies.
 
@@ -243,7 +243,7 @@ Projects might adopt a more aggressive approach to consuming dependencies by alw
 You can easily manage these ever-changing dependencies by using a **dynamic version**.
 A dynamic version can be either a version range (e.g., `2.+`) or a placeholder for the latest available version (e.g., `latest.integration`):
 
-<SampleScripts sample_name="declaring-dependencies-dynamic-version" basename="build" tag="dependencies" />
+<SampleScripts sample_name="declaring-dependencies-dynamic-version" basename="build" tag="dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-dynamicVersion" />
 
 Using dynamic versions and changing modules can lead to unreproducible builds.
 As new versions of a module are published, its API may become incompatible with your source code.
@@ -264,7 +264,7 @@ Snapshot versions contain the suffix `-SNAPSHOT`.
 
 The following example demonstrates how to declare a snapshot version on the Spring dependency:
 
-<SampleScripts sample_name="declaring-dependencies-changing-version" basename="build" tag="dependencies" />
+<SampleScripts sample_name="declaring-dependencies-changing-version" basename="build" tag="dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-changingVersion" />
 
 Gradle is flexible enough to treat any version as a changing version.
 All you need to do is to set the property <JavaDocLink class="org.gradle.api.artifacts.ExternalModuleDependency" method="setChanging-boolean-">ExternalModuleDependency.setChanging(boolean)</JavaDocLink> to `true`.

@@ -14,7 +14,7 @@ To use the Maven Publish Plugin, include the following in your build script:
 
 **Applying the Maven Publish Plugin**
 
-<SampleScripts sample_name="quickstart-maven-publish" basename="build" tag="use-plugin" />
+<SampleScripts sample_name="quickstart-maven-publish" basename="build" tag="use-plugin" source_dir="snippets/reference/dependency-management/publishing/quickstart-maven-publish" />
 
 The Maven Publish Plugin uses an extension on the project named `publishing` of type <GroovyDocLink class="org.gradle.api.publish.PublishingExtension" />. This extension provides a container of named publications and a container of named repositories. The Maven Publish Plugin works with <GroovyDocLink class="org.gradle.api.publish.maven.MavenPublication" /> publications and <GroovyDocLink class="org.gradle.api.artifacts.repositories.MavenArtifactRepository" /> repositories.
 
@@ -80,7 +80,7 @@ The attributes of the generated POM file will contain identity values derived fr
 
 Overriding the default identity values is easy: simply specify the `groupId`, `artifactId` or `version` attributes when configuring the <GroovyDocLink class="org.gradle.api.publish.maven.MavenPublication" />.
 
-<SampleScripts sample_name="customize-identity" basename="build" subpath="library" tag="customize-identity" />
+<SampleScripts sample_name="customize-identity" basename="build" subpath="library" tag="customize-identity" source_dir="snippets/reference/dependency-management/publishing/customize-identity" />
 
 :::tip
 Certain repositories will not be able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
@@ -94,7 +94,7 @@ The only Unicode values that are explicitly prohibited are `\`, `/` and any ISO 
 
 The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The Maven Publish Plugin provides a DSL for that purpose. Please see <GroovyDocLink class="org.gradle.api.publish.maven.MavenPom" /> in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
 
-<SampleScripts sample_name="maven-publish" basename="build" tag="pom-customization" />
+<SampleScripts sample_name="maven-publish" basename="build" tag="pom-customization" source_dir="snippets/reference/dependency-management/publishing/maven-publish" />
 
 ### Customizing dependencies versions
 
@@ -126,7 +126,7 @@ Instead of relying on the conversion, it publishes the resolved versions.
 
 This is done by using the `versionMapping` DSL method which allows to configure the <JavaDocLink class="org.gradle.api.publish.VersionMappingStrategy" />:
 
-<SampleScripts sample_name="maven-publish" basename="build" tag="versions-resolved" />
+<SampleScripts sample_name="maven-publish" basename="build" tag="versions-resolved" source_dir="snippets/reference/dependency-management/publishing/maven-publish" />
 
 In the example above, Gradle will use the versions resolved on the `runtimeClasspath` for dependencies declared in `api`, which are mapped to the `compile` scope of Maven.
 Gradle will also use the versions resolved on the `runtimeClasspath` for dependencies declared in `implementation`, which are mapped to the `runtime` scope of Maven.
@@ -138,7 +138,7 @@ This plugin provides repositories of type <GroovyDocLink class="org.gradle.api.a
 
 Here’s a simple example of defining a publishing repository:
 
-<SampleScripts sample_name="quickstart-maven-publish" basename="build" tag="repositories" />
+<SampleScripts sample_name="quickstart-maven-publish" basename="build" tag="repositories" source_dir="snippets/reference/dependency-management/publishing/quickstart-maven-publish" />
 
 The two main things you will want to configure are the repository’s:
 
@@ -177,11 +177,11 @@ It is a common practice to publish snapshots and releases to different Maven rep
 
 **Configuring repository URL based on project version**
 
-<SampleScripts sample_name="java-project" basename="build" tag="repo-url-from-variable" />
+<SampleScripts sample_name="java-project" basename="build" tag="repo-url-from-variable" source_dir="snippets/reference/dependency-management/publishing/javaProject" />
 
 Similarly, you can use a <Xref page="build-environment" section="Build Environment Configuration">project or system property</Xref> to decide which repository to publish to. The following example uses the release repository if the project property `release` is set, such as when a user runs `gradle -Prelease publish`:
 
-<SampleScripts sample_name="java-project" basename="build" tag="repo-url-from-project-property" />
+<SampleScripts sample_name="java-project" basename="build" tag="repo-url-from-project-property" source_dir="snippets/reference/dependency-management/publishing/javaProject" />
 
 ## Publishing to Maven Local
 
@@ -199,7 +199,7 @@ When a project changes the `groupId` or `artifactId` (the _coordinates_) of an a
 
 For this, a project adds an additional `MavenPublication` specifying a <GroovyDocLink class="org.gradle.api.publish.maven.MavenPomRelocation" />:
 
-<SampleScripts sample_name="specify-relocation" basename="build" subpath="library" tag="specify-relocation" />
+<SampleScripts sample_name="specify-relocation" basename="build" subpath="library" tag="specify-relocation" source_dir="snippets/reference/dependency-management/publishing/specify-relocation" />
 
 Only the property which has changed needs to be specified under `relocation`, that is `artifactId` and / or `groupId`. All other properties are optional.
 
@@ -236,7 +236,7 @@ To verify that relocation information works as expected before publishing it to 
 
 The following example demonstrates how to sign and publish a Java library including sources, Javadoc, and a customized POM:
 
-<SampleScripts sample_name="maven-publish" basename="build" tag="all" />
+<SampleScripts sample_name="maven-publish" basename="build" tag="all" source_dir="snippets/reference/dependency-management/publishing/maven-publish" />
 
 The result is that the following artifacts will be published:
 
@@ -260,8 +260,8 @@ This behavior caused quite a bit of confusion and was deprecated in Gradle 4.8, 
 You may have some logic inside your publishing block or in a plugin that is depending on the deferred configuration behavior.
 For instance, the following logic assumes that the subprojects will be evaluated when the artifactId is set:
 
-<SampleScripts sample_name="publishing-maven-deferred-config" basename="build" tag="deferred-config-before" />
+<SampleScripts sample_name="publishing-maven-deferred-config" basename="build" tag="deferred-config-before" source_dir="snippets/reference/dependency-management/publishing/publishingMaven-deferredConfig" />
 
 This kind of logic must now be wrapped in an `afterEvaluate {}` block.
 
-<SampleScripts sample_name="publishing-maven-deferred-config" basename="build" tag="deferred-config-after" />
+<SampleScripts sample_name="publishing-maven-deferred-config" basename="build" tag="deferred-config-after" source_dir="snippets/reference/dependency-management/publishing/publishingMaven-deferredConfig" />

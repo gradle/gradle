@@ -15,9 +15,9 @@ This pattern is called _service injection_, and it works uniformly across every 
 The most common form is constructor injection on an abstract type.
 The same `CleanTempTask` is shown below as a Kotlin DSL class, a Groovy DSL class, and a stand-alone Java class that you would typically place in `buildSrc` or a binary plugin:
 
-<SampleScripts sample_name="services" basename="build" tag="clean-temp-inject" />
+<SampleScripts sample_name="services" basename="build" tag="clean-temp-inject" source_dir="snippets/reference/gradle-types/services" />
 
-<SampleFile sample_name="services" path="kotlin/buildSrc/src/main/java/org/example/CleanTempTask.java" tag="clean-temp-inject" />
+<SampleFile sample_name="services" path="{lang}/buildSrc/src/main/java/org/example/CleanTempTask.java" tag="clean-temp-inject" source_dir="snippets/reference/gradle-types/services" />
 
 A task that needs to run work in parallel injects the <JavaDocLink class="org.gradle.workers.WorkerExecutor" /> service in the same way, as shown in the worker API section.
 
@@ -90,7 +90,7 @@ It provides methods for creating instances of different types, such as propertie
 You can obtain an instance of `ObjectFactory` using the `project.objects` property.
 Here’s a simple example demonstrating how to use `ObjectFactory` to create a property and set its value:
 
-<SampleScripts sample_name="services" basename="build" tag="object-factory" />
+<SampleScripts sample_name="services" basename="build" tag="object-factory" source_dir="snippets/reference/gradle-types/services" />
 
 :::tip
 It is preferable to let Gradle create objects automatically by using <Xref page="properties-providers" section="Using Gradle Managed Properties">managed properties</Xref>.
@@ -125,7 +125,7 @@ public interface Resource {
 
 Here is another example using `javax.inject.Inject`:
 
-<SampleScripts sample_name="services" basename="build" tag="object-factory-inject" />
+<SampleScripts sample_name="services" basename="build" tag="object-factory-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `MyObjectFactoryTask` task uses an `ObjectFactory` instance, which is injected into the task’s constructor using the `@Inject` annotation.
 
@@ -137,11 +137,11 @@ It’s part of the `org.gradle.api.file` package and allows you to query the pro
 You can obtain a `ProjectLayout` instance from a `Project` object using the `project.layout` property.
 Here’s a simple example:
 
-<SampleScripts sample_name="services" basename="build" tag="project-layout" />
+<SampleScripts sample_name="services" basename="build" tag="project-layout" source_dir="snippets/reference/gradle-types/services" />
 
 Here is an example using `javax.inject.Inject`:
 
-<SampleScripts sample_name="services" basename="build" tag="project-layout-inject" />
+<SampleScripts sample_name="services" basename="build" tag="project-layout-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `MyProjectLayoutTask` task uses a `ProjectLayout` instance, which is injected into the task’s constructor using the `@Inject` annotation.
 
@@ -159,11 +159,11 @@ These APIs are currently incubating but eventually should replace existing acces
 You can obtain a `BuildLayout` instance from a `Settings` object using the `settings.layout` property.
 Here’s a simple example:
 
-<SampleScripts sample_name="services" basename="settings" tag="build-layout" />
+<SampleScripts sample_name="services" basename="settings" tag="build-layout" source_dir="snippets/reference/gradle-types/services" />
 
 Here is an example using `javax.inject.Inject`:
 
-<SampleScripts sample_name="services" basename="settings" tag="build-layout-inject" />
+<SampleScripts sample_name="services" basename="settings" tag="build-layout-inject" source_dir="snippets/reference/gradle-types/services" />
 
 This code defines a `MyBuildLayoutPlugin` plugin that implements the `Plugin` interface for the `Settings` type.
 The plugin expects a `BuildLayout` instance to be injected into its constructor using the `@Inject` annotation.
@@ -182,13 +182,13 @@ The `ProviderFactory` interface provides methods for creating various types of p
 
 Here’s a simple example demonstrating the use of `ProviderFactory` using `project.providers`:
 
-<SampleScripts sample_name="services" basename="build" tag="provider-factory" />
+<SampleScripts sample_name="services" basename="build" tag="provider-factory" source_dir="snippets/reference/gradle-types/services" />
 
 The task named `printMessage` uses the `ProviderFactory` to create a `provider` that supplies the message string.
 
 Here is an example using `javax.inject.Inject`:
 
-<SampleScripts sample_name="services" basename="build" tag="provider-factory-inject" />
+<SampleScripts sample_name="services" basename="build" tag="provider-factory-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `ProviderFactory` service is injected into the `MyProviderFactoryTask` task’s constructor using the `@Inject` annotation.
 
@@ -202,7 +202,7 @@ This helps isolate the work from the main Gradle process, providing better relia
 
 Here’s a basic example of how you might use `WorkerExecutor` in a build script:
 
-<SampleScripts sample_name="services" basename="build" tag="worker-executor" />
+<SampleScripts sample_name="services" basename="build" tag="worker-executor" source_dir="snippets/reference/gradle-types/services" />
 
 See the worker API for more details.
 
@@ -213,13 +213,13 @@ It is part of the `org.gradle.api.file` package and is typically used in custom 
 
 Here is an example using `javax.inject.Inject`:
 
-<SampleScripts sample_name="services" basename="build" tag="file-system-inject" />
+<SampleScripts sample_name="services" basename="build" tag="file-system-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `FileSystemOperations` service is injected into the `MyFileSystemOperationsTask` task’s constructor using the `@Inject` annotation.
 
 With some ceremony, it is possible to use `FileSystemOperations` in an ad-hoc task defined in a build script:
 
-<SampleScripts sample_name="services" basename="build" tag="file-system-adhoc" />
+<SampleScripts sample_name="services" basename="build" tag="file-system-adhoc" source_dir="snippets/reference/gradle-types/services" />
 
 First, you need to declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
 Then call the method <JavaDocLink class="org.gradle.api.model.ObjectFactory" method="newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)">`ObjectFactory.newInstance`</JavaDocLink> to generate an implementation of the interface that holds an injected service.
@@ -235,13 +235,13 @@ It is part of the `org.gradle.api.file` package and is typically used in custom 
 
 Here is an example using `javax.inject.Inject`:
 
-<SampleScripts sample_name="services" basename="build" tag="archive-op-inject" />
+<SampleScripts sample_name="services" basename="build" tag="archive-op-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task’s constructor using the `@Inject` annotation.
 
 With some ceremony, it is possible to use `ArchiveOperations` in an ad-hoc task defined in a build script:
 
-<SampleScripts sample_name="services" basename="build" tag="archive-op-adhoc" />
+<SampleScripts sample_name="services" basename="build" tag="archive-op-adhoc" source_dir="snippets/reference/gradle-types/services" />
 
 First, you need to declare an interface with a property of type `ArchiveOperations`, here named `InjectedArcOps`, to serve as an injection point.
 Then call the method <JavaDocLink class="org.gradle.api.model.ObjectFactory" method="newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)">`ObjectFactory.newInstance`</JavaDocLink> to generate an implementation of the interface that holds an injected service.
@@ -257,13 +257,13 @@ It is part of the `org.gradle.process` package and is typically used in custom t
 
 Here is an example using `javax.inject.Inject`:
 
-<SampleScripts sample_name="services" basename="build" tag="exec-op-inject" />
+<SampleScripts sample_name="services" basename="build" tag="exec-op-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `ExecOperations` is injected into the `MyExecOperationsTask` task’s constructor using the `@Inject` annotation.
 
 With some ceremony, it is possible to use `ExecOperations` in an ad-hoc task defined in a build script:
 
-<SampleScripts sample_name="services" basename="build" tag="exec-op-adhoc" />
+<SampleScripts sample_name="services" basename="build" tag="exec-op-adhoc" source_dir="snippets/reference/gradle-types/services" />
 
 First, you need to declare an interface with a property of type `ExecOperations`, here named `InjectedExecOps`, to serve as an injection point.
 Then call the method <JavaDocLink class="org.gradle.api.model.ObjectFactory" method="newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)">`ObjectFactory.newInstance`</JavaDocLink> to generate an implementation of the interface that holds an injected service.
@@ -281,7 +281,7 @@ The `ToolingModelBuilderRegistry` interface is part of the `org.gradle.tooling.p
 
 Here’s a simplified example:
 
-<SampleScripts sample_name="services" basename="build" tag="tooling-model" />
+<SampleScripts sample_name="services" basename="build" tag="tooling-model" source_dir="snippets/reference/gradle-types/services" />
 
 You can learn more at <Xref page="tooling-api" section="Tooling API">Tooling API</Xref>.
 
@@ -304,7 +304,7 @@ It is the constraint-creation counterpart to [`DependencyFactory`](#dependencyfa
 
 The service is only available via `@Inject`, there is no project-level accessor.
 
-<SampleScripts sample_name="services" basename="build" tag="dependency-constraint-factory-inject" />
+<SampleScripts sample_name="services" basename="build" tag="dependency-constraint-factory-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `CreateConstraintTask` task receives a `DependencyConstraintFactory` instance through its constructor using the `@Inject` annotation.
 
@@ -315,9 +315,7 @@ Reported problems surface in the console, the HTML <Xref page="reporting-problem
 
 Obtain a <JavaDocLink class="org.gradle.api.problems.ProblemReporter" /> from the injected `Problems` service via `problems.getReporter()` and call `report()` (recoverable) or `throwing()` (fatal).
 
-<SampleFile sample_name="reporting-problems" path="kotlin/plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt" tag="problems-service" />
-
-<SampleFile sample_name="reporting-problems" path="groovy/plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy" tag="problems-service" />
+<SampleFile sample_name="reporting-problems" path="{lang}/plugin/src/main/{lang}/org/example/HelloProblemsPlugin.{srcExt}" tag="problems-service" source_dir="snippets/reference/plugin-development/reportingProblems" />
 
 You can learn more in the <Xref page="reporting-problems" section="Reporting Plugin Problems with the Problems API">Reporting Plugin Problems with the Problems API</Xref> guide.
 
@@ -429,7 +427,7 @@ It is useful for plugins that report build duration, emit timing metrics, or dis
 
 The service is only available via `@Inject`, there is no project-level accessor.
 
-<SampleScripts sample_name="services" basename="build" tag="build-invocation-details-inject" />
+<SampleScripts sample_name="services" basename="build" tag="build-invocation-details-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `ReportBuildStartTask` task receives a `BuildInvocationDetails` instance through its constructor using the `@Inject` annotation.
 
@@ -440,7 +438,7 @@ It is typically used by plugins that produce custom component types and want to 
 
 The service is only available via `@Inject`, there is no project-level accessor.
 
-<SampleScripts sample_name="services" basename="build" tag="software-component-factory-inject" />
+<SampleScripts sample_name="services" basename="build" tag="software-component-factory-inject" source_dir="snippets/reference/gradle-types/services" />
 
 The `CustomComponentPlugin` plugin receives a `SoftwareComponentFactory` instance through its constructor using the `@Inject` annotation, creates an adhoc component, and adds it to the project’s components container so it can be referenced by a publication.
 

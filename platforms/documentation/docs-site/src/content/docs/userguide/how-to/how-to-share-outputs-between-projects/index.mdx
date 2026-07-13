@@ -19,7 +19,7 @@ Unlike simple project dependencies, _variant-aware sharing_ provides:
 
 Let’s take a producer project that produces a Java library:
 
-<SampleScripts sample_name="share-outputs" basename="build" subpath="producer" tag="java-lib" />
+<SampleScripts sample_name="share-outputs" basename="build" subpath="producer" tag="java-lib" source_dir="snippets/how-to/dependency-management/dependency-management/share-outputs" />
 
 To get started, you should check the existing variants of the producer project by running the `outgoingVariants` task.
 
@@ -64,7 +64,7 @@ This attribute explains _what_ the variant contains.
 
 The following task in the producer build file defines a custom JAR artifact with an instrumented classifier (e.g., `producer-instrumented.jar)`:
 
-<SampleScripts sample_name="share-outputs" basename="build" subpath="producer" tag="instrumentedjar-task" />
+<SampleScripts sample_name="share-outputs" basename="build" subpath="producer" tag="instrumentedjar-task" source_dir="snippets/how-to/dependency-management/dependency-management/share-outputs" />
 
 The producer build file also creates a new configuration which:
 
@@ -73,7 +73,7 @@ The producer build file also creates a new configuration which:
 
 This allows other projects (consumers) to discover and request this specific artifact based on attributes:
 
-<SampleScripts sample_name="share-outputs" basename="build" subpath="producer" tag="custom-config" />
+<SampleScripts sample_name="share-outputs" basename="build" subpath="producer" tag="custom-config" source_dir="snippets/how-to/dependency-management/dependency-management/share-outputs" />
 
 This configuration ensures that only the correct artifacts are exposed and prevents accidental dependencies on internal tasks.
 
@@ -86,19 +86,19 @@ First, the consumer project creates two configurations:
 - `instrumentedRuntimeDependencies` is used to declare a dependency on the producer.
 - `instrumentedRuntime` is a resolvable configuration that resolves all the dependencies declared in `instrumentedRuntimeDependencies`, including `instrumentedJars`.
 
-<SampleScripts sample_name="share-outputs" basename="build" subpath="consumer" tag="custom-config" />
+<SampleScripts sample_name="share-outputs" basename="build" subpath="consumer" tag="custom-config" source_dir="snippets/how-to/dependency-management/dependency-management/share-outputs" />
 
 Now, the consumer project declares a dependency on the producer and aligns its configuration with the desired variant by defining attributes.
 When the configuration is resolved, Gradle uses these attributes to select a compatible variant published by the producer.
 
 Second, a dependency is added on the producer on `instrumentedRuntimeDependencies`:
 
-<SampleScripts sample_name="share-outputs" basename="build" subpath="consumer" tag="dependency" />
+<SampleScripts sample_name="share-outputs" basename="build" subpath="consumer" tag="dependency" source_dir="snippets/how-to/dependency-management/dependency-management/share-outputs" />
 
 Finally, we use the artifact variant in a task.
 The `runWithInstrumentation` task runs the application using the resolved instrumented JAR from the producer:
 
-<SampleScripts sample_name="share-outputs" basename="build" subpath="consumer" tag="task" />
+<SampleScripts sample_name="share-outputs" basename="build" subpath="consumer" tag="task" source_dir="snippets/how-to/dependency-management/dependency-management/share-outputs" />
 
 This setup ensures that the consumer resolves the correct variant without requiring knowledge of the producer’s implementation details.
 
@@ -127,11 +127,11 @@ The fallback explicitly tells Gradle that it’s acceptable to use the regular J
 
 This is done using a <Xref page="variant-attributes" section="Attribute compatibility rules">_compatibility rule_</Xref>:
 
-<SampleScripts sample_name="modeling-features-cross-project-publications-advanced" basename="build" subpath="consumer" tag="compatibility-rule" />
+<SampleScripts sample_name="modeling-features-cross-project-publications-advanced" basename="build" subpath="consumer" tag="compatibility-rule" source_dir="snippets/how-to/dependency-management/dependency-management/dependency-management/modelingFeatures-crossProjectPublications-advanced" />
 
 Which we declare on the attributes schema:
 
-<SampleScripts sample_name="modeling-features-cross-project-publications-advanced" basename="build" subpath="consumer" tag="compatibility-rule-use" />
+<SampleScripts sample_name="modeling-features-cross-project-publications-advanced" basename="build" subpath="consumer" tag="compatibility-rule-use" source_dir="snippets/how-to/dependency-management/dependency-management/dependency-management/modelingFeatures-crossProjectPublications-advanced" />
 
 ## Step 4: Troubleshooting
 

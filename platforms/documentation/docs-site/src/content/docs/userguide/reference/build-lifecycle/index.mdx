@@ -50,8 +50,8 @@ Gradle can execute tasks that don’t depend on each other, in the same project,
 
 The following example shows which parts of settings and build files correspond to various build phases:
 
-<SampleScripts sample_name="basic" basename="settings" />
-<SampleScripts sample_name="basic" basename="build" />
+<SampleScripts sample_name="basic" basename="settings" source_dir="snippets/reference/runtime-configuration/basic" />
+<SampleScripts sample_name="basic" basename="build" source_dir="snippets/reference/runtime-configuration/basic" />
 
 The following command executes the `test` and `testBoth` tasks specified above:
 
@@ -194,28 +194,28 @@ Here is a quick overview:
 **Where**: init script.<br/>
 **When**: By the time `settings.gradle(.kts)` is executing, `beforeSettings` has already fired.
 
-<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="beforesettings" />
+<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="beforesettings" source_dir="snippets/reference/runtime-configuration/callbacks" />
 
 #### `settingsEvaluated`
 
 **Where**: `settings.gradle(.kts)`.<br/>
 **When**: After the settings file finishes evaluating.
 
-<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="settingsevaluated" />
+<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="settingsevaluated" source_dir="snippets/reference/runtime-configuration/callbacks" />
 
 #### `projectsLoaded`
 
 **Where**: `settings.gradle(.kts)`.<br/>
 **When**: All projects have been discovered but not yet configured.
 
-<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="projectsloaded" />
+<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="projectsloaded" source_dir="snippets/reference/runtime-configuration/callbacks" />
 
 #### `beforeProject`
 
 **Where**: `build.gradle(.kts)` or anywhere you have access to the Gradle instance.<br/>
 **When**: For each project as its build script is evaluated.
 
-<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="beforeproject" />
+<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="beforeproject" source_dir="snippets/reference/runtime-configuration/callbacks" />
 
 :::tip
 When <Xref page="isolated-projects" section="Isolated Projects">Isolated Projects</Xref> is enabled, applying a plugin that is resolved lazily — for example a convention plugin from a build registered via `pluginManagement.includeBuild(…​)`, or a third-party plugin from a repository — requires additional setup.
@@ -227,7 +227,7 @@ See <Xref page="isolated-projects" section="Applying plugins from a lifecycle ca
 **Where**: `build.gradle(.kts)` or anywhere you have access to the Gradle instance.<br/>
 **When**: For each project as its build script is evaluated.
 
-<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="afterproject" />
+<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="afterproject" source_dir="snippets/reference/runtime-configuration/callbacks" />
 
 :::tip
 When <Xref page="isolated-projects" section="Isolated Projects">Isolated Projects</Xref> is enabled, applying a plugin that is resolved lazily — for example a convention plugin from a build registered via `pluginManagement.includeBuild(…​)`, or a third-party plugin from a repository — requires additional setup.
@@ -239,7 +239,7 @@ See <Xref page="isolated-projects" section="Applying plugins from a lifecycle ca
 **Where**: `build.gradle(.kts)` or anywhere you have access to the Gradle instance.<br/>
 **When**: After all projects have been evaluated (i.e., all `build.gradle(.kts)` files are read and configuration is complete), but before task graph is finalized and before execution starts.
 
-<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="projectsevaluated" />
+<SampleScripts sample_name="callbacks" basename="callbacks.init" tag="projectsevaluated" source_dir="snippets/reference/runtime-configuration/callbacks" />
 
 ### Build Listeners
 
@@ -264,7 +264,7 @@ The `TaskExecutionGraphListener` fires once after the task graph has been calcul
 
 This example uses `graph.allTasks` to inspect what Gradle plans to run, and `graph.hasTask()` to conditionally adjust behaviour:
 
-<SampleScripts sample_name="build-listener" basename="build" tag="task-execution-graph-listener" />
+<SampleScripts sample_name="build-listener" basename="build" tag="task-execution-graph-listener" source_dir="snippets/reference/runtime-configuration/buildListener" />
 
 Note that tasks skipped via `onlyIf` still appear in the graph; skipping is evaluated later, per task, during execution:
 
@@ -296,7 +296,7 @@ BUILD SUCCESSFUL in 0s
 
 This example implements <JavaDocLink class="org.gradle.tooling.events.OperationCompletionListener" /> directly on the service to count tasks as they complete, and uses `close()` as an end-of-build hook to print the final summary, whether the build succeeded or failed:
 
-<SampleScripts sample_name="build-service" basename="build" tag="listener" />
+<SampleScripts sample_name="build-service" basename="build" tag="listener" source_dir="snippets/reference/runtime-configuration/buildService" />
 
 The hooks are used to calculate the duration of the build:
 
@@ -324,7 +324,7 @@ It was introduced as a <Xref page="configuration-cache" section="Configuration C
 To use a Flow Action, you define a class implementing <JavaDocLink class="org.gradle.api.flow.FlowAction">`FlowAction<T>`</JavaDocLink> and a matching <JavaDocLink class="org.gradle.api.flow.FlowParameters">`Parameters`</JavaDocLink> interface that declares the inputs your action needs.
 You then register it inside a `Plugin` using <JavaDocLink class="org.gradle.api.flow.FlowScope" />, which is injected by Gradle alongside <JavaDocLink class="org.gradle.api.flow.FlowProviders" />:
 
-<SampleScripts sample_name="flow-action" basename="build" tag="flow-action" />
+<SampleScripts sample_name="flow-action" basename="build" tag="flow-action" source_dir="snippets/reference/runtime-configuration/flowAction" />
 
 As expected, we see the build finish success message:
 

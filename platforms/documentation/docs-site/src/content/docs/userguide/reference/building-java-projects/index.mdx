@@ -21,7 +21,7 @@ Specifics of the different plugins are available in their dedicated documentatio
 
 The simplest build script for a Java project applies the <Xref page="java-library-plugin" section="The Java Library Plugin">Java Library Plugin</Xref> and optionally sets the project version and selects the <Xref page="toolchains" section="Toolchains for JVM projects">Java toolchain</Xref> to use:
 
-<SampleScripts sample_name="java-basic" basename="build" tag="apply-java-plugin" />
+<SampleScripts sample_name="java-basic" basename="build" tag="apply-java-plugin" source_dir="snippets/reference/core-plugins/java-basic" />
 
 By applying the Java Library Plugin, you get a whole host of features:
 
@@ -100,7 +100,7 @@ When creating a source set, if one of these automatically created configurations
 
 The build below demonstrates this behavior.
 
-<SampleScripts sample_name="source-sets-bad-conf-names" basename="build" tag="create-configurations" />
+<SampleScripts sample_name="source-sets-bad-conf-names" basename="build" tag="create-configurations" source_dir="snippets/reference/platforms/jvm/sourceSets-badConfNames" />
 
 In this case, the build will fail.
 
@@ -113,7 +113,7 @@ Following two simple best practices will avoid this problem:
 Remember that any time you reference a configuration within the `configurations` container - with or without supplying an initialization action - Gradle will create the configuration.
 Sometimes when using the Groovy DSL this creation is not obvious, as in the example below, where `myCustomConfiguration` is created prior to the call to `extendsFrom`.
 
-<SampleScripts sample_name="custom-confs-creation" basename="build" tag="create-configurations" />
+<SampleScripts sample_name="custom-confs-creation" basename="build" tag="create-configurations" source_dir="snippets/reference/platforms/jvm/customConfs-creation" />
 
 ## Managing your dependencies
 
@@ -129,7 +129,7 @@ Specifying the dependencies for your Java project requires just three pieces of 
 
 The first two are specified in a `dependencies {}` block and the third in a `repositories {}` block. For example, to tell Gradle that your project requires version 3.6.7 of [Hibernate](http://hibernate.org/) Core to compile and run your production code, and that you want to download the library from the Maven Central repository, you can use the following fragment:
 
-<SampleScripts sample_name="java-basic" basename="build" tag="java-dependency-mgmt" />
+<SampleScripts sample_name="java-basic" basename="build" tag="java-dependency-mgmt" source_dir="snippets/reference/core-plugins/java-basic" />
 
 The Gradle terminology for the three elements is as follows:
 
@@ -183,11 +183,11 @@ Imagine you have a legacy project that uses an _src_ directory for the productio
 
 Each source set defines where its source code resides, along with the resources and the output directory for the class files. You can override the convention values by using the following syntax:
 
-<SampleScripts sample_name="custom-dirs" basename="build" tag="custom-src-dirs" />
+<SampleScripts sample_name="custom-dirs" basename="build" tag="custom-src-dirs" source_dir="snippets/reference/platforms/jvm/customDirs" />
 
 Now Gradle will only search directly in _src_ and _test_ for the respective source code. What if you don’t want to override the convention, but simply want to _add_ an extra source directory, perhaps one that contains some third-party source code you want to keep separate? The syntax is similar:
 
-<SampleScripts sample_name="custom-dirs" basename="build" tag="custom-extra-src-dir" />
+<SampleScripts sample_name="custom-dirs" basename="build" tag="custom-extra-src-dir" source_dir="snippets/reference/platforms/jvm/customDirs" />
 
 Crucially, we’re using the _method_ `srcDir()` here to append a directory path, whereas setting the `srcDirs` property replaces any existing values. This is a common convention in Gradle: setting a property replaces values, while the corresponding method appends values.
 
@@ -199,7 +199,7 @@ Most of the compiler options are accessible through the corresponding task, such
 
 For example, if you want to use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
 
-<SampleScripts sample_name="java-basic" basename="build" tag="java-compiler-options" />
+<SampleScripts sample_name="java-basic" basename="build" tag="java-compiler-options" source_dir="snippets/reference/core-plugins/java-basic" />
 
 That’s also how you can change the verbosity of the compiler, disable debug output in the byte code and configure where the compiler can find annotation processors.
 
@@ -223,7 +223,7 @@ The compiler provides access to the language features and JDK APIs for the reque
 In the simplest case, the toolchain can be configured for a project using the `java` extension.
 This way, not only compilation benefits from it, but also other tasks such as `test` and `javadoc` will also consistently use the same toolchain.
 
-<SampleScripts sample_name="toolchain-basic" basename="build" tag="toolchain" />
+<SampleScripts sample_name="toolchain-basic" basename="build" tag="toolchain" source_dir="snippets/reference/platforms/jvm/toolchain-basic" />
 
 You can learn more about this in the <Xref page="toolchains" section="Toolchains for JVM projects">Java toolchains</Xref> guide.
 
@@ -236,7 +236,7 @@ It is possible to specify an earlier release version while compiling with a more
 Gradle supports using the release flag from Java 10.
 It can be configured on the compilation task as follows.
 
-<SampleScripts sample_name="java-basic" basename="build" tag="java-release-flag" />
+<SampleScripts sample_name="java-basic" basename="build" tag="java-release-flag" source_dir="snippets/reference/core-plugins/java-basic" />
 
 The release flag provides guarantees similar to toolchains.
 It validates that the Java sources are not using language features introduced in later Java versions, and also that the code does not access APIs from more recent JDKs.
@@ -291,7 +291,7 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 
 With the usage of Java toolchains, this can be done as follows:
 
-<SampleScripts sample_name="cross-compilation" basename="build" tag="groovy-cross-compilation" />
+<SampleScripts sample_name="cross-compilation" basename="build" tag="groovy-cross-compilation" source_dir="snippets/reference/platforms/jvm/crossCompilation" />
 
 The only requirement is that Java 7 is installed and has to be either in <Xref page="toolchains" section="Auto-detection of installed toolchains">a location Gradle can detect automatically</Xref> or <Xref page="toolchains" section="Custom toolchain locations">explicitly configured</Xref>.
 
@@ -402,11 +402,11 @@ This JAR is also automatically built by the `assemble` task.
 Furthermore, the plugin can be configured to provide the `javadocJar` and `sourcesJar` tasks to package Javadoc and source code if so desired.
 If a publishing plugin is used, these tasks will automatically run during publishing or can be called directly.
 
-<SampleScripts sample_name="maven-publish" basename="build" tag="defining-sources-jar-task" />
+<SampleScripts sample_name="maven-publish" basename="build" tag="defining-sources-jar-task" source_dir="snippets/reference/platforms/jvm/maven-publish" />
 
 If you want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
 
-<SampleScripts sample_name="archives-with-java-plugin" basename="build" tag="create-uber-jar-example" />
+<SampleScripts sample_name="archives-with-java-plugin" basename="build" tag="create-uber-jar-example" source_dir="snippets/reference/platforms/jvm/archivesWithJavaPlugin" />
 
 See <GroovyDocLink class="org.gradle.api.tasks.bundling.Jar" /> for more details on the configuration options available to you.
 And note that you need to use `archiveClassifier` rather than `archiveAppendix` here for correct publication of the JAR.
@@ -420,28 +420,28 @@ You can use one of the publishing plugins to publish the JARs created by a Java 
 
 Each instance of the `Jar`, `War` and `Ear` tasks has a `manifest` property that allows you to customize the _MANIFEST.MF_ file that goes into the corresponding archive. The following example demonstrates how to set attributes in the JAR’s manifest:
 
-<SampleScripts sample_name="manifest" basename="build" tag="add-to-manifest" />
+<SampleScripts sample_name="manifest" basename="build" tag="add-to-manifest" source_dir="snippets/reference/platforms/jvm/manifest" />
 
 Manifest attribute values can be provided lazily using the Provider API.
 The provider value is resolved when Gradle writes the manifest:
 
-<SampleScripts sample_name="manifest" basename="build" tag="provider-manifest" />
+<SampleScripts sample_name="manifest" basename="build" tag="provider-manifest" source_dir="snippets/reference/platforms/jvm/manifest" />
 
 See <JavaDocLink class="org.gradle.api.java.archives.Manifest" /> for the configuration options it provides.
 
 You can also create standalone instances of `Manifest`. One reason for doing so is to share manifest information between JARs. The following example demonstrates how to share common attributes between JARs:
 
-<SampleScripts sample_name="manifest" basename="build" tag="custom-manifest" />
+<SampleScripts sample_name="manifest" basename="build" tag="custom-manifest" source_dir="snippets/reference/platforms/jvm/manifest" />
 
 Another option available to you is to merge manifests into a single `Manifest` object. Those source manifests can take the form of a text for or another `Manifest` object. In the following example, the source manifests are all text files except for `sharedManifest`, which is the `Manifest` object from the previous example:
 
-<SampleScripts sample_name="manifest" basename="build" tag="merge" />
+<SampleScripts sample_name="manifest" basename="build" tag="merge" source_dir="snippets/reference/platforms/jvm/manifest" />
 
 Manifests are merged in the order they are declared in the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a <JavaDocLink class="org.gradle.api.java.archives.ManifestMergeDetails" /> instance for each entry of the resulting manifest. Note that the merge is done lazily, either when generating the JAR or when `Manifest.writeTo()` or `Manifest.getEffectiveManifest()` are called.
 
 Speaking of `writeTo()`, you can use that to easily write a manifest to disk at any time, like so:
 
-<SampleScripts sample_name="manifest" basename="build" tag="write" />
+<SampleScripts sample_name="manifest" basename="build" tag="write" source_dir="snippets/reference/platforms/jvm/manifest" />
 
 ## Generating API documentation
 
@@ -451,13 +451,13 @@ See <JavaDocLink class="org.gradle.external.javadoc.CoreJavadocOptions" /> and <
 
 As an example of what you can do, imagine you want to use Asciidoc syntax in your Javadoc comments. To do this, you need to add Asciidoclet to Javadoc’s doclet path. Here’s an example that does just that:
 
-<SampleScripts sample_name="java-basic" basename="build" tag="using-custom-doclet" />
+<SampleScripts sample_name="java-basic" basename="build" tag="using-custom-doclet" source_dir="snippets/reference/core-plugins/java-basic" />
 
 You don’t have to create a configuration for this, but it’s an elegant way to handle dependencies that are required for a unique purpose.
 
 You might also want to create your own Javadoc tasks, for example to generate API docs for the tests:
 
-<SampleScripts sample_name="java-basic" basename="build" tag="defining-custom-javadoc-task" />
+<SampleScripts sample_name="java-basic" basename="build" tag="defining-custom-javadoc-task" source_dir="snippets/reference/core-plugins/java-basic" />
 
 These are just two non-trivial but common customizations that you might come across.
 
@@ -536,7 +536,7 @@ As a consequence, we strongly recommend you not to publish libraries compiled wi
 
 To enable Java [preview features](https://openjdk.java.net/jeps/12) for compilation, test execution and runtime, you can use the following DSL snippet:
 
-<SampleScripts sample_name="preview" basename="build" tag="enabling-feature-preview" />
+<SampleScripts sample_name="preview" basename="build" tag="enabling-feature-preview" source_dir="snippets/reference/platforms/jvm/preview" />
 
 ## Building other JVM language projects
 
@@ -550,7 +550,7 @@ The plugins automatically apply support for compiling Java code and can be furth
 These plugins create a dependency between Groovy/Scala compilation and Java compilation (of source code in the `java` folder of a source set).
 You can change this default behavior by adjusting the classpath of the involved compile tasks as shown in the following example:
 
-<SampleScripts sample_name="compile-task-classpath" basename="build" tag="compile-task-classpath" />
+<SampleScripts sample_name="compile-task-classpath" basename="build" tag="compile-task-classpath" source_dir="snippets/reference/platforms/jvm/compileTaskClasspath" />
 
 1. By setting the `compileGroovy` classpath to be only `sourceSets.main.compileClasspath`, we effectively remove the previous dependency on `compileJava` that was declared by having the classpath also take into consideration `sourceSets.main.java.classesDirectory`
 2. By adding `sourceSets.main.groovy.classesDirectory` to the `compileJava` `classpath`, we effectively declare a dependency on the `compileGroovy` task

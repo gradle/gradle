@@ -97,7 +97,7 @@ This avoids polluting other contexts, such as the compilation classpath for your
 
 The following example declares a custom dependency configuration named `scm` that contains the JGit dependency:
 
-<SampleScripts sample_name="inspecting-dependencies-dependencies-report" basename="build" tag="dependency-declaration" />
+<SampleScripts sample_name="inspecting-dependencies-dependencies-report" basename="build" tag="dependency-declaration" source_dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependenciesReport" />
 
 Use the following command to view a dependency tree for the `scm` dependency configuration:
 
@@ -130,7 +130,7 @@ A project may request two different versions of the same dependency either direc
 
 The following example introduces a conflict with `commons-codec:commons-codec`, added both as a direct dependency and a transitive dependency of JGit:
 
-<SampleScripts sample_name="inspecting-dependencies-dependency-insight-report" basename="build" tag="dependency-declaration" />
+<SampleScripts sample_name="inspecting-dependencies-dependency-insight-report" basename="build" tag="dependency-declaration" source_dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyInsightReport" />
 
 Gradle provides the built-in `dependencyInsight` task to render a  _dependency insight report_ from the command line.
 

@@ -30,7 +30,7 @@ The <Xref page="base-plugin" section="The Base Plugin">Gradle `base` plugin</Xre
 
 We group the `build`, `check` task, and the `run` task by adding the following lines to the `app` build script:
 
-<SampleScripts sample_name="organizing-tasks-app-grouping" basename="build" subpath="app" tag="app-grouping" />
+<SampleScripts sample_name="organizing-tasks-app-grouping" basename="build" subpath="app" tag="app-grouping" source_dir="snippets/reference/task-development/organizingTasks-appGrouping" />
 
 If we now look at the `app:tasks` list, we can see the three tasks are available:
 
@@ -194,7 +194,7 @@ We’ll establish two groups for our global lifecycle tasks: one for tasks relev
 
 Once again, we narrowed down the tasks listed to our specific groups:
 
-<SampleScripts sample_name="organizing-tasks-global-groups" basename="build" tag="global-groups" />
+<SampleScripts sample_name="organizing-tasks-global-groups" basename="build" tag="global-groups" source_dir="snippets/reference/task-development/organizingTasks-globalGroups" />
 
 You could hide the CI tasks if you wanted to by updating `displayGroups`.
 
@@ -221,7 +221,7 @@ In this file, we don’t apply a plugin!
 Let’s add a `qualityCheckApp` task to execute all code quality checks in the `app` subproject.
 Similarly, for CI purposes, we implement a `checkAll` task that runs all tests:
 
-<SampleScripts sample_name="organizing-tasks-global-lifecycle" basename="build" tag="global-lifecycle" />
+<SampleScripts sample_name="organizing-tasks-global-lifecycle" basename="build" tag="global-lifecycle" source_dir="snippets/reference/task-development/organizingTasks-globalLifecycle" />
 
 So we can now ask Gradle to show us the tasks for the root project and, by default, it will only show us the `qualityCheckAll` task (and optionally the `checkAll` task depending on the value of `displayGroups`).
 

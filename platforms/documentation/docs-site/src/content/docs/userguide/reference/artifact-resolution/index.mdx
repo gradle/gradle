@@ -209,12 +209,12 @@ These APIs perform artifact selection using the default attributes.
 
 To resolve files, we first define a task that accepts a `ConfigurableFileCollection` as input:
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="file-resolution-task" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="file-resolution-task" source_dir="snippets/reference/dependency-management/advanced/performingResolution-artifactResolution" />
 
 Then, we can wire up a resolvable configuration’s files to the task’s input.
 The `Configuration` directly implements `FileCollection` and can be wired directly:
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="implicit-file-resolution" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="implicit-file-resolution" source_dir="snippets/reference/dependency-management/advanced/performingResolution-artifactResolution" />
 
 Running the `resolveConfiguration` task produces:
 
@@ -231,11 +231,11 @@ Instead of consuming the files directly from the implicit **artifact** selection
 
 This process is slightly more complicated, as in order to maintain Configuration Cache compatibility, we need to split the fields of `ResolvedArtifactResult` into two task inputs:
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="artifact-resolution-task" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="artifact-resolution-task" source_dir="snippets/reference/dependency-management/advanced/performingResolution-artifactResolution" />
 
 This task is initialized similarly to the file resolution task:
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="implicit-artifact-resolution" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="implicit-artifact-resolution" source_dir="snippets/reference/dependency-management/advanced/performingResolution-artifactResolution" />
 
 Running this task, we can see that file metadata is included in the output:
 
@@ -272,7 +272,7 @@ An `ArtifactView` allows you to:
 In the following example, a _producer_ project creates a library with typical Java library **variants** (`runtimeElements`, `apiElements`).
 We also create a custom **variant** called `apiProductionElements` with the artifact `production.jar` and attribute `org.gradle.category:production`:
 
-<SampleScripts sample_name="artifact-views-simple" basename="build" subpath="producer" tag="artifact-views-lib" />
+<SampleScripts sample_name="artifact-views-simple" basename="build" subpath="producer" tag="artifact-views-lib" source_dir="snippets/reference/dependency-management/advanced/artifactViews-simple" />
 
 We can view the available **variants** of this library as well as their corresponding **artifacts** and **attributes** with a custom task called `checkProducerAttributes`.
 Here is an abridged output showing the relevant **variants** of this library, along with their corresponding **artifacts** and **attributes**:
@@ -314,7 +314,7 @@ Artifacts:
 
 A Java application is a consumer of this Java library:
 
-<SampleScripts sample_name="artifact-views-simple" basename="build" subpath="consumer" tag="artifact-views-app" />
+<SampleScripts sample_name="artifact-views-simple" basename="build" subpath="consumer" tag="artifact-views-app" source_dir="snippets/reference/dependency-management/advanced/artifactViews-simple" />
 
 By default, the application, as the consumer, will consume the expected **variant** when it is run.
 We can verify this with another custom task called `checkResolvedVariant` that prints out the following:
@@ -337,7 +337,7 @@ It uses the **attributes** `org.gradle.category:library` and `org.gradle.usage:j
 Now, let’s create an `ArtifactView` to select one of the other **artifacts** provided by the library.
 We do this by using an `ArtifactView` with the **attribute** `org.gradle.category:classes` so that instead of the jar file, we get the sources:
 
-<SampleScripts sample_name="artifact-views-simple" basename="build" subpath="consumer" tag="artifact-views-sel" />
+<SampleScripts sample_name="artifact-views-simple" basename="build" subpath="consumer" tag="artifact-views-sel" source_dir="snippets/reference/dependency-management/advanced/artifactViews-simple" />
 
 We run the task `artifactWithAttributeAndView` to see that we get the main **artifact** instead:
 
@@ -354,7 +354,7 @@ ArtifactView with attribute 'libraryelements = classes' for runtimeClasspath:
 
 Now, let’s create an `ArtifactView` to select our custom **variant** `apiProductionElements` by specifying the attribute `org.gradle.category:production` and forcing Gradle to reselect a new **variant**:
 
-<SampleScripts sample_name="artifact-views-simple" basename="build" subpath="consumer" tag="artifact-views-resel" />
+<SampleScripts sample_name="artifact-views-simple" basename="build" subpath="consumer" tag="artifact-views-resel" source_dir="snippets/reference/dependency-management/advanced/artifactViews-simple" />
 
 As expected, the `apiProductionElements` variant is selected along with the `production.jar` artifact:
 

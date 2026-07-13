@@ -32,7 +32,7 @@ A Task can depend on other tasks.
 
 Early on in the tutorial, we registered and configured `task1` in the `app` build script:
 
-<SampleScripts sample_name="writing-tasks-register-configure" basename="build" tag="register-configure" />
+<SampleScripts sample_name="writing-tasks-register-configure" basename="build" tag="register-configure" source_dir="snippets/tutorials/authoring-builds/writingTasks-registerConfigure" />
 
 <CalloutList>
 
@@ -47,7 +47,7 @@ To create a custom task, you must subclass <GroovyDocLink class="org.gradle.api.
 
 Create a custom class called `LicenseTask` with the code below and add it to the bottom of the `gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.kt` or `gradle/license-plugin/plugin/src/main/groovy/license/LicensePlugin.groovy` file:
 
-<SampleScripts sample_name="writing-tasks-license-task" basename="build" tag="license-task" />
+<SampleScripts sample_name="writing-tasks-license-task" basename="build" tag="license-task" source_dir="snippets/tutorials/authoring-builds/writingTasks-licenseTask" />
 
 The `LicenseTask` class encapsulates the task action logic and declares any inputs and outputs the task expects.
 

@@ -47,7 +47,7 @@ The key here is that cacheable tasks should not use non-repeatable task outputs 
 Having a task repeatably produce the same output is not enough if its inputs keep changing all the time.
 Such unstable inputs can be supplied directly to the task. Consider a version number that includes a timestamp being added to the jar file’s manifest:
 
-<SampleScripts sample_name="timestamp-in-manifest" basename="build" tag="timestamp" />
+<SampleScripts sample_name="timestamp-in-manifest" basename="build" tag="timestamp" source_dir="snippets/optimizing-builds/build-cache/timestamp-in-manifest" />
 
 In the above example the inputs for the `jar` task will be different for each build execution since this timestamp will continually change.
 
@@ -119,7 +119,7 @@ This file is only used for auditing purposes, and has no effect on the outcome o
 Nonetheless, this file is part of the runtime classpath for the `test` task. Since the file changes on every build invocation, tests cannot be cached effectively.
 To fix this you can ignore `build-info.properties` on any runtime classpath by adding the following configuration to the build script in the _consuming_ project:
 
-<SampleScripts sample_name="normalization" basename="build" tag="normalization" />
+<SampleScripts sample_name="normalization" basename="build" tag="normalization" source_dir="snippets/optimizing-builds/build-cache/normalization" />
 
 If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
 

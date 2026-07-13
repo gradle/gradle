@@ -10,16 +10,16 @@ import { JavaDocLink, SampleScripts, Xref } from '#/components';
 For example, a library may have an `api` and an `implementation` variant.
 Here, the consumer wants an external `implementation` variant:
 
-<SampleScripts sample_name="variant-attributes-intro" basename="build" tag="bundling-attribute" />
+<SampleScripts sample_name="variant-attributes-intro" basename="build" tag="bundling-attribute" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro" />
 
 For example, a build might have `debug` and `release` variants.
 This selects the `debug` variant based on the attribute.
 
-<SampleScripts sample_name="variant-attributes-intro" basename="build" tag="target-attribute" />
+<SampleScripts sample_name="variant-attributes-intro" basename="build" tag="target-attribute" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro" />
 
 ***Attributes*** help Gradle match the right ***variant*** by comparing the requested attributes with what’s available:
 
-<SampleScripts sample_name="variant-attributes-intro" basename="build" tag="target-attribute-single" />
+<SampleScripts sample_name="variant-attributes-intro" basename="build" tag="target-attribute-single" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro" />
 
 This sets the `TargetConfiguration.TARGET_ATTRIBUTE` to `"debug"`, meaning Gradle will attempt to resolve dependencies that have a "debug" variant, instead of other available variants (like "release").
 
@@ -89,11 +89,11 @@ A Gradle plugin variant can specify compatibility with a Gradle API version thro
 
 For this example, let’s assume you are creating a library with different variants for different JVM versions.
 
-<SampleScripts sample_name="customizing-resolution-attribute-simple" basename="build" subpath="lib" tag="attributes" />
+<SampleScripts sample_name="customizing-resolution-attribute-simple" basename="build" subpath="lib" tag="attributes" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple" />
 
 In the consumer project (that uses the library), you can specify the JVM version attribute when declaring dependencies.
 
-<SampleScripts sample_name="customizing-resolution-attribute-simple" basename="build" subpath="consumer" tag="attributes" />
+<SampleScripts sample_name="customizing-resolution-attribute-simple" basename="build" subpath="consumer" tag="attributes" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple" />
 
 By defining and using the JVM version attribute, you ensure that your library and its consumers are compatible with the specified JVM version.
 Essentially, this ensures that Gradle resolves to the variant that matches the desired JVM version.
@@ -143,7 +143,7 @@ Published attributes must remain supported or have a [compatibility layer](#sec:
 
 Here’s an example of declaring and using custom attributes in a Gradle plugin:
 
-<SampleScripts sample_name="customizing-resolution-attribute-simple" basename="build" subpath="lib" tag="custom-attributes" />
+<SampleScripts sample_name="customizing-resolution-attribute-simple" basename="build" subpath="lib" tag="custom-attributes" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple" />
 
 In this example:
 - A custom attribute `my-attribute` is defined.
@@ -157,24 +157,24 @@ If publishing a library with this attribute, ensure that consumers apply the plu
 Attributes are _typed_.
 An attribute can be created via the `Attribute<T>.of` method:
 
-<SampleScripts sample_name="attribute-matching" basename="build" tag="define_attribute" />
+<SampleScripts sample_name="attribute-matching" basename="build" tag="define_attribute" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching" />
 
 Attribute types support most Java primitive classes; such as `String` and `Integer`.
 Or anything extending `org.gradle.api.Named`.
 
 Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
 
-<SampleScripts sample_name="attribute-matching" basename="build" tag="register-attributes" />
+<SampleScripts sample_name="attribute-matching" basename="build" tag="register-attributes" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching" />
 
 Registering an attribute with the schema is required in order to use Compatibility and Disambiguation rules that can resolve ambiguity between multiple selectable variants during [Attribute Matching](#sec:attribute-matching).
 
 Each configuration has a container of attributes.  Attributes can be configured to set values:
 
-<SampleScripts sample_name="attribute-matching" basename="build" tag="attributes-on-configurations" />
+<SampleScripts sample_name="attribute-matching" basename="build" tag="attributes-on-configurations" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching" />
 
 For attributes which type extends `Named`, the value of the attribute ***must*** be created via the _object factory_:
 
-<SampleScripts sample_name="attribute-matching" basename="build" tag="named-attributes" />
+<SampleScripts sample_name="attribute-matching" basename="build" tag="named-attributes" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching" />
 
 ## Dealing with attribute matching
 
@@ -190,7 +190,7 @@ There are cases where a producer may not have _exactly_ what the consumer reques
 
 This example defines and registers a custom compatibility rule to ensure that dependencies are selected based on their compatibility with specific Java versions:
 
-<SampleScripts sample_name="customizing-resolution-attribute-simple" basename="build" subpath="lib" tag="attribute-compatibility" />
+<SampleScripts sample_name="customizing-resolution-attribute-simple" basename="build" subpath="lib" tag="attribute-compatibility" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple" />
 
 Gradle provides <JavaDocLink class="org.gradle.api.attributes.AttributeCompatibilityRule">attribute compatibility rules</JavaDocLink> that can be defined for each attribute.
 The role of a compatibility rule is to explain which attribute values are _compatible_ based on what the consumer asked for.
@@ -209,7 +209,7 @@ Disambiguation helps Gradle choose the most appropriate one based on additional 
 You can define disambiguation rules to guide Gradle in selecting the most suitable variant when multiple candidates are found.
 This is done by implementing an <JavaDocLink class="org.gradle.api.attributes.AttributeDisambiguationRule" /> and registering it via the <JavaDocLink class="org.gradle.api.attributes.AttributesSchema">attributes schema</JavaDocLink> within the `dependencies` block:
 
-<SampleScripts sample_name="customizing-resolution-disambiguation-rule" basename="build" subpath="consumer" tag="disambiguation_rule" />
+<SampleScripts sample_name="customizing-resolution-disambiguation-rule" basename="build" subpath="consumer" tag="disambiguation_rule" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-disambiguationRule" />
 
 1. ***Attribute Selection***: Specify the attribute to disambiguate (e.g., `Usage.USAGE_ATTRIBUTE`, a built-in Gradle attribute).
 2. ***Rule Registration***: Register the custom disambiguation rule using `disambiguationRules.add()` within the `attributesSchema` block of `dependencies`.
@@ -271,7 +271,7 @@ If you know that all the Ivy modules your are consuming have been published with
 
 **Deriving compile and runtime variants for Ivy metadata**
 
-<SampleScripts sample_name="customizing-resolution-ivy-metadata-rule" basename="build" tag="ivy-component-metadata-rule" />
+<SampleScripts sample_name="customizing-resolution-ivy-metadata-rule" basename="build" tag="ivy-component-metadata-rule" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-ivyMetadataRule" />
 
 The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.
 For each variant, it sets the corresponding <Xref page="variant-aware-resolution" section="Variant Attribute Matching">Java ecosystem attributes</Xref>.

@@ -12,7 +12,7 @@ For a detailed introduction to dependency management, see <Xref page="getting-st
 Let’s have a look at a very simple build script for a JVM-based project.
 It applies the <Xref page="java-library-plugin" section="The Java Library Plugin">Java Library plugin</Xref> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
 
-<SampleScripts sample_name="dependency-basics" basename="build" />
+<SampleScripts sample_name="dependency-basics" basename="build" source_dir="snippets/reference/platforms/jvm/dependencyBasics" />
 
 The <GroovyDocLink class="org.gradle.api.Project" method="dependencies(groovy.lang.Closure)">Project.dependencies\{\}</GroovyDocLink> code block declares that Hibernate core 3.6.7.Final is required to compile the project’s production source code. It also states that junit \>= 4.0 is required to compile the project’s tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by <GroovyDocLink class="org.gradle.api.Project" method="repositories(groovy.lang.Closure)">Project.repositories\{\}</GroovyDocLink>. The following sections explain each aspect in more detail.
 
@@ -25,7 +25,7 @@ Modules are usually stored in a repository, such as Maven Central, a corporate M
 
 To define an module dependency, you add it to a [dependency configuration](#sec:configurations_java_tutorial):
 
-<SampleScripts sample_name="external-dependencies" basename="build" tag="define-dependency" />
+<SampleScripts sample_name="external-dependencies" basename="build" tag="define-dependency" source_dir="snippets/reference/platforms/jvm/externalDependencies" />
 
 To find out more about defining dependencies, have a look at <Xref page="declaring-dependencies" section="1. Declaring dependencies">Declaring Dependencies</Xref>.
 
@@ -89,13 +89,13 @@ Gradle understands different <Xref page="supported-repository-types" section="Re
 
 By default, Gradle does not define any repositories. You need to define at least one with the help of <GroovyDocLink class="org.gradle.api.Project" method="repositories(groovy.lang.Closure)">Project.repositories\{\}</GroovyDocLink> before you can use module dependencies. One option is use the Maven Central repository:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-central" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-central" source_dir="snippets/reference/platforms/jvm/defineRepository" />
 
 You can also have repositories on the local file system. This works for both Maven and Ivy repositories.
 
 **Usage of a local Ivy directory**
 
-<SampleScripts sample_name="define-repository" basename="build" tag="local-ivy-repo" />
+<SampleScripts sample_name="define-repository" basename="build" tag="local-ivy-repo" source_dir="snippets/reference/platforms/jvm/defineRepository" />
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 

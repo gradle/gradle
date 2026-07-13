@@ -18,7 +18,7 @@ The end user can provide the URL via an extension named `verification`.
 The following build script assumes that the plugin JAR file has been published to a binary repository.
 The script demonstrates how to apply the plugin to the project and configure its exposed extension:
 
-<SampleScripts sample_name="testing-plugins" basename="build" subpath="include-plugin-build" />
+<SampleScripts sample_name="testing-plugins" basename="build" subpath="include-plugin-build" source_dir="snippets/reference/plugin-development/testingPlugins" />
 
 <CalloutList>
 
@@ -118,7 +118,7 @@ There are two ways to include a plugin project in a consuming project:
 
 The following code snippet demonstrates the use of the settings file:
 
-<SampleScripts sample_name="testing-plugins" basename="settings" subpath="include-plugin-build" tag="include-build" />
+<SampleScripts sample_name="testing-plugins" basename="settings" subpath="include-plugin-build" tag="include-build" source_dir="snippets/reference/plugin-development/testingPlugins" />
 
 The command line output of the `verifyUrl` task from the project `include-plugin-build` [looks exactly the same as shown in the introduction](#verify-url-cmd-output), except that it now executes as part of a composite build.
 
@@ -179,17 +179,17 @@ When you define a source set, Gradle automatically sets up compilation tasks for
 A pre-configured source set can be created with one line of build script code.
 The source set automatically registers configurations to define dependencies for the sources of the source set:
 
-<SampleScripts sample_name="testing-plugins-source-set-example" basename="build" tag="source-set-example" />
+<SampleScripts sample_name="testing-plugins-source-set-example" basename="build" tag="source-set-example" source_dir="snippets/reference/plugin-development/testingPlugins-sourceSetExample" />
 
 We use that to define an `integrationTestImplementation` dependency to the project itself, which represents the "main" variant of our project (i.e., the compiled plugin code):
 
-<SampleScripts sample_name="testing-plugins" basename="build" subpath="url-verifier-plugin" tag="test-source-set" />
+<SampleScripts sample_name="testing-plugins" basename="build" subpath="url-verifier-plugin" tag="test-source-set" source_dir="snippets/reference/plugin-development/testingPlugins" />
 
 Source sets are responsible for compiling source code, but they do not deal with executing the bytecode.
 For test execution, a corresponding task of type <JavaDocLink class="org.gradle.api.tasks.testing.Test" /> needs to be established.
 The following setup shows the execution of integration tests, referencing the classes and runtime classpath of the integration test source set:
 
-<SampleScripts sample_name="testing-plugins" basename="build" subpath="url-verifier-plugin" tag="test-task" />
+<SampleScripts sample_name="testing-plugins" basename="build" subpath="url-verifier-plugin" tag="test-task" source_dir="snippets/reference/plugin-development/testingPlugins" />
 
 ### Configuring a test framework
 
@@ -198,7 +198,7 @@ Once you choose an option, you have to add its dependency to the compile classpa
 
 The following code snippet shows how to use Spock for implementing tests:
 
-<SampleScripts sample_name="testing-plugins" basename="build" subpath="url-verifier-plugin" tag="test-framework" />
+<SampleScripts sample_name="testing-plugins" basename="build" subpath="url-verifier-plugin" tag="test-framework" source_dir="snippets/reference/plugin-development/testingPlugins" />
 
 :::note
 Spock is a Groovy-based BDD test framework that even includes APIs for creating Stubs and Mocks.
@@ -390,7 +390,7 @@ Every Gradle plugin project should apply the <Xref page="java-gradle-plugin" sec
 By applying the plugin development plugin, the test source set is preconfigured for the use with TestKit.
 If we want to use a custom source set for functional tests and leave the default test source set for only unit tests, we can configure the plugin development plugin to look for TestKit tests elsewhere.
 
-<SampleScripts sample_name="testing-plugins" basename="build" subpath="url-verifier-plugin" tag="source-set-config" />
+<SampleScripts sample_name="testing-plugins" basename="build" subpath="url-verifier-plugin" tag="source-set-config" source_dir="snippets/reference/plugin-development/testingPlugins" />
 
 Functional tests for Gradle plugins use an instance of `GradleRunner` to execute the build under test.
 `GradleRunner` is an API provided by TestKit, which internally uses the Tooling API to execute the build.
@@ -453,14 +453,10 @@ You will need to execute the `assemble` task to initially generate the plugin cl
 
 The following is an example of a unit test of the `Greeting` plugin from <Xref page="implementing-gradle-plugins-binary" section="Binary Plugins">Binary Plugins</Xref>:
 
-<SampleFile sample_name="plugin-binary" path="kotlin/plugin/src/test/kotlin/org/example/GreetingPluginTest.kt" />
-
-<SampleFile sample_name="plugin-binary" path="groovy/plugin/src/test/groovy/org/example/GreetingPluginTest.groovy" />
+<SampleFile sample_name="plugin-binary" path="{lang}/plugin/src/test/{lang}/org/example/GreetingPluginTest.{srcExt}" source_dir="snippets/reference/plugin-development/plugin-binary" />
 
 ## Example of a functional test
 
 The following is an example of a functional test of the `Greeting` plugin from <Xref page="implementing-gradle-plugins-binary" section="Binary Plugins">Binary Plugins</Xref>:
 
-<SampleFile sample_name="plugin-binary" path="kotlin/plugin/src/functionalTest/kotlin/org/example/GreetingPluginFunctionalTest.kt" />
-
-<SampleFile sample_name="plugin-binary" path="groovy/plugin/src/functionalTest/groovy/org/example/GreetingPluginFunctionalTest.groovy" />
+<SampleFile sample_name="plugin-binary" path="{lang}/plugin/src/functionalTest/{lang}/org/example/GreetingPluginFunctionalTest.{srcExt}" source_dir="snippets/reference/plugin-development/plugin-binary" />

@@ -322,7 +322,7 @@ Secondary variants are sometimes referred to in tooling or logs, but this term i
 
 The simplest scenario is a typical Java library
 
-<SampleScripts sample_name="customizing-resolution-secondary-variants" basename="build" tag="lib" />
+<SampleScripts sample_name="customizing-resolution-secondary-variants" basename="build" tag="lib" source_dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants" />
 
 The `apiElements` variant represents the public API of a library and is used during dependency resolution when a consuming project requests `java-api` usage:
 
@@ -373,7 +373,7 @@ For example, enabling consumers to use unjarred class files for faster access in
 
 Let’s create a secondary variant of our Java library:
 
-<SampleScripts sample_name="customizing-resolution-secondary-variants" basename="build" tag="add" />
+<SampleScripts sample_name="customizing-resolution-secondary-variants" basename="build" tag="add" source_dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants" />
 
 And we can see our new secondary variant is created for `apiElements`:
 
@@ -433,7 +433,7 @@ To create a completely new variant for our library, we must also create a new co
 The code below defines a custom consumable configuration `fooFiles` with two ***secondary variants***, `fooFilesVariant1` and `fooFilesVariant2`, each distinguished by a unique combination of custom attributes.
 The base configuration sets `FooAttribute = main`, which is inherited by `fooFilesVariant1`, while `fooFilesVariant2` overrides it to `secondary`.
 
-<SampleScripts sample_name="customizing-resolution-secondary-variants" basename="build" tag="custom" />
+<SampleScripts sample_name="customizing-resolution-secondary-variants" basename="build" tag="custom" source_dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants" />
 
 The output reflects this structure, showing `fooFiles` as the primary variant and both secondary variants with their corresponding `FooAttribute` and `FooVariantAttribute` values, which Gradle uses during ***artifact selection*** to match a consumer’s requested attributes:
 

@@ -16,9 +16,9 @@ The console output includes a clickable link to this report, allowing you to inv
 
 Consider the following build script, which contains two issues:
 
-<SampleScripts sample_name="problems-kotlin" basename="build" />
+<SampleScripts sample_name="problems-kotlin" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/problemsKotlin" />
 
-<SampleScripts sample_name="problems-groovy" basename="build" />
+<SampleScripts sample_name="problems-groovy" basename="build" source_dir="snippets/optimizing-builds/configuration-cache/problemsGroovy" />
 
 <CalloutList>
 
@@ -135,7 +135,7 @@ The report and console logs provide links to guidance on resolving detected issu
 
 Here’s a corrected version of the example build script:
 
-<SampleScripts sample_name="problems-fixed" basename="build" tag="fixed" />
+<SampleScripts sample_name="problems-fixed" basename="build" tag="fixed" source_dir="snippets/optimizing-builds/configuration-cache/problemsFixed" />
 
 <CalloutList>
 
@@ -192,7 +192,7 @@ The cache entry was invalidated because the system property was read at configur
 
 A better approach is to use a provider to defer reading the system property until execution time:
 
-<SampleScripts sample_name="problems-fixed-reuse" basename="build" tag="fixed-reuse" />
+<SampleScripts sample_name="problems-fixed-reuse" basename="build" tag="fixed-reuse" source_dir="snippets/optimizing-builds/configuration-cache/problemsFixedReuse" />
 
 <CalloutList>
 
@@ -263,7 +263,7 @@ $ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
 
 You can explicitly mark a task as incompatible with the Configuration Cache using the <JavaDocLink class="org.gradle.api.Task" method="notCompatibleWithConfigurationCache-java.lang.String-">`Task.notCompatibleWithConfigurationCache()`</JavaDocLink> method:
 
-<SampleScripts sample_name="dependency-locking-locking-all-configurations" basename="build" tag="resolve-all" />
+<SampleScripts sample_name="dependency-locking-locking-all-configurations" basename="build" tag="resolve-all" source_dir="snippets/optimizing-builds/configuration-cache/dependencyLocking-lockingAllConfigurations" />
 
 When a task is marked as incompatible:
 
@@ -394,9 +394,7 @@ To test your build logic with the Configuration Cache enabled, pass the `--confi
 
 To properly test Configuration Cache behavior, tasks must be executed twice:
 
-<SampleFile sample_name="test-kit" path="kotlin/src/test/kotlin/org/example/BuildLogicFunctionalTest.kt" tag="functional-test-configuration-cache" />
-
-<SampleFile sample_name="test-kit" path="groovy/src/test/groovy/org/example/BuildLogicFunctionalTest.groovy" tag="functional-test-configuration-cache" />
+<SampleFile sample_name="test-kit" path="{lang}/src/test/{lang}/org/example/BuildLogicFunctionalTest.{srcExt}" tag="functional-test-configuration-cache" source_dir="snippets/optimizing-builds/configuration-cache/testKit" />
 
 <CalloutList>
 

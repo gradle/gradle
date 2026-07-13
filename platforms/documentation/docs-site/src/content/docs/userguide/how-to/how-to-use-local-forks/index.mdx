@@ -42,7 +42,7 @@ project
 
 In this example, our app depends on `com.squareup.okhttp:okhttp:2.7.5`, and we want to use a local fork of it:
 
-<SampleScripts sample_name="local-fork" basename="build" subpath="my-app" tag="dependency" />
+<SampleScripts sample_name="local-fork" basename="build" subpath="my-app" tag="dependency" source_dir="snippets/how-to/dependency-management/dependency-management/local-fork" />
 
 First, create a new folder for your local fork of the dependency:
 
@@ -63,7 +63,7 @@ project
 
 In your root project’s `settings.gradle(.kts)` file, add an `includeBuild` statement pointing to `my-fork`:
 
-<SampleScripts sample_name="local-fork" basename="settings" />
+<SampleScripts sample_name="local-fork" basename="settings" source_dir="snippets/how-to/dependency-management/dependency-management/local-fork" />
 
 This instructs Gradle to automatically substitute the external dependency coordinates with your local build.
 
@@ -102,17 +102,17 @@ The source code of `com.squareup.okhttp:okhttp:2.7.5` is in the `okhttp/src` fol
 
 The settings file should look like this:
 
-<SampleScripts sample_name="local-fork" basename="settings" subpath="my-fork" />
+<SampleScripts sample_name="local-fork" basename="settings" subpath="my-fork" source_dir="snippets/how-to/dependency-management/dependency-management/local-fork" />
 
 The build file must have the same GAV coordinates as required by `my-app`:
 
-<SampleScripts sample_name="local-fork" basename="build" subpath="my-fork/okhttp" />
+<SampleScripts sample_name="local-fork" basename="build" subpath="my-fork/okhttp" source_dir="snippets/how-to/dependency-management/dependency-management/local-fork" />
 
 ## Step 3: Declare the Dependency Normally
 
 In your project’s `build.gradle(.kts)`, continue declaring the dependency using the same external coordinates as originally:
 
-<SampleScripts sample_name="local-fork" basename="build" subpath="my-app" tag="dependency-tip" />
+<SampleScripts sample_name="local-fork" basename="build" subpath="my-app" tag="dependency-tip" source_dir="snippets/how-to/dependency-management/dependency-management/local-fork" />
 
 You don’t need explicit substitution statements in the `build.gradle(.kts)` file; Gradle handles substitution automatically.
 

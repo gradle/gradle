@@ -81,11 +81,11 @@ These provide the specific publication and repository classes needed to configur
 
 Let’s assume we’re working with a simple Java library project, so only the following plugins are applied:
 
-<SampleScripts sample_name="java-library" basename="build" tag="apply-plugins" />
+<SampleScripts sample_name="java-library" basename="build" tag="apply-plugins" source_dir="snippets/reference/dependency-management/publishing/javaLibrary" />
 
 Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project’s production JAR file — the one produced by the `jar` task — to a custom Maven repository. We do that with the following `publishing {}` block, which is backed by <GroovyDocLink class="org.gradle.api.publish.PublishingExtension" />:
 
-<SampleScripts sample_name="java-library" basename="build" tag="configure-publishing" />
+<SampleScripts sample_name="java-library" basename="build" tag="configure-publishing" source_dir="snippets/reference/dependency-management/publishing/javaLibrary" />
 
 This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: <GroovyDocLink class="org.gradle.api.publish.maven.MavenPublication" />.
 This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` component of the project.
@@ -117,4 +117,4 @@ Gradle performs validation of generated module metadata.
 In some cases, validation can fail, indicating that you most likely have an error to fix, but you may have done something intentionally.
 If this is the case, Gradle will indicate the name of the validation error you can disable on the `GenerateModuleMetadata` tasks:
 
-<SampleScripts sample_name="java-library" basename="build" tag="disable_validation" />
+<SampleScripts sample_name="java-library" basename="build" tag="disable_validation" source_dir="snippets/reference/dependency-management/publishing/javaLibrary" />

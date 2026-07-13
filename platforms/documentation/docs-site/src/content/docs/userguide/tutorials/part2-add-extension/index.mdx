@@ -54,13 +54,11 @@ Change `class PluginTutorialPlugin: Plugin<Project> {}` to `abstract class Slack
 
 Change `class PluginTutorialPlugin implements Plugin<Project> {}` to `abstract class SlackPlugin implements Plugin<Project> {}`.
 
-<SampleFile sample_name="plugin-tutorial" path="kotlin/plugin/src/main/kotlin/org/example/SlackPlugin.kt" tag="slack-plugin" />
-
-<SampleFile sample_name="plugin-tutorial" path="groovy/plugin/src/main/groovy/org/example/SlackPlugin.groovy" tag="slack-plugin" />
+<SampleFile sample_name="plugin-tutorial" path="{lang}/plugin/src/main/{lang}/org/example/SlackPlugin.{srcExt}" tag="slack-plugin" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 You’ll also need to update the `build.gradle(.kts)` file to point to the new plugin class name:
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="gradle-plugin" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="gradle-plugin" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 ## Step 3: Define the Extension Class
 
@@ -76,9 +74,7 @@ An extension that carries no custom logic can also be declared as an `interface`
 
 Create a new file called `plugin/src/main/kotlin/org/example/SlackExtension.kt` and add the following code:
 
-<SampleFile sample_name="plugin-tutorial" path="kotlin/plugin/src/main/kotlin/org/example/SlackExtension.kt" />
-
-<SampleFile sample_name="plugin-tutorial" path="groovy/plugin/src/main/groovy/org/example/SlackExtension.groovy" />
+<SampleFile sample_name="plugin-tutorial" path="{lang}/plugin/src/main/{lang}/org/example/SlackExtension.{srcExt}" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 This class will provide the configuration for the `slack` DSL block we saw earlier.
 
@@ -89,9 +85,7 @@ This tells Gradle to create the extension and make it available in the build scr
 
 Let’s update the `apply` method to register our new extension and modify the dummy task to use its properties.
 
-<SampleFile sample_name="plugin-tutorial" path="kotlin/plugin/src/main/kotlin/org/example/SlackPlugin.kt" tag="slack-extension" />
-
-<SampleFile sample_name="plugin-tutorial" path="groovy/plugin/src/main/groovy/org/example/SlackPlugin.groovy" tag="slack-extension" />
+<SampleFile sample_name="plugin-tutorial" path="{lang}/plugin/src/main/{lang}/org/example/SlackPlugin.{srcExt}" tag="slack-extension" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 After this step, a user can configure your plugin, and the `sendTestSlackMessage` task will use those values when it runs.
 

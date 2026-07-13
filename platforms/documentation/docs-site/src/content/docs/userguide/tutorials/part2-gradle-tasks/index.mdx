@@ -88,7 +88,7 @@ Gradle includes some tasks by default, and many others are added automatically w
 
 If you remember back in <Xref page="part1-gradle-init" section="Step 0. Before you Begin">part 1</Xref>, the build script of our Java application applies the `application` plugin:
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-plugins" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-plugins" source_dir="snippets/tutorials/running-builds/generated" />
 
 Applying the `application` plugin adds tasks like `run`, `build`, `compileJava`, `test`, and `jar`.
 
@@ -100,7 +100,7 @@ For example, the `Copy` task type is used to copy files from one location to ano
 
 Here’s how you could register a custom task that copies all `.war` files from a source directory to a target directory:
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-task" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-task" source_dir="snippets/tutorials/running-builds/generated" />
 
 If this task is defined in the `build.gradle(.kts)` file for the app subproject, you can run it with:
 
@@ -134,7 +134,7 @@ There are two kinds of task dependencies:
 
 Here is an example of explicit task dependency:
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-hello" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-hello" source_dir="snippets/tutorials/running-builds/generated" />
 
 In this case, `hello` prints before `greet`.
 The output is `Hello! How are you?`.
@@ -236,6 +236,6 @@ The `run` task executes the code in `tutorial/app/src/main/java/com.gradle.tutor
 
 You can take a minute and take a look at the Java code in `App.java` which simply prints "Hello World" to the screen:
 
-<SampleFile sample_name="generated" path="groovy/app/src/main/java/org/example/App.java" />
+<SampleFile sample_name="generated" path="{lang}/app/src/main/java/org/example/App.java" source_dir="snippets/tutorials/running-builds/generated" />
 
 ***Next Step:*** <Xref page="part3-gradle-dep-man" section="Step 0. Before you Begin">Dependency Management</Xref> \>\>

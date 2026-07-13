@@ -63,7 +63,7 @@ First, update your project structure to include a new `consumer` directory:
 Next, we’ll configure a ***Composite Build*** by updating the root `settings.gradle(.kts)` file.
 This tells Gradle to treat the `plugin` project as an included build.
 
-<SampleScripts sample_name="plugin-tutorial" basename="settings" />
+<SampleScripts sample_name="plugin-tutorial" basename="settings" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 The key line here is `includeBuild("plugin")` inside the `pluginManagement {}` block.
 This makes all the plugins from the `plugin` project available to other projects in the composite build by their ID.
@@ -71,9 +71,9 @@ This makes all the plugins from the `plugin` project available to other projects
 Finally, we need to update the `plugin’s build file to account for the composite build setup.
 We’ll change the `id` from a local file to a standard `String`.
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="plugins" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="plugins" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="dependencies" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="plugin" tag="dependencies" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 :::note
 In a Composite Build, the `plugin` project no longer has access to the root `libs.versions.toml` file. For this tutorial, we are using direct dependency declarations.
@@ -85,7 +85,7 @@ Now we’ll configure the `consumer` project’s settings file to apply our plug
 
 Add this code to `consumer/settings.gradle(.kts)`:
 
-<SampleScripts sample_name="plugin-tutorial" basename="settings" subpath="consumer" tag="entire" />
+<SampleScripts sample_name="plugin-tutorial" basename="settings" subpath="consumer" tag="entire" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 This tells Gradle that when it encounters a `plugins` block that references your `org.example.slack` plugin, it should look for the plugin in the `plugin` project of the composite build.
 
@@ -93,7 +93,7 @@ This tells Gradle that when it encounters a `plugins` block that references your
 
 Now, let’s configure the `consumer` project’s `build.gradle(.kts)` file to actually apply and configure our plugin.
 
-<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="consumer" tag="build" />
+<SampleScripts sample_name="plugin-tutorial" basename="build" subpath="consumer" tag="build" source_dir="snippets/tutorials/developing-plugins/plugin-tutorial" />
 
 Notice that we don’t need a `version` for the plugin! Gradle automatically resolves it from the included build.
 

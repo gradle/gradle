@@ -23,7 +23,7 @@ Dependency constraints can also ***override transitive dependencies*** and enfor
 
 To enforce specific versions of transitive dependencies, use the <JavaDocLink class="org.gradle.api.artifacts.DependencyConstraint">`constraints`</JavaDocLink> block inside <JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler">`dependencies {}`</JavaDocLink>:
 
-<SampleScripts sample_name="upgrade-transitives" basename="build" tag="dependency-full" />
+<SampleScripts sample_name="upgrade-transitives" basename="build" tag="dependency-full" source_dir="snippets/how-to/dependency-management/dependency-management/upgrade-transitives" />
 
 - The `implementation` dependency ***omits the version***.
 - The `constraints` block ***enforces specific versions*** for `httpclient` and `commons-codec`.
@@ -31,7 +31,7 @@ To enforce specific versions of transitive dependencies, use the <JavaDocLink cl
 
 Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
 
-<SampleFile sample_name="upgrade-transitives" path="tests/dependencies.out" />
+<SampleFile sample_name="upgrade-transitives" path="tests/dependencies.out" source_dir="snippets/how-to/dependency-management/dependency-management/upgrade-transitives" />
 
 ## Summary
 

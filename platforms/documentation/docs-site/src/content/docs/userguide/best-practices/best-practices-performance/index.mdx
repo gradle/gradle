@@ -104,13 +104,13 @@ If the inputs are the same, the outputs will be too, resulting in faster, more e
 
 Build caching is disabled by default:
 
-<SampleFile sample_name="use-build-cache-avoid" path="common/gradle.properties" />
+<SampleFile sample_name="use-build-cache-avoid" path="common/gradle.properties" source_dir="snippets/best-practices/useBuildCache-avoid" />
 
 #### Do This Instead
 
 To enable the Build Cache, add the following to your `gradle.properties` file:
 
-<SampleFile sample_name="use-build-cache-do" path="common/gradle.properties" />
+<SampleFile sample_name="use-build-cache-do" path="common/gradle.properties" source_dir="snippets/best-practices/useBuildCache-do" />
 
 When you build your project for the first time, Gradle populates the cache with the outputs of tasks like compilation.
 
@@ -174,13 +174,13 @@ Enabling it by default could lead to unexpected build failures, so Gradle uses a
 
 Configuration Caching is not enabled by default:
 
-<SampleFile sample_name="use-configuration-cache-avoid" path="common/gradle.properties" />
+<SampleFile sample_name="use-configuration-cache-avoid" path="common/gradle.properties" source_dir="snippets/best-practices/useConfigurationCache-avoid" />
 
 #### Do This Instead
 
 To enable the Configuration Cache, add the following to your `gradle.properties` file:
 
-<SampleFile sample_name="use-configuration-cache-do" path="common/gradle.properties" />
+<SampleFile sample_name="use-configuration-cache-do" path="common/gradle.properties" source_dir="snippets/best-practices/useConfigurationCache-do" />
 
 When you build your project for the first time, Gradle stores the outcome of the configuration phase, including the task graph, in the Configuration Cache.
 
@@ -255,7 +255,7 @@ It is better to move these operations to task actions so that they run only when
 
 #### Don’t Do This
 
-<SampleScripts sample_name="avoid-computation-in-configuration-phase-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="avoid-computation-in-configuration-phase-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/avoidComputationInConfigurationPhase-avoid" />
 
 <CalloutList>
 
@@ -265,7 +265,7 @@ It is better to move these operations to task actions so that they run only when
 
 #### Do This Instead
 
-<SampleScripts sample_name="avoid-computation-in-configuration-phase-do" basename="build" tag="do-this" />
+<SampleScripts sample_name="avoid-computation-in-configuration-phase-do" basename="build" tag="do-this" source_dir="snippets/best-practices/avoidComputationInConfigurationPhase-do" />
 
 <CalloutList>
 

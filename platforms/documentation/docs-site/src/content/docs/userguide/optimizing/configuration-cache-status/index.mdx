@@ -110,7 +110,7 @@ However, calling such methods at execution time is not currently supported if th
 For builds scripts written in Groovy, the task fails because the method cannot be found.
 The following snippet uses a top-level method in the `listFiles` task:
 
-<SampleScripts sample_name="top-level" basename="build" tag="not-supported" />
+<SampleScripts sample_name="top-level" basename="build" tag="not-supported" source_dir="snippets/optimizing-builds/configuration-cache/topLevel" />
 
 Running the task with the Configuration Cache enabled produces the following error:
 
@@ -121,7 +121,7 @@ Execution failed for task ':listFiles' (registered in build file 'build.gradle')
 
 To prevent the task from failing, convert the referenced top-level method to a static method within a class:
 
-<SampleScripts sample_name="top-level" basename="build" tag="workaround" />
+<SampleScripts sample_name="top-level" basename="build" tag="workaround" source_dir="snippets/optimizing-builds/configuration-cache/topLevel" />
 
 Build scripts written in Kotlin cannot store tasks that reference top-level methods or variables at execution time in the Configuration Cache at all.
 This limitation exists because the captured script object references cannot be serialized.

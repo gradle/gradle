@@ -17,7 +17,7 @@ Properties and providers manage _values and configurations_ in a build script.
 In this example, `configuration` is a `Property<String>` that is set to the `configurationProvider` `Provider<String>`.
 The `configurationProvider` lazily provides the value `"Hello, Gradle!"`:
 
-<SampleScripts sample_name="property" basename="build" tag="introduction" />
+<SampleScripts sample_name="property" basename="build" tag="introduction" source_dir="snippets/reference/gradle-types/property" />
 
 ## Understanding Properties
 
@@ -26,7 +26,7 @@ They can be defined and accessed within the build script to store information li
 
 Properties can be set and retrieved using the `project` object:
 
-<SampleScripts sample_name="property" basename="build" tag="set-prop" />
+<SampleScripts sample_name="property" basename="build" tag="set-prop" source_dir="snippets/reference/gradle-types/property" />
 
 Properties:
 
@@ -42,7 +42,7 @@ This allows you to wire together `Provider` and `Property` instances before the 
 Providers are objects that represent a value that may not be immediately available.
 Providers are useful for lazy evaluation and can be used to model values that may change over time or depend on other tasks or inputs:
 
-<SampleScripts sample_name="property" basename="build" tag="set-prov" />
+<SampleScripts sample_name="property" basename="build" tag="set-prov" source_dir="snippets/reference/gradle-types/property" />
 
 Providers:
 
@@ -66,11 +66,11 @@ These methods allow you to transform, combine, or provide fallback values withou
 
 Using `map()` is a common example:
 
-<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="transform" />
+<SampleScripts sample_name="basics" basename="build" subpath="my-sub-project" tag="transform" source_dir="snippets/reference/gradle-types/basics" />
 
 You can see the following example for a detailed breakdown at `Provider` chaining using `map()`:
 
-<SampleScripts sample_name="example" basename="build" subpath="app" tag="type" />
+<SampleScripts sample_name="example" basename="build" subpath="app" tag="type" source_dir="snippets/reference/gradle-types/example" />
 
 ## Using Gradle Managed Properties
 
@@ -84,11 +84,11 @@ In Kotlin, abstract properties (`abstract val foo: Property<String>`) compile to
 
 A property may be _mutable_, meaning that it is of type `Property`, which has both a `get()` and a `set()` method:
 
-<SampleScripts sample_name="property" basename="build" tag="prop-managed" />
+<SampleScripts sample_name="property" basename="build" tag="prop-managed" source_dir="snippets/reference/gradle-types/property" />
 
 Or _read-only_, meaning that it is of type `Provider`, which only has a `get()` method:
 
-<SampleScripts sample_name="property" basename="build" tag="prov-managed" />
+<SampleScripts sample_name="property" basename="build" tag="prov-managed" source_dir="snippets/reference/gradle-types/property" />
 
 ### Mutable Managed Properties
 
@@ -227,7 +227,7 @@ public interface Resource {
 A _named managed type_ is a managed type that additionally has an abstract property "name" of type `String`.
 Named managed types are especially useful as the element type of <JavaDocLink class="org.gradle.api.NamedDomainObjectContainer" />:
 
-<SampleScripts sample_name="property" basename="build" tag="named" />
+<SampleScripts sample_name="property" basename="build" tag="named" source_dir="snippets/reference/gradle-types/property" />
 
 ## Using Java Bean Properties
 

@@ -245,7 +245,7 @@ Gradle reads the `settings.gradle(.kts)` file to figure out which subprojects co
 
 Take a look at the file in your project:
 
-<SampleScripts sample_name="generated" basename="settings" />
+<SampleScripts sample_name="generated" basename="settings" source_dir="snippets/tutorials/running-builds/generated" />
 
 The `tutorial` root project includes the `app` subproject.
 The presence of the `include` call turns the `app` directory into a subproject.
@@ -260,7 +260,7 @@ The `build.gradle(.kts)` file is read and executed by Gradle.
 
 Take a closer look at the build file in your `app` subproject (under the `app` directory):
 
-<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-og" />
+<SampleScripts sample_name="generated" basename="build" subpath="app" tag="init-og" source_dir="snippets/tutorials/running-builds/generated" />
 
 This build script lets Gradle know which dependencies and plugins the `app` subproject is using and where to find them.
 

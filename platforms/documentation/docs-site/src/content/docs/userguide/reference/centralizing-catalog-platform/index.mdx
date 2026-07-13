@@ -21,7 +21,7 @@ mylib = { group = "com.example", name = "mylib", version = "1.0.0" }
 - ***Purpose:*** A platform is a module in the dependency graph that enforces or aligns versions of dependencies (including transitive dependencies). It influences dependency resolution and ensures version consistency across different modules.
 - ***Effect on Dependency Graph:*** Platforms ***apply*** or ***enforce*** versions to dependencies that are declarated locally without versions.  These versions in a platform are propagated through the dependency graph, affecting transitive dependencies and downstream consumers. They are a formal part of the dependency graph and can dictate the version chosen during resolution.
 
-<SampleScripts sample_name="catalogs-platforms-platform-example" basename="build" tag="platform-example" />
+<SampleScripts sample_name="catalogs-platforms-platform-example" basename="build" tag="platform-example" source_dir="snippets/reference/dependency-management/centralizing-dependencies/catalogsPlatforms-platformExample" />
 
 ## Using a catalog with a platform
 
@@ -33,15 +33,15 @@ To ensure consistent version alignment, a good approach is to use a version cata
 
 Version Catalog:
 
-<SampleFile sample_name="catalogs-platforms" path="common/gradle/libs.versions.toml" />
+<SampleFile sample_name="catalogs-platforms" path="common/gradle/libs.versions.toml" source_dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-platforms" />
 
 Platform:
 
-<SampleScripts sample_name="catalogs-platforms" basename="build" subpath="platform" />
+<SampleScripts sample_name="catalogs-platforms" basename="build" subpath="platform" source_dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-platforms" />
 
 Consumer:
 
-<SampleScripts sample_name="catalogs-platforms" basename="build" subpath="consumer" tag="usage" />
+<SampleScripts sample_name="catalogs-platforms" basename="build" subpath="consumer" tag="usage" source_dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-platforms" />
 
 Best Practices for using both a catalog and a platform:
 

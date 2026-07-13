@@ -24,7 +24,7 @@ These types enable:
 
 For example, instead of using a `String`, you should use a `Property<String>`:
 
-<SampleScripts sample_name="example" basename="build" subpath="app" tag="demo" />
+<SampleScripts sample_name="example" basename="build" subpath="app" tag="demo" source_dir="snippets/fundamentals/authoring-builds/example" />
 
 ```bash
 $ ./gradlew demoTask
@@ -75,7 +75,7 @@ Let’s review the differences one more time:
 - Values are resolved **as soon as the line is executed**.
 - Prevents Gradle from optimizing build logic.
 
-<SampleScripts sample_name="gradle-managed-types" basename="build" tag="eager-evaluation" />
+<SampleScripts sample_name="gradle-managed-types" basename="build" tag="eager-evaluation" source_dir="snippets/fundamentals/authoring-builds/gradleManagedTypes" />
 
 These eager values are resolved even if the task isn’t run, breaking configuration cache compatibility and reducing build performance.
 
@@ -85,7 +85,7 @@ These eager values are resolved even if the task isn’t run, breaking configura
 - Enables Gradle to apply caching, parallel execution, and configuration avoidance.
 - Fully supports configuration cache and incremental builds.
 
-<SampleScripts sample_name="gradle-managed-types" basename="build" tag="lazy-evaluation" />
+<SampleScripts sample_name="gradle-managed-types" basename="build" tag="lazy-evaluation" source_dir="snippets/fundamentals/authoring-builds/gradleManagedTypes" />
 
 Here, nothing is resolved immediately—Gradle delays evaluation until it’s actually required.
 
@@ -95,10 +95,10 @@ Let’s take a look at an example.
 
 This task will break the Configuration Cache due to **eager** access:
 
-<SampleScripts sample_name="gradle-managed-types" basename="build" tag="eager-task" />
+<SampleScripts sample_name="gradle-managed-types" basename="build" tag="eager-task" source_dir="snippets/fundamentals/authoring-builds/gradleManagedTypes" />
 
 The fix: use a **lazy** `Provider` or a `Property<String>`:
 
-<SampleScripts sample_name="gradle-managed-types" basename="build" tag="lazy-task" />
+<SampleScripts sample_name="gradle-managed-types" basename="build" tag="lazy-task" source_dir="snippets/fundamentals/authoring-builds/gradleManagedTypes" />
 
 ***Next Step:*** <Xref page="dependencies-intermediate" section="Declaring and Managing Dependencies">Learn about Declaring and Managing Dependencies</Xref> \>\>

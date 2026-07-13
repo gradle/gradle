@@ -95,7 +95,7 @@ If you define a custom repository, you can configure how Gradle searches for met
 For instance, you can set up a Maven repository will optionally resolve JARs that don’t have associated POM files.
 This is done by configuring metadata sources for the repository:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-repo-with-metadata-sources" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-repo-with-metadata-sources" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />
 
 You can specify multiple metadata sources, and Gradle will search through them in a predefined order.
 The following metadata sources are supported:
@@ -111,7 +111,7 @@ By default, Gradle will require that a dependency has associated metadata.
 
 To relax this requirement and allow Gradle to resolve artifacts without associated metadata, specify the `artifact` metadata source:
 
-<SampleScripts sample_name="supported-metadata-formats-metadata-sources" basename="build" tag="metadata-sources" />
+<SampleScripts sample_name="supported-metadata-formats-metadata-sources" basename="build" tag="metadata-sources" source_dir="snippets/reference/dependency-management/declaring-repositories/supportedMetadataFormats-metadataSources" />
 
 The above example instructs Gradle to first look for component metadata from a POM file, and if not present, to derive metadata from the artifact itself.
 
@@ -119,11 +119,11 @@ For example, if you declare a module dependency, Gradle looks for a module metad
 If such a module metadata file exists, it is parsed, and the artifacts of this module (e.g., `hibernate-3.0.5.jar`) as well as its dependencies (e.g., `cglib`) are downloaded.
 If no such module metadata file exists, you need to configure metadata sources definitions to look for an artifact file called `hibernate-3.0.5.jar` directly:
 
-<SampleScripts sample_name="supported-metadata-formats-artifact-fallback" basename="build" tag="artifact-fallback" />
+<SampleScripts sample_name="supported-metadata-formats-artifact-fallback" basename="build" tag="artifact-fallback" source_dir="snippets/reference/dependency-management/declaring-repositories/supportedMetadataFormats-artifactFallback" />
 
 When parsing metadata files (Ivy or Maven), Gradle checks for a marker that indicates the presence of a matching Gradle Module Metadata file.
 If found, Gradle will prefer the Gradle metadata.
 
 To disable this behavior, use the `ignoreGradleMetadataRedirection()` option:
 
-<SampleScripts sample_name="define-repository" basename="build" tag="maven-repo-with-ignore-gradle-metadata-redirection" />
+<SampleScripts sample_name="define-repository" basename="build" tag="maven-repo-with-ignore-gradle-metadata-redirection" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepository" />

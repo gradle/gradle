@@ -51,7 +51,7 @@ $ ./gradlew run --info
 
 You can emit log messages directly from build scripts and tasks using Gradle’s built-in logger:
 
-<SampleScripts sample_name="logging" basename="build" tag="task-log-stdout" />
+<SampleScripts sample_name="logging" basename="build" tag="task-log-stdout" source_dir="snippets/reference/runtime-configuration/logging" />
 
 Use appropriate log levels (`lifecycle`, `info`, `debug`) to ensure your build output is clear and informative.
 
@@ -100,22 +100,22 @@ If you suspect that a Gradle Plugin may inadvertently expose sensitive informati
 A simple option for logging in your build file is to write messages to standard output.
 Gradle redirects anything written to standard output to its logging system at the `QUIET` log level:
 
-<SampleScripts sample_name="logging" basename="build" tag="use-println" />
+<SampleScripts sample_name="logging" basename="build" tag="use-println" source_dir="snippets/reference/runtime-configuration/logging" />
 
 Gradle also provides a `logger` property to a build script, which is an instance of <JavaDocLink class="org.gradle.api.logging.Logger" />.
 This interface extends the SLF4J `Logger` interface and adds a few Gradle-specific methods.
 Below is an example of how this is used in the build script:
 
-<SampleScripts sample_name="logging" basename="build" tag="use-logger" />
+<SampleScripts sample_name="logging" basename="build" tag="use-logger" source_dir="snippets/reference/runtime-configuration/logging" />
 
 Use the link [typical SLF4J pattern](https://www.slf4j.org/manual.html#typical_usage) to replace a placeholder with an actual value in the log message.
 
-<SampleScripts sample_name="logging" basename="build" tag="use-logger-placeholder" />
+<SampleScripts sample_name="logging" basename="build" tag="use-logger-placeholder" source_dir="snippets/reference/runtime-configuration/logging" />
 
 You can also hook into Gradle’s logging system from within other classes used in the build (classes from the `buildSrc` directory, for example) with an SLF4J logger.
 You can use this logger the same way as you use the provided logger in the build script.
 
-<SampleScripts sample_name="logging" basename="build" tag="use-slf4j" />
+<SampleScripts sample_name="logging" basename="build" tag="use-slf4j" source_dir="snippets/reference/runtime-configuration/logging" />
 
 ## Logging from external tools and libraries
 
@@ -132,11 +132,11 @@ This behavior is configurable.
 
 The `project` object provides a <JavaDocLink class="org.gradle.api.logging.LoggingManager" />, which allows you to change the log levels that standard out or error are redirected to when your build script is evaluated.
 
-<SampleScripts sample_name="logging" basename="build" tag="capture-stdout" />
+<SampleScripts sample_name="logging" basename="build" tag="capture-stdout" source_dir="snippets/reference/runtime-configuration/logging" />
 
 To change the log level for standard out or error during task execution, use a <JavaDocLink class="org.gradle.api.logging.LoggingManager" />.
 
-<SampleScripts sample_name="logging" basename="build" tag="task-capture-stdout" />
+<SampleScripts sample_name="logging" basename="build" tag="task-capture-stdout" source_dir="snippets/reference/runtime-configuration/logging" />
 
 Gradle also integrates with the [Java Util Logging](https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html), Jakarta Commons Logging and [Log4j](https://logging.apache.org/log4j/2.x/) logging toolkits.
 Any log messages your build classes write using these logging toolkits will be redirected to Gradle’s logging system.
@@ -157,7 +157,7 @@ This is accessible from a build script, an init script, or via the embedding API
 Note that this completely disables Gradle’s default output.
 Below is an example init script that changes how task execution and build completion are logged:
 
-<SampleScripts sample_name="custom-logger" basename="customLogger.init" />
+<SampleScripts sample_name="custom-logger" basename="customLogger.init" source_dir="snippets/reference/runtime-configuration/customLogger" />
 
 ```bash
 $ ./gradlew -I customLogger.init.gradle.kts build

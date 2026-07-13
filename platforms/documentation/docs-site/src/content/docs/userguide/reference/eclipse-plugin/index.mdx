@@ -31,11 +31,11 @@ To use either the Eclipse or the Eclipse WTP plugin, include one of the lines in
 
 Using the Eclipse plugin:
 
-<SampleScripts sample_name="eclipse" basename="build" tag="use-eclipse-plugin" />
+<SampleScripts sample_name="eclipse" basename="build" tag="use-eclipse-plugin" source_dir="snippets/reference/core-plugins/eclipse" />
 
 Using the Eclipse WTP plugin:
 
-<SampleScripts sample_name="eclipse" basename="build" tag="use-eclipse-wtp-plugin" />
+<SampleScripts sample_name="eclipse" basename="build" tag="use-eclipse-wtp-plugin" source_dir="snippets/reference/core-plugins/eclipse" />
 
 _Note:_ Internally, the `eclipse-wtp` plugin also applies the `eclipse` plugin so you don’t need to apply both.
 
@@ -226,23 +226,23 @@ A complete overwrite causes all existing content to be discarded, thereby losing
 
 **Partial Overwrite for Classpath**
 
-<SampleScripts sample_name="eclipse" basename="build" tag="module-before-merged" />
+<SampleScripts sample_name="eclipse" basename="build" tag="module-before-merged" source_dir="snippets/reference/core-plugins/eclipse" />
 
 The resulting `.classpath` file will only contain Gradle-generated dependency entries, but not any other dependency entries that may have been present in the original file. (In the case of dependency entries, this is also the default behavior.) Other sections of the `.classpath` file will be either left as-is or merged. The same could be done for the natures in the `.project` file:
 
-<SampleScripts sample_name="eclipse" basename="build" tag="project-before-merged" />
+<SampleScripts sample_name="eclipse" basename="build" tag="project-before-merged" source_dir="snippets/reference/core-plugins/eclipse" />
 
 #### Modifying the fully populated domain objects
 
 The `whenMerged` hook allows to manipulate the fully populated domain objects. Often this is the preferred way to customize Eclipse files. Here is how you would export all the dependencies of an Eclipse project:
 
-<SampleScripts sample_name="eclipse" basename="build" tag="module-when-merged" />
+<SampleScripts sample_name="eclipse" basename="build" tag="module-when-merged" source_dir="snippets/reference/core-plugins/eclipse" />
 
 #### Modifying the XML representation
 
 The `withXml` hook allows to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy’s XML support and Kotlin’s extension functions make up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
 
-<SampleScripts sample_name="eclipse" basename="build" tag="wtp-with-xml" />
+<SampleScripts sample_name="eclipse" basename="build" tag="wtp-with-xml" source_dir="snippets/reference/core-plugins/eclipse" />
 
 ## Separation of test classpath entries
 
@@ -270,7 +270,7 @@ The following rules apply for the test attribute declaration when generating the
 
 You can customize the test source sets and configurations:
 
-<SampleScripts sample_name="eclipse" basename="build" tag="test-sources" />
+<SampleScripts sample_name="eclipse" basename="build" tag="test-sources" source_dir="snippets/reference/core-plugins/eclipse" />
 
 :::tip
 Consider migrating away from manual definition of additional test source sets and towards the use of the <Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite Plugin</Xref> in scenarios like this.
@@ -278,6 +278,6 @@ Consider migrating away from manual definition of additional test source sets an
 
 You can also customize if a project should expose test sources to upstream project dependencies via the `containsTestFixtures` property.
 
-<SampleScripts sample_name="eclipse" basename="build" tag="test-fixtures" />
+<SampleScripts sample_name="eclipse" basename="build" tag="test-fixtures" source_dir="snippets/reference/core-plugins/eclipse" />
 
 Note, that this configuration also applies to the classpath of Buildship projects.

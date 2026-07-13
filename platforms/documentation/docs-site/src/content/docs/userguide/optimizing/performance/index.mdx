@@ -317,7 +317,7 @@ If a task’s inputs and outputs have not changed since the last execution, Grad
 Most built-in Gradle tasks support incremental builds.
 To make a custom task compatible, you must specify its inputs and outputs:
 
-<SampleScripts sample_name="incremental-build-custom-task-class" basename="build" tag="ad-hoc-task" />
+<SampleScripts sample_name="incremental-build-custom-task-class" basename="build" tag="ad-hoc-task" source_dir="snippets/optimizing-builds/incrementalBuild-customTaskClass" />
 
 For more details, see the incremental build documentation and the <Xref page="writing-tasks-intermediate" section="Task Input and Outputs">writing tasks tutorial</Xref>.
 
@@ -390,11 +390,11 @@ However, it can sometimes sneak in unexpectedly.
 While encrypting data or making remote service calls is obvious when done in a build script, such logic is often hidden inside plugins or custom task classes.
 Expensive operations in a plugin’s `apply()` method or a task’s constructor are a red flag:
 
-<SampleScripts sample_name="performance-tips" basename="build" tag="expensive-plugin" />
+<SampleScripts sample_name="performance-tips" basename="build" tag="expensive-plugin" source_dir="snippets/optimizing-builds/performanceTips" />
 
 Instead:
 
-<SampleScripts sample_name="performance-tips" basename="build" tag="optimized-plugin" />
+<SampleScripts sample_name="performance-tips" basename="build" tag="optimized-plugin" source_dir="snippets/optimizing-builds/performanceTips" />
 
 ### Only Apply Plugins where they’re needed
 
@@ -417,10 +417,10 @@ To optimize this:
 
 - If only one subproject requires the script, remove it from the others, reducing the configuration delay by **2 seconds**.
 
-  <SampleScripts sample_name="performance-tips" basename="build" tag="apply-selectively" />
+  <SampleScripts sample_name="performance-tips" basename="build" tag="apply-selectively" source_dir="snippets/optimizing-builds/performanceTips" />
 - If multiple—but not all—subprojects use the script, refactor it into a custom plugin inside <Xref page="sharing-build-logic-between-subprojects" section="About the `buildSrc` directory">`buildSrc`</Xref> and apply it only to the relevant subprojects. This reduces configuration time and avoids code duplication.
 
-  <SampleScripts sample_name="performance-tips" basename="build" tag="apply-custom-plugin" />
+  <SampleScripts sample_name="performance-tips" basename="build" tag="apply-custom-plugin" source_dir="snippets/optimizing-builds/performanceTips" />
 
 ### Statically Compile Tasks and Plugins
 
@@ -498,7 +498,7 @@ repositories {
 Dynamic (`"2.+) and snapshot versions (-SNAPSHOT"`) cause Gradle to check remote repositories frequently.
 By default, Gradle caches dynamic versions for 24 hours, but this can be configured with the `cacheDynamicVersionsFor` and `cacheChangingModulesFor` properties:
 
-<SampleScripts sample_name="performance-tips" basename="build" tag="cache-dynamic-versions" />
+<SampleScripts sample_name="performance-tips" basename="build" tag="cache-dynamic-versions" source_dir="snippets/optimizing-builds/performanceTips" />
 
 If a build file or initialization script lowers these values, Gradle queries repositories more often.
 When you don’t need the absolute latest release of a dependency every time you build, consider
@@ -527,7 +527,7 @@ Gradle caches results, but triggering resolution in the **configuration phase** 
 
 This code forces dependency resolution during configuration, slowing down every build:
 
-<SampleScripts sample_name="performance-tips" basename="build" tag="defer-resolution" />
+<SampleScripts sample_name="performance-tips" basename="build" tag="defer-resolution" source_dir="snippets/optimizing-builds/performanceTips" />
 
 #### Switch to declarative syntax
 
@@ -537,14 +537,14 @@ Normally, tasks should resolve dependencies only when they need them during exec
 Consider a debugging scenario where you want to print all files in a configuration.
 A common mistake is to print them directly in the build script:
 
-<SampleScripts sample_name="resolve-at-configuration-time" basename="build" tag="copy" />
+<SampleScripts sample_name="resolve-at-configuration-time" basename="build" tag="copy" source_dir="snippets/optimizing-builds/resolveAtConfigurationTime" />
 
 The `files` property triggers dependency resolution immediately, even if `printDeps` is never executed.
 Since the configuration phase runs on every build, this slows down **all** builds.
 
 By using `doFirst()`, Gradle defers dependency resolution until the task actually runs, preventing unnecessary work in the configuration phase:
 
-<SampleScripts sample_name="resolve-at-build-time" basename="build" tag="copy" />
+<SampleScripts sample_name="resolve-at-build-time" basename="build" tag="copy" source_dir="snippets/optimizing-builds/resolveAtBuildTime" />
 
 The `from()` method in Gradle’s `Copy` task does **not** trigger immediate <Xref page="dependency-configurations" section="Understanding dependency configurations">dependency resolution</Xref> because it references the dependency **configuration**, not the resolved files.
 This ensures that dependencies are resolved only when the `Copy` task executes.
@@ -573,7 +573,7 @@ This logic may exist in your build scripts or as part of a third-party plugin.
 
 This example forces a custom dependency version but also introduces expensive logic that slows down resolution:
 
-<SampleScripts sample_name="performance-tips" basename="build" tag="custom-resolution-logic" />
+<SampleScripts sample_name="performance-tips" basename="build" tag="custom-resolution-logic" source_dir="snippets/optimizing-builds/performanceTips" />
 
 Instead of fetching dependency versions dynamically, define them in a version catalog:
 
@@ -647,7 +647,7 @@ To enable parallel execution, set the `maxParallelForks` property on your `Test`
 
 A good default is the number of available CPU cores or slightly fewer:
 
-<SampleScripts sample_name="parallel-test-execution" basename="build" tag="parallel-calculated" />
+<SampleScripts sample_name="parallel-test-execution" basename="build" tag="parallel-calculated" source_dir="snippets/optimizing-builds/parallelTestExecution" />
 
 Parallel test execution assumes that tests are isolated.
 Avoid shared resources such as file systems, databases, or external services.
@@ -660,7 +660,7 @@ This is efficient for small test suites, but large or memory-intensive test suit
 
 You can reduce memory pressure and isolate problematic tests by forking a new JVM after a specified number of tests using the `forkEvery` setting:
 
-<SampleScripts sample_name="parallel-test-execution" basename="build" tag="fork-every" />
+<SampleScripts sample_name="parallel-test-execution" basename="build" tag="fork-every" source_dir="snippets/optimizing-builds/parallelTestExecution" />
 
 :::caution
 Forking a JVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
@@ -678,7 +678,7 @@ You can disable report generation entirely if:
 
 To disable reports, set `reports.html.required` and `reports.junitXml.required` to `false`:
 
-<SampleScripts sample_name="parallel-test-execution" basename="build" tag="disable-reports" />
+<SampleScripts sample_name="parallel-test-execution" basename="build" tag="disable-reports" source_dir="snippets/optimizing-builds/parallelTestExecution" />
 
 ##### Conditionally enable reports
 
@@ -686,7 +686,7 @@ If you occasionally need reports without modifying the build file, you can make 
 
 This example disables reports unless the `createReports` property is present:
 
-<SampleScripts sample_name="performance-conditional-reports" basename="build" tag="conditional-reports" />
+<SampleScripts sample_name="performance-conditional-reports" basename="build" tag="conditional-reports" source_dir="snippets/optimizing-builds/performance-conditionalReports" />
 
 To generate reports, pass the property via the command line:
 
@@ -733,7 +733,7 @@ You can offload Java compilation to a separate process using the `fork` option:
 
 To apply this setting to all `JavaCompile` tasks, use `configureEach`:
 
-<SampleScripts sample_name="parallel-test-execution" basename="build" tag="fork-java" />
+<SampleScripts sample_name="parallel-test-execution" basename="build" tag="fork-java" source_dir="snippets/optimizing-builds/parallelTestExecution" />
 
 Gradle reuses the forked process for the duration of the build, so the startup cost is low.
 Running compilation in its own JVM helps reduce garbage collection in the main Gradle process, which can speed up the rest of your build — especially when used alongside [parallel execution](#sec:enable_parallel_execution).

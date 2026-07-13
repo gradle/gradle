@@ -24,7 +24,7 @@ Every dependency is added to a bucket configuration that defines its scope.
 
 Use the single string `"group:name:version"` (you can also include classifier/extension if needed, e.g., `group:name:version:classifier@ext`):
 
-<SampleScripts sample_name="external-dependencies" basename="build" tag="module-dependencies" />
+<SampleScripts sample_name="external-dependencies" basename="build" tag="module-dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/externalDependencies" />
 
 :::caution
 The map notation is deprecated and will be removed in Gradle 10. Prefer the single-string form.<br/>
@@ -43,7 +43,7 @@ Project dependencies allow you to reference other projects within a multi-projec
 
 This is useful for organizing large projects into smaller, modular components:
 
-<SampleScripts sample_name="declaring-dependencies-project-dependencies" basename="build" subpath="web-service" tag="project-dependencies" />
+<SampleScripts sample_name="declaring-dependencies-project-dependencies" basename="build" subpath="web-service" tag="project-dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-projectDependencies" />
 
 Gradle uses the <GroovyDocLink class="org.gradle.api.Project" method="project(java.lang.String)">`project()`</GroovyDocLink> function to define a project dependency.
 This function takes the relative path to the target project within the build.
@@ -58,14 +58,14 @@ Implementation may change at any time.
 
 To add support for type-safe project accessors, add `enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")` this to your `settings.gradle(.kts)` file:
 
-<SampleScripts sample_name="declaring-dependencies-type-safe-project-dependencies" basename="settings" tag="accessors" />
+<SampleScripts sample_name="declaring-dependencies-type-safe-project-dependencies" basename="settings" tag="accessors" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-typeSafeProjectDependencies" />
 
 One downside of using the `project(":some:path")` notation is the need to remember project paths for dependencies.
 Moreover, changing a project path requires manually updating every occurrence, increasing the risk of missing one.
 
 Instead, the experimental type-safe project accessors API provides IDE completion, making it easier to declare dependencies:
 
-<SampleScripts sample_name="declaring-dependencies-type-safe-project-dependencies" basename="build" subpath="web-service" tag="project-dependencies" />
+<SampleScripts sample_name="declaring-dependencies-type-safe-project-dependencies" basename="build" subpath="web-service" tag="project-dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-typeSafeProjectDependencies" />
 
 With this API, incorrectly specified projects in Kotlin DSL scripts trigger compilation errors, helping you avoid missed updates.
 
@@ -86,7 +86,7 @@ Instead, prefer declaring dependencies on an external repository, or if necessar
 
 File dependencies are unique because they represent a direct reference to files on the filesystem without any associated metadata, such as transitive dependencies, origin, or author information.
 
-<SampleScripts sample_name="declaring-dependencies-file-dependencies" basename="build" tag="file-dependencies" />
+<SampleScripts sample_name="declaring-dependencies-file-dependencies" basename="build" tag="file-dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-fileDependencies" />
 
 In this example, each dependency explicitly specifies its location within the file system.
 Common methods for referencing these files include:
@@ -115,7 +115,7 @@ repositories {
 
 To add files as dependencies, pass a <Xref page="working-with-files" section="Using `FileCollection`">file collection</Xref> to the configuration:
 
-<SampleScripts sample_name="external-dependencies" basename="build" tag="file-dependencies" />
+<SampleScripts sample_name="external-dependencies" basename="build" tag="file-dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/externalDependencies" />
 
 Note that file dependencies are not included in the published dependency descriptor for your project.
 However, they are available in transitive dependencies within the same build, meaning they can be used within the current build but not outside it.
@@ -123,7 +123,7 @@ However, they are available in transitive dependencies within the same build, me
 You should specify which tasks produce the files for a file dependency.
 Otherwise, the necessary tasks might not run when you depend on them transitively from another project:
 
-<SampleScripts sample_name="generated-file-dependencies" basename="build" tag="generated-file-dependencies" />
+<SampleScripts sample_name="generated-file-dependencies" basename="build" tag="generated-file-dependencies" source_dir="snippets/reference/dependency-management/declaring-dependencies/generatedFileDependencies" />
 
 ```bash
 $ ./gradlew -q list
@@ -144,7 +144,7 @@ See more in the <Xref page="gradle-dependencies" section="Gradle distribution-sp
 When declaring a dependency or a <Xref page="dependency-constraints" section="Declaring Dependency Constraints">dependency constraint</Xref>, you can provide a reason to clarify why the dependency is included.
 This helps make your build script and the <Xref page="viewing-debugging-dependencies" section="Identify the selected version using the `dependencyInsight` task">dependency insight report</Xref> easier to interpret:
 
-<SampleScripts sample_name="inspecting-dependencies-dependency-reason" basename="build" tag="dependency-reason" />
+<SampleScripts sample_name="inspecting-dependencies-dependency-reason" basename="build" tag="dependency-reason" source_dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyReason" />
 
 In this example, the <JavaDocLink class="org.gradle.api.artifacts.DependencyConstraint" method="because(java.lang.String)">`because()`</JavaDocLink> method provides a reason for including the `asm` library, which helps explain its purpose in the context of the build:
 

@@ -32,7 +32,7 @@ Provide the credentials as Gradle properties (`gradle.publish.key` and `gradle.p
 
 Add the `com.gradle.plugin-publish` plugin to your build:
 
-<SampleScripts sample_name="publishing-plugins" basename="build" tag="plugins_block" />
+<SampleScripts sample_name="publishing-plugins" basename="build" tag="plugins_block" source_dir="snippets/reference/plugin-development/publishingPlugins" />
 
 The latest version is listed on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/com.gradle.plugin-publish).
 
@@ -47,7 +47,7 @@ Older versions required applying these plugins manually.
 
 Configure the plugin in `build.gradle(.kts)`:
 
-<SampleScripts sample_name="publishing-plugins" basename="build" tag="global_config" />
+<SampleScripts sample_name="publishing-plugins" basename="build" tag="global_config" source_dir="snippets/reference/plugin-development/publishingPlugins" />
 
 <CalloutList>
 
@@ -66,7 +66,7 @@ The group and artifact must reasonably represent the organization, person, and t
 
 Define plugin-specific properties inside the `gradlePlugin {}` block:
 
-<SampleScripts sample_name="publishing-plugins" basename="build" tag="per_plugin_config" />
+<SampleScripts sample_name="publishing-plugins" basename="build" tag="per_plugin_config" source_dir="snippets/reference/plugin-development/publishingPlugins" />
 
 <CalloutList>
 
@@ -83,7 +83,7 @@ Define plugin-specific properties inside the `gradlePlugin {}` block:
 
 For example, take a look at the configuration for the [GradleTest plugin](https://plugins.gradle.org/plugin/org.ysb33r.gradletest):
 
-<SampleScripts sample_name="publishing-plugins" basename="build" tag="plugin_example" />
+<SampleScripts sample_name="publishing-plugins" basename="build" tag="plugin_example" source_dir="snippets/reference/plugin-development/publishingPlugins" />
 
 <Image src={pluginPortalPluginPage} alt="plugin portal plugin page" />
 
@@ -130,4 +130,4 @@ If you published a plugin without using the <Xref page="java-gradle-plugin" sect
 
 To use such a plugin, add a `resolutionStrategy` block inside `pluginManagement {}` in the consuming project’s `settings.gradle(.kts)`:
 
-<SampleScripts sample_name="custom-plugin" basename="settings" subpath="consumer" tag="use-legacy-plugin" />
+<SampleScripts sample_name="custom-plugin" basename="settings" subpath="consumer" tag="use-legacy-plugin" source_dir="snippets/reference/plugin-development/customPlugin" />

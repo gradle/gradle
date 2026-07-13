@@ -50,16 +50,16 @@ If the absolute path represents a tool being used it probably makes sense to tra
 
 For example, if you are using tools in your `Test` task called `integTest` which depend on the contents of the `LANG` variable you should do this:
 
-<SampleScripts sample_name="integration-tests" basename="build" tag="environment" />
+<SampleScripts sample_name="integration-tests" basename="build" tag="environment" source_dir="snippets/optimizing-builds/build-cache/integration-tests" />
 
 If you add conditional logic to distinguish CI builds from local development builds, you have to ensure that this does not break the loading of task outputs from CI onto developer machines.
 For example, the following setup would break caching of `Test` tasks, since Gradle always detects the differences in custom task actions.
 
-<SampleScripts sample_name="conditional-action" basename="build" tag="conditionalAction" />
+<SampleScripts sample_name="conditional-action" basename="build" tag="conditionalAction" source_dir="snippets/optimizing-builds/build-cache/conditional-action" />
 
 You should always add the action unconditionally:
 
-<SampleScripts sample_name="conditional-action" basename="build" tag="unconditionalAction" />
+<SampleScripts sample_name="conditional-action" basename="build" tag="unconditionalAction" source_dir="snippets/optimizing-builds/build-cache/conditional-action" />
 
 This way, the task has the same custom action on CI and on developer builds and its outputs can be re-used if the remaining inputs are the same.
 
@@ -94,7 +94,7 @@ If you’re using <Xref page="toolchains" section="Toolchains for JVM projects">
 If you use different JVM vendors for compiling or running Java we strongly suggest that you add the vendor as an input to the corresponding tasks.
 This can be achieved by using the runtime API as shown in the following snippet.
 
-<SampleScripts sample_name="java-version-tracking" basename="build" tag="trackVendor" />
+<SampleScripts sample_name="java-version-tracking" basename="build" tag="trackVendor" source_dir="snippets/optimizing-builds/build-cache/java-version-tracking" />
 
 With respect to tracking the Java minor version there are different competing aspects: developers having cache hits and "perfect" results on CI.
 There are basically two situations when you may want to track the minor version of Java: for compilation and for runtime.
@@ -143,11 +143,11 @@ Even worse, when the task does not execute, then the configuration of the task i
 Instead of using `doFirst` for modifying the inputs consider using a separate task to configure the task under question - a so called configure task.
 E.g., instead of doing
 
-<SampleScripts sample_name="custom-action" basename="build" tag="customAction" />
+<SampleScripts sample_name="custom-action" basename="build" tag="customAction" source_dir="snippets/optimizing-builds/build-cache/custom-action" />
 
 do
 
-<SampleScripts sample_name="configure-task" basename="build" tag="configureTask" />
+<SampleScripts sample_name="configure-task" basename="build" tag="configureTask" source_dir="snippets/optimizing-builds/build-cache/configure-task" />
 
 :::caution
 Note that configuring a task from other task is not supported when using the <Xref page="configuration-cache-requirements" section="Accessing a Task Instance from Another Instance">configuration cache</Xref>.
@@ -210,7 +210,7 @@ You already learned about the possibilities with <Xref page="build-cache-concept
 Tasks that produce archives (`tar`, `zip`) are <Xref page="working-with-files" section="Reproducible archives">reproducible</Xref> by default, starting with Gradle 9.0.0.
 For earlier Gradle versions or if you want explicit configuration, you can make archives reproducible configuring a task in the following way:
 
-<SampleScripts sample_name="reproducible-archives" basename="build" />
+<SampleScripts sample_name="reproducible-archives" basename="build" source_dir="snippets/optimizing-builds/build-cache/reproducible-archives" />
 
 Another way to make the outputs repeatable is to activate caching for a task with non-repeatable outputs.
 If you can make sure that the same build cache is used for all builds then the task will always have the same outputs for the same inputs by design of the build cache.

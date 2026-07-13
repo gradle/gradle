@@ -42,7 +42,7 @@ A Gradle script consists of two main types of elements:
 
 Examples of common blocks include:
 
-<SampleScripts sample_name="basic-dependencies" basename="build" subpath="api" />
+<SampleScripts sample_name="basic-dependencies" basename="build" subpath="api" source_dir="snippets/fundamentals/authoring-builds/basic-dependencies" />
 
 In this case, we are looking at a build script.
 Therefore, each block corresponds to a method on the <JavaDocLink class="org.gradle.api.Project" /> object, also referred to as the Project API, and is evaluated with a **delegate** or **receiver** (more on that below).
@@ -105,7 +105,7 @@ Declare local variables with the `val` keyword. Local variables are only visible
 
 Declare local variables with the `def` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Groovy language.
 
-<SampleScripts sample_name="local-variables" basename="build" />
+<SampleScripts sample_name="local-variables" basename="build" source_dir="snippets/fundamentals/authoring-builds/localVariables" />
 
 #### Extra Properties
 
@@ -117,7 +117,7 @@ Extra properties are accessible via:
 
 - `ext` property in Groovy.
 
-<SampleScripts sample_name="extra-properties" basename="build" tag="extraProperties" />
+<SampleScripts sample_name="extra-properties" basename="build" tag="extraProperties" source_dir="snippets/fundamentals/authoring-builds/extraProperties" />
 
 ```bash
 $ gradle -q printProperties
@@ -151,7 +151,7 @@ This top-down execution model means the order of declarations can affect behavio
 
 Now, let’s take a look at an example and break it down:
 
-<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" />
+<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" source_dir="snippets/fundamentals/authoring-builds/simple" />
 
 <CalloutList>
 
@@ -171,7 +171,7 @@ Plugins can be applied using the `PluginDependenciesSpec` plugins script block.
 
 The plugins block is preferred:
 
-<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="plugins" />
+<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="plugins" source_dir="snippets/fundamentals/authoring-builds/simple" />
 
 In the example, the `application` plugin, which is included with Gradle, has been applied, describing our project as a Java application.
 
@@ -183,7 +183,7 @@ Dependencies include plugins, libraries, or components that Gradle must download
 The build script lets Gradle know where to look for the binaries of the dependencies.
 More than one location can be provided:
 
-<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="repo" />
+<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="repo" source_dir="snippets/fundamentals/authoring-builds/simple" />
 
 In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbrains.kotlin.jvm`) will be downloaded from the [Maven Central Repository](https://repo.maven.apache.org/maven2/).
 
@@ -197,7 +197,7 @@ Dependencies are managed via configurations and are retrieved from repositories.
 Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
 Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.
 
-<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="dep" />
+<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="dep" source_dir="snippets/fundamentals/authoring-builds/simple" />
 
 In the example, the application code uses Google’s `guava` libraries.
 Guava provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.
@@ -210,7 +210,7 @@ The <GroovyDocLink class="org.gradle.api.Project" /> object has an associated <J
 
 In the example, the `application` plugin added an `application` property, which is used to detail the main class of our Java application:
 
-<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="app" />
+<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="app" source_dir="snippets/fundamentals/authoring-builds/simple" />
 
 #### 5. Register and configure tasks
 
@@ -222,7 +222,7 @@ While tasks are typically defined in plugins, you may need to register or config
 
 You can register tasks in a project using the <JavaDocLink class="org.gradle.api.tasks.TaskContainer">`TaskContainer.register(java.lang.String)`</JavaDocLink> method:
 
-<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="task" />
+<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="task" source_dir="snippets/fundamentals/authoring-builds/simple" />
 
 You may have seen usage of the <JavaDocLink class="org.gradle.api.tasks.TaskContainer">`TaskContainer.create(java.lang.String)`</JavaDocLink> method **which should be avoided**.
 
@@ -236,17 +236,17 @@ tasks.create<Zip>("zip-reports") { }
 
 You can locate a task to configure it using the `TaskCollection.named(java.lang.String)` method:
 
-<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="test" />
+<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="test" source_dir="snippets/fundamentals/authoring-builds/simple" />
 
 The example below configures the <GroovyDocLink class="org.gradle.api.tasks.javadoc.Javadoc" /> task to automatically generate HTML documentation from Java code:
 
-<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="doc" />
+<SampleScripts sample_name="simple" basename="build" subpath="sub-project-a" tag="doc" source_dir="snippets/fundamentals/authoring-builds/simple" />
 
 ## Accessing Project Properties in Build Scripts
 
 In a Gradle build script, you can refer to project-level properties like `name`, `version`, or `group` without needing to qualify them with `project`:
 
-<SampleScripts sample_name="project-api" basename="build" tag="project-name" />
+<SampleScripts sample_name="project-api" basename="build" tag="project-name" source_dir="snippets/fundamentals/authoring-builds/projectApi" />
 
 ```bash
 $ gradle -q check

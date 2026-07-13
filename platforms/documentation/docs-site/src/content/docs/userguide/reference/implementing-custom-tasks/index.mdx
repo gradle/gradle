@@ -131,7 +131,7 @@ Second, we need to specify a name for the zip file, which we’ve called `myAppl
 
 Here is what the complete task looks like:
 
-<SampleScripts sample_name="implementing-custom-tasks-package-app" basename="build" tag="package-app" />
+<SampleScripts sample_name="implementing-custom-tasks-package-app" basename="build" tag="package-app" source_dir="snippets/reference/task-development/implementingCustomTasks-packageApp" />
 
 If we run our `packageApp` task, `myApplication.zip` is produced:
 
@@ -182,7 +182,7 @@ Let’s wire it to a lifecycle task.
 
 The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using <JavaDocLink class="org.gradle.api.DefaultTask" method="dependsOn-java.lang.Object&#8230;&#8203;-">`dependsOn()`</JavaDocLink>:
 
-<SampleScripts sample_name="implementing-custom-tasks-package-app" basename="build" tag="wire-lifecycle" />
+<SampleScripts sample_name="implementing-custom-tasks-package-app" basename="build" tag="wire-lifecycle" source_dir="snippets/reference/task-development/implementingCustomTasks-packageApp" />
 
 We see that running `:build` also runs `:packageApp`:
 
@@ -389,16 +389,14 @@ abstract class GenerateReportTask extends DefaultTask {
 With inputs and outputs defined, the only thing that remains is the actual task action, which is implemented in a method annotated with `@TaskAction`.
 Inside this method, we write code accessing inputs and outputs using Gradle-specific APIs:
 
-<SampleFile sample_name="implementing-custom-tasks-generate-report" path="kotlin/GenerateReportTask.kt" tag="generate-report-task" />
-
-<SampleFile sample_name="implementing-custom-tasks-generate-report" path="groovy/GenerateReportTask.groovy" tag="generate-report-task" />
+<SampleFile sample_name="implementing-custom-tasks-generate-report" path="{lang}/GenerateReportTask.{srcExt}" tag="generate-report-task" source_dir="snippets/reference/task-development/implementingCustomTasks-generateReport" />
 
 The task action generates a report of the files in the `sourceDirectory`.
 
 In the application build file, we register a task of type `GenerateReportTask` using `task.register()` and name it `generateReport`.
 At the same time, we configure the inputs and outputs of the task:
 
-<SampleScripts sample_name="implementing-custom-tasks-generate-report" basename="build" tag="register-task" />
+<SampleScripts sample_name="implementing-custom-tasks-generate-report" basename="build" tag="register-task" source_dir="snippets/reference/task-development/implementingCustomTasks-generateReport" />
 
 The `generateReport` task is wired to the `build` task.
 
@@ -453,13 +451,11 @@ This is helpful for testing, patching, or modifying core build logic.
 Let’s look at an example of a simple Gradle build with one `app` subproject that makes up a Java application – containing one Java class and using Gradle’s `application` plugin.
 The project has common build logic in the `buildSrc` folder where `my-convention-plugin` resides:
 
-<SampleScripts sample_name="implementing-custom-tasks-convention-plugin" basename="build" tag="convention-plugin" />
+<SampleScripts sample_name="implementing-custom-tasks-convention-plugin" basename="build" tag="convention-plugin" source_dir="snippets/reference/task-development/implementingCustomTasks-conventionPlugin" />
 
 We define a task called `printVersion` in the build file of the `app`:
 
-<SampleFile sample_name="implementing-custom-tasks-print-version" path="kotlin/PrintVersion.kt" tag="print-version" />
-
-<SampleFile sample_name="implementing-custom-tasks-print-version" path="groovy/PrintVersion.groovy" tag="print-version" />
+<SampleFile sample_name="implementing-custom-tasks-print-version" path="{lang}/PrintVersion.{srcExt}" tag="print-version" source_dir="snippets/reference/task-development/implementingCustomTasks-printVersion" />
 
 This task does one simple thing: it prints out the version of the project to the command line.
 
@@ -542,7 +538,7 @@ Similar to defining a method and annotating this `@TaskAction`, this adds an act
 The methods are called `doFirst{}` and `doLast{}` because the task can have multiple actions.
 If the task already has an action defined, you can use this distinction to decide if your additional action should run before or after the existing actions:
 
-<SampleScripts sample_name="implementing-custom-tasks-do-first-last" basename="build" tag="do-first-last" />
+<SampleScripts sample_name="implementing-custom-tasks-do-first-last" basename="build" tag="do-first-last" source_dir="snippets/reference/task-development/implementingCustomTasks-doFirstLast" />
 
 If you only have one action, which is the case here because we start with an empty task, we typically use the `doLast{}` method.
 
@@ -550,7 +546,7 @@ In the task, we first declare the version we want to print as an input dynamical
 Instead of declaring a property and annotating it with `@Input`, we use the general inputs properties that all tasks have.
 Then, we add the action code, a `println()` statement, inside the `doLast{}` method:
 
-<SampleScripts sample_name="implementing-custom-tasks-dynamic-inputs" basename="build" tag="dynamic-inputs" />
+<SampleScripts sample_name="implementing-custom-tasks-dynamic-inputs" basename="build" tag="dynamic-inputs" source_dir="snippets/reference/task-development/implementingCustomTasks-dynamicInputs" />
 
 We saw two alternative approaches to implementing a custom task in Gradle.
 
@@ -566,12 +562,12 @@ Let’s take the `compileJava` task as an example.
 Once the task is registered, you can’t remove it.
 You could, instead, clear its actions:
 
-<SampleScripts sample_name="implementing-custom-tasks-clear-actions" basename="build" tag="clear-actions" />
+<SampleScripts sample_name="implementing-custom-tasks-clear-actions" basename="build" tag="clear-actions" source_dir="snippets/reference/task-development/implementingCustomTasks-clearActions" />
 
 It’s also difficult, and in certain cases impossible, to remove certain task dependencies that have been set up already by the plugins you are using.
 You could, instead, modify its behavior:
 
-<SampleScripts sample_name="implementing-custom-tasks-modify-behavior" basename="build" tag="modify-behavior" />
+<SampleScripts sample_name="implementing-custom-tasks-modify-behavior" basename="build" tag="modify-behavior" source_dir="snippets/reference/task-development/implementingCustomTasks-modifyBehavior" />
 
 ## Understanding inputs and outputs
 
@@ -588,14 +584,14 @@ You can configure the inputs and outputs of a task in two main ways:
 1. ***Static Configuration:*** Define inputs and outputs directly inside the task class. These inputs and outputs will always apply to the task whenever it is executed.
 2. ***Dynamic Configuration:*** Add inputs and outputs to a task dynamically, meaning you can customize the inputs and outputs for each execution of the task based on specific conditions or requirements. This approach allows for more flexibility and fine-grained control over the task’s behavior.
 
-<SampleScripts sample_name="implementing-custom-tasks-configurable-task" basename="build" tag="configurable-task" />
+<SampleScripts sample_name="implementing-custom-tasks-configurable-task" basename="build" tag="configurable-task" source_dir="snippets/reference/task-development/implementingCustomTasks-configurableTask" />
 
 ## Creating lazy inputs and outputs
 
 Gradle has the concept of lazy configuration, which allows task inputs and outputs to be referenced before they’re actually set.
 This is done via a `Property` class type.
 
-<SampleScripts sample_name="implementing-custom-tasks-lazy-properties" basename="build" tag="lazy-properties" />
+<SampleScripts sample_name="implementing-custom-tasks-lazy-properties" basename="build" tag="lazy-properties" source_dir="snippets/reference/task-development/implementingCustomTasks-lazyProperties" />
 
 One advantage of this mechanism is that you can link the output file of one task to the input file of another, all before the filename has even been decided.
 The `Property` class also knows about which task it’s linked to, so using inputs and outputs in this way enables Gradle to automatically add the required task dependency.
@@ -664,7 +660,7 @@ Here are all available annotations in detail:
 
 Note that in Kotlin the annotations are prefixed with `get:`, so `@InputFile` becomes `@get:InputFile`.
 
-<SampleScripts sample_name="implementing-custom-tasks-all-types" basename="build" tag="all-types" />
+<SampleScripts sample_name="implementing-custom-tasks-all-types" basename="build" tag="all-types" source_dir="snippets/reference/task-development/implementingCustomTasks-allTypes" />
 
 ## Extending existing tasks
 

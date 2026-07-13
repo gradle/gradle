@@ -361,7 +361,7 @@ Most configuration options are exposed by the underlying task type <GroovyDocLin
 Let’s assume you grew tired of defining the `-all` distribution type on the command line every time you upgrade the Wrapper.
 You can save yourself some keyboard strokes by re-configuring the `wrapper` task.
 
-<SampleScripts sample_name="customized-task" basename="build" tag="customized-wrapper-task" />
+<SampleScripts sample_name="customized-task" basename="build" tag="customized-wrapper-task" source_dir="snippets/reference/runtime-configuration/customized-task" />
 
 With the configuration in place, running `./gradlew :wrapper --gradle-version %%gradleVersion%%` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution:
 

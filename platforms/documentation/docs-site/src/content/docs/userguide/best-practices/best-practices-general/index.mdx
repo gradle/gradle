@@ -2,7 +2,7 @@
 title: "General Gradle Best Practices"
 ---
 
-import { CalloutList, FileTree, GitHubButton, JavaDocLink, SampleFile, SampleScripts, Xref } from '#/components';
+import { CalloutList, FileTree, JavaDocLink, SampleFile, SampleScripts, Xref } from '#/components';
 import { TabItem, Tabs } from '@astrojs/starlight/components';
 
 ## Use Kotlin DSL
@@ -90,7 +90,7 @@ It is constrained to be idempotent (produce the same result every time) and side
 
 #### Don’t Do This
 
-<SampleScripts sample_name="use-plugins-block-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="use-plugins-block-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/usePluginsBlock-avoid" />
 
 <CalloutList>
 
@@ -103,9 +103,9 @@ It is constrained to be idempotent (produce the same result every time) and side
 
 #### Do This Instead
 
-<GitHubButton sample="use-plugins-block-do" action="download" />
 
-<SampleScripts sample_name="use-plugins-block-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="use-plugins-block-do" basename="build" tag="do-this" source_dir="snippets/best-practices/usePluginsBlock-do" />
 
 <CalloutList>
 
@@ -358,17 +358,15 @@ This setup makes several assumptions about the `java` plugin.
 
 In the root build, `subprojects {}` and `afterEvaluate {}` obscure when a plugin is applied and attempt to force ordering:
 
-<SampleScripts sample_name="dont-assume-plugin-order-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="dont-assume-plugin-order-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/dontAssumePluginOrder-avoid" />
 
 In the `app` subproject, the build file uses `extensions.getByType(…​)` which assumes `java` has already been applied:
 
-<SampleScripts sample_name="dont-assume-plugin-order-avoid" basename="build" subpath="app" tag="avoid-this" />
+<SampleScripts sample_name="dont-assume-plugin-order-avoid" basename="build" subpath="app" tag="avoid-this" source_dir="snippets/best-practices/dontAssumePluginOrder-avoid" />
 
 In the plugin implementation, `MyPlugin.kt` or `MyPlugin.groovy` also assumes `java` is already applied:
 
-<SampleFile sample_name="dont-assume-plugin-order-avoid" path="kotlin/buildSrc/src/main/kotlin/MyPlugin.kt" tag="avoid-this" />
-
-<SampleFile sample_name="dont-assume-plugin-order-avoid" path="groovy/buildSrc/src/main/groovy/MyPlugin.groovy" tag="avoid-this" />
+<SampleFile sample_name="dont-assume-plugin-order-avoid" path="{lang}/buildSrc/src/main/{lang}/MyPlugin.{srcExt}" tag="avoid-this" source_dir="snippets/best-practices/dontAssumePluginOrder-avoid" />
 
 #### Do This Instead
 
@@ -378,13 +376,11 @@ The root build file has been deleted as there is no longer a need to use `subpro
 
 In the `app` subproject, the build file uses `plugins.withPlugin("java") {}` to safely configure tasks once `java` is applied:
 
-<SampleScripts sample_name="dont-assume-plugin-order-do" basename="build" subpath="app" tag="do-this" />
+<SampleScripts sample_name="dont-assume-plugin-order-do" basename="build" subpath="app" tag="do-this" source_dir="snippets/best-practices/dontAssumePluginOrder-do" />
 
 In the plugin implementation, `MyPlugin.kt` or `MyPlugin.groovy` explicitly applies the `java` plugin:
 
-<SampleFile sample_name="dont-assume-plugin-order-do" path="kotlin/buildSrc/src/main/kotlin/MyPlugin.kt" tag="do-this" />
-
-<SampleFile sample_name="dont-assume-plugin-order-do" path="groovy/buildSrc/src/main/groovy/MyPlugin.groovy" tag="do-this" />
+<SampleFile sample_name="dont-assume-plugin-order-do" path="{lang}/buildSrc/src/main/{lang}/MyPlugin.{srcExt}" tag="do-this" source_dir="snippets/best-practices/dontAssumePluginOrder-do" />
 
 ### References
 
@@ -411,7 +407,7 @@ As a temporary workaround consider copying the necessary code into your own code
 
 #### Don’t Do This
 
-<SampleScripts sample_name="avoid-internal-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="avoid-internal-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/avoidInternal-avoid" />
 
 <CalloutList>
 
@@ -421,9 +417,9 @@ As a temporary workaround consider copying the necessary code into your own code
 
 #### Do This Instead
 
-<GitHubButton sample="avoid-internal-do" action="download" />
 
-<SampleScripts sample_name="avoid-internal-do" basename="build" tag="do-this" />
+
+<SampleScripts sample_name="avoid-internal-do" basename="build" tag="do-this" source_dir="snippets/best-practices/avoidInternal-do" />
 
 <CalloutList>
 
@@ -489,7 +485,7 @@ Properties set this way are not inherited across build boundaries when using <Xr
 </TabItem>
 </Tabs>
 
-<SampleScripts sample_name="use-the-gradle-properties-file-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="use-the-gradle-properties-file-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/useTheGradlePropertiesFile-avoid" />
 
 This build is run with `gradle run -Dorg.gradle.continue=true`, so that the failure of the `first` task does ***not*** prevent the `second` task from executing.
 
@@ -558,7 +554,7 @@ Builds may execute on a variety of machines or environments, such as CI servers,
 
 #### Don’t Do This
 
-<SampleScripts sample_name="name-your-root-project-avoid" basename="settings" />
+<SampleScripts sample_name="name-your-root-project-avoid" basename="settings" source_dir="snippets/best-practices/nameYourRootProject-avoid" />
 
 In this build, the settings file is empty and the root project has no explicit name.
 Running the `projects` report shows that Gradle assigns an implicit name to the root project, derived from the build’s current directory.
@@ -578,13 +574,13 @@ Root project 'some-directory-name'
 
 #### Do This Instead
 
-<SampleScripts sample_name="name-your-root-project-do" basename="settings" />
+<SampleScripts sample_name="name-your-root-project-do" basename="settings" source_dir="snippets/best-practices/nameYourRootProject-do" />
 
 In this build, the root project is explicitly named.
 The explicit name `my-example-project` will be used in all reports, logs, and error messages.
 Regardless of where the project lives, the output of `./gradlew projects` will look like this:
 
-<SampleFile sample_name="name-your-root-project-do" path="tests/nameYourRootProject-do.out" />
+<SampleFile sample_name="name-your-root-project-do" path="tests/nameYourRootProject-do.out" source_dir="snippets/best-practices/nameYourRootProject-do" />
 
 ### References
 
@@ -650,13 +646,13 @@ If you need to apply properties across **multiple subprojects**, extract the con
 </TabItem>
 </Tabs>
 
-<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-avoid" path="common/app/gradle.properties" />
+<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-avoid" path="common/app/gradle.properties" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid" />
 
-<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-avoid" basename="build" subpath="app" />
+<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-avoid" basename="build" subpath="app" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid" />
 
-<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-avoid" path="common/util/gradle.properties" />
+<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-avoid" path="common/util/gradle.properties" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid" />
 
-<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-avoid" basename="build" subpath="util" />
+<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-avoid" basename="build" subpath="util" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid" />
 
 <CalloutList>
 
@@ -670,7 +666,7 @@ This structure requires duplicating properties that are shared between subprojec
 
 #### Do This Instead
 
-<GitHubButton sample="avoid-gradle-properties-in-sub-projects-do" action="download" />
+
 
 <Tabs syncKey="script-language">
 <TabItem label="Kotlin">
@@ -711,17 +707,15 @@ This structure requires duplicating properties that are shared between subprojec
 </TabItem>
 </Tabs>
 
-<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-do" path="common/gradle.properties" />
+<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-do" path="common/gradle.properties" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do" />
 
-<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-do" path="kotlin/buildSrc/src/main/kotlin/ProjectProperties.kt" />
+<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-do" path="{lang}/buildSrc/src/main/{lang}/ProjectProperties.{srcExt}" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do" />
 
-<SampleFile sample_name="avoid-gradle-properties-in-sub-projects-do" path="groovy/buildSrc/src/main/groovy/ProjectProperties.groovy" />
+<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-do" basename="project-properties" subpath="buildSrc/src/main/{lang}" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do" />
 
-<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-do" basename="project-properties" subpath="buildSrc/src/main/{lang}" />
+<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-do" basename="build" subpath="app" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do" />
 
-<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-do" basename="build" subpath="app" />
-
-<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-do" basename="build" subpath="util" />
+<SampleScripts sample_name="avoid-gradle-properties-in-sub-projects-do" basename="build" subpath="util" source_dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do" />
 
 <CalloutList>
 
@@ -824,9 +818,7 @@ Given the following project layout:
 
 The plugin uses `afterEvaluate` to delay reading the extension value and to check whether `java-library` was applied:
 
-<SampleFile sample_name="avoid-after-evaluate-avoid" path="kotlin/buildSrc/src/main/kotlin/AppInfoPlugin.kt" tag="avoid-this" />
-
-<SampleFile sample_name="avoid-after-evaluate-avoid" path="groovy/buildSrc/src/main/groovy/AppInfoPlugin.groovy" tag="avoid-this" />
+<SampleFile sample_name="avoid-after-evaluate-avoid" path="{lang}/buildSrc/src/main/{lang}/AppInfoPlugin.{srcExt}" tag="avoid-this" source_dir="snippets/best-practices/avoidAfterEvaluate-avoid" />
 
 <CalloutList>
 
@@ -839,7 +831,7 @@ The plugin uses `afterEvaluate` to delay reading the extension value and to chec
 
 The build script applies the plugin and sets the extension value in its own `afterEvaluate`:
 
-<SampleScripts sample_name="avoid-after-evaluate-avoid" basename="build" tag="avoid-this" />
+<SampleScripts sample_name="avoid-after-evaluate-avoid" basename="build" tag="avoid-this" source_dir="snippets/best-practices/avoidAfterEvaluate-avoid" />
 
 <CalloutList>
 
@@ -862,13 +854,11 @@ The plugin’s `afterEvaluate` callback was registered first (during `Plugin.app
 
 #### Do This Instead
 
-<GitHubButton sample="avoid-after-evaluate-do" action="download" />
+
 
 The proper way to write this plugin uses lazy `Property` types and `pluginManager.withPlugin()`:
 
-<SampleFile sample_name="avoid-after-evaluate-do" path="kotlin/buildSrc/src/main/kotlin/AppInfoPlugin.kt" tag="do-this" />
-
-<SampleFile sample_name="avoid-after-evaluate-do" path="groovy/buildSrc/src/main/groovy/AppInfoPlugin.groovy" tag="do-this" />
+<SampleFile sample_name="avoid-after-evaluate-do" path="{lang}/buildSrc/src/main/{lang}/AppInfoPlugin.{srcExt}" tag="do-this" source_dir="snippets/best-practices/avoidAfterEvaluate-do" />
 
 <CalloutList>
 
@@ -880,7 +870,7 @@ The proper way to write this plugin uses lazy `Property` types and `pluginManage
 
 The build script is nearly identical — the change is in the plugin, not the consumer:
 
-<SampleScripts sample_name="avoid-after-evaluate-do" basename="build" tag="do-this" />
+<SampleScripts sample_name="avoid-after-evaluate-do" basename="build" tag="do-this" source_dir="snippets/best-practices/avoidAfterEvaluate-do" />
 
 <CalloutList>
 

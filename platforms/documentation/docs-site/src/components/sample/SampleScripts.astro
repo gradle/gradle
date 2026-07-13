@@ -8,20 +8,34 @@ interface Props {
   basename: string;
   subpath?: string;
   tag?: string;
+  /** Upstream snippet dir relative to docs/src/ — enables "View source on GitHub". */
+  source_dir?: string;
 }
 
-const { sample_name, sample, basename, subpath, tag } = Astro.props;
+const { sample_name, sample, basename, subpath, tag, source_dir } = Astro.props;
 const samplePath = getPageScopedSamplePath(
   Astro.url.pathname,
   sample_name ?? sample ?? '',
 );
 const { scripts } = loadSampleScripts(samplePath, basename, subpath, tag);
+
+const GITHUB_BASE = 'https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src';
+
+function sourceMeta(script: (typeof scripts)[number]): string | undefined {
+  if (!source_dir) return undefined;
+  return `sourceUrl="${GITHUB_BASE}/${source_dir}/${script.language}/${script.filename}"`;
+}
 ---
 
 <Tabs syncKey='script-language'>
   {scripts.map((script) => (
     <TabItem label={script.label}>
-      <Code code={script.content} lang={script.syntaxHighlight} title={script.filename} />
+      <Code
+        code={script.content}
+        lang={script.syntaxHighlight}
+        title={script.filename}
+        meta={sourceMeta(script)}
+      />
     </TabItem>
   ))}
 </Tabs>

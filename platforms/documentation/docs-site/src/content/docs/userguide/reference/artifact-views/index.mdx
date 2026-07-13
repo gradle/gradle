@@ -54,7 +54,7 @@ Consider the following example which selects all sources for a given runtime cla
 This example uses incubating APIs.
 :::
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="variant-reselection" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution" basename="build" tag="variant-reselection" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution" />
 
 Using the `ArtifactView.withVariantReselection()` API, Gradle will optionally perform graph variant selection again _before_ performing artifact selection on the new selected variant.
 When Gradle selects artifacts for the `runtimeElements` node, it will use the attributes specified on the `ArtifactView` to reselect the graph variant, thus selecting the `sourcesElements` variant instead.
@@ -86,11 +86,11 @@ Furthermore, lenient artifact resolution can be used to resolve artifacts when t
 
 Consider the following example, where some dependencies may not exist:
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution-lenient" basename="build" tag="lenient-resolution-dependencies" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution-lenient" basename="build" tag="lenient-resolution-dependencies" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-lenient" />
 
 Lenient resolution is performed by using the `ArtifactView.lenient()` method:
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution-lenient" basename="build" tag="resolve-lenient" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution-lenient" basename="build" tag="resolve-lenient" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-lenient" />
 
 We can see that the task succeeds with the failing artifact omitted:
 
@@ -113,11 +113,11 @@ The action is passed the `ComponentIdentifier` of the component that owns the va
 
 Consider the following example, where we have one project dependency and one external dependency:
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution-component-filter" basename="build" tag="component-filter-dependencies" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution-component-filter" basename="build" tag="component-filter-dependencies" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-componentFilter" />
 
 Using the `componentFilter` method, we can specify filters that select only artifacts of a certain type:
 
-<SampleScripts sample_name="performing-resolution-artifact-resolution-component-filter" basename="build" tag="resolve-component-filter" />
+<SampleScripts sample_name="performing-resolution-artifact-resolution-component-filter" basename="build" tag="resolve-component-filter" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-componentFilter" />
 
 Notice how we resolve project dependencies and module dependencies separately:
 
@@ -141,7 +141,7 @@ When Gradle cannot find a matching set of artifacts from the node in question, i
 
 Below, we use the unzip example from the <Xref page="artifact-transforms" section="Implementing Artifact Transforms">artifact transforms</Xref> chapter to demonstrate how to use the `ArtifactView` API to request attributes that trigger a transform:
 
-<SampleScripts sample_name="artifact-transforms-unzip" basename="build" tag="resolve-transformed-files" />
+<SampleScripts sample_name="artifact-transforms-unzip" basename="build" tag="resolve-transformed-files" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip" />
 
 Gradle performs artifact selection using the graph resolution attributes specified on the configuration, concatenated with the attributes specified in the `attributes` block of the `ArtifactView`.
 

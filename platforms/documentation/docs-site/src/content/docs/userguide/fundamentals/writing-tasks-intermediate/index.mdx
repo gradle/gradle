@@ -27,7 +27,7 @@ By default, a **task** is of **type** <JavaDocLink class="org.gradle.api.Default
 
 Let’s start with a simple custom task that prints a message:
 
-<SampleScripts sample_name="hello" basename="build" />
+<SampleScripts sample_name="hello" basename="build" source_dir="snippets/fundamentals/authoring-builds/hello" />
 
 You just registered a **task** called `hello` of **type** `DefaultTask` and gave it an action using `doLast{}`.
 
@@ -51,7 +51,7 @@ When you **register** (i.e. create) a **task** in your build script, you can:
 
 This example registers a **task** called `copyTask` which copies `*.war` files from the `source` directory to the `target` directory using the `Copy` **built-in task type**:
 
-<SampleScripts sample_name="task-tutorial" basename="build" tag="copy" />
+<SampleScripts sample_name="task-tutorial" basename="build" tag="copy" source_dir="snippets/fundamentals/authoring-builds/taskTutorial" />
 
 ## Built-in Task Types
 
@@ -62,7 +62,7 @@ Gradle provides many **built-in task types** with common and popular functionali
 This registers a Gradle **task** named `removeOutput` of **type** `Delete`.
 When the **task** runs, it will delete the file `build/outputs/1.txt` relative to the project directory.
 
-<SampleScripts sample_name="incremental-task" basename="build" tag="removed-output" />
+<SampleScripts sample_name="incremental-task" basename="build" tag="removed-output" source_dir="snippets/fundamentals/authoring-builds/incrementalTask" />
 
 There are many **task types** developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are detailed in the <GroovyDocLink class="org.gradle.api.plugins.antlr.AntlrTask">DSL</GroovyDocLink>.
 
@@ -74,7 +74,7 @@ Gradle **tasks** are a subclass of <JavaDocLink class="org.gradle.api.Task" />.
 
 In the example below, the `HelloTask` class, a **custom task type**, is created by extending <JavaDocLink class="org.gradle.api.DefaultTask" /> (our default task type):
 
-<SampleScripts sample_name="tutorial-task" basename="build" tag="hello" />
+<SampleScripts sample_name="tutorial-task" basename="build" tag="hello" source_dir="snippets/fundamentals/authoring-builds/tutorialTask" />
 
 The `hello` **task** is registered with the new **type** `HelloTask`.
 
@@ -125,7 +125,7 @@ A **task** can declare those **inputs** (files, values) and **outputs** (files i
 Ideally, these inputs and outputs leverage Gradle managed types.
 This helps Gradle skip work when nothing has changed:
 
-<SampleScripts sample_name="tutorial-task" basename="build" tag="default" />
+<SampleScripts sample_name="tutorial-task" basename="build" tag="default" source_dir="snippets/fundamentals/authoring-builds/tutorialTask" />
 
 Now Gradle knows what the **task** needs and what it produces.
 If nothing changes, the **task** is skipped.
@@ -143,7 +143,7 @@ Every **task** can have one or more actions, and they’re executed during the e
 In the example below, a **custom task type** is created called `GreetingTask`.
 The `@TaskAction` annotation marks a method that Gradle should call when the **task** of this **type** is executed:
 
-<SampleScripts sample_name="custom-task" basename="build" tag="add-action" />
+<SampleScripts sample_name="custom-task" basename="build" tag="add-action" source_dir="snippets/fundamentals/authoring-builds/customTask" />
 
 A **task action** can also be added using `doLast {}` or `doFirst {}`:
 
@@ -167,7 +167,7 @@ When you run `./gradlew tasks`, Gradle clusters all tasks with the same group na
 
 You can declare **tasks** that depend on other **tasks**:
 
-<SampleScripts sample_name="intro" basename="build" />
+<SampleScripts sample_name="intro" basename="build" source_dir="snippets/fundamentals/authoring-builds/intro" />
 
 ```bash
 $ gradle -q intro
@@ -182,7 +182,7 @@ I'm Gradle
 
 The dependency of `taskX` to `taskY` may be declared before `taskY` is defined:
 
-<SampleScripts sample_name="lazy-depends-on" basename="build" />
+<SampleScripts sample_name="lazy-depends-on" basename="build" source_dir="snippets/fundamentals/authoring-builds/lazyDependsOn" />
 
 ```bash
 $ ./gradlew -q taskX
@@ -195,7 +195,7 @@ taskX
 
 The `hello` **task** from the previous example is updated to include a dependency:
 
-<SampleScripts sample_name="dynamic-depends" basename="build" tag="hello" />
+<SampleScripts sample_name="dynamic-depends" basename="build" tag="hello" source_dir="snippets/fundamentals/authoring-builds/dynamicDepends" />
 
 The `hello` **task** now depends on the `assemble` **task**, which means that Gradle must execute the `assemble` **task** **before** it can execute the `hello` **task**:
 
@@ -223,7 +223,7 @@ Once registered, **tasks** can be accessed via the <JavaDocLink class="org.gradl
 
 For instance, you can add behavior to an existing **task**:
 
-<SampleScripts sample_name="hello-enhanced" basename="build" />
+<SampleScripts sample_name="hello-enhanced" basename="build" source_dir="snippets/fundamentals/authoring-builds/helloEnhanced" />
 
 ```bash
 $ ./gradlew -q hello

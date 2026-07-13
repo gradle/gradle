@@ -141,7 +141,7 @@ Just like with the Groovy DSL, there are two ways to apply Gradle plugins:
 
 Here’s an example using the declarative `plugins {}` block:
 
-<SampleScripts sample_name="applying-plugins-declarative" basename="build" tag="script" />
+<SampleScripts sample_name="applying-plugins-declarative" basename="build" tag="script" source_dir="snippets/reference/dsl-apis/applying-plugins-declarative" />
 
 The Kotlin DSL provides property extensions for all <Xref page="plugin-reference" section="Gradle Plugin Reference">Gradle core plugins</Xref>,
 as shown above with the `java`, `jacoco` or `maven-publish` declaration.
@@ -152,7 +152,7 @@ type-safe and will be autocompleted by your IDE.
 
 You can also use the imperative `apply` syntax, but then non-core plugins must be included on the classpath of the build script:
 
-<SampleScripts sample_name="applying-plugins-imperative" basename="build" tag="script" />
+<SampleScripts sample_name="applying-plugins-imperative" basename="build" tag="script" source_dir="snippets/reference/dsl-apis/applying-plugins-imperative" />
 
 :::note
 ***We strongly recommend that you use the `plugins {}` block in preference to the `apply()` function.***
@@ -165,12 +165,12 @@ See the <Xref page="plugins-intermediate" section="1. Applying plugins using the
 Many plugins come with extensions to configure them. If those plugins are applied using the declarative `plugins {}` block, then Kotlin extension functions are made available to configure their extension, the same way as in Groovy.
 The following sample shows how this works for the Jacoco Plugin.
 
-<SampleScripts sample_name="configuring-plugins-declaratively-applied" basename="build" />
+<SampleScripts sample_name="configuring-plugins-declaratively-applied" basename="build" source_dir="snippets/reference/dsl-apis/configuring-plugins-declaratively-applied" />
 
 By contrast, if you use the imperative `apply()` function to apply a plugin, then you will have to use the `configure<T>()` function to configure that plugin.
 The following sample shows how this works for the Checkstyle Plugin by explicitly declaring the plugin’s extension class — `CheckstyleExtension` — in the `configure<T>()` function:
 
-<SampleScripts sample_name="configuring-plugins-imperatively-applied" basename="build" />
+<SampleScripts sample_name="configuring-plugins-imperatively-applied" basename="build" source_dir="snippets/reference/dsl-apis/configuring-plugins-imperatively-applied" />
 
 Again, we strongly recommend that you apply plugins declaratively via the `plugins {}` block.
 
@@ -212,7 +212,7 @@ The syntax for configuring tasks is where the Groovy and Kotlin DSLs start to di
 
 **In Kotlin, Tasks are namespaced into the `tasks` container**
 
-<SampleScripts sample_name="configuring-tasks-basics" basename="build" tag="namespace" />
+<SampleScripts sample_name="configuring-tasks-basics" basename="build" tag="namespace" source_dir="snippets/reference/dsl-apis/configuring-tasks-basics" />
 
 Note that in Kotlin the `tasks.jar {}` notation leverage the configuration avoidance API and defer the configuration of the `jar` task.
 
@@ -220,7 +220,7 @@ If the type-safe task accessor `tasks.jar` isn’t available, see the [configuri
 
 **Using the `tasks` container API**
 
-<SampleScripts sample_name="configuring-tasks-basics" basename="build" tag="using-api" />
+<SampleScripts sample_name="configuring-tasks-basics" basename="build" tag="using-api" source_dir="snippets/reference/dsl-apis/configuring-tasks-basics" />
 
 Note that since Kotlin is a statically typed language, it is necessary to specify the type of the task explicitly. Otherwise, the script will not compile because the inferred type will be `Task`, not `Jar`, and the `archiveName` property is specific to the `Jar` task type.
 
@@ -228,7 +228,7 @@ If configuration avoidance is getting in your way migrating and you want to eage
 
 **Using the `tasks` container API for eager configuration**
 
-<SampleScripts sample_name="configuring-tasks-basics" basename="build" tag="using-eager-api" />
+<SampleScripts sample_name="configuring-tasks-basics" basename="build" tag="using-eager-api" source_dir="snippets/reference/dsl-apis/configuring-tasks-basics" />
 
 Working with containers in the Gradle Kotlin DSL is <Xref page="kotlin-dsl" section="Working with container objects">documented in detail here</Xref>.
 
@@ -246,7 +246,7 @@ Let’s bring all this together by running through a quick worked example that c
 
 **Configuring Spring Boot using type-safe accessors**
 
-<SampleScripts sample_name="configuring-tasks-spring-boot" basename="build" tag="accessors" />
+<SampleScripts sample_name="configuring-tasks-spring-boot" basename="build" tag="accessors" source_dir="snippets/reference/dsl-apis/configuring-tasks-spring-boot" />
 
 This is pretty self explanatory.
 The main difference is that the task configuration automatically becomes lazy when using the Kotlin DSL accessors.
@@ -275,7 +275,7 @@ Here’s the resulting build script, complete with imports:
 
 **Configuring Spring Boot using the API**
 
-<SampleScripts sample_name="configuring-tasks-spring-boot" basename="build" tag="lazy" />
+<SampleScripts sample_name="configuring-tasks-spring-boot" basename="build" tag="lazy" source_dir="snippets/reference/dsl-apis/configuring-tasks-spring-boot" />
 
 ## Creating tasks
 
@@ -283,7 +283,7 @@ Creating tasks can be done using the script top-level function named `task(…�
 
 **Using the top-level `tasks(…​)` function**
 
-<SampleScripts sample_name="creating-tasks-project" basename="build" />
+<SampleScripts sample_name="creating-tasks-project" basename="build" source_dir="snippets/reference/dsl-apis/creating-tasks-project" />
 
 Note that the above eagerly configures the created task with both Groovy and Kotlin DSLs.
 
@@ -291,11 +291,11 @@ Registering or creating tasks can also be done on the `tasks` container, respect
 
 **Using the configuration avoidance API & DSL**
 
-<SampleScripts sample_name="creating-tasks-lazy" basename="build" tag="container-api" />
+<SampleScripts sample_name="creating-tasks-lazy" basename="build" tag="container-api" source_dir="snippets/reference/dsl-apis/creating-tasks-lazy" />
 
 **Using the eager API & DSL**
 
-<SampleScripts sample_name="creating-tasks-eager" basename="build" tag="container-api" />
+<SampleScripts sample_name="creating-tasks-eager" basename="build" tag="container-api" source_dir="snippets/reference/dsl-apis/creating-tasks-eager" />
 
 The samples above create untyped, ad-hoc tasks, but you will more commonly want to create tasks of a specific type.
 This can also be done using the same `register()` and `create()` methods.
@@ -303,17 +303,17 @@ Here’s an example that creates a new task of type `Zip`:
 
 **Using the configuration avoidance API & DSL**
 
-<SampleScripts sample_name="creating-tasks-lazy" basename="build" tag="typed-container-api" />
+<SampleScripts sample_name="creating-tasks-lazy" basename="build" tag="typed-container-api" source_dir="snippets/reference/dsl-apis/creating-tasks-lazy" />
 
 **Using the eager API & DSL**
 
-<SampleScripts sample_name="creating-tasks-eager" basename="build" tag="typed-container-api" />
+<SampleScripts sample_name="creating-tasks-eager" basename="build" tag="typed-container-api" source_dir="snippets/reference/dsl-apis/creating-tasks-eager" />
 
 ## Configurations and dependencies
 
 Declaring dependencies in existing configurations is similar to the way it’s done in Groovy build scripts, as you can see in this example:
 
-<SampleScripts sample_name="configurations-and-dependencies-declarative" basename="build" />
+<SampleScripts sample_name="configurations-and-dependencies-declarative" basename="build" source_dir="snippets/reference/dsl-apis/configurations-and-dependencies-declarative" />
 
 Each configuration contributed by an applied plugin is also available as a member of the `configurations` container, so you can reference it just like any other configuration.
 
@@ -323,7 +323,7 @@ You can also use the `:kotlinDslAccessorsReport` task, which prints the Kotlin c
 
 Note that if you do not use the `plugins {}` block to apply your plugins, then you won’t be able to configure the dependency configurations provided by those plugins in the usual way. Instead, you will have to use string literals for the configuration names, which means you won’t get IDE support:
 
-<SampleScripts sample_name="configurations-and-dependencies-imperative" basename="build" />
+<SampleScripts sample_name="configurations-and-dependencies-imperative" basename="build" source_dir="snippets/reference/dsl-apis/configurations-and-dependencies-imperative" />
 
 This is just one more reason to use the `plugins {}` block whenever you can!
 
@@ -335,15 +335,15 @@ The following example declares two new configurations:
 - `db`, to which we add a PostgreSQL dependency
 - `integTestImplementation`, which is configured to extend the `testImplementation` configuration and to which we add a different dependency
 
-<SampleScripts sample_name="configurations-and-dependencies-custom" basename="build" tag="direct-reference" />
+<SampleScripts sample_name="configurations-and-dependencies-custom" basename="build" tag="direct-reference" source_dir="snippets/reference/dsl-apis/configurations-and-dependencies-custom" />
 
-<SampleScripts sample_name="configurations-and-dependencies-custom" basename="build" tag="custom" />
+<SampleScripts sample_name="configurations-and-dependencies-custom" basename="build" tag="custom" source_dir="snippets/reference/dsl-apis/configurations-and-dependencies-custom" />
 
 Note that we can only use the `db(…​)` and `integTestImplementation(…​)` notation within the `dependencies {}` block in the above example because both configurations are created and referenced beforehand via the `create()` method.
 If the configurations were defined elsewhere, you could only reference them either by first accessing them via `configurations`  — as opposed to `configurations.create()` — or by using string literals within the `dependencies {}` block.
 The following example demonstrates both approaches:
 
-<SampleScripts sample_name="configurations-and-dependencies-custom" basename="build" tag="string-reference" />
+<SampleScripts sample_name="configurations-and-dependencies-custom" basename="build" tag="string-reference" source_dir="snippets/reference/dsl-apis/configurations-and-dependencies-custom" />
 
 ## Migration strategies
 

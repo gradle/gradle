@@ -570,7 +570,7 @@ We can configure the `:tasks` task and limit the tasks shown to a certain group.
 
 Let’s create our own group so that all tasks are hidden by default by updating the `app` build script:
 
-<SampleScripts sample_name="more-about-tasks-task-grouping" basename="build" subpath="app" tag="task-grouping" />
+<SampleScripts sample_name="more-about-tasks-task-grouping" basename="build" subpath="app" tag="task-grouping" source_dir="snippets/reference/task-development/moreAboutTasks-taskGrouping" />
 
 Now, when we list tasks available in `app`, the list is shorter:
 
@@ -780,7 +780,7 @@ With Gradle tasks, there are three states to consider:
 **Configuring** a task is commonly done with the <JavaDocLink class="org.gradle.api.tasks.TaskCollection" method="named-java.lang.String-java.lang.Class-">`named()`</JavaDocLink> method.<br/>
 **Implementing** a task is commonly done by extending Gradle’s <JavaDocLink class="org.gradle.api.DefaultTask" /> class:
 
-<SampleScripts sample_name="more-about-tasks-register-configure-implement" basename="build" tag="register-configure-implement" />
+<SampleScripts sample_name="more-about-tasks-register-configure-implement" basename="build" tag="register-configure-implement" source_dir="snippets/reference/task-development/moreAboutTasks-registerConfigureImplement" />
 
 <CalloutList>
 
@@ -796,7 +796,7 @@ You define actions for Gradle to take by registering tasks in build scripts or p
 
 Tasks are defined using strings for task names:
 
-<SampleScripts sample_name="define-using-string-task-names" basename="build" tag="simple_register" />
+<SampleScripts sample_name="define-using-string-task-names" basename="build" tag="simple_register" source_dir="snippets/reference/task-development/defineUsingStringTaskNames" />
 
 In the example above, the task is added to the <JavaDocLink class="org.gradle.api.tasks.TaskCollection">`TasksCollection`</JavaDocLink> using the <JavaDocLink class="org.gradle.api.tasks.TaskContainer" method="register-java.lang.String-java.lang.Class-">`register()`</JavaDocLink> method in <JavaDocLink class="org.gradle.api.tasks.TaskContainer" />.
 
@@ -809,7 +809,7 @@ You can refer to the <JavaDocLink class="org.gradle.api.tasks.bundling.Zip">API<
 Let’s look at the `Copy` task provided by Gradle as an example.
 We first register a task called `myCopy` of type `Copy` in the build script:
 
-<SampleScripts sample_name="configure-using-block" basename="build" tag="declare-task" />
+<SampleScripts sample_name="configure-using-block" basename="build" tag="declare-task" source_dir="snippets/reference/task-development/configureUsingBlock" />
 
 This registers a copy task with no default behavior.
 Since the task is of type `Copy`, a Gradle supported task type, it can be configured using its <JavaDocLink class="org.gradle.api.tasks.Copy">API</JavaDocLink>.
@@ -820,13 +820,13 @@ The following examples show several ways to achieve the same configuration:
 
 Use `named()` to configure an existing task registered elsewhere:
 
-<SampleScripts sample_name="configure-using-var" basename="build" tag="configure" />
+<SampleScripts sample_name="configure-using-var" basename="build" tag="configure" source_dir="snippets/reference/task-development/configureUsingVar" />
 
 #### 2. Using a configuration block:
 
 Use a block to configure the task immediately upon registering it:
 
-<SampleScripts sample_name="define-and-configure" basename="build" tag="no-description" />
+<SampleScripts sample_name="define-and-configure" basename="build" tag="no-description" source_dir="snippets/reference/task-development/defineAndConfigure" />
 
 #### 3. Name method as call:
 

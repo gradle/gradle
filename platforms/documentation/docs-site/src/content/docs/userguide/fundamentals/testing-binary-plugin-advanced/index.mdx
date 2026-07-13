@@ -225,7 +225,7 @@ Gradle doesn’t automatically recognize custom test source sets, so you need to
 
 Fortunately, `gradle init` can scaffold this setup for you:
 
-<SampleScripts sample_name="file-size-diff-binary-plugin" basename="build" subpath="plugin" />
+<SampleScripts sample_name="file-size-diff-binary-plugin" basename="build" subpath="plugin" source_dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin" />
 
 ## Consumer Project
 
@@ -270,11 +270,11 @@ You can optionally create a consumer project that uses your plugin:
 
 First you can point to the plugin as an included build in the `consumer` settings file:
 
-<SampleScripts sample_name="file-size-diff-binary-plugin" basename="settings" />
+<SampleScripts sample_name="file-size-diff-binary-plugin" basename="settings" source_dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin" />
 
 Then in the build file of the `consumer` project, you apply the plugin and test it:
 
-<SampleScripts sample_name="file-size-diff-binary-plugin" basename="build" />
+<SampleScripts sample_name="file-size-diff-binary-plugin" basename="build" source_dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin" />
 
 In the `consumer` project, you can create dummy `a.txt` and `b.txt` files and run `./gradlew fileSizeDiff`:
 

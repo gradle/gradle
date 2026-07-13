@@ -25,7 +25,7 @@ The [Google Hosted Libraries](https://developers.google.com/speed/libraries/) pl
 
 To download the `.js` artifact directly, use the `@js` syntax:
 
-<SampleScripts sample_name="declaring-dependencies-artifact-only" basename="build" tag="artifact-only-dependency-declaration" />
+<SampleScripts sample_name="declaring-dependencies-artifact-only" basename="build" tag="artifact-only-dependency-declaration" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/declaringDependencies-artifactOnly" />
 
 Some modules publish multiple "flavors" of the same artifact—for example, compiled classes, source code, or Javadocs.
 In JavaScript, a library may publish both an uncompressed and a minified version.
@@ -34,7 +34,7 @@ These variants are often distinguished using a ***classifier***, a common concep
 To request an artifact with a specific classifier, include it in the dependency notation.
 The following example resolves the minified version of a JQuery library using the classifier `min`:
 
-<SampleScripts sample_name="declaring-dependencies-artifact-only-with-classifier" basename="build" tag="artifact-only-dependency-declaration" />
+<SampleScripts sample_name="declaring-dependencies-artifact-only-with-classifier" basename="build" tag="artifact-only-dependency-declaration" source_dir="snippets/reference/dependency-management/controlling-dependency-resolution/declaringDependencies-artifactOnlyWithClassifier" />
 
 Using `@extension` bypasses metadata-based resolution.
 Gradle will not attempt to download or interpret module metadata (e.g., `.module`, `pom.xml`, `ivy.xml`), and will treat the coordinates as a direct request for a single artifact.

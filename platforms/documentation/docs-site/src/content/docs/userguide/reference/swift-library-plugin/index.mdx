@@ -14,7 +14,7 @@ In particular, a Swift library provides functionality that can be used by consum
 
 ## Usage
 
-<SampleScripts sample_name="swift-library" basename="build" tag="apply-plugin" />
+<SampleScripts sample_name="swift-library" basename="build" tag="apply-plugin" source_dir="snippets/reference/platforms/native/swiftLibrary" />
 
 ## Build variants
 
@@ -41,7 +41,7 @@ The linkage expresses whether a shared library or static library should be creat
 
 The linkage can be configured as follows:
 
-<SampleScripts sample_name="swift-library" basename="build" tag="configure-linkages" />
+<SampleScripts sample_name="swift-library" basename="build" tag="configure-linkages" source_dir="snippets/reference/platforms/native/swiftLibrary" />
 
 <dl>
 <dt>Target machines - defaults to the build host</dt>
@@ -56,7 +56,7 @@ Gradle uses the target machine to decide which tool chain to choose based on ava
 
 The target machine can be configured as follows:
 
-<SampleScripts sample_name="swift-library" basename="build" tag="configure-target-machines" />
+<SampleScripts sample_name="swift-library" basename="build" tag="configure-target-machines" source_dir="snippets/reference/platforms/native/swiftLibrary" />
 
 ## Tasks
 
@@ -251,7 +251,7 @@ This configuration contains the runtime libraries of the library.
 The plugin exposes two configurations that can be used to declare dependencies: `api` and `implementation`.
 The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
-<SampleScripts sample_name="swift-library" basename="build" tag="dependency-management" />
+<SampleScripts sample_name="swift-library" basename="build" tag="dependency-management" source_dir="snippets/reference/platforms/native/swiftLibrary" />
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile include root and link libraries of consumers.
 Dependencies found in the `implementation` configuration will, on the other hand, not be exposed to consumers, and therefore not leak into the consumer’s compile include root and link libraries.

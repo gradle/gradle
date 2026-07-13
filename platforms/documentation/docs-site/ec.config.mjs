@@ -7,10 +7,12 @@
  */
 import { defineEcConfig } from "astro-expressive-code";
 import { pluginCallouts } from "./plugins/expressive-code/callouts.mjs";
+import { pluginViewSource } from "./plugins/expressive-code/view-source.mjs";
 
 export default defineEcConfig({
-  // AsciiDoc-style callout bubbles in code blocks (pairs with <CalloutList>)
-  plugins: [pluginCallouts()],
+  // AsciiDoc-style callout bubbles (pairs with <CalloutList>) + the
+  // "View source on GitHub" button for sample-backed code blocks
+  plugins: [pluginCallouts(), pluginViewSource()],
   // Code-frame look borrowed from cloudflare-docs (ec.config.mjs):
   // thin 1px border, tight 0.25rem radius, flat (no drop shadow), and
   // their Phosphor "Copy" icon for the copy button.

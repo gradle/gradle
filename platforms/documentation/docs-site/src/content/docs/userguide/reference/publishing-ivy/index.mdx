@@ -12,7 +12,7 @@ A published Ivy module can be consumed by Gradle (see <Xref page="declaring-depe
 
 To use the Ivy Publish Plugin, include the following in your build script:
 
-<SampleScripts sample_name="quickstart-ivy-publish" basename="build" tag="use-plugin" />
+<SampleScripts sample_name="quickstart-ivy-publish" basename="build" tag="use-plugin" source_dir="snippets/reference/dependency-management/publishing/quickstart-ivy-publish" />
 
 The Ivy Publish Plugin uses an extension on the project named `publishing` of type <GroovyDocLink class="org.gradle.api.publish.PublishingExtension" />. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with <GroovyDocLink class="org.gradle.api.publish.ivy.IvyPublication" /> publications and <GroovyDocLink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository" /> repositories.
 
@@ -70,7 +70,7 @@ The `descriptor` property can also be used to add additional custom elements as 
 
 **customizing the publication identity**
 
-<SampleScripts sample_name="customize-identity" basename="build" tag="customize-identity" />
+<SampleScripts sample_name="customize-identity" basename="build" tag="customize-identity" source_dir="snippets/reference/dependency-management/publishing/customize-identity" />
 
 :::tip
 Certain repositories are not able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
@@ -84,7 +84,7 @@ At times, the module descriptor file generated from the project information will
 
 The following sample shows how to use the most common aspects of the DSL:
 
-<SampleScripts sample_name="descriptor-customization" basename="build" tag="customize-descriptor" />
+<SampleScripts sample_name="descriptor-customization" basename="build" tag="customize-descriptor" source_dir="snippets/reference/dependency-management/publishing/descriptor-customization" />
 
 In this example we are simply adding a 'description' element to the generated Ivy dependency descriptor, but this hook allows you to modify any aspect of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
 
@@ -124,7 +124,7 @@ Instead of relying on the conversion, it publishes the resolved versions.
 
 This is done by using the `versionMapping` DSL method which allows to configure the <JavaDocLink class="org.gradle.api.publish.VersionMappingStrategy" />:
 
-<SampleScripts sample_name="descriptor-customization" basename="build" tag="versions-resolved" />
+<SampleScripts sample_name="descriptor-customization" basename="build" tag="versions-resolved" source_dir="snippets/reference/dependency-management/publishing/descriptor-customization" />
 
 In the example above, Gradle will use the versions resolved on the `runtimeClasspath` for dependencies declared in `api`, which are mapped to the `compile` configuration of Ivy.
 Gradle will also use the versions resolved on the `runtimeClasspath` for dependencies declared in `implementation`, which are mapped to the `runtime` configuration of Ivy.
@@ -136,7 +136,7 @@ This plugin provides repositories of type <GroovyDocLink class="org.gradle.api.a
 
 Here’s a simple example of defining a publishing repository:
 
-<SampleScripts sample_name="quickstart-ivy-publish" basename="build" tag="repositories" />
+<SampleScripts sample_name="quickstart-ivy-publish" basename="build" tag="repositories" source_dir="snippets/reference/dependency-management/publishing/quickstart-ivy-publish" />
 
 The two main things you will want to configure are the repository’s:
 
@@ -153,11 +153,11 @@ The following example demonstrates publishing with a multi-project build.
 Each project publishes a Java component configured to also build and publish Javadoc and source code artifacts.
 The descriptor file is customized to include the project description for each project.
 
-<SampleScripts sample_name="java-multi-project" basename="settings" />
-<SampleScripts sample_name="java-multi-project" basename="build" subpath="buildSrc" />
-<SampleScripts sample_name="java-multi-project" basename="myproject.publishing-conventions" subpath="buildSrc/src/main/{lang}" />
-<SampleScripts sample_name="java-multi-project" basename="build" subpath="project1" />
-<SampleScripts sample_name="java-multi-project" basename="build" subpath="project2" />
+<SampleScripts sample_name="java-multi-project" basename="settings" source_dir="snippets/reference/dependency-management/publishing/java-multi-project" />
+<SampleScripts sample_name="java-multi-project" basename="build" subpath="buildSrc" source_dir="snippets/reference/dependency-management/publishing/java-multi-project" />
+<SampleScripts sample_name="java-multi-project" basename="myproject.publishing-conventions" subpath="buildSrc/src/main/{lang}" source_dir="snippets/reference/dependency-management/publishing/java-multi-project" />
+<SampleScripts sample_name="java-multi-project" basename="build" subpath="project1" source_dir="snippets/reference/dependency-management/publishing/java-multi-project" />
+<SampleScripts sample_name="java-multi-project" basename="build" subpath="project2" source_dir="snippets/reference/dependency-management/publishing/java-multi-project" />
 
 The result is that the following artifacts will be published for each project:
 

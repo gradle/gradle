@@ -35,7 +35,7 @@ You can enforce a specific version of a dependency, regardless of what versions 
 
 This is useful for ensuring consistency and avoiding conflicts due to different versions of the same dependency being used.
 
-<SampleScripts sample_name="managing-transitive-dependencies-force-for-configuration" basename="build" tag="force-per-configuration" />
+<SampleScripts sample_name="managing-transitive-dependencies-force-for-configuration" basename="build" tag="force-per-configuration" source_dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-forceForConfiguration" />
 
 :::caution
 Forcing a specific version of a dependency should be a conscious and deliberate decision. It can lead to conflicts or unexpected behavior, especially when transitive dependencies rely on different versions.
@@ -64,7 +64,7 @@ Common solutions include:
 These methods can be insufficient for large-scale projects.
 By declaring module replacements, you can address this issue globally across projects, allowing organizations to handle such conflicts holistically.
 
-<SampleScripts sample_name="customizing-resolution-replacement-rule" basename="build" tag="module_replacement_declaration" />
+<SampleScripts sample_name="customizing-resolution-replacement-rule" basename="build" tag="module_replacement_declaration" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-replacementRule" />
 
 Once declared, Gradle treats any version of `guava` as superior to `google-collections` during conflict resolution, ensuring only `guava` appears in the classpath.
 However, if `google-collections` is the only module present, it won’t be automatically replaced unless there’s a conflict.
@@ -99,7 +99,7 @@ Dependency substitution can be used to replace an external module with a locally
 
 The external module can be replaced whether a version is specified:
 
-<SampleScripts sample_name="customizing-resolution-substitution-rule" basename="build" tag="module_to_project_substitution" />
+<SampleScripts sample_name="customizing-resolution-substitution-rule" basename="build" tag="module_to_project_substitution" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule" />
 
 - Substituted projects must be part of the multi-project build (included via `settings.gradle`).
 - The substitution replaces the module dependency with the project dependency and sets up task dependencies, but doesn’t automatically include the project in the build.
@@ -110,7 +110,7 @@ You can also use substitution rules to replace a project dependency with an exte
 
 This technique can accelerate development by allowing certain dependencies to be downloaded from a repository instead of being built locally:
 
-<SampleScripts sample_name="customizing-resolution-substitution-rule" basename="build" tag="project_to_module_substitution" />
+<SampleScripts sample_name="customizing-resolution-substitution-rule" basename="build" tag="project_to_module_substitution" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule" />
 
 - The substituted module must include a version.
 - Even after substitution, the project remains part of the multi-project build, but tasks to build it won’t be executed when resolving the configuration.
@@ -121,7 +121,7 @@ You can conditionally substitute a module dependency with a local project in a m
 
 This is particularly useful when you want to use a locally developed version of a dependency if it exists, otherwise fall back to the external module:
 
-<SampleScripts sample_name="customizing-resolution-conditional-substitution-rule" basename="build" subpath="consumer" tag="project_substitution" />
+<SampleScripts sample_name="customizing-resolution-conditional-substitution-rule" basename="build" subpath="consumer" tag="project_substitution" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-conditionalSubstitutionRule" />
 
 - The substitution only occurs if a local project matching the dependency name is found.
 - The local project must already be included in the multi-project build (via `settings.gradle`).
@@ -144,17 +144,17 @@ Substituting a dependency based on attributes allows you to override the default
 
 This technique is useful for managing platform and library dependencies in complex builds, particularly when you want to consume a regular library but the platform dependency was incorrectly declared:
 
-<SampleScripts sample_name="customizing-resolution-attribute-substitution-rule" basename="build" subpath="lib" tag="dependencies" />
+<SampleScripts sample_name="customizing-resolution-attribute-substitution-rule" basename="build" subpath="lib" tag="dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule" />
 
 In this example, the substitution rule targets the platform version of `com.google.guava:guava` and replaces it with the regular library version:
 
-<SampleScripts sample_name="customizing-resolution-attribute-substitution-rule" basename="build" subpath="consumer" tag="substitution_rule" />
+<SampleScripts sample_name="customizing-resolution-attribute-substitution-rule" basename="build" subpath="consumer" tag="substitution_rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule" />
 
 Without the `platform` keyword, the substitution would not specifically target the platform dependency.
 
 The following rule performs the same substitution but uses the more granular ***variant*** notation, allowing for customization of the dependency’s attributes:
 
-<SampleScripts sample_name="customizing-resolution-attribute-substitution-rule" basename="build" subpath="consumer" tag="substitution_rule_alternative" />
+<SampleScripts sample_name="customizing-resolution-attribute-substitution-rule" basename="build" subpath="consumer" tag="substitution_rule_alternative" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule" />
 
 By using attribute-based substitution, you can precisely control which dependencies are replaced, ensuring Gradle resolves the correct versions and variants in your build.
 
@@ -173,7 +173,7 @@ Capabilities allow you to specify that a particular variant of a dependency offe
 
 This example substitutes a regular dependency with its <Xref page="java-testing" section="Using test fixtures">test fixtures</Xref> using a capability:
 
-<SampleScripts sample_name="customizing-resolution-capability-substitution-rule" basename="build" tag="substitution_rule" />
+<SampleScripts sample_name="customizing-resolution-capability-substitution-rule" basename="build" tag="substitution_rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-capabilitySubstitutionRule" />
 
 Here, we substitute the regular `com.acme:lib:1.0` dependency with its `lib-test-fixtures` variant.
 The `requireCapability` function specifies that the new variant must have the `com.acme:lib-test-fixtures` capability, ensuring the right version of the dependency is selected for testing purposes.
@@ -189,7 +189,7 @@ Although Gradle discourages the use of classifiers, it provides a way to handle 
 
 Consider the following setup:
 
-<SampleScripts sample_name="customizing-resolution-classifier-substitution-rule" basename="build" subpath="consumer" tag="dependencies" />
+<SampleScripts sample_name="customizing-resolution-classifier-substitution-rule" basename="build" subpath="consumer" tag="dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule" />
 
 In the example above, the first level dependency on `quasar` makes us think that Gradle would resolve `quasar-core-0.8.0.jar` but it’s not the case.
 
@@ -205,7 +205,7 @@ Execution failed for task ':consumer:resolve'.
 
 That’s because there’s a dependency on another project, `lib`, which itself depends on a different version of `quasar-core`:
 
-<SampleScripts sample_name="customizing-resolution-classifier-substitution-rule" basename="build" subpath="lib" tag="dependencies" />
+<SampleScripts sample_name="customizing-resolution-classifier-substitution-rule" basename="build" subpath="lib" tag="dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule" />
 
 - The consumer depends on `quasar-core:0.8.0` without a classifier.
 - The lib project depends on `quasar-core:0.7.10` with the `jdk8` classifier.
@@ -213,7 +213,7 @@ That’s because there’s a dependency on another project, `lib`, which itself 
 
 To resolve this conflict, you can instruct Gradle to ignore classifiers when resolving `quasar-core` dependencies:
 
-<SampleScripts sample_name="customizing-resolution-classifier-substitution-rule" basename="build" subpath="consumer" tag="substitution_rule" />
+<SampleScripts sample_name="customizing-resolution-classifier-substitution-rule" basename="build" subpath="consumer" tag="substitution_rule" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule" />
 
 This rule effectively replaces any dependency on `quasar-core` found in the graph with a dependency without classifier.
 
@@ -242,7 +242,7 @@ Calling <GroovyDocLink class="org.gradle.api.artifacts.ComponentSelection" metho
 
 The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate:
 
-<SampleScripts sample_name="customizing-resolution-selection-rule" basename="build" tag="reject-version-1-1" />
+<SampleScripts sample_name="customizing-resolution-selection-rule" basename="build" tag="reject-version-1-1" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule" />
 
 Note that version selection is applied starting with the highest version first.
 The version selected will be the first version found that all component selection rules accept.
@@ -254,14 +254,14 @@ A version is considered accepted if no rule explicitly rejects it.
 Similarly, rules can be targeted at specific modules.
 Modules must be specified in the form of `group:module`:
 
-<SampleScripts sample_name="customizing-resolution-selection-rule" basename="build" tag="targeted-component-selection" />
+<SampleScripts sample_name="customizing-resolution-selection-rule" basename="build" tag="targeted-component-selection" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule" />
 
 Component selection rules can also consider component metadata when selecting a version.
 Possible additional metadata that can be considered are <JavaDocLink class="org.gradle.api.artifacts.ComponentMetadata" /> and <JavaDocLink class="org.gradle.api.artifacts.ivy.IvyModuleDescriptor" />.
 
 Note that this extra information may not always be available and thus should be checked for `null` values:
 
-<SampleScripts sample_name="customizing-resolution-selection-rule" basename="build" tag="component-selection-with-metadata" />
+<SampleScripts sample_name="customizing-resolution-selection-rule" basename="build" tag="component-selection-with-metadata" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule" />
 
 A <GroovyDocLink class="org.gradle.api.artifacts.ComponentSelection" /> argument is _always_ required as a parameter when declaring a component selection rule.
 
@@ -271,7 +271,7 @@ You can set default dependencies for a configuration to ensure that a default ve
 
 This is useful for plugins that rely on versioned tools and want to provide a default if the user doesn’t specify a version:
 
-<SampleScripts sample_name="customizing-resolution-default-dependency" basename="build" tag="configuration-default-dependencies" />
+<SampleScripts sample_name="customizing-resolution-default-dependency" basename="build" tag="configuration-default-dependencies" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-defaultDependency" />
 
 In this example, the `pluginTool` configuration will use `org.gradle:my-util:1.0` as a default dependency unless another version is specified.
 
@@ -285,13 +285,13 @@ Excluding a transitive dependency should be a conscious and deliberate choice. R
 
 This approach will automatically exclude the specified transitive dependency from all dependencies declared within the configuration:
 
-<SampleScripts sample_name="managing-transitive-dependencies-exclude-for-configuration" basename="build" tag="exclude-transitive-dependencies" />
+<SampleScripts sample_name="managing-transitive-dependencies-exclude-for-configuration" basename="build" tag="exclude-transitive-dependencies" source_dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForConfiguration" />
 
 In this example, the `commons-collections` dependency will be excluded from the `implementation` configuration, regardless of whether it is a direct or transitive dependency.
 
 Below is a simplified usage of the `commons-beanutils` library, where we only call `PropertyUtils.setSimpleProperty()` on a POJO (Plain Old Java Object):
 
-<SampleFile sample_name="managing-transitive-dependencies-exclude-for-dependency" path="common/src/main/java/Main.java" />
+<SampleFile sample_name="managing-transitive-dependencies-exclude-for-dependency" path="common/src/main/java/Main.java" source_dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency" />
 
 This specific usage doesn’t require `commons-collections`, which we’ve verified with test coverage.
 By excluding it, we effectively express that we’re only using a subset of `commons-beanutils`.
@@ -305,11 +305,11 @@ An exclusion is only applied if all paths to a dependency agree on it.
 
 For example, if another dependency (like `opencsv`) also brings in `commons-beanutils` (but without an exclusion), the transitive `commons-collections` will still appear:
 
-<SampleScripts sample_name="managing-transitive-dependencies-exclude-for-dependency" basename="build" tag="exclude-transitive-dependencies-2" />
+<SampleScripts sample_name="managing-transitive-dependencies-exclude-for-dependency" basename="build" tag="exclude-transitive-dependencies-2" source_dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency" />
 
 To fully exclude `commons-collections`, you must also exclude it from `opencsv`:
 
-<SampleScripts sample_name="managing-transitive-dependencies-exclude-for-dependency" basename="build" tag="exclude-transitive-dependencies-3" />
+<SampleScripts sample_name="managing-transitive-dependencies-exclude-for-dependency" basename="build" tag="exclude-transitive-dependencies-3" source_dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency" />
 
 Using excludes should be a conscious and well-tested decision.
 If the excluded dependency is needed in any code path, your build may fail at runtime.
@@ -331,7 +331,7 @@ Version conflicts can be forced to fail using:
 
 This will fail the build when conflicting versions of the same dependency are found:
 
-<SampleScripts sample_name="managing-transitive-dependencies-resolution-strategy" basename="build" tag="fail-on-version-conflict" />
+<SampleScripts sample_name="managing-transitive-dependencies-resolution-strategy" basename="build" tag="fail-on-version-conflict" source_dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-resolutionStrategy" />
 
 ## 8. Disabling Transitive Dependencies
 
@@ -343,7 +343,7 @@ You can tell Gradle to disable transitive dependency management for a dependency
 
 In the following example, transitive dependency resolution is disabled for the `guava` dependency:
 
-<SampleScripts sample_name="managing-transitive-dependencies-disable-for-dependency" basename="build" tag="transitive-per-dependency" />
+<SampleScripts sample_name="managing-transitive-dependencies-disable-for-dependency" basename="build" tag="transitive-per-dependency" source_dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForDependency" />
 
 This ensures only the main artifact for `guava` is resolved, and none of its transitive dependencies will be included.
 
@@ -353,7 +353,7 @@ Disabling transitive dependency resolution will likely require you to declare th
 
 If you want to disable transitive resolution globally across all dependencies, you can set this behavior at the configuration level:
 
-<SampleScripts sample_name="managing-transitive-dependencies-disable-for-configuration" basename="build" tag="transitive-per-configuration" />
+<SampleScripts sample_name="managing-transitive-dependencies-disable-for-configuration" basename="build" tag="transitive-per-configuration" source_dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForConfiguration" />
 
 This disables transitive resolution for all dependencies in the project.
 Be aware that this may require you to manually declare any transitive dependencies that are required at runtime.
@@ -369,7 +369,7 @@ This allows for advanced control over dependency resolution, enabling you to sub
 This feature is particularly useful for implementing advanced dependency management patterns.
 With **dependency resolve rules**, you can redirect dependencies to specific versions or even different modules entirely, allowing you to enforce consistent versions across a project or override problematic dependencies:
 
-<SampleScripts sample_name="customizing-resolution-resolution-strategy" basename="build" tag="resolve-rules" />
+<SampleScripts sample_name="customizing-resolution-resolution-strategy" basename="build" tag="resolve-rules" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy" />
 
 In this example, if a dependency on `com.example:old-library` is requested, it will be substituted with `com.example:new-library:1.0.0` during resolution.
 
@@ -387,7 +387,7 @@ This approach ensures that only approved versions are used, while allowing devel
 
 The rule implementation can be encapsulated in a corporate plugin, making it easy to apply across all projects within the organization:
 
-<SampleScripts sample_name="customizing-resolution-resolution-strategy" basename="build" tag="custom-versioning-scheme" />
+<SampleScripts sample_name="customizing-resolution-resolution-strategy" basename="build" tag="custom-versioning-scheme" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy" />
 
 In this setup, whenever a developer specifies `default` as the version, the resolve rule replaces it with the approved version from the corporate catalog.
 
@@ -405,7 +405,7 @@ Consider a scenario where version `1.2` of a library is broken, but version `1.2
 With a resolve rule, you can enforce this substitution: "anytime version `1.2` is requested, it will be replaced with `1.2.1`.
 Unlike forcing a version, this rule only affects the specific version `1.2`, leaving other versions unaffected:
 
-<SampleScripts sample_name="customizing-resolution-resolution-strategy" basename="build" tag="denying_version" />
+<SampleScripts sample_name="customizing-resolution-resolution-strategy" basename="build" tag="denying_version" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy" />
 
 If version `1.3` is also present in the dependency graph, then even with this rule, Gradle’s default conflict resolution strategy would select `1.3` as the latest version.
 
@@ -419,12 +419,12 @@ Below are two examples illustrating these use cases.
 
 This example demonstrates how to add a dependency to a configuration based on some condition, evaluated lazily:
 
-<SampleScripts sample_name="customizing-resolution-lazy-dependencies" basename="build" tag="configuration-lazy-add-dependency" />
+<SampleScripts sample_name="customizing-resolution-lazy-dependencies" basename="build" tag="configuration-lazy-add-dependency" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies" />
 
 In this case, `addLater` is used to defer the evaluation of the dependency, allowing it to be added only when certain conditions are met.
 
 In this example, the build script sets a preferred version of a dependency, which will be used if no version is explicitly specified:
 
-<SampleScripts sample_name="customizing-resolution-lazy-dependencies" basename="build" tag="preferred-version-constraints" />
+<SampleScripts sample_name="customizing-resolution-lazy-dependencies" basename="build" tag="preferred-version-constraints" source_dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies" />
 
 This ensures that `org:foo` uses version `1.0` unless the user specifies another version.
