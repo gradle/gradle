@@ -145,6 +145,7 @@ val core = platform("core") {
         subproject("kotlin-dsl-integ-tests")
         subproject("xdcl-demos")
         subproject("xdcl-integ-tests")
+        subproject("xdcl-jvm-ecosystem")
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
