@@ -870,3 +870,88 @@ include::sample[dir="snippets/best-practices/beCarefulWithMapFlatmap-do/groovy",
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:task-configuration-avoidance,#task-configuration-avoidance>>`
+
+[[favor_collection_properties]]
+== Favor collection property types over a `Property` holding a collection
+
+Declare collection-valued properties as `ListProperty<T>`, `SetProperty<T>`, or `MapProperty<K, V>` rather than wrapping a collection inside a plain `Property`, such as a `Property<Collection<T>>`.
+
+=== Explanation
+
+A `Property` treats its value as a single, opaque unit.
+When that value happens to be a collection, Gradle cannot see the elements inside it, so the only way to change the property is to replace the entire collection.
+
+The dedicated collection types lift the collection into the property itself, so Gradle understands its structure.
+This is what makes incremental composition possible:
+
+* *Contributions are additive.* `add(T)`, `addAll(Iterable<T>)`, and `put(K, V)` let a plugin, a convention plugin, and a build script each contribute independently, without knowing what the others contributed.
+* *Individual elements can be lazy.* `add(Provider<T>)` accepts a provider for a _single element_. If that provider is a task output, the collection property carries the producing task's dependency automatically, so no explicit `dependsOn` is required.
+* *No eager reads are needed.* Appending to a plain `Property` forces you to call `get()` at configuration time to read the current collection before writing a new one back, which violates <<avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>>.
+
+Gradle rejects the most common forms of this mistake outright.
+Creating a `Property<List<T>>`, `Property<Set<T>>`, or `Property<Map<K, V>>` fails with an error directing you to the corresponding collection type.
+However, several equivalent declarations are _not_ rejected and are just as wrong:
+
+* `Property<Collection<T>>` and `Property<Iterable<T>>`
+* `Property<T[]>`, a property holding an array
+* A plain, non-lazy `List<T>` or `Map<K, V>` field with a getter and setter
+
+Treat all of these the same way, and prefer the collection property type that matches the data.
+For file-valued collections, use `ConfigurableFileCollection` instead.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/best-practices/favorCollectionProperties-avoid/kotlin",files="build.gradle.kts[tags=setup]"]
+include::sample[dir="snippets/best-practices/favorCollectionProperties-avoid/groovy",files="build.gradle[tags=setup]"]
+====
+
+<1> *`WriteVersion` task*: writes the version string `"1.0"` to `versionFile` at execution time.
+
+====
+include::sample[dir="snippets/best-practices/favorCollectionProperties-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/favorCollectionProperties-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *A `Property` cannot expose its elements*: `Collection<String>` is an opaque value here, so there is no `add` method and no way to contribute a single message.
+Gradle would reject `Property<List<String>>` outright, but `Property<Collection<String>>` is accepted despite being the same mistake.
+<2> *Appending requires an eager read*: the only way to add a message is to `get()` the current collection at configuration time, copy it, and write the result back.
+This resolves the property before the build has finished configuring, in violation of <<avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>>.
+<3> *A lazy contribution destroys the others*: there is no way to _add_ a single `writeVersion`-derived element to a `Property<Collection<T>>`.
+The only way to consume a task output is to replace the entire property with a `Provider<Collection<T>>`, silently discarding every other contribution.
+
+The two earlier messages are silently lost, and the build does not fail or warn:
+
+----
+include::{snippetsPath}/best-practices/favorCollectionProperties-avoid/tests/favorCollectionProperties-avoid.out[]
+----
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/best-practices/favorCollectionProperties-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/favorCollectionProperties-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *`ListProperty` exposes `add` and `addAll`*: contributors can append elements directly instead of replacing the whole collection.
+<2> *Contributors are independent*: `add` appends a message without reading, copying, or replacing the existing collection, so each caller can ignore the others.
+<3> *Elements can be providers*: `add(Provider<T>)` contributes a single lazily computed message.
+The provider carries the dependency on `writeVersion`, so `report` runs after it without an explicit `dependsOn`.
+
+All three messages survive:
+
+----
+include::{snippetsPath}/best-practices/favorCollectionProperties-do/tests/favorCollectionProperties-do.out[]
+----
+
+=== References
+
+- <<lazy_configuration.adoc#working_with_collections,Working with Collections>>
+- <<lazy_configuration.adoc#working_with_maps,Working with Maps>>
+- <<properties_providers.adoc#managed_properties,Managed Properties>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
