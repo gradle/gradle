@@ -33,6 +33,86 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Class org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Constructor org.gradle.plugins.ide.api.PropertiesFileContentMerger(org.gradle.api.internal.PropertiesTransformer)",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.PropertiesFileContentMerger.beforeMerged(groovy.lang.Closure)",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.PropertiesFileContentMerger.beforeMerged(org.gradle.api.Action)",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.PropertiesFileContentMerger.getTransformer()",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.PropertiesFileContentMerger.setTransformer(org.gradle.api.internal.PropertiesTransformer)",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.PropertiesFileContentMerger.whenMerged(groovy.lang.Closure)",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.PropertiesFileContentMerger.whenMerged(org.gradle.api.Action)",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.PropertiesFileContentMerger.withProperties(groovy.lang.Closure)",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.api.PropertiesFileContentMerger",
+            "member": "Method org.gradle.plugins.ide.api.PropertiesFileContentMerger.withProperties(org.gradle.api.Action)",
+            "acceptation": "Removed with the IDE file generation removal; only reachable via the removed EclipseJdt.file; deprecated in Gradle 9.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.plugins.ide.api.XmlFileContentMerger",
             "member": "Method org.gradle.plugins.ide.api.XmlFileContentMerger.getXmlTransformer()",
             "acceptation": "Removed with the IDE file generation removal; withXml and the transformer only affected the generated files; to be deprecated in Gradle 9.x before this ships",

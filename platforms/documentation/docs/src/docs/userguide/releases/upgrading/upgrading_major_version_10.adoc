@@ -55,7 +55,7 @@ The removed tasks are:
 The model properties that only affected the generated files are removed with them:
 
 * `idea.module.iml { ... }`, `idea.project.ipr { ... }`, `idea.workspace { ... }`, `idea.targetVersion`, `idea.pathVariables`, `idea.module.pathVariables`, `idea.project.projectLibraries`, and the `pathFactory` properties
-* `eclipse.jdt.javaRuntimeName`, `eclipse.wtp.facet { ... }`, and the `file { ... }` merging hooks on `EclipseJdt` and `eclipse.wtp.component`
+* `eclipse.jdt.javaRuntimeName`, `eclipse.wtp.facet { ... }`, and the `file { ... }` merging hooks on `EclipseJdt` and `eclipse.wtp.component`, including the `PropertiesFileContentMerger` type that backed `EclipseJdt.file`
 * the `withXml { ... }` hook and the XML transformer accessors on `XmlFileContentMerger` — they only affected the persisted files; the `beforeMerged { ... }` and `whenMerged { ... }` hooks on the eclipse project and classpath models remain, as they affect the model consumed by the IDE
 * the types that represented the generated XML files: `Module`, `Project`, `Workspace`, `ProjectLibrary` (idea) and `Jdt`, `Facet`, `WtpFacet`, `WtpComponent`, `WbDependentModule` (eclipse)
 

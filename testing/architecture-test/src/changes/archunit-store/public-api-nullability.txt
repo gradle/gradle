@@ -522,7 +522,6 @@ Class <org.gradle.plugins.ear.descriptor.EarWebModule> is not annotated (directl
 Class <org.gradle.plugins.ide.IdeWorkspace> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeWorkspace.java:0)
 Class <org.gradle.plugins.ide.api.FileContentMerger> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (FileContentMerger.java:0)
 Class <org.gradle.plugins.ide.api.GeneratorTask> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GeneratorTask.java:0)
-Class <org.gradle.plugins.ide.api.PropertiesFileContentMerger> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (PropertiesFileContentMerger.java:0)
 Class <org.gradle.plugins.ide.api.PropertiesGeneratorTask> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (PropertiesGeneratorTask.java:0)
 Class <org.gradle.plugins.ide.api.PropertyListGeneratorTask> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (PropertyListGeneratorTask.java:0)
 Class <org.gradle.plugins.ide.api.XmlFileContentMerger> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (XmlFileContentMerger.java:0)
