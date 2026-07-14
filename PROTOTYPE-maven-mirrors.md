@@ -108,7 +108,15 @@ The realistic parity target for Option A is therefore: `username`/`password` (wi
 - CC-safe by construction, zero crypto code, no dependence on Maven's weak encryption, and secrets live where Gradle users already keep them.
 - Downside: no parity — a team pointing Gradle at an existing settings.xml must duplicate credentials, which undercuts the "works with your existing Maven setup" pitch of the feature.
 
-**Option C — hybrid (recommended).** Option A as the default for Maven parity, with Option B as an override that wins when the Gradle properties are present. The override doubles as the escape hatch for Maven 4's new encryption format and for users who refuse to keep secrets in settings.xml. Decryption failures then have an actionable remedy in the warning message: "set `<mirrorId>Username`/`<mirrorId>Password` Gradle properties instead".
+**Option C — hybrid (recommended, implemented in this cut).** Option A as the default for Maven parity, with Option B as an override that wins when the Gradle properties are present. The override doubles as the escape hatch for Maven 4's new encryption format and for users who refuse to keep secrets in settings.xml.
+
+How the prototype implements it:
+
+- `MirroredRepository` carries optional `MirrorCredentials`, resolved once with the wildcard mirror. Precedence: `<mirrorId>Username`/`<mirrorId>Password` Gradle properties (both must be set; a partial pair warns and is ignored) > the settings.xml `<server>` entry whose id matches the mirror id > none.
+- Passwords from the `<server>` entry go through `DefaultSecDispatcher` + `DefaultPlexusCipher` — the same classes Maven uses, already shipped in the distribution. Plaintext values pass through without touching settings-security.xml; `{...}`-wrapped values decrypt against the master password in `~/.m2/settings-security.xml` (the `settings.security` system property relocates it, as in Maven). A failed decryption logs a lifecycle warning naming the `<mirrorId>Username`/`<mirrorId>Password` remedy and the mirror is used *without* credentials (deterministic 401 instead of sending the undecrypted blob).
+- `DefaultMavenArtifactRepository` wraps the credentials in an `AllSchemesAuthentication` — the same type Gradle uses for plain `credentials {}` blocks, so basic/digest/NTLM negotiation works — host-scoped to the **mirror** host only.
+- CC: the Gradle property reads are tracked by `ProviderFactory`; settings-security.xml content is folded into the existing `MavenSettingsChecksumValueSource` (only fingerprinted while the feature flag is on).
+- Verified by unit tests (property override, partial-pair fallback, real decryption against a generated settings-security.xml, decryption-failure fallback) and integration tests against a BASIC-auth mirror (plaintext server entry, encrypted server entry, property override), in both forking and configuration-cache variants.
 
 Not applicable: interactive password prompting (Maven can prompt; the Gradle daemon is non-interactive).
 
@@ -136,12 +144,12 @@ Design choices worth noting:
 - New: `mvnsettings/MavenMirrorResolver.java` (internal interface + `MirroredRepository` value), `mvnsettings/DefaultMavenMirrorResolver.java`, `mvnsettings/MavenSettingsChecksumValueSource.java` (CC input tracking).
 - `DependencyManagementBuildScopeServices`: registers the resolver (build scope).
 - `DefaultDependencyManagementServices.createBaseRepositoryFactory` / `DefaultBaseRepositoryFactory`: thread the resolver through to Maven repo construction.
-- `DefaultMavenArtifactRepository`: nullable resolver field; `validateUrl()` applies the mirror and logs `Applying Maven mirror '<id>' for repository '<name>': <original> -> <mirror>` (once per rewrite target); `getTransport()` strips the repository's configured authentication when the mirror applies, with a lifecycle warning.
+- `DefaultMavenArtifactRepository`: nullable resolver field; `validateUrl()` applies the mirror and logs `Applying Maven mirror '<id>' for repository '<name>': <original> -> <mirror>` (once per rewrite target); `getTransport()` replaces the repository's configured authentication (with a lifecycle warning when it had any) by the mirror's own credentials, host-scoped to the mirror.
 - `DefaultMavenLocalArtifactRepository`: passes `null` resolver.
 
 ## Gaps before this could be a real feature
 
-1. **Auth**: supplying the *mirror's* credentials (Maven `<server>` matching by mirror id — see the options in section 4; leak prevention for the original repo's credentials is done in this cut).
+1. **Auth**: mostly closed in this cut (leak prevention + Option C hybrid credentials with decryption). Remaining: `<httpHeaders>` → `HttpHeaderCredentials` mapping for token-authenticated mirrors, and the Maven 4 encryption format.
 2. **`mirrorOf` matching semantics**: `external:*`, `!excludes`, id lists, per-repo matching by repository id (requires a mapping from Gradle repo names to Maven repo ids — non-obvious).
 3. **Repository identity/reporting**: descriptor should expose original + mirror; build scans and the resolution cache key need a deliberate decision.
 4. **Surface**: environment-variable/DSL opt-in story, interaction with `dependencyResolutionManagement` repositories and repository content filtering, Ivy repos, documentation.

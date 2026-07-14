@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 import java.util.Optional;
@@ -42,15 +43,18 @@ public interface MavenMirrorResolver {
     Optional<MirroredRepository> mirrorFor(URI original);
 
     /**
-     * A mirror selected for a repository: the mirror id from settings.xml and its URL.
+     * A mirror selected for a repository: the mirror id from settings.xml, its URL,
+     * and the credentials to use for it, if any.
      */
     final class MirroredRepository {
         private final String id;
         private final URI url;
+        private final @Nullable MirrorCredentials credentials;
 
-        public MirroredRepository(String id, URI url) {
+        public MirroredRepository(String id, URI url, @Nullable MirrorCredentials credentials) {
             this.id = id;
             this.url = url;
+            this.credentials = credentials;
         }
 
         public String getId() {
@@ -59,6 +63,37 @@ public interface MavenMirrorResolver {
 
         public URI getUrl() {
             return url;
+        }
+
+        /**
+         * The credentials the mirror itself requires: either the settings.xml
+         * {@code <server>} entry matching the mirror id (with the password decrypted),
+         * or the {@code <mirrorId>Username}/{@code <mirrorId>Password} Gradle property
+         * override. Null when neither is configured.
+         */
+        public @Nullable MirrorCredentials getCredentials() {
+            return credentials;
+        }
+    }
+
+    /**
+     * Username and password for a mirror.
+     */
+    final class MirrorCredentials {
+        private final @Nullable String username;
+        private final @Nullable String password;
+
+        public MirrorCredentials(@Nullable String username, @Nullable String password) {
+            this.username = username;
+            this.password = password;
+        }
+
+        public @Nullable String getUsername() {
+            return username;
+        }
+
+        public @Nullable String getPassword() {
+            return password;
         }
     }
 }

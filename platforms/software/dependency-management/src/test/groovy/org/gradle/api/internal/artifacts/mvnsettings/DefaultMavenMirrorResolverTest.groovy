@@ -16,12 +16,24 @@
 package org.gradle.api.internal.artifacts.mvnsettings
 
 import org.apache.maven.settings.Mirror
+import org.apache.maven.settings.Server
 import org.apache.maven.settings.Settings
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 class DefaultMavenMirrorResolverTest extends Specification {
+    // Generated with plexus-cipher 2.0: the master password 'gradle-prototype-master' encrypted
+    // with the fixed 'settings.security' key, and 'mirror-secret' encrypted with that master
+    static final String ENCRYPTED_MASTER = '{+w6zW/gzt3sHKDw2TQ/+vG1479GJ02Z9URESmQqxB26cQ14p5hMV9v+66BoSriyN}'
+    static final String ENCRYPTED_PASSWORD = '{0HkYKhjpO2IH/9BoIL1EsU4QYSX9MtFNu23gH81yTeY=}'
+
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
     def settingsProvider = Mock(MavenSettingsProvider)
     def providerFactory = Mock(ProviderFactory)
 
@@ -142,13 +154,106 @@ class DefaultMavenMirrorResolverTest extends Specification {
         1 * settingsProvider.buildSettings() >> settingsWith(mirror("corp-mirror", "*", "https://mirror.example.com/maven2"))
     }
 
-    private void featureEnabled() {
+    def "mirror credentials come from the settings server entry matching the mirror id"() {
+        given:
+        featureEnabled()
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")],
+            [server("other", "nobody", "nothing"), server("corp-mirror", "mirror-user", "plain-secret")])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.get().credentials.username == "mirror-user"
+        result.get().credentials.password == "plain-secret"
+    }
+
+    def "mirror has no credentials when no server entry matches the mirror id"() {
+        given:
+        featureEnabled()
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("other", "nobody", "nothing")])
+
+        expect:
+        resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/")).get().credentials == null
+    }
+
+    def "gradle properties override the settings server credentials"() {
+        given:
+        featureEnabled(["corp-mirrorUsername": "prop-user", "corp-mirrorPassword": "prop-secret"])
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("corp-mirror", "mirror-user", "plain-secret")])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.get().credentials.username == "prop-user"
+        result.get().credentials.password == "prop-secret"
+    }
+
+    def "partial gradle properties are ignored and the settings server credentials are used"() {
+        given:
+        featureEnabled(["corp-mirrorUsername": "prop-user"])
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("corp-mirror", "mirror-user", "plain-secret")])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.get().credentials.username == "mirror-user"
+        result.get().credentials.password == "plain-secret"
+    }
+
+    @RestoreSystemProperties
+    def "encrypted server password is decrypted with the maven master password"() {
+        given:
+        def securityFile = tmpDir.file("settings-security.xml")
+        securityFile.text = "<settingsSecurity><master>${ENCRYPTED_MASTER}</master></settingsSecurity>"
+        System.setProperty("settings.security", securityFile.absolutePath)
+
+        featureEnabled()
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("corp-mirror", "mirror-user", ENCRYPTED_PASSWORD)])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.get().credentials.username == "mirror-user"
+        result.get().credentials.password == "mirror-secret"
+    }
+
+    @RestoreSystemProperties
+    def "mirror is applied without credentials when the password cannot be decrypted"() {
+        given:
+        System.setProperty("settings.security", tmpDir.file("does-not-exist.xml").absolutePath)
+
+        featureEnabled()
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("corp-mirror", "mirror-user", ENCRYPTED_PASSWORD)])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.present
+        result.get().credentials == null
+    }
+
+    private void featureEnabled(Map<String, String> gradleProperties = [:]) {
+        gradleProperties.each { name, value ->
+            providerFactory.gradleProperty(name) >> Providers.of(value)
+        }
         providerFactory.gradleProperty(DefaultMavenMirrorResolver.ENABLE_PROPERTY) >> Providers.of("true")
+        providerFactory.gradleProperty(_) >> Providers.notDefined()
         providerFactory.of(MavenSettingsChecksumValueSource, _) >> Providers.notDefined()
     }
 
     private void mirrors(Mirror... mirrors) {
-        settingsProvider.buildSettings() >> settingsWith(mirrors)
+        settings(mirrors as List)
+    }
+
+    private void settings(List<Mirror> mirrors, List<Server> servers = []) {
+        def settings = settingsWith(mirrors as Mirror[])
+        servers.each { settings.addServer(it) }
+        settingsProvider.buildSettings() >> settings
     }
 
     private static Settings settingsWith(Mirror... mirrors) {
@@ -163,5 +268,13 @@ class DefaultMavenMirrorResolverTest extends Specification {
         mirror.mirrorOf = mirrorOf
         mirror.url = url
         return mirror
+    }
+
+    private static Server server(String id, String username, String password) {
+        def server = new Server()
+        server.id = id
+        server.username = username
+        server.password = password
+        return server
     }
 }

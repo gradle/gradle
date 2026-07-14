@@ -57,6 +57,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
+import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -369,27 +370,66 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
      *
      * <p>When a Maven mirror replaces this repository's URL, the credentials configured on
      * this repository belong to the original host and must not be sent to the mirror.
-     * Maven semantics expect the mirror's own credentials (the {@code <server>} entry
-     * matching the mirror id) instead, which is not supported yet.
+     * Instead, following Maven semantics, the mirror's own credentials are used: the
+     * settings.xml {@code <server>} entry matching the mirror id, or the
+     * {@code <mirrorId>Username}/{@code <mirrorId>Password} Gradle property override.
      */
     private Collection<Authentication> getAuthenticationsForUrlInUse() {
-        Collection<Authentication> authentications = getConfiguredAuthentication();
-        if (mavenMirrorResolver == null || authentications.isEmpty()) {
-            return authentications;
+        if (mavenMirrorResolver == null) {
+            return getConfiguredAuthentication();
         }
         URI originalUrl = urlArtifactRepository.getUrl();
         if (originalUrl == null) {
-            return authentications;
+            return getConfiguredAuthentication();
         }
         Optional<MavenMirrorResolver.MirroredRepository> mirror = mavenMirrorResolver.mirrorFor(originalUrl);
         if (!mirror.isPresent()) {
-            return authentications;
+            return getConfiguredAuthentication();
         }
-        if (!mirrorCredentialsWarningLogged) {
+        if (usesCredentials() && !mirrorCredentialsWarningLogged) {
             mirrorCredentialsWarningLogged = true;
             LOGGER.lifecycle("Ignoring credentials configured for repository '{}': its URL is rewritten by Maven mirror '{}' and the repository credentials do not apply to the mirror.", getName(), mirror.get().getId());
         }
-        return Collections.emptyList();
+        return mirrorAuthentication(mirror.get());
+    }
+
+    private Collection<Authentication> mirrorAuthentication(MavenMirrorResolver.MirroredRepository mirror) {
+        MavenMirrorResolver.MirrorCredentials credentials = mirror.getCredentials();
+        URI mirrorUrl = mirror.getUrl();
+        if (credentials == null || !mirrorUrl.getScheme().startsWith("http")) {
+            return Collections.emptyList();
+        }
+        AllSchemesAuthentication authentication = new AllSchemesAuthentication(new MirrorPasswordCredentials(credentials));
+        authentication.addHost(mirrorUrl.getHost(), mirrorUrl.getPort());
+        return Collections.singleton(authentication);
+    }
+
+    private static class MirrorPasswordCredentials implements org.gradle.api.credentials.PasswordCredentials {
+        private final MavenMirrorResolver.MirrorCredentials credentials;
+
+        MirrorPasswordCredentials(MavenMirrorResolver.MirrorCredentials credentials) {
+            this.credentials = credentials;
+        }
+
+        @Override
+        public @Nullable String getUsername() {
+            return credentials.getUsername();
+        }
+
+        @Override
+        public @Nullable String getPassword() {
+            return credentials.getPassword();
+        }
+
+        @Override
+        public void setUsername(@Nullable String userName) {
+            throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
+        }
+
+        @Override
+        public void setPassword(@Nullable String password) {
+            throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
+        }
     }
 
     protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> getLocallyAvailableResourceFinder() {

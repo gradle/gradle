@@ -25,6 +25,10 @@ import org.gradle.test.fixtures.server.http.AuthScheme
  * {@code org.gradle.internal.mavenMirrors} Gradle property.
  */
 class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    // Generated with plexus-cipher 2.0: the master password 'gradle-prototype-master' encrypted
+    // with the fixed 'settings.security' key, and 'mirror-secret' encrypted with that master
+    static final String ENCRYPTED_MASTER = '{+w6zW/gzt3sHKDw2TQ/+vG1479GJ02Z9URESmQqxB26cQ14p5hMV9v+66BoSriyN}'
+    static final String ENCRYPTED_PASSWORD = '{0HkYKhjpO2IH/9BoIL1EsU4QYSX9MtFNu23gH81yTeY=}'
 
     def setup() {
         buildFile << """
@@ -182,6 +186,88 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         file('libs').assertHasDescendants('projectA-1.0.jar')
     }
 
+    def "uses credentials from the maven settings server entry matching the mirror id"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "*", "test-mirror", serverXml("test-mirror", "mirror-user", "mirror-secret"))
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        and:
+        server.authenticationScheme = AuthScheme.BASIC
+        module.pom.expectGet('mirror-user', 'mirror-secret')
+        module.artifact.expectGet('mirror-user', 'mirror-secret')
+
+        when:
+        using m2
+        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        outputContains("Using credentials from the Maven settings server entry 'test-mirror' for Maven mirror 'test-mirror'.")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "decrypts the mirror password with the maven master password"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "*", "test-mirror", serverXml("test-mirror", "mirror-user", ENCRYPTED_PASSWORD))
+        m2.userM2Directory.file("settings-security.xml").text = "<settingsSecurity><master>${ENCRYPTED_MASTER}</master></settingsSecurity>"
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        and:
+        server.authenticationScheme = AuthScheme.BASIC
+        module.pom.expectGet('mirror-user', 'mirror-secret')
+        module.artifact.expectGet('mirror-user', 'mirror-secret')
+
+        when:
+        using m2
+        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        outputContains("Using credentials from the Maven settings server entry 'test-mirror' for Maven mirror 'test-mirror'.")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "gradle properties override the maven settings server credentials"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "*", "test-mirror", serverXml("test-mirror", "mirror-user", "outdated-password"))
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        and:
+        server.authenticationScheme = AuthScheme.BASIC
+        module.pom.expectGet('prop-user', 'prop-secret')
+        module.artifact.expectGet('prop-user', 'prop-secret')
+
+        when:
+        using m2
+        executer.withArguments("-Porg.gradle.internal.mavenMirrors=true", "-Ptest-mirrorUsername=prop-user", "-Ptest-mirrorPassword=prop-secret")
+        run 'retrieve'
+
+        then:
+        outputContains("Using credentials from Gradle properties 'test-mirrorUsername' and 'test-mirrorPassword' for Maven mirror 'test-mirror'.")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
     def "changing maven settings invalidates the configuration cache when mirrors are enabled"() {
         given:
         def mirrorRepo1 = mavenHttpRepo("mirror1")
@@ -250,7 +336,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         outputDoesNotContain("Applying Maven mirror")
     }
 
-    private void writeMirrorSettings(String mirrorUrl, String mirrorOf = "*", String id = "test-mirror") {
+    private void writeMirrorSettings(String mirrorUrl, String mirrorOf = "*", String id = "test-mirror", String serversXml = "") {
         m2.userSettingsFile.text = """
             <settings>
                 <mirrors>
@@ -260,7 +346,20 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
                         <url>${mirrorUrl}</url>
                     </mirror>
                 </mirrors>
+                ${serversXml}
             </settings>
+        """
+    }
+
+    private static String serverXml(String id, String username, String password) {
+        return """
+            <servers>
+                <server>
+                    <id>${id}</id>
+                    <username>${username}</username>
+                    <password>${password}</password>
+                </server>
+            </servers>
         """
     }
 }

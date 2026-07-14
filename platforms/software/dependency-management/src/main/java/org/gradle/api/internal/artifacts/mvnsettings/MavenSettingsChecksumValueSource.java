@@ -25,9 +25,9 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * A checksum of the local Maven settings.xml files, used as a configuration cache
- * input so that changes to the Maven settings invalidate cached configuration when
- * Maven mirror support is enabled.
+ * A checksum of the local Maven settings.xml and settings-security.xml files, used as a
+ * configuration cache input so that changes to the Maven settings invalidate cached
+ * configuration when Maven mirror support is enabled.
  *
  * <p>Value sources cannot inject build-scoped services, so this locates the settings
  * files itself. It only hashes the file contents and does not parse them, keeping the
@@ -45,10 +45,19 @@ public abstract class MavenSettingsChecksumValueSource implements ValueSource<St
         MavenFileLocations locations = new DefaultMavenFileLocations();
         String userChecksum = checksumOf(locations.getUserSettingsFile());
         String globalChecksum = checksumOf(locations.getGlobalSettingsFile());
-        if (userChecksum == null && globalChecksum == null) {
+        String securityChecksum = checksumOf(securitySettingsFile());
+        if (userChecksum == null && globalChecksum == null && securityChecksum == null) {
             return null;
         }
-        return userChecksum + "/" + globalChecksum;
+        return userChecksum + "/" + globalChecksum + "/" + securityChecksum;
+    }
+
+    private static File securitySettingsFile() {
+        String location = System.getProperty("settings.security");
+        if (location != null) {
+            return new File(location);
+        }
+        return DefaultMavenMirrorResolver.defaultSecuritySettingsFile();
     }
 
     private static @Nullable String checksumOf(@Nullable File settingsFile) {
