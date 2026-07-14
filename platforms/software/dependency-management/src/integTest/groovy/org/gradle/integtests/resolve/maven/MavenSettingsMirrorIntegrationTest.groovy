@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.server.http.AuthScheme
 
 /**
  * Prototype coverage for Maven settings.xml mirror support, behind the
@@ -113,6 +114,71 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         outputContains("Maven mirror 'selective' with mirrorOf 'external:*' is not supported and will be ignored (only '*' is supported).")
         outputDoesNotContain("Applying Maven mirror")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "repository credentials are not sent to the mirror"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString())
+
+        buildFile << """
+            repositories {
+                maven {
+                    url = 'https://original.example.com/repo'
+                    credentials {
+                        username = 'user'
+                        password = 'secret'
+                    }
+                }
+            }
+        """
+
+        and: "the mirror would accept the repository credentials, so resolution only fails if they are not sent"
+        server.authenticationScheme = AuthScheme.BASIC
+        module.pom.allowGetOrHead('user', 'secret')
+        module.artifact.allowGetOrHead('user', 'secret')
+
+        when:
+        using m2
+        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        fails 'retrieve'
+
+        then:
+        outputContains("Ignoring credentials configured for repository 'maven': its URL is rewritten by Maven mirror 'test-mirror' and the repository credentials do not apply to the mirror.")
+        failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
+    }
+
+    def "resolves from unauthenticated mirror while ignoring repository credentials"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString())
+
+        buildFile << """
+            repositories {
+                maven {
+                    url = 'https://original.example.com/repo'
+                    credentials {
+                        username = 'user'
+                        password = 'secret'
+                    }
+                }
+            }
+        """
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        outputContains("Ignoring credentials configured for repository 'maven': its URL is rewritten by Maven mirror 'test-mirror' and the repository credentials do not apply to the mirror.")
         file('libs').assertHasDescendants('projectA-1.0.jar')
     }
 
