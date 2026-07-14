@@ -71,12 +71,30 @@ object JavaSourceQueries {
                     is JApiClass -> getSinceJavaClassVisitorFor(declaringClassSimpleName)
                     is JApiField -> getSinceJavaFieldVisitorFor(member)
                     is JApiConstructor -> getSinceJavaConstructorVisitorFor(declaringClassSimpleName, member)
-                    is JApiMethod -> getSinceJavaMethodVisitorFor(declaringClassSimpleName, member)
+                    is JApiMethod -> getSinceJavaMethodVisitorFor(member)
                     else -> error("Unsupported japicmp member type ${member::class}")
                 }
             )
         }
+
+    fun isGenerated(member: JApiCompatibility): JavaSourceQuery<Boolean> =
+        member.jApiClass.simpleName.let { declaringClassSimpleName ->
+            JavaSourceQuery(
+                false,
+                if (member is JApiMethod) generatedJavaEnumMethodVisitorFor(declaringClassSimpleName, member)
+                else object : PredicateVisitor() {}
+            )
+        }
 }
+
+
+private
+fun generatedJavaEnumMethodVisitorFor(classSimpleName: String, method: JApiMethod) =
+    object : PredicateVisitor() {
+        override fun visit(declaration: EnumDeclaration, arg: Unit?): Boolean? =
+            if (declaration.matchesName(classSimpleName) && method.isEnumImplicitMethod()) true
+            else super.visit(declaration, arg)
+    }
 
 
 private
@@ -124,7 +142,7 @@ fun getSinceJavaConstructorVisitorFor(classSimpleName: String, constructor: JApi
 
 
 private
-fun getSinceJavaMethodVisitorFor(classSimpleName: String, method: JApiMethod) =
+fun getSinceJavaMethodVisitorFor(method: JApiMethod) =
     object : SinceVisitor() {
 
         override fun visit(declaration: AnnotationMemberDeclaration, arg: Unit?): SinceTagStatus? =
@@ -134,12 +152,6 @@ fun getSinceJavaMethodVisitorFor(classSimpleName: String, method: JApiMethod) =
             declaration
                 .takeIf { it.matchesName(method.name) && it.matchesParametersOf(method.binaryParameterTypes) }
                 ?.getSince()?.let { SinceTagStatus.Present(it) }
-
-        override fun visit(declaration: EnumDeclaration, arg: Unit?): SinceTagStatus? {
-            return if (declaration.matchesName(classSimpleName) && method.isEnumImplicitMethod()) {
-                SinceTagStatus.NotNeeded
-            } else super.visit(declaration, arg)
-        }
     }
 
 

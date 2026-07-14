@@ -60,18 +60,24 @@ object KotlinSourceQueries {
     }
 
     fun getSince(member: JApiCompatibility): (KtFile) -> SinceTagStatus = { ktFile ->
-        val ctMember= member.newCtMember
+        val ctMember = member.newCtMember
         val ctDeclaringClass = ctMember.declaringClass
-        when {
-            ctMember is CtMethod && ctMember.isSynthetic-> SinceTagStatus.NotNeeded // synthetic members cannot have kdoc
-            ctMember is CtClass -> ktFile.ktClassOf(ctMember).getSinceStatus()
-            ctMember.isGenerated(ktFile, ctDeclaringClass) -> SinceTagStatus.NotNeeded
-            else -> when (ctMember) {
-                is CtField -> ktFile.getSince(ctDeclaringClass, ctMember)
-                is CtConstructor -> ktFile.getSince(ctDeclaringClass, ctMember)
-                is CtMethod -> ktFile.getSince(ctDeclaringClass, ctMember)
-                else -> error("Unsupported japicmp member type '${member::class}'")
-            }
+        when (ctMember) {
+            is CtClass -> ktFile.ktClassOf(ctMember).getSinceStatus()
+            is CtField -> ktFile.getSince(ctDeclaringClass, ctMember)
+            is CtConstructor -> ktFile.getSince(ctDeclaringClass, ctMember)
+            is CtMethod -> ktFile.getSince(ctDeclaringClass, ctMember)
+            else -> error("Unsupported japicmp member type '${member::class}'")
+        }
+    }
+
+    fun isGenerated(member: JApiCompatibility): (KtFile) -> Boolean = { ktFile ->
+        when (val ctMember = member.newCtMember) {
+            is CtMethod -> ctMember.isSynthetic || ctMember.isGenerated(ktFile, ctMember.declaringClass)
+            is CtClass -> false
+            is CtField -> ctMember.isGeneratedObjectInstanceField(ktFile, ctMember.declaringClass)
+            is CtConstructor -> ctMember.isGeneratedConstructor(ktFile, ctMember.declaringClass)
+            else -> error("Unsupported japicmp member type '${member::class}'")
         }
     }
 
@@ -123,15 +129,6 @@ object KotlinSourceQueries {
     fun KtDeclaration?.getSinceStatus(): SinceTagStatus =
         this?.getSince()?.let { SinceTagStatus.Present(it) } ?: SinceTagStatus.Missing
 }
-
-private
-fun CtClassOrCtMember.isGenerated(ktFile: KtFile, declaringClass: CtClass): Boolean =
-    when (this) {
-        is CtField -> isGeneratedObjectInstanceField(ktFile, declaringClass)
-        is CtConstructor -> isGeneratedConstructor(ktFile, declaringClass)
-        is CtMethod -> isGenerated(ktFile,declaringClass)
-        else -> error("Unsupported japicmp member type '${this::class}'")
-    }
 
 private
 fun CtMethod.isGenerated(ktFile: KtFile, declaringClass: CtClass): Boolean =

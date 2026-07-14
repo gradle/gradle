@@ -54,8 +54,6 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
             }
         } else if (since instanceof SinceTagStatus.Inconsistent inconsistent) {
             return acceptOrReject(member, Violation.error(member, String.format(SINCE_INCONSISTENT_ERROR_MESSAGE, inconsistent.getVersions())));
-        } else if (since instanceof SinceTagStatus.NotNeeded) {
-            return null;
         } else if (since instanceof SinceTagStatus.Missing) {
             return acceptOrReject(member, Violation.error(member, SINCE_ERROR_MESSAGE + getCurrentVersion()));
         } else {
@@ -67,7 +65,8 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
         return !isClassFieldConstructorOrMethod(member) ||
             isInject(member) ||
             isOverrideMethod(member) ||
-            isKotlinFileFacadeClass(member);
+            isKotlinFileFacadeClass(member) ||
+            getRepository().isGenerated(member);
     }
 
     private boolean isClassFieldConstructorOrMethod(JApiCompatibility member) {
