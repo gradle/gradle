@@ -55,6 +55,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -80,8 +81,10 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @SuppressWarnings("this-escape")
@@ -107,6 +110,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     private final InstantiatorFactory instantiatorFactory;
     private final @Nullable MavenMirrorResolver mavenMirrorResolver;
     private @Nullable URI mirrorAppliedTo;
+    private boolean mirrorCredentialsWarningLogged;
 
     @Inject
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -357,7 +361,35 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     public RepositoryTransport getTransport(String scheme) {
-        return transportFactory.createTransport(scheme, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier());
+        return transportFactory.createTransport(scheme, getName(), getAuthenticationsForUrlInUse(), urlArtifactRepository.createRedirectVerifier());
+    }
+
+    /**
+     * The authentications to use for the URL the transport will actually contact.
+     *
+     * <p>When a Maven mirror replaces this repository's URL, the credentials configured on
+     * this repository belong to the original host and must not be sent to the mirror.
+     * Maven semantics expect the mirror's own credentials (the {@code <server>} entry
+     * matching the mirror id) instead, which is not supported yet.
+     */
+    private Collection<Authentication> getAuthenticationsForUrlInUse() {
+        Collection<Authentication> authentications = getConfiguredAuthentication();
+        if (mavenMirrorResolver == null || authentications.isEmpty()) {
+            return authentications;
+        }
+        URI originalUrl = urlArtifactRepository.getUrl();
+        if (originalUrl == null) {
+            return authentications;
+        }
+        Optional<MavenMirrorResolver.MirroredRepository> mirror = mavenMirrorResolver.mirrorFor(originalUrl);
+        if (!mirror.isPresent()) {
+            return authentications;
+        }
+        if (!mirrorCredentialsWarningLogged) {
+            mirrorCredentialsWarningLogged = true;
+            LOGGER.lifecycle("Ignoring credentials configured for repository '{}': its URL is rewritten by Maven mirror '{}' and the repository credentials do not apply to the mirror.", getName(), mirror.get().getId());
+        }
+        return Collections.emptyList();
     }
 
     protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> getLocallyAvailableResourceFinder() {

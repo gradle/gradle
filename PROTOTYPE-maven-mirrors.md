@@ -61,12 +61,47 @@ Not fixed in this cut; noted for the real design (a mirror-aware descriptor shou
 
 ## 4. Authentication
 
-Not handled. The original repository's credentials continue to be attached to the transport (they are looked up by repository, not by URL), which means:
+### No leak of the original repository's credentials (done in this cut)
 
-- credentials configured for the original repo **are sent to the mirror host** — a real leak-ish concern for the production design (Maven solves this with `<mirror><id>` matching a `<server>` entry's credentials);
-- credentials the *mirror* needs cannot be supplied at all in this cut.
+The initial analysis feared the original repo's credentials would be sent to the mirror host. Reading the transport code corrects that: Gradle already **host-scopes** HTTP credentials. `AbstractAuthenticationSupportedRepository.getConfiguredAuthentication()` attaches the hosts of `getRepositoryUrls()` — the *original*, un-mirrored URL — to each authentication, and `HttpClientConfigurer` registers credentials in HttpClient's `CredentialsProvider` under `AuthScope(host, port)`. The preemptive-auth interceptor also looks credentials up by the *target* host. So a mirror on a **different host never receives the original credentials**, even before this change.
 
-The prototype logs a lifecycle warning when the mirror URL uses `http` (also covering "clearly different transport security"). Host-difference is inherent to mirroring, so no warning on host alone beyond the standard "Applying Maven mirror" line, which always prints both URLs.
+That protection is implicit and incomplete, though:
+
+- a mirror on the *same host and port* (different path) would still match the `AuthScope`, and Maven semantics say the original server's credentials don't apply to a mirror at all;
+- it depends on HttpClient internals staying host-scoped;
+- the failure mode is a silent 401 with no hint of why credentials were "lost".
+
+So this cut makes the rule explicit: when the mirror applies, `DefaultMavenArtifactRepository.getTransport()` strips **all** configured authentication from the transport and logs:
+
+```
+Ignoring credentials configured for repository '<name>': its URL is rewritten by Maven mirror '<id>' and the repository credentials do not apply to the mirror.
+```
+
+The integration test proves non-leakage behaviorally: the mirror *requires* exactly the credentials configured on the original repository — resolution fails, so they were never sent.
+
+Residual notes: the repository descriptor still reports `authenticated = true` (it describes the definition, not the effective transport) — build-scan reporting needs a decision in the real design. The `HttpRedirectVerifier` original-URL issue from section 1 still stands.
+
+### Options for supplying the mirror's own credentials
+
+Maven's model: a `<server>` entry in settings.xml whose `<id>` equals the mirror id supplies username/password. Passwords may be encrypted: `mvn --encrypt-password` produces `{...}`-wrapped values, decryptable with the master password stored in `~/.m2/settings-security.xml` (relocatable via `-Dsettings.security`, supports `<relocation>`). The master password itself is "encrypted" with a **fixed, well-known key** — anyone who can read `settings-security.xml` can recover every password. It is obfuscation against shoulder-surfing and accidental pastes, not protection against an attacker with file access. Maven 4 replaces this scheme (sec-dispatcher 4.x with pluggable dispatchers: GPG agent, prompts, env variables), so any implementation should isolate the decryption behind an interface.
+
+**Option A — read the `<server>` matching the mirror id, apply as `PasswordCredentials`.**
+
+- `MavenMirrorResolver` grows `credentialsFor(mirrorId)`; `Settings.getServers()` is already parsed by `MavenSettingsProvider`, so no new parsing.
+- In `getAuthenticationsForUrlInUse()`, instead of returning an empty collection, return a `BasicAuthentication` carrying the server's username/password, host-scoped to the **mirror** host via `AuthenticationInternal.addHost(...)`.
+- Decryption comes for free dependency-wise: the dependency-management runtime classpath already ships what Maven itself uses — `org.apache.maven.settings.crypto.DefaultSettingsDecrypter` (maven-settings-builder 3.9.5) backed by `org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher` + plexus-cipher 2.0. Non-`{...}` values pass through as plaintext; `{...}` values decrypt against `settings-security.xml` (honoring `-Dsettings.security`). A failed decryption should warn at lifecycle and resolve *without* credentials (deterministic 401) rather than send the undecrypted blob.
+- CC story is already in place: the server entries live in settings.xml, whose checksum is a CC input while the feature flag is on. `settings-security.xml` would need adding to the same checksum value source.
+- Limits: HTTP basic auth only (no wagon `privateKey`/scp, no NTLM config, no `<configuration>` HTTP headers). Fine for the realistic use case (Artifactory/Nexus/Sonatype mirrors).
+
+**Option B — Gradle-native credential lookup keyed by the mirror id.**
+
+- Reuse the existing `CredentialsProviderFactory` convention that backs `credentials(PasswordCredentials.class)`: Gradle properties `<mirrorId>Username` / `<mirrorId>Password`, typically set in `~/.gradle/gradle.properties` or via `ORG_GRADLE_PROJECT_*` environment variables.
+- CC-safe by construction, zero crypto code, no dependence on Maven's weak encryption, and secrets live where Gradle users already keep them.
+- Downside: no parity — a team pointing Gradle at an existing settings.xml must duplicate credentials, which undercuts the "works with your existing Maven setup" pitch of the feature.
+
+**Option C — hybrid (recommended).** Option A as the default for Maven parity, with Option B as an override that wins when the Gradle properties are present. The override doubles as the escape hatch for Maven 4's new encryption format and for users who refuse to keep secrets in settings.xml. Decryption failures then have an actionable remedy in the warning message: "set `<mirrorId>Username`/`<mirrorId>Password` Gradle properties instead".
+
+Not applicable: interactive password prompting (Maven can prompt; the Gradle daemon is non-interactive).
 
 ## 5. `mavenLocal()` interaction
 
@@ -92,12 +127,12 @@ Design choices worth noting:
 - New: `mvnsettings/MavenMirrorResolver.java` (internal interface + `MirroredRepository` value), `mvnsettings/DefaultMavenMirrorResolver.java`, `mvnsettings/MavenSettingsChecksumValueSource.java` (CC input tracking).
 - `DependencyManagementBuildScopeServices`: registers the resolver (build scope).
 - `DefaultDependencyManagementServices.createBaseRepositoryFactory` / `DefaultBaseRepositoryFactory`: thread the resolver through to Maven repo construction.
-- `DefaultMavenArtifactRepository`: nullable resolver field; `validateUrl()` applies the mirror and logs `Applying Maven mirror '<id>' for repository '<name>': <original> -> <mirror>` (once per rewrite target).
+- `DefaultMavenArtifactRepository`: nullable resolver field; `validateUrl()` applies the mirror and logs `Applying Maven mirror '<id>' for repository '<name>': <original> -> <mirror>` (once per rewrite target); `getTransport()` strips the repository's configured authentication when the mirror applies, with a lifecycle warning.
 - `DefaultMavenLocalArtifactRepository`: passes `null` resolver.
 
 ## Gaps before this could be a real feature
 
-1. **Auth**: mirror credentials (Maven `<server>` matching by mirror id) + not leaking original-repo credentials to the mirror host.
+1. **Auth**: supplying the *mirror's* credentials (Maven `<server>` matching by mirror id — see the options in section 4; leak prevention for the original repo's credentials is done in this cut).
 2. **`mirrorOf` matching semantics**: `external:*`, `!excludes`, id lists, per-repo matching by repository id (requires a mapping from Gradle repo names to Maven repo ids — non-obvious).
 3. **Repository identity/reporting**: descriptor should expose original + mirror; build scans and the resolution cache key need a deliberate decision.
 4. **Surface**: environment-variable/DSL opt-in story, interaction with `dependencyResolutionManagement` repositories and repository content filtering, Ivy repos, documentation.
