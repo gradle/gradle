@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.gson)
     implementation(libs.httpcore)
+    implementation(libs.plexusUtils)
 
     testImplementation(projects.buildCachePackaging)
     testImplementation(projects.softwareDiagnostics)

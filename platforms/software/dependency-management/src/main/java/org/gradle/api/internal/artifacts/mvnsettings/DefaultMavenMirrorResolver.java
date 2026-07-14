@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 import org.apache.maven.settings.Mirror;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.ProviderFactory;
@@ -111,22 +112,26 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
     }
 
     private @Nullable MirroredRepository toMirroredRepository(Mirror mirror, Settings settings) {
+        String mirrorId = mirror.getId();
         try {
             URI url = new URI(mirror.getUrl());
             if (!"https".equalsIgnoreCase(url.getScheme())) {
-                LOGGER.lifecycle("Maven mirror '{}' does not use HTTPS: {}", mirror.getId(), url);
+                LOGGER.lifecycle("Maven mirror '{}' does not use HTTPS: {}", mirrorId, url);
             }
-            return new MirroredRepository(mirror.getId(), url, resolveCredentials(mirror.getId(), settings));
+            MirrorCredentials credentials = resolveCredentials(mirrorId, settings);
+            MirrorHttpHeader httpHeader = credentials == null ? resolveHttpHeader(mirrorId, settings) : null;
+            return new MirroredRepository(mirrorId, url, credentials, httpHeader);
         } catch (URISyntaxException e) {
-            LOGGER.lifecycle("Maven mirror '{}' has an invalid URL and will be ignored: {}", mirror.getId(), mirror.getUrl());
+            LOGGER.lifecycle("Maven mirror '{}' has an invalid URL and will be ignored: {}", mirrorId, mirror.getUrl());
             return null;
         }
     }
 
     /**
-     * Resolves the credentials for a mirror: the {@code <mirrorId>Username}/{@code <mirrorId>Password}
-     * Gradle properties win over the settings.xml {@code <server>} entry matching the mirror id,
-     * whose password may be encrypted with the Maven master password.
+     * Resolves the username/password credentials for a mirror: the
+     * {@code <mirrorId>Username}/{@code <mirrorId>Password} Gradle properties win over the
+     * settings.xml {@code <server>} entry matching the mirror id, whose password may be
+     * encrypted with the Maven master password.
      */
     private @Nullable MirrorCredentials resolveCredentials(String mirrorId, Settings settings) {
         String usernameProperty = mirrorId + "Username";
@@ -142,7 +147,7 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
         }
 
         Server server = settings.getServer(mirrorId);
-        if (server == null) {
+        if (server == null || (server.getUsername() == null && server.getPassword() == null)) {
             return null;
         }
         try {
@@ -154,6 +159,54 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
                 "Set the '{}' and '{}' Gradle properties to provide the credentials directly. ({})", server.getId(), mirrorId, usernameProperty, passwordProperty, e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Resolves the HTTP header a mirror authenticates with, from the
+     * {@code <configuration><httpHeaders>} block of the settings.xml {@code <server>} entry
+     * matching the mirror id. Only consulted when no username/password credentials apply.
+     *
+     * <p>Only the first declared header is used; Maven sends all of them, but Gradle's
+     * transport attaches a single header credential per host.
+     *
+     * <p>Unlike Maven, which never decrypts wagon configuration values, an encrypted
+     * ({@code {...}}-wrapped) header value is decrypted like a password.
+     */
+    private @Nullable MirrorHttpHeader resolveHttpHeader(String mirrorId, Settings settings) {
+        Server server = settings.getServer(mirrorId);
+        if (server == null || !(server.getConfiguration() instanceof Xpp3Dom)) {
+            return null;
+        }
+        Xpp3Dom httpHeaders = ((Xpp3Dom) server.getConfiguration()).getChild("httpHeaders");
+        if (httpHeaders == null) {
+            return null;
+        }
+        Xpp3Dom[] properties = httpHeaders.getChildren("property");
+        if (properties.length == 0) {
+            return null;
+        }
+        String name = childValue(properties[0], "name");
+        String value = childValue(properties[0], "value");
+        if (name == null || value == null) {
+            LOGGER.lifecycle("Ignoring malformed httpHeaders configuration of the Maven settings server entry '{}' for Maven mirror '{}': each property needs a name and a value.", server.getId(), mirrorId);
+            return null;
+        }
+        if (properties.length > 1) {
+            LOGGER.lifecycle("Only the first HTTP header ('{}') of the Maven settings server entry '{}' is applied to Maven mirror '{}'; {} additional header(s) are ignored.", name, server.getId(), mirrorId, properties.length - 1);
+        }
+        try {
+            String decryptedValue = decryptPassword(value);
+            LOGGER.lifecycle("Using HTTP header '{}' from the Maven settings server entry '{}' for Maven mirror '{}'.", name, server.getId(), mirrorId);
+            return new MirrorHttpHeader(name, decryptedValue);
+        } catch (Exception e) {
+            LOGGER.lifecycle("Cannot decrypt the value of HTTP header '{}' of the Maven settings server entry '{}', continuing without credentials for Maven mirror '{}'. ({})", name, server.getId(), mirrorId, e.getMessage());
+            return null;
+        }
+    }
+
+    private static @Nullable String childValue(Xpp3Dom parent, String childName) {
+        Xpp3Dom child = parent.getChild(childName);
+        return child == null ? null : child.getValue();
     }
 
     /**
