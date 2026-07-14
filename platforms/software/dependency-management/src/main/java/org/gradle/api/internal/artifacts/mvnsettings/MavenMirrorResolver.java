@@ -50,11 +50,13 @@ public interface MavenMirrorResolver {
         private final String id;
         private final URI url;
         private final @Nullable MirrorCredentials credentials;
+        private final @Nullable MirrorHttpHeader httpHeader;
 
-        public MirroredRepository(String id, URI url, @Nullable MirrorCredentials credentials) {
+        public MirroredRepository(String id, URI url, @Nullable MirrorCredentials credentials, @Nullable MirrorHttpHeader httpHeader) {
             this.id = id;
             this.url = url;
             this.credentials = credentials;
+            this.httpHeader = httpHeader;
         }
 
         public String getId() {
@@ -69,10 +71,42 @@ public interface MavenMirrorResolver {
          * The credentials the mirror itself requires: either the settings.xml
          * {@code <server>} entry matching the mirror id (with the password decrypted),
          * or the {@code <mirrorId>Username}/{@code <mirrorId>Password} Gradle property
-         * override. Null when neither is configured.
+         * override. Null when neither is configured, or when the mirror authenticates
+         * with an HTTP header instead.
          */
         public @Nullable MirrorCredentials getCredentials() {
             return credentials;
+        }
+
+        /**
+         * The HTTP header the mirror authenticates with, from the
+         * {@code <configuration><httpHeaders>} block of the settings.xml {@code <server>}
+         * entry matching the mirror id. Null when not configured, or when username/password
+         * credentials apply instead. At most one of credentials and http header is set.
+         */
+        public @Nullable MirrorHttpHeader getHttpHeader() {
+            return httpHeader;
+        }
+    }
+
+    /**
+     * An HTTP header used to authenticate against a mirror.
+     */
+    final class MirrorHttpHeader {
+        private final String name;
+        private final String value;
+
+        public MirrorHttpHeader(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getValue() {
+            return value;
         }
     }
 

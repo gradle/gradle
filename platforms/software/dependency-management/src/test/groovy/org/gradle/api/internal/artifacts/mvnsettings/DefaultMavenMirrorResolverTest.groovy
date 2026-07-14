@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.mvnsettings
 import org.apache.maven.settings.Mirror
 import org.apache.maven.settings.Server
 import org.apache.maven.settings.Settings
+import org.codehaus.plexus.util.xml.Xpp3DomBuilder
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -237,6 +238,93 @@ class DefaultMavenMirrorResolverTest extends Specification {
         result.get().credentials == null
     }
 
+    def "http header from the settings server entry is used for the mirror"() {
+        given:
+        featureEnabled()
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")],
+            [serverWithHeaders("corp-mirror", ["Private-Token": "token-123"])])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.get().credentials == null
+        result.get().httpHeader.name == "Private-Token"
+        result.get().httpHeader.value == "token-123"
+    }
+
+    def "only the first http header is applied"() {
+        given:
+        featureEnabled()
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")],
+            [serverWithHeaders("corp-mirror", ["First-Header": "first", "Second-Header": "second"])])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.get().httpHeader.name == "First-Header"
+        result.get().httpHeader.value == "first"
+    }
+
+    def "username and password win over http headers"() {
+        given:
+        featureEnabled()
+        def server = serverWithHeaders("corp-mirror", ["Private-Token": "token-123"])
+        server.username = "mirror-user"
+        server.password = "plain-secret"
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.get().credentials.username == "mirror-user"
+        result.get().httpHeader == null
+    }
+
+    @RestoreSystemProperties
+    def "encrypted http header value is decrypted with the maven master password"() {
+        given:
+        def securityFile = tmpDir.file("settings-security.xml")
+        securityFile.text = "<settingsSecurity><master>${ENCRYPTED_MASTER}</master></settingsSecurity>"
+        System.setProperty("settings.security", securityFile.absolutePath)
+
+        featureEnabled()
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")],
+            [serverWithHeaders("corp-mirror", ["Private-Token": ENCRYPTED_PASSWORD])])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.get().httpHeader.value == "mirror-secret"
+    }
+
+    def "malformed http header configuration is ignored"() {
+        given:
+        featureEnabled()
+        def server = server("corp-mirror", null, null)
+        server.configuration = Xpp3DomBuilder.build(new StringReader("""
+            <configuration>
+                <httpHeaders>
+                    <property>
+                        <name>Broken-Header</name>
+                    </property>
+                </httpHeaders>
+            </configuration>
+        """))
+        settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server])
+
+        when:
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+
+        then:
+        result.present
+        result.get().httpHeader == null
+        result.get().credentials == null
+    }
+
     private void featureEnabled(Map<String, String> gradleProperties = [:]) {
         gradleProperties.each { name, value ->
             providerFactory.gradleProperty(name) >> Providers.of(value)
@@ -275,6 +363,21 @@ class DefaultMavenMirrorResolverTest extends Specification {
         server.id = id
         server.username = username
         server.password = password
+        return server
+    }
+
+    private static Server serverWithHeaders(String id, Map<String, String> headers) {
+        def server = server(id, null, null)
+        def properties = headers.collect { name, value ->
+            "<property><name>${name}</name><value>${value}</value></property>"
+        }.join("\n")
+        server.configuration = Xpp3DomBuilder.build(new StringReader("""
+            <configuration>
+                <httpHeaders>
+                    ${properties}
+                </httpHeaders>
+            </configuration>
+        """))
         return server
     }
 }

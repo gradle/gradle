@@ -57,7 +57,9 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
+import org.gradle.internal.authentication.AbstractAuthentication;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
+import org.gradle.internal.authentication.DefaultHttpHeaderAuthentication;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -394,12 +396,24 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     private Collection<Authentication> mirrorAuthentication(MavenMirrorResolver.MirroredRepository mirror) {
-        MavenMirrorResolver.MirrorCredentials credentials = mirror.getCredentials();
         URI mirrorUrl = mirror.getUrl();
-        if (credentials == null || !mirrorUrl.getScheme().startsWith("http")) {
+        if (!mirrorUrl.getScheme().startsWith("http")) {
             return Collections.emptyList();
         }
-        AllSchemesAuthentication authentication = new AllSchemesAuthentication(new MirrorPasswordCredentials(credentials));
+        MavenMirrorResolver.MirrorCredentials credentials = mirror.getCredentials();
+        if (credentials != null) {
+            return hostScoped(new AllSchemesAuthentication(new MirrorPasswordCredentials(credentials)), mirrorUrl);
+        }
+        MavenMirrorResolver.MirrorHttpHeader httpHeader = mirror.getHttpHeader();
+        if (httpHeader != null) {
+            DefaultHttpHeaderAuthentication authentication = new DefaultHttpHeaderAuthentication("header");
+            authentication.setCredentials(new MirrorHttpHeaderCredentials(httpHeader));
+            return hostScoped(authentication, mirrorUrl);
+        }
+        return Collections.emptyList();
+    }
+
+    private static Collection<Authentication> hostScoped(AbstractAuthentication authentication, URI mirrorUrl) {
         authentication.addHost(mirrorUrl.getHost(), mirrorUrl.getPort());
         return Collections.singleton(authentication);
     }
@@ -428,6 +442,34 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
         @Override
         public void setPassword(@Nullable String password) {
+            throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
+        }
+    }
+
+    private static class MirrorHttpHeaderCredentials implements org.gradle.api.credentials.HttpHeaderCredentials {
+        private final MavenMirrorResolver.MirrorHttpHeader httpHeader;
+
+        MirrorHttpHeaderCredentials(MavenMirrorResolver.MirrorHttpHeader httpHeader) {
+            this.httpHeader = httpHeader;
+        }
+
+        @Override
+        public String getName() {
+            return httpHeader.getName();
+        }
+
+        @Override
+        public String getValue() {
+            return httpHeader.getValue();
+        }
+
+        @Override
+        public void setName(@Nullable String name) {
+            throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
+        }
+
+        @Override
+        public void setValue(@Nullable String value) {
             throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
         }
     }

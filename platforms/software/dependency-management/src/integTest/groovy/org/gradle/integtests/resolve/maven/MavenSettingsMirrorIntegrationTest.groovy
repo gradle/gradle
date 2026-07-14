@@ -241,6 +241,49 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         file('libs').assertHasDescendants('projectA-1.0.jar')
     }
 
+    def "uses http header from the maven settings server entry for the mirror"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "*", "test-mirror", """
+            <servers>
+                <server>
+                    <id>test-mirror</id>
+                    <configuration>
+                        <httpHeaders>
+                            <property>
+                                <name>Private-Token</name>
+                                <value>token-123</value>
+                            </property>
+                        </httpHeaders>
+                    </configuration>
+                </server>
+            </servers>
+        """)
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        outputContains("Using HTTP header 'Private-Token' from the Maven settings server entry 'test-mirror' for Maven mirror 'test-mirror'.")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+
+        and: "every request to the mirror carried the header"
+        server.allHeaders.every { it.get("Private-Token") == "token-123" }
+    }
+
     def "gradle properties override the maven settings server credentials"() {
         given:
         def mirrorRepo = mavenHttpRepo("mirror")
