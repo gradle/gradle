@@ -15,8 +15,10 @@
  */
 package org.gradle.api.publish.maven;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.PublicationArtifact;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -24,11 +26,11 @@ import org.jspecify.annotations.Nullable;
  */
 public interface MavenArtifact extends PublicationArtifact {
     /**
-     * The extension used to publish the artifact file, never <code>null</code>.
+     * The extension used to publish the artifact file.
      * For an artifact without an extension, this value will be an empty String.
      */
-    @ToBeReplacedByLazyProperty
-    String getExtension();
+    @ReplacesEagerProperty
+    Property<String> getExtension();
 
     /**
      * Sets the extension used to publish the artifact file.
@@ -38,11 +40,11 @@ public interface MavenArtifact extends PublicationArtifact {
 
     /**
      * The classifier used to publish the artifact file.
-     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
+     * An absent value (the default) indicates that this artifact will be published without a classifier.
      */
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    String getClassifier();
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getClassifier();
 
     /**
      * Sets the classifier used to publish the artifact file.

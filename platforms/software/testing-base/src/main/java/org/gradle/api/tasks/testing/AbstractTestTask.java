@@ -383,7 +383,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
-        switch (testLogging.getExceptionFormat()) {
+        switch (testLogging.getExceptionFormat().get()) {
             case SHORT:
                 return new ShortExceptionFormatter(testLogging);
             case FULL:
@@ -493,7 +493,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * apply plugin: 'java'
      *
      * test.testLogging {
-     *     exceptionFormat = "full"
+     *     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
      * }
      * </pre>
      *
@@ -545,10 +545,21 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @TaskAction
     public void executeTests() {
+        filter.validate();
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
+        TestEventLogger eventLogger = new TestEventLogger(
+            getTextOutputFactory(),
+            currentLevel,
+            exceptionFormatter,
+            levelLogging.getShowExceptions().get(),
+            levelLogging.getMinGranularity().get(),
+            levelLogging.getMaxGranularity().get(),
+            levelLogging.getDisplayGranularity().get(),
+            levelLogging.getShowStandardStreams().getOrNull(),
+            levelLogging.getEvents().get()
+        );
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
@@ -638,7 +649,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         JUnitXmlReport junitXml = reports.getJunitXml();
         if (junitXml.getRequired().get()) {
             JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
-                junitXml.isOutputPerTestCase(),
+                junitXml.getOutputPerTestCase().get(),
                 junitXml.getMergeReruns().get(),
                 junitXml.getIncludeSystemOutLog().get(),
                 junitXml.getIncludeSystemErrLog().get()
@@ -692,7 +703,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private boolean shouldFailOnNoMatchingTests() {
-        return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
+        return patternFiltersSpecified() && filter.getFailOnNoMatchingTests().get();
     }
 
     boolean testsAreNotFiltered() {
@@ -700,9 +711,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private boolean patternFiltersSpecified() {
-        return !filter.getIncludePatterns().isEmpty()
-            || !filter.getCommandLineIncludePatterns().isEmpty()
-            || !filter.getExcludePatterns().isEmpty();
+        return !filter.getIncludePatterns().get().isEmpty()
+            || !filter.getCommandLineIncludePatterns().get().isEmpty()
+            || !filter.getExcludePatterns().get().isEmpty();
     }
 
     private String createNoMatchingTestErrorMessage() {
@@ -718,11 +729,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Internal
     protected List<String> getNoMatchingTestErrorReasons() {
         List<String> reasons = new ArrayList<String>();
-        if (!getFilter().getIncludePatterns().isEmpty()) {
-            reasons.add(getFilter().getIncludePatterns() + "(filter.includeTestsMatching)");
+        if (!getFilter().getIncludePatterns().get().isEmpty()) {
+            reasons.add(getFilter().getIncludePatterns().get() + "(filter.includeTestsMatching)");
         }
-        if (!filter.getCommandLineIncludePatterns().isEmpty()) {
-            reasons.add(filter.getCommandLineIncludePatterns() + "(--tests filter)");
+        if (!filter.getCommandLineIncludePatterns().get().isEmpty()) {
+            reasons.add(filter.getCommandLineIncludePatterns().get() + "(--tests filter)");
         }
         return reasons;
     }
@@ -736,7 +747,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Option(option = "tests", description = "Sets test class or method name to be included (in addition to the test task filters), '*' is supported.")
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
-        filter.setCommandLineIncludePatterns(testNamePattern);
+        filter.getCommandLineIncludePatterns().set(testNamePattern);
         return this;
     }
 

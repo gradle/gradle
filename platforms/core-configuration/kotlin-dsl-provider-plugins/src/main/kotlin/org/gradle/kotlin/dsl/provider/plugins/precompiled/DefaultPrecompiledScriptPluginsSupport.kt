@@ -520,8 +520,8 @@ fun Project.declareScriptPlugins(scriptPlugins: List<PrecompiledScriptPlugin>) {
     gradlePlugin.apply {
         for (scriptPlugin in scriptPlugins) {
             plugins.create(scriptPlugin.id) {
-                it.id = scriptPlugin.id
-                it.implementationClass = scriptPlugin.implementationClass
+                it.id.set(scriptPlugin.id)
+                it.implementationClass.set(scriptPlugin.implementationClass)
             }
         }
     }

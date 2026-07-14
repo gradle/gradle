@@ -15,7 +15,8 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.InputStream;
@@ -46,6 +47,7 @@ import java.util.List;
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class Exec extends AbstractExecTask<Exec> {
+    @SuppressWarnings("this-escape")
     public Exec() {
         super(Exec.class);
     }
@@ -54,8 +56,7 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<String> getArgs() {
+    public ListProperty<String> getArgs() {
         return super.getArgs();
     }
 
@@ -63,42 +64,41 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    public Exec setArgs(List<String> arguments) {
-        return super.setArgs(arguments);
+    public Exec setArgs(List<String> args) {
+        return setArgs((Iterable<?>) args);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Exec setArgs(Iterable<?> arguments) {
-        return super.setArgs(arguments);
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @ToBeReplacedByLazyProperty
-    public boolean isIgnoreExitValue() {
-        return super.isIgnoreExitValue();
+    public Exec setArgs(Iterable<?> args) {
+        getArgs().empty();
+        args(args);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Exec setIgnoreExitValue(boolean ignoreExitValue) {
-        return super.setIgnoreExitValue(ignoreExitValue);
+    public Property<Boolean> getIgnoreExitValue() {
+        return super.getIgnoreExitValue();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public InputStream getStandardInput() {
+    public Exec setIgnoreExitValue(boolean value) {
+        getIgnoreExitValue().set(value);
+        return this;
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Property<InputStream> getStandardInput() {
         return super.getStandardInput();
     }
 
@@ -106,8 +106,9 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    public Exec setStandardInput(InputStream inputStream) {
-        return super.setStandardInput(inputStream);
+    public Exec setStandardInput(InputStream value) {
+        getStandardInput().set(value);
+        return this;
     }
 
     /**
@@ -115,8 +116,7 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public OutputStream getStandardOutput() {
+    public Property<OutputStream> getStandardOutput() {
         return super.getStandardOutput();
     }
 
@@ -124,16 +124,16 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    public Exec setStandardOutput(OutputStream outputStream) {
-        return super.setStandardOutput(outputStream);
+    public Exec setStandardOutput(OutputStream value) {
+        getStandardOutput().set(value);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public OutputStream getErrorOutput() {
+    public Property<OutputStream> getErrorOutput() {
         return super.getErrorOutput();
     }
 
@@ -141,7 +141,9 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    public Exec setErrorOutput(OutputStream outputStream) {
-        return super.setErrorOutput(outputStream);
+    public Exec setErrorOutput(OutputStream value) {
+        getErrorOutput().set(value);
+        return this;
     }
+
 }

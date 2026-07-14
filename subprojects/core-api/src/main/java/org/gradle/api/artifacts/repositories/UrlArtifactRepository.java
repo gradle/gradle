@@ -16,10 +16,12 @@
 
 package org.gradle.api.artifacts.repositories;
 
+
 import org.gradle.api.provider.Property;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.net.URI;
+
 
 /**
  * A repository that supports resolving artifacts from a URL.
@@ -30,11 +32,9 @@ public interface UrlArtifactRepository {
 
     /**
      * The base URL of this repository.
-     *
-     * @return The URL.
      */
-    @ToBeReplacedByLazyProperty
-    URI getUrl();
+    @ReplacesEagerProperty
+    Property<URI> getUrl();
 
     /**
      * Sets the base URL of this repository.
@@ -65,8 +65,8 @@ public interface UrlArtifactRepository {
      * See also:
      * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
      */
-    @ToBeReplacedByLazyProperty
-    boolean isAllowInsecureProtocol();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getAllowInsecureProtocol();
 
     /**
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
@@ -76,13 +76,20 @@ public interface UrlArtifactRepository {
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);
 
     /**
+     * Added for Kotlin source compatibility.
+     */
+    default Property<Boolean> getIsAllowInsecureProtocol() {
+        return getAllowInsecureProtocol();
+    }
+
+    /**
      * Specifies whether to continue checking other repositories if this repository is disabled due to connection or communication errors.
      * <p>
      * The conventional value for this property is {@code false}, which means to not continue to check other repositories after this one.
      *
      * @return a property that control the behavior to continue or not
-     * @since 9.3.0
      * @see <a href="https://docs.gradle.org/current/userguide/graph_resolution.html#sec:repository-disabling">Disabled repositories</a>
+     * @since 9.3.0
      */
     Property<Boolean> getAllowInsecureContinueWhenDisabled();
 }

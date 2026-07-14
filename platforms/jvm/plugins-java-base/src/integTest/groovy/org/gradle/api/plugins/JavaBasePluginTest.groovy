@@ -139,7 +139,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava.description == "Compiles custom Java source."
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
-        compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
+        compileJava.classpath.files == project.sourceSets.custom.compileClasspath.files
         compileJava.destinationDirectory.asFile.get() == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
@@ -288,7 +288,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.java.docsDir.file("javadoc").get().asFile
-        javadoc.title == "test-project 1.0 API"
+        javadoc.title.get() == "test-project 1.0 API"
     }
 
     def "applies mappings to custom jar tasks"() {

@@ -45,7 +45,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
             return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
         }
 
-        if (compileOptions.isFork()) {
+        if (compileOptions.getFork().getOrElse(false)) {
             @SuppressWarnings("deprecation")
             File forkJavaHome = compileOptions.getForkOptions().getJavaHome();
             if (forkJavaHome != null) {
@@ -53,7 +53,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
                 return getCommandLineSpec(Jvm.forHome(forkJavaHome).getJavacExecutable());
             }
 
-            String forkExecutable = compileOptions.getForkOptions().getExecutable();
+            String forkExecutable = compileOptions.getForkOptions().getExecutable().getOrNull();
             if (forkExecutable != null) {
                 LOGGER.info("Compilation mode: command line compilation");
                 return getCommandLineSpec(JavaExecutableUtils.resolveExecutable(forkExecutable));

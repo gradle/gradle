@@ -32,7 +32,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
@@ -48,7 +47,7 @@ import java.io.File;
 @UntrackedTask(because = "Gradle doesn't understand the data structures")
 public abstract class GenerateIvyDescriptor extends DefaultTask {
 
-    private Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
+    private final Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
     private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = Cached.of(this::computeIvyDescriptorFileSpec);
 
     @Inject
@@ -59,11 +58,9 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     /**
      * The module descriptor metadata.
-     *
-     * @return The module descriptor.
      */
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
     @Internal
-    @ToBeReplacedByLazyProperty
     public IvyModuleDescriptorSpec getDescriptor() {
         return descriptor.get();
     }
@@ -142,5 +139,4 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
             );
         }
     }
-
 }

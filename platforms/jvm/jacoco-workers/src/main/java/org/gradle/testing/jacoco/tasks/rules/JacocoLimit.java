@@ -16,12 +16,12 @@
 
 package org.gradle.testing.jacoco.tasks.rules;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -29,7 +29,7 @@ import java.math.BigDecimal;
  *
  * @since 3.4
  */
-public interface JacocoLimit extends Serializable {
+public interface JacocoLimit {
 
     /**
      * The counter that applies to the limit as defined by
@@ -37,8 +37,8 @@ public interface JacocoLimit extends Serializable {
      * Valid values are INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD and CLASS. Defaults to INSTRUCTION.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    String getCounter();
+    @ReplacesEagerProperty
+    Property<String> getCounter();
 
     /**
      * Sets the counter that applies to the limit.
@@ -53,8 +53,8 @@ public interface JacocoLimit extends Serializable {
      * Valid values are TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO and COVEREDRATIO. Defaults to COVEREDRATIO.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    String getValue();
+    @ReplacesEagerProperty
+    Property<String> getValue();
 
     /**
      * Sets the value that applies to the limit.
@@ -66,11 +66,10 @@ public interface JacocoLimit extends Serializable {
     /**
      * Gets the minimum expected value for limit. Default to null.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    BigDecimal getMinimum();
+    @ReplacesEagerProperty
+    Property<BigDecimal> getMinimum();
 
     /**
      * Sets the minimum expected value for limit.
@@ -82,11 +81,10 @@ public interface JacocoLimit extends Serializable {
     /**
      * Gets the maximum expected value for limit. Default to null.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    BigDecimal getMaximum();
+    @ReplacesEagerProperty
+    Property<BigDecimal> getMaximum();
 
     /**
      * Sets the maximum expected value for limit.

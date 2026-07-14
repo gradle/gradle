@@ -74,7 +74,7 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildFile << """
             ${task} {
-                outputFile = null
+                outputFile.unsetConvention()
             }
         """
 

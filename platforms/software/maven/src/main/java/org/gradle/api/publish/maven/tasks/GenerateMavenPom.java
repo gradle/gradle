@@ -31,7 +31,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
@@ -62,11 +61,9 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     /**
      * The Maven POM.
-     *
-     * @return The Maven POM.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
     public MavenPom getPom() {
         return pom.get();
     }
@@ -124,5 +121,4 @@ public abstract class GenerateMavenPom extends DefaultTask {
     public void doGenerate() {
         mavenPomSpec.get().writeTo(getDestinationFile().get().getAsFile());
     }
-
 }

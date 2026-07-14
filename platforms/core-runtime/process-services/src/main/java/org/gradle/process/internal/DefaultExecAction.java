@@ -17,6 +17,10 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -50,57 +54,30 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
+    public ExecHandle buildHandle() {
+        return ExecHandleBuilderConfigurer.configureFrom(execHandleBuilder, execSpec)
+            .build();
+    }
+
+    @Override
     public ExecResult execute() {
-        ExecHandle execHandle = buildHandle();
-        ExecResult execResult = execHandle.start().waitForFinish();
-        if (!isIgnoreExitValue()) {
+        ExecResult execResult = buildHandle()
+            .start()
+            .waitForFinish();
+        if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
         }
         return execResult;
     }
 
-
     @Override
-    public ExecHandle buildHandle() {
-        if (execSpec.getStandardInput() != null) {
-            execHandleBuilder.setStandardInput(execSpec.getStandardInput());
-        }
-        if (execSpec.getStandardOutput() != null) {
-            execHandleBuilder.setStandardOutput(execSpec.getStandardOutput());
-        }
-        if (execSpec.getErrorOutput() != null) {
-            execHandleBuilder.setErrorOutput(execSpec.getErrorOutput());
-        }
-        if (execSpec.getExecutable() != null) {
-            execHandleBuilder.setExecutable(execSpec.getExecutable());
-        }
-        if (execSpec.getWorkingDirectory().isPresent()) {
-            execHandleBuilder.setWorkingDir(execSpec.getWorkingDirectory().get().getAsFile());
-        }
-        execHandleBuilder.setArgs(execSpec.getArgs());
-        execHandleBuilder.getArgumentProviders().addAll(execSpec.getArgumentProviders());
-        execHandleBuilder.setEnvironment(execSpec.getEnvironment());
-        return execHandleBuilder.build();
-    }
-
-    @Override
-    public String getExecutable() {
+    public Property<String> getExecutable() {
         return execSpec.getExecutable();
     }
 
     @Override
-    public void setExecutable(String executable) {
-        execSpec.setExecutable(executable);
-    }
-
-    @Override
-    public void setExecutable(Object executable) {
-        execSpec.setExecutable(executable);
-    }
-
-    @Override
     public ProcessForkOptions executable(Object executable) {
-        execSpec.setExecutable(executable);
+        execSpec.executable(executable);
         return this;
     }
 
@@ -111,7 +88,7 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public File getWorkingDir() {
-        return execSpec.getWorkingDirectory().get().getAsFile();
+        return execSpec.getWorkingDir();
     }
 
     @Override
@@ -121,7 +98,13 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public void setWorkingDir(Object dir) {
-        workingDir(dir);
+        execSpec.setWorkingDir(dir);
+    }
+
+    @Override
+    public ExecAction workingDir(Object dir) {
+        execSpec.workingDir(dir);
+        return this;
     }
 
     @Override
@@ -137,21 +120,6 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public void setCommandLine(List<String> args) {
-        execSpec.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Object... args) {
-        execSpec.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Iterable<?> args) {
-        execSpec.commandLine(args);
-    }
-
-    @Override
     public ExecAction args(Object... args) {
         execSpec.args(args);
         return this;
@@ -164,58 +132,18 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public ExecAction setArgs(List<String> arguments) {
-        execSpec.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public ExecAction setArgs(Iterable<?> arguments) {
-        execSpec.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public List<String> getArgs() {
+    public ListProperty<String> getArgs() {
         return execSpec.getArgs();
     }
 
     @Override
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
+    public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return execSpec.getArgumentProviders();
     }
 
     @Override
-    public ExecAction setIgnoreExitValue(boolean ignoreExitValue) {
-        execSpec.setIgnoreExitValue(ignoreExitValue);
-        return this;
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
-        return execSpec.isIgnoreExitValue();
-    }
-
-    @Override
-    public ExecAction setStandardInput(InputStream inputStream) {
-        execSpec.setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
-    public ExecAction workingDir(Object dir) {
-        execSpec.workingDir(dir);
-        return this;
-    }
-
-    @Override
-    public Map<String, Object> getEnvironment() {
+    public MapProperty<String, Object> getEnvironment() {
         return execSpec.getEnvironment();
-    }
-
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        execSpec.setEnvironment(environmentVariables);
     }
 
     @Override
@@ -231,34 +159,93 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public OutputStream getStandardOutput() {
-        return execSpec.getStandardOutput();
+    public Property<Boolean> getIgnoreExitValue() {
+        return execSpec.getIgnoreExitValue();
     }
 
     @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        execSpec.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return execSpec.getErrorOutput();
-    }
-
-    @Override
-    public List<String> getCommandLine() {
-        return execSpec.getCommandLine();
-    }
-
-    @Override
-    public InputStream getStandardInput() {
+    public Property<InputStream> getStandardInput() {
         return execSpec.getStandardInput();
     }
 
     @Override
-    public ExecAction setStandardOutput(OutputStream outputStream) {
-        execSpec.setStandardOutput(outputStream);
+    public Property<OutputStream> getStandardOutput() {
+        return execSpec.getStandardOutput();
+    }
+
+    @Override
+    public Property<OutputStream> getErrorOutput() {
+        return execSpec.getErrorOutput();
+    }
+
+    @Override
+    public Provider<List<String>> getCommandLine() {
+        return execSpec.getCommandLine();
+    }
+
+    @Override
+    public void setExecutable(String executable) {
+        execSpec.setExecutable(executable);
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        execSpec.setExecutable(executable);
+    }
+
+    @Override
+    public void setEnvironment(Map<String, ?> environment) {
+        execSpec.setEnvironment(environment);
+    }
+
+    @Override
+    public void setCommandLine(List<String> args) {
+        execSpec.setCommandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Object... args) {
+        execSpec.setCommandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Iterable<?> args) {
+        execSpec.setCommandLine(args);
+    }
+
+    @Override
+    public ExecSpec setArgs(List<String> args) {
+        execSpec.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public ExecSpec setArgs(Iterable<?> args) {
+        execSpec.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        execSpec.setIgnoreExitValue(ignoreExitValue);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setStandardInput(InputStream standardInput) {
+        execSpec.setStandardInput(standardInput);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setStandardOutput(OutputStream standardOutput) {
+        execSpec.setStandardOutput(standardOutput);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setErrorOutput(OutputStream errorOutput) {
+        execSpec.setErrorOutput(errorOutput);
         return this;
     }
 
@@ -270,6 +257,7 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public ExecAction copyTo(ProcessForkOptions options) {
-        throw new UnsupportedOperationException("Copy to ProcessForkOptions is not supported for ExecAction");
+        execSpec.copyTo(options);
+        return this;
     }
 }

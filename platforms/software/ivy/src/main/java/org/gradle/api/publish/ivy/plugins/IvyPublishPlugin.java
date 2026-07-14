@@ -256,7 +256,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             publicationIdentity.getModule().set(providerFactory.provider(module::getName));
             publicationIdentity.getRevision().set(providerFactory.provider(module::getVersion));
 
-            NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity, taskDependencyFactory, publishArtifactNotationParser).create();
+            NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity, taskDependencyFactory, publishArtifactNotationParser, providerFactory, objectFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
 
             return objectFactory.newInstance(DefaultIvyPublication.class, name, publicationIdentity, notationParser, versionMappingStrategy);

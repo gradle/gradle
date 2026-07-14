@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
 import org.gradle.util.internal.TextUtil
 
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {

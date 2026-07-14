@@ -16,12 +16,19 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecSpec;
 
 import java.util.List;
 
 interface DelegatingExecSpec extends DelegatingBaseExecSpec, ExecSpec {
+    @Override
+    default Provider<List<String>> getCommandLine() {
+        return getDelegate().getCommandLine();
+    }
+
     @Override
     default void setCommandLine(List<String> args) {
         getDelegate().setCommandLine(args);
@@ -62,6 +69,11 @@ interface DelegatingExecSpec extends DelegatingBaseExecSpec, ExecSpec {
     }
 
     @Override
+    default ListProperty<String> getArgs() {
+        return getDelegate().getArgs();
+    }
+
+    @Override
     default ExecSpec setArgs(List<String> args) {
         getDelegate().setArgs(args);
         return this;
@@ -74,12 +86,7 @@ interface DelegatingExecSpec extends DelegatingBaseExecSpec, ExecSpec {
     }
 
     @Override
-    default List<String> getArgs() {
-        return getDelegate().getArgs();
-    }
-
-    @Override
-    default List<CommandLineArgumentProvider> getArgumentProviders() {
+    default ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return getDelegate().getArgumentProviders();
     }
 

@@ -56,7 +56,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
         when:
         javaCompile.options.fork = true
-        javaCompile.options.forkOptions.executable = invalidExecutable
+        javaCompile.options.forkOptions.executable = invalidExecutable.absolutePath
         javaCompile.createSpec()
 
         then:
