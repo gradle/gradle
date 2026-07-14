@@ -780,7 +780,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun ReadContext.readBuildCacheConfiguration(gradle: GradleInternal) {
-        gradle.startParameter.isBuildCacheEnabled = readBoolean()
+        gradle.startParameter.restoreBuildCacheEnabled(readBoolean())
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?

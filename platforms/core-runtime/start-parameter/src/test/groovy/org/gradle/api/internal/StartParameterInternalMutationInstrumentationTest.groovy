@@ -112,15 +112,15 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "useEmptySettings()",
     ]
 
-    // Mutators that deliberately do not notify, plus the listener-wiring infrastructure.
-    private static final List<String> TASK_REQUEST_MODIFIER = [
+    // Mutators that deliberately do not notify
+    private static final List<String> EXEMPT_MUTATORS = [
         // Tooling model builders legitimately replace the requested tasks while the build runs.
         "setTaskNames(Iterable)",
         "setTaskRequests(Iterable)",
+        "restoreBuildCacheEnabled(boolean)"
     ]
-    // Mutators that deliberately do not notify, plus the listener-wiring infrastructure.
 
-    private static final List<String> NOT_NOTIFYING = TASK_REQUEST_MODIFIER + [
+    private static final List<String> NOT_NOTIFYING = EXEMPT_MUTATORS + [
         // Listener wiring, not tracked state.
         "setMutationListener(Consumer)",
         "clearMutationListener()",
@@ -263,7 +263,7 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         def bySignature = declaredMethods().collectEntries { [signature(it), it] }
 
         expect:
-        TASK_REQUEST_MODIFIER.each { sig ->
+        EXEMPT_MUTATORS.each { sig ->
             def method = bySignature[sig] as Method
             notified.clear()
             method.invoke(parameter, argumentsFor(method))

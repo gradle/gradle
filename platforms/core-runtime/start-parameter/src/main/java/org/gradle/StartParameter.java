@@ -112,7 +112,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean offline;
     private File projectCacheDir;
     private boolean refreshDependencies;
-    private boolean buildCacheEnabled;
+    protected boolean buildCacheEnabled;
     private boolean buildCacheDebugLogging;
     private boolean configureOnDemand;
     private boolean continuous;

@@ -106,6 +106,14 @@ public class StartParameterInternal extends StartParameter {
         }
     }
 
+    /**
+     * Restores build cache enablement from the configuration cache without reporting the change.
+     * Should only be used by CC engine.
+     */
+    public void restoreBuildCacheEnabled(boolean buildCacheEnabled) {
+        this.buildCacheEnabled = buildCacheEnabled;
+    }
+
     // The public copy methods are deprecated. They are still reached at runtime via a StartParameter
     // reference to the (internal) running build's start parameter, so the overrides must nag too;
     // internal code calls newInstanceInternal()/newBuildInternal() instead, which do not nag.
