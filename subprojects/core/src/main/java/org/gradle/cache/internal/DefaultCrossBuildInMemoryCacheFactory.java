@@ -28,7 +28,6 @@ import java.lang.ref.SoftReference;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +36,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static java.util.Collections.synchronizedMap;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.
@@ -63,14 +61,14 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(KeyRetentionPolicy.STRONG);
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>();
         listenerManager.addListener(cache);
         return cache;
     }
 
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse) {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(KeyRetentionPolicy.STRONG) {
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>() {
             @Nullable
             @Override
             protected V maybeGetRetainedValue(K key) {
@@ -192,30 +190,12 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
     }
 
-    private enum KeyRetentionPolicy {
-        WEAK,
-        STRONG
-    }
-
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
 
         // This is used only to retain strong references to the values
         private final Set<V> valuesForPreviousSession = new HashSet<>();
-        private final Map<K, SoftReference<V>> allValues;
-
-        public DefaultCrossBuildInMemoryCache(KeyRetentionPolicy retentionPolicy) {
-            this.allValues = mapFor(retentionPolicy);
-        }
-
-        private Map<K, SoftReference<V>> mapFor(KeyRetentionPolicy retentionPolicy) {
-            switch (retentionPolicy) {
-                case WEAK:
-                    return synchronizedMap(new WeakHashMap<>());
-                case STRONG:
-                    return new ConcurrentHashMap<>();
-            }
-            throw new IllegalArgumentException("Unknown retention policy: " + retentionPolicy);
-        }
+        // Keys are held strongly; values are held via soft references so they may be collected under memory pressure.
+        private final Map<K, SoftReference<V>> allValues = new ConcurrentHashMap<>();
 
         @Override
         protected void retainValuesFromCurrentSession(Stream<V> values) {
