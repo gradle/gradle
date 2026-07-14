@@ -20,7 +20,6 @@ import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
@@ -39,10 +38,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         PROGRAMMATIC
     }
 
-    @ToBeFixedForConfigurationCache(
-        because = "startParameter.buildCacheEnabled is not restored",
-        iterationMatchers = ['^.+PROGRAMMATIC$']
-    )
     def "can configure with settings.gradle - enabled by #by"() {
         // Build scripts are cached in global cache since they are compiled as ImmutableUnitOfWork,
         // so to avoid flakiness we run with own GradleUserHome

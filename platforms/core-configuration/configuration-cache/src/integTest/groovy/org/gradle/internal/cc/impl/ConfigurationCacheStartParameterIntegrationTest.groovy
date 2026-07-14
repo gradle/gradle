@@ -16,7 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import spock.lang.Issue
 
 class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -50,4 +52,72 @@ class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurat
         fixture.assertStateLoaded()
         outputContains("REQUESTED=[printRequestedTasks]")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/37088")
+    def "build cache enablement set programmatically in settings is restored on a configuration cache hit"() {
+        given:
+        settingsFile """
+            gradle.startParameter.buildCacheEnabled = true
+        """
+        buildFile """
+            abstract class PrintBuildCache extends DefaultTask {
+                @Inject abstract StartParameter getStartParameter()
+                @TaskAction void printIt() {
+                    println("BUILD_CACHE_ENABLED=" + getStartParameter().buildCacheEnabled)
+                }
+            }
+            tasks.register('printBuildCache', PrintBuildCache)
+        """
+
+        when: "store run: settings script runs and enables the build cache"
+        configurationCacheRun("printBuildCache")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("BUILD_CACHE_ENABLED=true")
+
+        when: "cache hit: settings do not run"
+        configurationCacheRun("printBuildCache")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains("BUILD_CACHE_ENABLED=true")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37088")
+    def "build cache enabled programmatically in settings still caches task outputs on a configuration cache hit"() {
+        given: "the build cache is enabled programmatically, not via the command line"
+        executer.requireOwnGradleUserHomeDir()
+        def cache = new TestBuildCache(file("cache-dir"))
+        settingsFile(cache.localCacheConfiguration() + """
+            gradle.startParameter.buildCacheEnabled = true
+        """)
+        buildFile """
+            @CacheableTask
+            abstract class CustomTask extends DefaultTask {
+                @Input String content = "content"
+                @OutputFile abstract RegularFileProperty getOutputFile()
+                @TaskAction void run() { outputFile.get().asFile.text = content }
+            }
+            tasks.register('customTask', CustomTask) {
+                outputFile = layout.buildDirectory.file("out.txt")
+            }
+        """
+
+        when: "store run populates the build cache"
+        configurationCacheRun("customTask")
+
+        then: "the task runs and its output is stored in the cache"
+        fixture.assertStateStored()
+        !cache.empty
+
+        when: "the output is removed and the build is rerun as a configuration cache hit"
+        file("build").forceDeleteDir()
+        configurationCacheRun("customTask")
+
+        then: "the task output is loaded from the cache, proving build caching is active without reconfiguration"
+        fixture.assertStateLoaded()
+        result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
+    }
+
 }
