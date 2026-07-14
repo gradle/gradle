@@ -684,4 +684,26 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             )
         }
     }
+
+    @Test
+    fun `a member does not inherit @since from its declaring class`() {
+        checkNotBinaryCompatibleKotlin(
+            v2 = """
+
+            /** @since 2.0 */
+            @Incubating
+            interface Foo {
+
+                @Incubating
+                fun foo()
+            }
+
+            """
+        ) {
+            assertHasNoWarning()
+            assertHasErrors(
+                listOf("Method com.example.Foo.foo(): Is not annotated with @since 2.0."),
+            )
+        }
+    }
 }
