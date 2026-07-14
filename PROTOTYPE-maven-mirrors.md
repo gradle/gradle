@@ -93,6 +93,15 @@ Maven's model: a `<server>` entry in settings.xml whose `<id>` equals the mirror
 - CC story is already in place: the server entries live in settings.xml, whose checksum is a CC input while the feature flag is on. `settings-security.xml` would need adding to the same checksum value source.
 - Limits: HTTP basic auth only (no wagon `privateKey`/scp, no NTLM config, no `<configuration>` HTTP headers). Fine for the realistic use case (Artifactory/Nexus/Sonatype mirrors).
 
+**Beyond basic auth: what Maven's `<server>` can declare.** The settings.xml server model (verified against the `maven-settings` 3.9.5 jar Gradle ships) is: `username`/`password`, `privateKey`/`passphrase`, `filePermissions`/`directoryPermissions`, and a free-form `configuration` block. What that means for auth:
+
+- **Per-server HTTP headers** — `<server><configuration><httpHeaders>` declares arbitrary headers for a server id; the idiomatic Maven way to do token/bearer auth (GitHub Packages, GitLab, cloud registries). Honored by both wagon-http and the native resolver transport that is the default since Maven 3.9. Gradle has a 1:1 counterpart (`HttpHeaderCredentials` + `HttpHeaderAuthentication`), so Option A can map it directly. Two caveats: `<configuration>` is not a schema (`Server.getConfiguration()` returns untyped XML originally interpreted by the wagon in use; the native transport honors only a subset, `httpHeaders` being the reliable one), so support should be explicitly best-effort; and header values are subject to the same `{...}` encryption as passwords.
+- **Digest/NTLM are negotiated, not declared** — Maven's HTTP layer answers whatever challenge the server sends using the same `username`/`password` (NTLM domain conventionally as `DOMAIN\user`). Gradle behaves identically (`PasswordCredentials` with the default `AllSchemesAuthentication`), so no extra declarative surface is needed on either side.
+- **SSH keys** (`privateKey`/`passphrase` and the permission fields) exist for the scp/sftp deployment wagons — irrelevant for HTTP mirrors.
+- **Mutual TLS is not declarative** — client certificates are JVM-global system properties (`javax.net.ssl.keyStore` in `MAVEN_OPTS`/`.mvn/jvm.config`), never per-server in settings.xml. Nothing to map; Gradle is in the same position.
+
+The realistic parity target for Option A is therefore: `username`/`password` (with decryption) covering basic/digest/NTLM, plus best-effort `<httpHeaders>` → `HttpHeaderCredentials` for token-authenticated mirrors.
+
 **Option B — Gradle-native credential lookup keyed by the mirror id.**
 
 - Reuse the existing `CredentialsProviderFactory` convention that backs `credentials(PasswordCredentials.class)`: Gradle properties `<mirrorId>Username` / `<mirrorId>Password`, typically set in `~/.gradle/gradle.properties` or via `ORG_GRADLE_PROJECT_*` environment variables.
