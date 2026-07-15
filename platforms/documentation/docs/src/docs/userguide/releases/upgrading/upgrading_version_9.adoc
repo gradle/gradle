@@ -93,6 +93,16 @@ Additionally, the transitional system property `org.gradle.tooling.parallel.igno
 Once `org.gradle.parallel` and `org.gradle.tooling.parallel` are independent, the flag is redundant, so Gradle 10 simply ignores it.
 No action is required in Gradle 9.x; if you set it explicitly, you can remove it when upgrading to Gradle 10.
 
+[[deprecated-reentrant-build-service-registration]]
+==== Deprecation of registering a build service from its own configuration action
+
+Calling link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`] for a service from the configuration action of the registration of the same service (directly, or indirectly through a provider evaluated by the action) is now deprecated and will become an error in Gradle 10.
+
+Previously, such a nested registration silently produced two service providers for the same name: the provider returned by the outer call was not tracked by the registry, so its service instance was never stopped and was invisible to shared-resource accounting.
+Now the nested registration takes effect, both calls return the same provider, and the configuration applied by the outer action is discarded.
+
+Restructure the build logic so that the service is registered once, outside of its own configuration action.
+
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
 

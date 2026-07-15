@@ -1368,6 +1368,43 @@ Hello, subproject1
         outputContains("service: value is 2")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/36578")
+    def "registering a service from its own configuration action is deprecated and yields the nested registration"() {
+        given:
+        serviceImplementation()
+        buildFile << """
+            def inner = null
+            def outer = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                inner = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                    parameters.initial = 10
+                }
+                // Applied to the outer spec, which is discarded because the nested registration wins
+                parameters.initial = 42
+            }
+            println("same provider: " + outer.is(inner))
+
+            task check {
+                doFirst {
+                    println("service value: " + outer.get().initialValue)
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(
+            "Registering build service 'counter' from the configuration action of its own registration. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+                "Register the service once, outside of its own configuration action. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated-reentrant-build-service-registration"
+        )
+        run("check")
+
+        then:
+        outputContains("same provider: true")
+        outputContains("service: created with value = 10")
+        outputContains("service value: 10")
+    }
+
     def "service can take another service as a parameter"() {
         serviceImplementation()
         buildFile << """

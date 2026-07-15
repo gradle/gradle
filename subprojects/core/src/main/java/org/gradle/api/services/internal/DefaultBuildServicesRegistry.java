@@ -18,6 +18,7 @@ package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.errorprone.annotations.concurrent.GuardedBy;
 import kotlin.Unit;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.BuildAdapter;
@@ -35,9 +36,11 @@ import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -52,8 +55,12 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -67,7 +74,15 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     private final BuildIdentifier buildIdentifier;
     private final Lock registrationsLock = new ReentrantLock();
+    /**
+     * Registrations that have been claimed by some thread but not yet committed to {@link #internalRegistrations},
+     * keyed by service name. Guarded by {@link #registrationsLock}.
+     */
+    @GuardedBy("registrationsLock")
+    private final Map<String, RegistrationClaim> inFlightRegistrations = new HashMap<>();
+    @GuardedBy("registrationsLock")
     private NamedDomainObjectSet<BuildServiceRegistration<?, ?>> internalRegistrations;
+    @GuardedBy("registrationsLock")
     private IsolatedProjectsReportingRegistrationsContainer publicRegistrations;
     private final DomainObjectCollectionFactory collectionFactory;
     private final InstantiatorFactory instantiatorFactory;
@@ -110,7 +125,15 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         listenerManager.addListener(new ServiceCleanupListener());
     }
 
-    private <U> U withRegistrations(Function<NamedDomainObjectSet<BuildServiceRegistration<?, ?>>, U> function) {
+    /**
+     * Runs the given function while holding {@link #registrationsLock}.
+     *
+     * <p>No user code may run inside the function: user code may grab arbitrary locks and cause a lock-order-inversion
+     * deadlock with another thread that is registering or querying a build service (see gradle/gradle#36578).
+     * A known exception is callbacks registered on the public registrations container (e.g. {@code getRegistrations().all { }}),
+     * which are still fired by {@code registrations.add()} while the lock is held.
+     */
+    private <U extends @Nullable Object> U withRegistrations(Function<NamedDomainObjectSet<BuildServiceRegistration<?, ?>>, U> function) {
         registrationsLock.lock();
         try {
             return function.apply(internalRegistrations);
@@ -121,7 +144,12 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public NamedDomainObjectSet<BuildServiceRegistration<?, ?>> getRegistrations() {
-        return publicRegistrations;
+        registrationsLock.lock();
+        try {
+            return publicRegistrations;
+        } finally {
+            registrationsLock.unlock();
+        }
     }
 
     private static IsolatedProjectsReportingRegistrationsContainer createPublicRegistrations(
@@ -154,6 +182,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
+    @Nullable
     public SharedResource forService(BuildServiceProvider<?, ?> service) {
         DefaultServiceRegistration<?, ?> registration = findRegistration(service.getType(), service.getName());
         if (registration == null) {
@@ -228,18 +257,156 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegisterIfAbsent(String name, Class<T> implementationType, Supplier<BuildServiceSpec<P>> specSupplier) {
-        return withRegistrations(registrations -> {
-            BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
-            if (existing != null) {
+        while (true) {
+            RegistrationClaim claim;
+            boolean owning = false;
+            registrationsLock.lock();
+            try {
+                BuildServiceRegistration<?, ?> existing = internalRegistrations.findByName(name);
+                if (existing != null) {
+                    // The service has been registered already.
+                    // TODO - assert same type
+                    // TODO - assert same parameters
+                    return uncheckedNonnullCast(existing.getService());
+                }
+                claim = inFlightRegistrations.get(name);
+                if (claim == null) {
+                    // We're the first to register the service under that name.
+                    // Mark our attempt so everyone else waits until we're done.
+                    claim = new RegistrationClaim();
+                    inFlightRegistrations.put(name, claim);
+                    owning = true;
+                }
+            } finally {
+                registrationsLock.unlock();
+            }
+            if (owning) {
+                // We're the first thread to register the service under that name. Let's proceed.
+                return configureAndCommit(name, implementationType, specSupplier, claim, true);
+            }
+            // Someone else is trying to register the service...
+            if (claim.isOwnedByCurrentThread()) {
+                // Re-entrance.
+                // The configuration action of this registration is registering the same service again on the same thread.
+                // The nested registration takes effect; when it completes, the outer invocation finds it committed
+                // and returns it, discarding the outer spec.
+                nagAboutReentrantRegistrationOf(name);
+                return configureAndCommit(name, implementationType, specSupplier, claim, false);
+            }
+            // There is a concurrent registration going on. Let's wait for it to complete.
+            BuildServiceProvider<?, ?> registeredByOtherThread = awaitRegistrationBy(claim);
+            if (registeredByOtherThread != null) {
                 // TODO - assert same type
                 // TODO - assert same parameters
-                return uncheckedNonnullCast(existing.getService());
+                return uncheckedNonnullCast(registeredByOtherThread);
             }
+            // The claim owner failed and released the claim. Retry with our own configuration,
+            // just like a sequential caller that follows a failed registration.
+        }
+    }
+
+    /**
+     * Waits for the registration claimed by another thread to complete, outside of any locks.
+     *
+     * @return the registered service provider, or {@code null} if the registering thread failed and the caller should retry
+     */
+    @Nullable
+    private static BuildServiceProvider<?, ?> awaitRegistrationBy(RegistrationClaim claim) {
+        try {
+            return claim.result.get();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (ExecutionException e) {
+            // It is acceptable to swallow the exception here.
+            // The registering thread is going to see the original failure thrown from its registerIfAbsent.
+            return null;
+        }
+    }
+
+    /**
+     * Configures the service spec, running user code without holding any locks, and commits the registration.
+     * On failure, the claim is released if this invocation owns it, and the failure propagates to the caller.
+     */
+    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> configureAndCommit(
+        String name,
+        Class<T> implementationType,
+        Supplier<BuildServiceSpec<P>> specSupplier,
+        RegistrationClaim claim,
+        boolean ownsClaim
+    ) {
+        try {
             // TODO - finalize the parameters during isolation
             // TODO - need to lock the project during isolation - should do this the same way as artifact transforms
+            // Runs user code, so no locks may be held here.
             BuildServiceSpec<P> spec = specSupplier.get();
-            return doRegister(name, implementationType, spec.getParameters(), spec.getMaxParallelUsages().getOrNull(), registrations);
-        });
+            return commitRegistration(name, implementationType, spec, claim);
+        } catch (Throwable e) {
+            if (ownsClaim) {
+                releaseFailedClaim(name, claim, e);
+            }
+            // A nested (reentrant) invocation leaves the claim alone: the failure propagates into the configuration
+            // action of the owning invocation, which may still recover and complete the registration.
+            throw e;
+        }
+    }
+
+    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> commitRegistration(
+        String name,
+        Class<T> implementationType,
+        BuildServiceSpec<P> spec,
+        RegistrationClaim claim
+    ) {
+        registrationsLock.lock();
+        try {
+            // Recheck: the service may have been committed by a reentrant nested registration, or by a racing register() call.
+            BuildServiceRegistration<?, ?> existing = internalRegistrations.findByName(name);
+            BuildServiceProvider<T, P> provider = existing != null
+                ? uncheckedNonnullCast(existing.getService())
+                : doRegister(name, implementationType, spec.getParameters(), spec.getMaxParallelUsages().getOrNull(), internalRegistrations);
+            // No-ops if a reentrant nested registration already completed the claim.
+            claim.result.complete(provider);
+            inFlightRegistrations.remove(name, claim);
+            return provider;
+        } finally {
+            registrationsLock.unlock();
+        }
+    }
+
+    /**
+     * Releases the claim of a registration whose configuration failed, so that waiting and future callers can retry.
+     */
+    private void releaseFailedClaim(String name, RegistrationClaim claim, Throwable failure) {
+        registrationsLock.lock();
+        try {
+            inFlightRegistrations.remove(name, claim);
+        } finally {
+            registrationsLock.unlock();
+        }
+        // No-ops if a reentrant nested registration already completed the claim; the registration exists then,
+        // and only the caller that failed sees the failure.
+        claim.result.completeExceptionally(failure);
+    }
+
+    private static void nagAboutReentrantRegistrationOf(String name) {
+        DeprecationLogger.deprecateBehaviour(String.format("Registering build service '%s' from the configuration action of its own registration.", name))
+            .withAdvice("Register the service once, outside of its own configuration action.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated-reentrant-build-service-registration")
+            .nagUser();
+    }
+
+    /**
+     * An in-flight registration of a build service. The thread that created the claim runs the configuration action
+     * without holding any locks and then commits the registration, completing {@link #result}. Other threads
+     * trying to register a service with the same name wait for the result instead of registering.
+     */
+    private static class RegistrationClaim {
+        private final Thread owner = Thread.currentThread();
+        final CompletableFuture<BuildServiceProvider<?, ?>> result = new CompletableFuture<>();
+
+        boolean isOwnedByCurrentThread() {
+            return owner == Thread.currentThread();
+        }
     }
 
     @Override
@@ -324,10 +491,11 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private void discardAll(boolean forceAll) {
-        withRegistrations(registrations -> {
+        registrationsLock.lock();
+        try {
             List<DefaultServiceRegistration<?, ?>> preserved = new ArrayList<>();
             try {
-                ExecutionResult.forEach(registrations, registration -> {
+                ExecutionResult.forEach(internalRegistrations, registration -> {
                     DefaultServiceRegistration<?, ?> serviceRegistration = (DefaultServiceRegistration<?, ?>) registration;
                     // Do not stop services that are to be retained beyond configuration time (e.g. build event listeners)
                     if (forceAll || !serviceRegistration.provider.isKeepAlive()) {
@@ -339,12 +507,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             } finally {
                 // Replace the entire container, rather than clear it, to discard all the service instances and because it may contain configuration actions and
                 // other state that can affect the service instances when they are registered again
-                this.internalRegistrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
-                this.publicRegistrations = createPublicRegistrations(buildModelParameters, internalRegistrations, problems, registrationsLock, instantiatorFactory);
+                internalRegistrations = Cast.uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
+                publicRegistrations = createPublicRegistrations(buildModelParameters, internalRegistrations, problems, registrationsLock, instantiatorFactory);
             }
-            this.internalRegistrations.addAll(preserved);
-            return null;
-        });
+            internalRegistrations.addAll(preserved);
+        } finally {
+            registrationsLock.unlock();
+        }
     }
 
     private static class ServiceBackedSharedResource implements SharedResource {
