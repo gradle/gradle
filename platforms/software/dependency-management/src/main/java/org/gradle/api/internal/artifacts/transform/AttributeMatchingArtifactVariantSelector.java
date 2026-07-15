@@ -105,19 +105,22 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
             }
         }
 
-        // Augmented pass produced no match and no transform chain. Try using the original attributes for
-        // matching so that the fallback primary can still satisfy a no-op resolution. This second pass
-        // preserves the pre-fallback-variant-attribute behaviour and is deprecated: producers that expose
-        // an empty primary alongside secondary variants should rely on the augmented match, and consumers
-        // that require the empty primary should request org.gradle.fallback-variant='true' explicitly.
+        // Augmented pass produced no match and no transform chain. Fall through to a second pass
+        // using the original (un-augmented) attributes so that an empty fallback primary can still
+        // act as a "nothing to resolve" backstop and so error messages come from the un-augmented
+        // request. Running this second pass is deprecated regardless of its outcome: producers that
+        // expose an empty primary alongside secondary variants should rely on the augmented match,
+        // and consumers that require the empty primary should request org.gradle.fallback-variant='true'
+        // explicitly. The deprecation fires here (before the pass) so that a subsequent failure in
+        // tryMatchOrTransform still surfaces the warning about the deprecated codepath.
         if (ranAugmentedPass) {
             DeprecationLogger.deprecateBehaviour(
                 "Resolving artifacts for " + producer.asDescribable().getDisplayName() +
-                    " matched a variant tagged '" + FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName() +
-                    "=" + FallbackVariant.TRUE + "' because no other variant satisfied the request."
+                    " required a fallback selection pass because no variant satisfied the request."
             )
                 .withAdvice(
-                    "To keep matching this variant, request '" + FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName() +
+                    "To match a variant tagged '" + FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName() +
+                        "=" + FallbackVariant.TRUE + "', request '" + FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName() +
                         "=" + FallbackVariant.TRUE + "' explicitly on the consumer. Otherwise, expose a variant that " +
                         "carries the attributes this request needs."
                 )

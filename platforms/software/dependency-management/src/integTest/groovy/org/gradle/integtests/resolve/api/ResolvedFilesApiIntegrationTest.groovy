@@ -394,6 +394,14 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
+        // The empty primary of :a and :b (secondary variants free/paid + empty primary) gets
+        // auto-tagged with org.gradle.fallback-variant=true. The augmented pass rejects both
+        // secondaries on flavor and prunes the primary on the fallback-variant attribute, so the
+        // un-augmented (fallback) selection pass runs for both projects, firing the deprecation.
+        // Downstream, the external test:test:1.2 and things.jar dependencies still fail on
+        // artifactType, which is what this test is asserting.
+        executer.expectDocumentedDeprecationWarning(fallbackDeprecation(":a"))
+        executer.expectDocumentedDeprecationWarning(fallbackDeprecation(":b"))
         fails("show")
 
         // Eager expressions (Set<File>) resolve all transitive dependencies and report all failures.
@@ -603,6 +611,14 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         where:
         expression << ALL_EXPRESSIONS
+    }
+
+    private static String fallbackDeprecation(String projectPath) {
+        "Resolving artifacts for project '$projectPath' required a fallback selection pass because no variant satisfied the request. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+            "To match a variant tagged 'org.gradle.fallback-variant=true', request 'org.gradle.fallback-variant=true' explicitly on the consumer. " +
+            "Otherwise, expose a variant that carries the attributes this request needs. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts"
     }
 
     private String freeAndPaidFlavoredJars(String prefix) {

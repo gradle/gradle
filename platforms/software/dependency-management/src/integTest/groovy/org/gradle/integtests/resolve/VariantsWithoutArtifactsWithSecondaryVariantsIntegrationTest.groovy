@@ -50,7 +50,10 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
 
     // region Secondary Variant with No Artifacts
     def "adding secondary variant with no artifact works fine"() {
-        expect:
+        when:
+        executer.expectDocumentedDeprecationWarning(FALLBACK_DEPRECATION_MESSAGE)
+
+        then:
         succeeds("resolve", "-PregisterSecondaryVariant=true")
         assertResolved([])
     }
@@ -97,7 +100,10 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
 
     // region Secondary Variant with an Artifact
     def "adding secondary variant with an artifact works fine"() {
-        expect:
+        when:
+        executer.expectDocumentedDeprecationWarning(FALLBACK_DEPRECATION_MESSAGE)
+
+        then:
         succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true")
         assertResolved([])
     }
@@ -143,17 +149,8 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
 
     // region Deprecation of the empty-primary fallback pass
     def "empty-primary fallback resolution emits a deprecation warning"() {
-        given:
-        settingsFile << "rootProject.name = 'fv-deprecation-test'"
-
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Resolving artifacts for root project 'fv-deprecation-test' matched a variant tagged 'org.gradle.fallback-variant=true' because no other variant satisfied the request. " +
-                "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
-                "To keep matching this variant, request 'org.gradle.fallback-variant=true' explicitly on the consumer. " +
-                "Otherwise, expose a variant that carries the attributes this request needs. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts"
-        )
+        executer.expectDocumentedDeprecationWarning(FALLBACK_DEPRECATION_MESSAGE)
 
         then:
         succeeds("resolve", "-PregisterSecondaryVariant=true")
@@ -174,7 +171,15 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
     }
     // endregion Deprecation of the empty-primary fallback pass
 
+    private static final String FALLBACK_DEPRECATION_MESSAGE =
+        "Resolving artifacts for root project 'fv-secondary-variants-test' required a fallback selection pass because no variant satisfied the request. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+            "To match a variant tagged 'org.gradle.fallback-variant=true', request 'org.gradle.fallback-variant=true' explicitly on the consumer. " +
+            "Otherwise, expose a variant that carries the attributes this request needs. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts"
+
     def setup() {
+        settingsFile << "rootProject.name = 'fv-secondary-variants-test'"
         buildKotlinFile << """
             val myAttribute = Attribute.of("myAttribute", String::class.java)
 
