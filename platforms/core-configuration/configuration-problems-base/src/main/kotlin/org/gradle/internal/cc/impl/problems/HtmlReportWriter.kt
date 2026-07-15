@@ -20,46 +20,71 @@ import java.io.Writer
 
 
 /**
- * Writes the configuration cache html report.
+ * Writes the configuration cache / problems html report.
  *
- * The report is laid out in such a way as to allow extracting the pure JSON model
- * by looking for the `// begin-report-data` and `// end-report-data` markers.
+ * The model is emitted as a generated `configurationCacheProblems()` function that assembles the
+ * report object at load time: the diagnostics are streamed into a `const diagnostics` array as they
+ * arrive, and the surrounding model (the "envelope") is appended last, once its totals are known.
+ *
+ * To keep the two pieces readable as plain JSON (e.g. by the integration test fixture), each is wrapped in its
+ * own marker pair:
+ * - the diagnostics array between `// begin-report-diagnostics`/`// end-report-diagnostics`
+ * - the envelope object between `// begin-report-model`/`// end-report-model`.
+ *
+ * Array elements are comma-separated, so each marked region is valid JSON on its own.
+ * The whole region remains delimited by the outer `// begin-report-data`/`// end-report-data` markers.
  */
 class HtmlReportWriter(
     private val writer: Writer,
-    private val htmlTemplate: HtmlReportTemplate,
-    val jsonModelWriter: JsonModelWriter
+    private val htmlTemplate: HtmlReportTemplate
 ) {
+
+    private
+    var firstDiagnostic = true
 
     fun beginHtmlReport() {
         writer.append(htmlTemplate.header)
-        beginReportData()
-        jsonModelWriter.beginModel()
-    }
-
-    fun endHtmlReport(details: JsonSource) {
-        jsonModelWriter.endModel(details)
-        endReportData()
-        writer.append(htmlTemplate.footer)
-    }
-
-    private
-    fun beginReportData() {
         writer.run {
             appendLine("""<script type="text/javascript">""")
-            appendLine("function configurationCacheProblems() { return (")
+            appendLine("function configurationCacheProblems() {")
             appendLine("// begin-report-data")
+            appendLine("const diagnostics =")
+            appendLine("// begin-report-diagnostics")
+            appendLine("[")
         }
     }
 
-    private
-    fun endReportData() {
+    /**
+     * Appends one already-serialized diagnostic to the streamed `diagnostics` array.
+     */
+    fun writeDiagnostic(diagnosticJson: String) {
+        writer.run {
+            if (!firstDiagnostic) {
+                appendLine(",")
+            }
+            firstDiagnostic = false
+            append(diagnosticJson)
+        }
+    }
+
+    fun endHtmlReport(envelopeJson: String) {
         writer.run {
             appendLine()
+            appendLine("]")
+            appendLine("// end-report-diagnostics")
+            appendLine(";")
+            appendLine("const report =")
+            appendLine("// begin-report-model")
+            appendLine(envelopeJson)
+            appendLine("// end-report-model")
+            appendLine(";")
+            appendLine("report.diagnostics = diagnostics;")
+            appendLine("return report;")
             appendLine("// end-report-data")
-            appendLine(");}")
+            appendLine("}")
             appendLine("</script>")
         }
+        writer.append(htmlTemplate.footer)
     }
 
     fun close() {

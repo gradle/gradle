@@ -454,19 +454,27 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
             """
             problemMarkup << fragment.toString()
         }
-        def jsonData = """
+        // Mirrors HtmlReportWriter: the diagnostics array and the envelope ("model") object are each
+        // wrapped in their own marker pair, and are valid JSON on their own.
+        def reportData = """
 // begin-report-data
+const diagnostics =
+// begin-report-diagnostics
+[
+    ${problemMarkup.join(",${NEWLINE}")}
+]
+// end-report-diagnostics
+;
+const report =
+// begin-report-model
 {
-    "totalProblemCount": ${problemMessages.size()},
-    "diagnostics": [
-        ${
-            problemMarkup.join(",${NEWLINE}")
-        }
-    ]
+    "totalProblemCount": ${problemMessages.size()}
 }
+// end-report-model
+;
 // end-report-data
         """
-        reportFile.setText(jsonData)
+        reportFile.setText(reportData)
     }
 }
 
