@@ -33,14 +33,14 @@ import org.gradle.api.Named;
  * Consumers can opt into the fallback by explicitly requesting the
  * {@link #FALLBACK_VARIANT_ATTRIBUTE} with value {@link #TRUE}.
  *
- * @since 9.7.0
+ * @since 9.8.0
  */
 @Incubating
 public interface FallbackVariant extends Named {
     /**
      * Identifies this attribute.
      *
-     * @since 9.7.0
+     * @since 9.8.0
      */
     Attribute<FallbackVariant> FALLBACK_VARIANT_ATTRIBUTE = Attribute.of("org.gradle.fallback-variant", FallbackVariant.class);
 
@@ -48,7 +48,7 @@ public interface FallbackVariant extends Named {
      * Value applied to a primary variant that has no statically declared artifacts
      * but whose configuration defines secondary variants.
      *
-     * @since 9.7.0
+     * @since 9.8.0
      */
     String TRUE = "true";
 
@@ -56,7 +56,7 @@ public interface FallbackVariant extends Named {
      * Value applied to secondary variants whose primary has been tagged as
      * {@link #TRUE}.
      *
-     * @since 9.7.0
+     * @since 9.8.0
      */
     String FALSE = "false";
 }
