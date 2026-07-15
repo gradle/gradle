@@ -68,10 +68,11 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
             }
 
             task resolve {
-                dependsOn configurations.conf
+                def confFiles = configurations.conf
+                def expectedResult = providers.gradleProperty("result")
+                dependsOn confFiles
                 doLast {
-                    def expectedResult = result.split(",")
-                    assert configurations.conf.files.collect { it.name } == expectedResult
+                    assert confFiles.files.collect { it.name } == (expectedResult.get().split(",") as List)
                 }
             }
         """

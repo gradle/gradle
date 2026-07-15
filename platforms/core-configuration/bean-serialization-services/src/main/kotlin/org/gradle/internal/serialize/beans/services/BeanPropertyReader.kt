@@ -21,6 +21,7 @@ import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.graph.BeanStateReader
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.logPropertyProblem
@@ -35,7 +36,8 @@ import java.lang.reflect.Field
 class BeanPropertyReader(
     private val beanType: Class<*>,
     private val constructors: BeanConstructors,
-    instantiatorFactory: InstantiatorFactory
+    instantiatorFactory: InstantiatorFactory,
+    objectOpener: ObjectOpener
 ) : BeanStateReader {
 
     // TODO should use the same scheme as the original bean
@@ -43,7 +45,7 @@ class BeanPropertyReader(
     val instantiationScheme: InstantiationScheme = instantiatorFactory.decorateScheme()
 
     private
-    val relevantFields = relevantStateOf(beanType)
+    val relevantFields = relevantStateOf(beanType, objectOpener)
 
     private
     val originalType: Class<*> = unpack(beanType)

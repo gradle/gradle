@@ -47,7 +47,7 @@
  * @see TestPrecondition
  * @see Requires
  */
-@GroovyNullMarked
+@NullMarked
 package org.gradle.test.precondition;
 
-import org.gradle.util.GroovyNullMarked;
+import org.jspecify.annotations.NullMarked;

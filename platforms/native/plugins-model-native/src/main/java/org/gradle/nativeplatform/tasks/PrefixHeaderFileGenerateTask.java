@@ -38,9 +38,12 @@ import java.util.Collections;
 
 /**
  * Generates a prefix header file from a list of headers to be precompiled.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
+@Deprecated
 public abstract class PrefixHeaderFileGenerateTask extends DefaultTask {
     private String header;
     private File prefixHeaderFile;

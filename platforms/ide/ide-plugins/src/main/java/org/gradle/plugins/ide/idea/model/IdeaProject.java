@@ -132,6 +132,7 @@ public abstract class IdeaProject implements IdeWorkspace {
     private String vcs;
     private Set<String> wildcards = new LinkedHashSet<>();
     private RegularFileProperty outputFile;
+    @SuppressWarnings("deprecation")
     private Set<ProjectLibrary> projectLibraries = new LinkedHashSet<>();
     private PathFactory pathFactory;
 
@@ -338,12 +339,23 @@ public abstract class IdeaProject implements IdeWorkspace {
 
     /**
      * The project-level libraries to be added to the IDEA project.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public Set<ProjectLibrary> getProjectLibraries() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "projectLibraries");
         return projectLibraries;
     }
 
+    /**
+     * Sets the project-level libraries.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "projectLibraries");
         this.projectLibraries = projectLibraries;
     }
 
@@ -384,6 +396,7 @@ public abstract class IdeaProject implements IdeWorkspace {
         ipr.getWhenMerged().execute(xmlProject);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureModulePaths(Project xmlProject) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {

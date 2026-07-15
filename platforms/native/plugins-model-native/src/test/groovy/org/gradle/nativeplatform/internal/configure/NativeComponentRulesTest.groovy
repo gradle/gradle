@@ -35,6 +35,7 @@ import org.gradle.platform.base.internal.DefaultPlatformRequirement
 import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class NativeComponentRulesTest extends Specification {
     def platforms = Mock(PlatformResolvers)
     def nativePlatforms = Stub(NativePlatforms)

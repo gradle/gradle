@@ -30,9 +30,12 @@ import java.lang.annotation.Target;
  * The first parameter of the rule is the rule subject, which is mutable for the duration of the rule.
  * <p>
  * Please see {@link RuleSource} for more information on method rules.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
+@Deprecated
 public @interface Mutate {
 }

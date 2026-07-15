@@ -233,8 +233,13 @@ public interface ExtensionContainer {
      * The extra properties extension in this extension container.
      *
      * This extension is always present in the container, with the name "ext".
+     * When this container belongs to a {@link org.gradle.api.Project}, the extension also exposes Gradle properties
+     * loaded for that project that are not mapped directly to a {@code Project} property. Values set explicitly on
+     * the extension take precedence over Gradle properties with the same name.
      *
      * @return The extra properties extension in this extension container.
+     * @see ExtraPropertiesExtension
+     * @see org.gradle.api.Project#findProperty(String)
      */
     ExtraPropertiesExtension getExtraProperties();
 }

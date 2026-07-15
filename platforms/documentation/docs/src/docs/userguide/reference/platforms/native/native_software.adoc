@@ -15,8 +15,9 @@
 [[native_software]]
 = Building native software
 
-CAUTION: The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed.
-We recommend new projects looking to build C++ applications and libraries use the newer <<building_cpp_projects.adoc#building_cpp_projects,replacement plugins>>.
+CAUTION: The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] and all plugins mentioned in this chapter are deprecated and will be removed in Gradle 10.
+Use the <<building_cpp_projects.adoc#building_cpp_projects,{cpp} plugins>> or <<building_swift_projects.adoc#building_swift_projects,Swift plugins>> instead.
+See the <<upgrading_version_9.adoc#deprecated_software_model,upgrade guide>> for details.
 
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.
 
@@ -463,7 +464,7 @@ C++ language support is provided by means of the `'cpp'` plugin.
 include::{snippetsPath}/reference/platforms/native/cpp/groovy/build.gradle[tag=apply-plugin]
 ----
 
-$$C++$$ sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.cpp.CppSourceSet.html[CppSourceSet], which defines a set of C++ source files and optionally a set of exported header files (for a library). By default, for any named component the link:{groovyDslPath}/org.gradle.language.cpp.CppSourceSet.html[CppSourceSet] contains `.cpp` source files in `src/${name}/cpp`, and header files in `src/${name}/headers`.
+$$C++$$ sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.cpp.CppSourceSet.html[CppSourceSet], which defines a set of C++ source files and optionally a set of exported header files (for a library). By default, for any named component the link:{groovyDslPath}/org.gradle.language.cpp.CppSourceSet.html[CppSourceSet] contains `.cpp` source files in `src/$\{name}/cpp`, and header files in `src/$\{name}/headers`.
 
 While the `cpp` plugin defines these default locations for each link:{groovyDslPath}/org.gradle.language.cpp.CppSourceSet.html[CppSourceSet], it is possible to extend or override these defaults to allow for a different project layout.
 
@@ -492,7 +493,7 @@ C language support is provided by means of the `'c'` plugin.
 include::{snippetsPath}/reference/platforms/native/c/groovy/build.gradle[tag=apply-plugin]
 ----
 
-C sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.c.CSourceSet.html[CSourceSet], which defines a set of C source files and optionally a set of exported header files (for a library). By default, for any named component the link:{groovyDslPath}/org.gradle.language.c.CSourceSet.html[CSourceSet] contains `.c` source files in `src/${name}/c`, and header files in `src/${name}/headers`.
+C sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.c.CSourceSet.html[CSourceSet], which defines a set of C source files and optionally a set of exported header files (for a library). By default, for any named component the link:{groovyDslPath}/org.gradle.language.c.CSourceSet.html[CSourceSet] contains `.c` source files in `src/$\{name}/c`, and header files in `src/$\{name}/headers`.
 
 While the `c` plugin defines these default locations for each link:{groovyDslPath}/org.gradle.language.c.CSourceSet.html[CSourceSet], it is possible to extend or override these defaults to allow for a different project layout.
 
@@ -521,7 +522,7 @@ Assembly language support is provided by means of the `'assembler'` plugin.
 include::{snippetsPath}/reference/platforms/native/assembler/groovy/build.gradle[tag=apply-plugin]
 ----
 
-Assembler sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.assembler.AssemblerSourceSet.html[AssemblerSourceSet], which defines a set of Assembler source files. By default, for any named component the link:{groovyDslPath}/org.gradle.language.assembler.AssemblerSourceSet.html[AssemblerSourceSet] contains `.s` source files under `src/${name}/asm`.
+Assembler sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.assembler.AssemblerSourceSet.html[AssemblerSourceSet], which defines a set of Assembler source files. By default, for any named component the link:{groovyDslPath}/org.gradle.language.assembler.AssemblerSourceSet.html[AssemblerSourceSet] contains `.s` source files under `src/$\{name}/asm`.
 
 [[sec:objectivec_sources]]
 === Objective-C sources
@@ -537,7 +538,7 @@ Objective-C language support is provided by means of the `'objective-c'` plugin.
 include::{snippetsPath}/reference/platforms/native/objective-c/groovy/build.gradle[tag=apply-plugin]
 ----
 
-Objective-C sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.objectivec.ObjectiveCSourceSet.html[ObjectiveCSourceSet], which defines a set of Objective-C source files. By default, for any named component the link:{groovyDslPath}/org.gradle.language.objectivec.ObjectiveCSourceSet.html[ObjectiveCSourceSet] contains `.m` source files under `src/${name}/objectiveC`.
+Objective-C sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.objectivec.ObjectiveCSourceSet.html[ObjectiveCSourceSet], which defines a set of Objective-C source files. By default, for any named component the link:{groovyDslPath}/org.gradle.language.objectivec.ObjectiveCSourceSet.html[ObjectiveCSourceSet] contains `.m` source files under `src/$\{name}/objectiveC`.
 
 [[sec:objectivecpp_sources]]
 === Objective-C++ sources
@@ -553,7 +554,7 @@ Objective-C++ language support is provided by means of the `'objective-cpp'` plu
 include::{snippetsPath}/reference/platforms/native/objective-cpp/groovy/build.gradle[tag=apply-plugin]
 ----
 
-Objective-C$$++$$ sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.objectivecpp.ObjectiveCppSourceSet.html[ObjectiveCppSourceSet], which defines a set of Objective-C++ source files. By default, for any named component the link:{groovyDslPath}/org.gradle.language.objectivecpp.ObjectiveCppSourceSet.html[ObjectiveCppSourceSet] contains `.mm` source files under `src/${name}/objectiveCpp`.
+Objective-C$$++$$ sources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.objectivecpp.ObjectiveCppSourceSet.html[ObjectiveCppSourceSet], which defines a set of Objective-C++ source files. By default, for any named component the link:{groovyDslPath}/org.gradle.language.objectivecpp.ObjectiveCppSourceSet.html[ObjectiveCppSourceSet] contains `.mm` source files under `src/$\{name}/objectiveCpp`.
 
 [[sec:configuring_the_compiler_assembler_and_linker]]
 == Configuring the compiler, assembler and linker
@@ -620,7 +621,7 @@ When using the link:{groovyDslPath}/org.gradle.nativeplatform.toolchain.VisualCp
 include::{snippetsPath}/reference/platforms/native/windows-resources/groovy/build.gradle[tag=apply-plugin]
 ----
 
-Windows resources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.rc.WindowsResourceSet.html[WindowsResourceSet], which defines a set of Windows Resource source files. By default, for any named component the link:{groovyDslPath}/org.gradle.language.rc.WindowsResourceSet.html[WindowsResourceSet] contains `.rc` source files under `src/${name}/rc`.
+Windows resources to be included in a native binary are provided via a link:{groovyDslPath}/org.gradle.language.rc.WindowsResourceSet.html[WindowsResourceSet], which defines a set of Windows Resource source files. By default, for any named component the link:{groovyDslPath}/org.gradle.language.rc.WindowsResourceSet.html[WindowsResourceSet] contains `.rc` source files under `src/$\{name}/rc`.
 
 As with other source types, you can configure the location of the windows resources that should be included in the binary.
 

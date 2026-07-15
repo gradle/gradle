@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.codecs.core.jos
 
 import org.gradle.internal.reflect.ClassInspector
+import org.gradle.internal.reflection.access.ObjectOpener
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType.methodType
@@ -25,13 +26,15 @@ import java.lang.reflect.Modifier.isStatic
 
 
 internal
-class ReadResolveCache {
+class ReadResolveCache(
+    private val objectOpener: ObjectOpener
+) {
 
     private
     val cache = object : ClassValue<MethodHandle?>() {
         override fun computeValue(type: Class<*>): MethodHandle? =
             type.allMethods()
-                .firstAccessibleMatchingMethodOrNull {
+                .firstAccessibleMatchingMethodOrNull(objectOpener) {
                     isReadResolve()
                 }
                 ?.let {
@@ -58,8 +61,8 @@ fun Method.isReadResolve() =
 
 
 internal
-fun Iterable<Method>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    find(predicate)?.apply { isAccessible = true }
+fun Iterable<Method>.firstAccessibleMatchingMethodOrNull(objectOpener: ObjectOpener, predicate: Method.() -> Boolean): Method? =
+    find(predicate)?.apply { objectOpener.makeAccessible(this) }
 
 
 internal

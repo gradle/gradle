@@ -21,7 +21,7 @@ If you are coming from another native build system, these concepts may be unfami
 We will look at {cpp} projects in detail in this chapter, but most of the topics will apply to other supported native languages as well.
 If you don’t have much experience with building native projects with Gradle, take a look at the {cpp} tutorials for step-by-step instructions on how to build various types of basic {cpp} projects as well as some common use cases.
 
-The {cpp} plugins covered in this chapter were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend users to use those plugins over <<native_software.adoc#native_software,the older Native plugins>> that you may find references to.
+The {cpp} plugins covered in this chapter were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018], and we recommend users to use those plugins over <<native_software.adoc#native_software,the older Native plugins>>, which are now deprecated and will be removed in Gradle 10.
 
 [[sec:cpp_introduction]]
 == Introduction

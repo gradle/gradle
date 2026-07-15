@@ -54,6 +54,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         }
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.3.0 <9.7.0')
     def "should fetch root project model when settings #description"() {
         given:
         settingsKotlinFile << """
@@ -71,7 +73,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         result.model.editableBuilds.empty
         result.model.rootProject.projectIdentifier.projectPath == ":"
         // If Settings scripts fails to evaluate the name falls back to directory name
-        result.model.rootProject.name == expectedRootProjectName ?: settingsKotlinFile.parentFile.name
+        result.model.rootProject.name == (expectedRootProjectName ?: settingsKotlinFile.parentFile.name)
         result.model.rootProject.projectIdentifier.buildIdentifier.rootDir == settingsKotlinFile.parentFile
         result.model.projects == [result.model.rootProject] as Set
 
@@ -151,6 +153,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         result.model.editableBuilds == result.model.includedBuilds
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.3.0 <9.7.0')
     def "should fetch root build and included build with a broken settings convention plugin"() {
         given:
         settingsKotlinFile << """
@@ -205,6 +209,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         result.model.editableBuilds[0].projects == [result.model.editableBuilds[0].rootProject] as Set
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.3.0 <9.7.0')
     def "should fetch root project and included build models despite broken included settings files"() {
         given:
         createRootProject()
@@ -223,6 +229,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         model.model.includedBuilds[0].buildIdentifier.rootDir == file("included1")
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.3.0 <9.7.0')
     def "should return failure when caching models with isolated projects"() {
         given:
         def intermediateCaching = [

@@ -50,12 +50,6 @@ configurations {
     }
 }
 
-configurations.docsTestImplementation {
-    // The 'org.gradle.samples' plugin from the old gradle/guides build pulls in slf4j-simple, which we don't want.
-    // See: https://github.com/gradle/guides/blob/ba018cec535d90f75876bfcca29381d213a956cc/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/SamplesDocumentationPlugin.java#L335
-    exclude("org.slf4j", "slf4j-simple")
-}
-
 dependencyAnalysis {
     issues {
         ignoreSourceSet(sourceSets.docsTest.name)
@@ -75,7 +69,6 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation(testLibs.selenium)
     testImplementation(libs.commonsHttpclient)
     testImplementation(testLibs.httpmime)
 
@@ -87,10 +80,6 @@ dependencies {
     docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
-
-    constraints {
-        testImplementation(testLibs.jettyWebsocket)
-    }
 }
 
 jvmCompile {

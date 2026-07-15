@@ -18,31 +18,25 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.NativeLibraryRequirement;
-import org.gradle.nativeplatform.SharedLibraryBinary;
-import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.util.internal.GUtil;
 
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 class DefaultLibraryResolver {
-    private final NativeLibraryRequirement requirement;
-    private final NativeBinarySpec context;
+    private final org.gradle.nativeplatform.NativeLibraryRequirement requirement;
+    private final org.gradle.nativeplatform.NativeBinarySpec context;
     private final LibraryBinaryLocator libraryBinaryLocator;
 
-    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, NativeLibraryRequirement requirement, NativeBinarySpec context) {
+    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, org.gradle.nativeplatform.NativeLibraryRequirement requirement, org.gradle.nativeplatform.NativeBinarySpec context) {
         this.requirement = requirement;
         this.context = context;
         this.libraryBinaryLocator = libraryBinaryLocator;
     }
 
-    public NativeLibraryBinary resolveLibraryBinary() {
-        DomainObjectSet<NativeLibraryBinary> binaries = libraryBinaryLocator.getBinaries(new LibraryIdentifier(requirement.getProjectPath(), requirement.getLibraryName()));
+    public org.gradle.nativeplatform.NativeLibraryBinary resolveLibraryBinary() {
+        DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> binaries = libraryBinaryLocator.getBinaries(new LibraryIdentifier(requirement.getProjectPath(), requirement.getLibraryName()));
         if (binaries == null) {
             throw new LibraryResolveException(getFailureMessage(requirement));
         }
@@ -53,7 +47,7 @@ class DefaultLibraryResolver {
             .resolveLibrary(binaries);
     }
 
-    private String getFailureMessage(NativeLibraryRequirement requirement) {
+    private String getFailureMessage(org.gradle.nativeplatform.NativeLibraryRequirement requirement) {
         return requirement.getProjectPath() == null || requirement.getProjectPath().equals(context.getProjectPath())
             ? String.format("Could not locate library '%s' required by %s.", requirement.getLibraryName(), getContextMessage())
             : String.format("Could not locate library '%s' in project '%s' required by %s.", requirement.getLibraryName(), requirement.getProjectPath(), getContextMessage());
@@ -64,11 +58,11 @@ class DefaultLibraryResolver {
     }
 
     private class LibraryResolution {
-        private Flavor flavor;
+        private org.gradle.nativeplatform.Flavor flavor;
         private NativePlatform platform;
-        private BuildType buildType;
+        private org.gradle.nativeplatform.BuildType buildType;
 
-        public LibraryResolution withFlavor(Flavor flavor) {
+        public LibraryResolution withFlavor(org.gradle.nativeplatform.Flavor flavor) {
             this.flavor = flavor;
             return this;
         }
@@ -78,29 +72,29 @@ class DefaultLibraryResolver {
             return this;
         }
 
-        public LibraryResolution withBuildType(BuildType buildType) {
+        public LibraryResolution withBuildType(org.gradle.nativeplatform.BuildType buildType) {
             this.buildType = buildType;
             return this;
         }
 
-        public NativeLibraryBinary resolveLibrary(DomainObjectSet<NativeLibraryBinary> allBinaries) {
-            Class<? extends NativeLibraryBinary> type = getTypeForLinkage(requirement.getLinkage());
-            DomainObjectSet<? extends NativeLibraryBinary> candidateBinaries = allBinaries.withType(type);
+        public org.gradle.nativeplatform.NativeLibraryBinary resolveLibrary(DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> allBinaries) {
+            Class<? extends org.gradle.nativeplatform.NativeLibraryBinary> type = getTypeForLinkage(requirement.getLinkage());
+            DomainObjectSet<? extends org.gradle.nativeplatform.NativeLibraryBinary> candidateBinaries = allBinaries.withType(type);
             return resolve(candidateBinaries);
         }
 
-        private Class<? extends NativeLibraryBinary> getTypeForLinkage(String linkage) {
+        private Class<? extends org.gradle.nativeplatform.NativeLibraryBinary> getTypeForLinkage(String linkage) {
             if ("static".equals(linkage)) {
-                return StaticLibraryBinary.class;
+                return org.gradle.nativeplatform.StaticLibraryBinary.class;
             }
             if ("shared".equals(linkage) || linkage == null) {
-                return SharedLibraryBinary.class;
+                return org.gradle.nativeplatform.SharedLibraryBinary.class;
             }
             throw new InvalidUserDataException("Not a valid linkage: " + linkage);
         }
 
-        private NativeLibraryBinary resolve(Set<? extends NativeLibraryBinary> candidates) {
-            for (NativeLibraryBinary candidate : candidates) {
+        private org.gradle.nativeplatform.NativeLibraryBinary resolve(Set<? extends org.gradle.nativeplatform.NativeLibraryBinary> candidates) {
+            for (org.gradle.nativeplatform.NativeLibraryBinary candidate : candidates) {
                 if (flavor != null && !flavor.getName().equals(candidate.getFlavor().getName())) {
                     continue;
                 }

@@ -73,9 +73,14 @@ gradleModule {
     }
 }
 
+strictCompile {
+    // This project is going to be deleted in the next major.
+    ignoreDeprecations()
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/language/nativeplatform/internal/**")
     excludePatterns.add("org/gradle/nativeplatform/internal/**")
+    excludePatterns.add("org/gradle/**")
 }
-
 

@@ -66,16 +66,10 @@ publishing {
         def module = ivyRepo.module('org.gradle.test', 'publishS3Test', '1.0')
         module.jar.expectUpload()
         module.jar.sha1.expectUpload()
-        module.jar.sha256.expectUpload()
-        module.jar.sha512.expectUpload()
         module.ivy.expectUpload()
         module.ivy.sha1.expectUpload()
-        module.ivy.sha256.expectUpload()
-        module.ivy.sha512.expectUpload()
         module.moduleMetadata.expectUpload()
         module.moduleMetadata.sha1.expectUpload()
-        module.moduleMetadata.sha256.expectUpload()
-        module.moduleMetadata.sha512.expectUpload()
 
         System.setProperty("aws.java.v1.disableDeprecationAnnouncement", "true") // AWS SDK for Java 1.x has reached end of support on December 31, 2025; by default it prints a deprecation message
         succeeds 'publish'

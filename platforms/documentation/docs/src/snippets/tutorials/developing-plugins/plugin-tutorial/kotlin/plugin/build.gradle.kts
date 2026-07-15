@@ -33,6 +33,7 @@ repositories {
     mavenCentral()
 }
 
+// tag::dependencies[]
 // tag::slack-api[]
 dependencies {
     // end::slack-api[]
@@ -44,6 +45,7 @@ dependencies {
     implementation("com.slack.api:slack-api-client:1.45.3")
 }
 // end::slack-api[]
+// end::dependencies[]
 // end::publish[]
 
 /*

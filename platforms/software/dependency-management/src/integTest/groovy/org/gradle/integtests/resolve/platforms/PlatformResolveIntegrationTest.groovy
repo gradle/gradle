@@ -714,6 +714,54 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         //Shape of the graph is not checked as bug was failing resolution altogether
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1283947029")
+    def "resolution result represents failure to resolve dynamic selected module version when platform has constraint on that module"() {
+        mavenRepo.module("test", "module1", "11.1.0.1").publish()
+
+        settingsFile << "\ninclude 'plat'"
+        file("plat/build.gradle") << """
+            plugins {
+                id("java-platform")
+            }
+
+            dependencies {
+                constraints {
+                    api "test:module1:11.1.0.1"
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("jvm-ecosystem")
+            }
+
+            configurations {
+                dependencyScope("implementation")
+                resolvable("runtimeClasspath") {
+                    extendsFrom implementation
+                }
+            }
+
+            tasks.register('resolve') {
+                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    println root.get()
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation 'test:module1:11.2.0.+'
+                implementation platform(project(":plat"))
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
     String mavenHttpRepo() {
         """
             repositories {

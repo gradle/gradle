@@ -35,4 +35,4 @@ jobs:
           title: Update tested Kotlin versions
           message: Update Kotlin versions
           reviewer: gradle/bt-tide
-          labels: a:chore,in:performance-test,in:smoke-test,to-triage
+          labels: a:chore,in:performance-test,in:smoke-test

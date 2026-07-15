@@ -43,10 +43,6 @@ interface MavenModule extends Module {
 
     MavenModule withNoPom()
 
-    MavenModule withoutExtraChecksums()
-
-    MavenModule withExtraChecksums()
-
     /**
      * Include the Gradle module metadata file in the published module.
      * @return this

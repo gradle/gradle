@@ -38,12 +38,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
     api(testLibs.hamcrest)
-    api(testLibs.jettySecurity)
-    api(testLibs.jettyServer)
-    api(testLibs.jettyUtil)
     api(testLibs.junit)
     api(testLibs.samplesCheck)
-    api(testLibs.servletApi)
     api(testLibs.spock)
 
     implementation(projects.baseServicesGroovy)
@@ -77,16 +73,11 @@ dependencies {
     implementation(libs.jcifs)
     implementation(libs.nativePlatform)
     implementation(testLibs.ansiControlSequenceUtil)
-    implementation(testLibs.jetty)
 
     compileOnly(libs.jetbrainsAnnotations)
     compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
-
-    constraints {
-        implementation(testLibs.jettyWebsocket)
-    }
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {

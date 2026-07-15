@@ -19,10 +19,10 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Build.class)
+@SuppressWarnings("deprecation")
 public interface LibraryBinaryLocator {
     /**
      * Locates the binaries for the given library.
@@ -30,5 +30,5 @@ public interface LibraryBinaryLocator {
      * @return null when no such library.
      */
     @Nullable
-    DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier library);
+    DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> getBinaries(LibraryIdentifier library);
 }

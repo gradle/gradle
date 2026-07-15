@@ -33,6 +33,7 @@ import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
 
+@SuppressWarnings("deprecation")
 class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     static def generator = new ManagedProxyClassGenerator()
     static Map<List<?>, Class<?>> generated = [:]

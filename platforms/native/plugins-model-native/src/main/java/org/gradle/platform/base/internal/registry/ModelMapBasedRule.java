@@ -19,7 +19,6 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.inspect.AbstractMethodRuleAction;
@@ -30,6 +29,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Arrays;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C> {
     private final List<ModelReference<?>> inputs;
     protected final int baseTypeParameterIndex;
@@ -68,7 +68,7 @@ public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C
         return inputs;
     }
 
-    protected void invoke(ModelRuleInvoker<?> ruleInvoker, List<ModelView<?>> inputs, ModelMap<?> modelMap, T baseTypeParameter, Object... ignoredInputs) {
+    protected void invoke(ModelRuleInvoker<?> ruleInvoker, List<ModelView<?>> inputs, org.gradle.model.ModelMap<?> modelMap, T baseTypeParameter, Object... ignoredInputs) {
         List<Object> ignoredInputsList = Arrays.asList(ignoredInputs);
         Object[] args = new Object[inputs.size() + 2 - ignoredInputs.length];
         args[0] = modelMap;

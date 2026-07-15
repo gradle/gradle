@@ -64,7 +64,8 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
 
         then:
         def writes1 = buildOperations.all(ExternalResourceWriteBuildOperationType)
-        writes1.size() == 20
+        // Each of the 4 published files (jar, pom, module metadata, maven-metadata) is written along with its .sha1 and .md5 checksums
+        writes1.size() == 12
         writes1[0].details.location == m1.artifact.uri.toString()
         writes1[0].result.bytesWritten == m1.artifact.file.length()
 
@@ -90,7 +91,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
 
         then:
         def writes2 = buildOperations.all(ExternalResourceWriteBuildOperationType)
-        writes2.size() == 20
+        writes2.size() == 12
 
         def reads2 = buildOperations.all(ExternalResourceReadBuildOperationType)
         reads2.size() == 1

@@ -288,7 +288,7 @@
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
-    @Deprecated("Use single-string notation or DependencyFactory instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead. The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
     fun DependencyHandler.`compile`(
         group: String,
         name: String,

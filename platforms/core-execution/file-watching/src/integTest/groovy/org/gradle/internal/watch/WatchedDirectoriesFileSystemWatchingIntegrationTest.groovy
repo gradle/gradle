@@ -17,20 +17,19 @@
 package org.gradle.internal.watch
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.test.fixtures.Flaky
-import org.gradle.test.preconditions.TestExecutionPreconditions
-import org.gradle.testdistribution.LocalOnly
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
-
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -61,6 +60,37 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run "run", "--info"
         then:
         assertWatchableHierarchies([ImmutableSet.of(testDirectory)])
+    }
+
+    def "removes the watch probe after the build with the default project cache dir, keeping the cache dir"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        file("src/main/java/Main.java") << "public class Main {}"
+
+        when:
+        withWatchFs().run "assemble", "--info"
+
+        then:
+        outputContains("File system watching is active")
+        !file(".gradle/file-system.probe").exists()
+        file(".gradle").isDirectory()
+    }
+
+    def "removes the watch probe after the build with a custom project cache dir"() {
+        def cacheDir = file("custom-cache-dir")
+        buildFile << """
+            apply plugin: "java"
+        """
+        file("src/main/java/Main.java") << "public class Main {}"
+
+        when:
+        withWatchFs().run "assemble", "--info", "--project-cache-dir", cacheDir.absolutePath
+
+        then:
+        outputContains("File system watching is active")
+        file(".gradle").assertDoesNotExist()
+        cacheDir.isDirectory()
     }
 
     def "watches the project directory when buildSrc is present"() {

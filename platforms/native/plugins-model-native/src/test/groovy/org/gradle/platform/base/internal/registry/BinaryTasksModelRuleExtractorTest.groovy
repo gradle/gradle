@@ -32,6 +32,7 @@ import java.lang.annotation.Annotation
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
     BinaryTasksModelRuleExtractor ruleHandler = new BinaryTasksModelRuleExtractor()

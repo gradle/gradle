@@ -25,8 +25,8 @@ A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.a
 To use the Ivy Publish Plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/reference/dependency-management/publishing/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/reference/dependency-management/publishing/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/dependency-management/publishing/quickstart-ivy-publish/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/dependency-management/publishing/quickstart-ivy-publish/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 The Ivy Publish Plugin uses an extension on the project named `publishing` of type link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication] publications and link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository] repositories.

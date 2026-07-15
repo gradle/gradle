@@ -87,7 +87,12 @@ public class KillLeakingJavaProcesses {
     }
 
     static String generateLeakingProcessKillPattern(String rootProjectDir) {
-        String kotlinCompilerDaemonPattern = "(?:" + quote("-Dkotlin.environment.keepalive") + ".+org\\.jetbrains\\.kotlin\\.daemon\\.KotlinCompileDaemon)";
+        // Match the Kotlin compile daemon by its main class, which is stable across Kotlin versions.
+        // Older Kotlin releases launched the daemon with `-Dkotlin.environment.keepalive`, but Kotlin 2.4+
+        // (Build Tools API) no longer passes that flag and instead uses `-Dkotlin.daemon.initiator.marker.file`
+        // / `--daemon-logsPath`. Keying on the flag left 2.4+ daemons undetected, so they leaked and kept
+        // `<subproject>/build/tmp/kotlin-daemon.*.log` open, breaking the next build's `clean` on Windows.
+        String kotlinCompilerDaemonPattern = "(?:org\\.jetbrains\\.kotlin\\.daemon\\.KotlinCompileDaemon)";
         String quotedRootProjectDir = quote(rootProjectDir);
         String perfTestClasspathPattern = "(?:-cp.+\\\\build\\\\tmp\\\\performance-test-files.+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String buildDirClasspathPattern = "(?:-(classpath|cp) \"?" + quotedRootProjectDir + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
@@ -267,6 +272,7 @@ public class KillLeakingJavaProcesses {
         }
     }
 
+    @SuppressWarnings("CatchAndPrintStackTrace")
     private static ByteArrayOutputStream connectStream(InputStream forkedProcessOutput, CountDownLatch latch) {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(os, true);

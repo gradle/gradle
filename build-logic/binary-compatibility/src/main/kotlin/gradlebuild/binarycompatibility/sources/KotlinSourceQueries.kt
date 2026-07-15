@@ -31,13 +31,17 @@ import javassist.CtField
 import javassist.CtMember
 import javassist.CtMethod
 import javassist.Modifier
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtTypeParameterListOwner
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
@@ -80,12 +84,15 @@ object KotlinSourceQueries {
     private
     fun KtFile.getSince(declaringClass: CtClass, constructor: CtConstructor, fallback: String?): SinceTagStatus {
         val classFqName = declaringClass.name
-        val ctorParamTypes = constructor.parameterTypes.map { it.name }
+        val ctorParamTypes = constructor.parameterTypes
         return collectDescendantsOfType<KtConstructor<*>>()
             .firstOrNull { ktCtor ->
                 val sameName = ktCtor.containingClassOrObject?.fqName?.asString() == classFqName
                 val sameParamCount = ktCtor.valueParameters.size == ctorParamTypes.size
-                val sameParamTypes = sameParamCount && ctorParamTypes.mapIndexed { idx, paramType -> paramType.endsWith(ktCtor.valueParameters[idx].typeReference!!.text) }.all { it }
+                val typeParameterBounds = (ktCtor.containingClassOrObject as? KtTypeParameterListOwner).typeParameterBounds
+                val sameParamTypes = sameParamCount && ctorParamTypes.withIndex().all { (idx, paramType) ->
+                    paramType.isLikelyEquivalentTo(ktCtor.valueParameters[idx].typeReference!!, typeParameterBounds)
+                }
                 sameName && sameParamCount && sameParamTypes
             }
             .getSinceStatus(fallback)
@@ -149,22 +156,24 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
     val paramCount = method.parameterTypes.size
     val couldBeExtensionFunction = paramCount > 0
     val paramCountWithReceiver = paramCount - 1
-    val functionFqName = "$qualifiedBaseName.${method.name}"
 
     return collectDescendantsOfType { ktFunction ->
         // Name check
-        if (ktFunction.fqName?.asString() != functionFqName) {
+        val fqName = ktFunction.fqName ?: return@collectDescendantsOfType false
+        if (fqName.parent().asString() != qualifiedBaseName || ktFunction.jvmName != method.name) {
             return@collectDescendantsOfType false
         }
 
         // Preliminary extension function check
+        val allowJvmOverloads = ktFunction.hasJvmOverloads
         val extensionCandidate = couldBeExtensionFunction && ktFunction.receiverTypeReference != null &&
             method.firstParameterMatches(ktFunction.receiverTypeReference!!) &&
-            ktFunction.valueParameters.size == paramCountWithReceiver
-        if (!(extensionCandidate || ktFunction.valueParameters.size == paramCount)) {
+            ktFunction.acceptsValueParameterCount(paramCountWithReceiver, allowJvmOverloads)
+        if (!(extensionCandidate || ktFunction.acceptsValueParameterCount(paramCount, allowJvmOverloads))) {
             return@collectDescendantsOfType false
         }
         val isVarargs = Modifier.isVarArgs(method.modifiers)
+        val typeParameterBounds = ktFunction.typeParameterBounds
 
         // Parameter type check
         method.parameterTypes
@@ -174,14 +183,80 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
             .withIndex()
             .all {
                 val ktParamType = ktFunction.valueParameters[it.index].typeReference!!
-                it.value.isLikelyEquivalentTo(ktParamType) || (isVarargs && it.value.componentType?.isLikelyEquivalentTo(ktParamType) == true)
+                it.value.isLikelyEquivalentTo(ktParamType, typeParameterBounds) ||
+                    (isVarargs && it.value.componentType?.isLikelyEquivalentTo(ktParamType, typeParameterBounds) == true)
             }
     }
 }
 
 
+/**
+ * Type parameters declared by this owner, mapped to their upper bound (null when unbounded).
+ * Used to reconcile a source type parameter with its erased binary type.
+ */
+private
+val KtTypeParameterListOwner?.typeParameterBounds: Map<String, KtTypeReference?>
+    get() = this?.typeParameters.orEmpty().associate { it.name!! to it.extendsBound }
+
+private
+val KtFunction.typeParameterBounds: Map<String, KtTypeReference?>
+    get() = (containingClassOrObject as? KtTypeParameterListOwner).typeParameterBounds +
+        typeParameters.associate { it.name!! to it.extendsBound }
+
+
+private
+val KtFunction.jvmName: String?
+    get() = annotationEntries.jvmName() ?: fqName?.shortName()?.asString()
+
+
+private
+val KtFunction.hasJvmOverloads: Boolean
+    get() = annotationEntries.any { it.shortName?.asString() == "JvmOverloads" }
+
+
+/**
+ * Whether the function can back a JVM method with the given number of value parameters. With
+ * `@JvmOverloads` the compiler also emits overloads that drop a trailing run of default-valued
+ * parameters, so any prefix ending before such a run is accepted.
+ */
+private
+fun KtFunction.acceptsValueParameterCount(count: Int, allowJvmOverloads: Boolean): Boolean =
+    when {
+        count == valueParameters.size -> true
+        !allowJvmOverloads || count !in 0 until valueParameters.size -> false
+        else -> valueParameters.drop(count).all { it.hasDefaultValue() }
+    }
+
+
+private
+val KtProperty.getterJvmName: String?
+    get() = annotationEntries.jvmName(AnnotationUseSiteTarget.PROPERTY_GETTER)
+
+
+private
+val KtProperty.setterJvmName: String?
+    get() = annotationEntries.jvmName(AnnotationUseSiteTarget.PROPERTY_SETTER)
+
+
+/**
+ * Value of the `@JvmName` annotation with the given use-site target (none for a plain `@JvmName`),
+ * or null when absent.
+ */
+private
+fun List<KtAnnotationEntry>.jvmName(useSiteTarget: AnnotationUseSiteTarget? = null): String? =
+    firstOrNull { it.shortName?.asString() == "JvmName" && it.useSiteTarget?.getAnnotationUseSiteTarget() == useSiteTarget }
+        ?.valueArguments?.firstOrNull()
+        ?.getArgumentExpression()
+        ?.let { it as? KtStringTemplateExpression }
+        ?.entries?.singleOrNull()?.text
+
+
 private
 fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): List<KtProperty> {
+    val renamed = collectRenamedKtPropertiesFor(qualifiedBaseName, method)
+    if (renamed.isNotEmpty()) {
+        return renamed
+    }
 
     val hasGetGetterName = method.name.matches(propertyGetterNameRegex)
     val hasIsGetterName = method.name.matches(propertyIsGetterNameRegex)
@@ -228,6 +303,27 @@ fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): 
             couldBeProperty -> {
                 ktProperty.receiverTypeReference == null
             }
+            else -> false
+        }
+    }
+}
+
+
+private
+fun KtFile.collectRenamedKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): List<KtProperty> {
+    val paramCount = method.parameterTypes.size
+    val returnsVoid = method.returnType.name == "void"
+
+    return collectDescendantsOfType { ktProperty ->
+        if (ktProperty.fqName?.parent()?.asString() != qualifiedBaseName) {
+            return@collectDescendantsOfType false
+        }
+        val receiverParamCount = if (ktProperty.receiverTypeReference != null) 1 else 0
+        val receiverMatches = ktProperty.receiverTypeReference
+            ?.let { method.firstParameterMatches(it) } ?: true
+        when (method.name) {
+            ktProperty.getterJvmName -> paramCount == receiverParamCount && !returnsVoid && receiverMatches
+            ktProperty.setterJvmName -> paramCount == receiverParamCount + 1 && returnsVoid && receiverMatches
             else -> false
         }
     }
@@ -291,7 +387,7 @@ fun CtBehavior.firstParameterMatches(ktTypeReference: KtTypeReference): Boolean 
 
 
 private
-fun CtClass.isLikelyEquivalentTo(ktTypeReference: KtTypeReference): Boolean {
+fun CtClass.isLikelyEquivalentTo(ktTypeReference: KtTypeReference, typeParameterBounds: Map<String, KtTypeReference?> = emptyMap()): Boolean {
     val ktTypeAsText = ktTypeReference.text
     if (ktTypeAsText.contains(" -> ")) {
         // This is a function of some sort
@@ -301,6 +397,12 @@ fun CtClass.isLikelyEquivalentTo(ktTypeReference: KtTypeReference): Boolean {
     val ktTypeRawName = ktTypeAsText
         .trimEnd('?') // nullability is not part of JVM types
         .substringBefore('<') // generics are not part of parameter types in JVM method signatures
+
+    if (typeParameterBounds.containsKey(ktTypeRawName)) {
+        return typeParameterBounds[ktTypeRawName]
+            ?.let { isLikelyEquivalentTo(it) }
+            ?: (name == "java.lang.Object")
+    }
 
     val thisTypeAsKt = name.mapJavaTypeToKotlinType()
     return thisTypeAsKt.endsWith(ktTypeRawName)

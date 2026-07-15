@@ -68,7 +68,7 @@ We encourage users to try it out and let us know.
 [[kotlin]]
 == Kotlin
 
-Gradle is tested with Kotlin 2.0.0 through 2.4.0.
+Gradle is tested with Kotlin 2.0.0 through 2.4.20-Beta1.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -114,14 +114,14 @@ Beta and RC versions may or may not work.
 [[groovy_compatibility]]
 == Groovy
 
-Gradle is tested with Groovy 1.5.8 through 5.0.2.
+Gradle is tested with Groovy 1.5.8 through 6.0.0-alpha-2.
 
 Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 
 [[android_compatibility]]
 == Android
 
-Gradle is tested with Android Gradle Plugin 9.0 through 9.3.0-alpha12.
+Gradle is tested with Android Gradle Plugin 9.0 through 9.4.0-alpha03.
 Alpha and beta versions may or may not work.
 
 [[target_platforms]]

@@ -17,10 +17,10 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.nativeplatform.NativeLibraryRequirement;
 
+@SuppressWarnings("deprecation")
 public class RequirementParsingNativeDependencyResolver implements NativeDependencyResolver {
-    private final NotationParser<Object, NativeLibraryRequirement> parser = NativeDependencyNotationParser.parser();
+    private final NotationParser<Object, org.gradle.nativeplatform.NativeLibraryRequirement> parser = NativeDependencyNotationParser.parser();
 
     private final NativeDependencyResolver delegate;
 
@@ -31,7 +31,7 @@ public class RequirementParsingNativeDependencyResolver implements NativeDepende
     @Override
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getPendingResolutions()) {
-            NativeLibraryRequirement requirement = parser.parseNotation(resolution.getInput());
+            org.gradle.nativeplatform.NativeLibraryRequirement requirement = parser.parseNotation(resolution.getInput());
             if (requirement.getProjectPath() == null || requirement.getProjectPath().isEmpty()) {
                 requirement = requirement.withProjectPath(nativeBinaryResolveResult.getTarget().getProjectPath());
             }

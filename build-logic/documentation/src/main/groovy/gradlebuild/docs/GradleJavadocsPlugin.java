@@ -37,7 +37,10 @@ import org.gradle.internal.UncheckedException;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Set;
@@ -99,37 +102,13 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             options.setCharSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setHeader(
-                "<link id=\"hljs-theme\" rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css\">" +
-                    "<script>" +
-                    "(function() {" +
-                    "var mql = window.matchMedia('(prefers-color-scheme: dark)');" +
-                    "var hljsEl = document.getElementById('hljs-theme');" +
-                    "function applyTheme(dark) {" +
-                    "var t = dark ? 'dark' : 'light';" +
-                    "document.documentElement.setAttribute('data-theme', t);" +
-                    "if (hljsEl) hljsEl.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-' + t + '.min.css';" +
-                    "}" +
-                    "applyTheme(mql.matches);" +
-                    "mql.addEventListener('change', function(e) { applyTheme(e.matches); });" +
-                    "})();" +
-                    "</script>" +
-                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>" +
-                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js\"></script>" +
-                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js\"></script>" +
-                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/groovy.min.js\"></script>" +
-                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js\"></script>" +
-                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/properties.min.js\"></script>" +
-                    "<script>if (typeof hljs !== 'undefined') { hljs.highlightAll(); }</script>"
-            );
+            options.setHeader(loadJavadocHeader());
 
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
-            // TODO: This breaks the provider
             options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
             options.addStringOption("source", "8");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
-            // TODO: This breaks the provider
             task.getInputs().dir(javadocs.getJavaPackageListLoc());
             var javaApiLink = javadocs.getJavaApi().map(URI::toString).map(v -> {
                 if (v.endsWith("/")) {
@@ -138,7 +117,6 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 return v;
             }).get();
             options.linksOffline(javaApiLink, javadocs.getJavaPackageListLoc().map(Directory::getAsFile).get().getAbsolutePath());
-            // TODO: This breaks the provider
             task.getInputs().dir(extractGroovyPackageListTask.map(Copy::getDestinationDir)).withPathSensitivity(PathSensitivity.NONE);
             options.linksOffline(javadocs.getGroovyApi().get().toString(), extractGroovyPackageListTask.map(Copy::getDestinationDir).get().getAbsolutePath());
 
@@ -169,6 +147,17 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setClasspath(layout.files());
             task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
         });
+    }
+
+    private static String loadJavadocHeader() {
+        try (InputStream in = GradleJavadocsPlugin.class.getResourceAsStream("/javadoc-header.html")) {
+            if (in == null) {
+                throw new IllegalStateException("Missing classpath resource: /javadoc-header.html");
+            }
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8).replaceAll("\\R", " ");
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to load /javadoc-header.html", e);
+        }
     }
 
     private static class DeduplicatePackageInfoFiles implements Spec<File> {

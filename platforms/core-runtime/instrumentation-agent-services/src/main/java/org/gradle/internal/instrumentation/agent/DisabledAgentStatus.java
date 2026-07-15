@@ -16,9 +16,16 @@
 
 package org.gradle.internal.instrumentation.agent;
 
+import java.lang.instrument.Instrumentation;
+
 class DisabledAgentStatus implements AgentStatus {
     @Override
     public boolean isAgentInstrumentationEnabled() {
         return false;
+    }
+
+    @Override
+    public Instrumentation getInstrumentation() {
+        throw new IllegalStateException("Instrumentation agent is disabled");
     }
 }

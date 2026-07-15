@@ -173,7 +173,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
                 ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getModule("jansi").getImplementationClasspath().getAsFiles());
                 return groovyClasspath.plus(jansi);
             });
-            groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension(project).getDocsDir().dir("groovydoc").get().getAsFile());
+            groovydoc.getDestinationDirectory().convention(javaPluginExtension(project).getDocsDir().dir("groovydoc"));
             groovydoc.getConventionMapping().map("docTitle", () -> ReportUtilities.getApiDocTitleFor(project));
             groovydoc.getConventionMapping().map("windowTitle", () -> ReportUtilities.getApiDocTitleFor(project));
             groovydoc.getJavaLauncher().convention(getJavaLauncher(project));
@@ -181,6 +181,12 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             groovydoc.getIncludeAuthor().convention(false);
             groovydoc.getProcessScripts().convention(true);
             groovydoc.getIncludeMainForScripts().convention(true);
+            groovydoc.getShowInternal().convention(false);
+            groovydoc.getNoIndex().convention(false);
+            groovydoc.getNoDeprecatedList().convention(false);
+            groovydoc.getNoHelp().convention(false);
+            groovydoc.getSyntaxHighlighter().convention("none");
+            groovydoc.getTheme().convention("auto");
         });
     }
 

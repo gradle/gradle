@@ -63,6 +63,17 @@ The isolation also applies to objects used in `synchronized` blocks, so they can
 
 To share or coordinate state between tasks, use <<build_services.adoc#build_services, shared build services>>.
 
+[[config_cache:requirements:user_defined_modules]]
+=== Classes from User-defined Modules
+
+Types loaded into a user-defined `ModuleLayer` (for example, one created at runtime via `ModuleLayer.defineModulesWith*Loader(...)`) must not be referenced by task state.
+The Configuration Cache ignores module information when saving and cannot restore such types properly, so they're rejected at store time.
+This restriction only applies to build logic (including plugins and dependencies of plugins).
+Code built with Gradle isn't affected.
+
+Standard JDK types are unaffected: every module shipped with the JVM lives in the boot `ModuleLayer` and is fully supported, including types from non-`java.base` modules such as `java.desktop` (`java.awt.Color`, `javax.swing.*`) or `java.xml`.
+When the Gradle Java agent is enabled (the default), Gradle automatically opens the JDK packages it needs during serialization, so user code does not need to add `--add-opens` for them.
+
 [[config_cache:requirements:gradle_model_types]]
 === Gradle Model Types
 
@@ -85,6 +96,7 @@ Additionally, referencing resolved dependency results directly is disallowed (e.
 Instead, use lazy providers that defer resolution:
 
 * Use a `Provider<ResolvedComponentResult>` from `ResolutionResult.getRootComponent()` for dependency graph metadata.
+* Alternatively, reference the link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`] directly. It is Configuration Cache-compatible, so it can be wired into a task input property (for example, a `Property<ResolutionResult>`) and accessed via its full API at execution time.
 * Use `ArtifactCollection.getResolvedArtifacts()`, which returns a `Provider<Set<ResolvedArtifactResult>>`, for artifact metadata and files.
 
 IMPORTANT: The `Provider` returned by `getResolvedArtifacts()` is Configuration Cache-compatible, but the `ResolvedArtifactResult` type itself is *not* serializable. You cannot wire the provider directly into a `SetProperty<ResolvedArtifactResult>` task property. Instead, use `Provider.map()` to extract the data you need (artifact identifiers, variant information, files) into serializable types, and wire those into your task's input properties. See <<artifact_resolution.adoc#sec:resolving_artifacts, Resolving artifacts>> for a complete example of this pattern.
@@ -131,6 +143,24 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/disallowedTy
 Sometimes, a disallowed type is indirectly referenced through another type.
 For example, a task may reference an allowed type that, in turn, references a disallowed type.
 The hierarchical view in the HTML problem report can help you trace such issues and identify the offending reference.
+
+[[config_cache:requirements:custom_collection_types]]
+== Custom Collection and Map Types
+
+The Configuration Cache serializes a fixed set of standard collection, set, map, and queue implementations directly:
+
+* `List`: `ArrayList`, `LinkedList`, `CopyOnWriteArrayList`
+* `Set`: `HashSet`, `LinkedHashSet`, `TreeSet`, `CopyOnWriteArraySet`
+* `Map`: `HashMap`, `LinkedHashMap`, `TreeMap`, `ConcurrentHashMap`, `Properties`, `Hashtable`
+* `Queue`: `ArrayDeque`
+
+These types, and Guava's immutable collections (`ImmutableList`, `ImmutableSet`, `ImmutableMap`), are stored and restored faithfully.
+
+A _custom_ subtype of one of the standard types above (for example, `class MyList extends ArrayList<String> {}`) cannot be restored as its own type: it is restored as the nearest standard type instead.
+Any state or behavior added by the custom type — extra fields, overridden methods — is lost.
+
+Referencing a custom collection or map subtype from task fields or task actions is deprecated and will become an error in Gradle 10.
+Use a standard collection type (for example, a plain `ArrayList` or `LinkedHashMap`) and hold any extra data in separate, explicitly serialized fields.
 
 [[config_cache:requirements:use_project_during_execution]]
 == Using the `Project` Object at Execution Time

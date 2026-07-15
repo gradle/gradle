@@ -89,15 +89,9 @@ class IvyPublishJavaRetriesIntegTest extends AbstractIvyPublishIntegTest {
         module.artifact.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
-        module.ivy.sha256.expectPut()
-        module.ivy.sha512.expectPut()
         module.artifact.sha1.expectPut()
-        module.artifact.sha256.expectPut()
-        module.artifact.sha512.expectPut()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
-        module.moduleMetadata.sha256.expectPut()
-        module.moduleMetadata.sha512.expectPut()
     }
 
     def verifyPublications() {

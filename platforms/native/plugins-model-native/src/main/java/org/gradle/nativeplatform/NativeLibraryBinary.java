@@ -21,8 +21,11 @@ import org.gradle.api.file.FileCollection;
 
 /**
  * A physical representation of a {@link NativeLibrary} component.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface NativeLibraryBinary extends NativeBinary {
 
     FileCollection getHeaderDirs();

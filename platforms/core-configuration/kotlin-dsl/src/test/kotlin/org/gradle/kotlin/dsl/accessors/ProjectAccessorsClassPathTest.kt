@@ -49,6 +49,7 @@ import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyMap
 import org.mockito.kotlin.any
@@ -222,37 +223,56 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             )
 
         val srcDir = newFolder("src")
-        val binDir = newFolder("bin")
 
-        withClassLoaderFor(binDir) {
-            // when:
-            buildAccessorsFromSourceFor(
-                schema,
-                testRuntimeClassPath,
-                srcDir,
-                binDir
-            )
+        val compiledBinDir = newFolder("compiledBin")
+        buildAccessorsFromSourceFor(schema, testRuntimeClassPath, srcDir, compiledBinDir)
 
-            val binaryAccessorsDir = File(binDir, "org/gradle/kotlin/dsl")
+        val generatedBinDir = newFolder("generatedBin")
+        buildAccessorsFor(schema, testRuntimeClassPath, srcDir = newFolder("ignored"), generatedBinDir)
 
-            // then:
-            schema.configurations.forEach { config ->
-                val name = config.target
-                val className = "${name.uppercaseFirstChar()}ConfigurationAccessorsKt"
-                val classFile = File(binaryAccessorsDir, "$className.class")
+        fun checkConfigurationAccessors(classesDir: File) {
+            val accessorsDir = File(classesDir, "org/gradle/kotlin/dsl")
 
-                require(classFile.exists())
+            withClassLoaderFor(classesDir) {
+                schema.configurations.forEach { config ->
+                    val name = config.target
+                    val className = "${name.uppercaseFirstChar()}ConfigurationAccessorsKt"
 
-                loadClass("org.gradle.kotlin.dsl.$className").run {
-                    dependencyHandlerExtensionMethods(name).forEach {
-                        assertEquals(
-                            isDeprecated(it),
-                            config.hasDeclarationDeprecations() || isDeprecatedAccessor(it)
-                        )
+                    require(File(accessorsDir, "$className.class").exists())
+
+                    loadClass("org.gradle.kotlin.dsl.$className").run {
+                        dependencyHandlerExtensionMethods(name).forEach {
+                            val shouldBeDeprecated = config.hasDeclarationDeprecations() || isDeprecatedAccessor(it)
+                            assertEquals(
+                                "The accessor for '${config.target}' should be ${if (shouldBeDeprecated) "" else "not "} deprecated in $classesDir",
+                                shouldBeDeprecated,
+                                isDeprecated(it),
+                            )
+
+                            // The multi-string accessor is always deprecated, advising single-string notation,
+                            // and for a configuration deprecated for declaration it also appends that configuration's
+                            // own declaration-deprecation message.
+                            if (isDeprecatedAccessor(it)) {
+                                val message = deprecationMessageOf(it)!!
+                                assertTrue(
+                                    "The multi-string accessor for '${config.target}' should advise single-string notation in $classesDir, but was: $message",
+                                    message.startsWith("Use single-string notation or DependencyFactory instead")
+                                )
+                                if (config.hasDeclarationDeprecations()) {
+                                    assertTrue(
+                                        "The multi-string accessor for the deprecated configuration '${config.target}' should append its declaration-deprecation message in $classesDir, but was: $message",
+                                        message.contains(". The ${config.target} configuration has been deprecated for dependency declaration.")
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+
+        checkConfigurationAccessors(compiledBinDir)
+        checkConfigurationAccessors(generatedBinDir)
     }
 
     /**
@@ -265,6 +285,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             DependencyHandler::class.java, String::class.java, String::class.java, String::class.java,
             String::class.java, String::class.java, String::class.java, Action::class.java
         )
+
+    private fun deprecationMessageOf(method: Method): String? =
+        method.getAnnotation(Deprecated::class.java)?.message
 
     @Test
     fun `#buildAccessorsFor (default package types)`() {

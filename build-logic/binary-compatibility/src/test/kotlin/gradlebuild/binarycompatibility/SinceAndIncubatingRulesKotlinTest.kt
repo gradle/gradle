@@ -295,6 +295,209 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
     }
 
     @Test
+    fun `new top-level kotlin member with @JvmName`() {
+        checkNotBinaryCompatibleKotlin(
+            v1 = """
+                val existing = "file-facade-class"
+            """,
+            v2 = """
+                val existing = "file-facade-class"
+
+                @JvmName("fooRenamed")
+                fun String.foo() {}
+            """
+        ) {
+            assertHasNoInformation()
+            assertHasNoWarning()
+            assertHasErrors(
+                added("Method", "SourceKt.fooRenamed(java.lang.String)"),
+            )
+        }
+
+        checkBinaryCompatibleKotlin(
+            v1 = """
+                val existing = "file-facade-class"
+            """,
+            v2 = """
+                val existing = "file-facade-class"
+
+                /** @since 2.0 */
+                @Incubating
+                @JvmName("fooRenamed")
+                fun String.foo() {}
+            """
+        ) {
+            assertHasNoWarning()
+            assertHasInformation(
+                newApi("Method", "SourceKt.fooRenamed(java.lang.String)"),
+            )
+        }
+    }
+
+    @Test
+    fun `new top-level kotlin property with @JvmName accessors`() {
+
+        checkBinaryCompatibleKotlin(
+            v1 = """
+                val existing = "file-facade-class"
+            """,
+            v2 = """
+                val existing = "file-facade-class"
+
+                /** @since 2.0 */
+                @get:Incubating
+                @get:JvmName("customBar")
+                val bar: String
+                    get() = "bar"
+
+                /** @since 2.0 */
+                @get:Incubating
+                @set:Incubating
+                @get:JvmName("customBazGet")
+                @set:JvmName("customBazSet")
+                var baz: String
+                    get() = "baz"
+                    set(value) {}
+            """
+        ) {
+            assertHasNoWarning()
+            assertHasInformation(
+                newApi("Method", "SourceKt.customBar()"),
+                newApi("Method", "SourceKt.customBazGet()"),
+                newApi("Method", "SourceKt.customBazSet(java.lang.String)"),
+            )
+        }
+    }
+
+    @Test
+    fun `new top-level kotlin function with @JvmOverloads`() {
+        checkBinaryCompatibleKotlin(
+            v1 = """
+                val existing = "file-facade-class"
+            """,
+            v2 = """
+                val existing = "file-facade-class"
+
+                /** @since 2.0 */
+                @Incubating
+                @JvmOverloads
+                fun foo(a: Int, b: Int = 1, c: String = "") {}
+
+                /** @since 2.0 */
+                @Incubating
+                @JvmOverloads
+                fun String.bar(a: Int, b: Int = 1) {}
+            """
+        ) {
+            assertHasNoWarning()
+            assertHasInformation(
+                newApi("Method", "SourceKt.foo(int)"),
+                newApi("Method", "SourceKt.foo(int,int)"),
+                newApi("Method", "SourceKt.foo(int,int,java.lang.String)"),
+                newApi("Method", "SourceKt.bar(java.lang.String,int)"),
+                newApi("Method", "SourceKt.bar(java.lang.String,int,int)"),
+            )
+        }
+    }
+
+    @Test
+    fun `new constructor with mapped parameter types`() {
+        val baseline = """
+            /** @since 1.0 */
+            class Bar<T>()
+        """
+
+        checkBinaryCompatibleKotlin(
+            v1 = baseline,
+            v2 = """
+                /** @since 1.0 */
+                class Bar<T>() {
+
+                    /** @since 2.0 */
+                    @Incubating
+                    constructor(x: Int) : this()
+
+                    /** @since 2.0 */
+                    @Incubating
+                    constructor(x: String?) : this()
+
+                    /** @since 2.0 */
+                    @Incubating
+                    constructor(x: List<String>) : this()
+
+                    /** @since 2.0 */
+                    @Incubating
+                    constructor(x: T) : this()
+                }
+            """
+        ) {
+            assertEmptyReport()
+        }
+    }
+
+    @Test
+    fun `new top-level kotlin member with generic parameters`() {
+        checkNotBinaryCompatibleKotlin(
+            v1 = """
+                val existing = "file-facade-class"
+            """,
+            v2 = """
+                val existing = "file-facade-class"
+
+                fun <T> foo(t: T) {}
+
+                fun <T : Any> qux(t: T) {}
+
+                fun <T : Number> bar(t: T) {}
+
+                fun <T> String.baz(t: T) {}
+            """
+        ) {
+            assertHasNoInformation()
+            assertHasNoWarning()
+            assertHasErrors(
+                added("Method", "SourceKt.bar(java.lang.Number)"),
+                added("Method", "SourceKt.baz(java.lang.String,java.lang.Object)"),
+                added("Method", "SourceKt.foo(java.lang.Object)"),
+                added("Method", "SourceKt.qux(java.lang.Object)"),
+            )
+        }
+
+        checkBinaryCompatibleKotlin(
+            v1 = """
+                val existing = "file-facade-class"
+            """,
+            v2 = """
+                val existing = "file-facade-class"
+
+                /** @since 2.0 */
+                @Incubating
+                fun <T> foo(t: T) {}
+
+                /** @since 2.0 */
+                @Incubating
+                fun <T : Any> qux(t: T) {}
+
+                /** @since 2.0 */
+                @Incubating
+                fun <T : Number> bar(t: T) {}
+
+                /** @since 2.0 */
+                @Incubating
+                fun <T> String.baz(t: T) {}
+            """
+        ) {
+            assertHasNoWarning()
+            assertHasInformation(
+                newApi("Method", "SourceKt.bar(java.lang.Number)"),
+                newApi("Method", "SourceKt.baz(java.lang.String,java.lang.Object)"),
+                newApi("Method", "SourceKt.foo(java.lang.Object)"),
+                newApi("Method", "SourceKt.qux(java.lang.Object)"),
+            )
+        }
+    }
+
+    @Test
     fun `new top-level kotlin types`() {
 
         // Singleton INSTANCE fields of `object`s are public

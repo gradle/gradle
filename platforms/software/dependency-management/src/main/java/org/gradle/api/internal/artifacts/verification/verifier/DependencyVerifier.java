@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.api.internal.artifacts.verification.model.TrustedPgpKey;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationResultBuilder;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -222,11 +223,14 @@ public class DependencyVerifier {
         NONE
     }
 
-    private Set<String> allTrustedKeys(ModuleComponentArtifactIdentifier id, Set<String> artifactSpecificKeys) {
+    private Set<String> allTrustedKeys(ModuleComponentArtifactIdentifier id, Set<TrustedPgpKey> artifactSpecificKeys) {
+        Set<String> artifactSpecificKeyIds = artifactSpecificKeys.stream()
+            .map(TrustedPgpKey::getKeyId)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
         if (config.getTrustedKeys().isEmpty()) {
-            return artifactSpecificKeys;
+            return artifactSpecificKeyIds;
         } else {
-            Set<String> allKeys = Sets.newHashSet(artifactSpecificKeys);
+            Set<String> allKeys = Sets.newHashSet(artifactSpecificKeyIds);
             config.getTrustedKeys()
                 .stream()
                 .filter(trustedKey -> trustedKey.matches(id))

@@ -326,23 +326,6 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
 
     private void publishChecksums(ExternalResourceName destination, File content) {
         publishChecksum(destination, content, "sha1");
-
-        if (!ExternalResourceResolver.disableExtraChecksums()) {
-            publishPossiblyUnsupportedChecksum(destination, content, "sha-256");
-            publishPossiblyUnsupportedChecksum(destination, content, "sha-512");
-        }
-    }
-
-    private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm) {
-        try {
-            publishChecksum(destination, content, algorithm);
-        } catch (Exception ex) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.", ex);
-            } else {
-                LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.");
-            }
-        }
     }
 
     private void publishChecksum(ExternalResourceName destination, File content, String algorithm) {
@@ -552,10 +535,6 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         public void listed(List<String> versions) {
             result.listed(versions);
         }
-    }
-
-    public static boolean disableExtraChecksums() {
-        return Boolean.getBoolean("org.gradle.internal.publish.checksums.insecure");
     }
 
 }

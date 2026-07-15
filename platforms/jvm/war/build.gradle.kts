@@ -26,12 +26,12 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.fileOperations)
     implementation(projects.logging)
     implementation(projects.languageJava)

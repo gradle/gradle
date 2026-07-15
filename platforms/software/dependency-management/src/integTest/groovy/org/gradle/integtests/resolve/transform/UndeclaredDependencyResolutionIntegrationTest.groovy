@@ -19,17 +19,20 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import spock.lang.Issue
 
-// This tests current behaviour, not desired behaviour
-class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
-    @ToBeFixedForConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
+import static org.hamcrest.CoreMatchers.containsString
+
+class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
+    @ToBeFixedForConfigurationCache(because = "Emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning")
     @Issue("https://github.com/gradle/gradle/issues/37219")
-    def "task can query FileCollection containing the output of transform of project artifacts without declaring this access"() {
+    def "querying transform output of project artifacts without declaring this access emits deprecation"() {
         setupBuildWithProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -37,11 +40,39 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("result = [a.jar.green, b.jar.green]")
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
         assertTransformed()
         output.contains("result = [a.jar.green, b.jar.green]")
+    }
+
+    @UnsupportedWithConfigurationCache(because = "explicitly enables Configuration Cache in the test body to demonstrate the new actionable CC error")
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "undeclared project-artifact transform output query under CC fails with actionable error naming each unscheduled producer project"() {
+        // With Configuration Cache enabled, the very first run fails when the task action resolves
+        // the artifact view: the producer project's state cannot be reached because the transform
+        // was not declared as a task input (no edge in the work graph). Production now translates
+        // the underlying project-state-not-registered failure into an actionable cause that names
+        // each producer project and tells the user how to fix the declaration.
+        //
+        // A deprecation warning is also emitted before the failure to point users at the same
+        // root cause and the upgrade guide.
+
+        setupBuildWithProjectArtifactTransforms()
+        taskQueriesFilesWithoutDeclaringInput()
+
+        when:
+        executer.withArgument("--configuration-cache")
+        expectUndeclaredArtifactTransformInputDeprecation()
+        fails("broken")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':broken'")
+        failure.assertHasCause("Could not resolve all files for configuration ':implementation'.")
+        failure.assertThatCause(containsString("Could not access project ':a'. No task declared this project as part of an input, so it was not scheduled."))
+        failure.assertThatCause(containsString("Could not access project ':b'. No task declared this project as part of an input, so it was not scheduled."))
     }
 
     @UnsupportedWithConfigurationCache(because = "task dependency logic is not executed when loaded from the configuration cache")
@@ -50,6 +81,10 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         taskQueriesFilesDuringTaskGraphCalculation()
 
         when:
+        // Both the dependsOn closure query (during task graph calculation) and the doLast query
+        // (during execution) reach the same TransformStepNodes, but the per-(node, task)
+        // naggedTaskPaths set dedupes them to a single warning per task per node per build.
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -57,6 +92,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.count("result = [a.jar.green, b.jar.green]") == 2
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -80,12 +116,166 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
-    def "task can query FileCollection containing the output of chained transform of project artifacts without declaring this access"() {
+    @ToBeFixedForConfigurationCache(because = "Emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning")
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "task A's undeclared query emits deprecation when run alone, even though task B in the same build correctly declares the same transform output"() {
+        // Characterizes that a sibling task B's correct declaration does NOT silence the nag for
+        // task A when A is invoked on its own. B never enters the work graph (it isn't invoked),
+        // so the post-graph BFS in DefaultExecutionPlan only walks taskA's subgraph and does not
+        // mark the transform nodes as declared by taskA. At execution time, taskA's inline query
+        // finds itself absent from each node's declaringTaskPaths set and the nag fires.
+
+        setupBuildWithProjectArtifactTransforms()
+        twoTasksSharingViewOnlyOneDeclaresIt()
+
+        when:
+        expectUndeclaredArtifactTransformInputDeprecation()
+        run("taskA")
+
+        then:
+        assertTransformed("a.jar", "b.jar")
+        output.contains("taskA result = [a.jar.green, b.jar.green]")
+    }
+
+    private void twoTasksSharingViewOnlyOneDeclaresIt() {
+        buildFile << """
+            def view = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'green')
+            }.files
+
+            // task A queries the view from a doLast action WITHOUT declaring it as an input.
+            task taskA {
+                doLast {
+                    println "taskA result = " + view.files.name
+                }
+            }
+
+            // task B properly declares the view as an input AND dependsOn task A so that
+            // running B triggers A as well.
+            task taskB {
+                inputs.files(view)
+                dependsOn taskA
+                doLast {
+                    println "taskB result = " + view.files.name
+                }
+            }
+        """
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning")
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "task B's undeclared query emits deprecation when run alone, even though task A in the same build correctly declares the same transform output"() {
+        // Mirror image of "task A's undeclared query emits deprecation when run alone...":
+        // the well-behaved declarer (now A) sits in the build but never enters the work graph
+        // because we invoke only B. Without A's declared input scheduling the transforms,
+        // B's inline view query reaches the transform nodes first and fires the nag.
+
+        setupBuildWithProjectArtifactTransforms()
+        twoTasksSharingViewOnlyADeclaresIt(false)
+
+        when:
+        expectUndeclaredArtifactTransformInputDeprecation()
+        run("taskB")
+
+        then:
+        assertTransformed("a.jar", "b.jar")
+        output.contains("taskB result = [a.jar.green, b.jar.green]")
+    }
+
+    private void twoTasksSharingViewOnlyADeclaresIt(boolean bDependsOnA) {
+        buildFile << """
+            def view = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'green')
+            }.files
+
+            // task A properly declares the view as an input AND queries it from its action.
+            task taskA {
+                inputs.files(view)
+                doLast {
+                    println "taskA result = " + view.files.name
+                }
+            }
+
+            // task B does NOT declare the view as an input but queries it from its action.
+            task taskB {
+                ${bDependsOnA ? "dependsOn taskA" : ""}
+                doLast {
+                    println "taskB result = " + view.files.name
+                }
+            }
+        """
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Emits a deprecation warning, but under CC the underlying 'project not found' failure still occurs after the warning")
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "querying transform output of dependency-requiring transform names the offending task and configuration"() {
+        // When the transform declares @InputArtifactDependencies, the upstream resolver carries
+        // through the originating configuration's identity, so the deprecation includes a
+        // contextual line identifying the offending task and configuration.
+        createDirs("a", "b")
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(MakeGreen) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                    }
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifactDependencies
+                abstract FileCollection getInputArtifactDependencies()
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    def output = outputs.file(input.name + ".green")
+                    if (input.file) {
+                        output.text = input.text + ".green"
+                    } else {
+                        output.text = "missing.green"
+                    }
+                }
+            }
+
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+            }
+
+            def view = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'green')
+            }.files
+
+            task broken {
+                doLast {
+                    println "result = " + view.files.name
+                }
+            }
+        """
+
+        when:
+        expectUndeclaredArtifactTransformInputDeprecation(":broken", "implementation")
+        run("broken")
+
+        then:
+        output.contains("result = [a.jar.green, b.jar.green]")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "under CC the underlying 'project not found' failure still occurs after the deprecation warning")
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "querying chained transform output of project artifacts without declaring this access emits deprecation"() {
         setupBuildWithChainedProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -93,6 +283,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.contains("result = [a.jar.red.green, b.jar.red.green]")
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -106,6 +297,10 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         taskQueriesFilesDuringTaskGraphCalculation()
 
         when:
+        // Both the dependsOn closure query (during task graph calculation) and the doLast query
+        // (during execution) reach the same TransformStepNodes, but the per-(node, task)
+        // naggedTaskPaths set dedupes them to a single warning per task per node per build.
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:
@@ -113,6 +308,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         output.count("result = [a.jar.red.green, b.jar.red.green]") == 2
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("broken")
 
         then:

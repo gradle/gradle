@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core.jos
 
-import org.gradle.internal.serialize.codecs.core.SerializedLambdaParametersCheckingCodec
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.graph.BeanStateReader
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.EncodingProvider
@@ -41,7 +41,6 @@ import java.io.Serializable
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType.methodType
-import java.lang.invoke.SerializedLambda
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier.isPrivate
 
@@ -68,11 +67,12 @@ import java.lang.reflect.Modifier.isPrivate
  * - the `readObjectNoData` method, if present, is never invoked;
  */
 class JavaObjectSerializationCodec(
-    private val lookup: JavaSerializationEncodingLookup
+    private val lookup: JavaSerializationEncodingLookup,
+    private val objectOpener: ObjectOpener
 ) : EncodingProducer, Decoding {
 
     private
-    val readResolveMethod = ReadResolveCache()
+    val readResolveMethod = ReadResolveCache(objectOpener)
 
     private
     val readObjectHierarchy = HashMap<Class<*>, List<MethodHandle>>()
@@ -117,11 +117,6 @@ class JavaObjectSerializationCodec(
 
                 Format.ReadResolveAny -> {
                     readResolve(readNonNull())
-                        .also { putIdentity(id, it) }
-                }
-
-                Format.SerializedLambda -> {
-                    readResolve(SerializedLambdaParametersCheckingCodec.run { decode() })
                         .also { putIdentity(id, it) }
                 }
             }
@@ -174,13 +169,6 @@ class JavaObjectSerializationCodec(
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplaceHandle.invokeExact(value)
                 when {
-                    replacement is SerializedLambda -> {
-                        writeEnum(Format.SerializedLambda)
-                        SerializedLambdaParametersCheckingCodec.run {
-                            encode(replacement)
-                        }
-                    }
-
                     replacement::class.java === value::class.java -> {
                         // Avoid a StackOverflowException when the replacement and value are of the same type.
                         // TODO:configuration-cache Skipping Java serialization for the replacement is likely incorrect when the class also supports the `writeObject` protocol
@@ -212,8 +200,7 @@ class JavaObjectSerializationCodec(
         ReadResolveBean,
         ReadResolveAny,
         WriteObject,
-        ReadObject,
-        SerializedLambda
+        ReadObject
     }
 
     private
@@ -230,18 +217,18 @@ class JavaObjectSerializationCodec(
     private
     fun readObjectMethodHierarchyForDecoding(type: Class<*>): List<MethodHandle> =
         readObjectHierarchy.computeIfAbsent(type) {
-            readObjectMethodHierarchyFrom(it.allMethods())
+            readObjectMethodHierarchyFrom(it.allMethods(), objectOpener)
         }
 }
 
 
 internal
-fun readObjectMethodHierarchyFrom(candidates: List<Method>): List<MethodHandle> = candidates
-    .serializationMethodHierarchy("readObject", ObjectInputStream::class.java)
+fun readObjectMethodHierarchyFrom(candidates: List<Method>, objectOpener: ObjectOpener): List<MethodHandle> = candidates
+    .serializationMethodHierarchy("readObject", ObjectInputStream::class.java, objectOpener)
 
 
 internal
-fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>): List<MethodHandle> = asSequence()
+fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>, objectOpener: ObjectOpener): List<MethodHandle> = asSequence()
     .filter { method ->
         method.run {
             isPrivate(modifiers)
@@ -251,7 +238,7 @@ fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterT
                 && parameterTypes[0].isAssignableFrom(parameterType)
         }
     }.onEach { serializationMethod ->
-        serializationMethod.isAccessible = true
+        objectOpener.makeAccessible(serializationMethod)
     }.map {
         MethodHandles.lookup()
             .unreflect(it)

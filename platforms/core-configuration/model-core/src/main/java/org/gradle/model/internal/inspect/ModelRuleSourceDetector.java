@@ -29,7 +29,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.model.RuleSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,19 +44,20 @@ import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
+@SuppressWarnings("deprecation")
 public class ModelRuleSourceDetector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelRuleSourceDetector.class);
 
     private static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = Comparator.comparing(Class::getName);
 
-    final LoadingCache<Class<?>, Collection<Reference<Class<? extends RuleSource>>>> cache = CacheBuilder.newBuilder()
+    final LoadingCache<Class<?>, Collection<Reference<Class<? extends org.gradle.model.RuleSource>>>> cache = CacheBuilder.newBuilder()
         .weakKeys()
-        .build(new CacheLoader<Class<?>, Collection<Reference<Class<? extends RuleSource>>>>() {
+        .build(new CacheLoader<Class<?>, Collection<Reference<Class<? extends org.gradle.model.RuleSource>>>>() {
             @Override
-            public Collection<Reference<Class<? extends RuleSource>>> load(@SuppressWarnings("NullableProblems") Class<?> container) {
+            public Collection<Reference<Class<? extends org.gradle.model.RuleSource>>> load(@SuppressWarnings("NullableProblems") Class<?> container) {
                 if (isRuleSource(container)) {
-                    Class<? extends RuleSource> castClass = Cast.uncheckedCast(container);
+                    Class<? extends org.gradle.model.RuleSource> castClass = Cast.uncheckedCast(container);
                     return ImmutableSet.of(new WeakReference<>(castClass));
                 }
 
@@ -70,10 +70,10 @@ public class ModelRuleSourceDetector {
                 System.arraycopy(declaredClasses, 0, sortedDeclaredClasses, 0, declaredClasses.length);
                 Arrays.sort(sortedDeclaredClasses, COMPARE_BY_CLASS_NAME);
 
-                ImmutableList.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableList.builder();
+                ImmutableList.Builder<Reference<Class<? extends org.gradle.model.RuleSource>>> found = ImmutableList.builder();
                 for (Class<?> declaredClass : sortedDeclaredClasses) {
                     if (isRuleSource(declaredClass)) {
-                        Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);
+                        Class<? extends org.gradle.model.RuleSource> castClass = Cast.uncheckedCast(declaredClass);
                         found.add(new WeakReference<>(castClass));
                     }
                 }
@@ -83,10 +83,10 @@ public class ModelRuleSourceDetector {
         });
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
-    public Iterable<Class<? extends RuleSource>> getDeclaredSources(Class<?> container) {
+    public Iterable<Class<? extends org.gradle.model.RuleSource>> getDeclaredSources(Class<?> container) {
         try {
             return FluentIterable.from(cache.get(container))
-                .transform((Function<Reference<Class<? extends RuleSource>>, Class<? extends RuleSource>>) Reference::get)
+                .transform((Function<Reference<Class<? extends org.gradle.model.RuleSource>>, Class<? extends org.gradle.model.RuleSource>>) Reference::get)
                 .filter(Predicates.notNull());
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -99,7 +99,7 @@ public class ModelRuleSourceDetector {
 
     private static boolean isRuleSource(Class<?> clazz) {
         try {
-            return RuleSource.class.isAssignableFrom(clazz);
+            return org.gradle.model.RuleSource.class.isAssignableFrom(clazz);
         } catch (LinkageError e) {
             LOGGER.debug("Could not inspect class {}, skipping rule source detection", clazz.getName(), e);
             return false;

@@ -28,7 +28,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,7 +39,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * DSL-friendly model of the Eclipse project information.
  * First point of entry for customizing Eclipse project generation.
  *
- * <pre class='autoTestedWithDeprecations'>
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'
@@ -74,7 +73,6 @@ public abstract class EclipseModel {
 
     private EclipseJdt jdt;
 
-    @SuppressWarnings("deprecation")
     private EclipseWtp wtp;
 
     private final DefaultTaskDependency synchronizationTasks;
@@ -154,10 +152,7 @@ public abstract class EclipseModel {
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
-     *
-     * @deprecated Will be removed in Gradle 10.
      */
-    @Deprecated
     public EclipseWtp getWtp() {
         if (wtp == null) {
             wtp = getObjectFactory().newInstance(EclipseWtp.class);
@@ -165,14 +160,7 @@ public abstract class EclipseModel {
         return wtp;
     }
 
-    /**
-     * Set {@link EclipseWtp}.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
     public void setWtp(EclipseWtp wtp) {
-        IdeDeprecations.nagDeprecatedType(EclipseWtp.class);
         this.wtp = wtp;
     }
 
@@ -220,12 +208,8 @@ public abstract class EclipseModel {
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
-     *
-     * @deprecated Will be removed in Gradle 10.
      */
-    @Deprecated
     public void wtp(@DelegatesTo(EclipseWtp.class) Closure closure) {
-        IdeDeprecations.nagDeprecatedType(EclipseWtp.class);
         configure(closure, wtp);
     }
 
@@ -235,11 +219,8 @@ public abstract class EclipseModel {
      * For examples see docs for {@link EclipseWtp}
      *
      * @since 3.5
-     * @deprecated Will be removed in Gradle 10.
      */
-    @Deprecated
     public void wtp(Action<? super EclipseWtp> action) {
-        IdeDeprecations.nagDeprecatedType(EclipseWtp.class);
         action.execute(wtp);
     }
 

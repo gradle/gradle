@@ -27,6 +27,7 @@ import spock.lang.Specification
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 
 @UsesNativeServices
+@SuppressWarnings("deprecation")
 class CUnitTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())

@@ -71,7 +71,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     def "result can be read multiple times"() {
         def rootNode = rootNode("org", "root", "1.0")
         builder.start(rootNode)
-        builder.visitEdges(rootNode)
+        builder.visitNode(rootNode)
         builder.finish(rootNode)
 
         when:
@@ -97,8 +97,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
         builder.start(root)
 
-        builder.visitEdges(root)
-        builder.visitEdges(node1)
+        builder.visitNode(root)
+        builder.visitNode(node1)
 
         builder.finish(root)
 
@@ -127,11 +127,11 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
         builder.start(root)
 
-        builder.visitEdges(root)
-        builder.visitEdges(node11)
-        builder.visitEdges(node12)
-        builder.visitEdges(node2)
-        builder.visitEdges(node3)
+        builder.visitNode(root)
+        builder.visitNode(node11)
+        builder.visitNode(node12)
+        builder.visitNode(node2)
+        builder.visitNode(node3)
 
         builder.finish(root)
 
@@ -159,10 +159,10 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
         builder.start(root)
 
-        builder.visitEdges(root)
-        builder.visitEdges(node(component("org", "dep1", "2.0")))
+        builder.visitNode(root)
+        builder.visitNode(node(component("org", "dep1", "2.0")))
 
-        builder.visitEdges(node2)
+        builder.visitNode(node2)
 
         builder.finish(root)
 

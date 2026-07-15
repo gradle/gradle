@@ -46,6 +46,89 @@ The `compileJava` task is the source of the files to package, and the project pr
 Using a task directly as an argument like this relies on it having <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>>, so it won't always be possible.
 This example could be further improved by relying on the Java plugin's convention for `destinationDirectory` rather than overriding it, but it does demonstrate the use of project properties.
 
+[[sec:lazy_file_property_variants]]
+== Lazy file property variants on built-in tasks
+
+Some built-in Gradle tasks and extensions were originally written with eager `File` getters, for example `Javadoc.getDestinationDir()`, which returns a `java.io.File`.
+Migrating these to lazy <<properties_providers.adoc#managed_properties, managed properties>> like link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[`DirectoryProperty`] or link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[`RegularFileProperty`] in place would change the return type of widely-used public getters and break source and binary compatibility for plugin authors.
+
+To address this, Gradle provides renamed lazy variants of these properties.
+The original eager getter is preserved as a backward-compatible bridge, and a new getter (typically suffixed `Directory`, `File`, or `Property`) exposes the lazy form.
+
+The two getters share the same underlying state: a value set through one is observable through the other.
+
+====
+include::sample[dir="snippets/reference/gradle-types/lazyFileVariants/kotlin",files="build.gradle.kts[tags=lazy-javadoc-destination]"]
+include::sample[dir="snippets/reference/gradle-types/lazyFileVariants/groovy",files="build.gradle[tags=lazy-javadoc-destination]"]
+====
+
+Existing builds continue to work without modification, and new build logic can configure the property directly through its lazy form.
+
+The following table lists the renamed lazy variants currently available:
+
+[cols="1,1,1"]
+|===
+| Class | Eager getter | New lazy getter
+
+| link:{javadocPath}/org/gradle/testing/jacoco/plugins/JacocoTaskExtension.html[`JacocoTaskExtension`]
+| `getClassDumpDir()`
+| `getClassDumpDirectory(): DirectoryProperty`
+
+| link:{javadocPath}/org/gradle/api/tasks/bundling/War.html[`War`]
+| `getWebXml()`
+| `getWebXmlFile(): RegularFileProperty`
+
+| link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html[`CreateStartScripts`]
+| `getOutputDir()`
+| `getOutputDirectory(): DirectoryProperty`
+
+| link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html[`CreateStartScripts`]
+| `getUnixScript()`
+| `getUnixScriptFile(): RegularFileProperty`
+
+| link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html[`CreateStartScripts`]
+| `getWindowsScript()`
+| `getWindowsScriptFile(): RegularFileProperty`
+
+| link:{javadocPath}/org/gradle/api/tasks/compile/GroovyCompileOptions.html[`GroovyCompileOptions`]
+| `getConfigurationScript()`
+| `getConfigurationScriptFile(): RegularFileProperty`
+
+| link:{javadocPath}/org/gradle/api/tasks/compile/GroovyCompileOptions.html[`GroovyCompileOptions`]
+| `getStubDir()`
+| `getStubDirectory(): DirectoryProperty`
+
+| link:{javadocPath}/org/gradle/api/plugins/quality/CodeQualityExtension.html[`CodeQualityExtension`]
+| `getReportsDir()`
+| `getReportsDirectory(): DirectoryProperty`
+
+| link:{javadocPath}/org/gradle/api/publish/ivy/tasks/GenerateIvyDescriptor.html[`GenerateIvyDescriptor`]
+| `getDestination()`
+| `getDestinationFile(): RegularFileProperty`
+
+| link:{javadocPath}/org/gradle/api/publish/maven/tasks/GenerateMavenPom.html[`GenerateMavenPom`]
+| `getDestination()`
+| `getDestinationFile(): RegularFileProperty`
+
+| link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[`Javadoc`]
+| `getDestinationDir()`
+| `getDestinationDirectory(): DirectoryProperty`
+
+| link:{javadocPath}/org/gradle/api/tasks/javadoc/Groovydoc.html[`Groovydoc`]
+| `getDestinationDir()`
+| `getDestinationDirectory(): DirectoryProperty`
+
+| link:{javadocPath}/org/gradle/api/tasks/scala/ScalaDoc.html[`ScalaDoc`]
+| `getDestinationDir()`
+| `getDestinationDirectory(): DirectoryProperty`
+
+| link:{javadocPath}/org/gradle/process/ProcessForkOptions.html[`ProcessForkOptions`]
+| `getWorkingDir()`
+| `getWorkingDirectory(): DirectoryProperty`
+|===
+
+When you encounter a task type with an eager `getXxxDir()` or `getXxxFile()` getter that isn't yet in the table above, check the task's Javadoc for a renamed lazy sibling — Gradle continues to expose new lazy variants on more types over time.
+
 [[sec:locating_files]]
 == Locating files
 
@@ -714,7 +797,7 @@ When you use the `ReplaceTokens` class with `filter()`, you create a template en
 [[using_copyspec_expand]]
 === Using `CopySpec.expand()`
 
-The `expand()` method treats the source files as https://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html[Groovy templates], which evaluates and expands expressions of the form `${expression}.`
+The `expand()` method treats the source files as https://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html[Groovy templates], which evaluates and expands expressions of the form `$\{expression}.`
 
 You can pass in property names and values that are then expanded in the source files. `expand()` allows for more than basic token substitution as the embedded expressions are full-blown Groovy expressions.
 

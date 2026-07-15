@@ -30,6 +30,7 @@ import org.gradle.platform.base.SourceComponentSpec
 import org.gradle.platform.base.VariantComponentSpec
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class ComponentRendererTest extends Specification {
     def project = Stub(Project) {
         toString() >> "<project>"

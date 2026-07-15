@@ -18,6 +18,8 @@ package org.gradle.api.execution;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 import java.util.Set;
@@ -34,6 +36,8 @@ import java.util.Set;
  * is empty before then. You can receive a notification when the graph is populated, using {@link
  * #whenReady(groovy.lang.Closure)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
  */
+// Public `TaskExecutionGraph` service shadowed at the project scope by the IP reporting wrapper
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface TaskExecutionGraph {
     /**
      * <p>Adds a listener to this graph, to be notified when this graph is ready.</p>

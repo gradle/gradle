@@ -19,15 +19,7 @@ package org.gradle.nativeplatform.internal;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.PreprocessingTool;
-import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryRequirementResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -38,7 +30,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
-import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
@@ -50,19 +41,20 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
+@SuppressWarnings("deprecation")
+public abstract class AbstractNativeBinarySpec extends org.gradle.platform.base.binary.BaseBinarySpec implements NativeBinarySpecInternal {
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
-    private final Tool linker = new DefaultTool();
-    private final Tool staticLibArchiver = new DefaultTool();
+    private final org.gradle.nativeplatform.Tool linker = new DefaultTool();
+    private final org.gradle.nativeplatform.Tool staticLibArchiver = new DefaultTool();
 
     // TODO:HH Use managed views for this, only applied when the respective language is applied
-    private final Tool assembler = new DefaultTool();
-    private final PreprocessingTool cCompiler = new DefaultPreprocessingTool();
-    private final PreprocessingTool cppCompiler = new DefaultPreprocessingTool();
-    private final PreprocessingTool objcCompiler = new DefaultPreprocessingTool();
-    private final PreprocessingTool objcppCompiler = new DefaultPreprocessingTool();
-    private final PreprocessingTool rcCompiler = new DefaultPreprocessingTool();
-    private final Map<String, Tool> toolsByName = ImmutableMap.<String, Tool>builder()
+    private final org.gradle.nativeplatform.Tool assembler = new DefaultTool();
+    private final org.gradle.nativeplatform.PreprocessingTool cCompiler = new DefaultPreprocessingTool();
+    private final org.gradle.nativeplatform.PreprocessingTool cppCompiler = new DefaultPreprocessingTool();
+    private final org.gradle.nativeplatform.PreprocessingTool objcCompiler = new DefaultPreprocessingTool();
+    private final org.gradle.nativeplatform.PreprocessingTool objcppCompiler = new DefaultPreprocessingTool();
+    private final org.gradle.nativeplatform.PreprocessingTool rcCompiler = new DefaultPreprocessingTool();
+    private final Map<String, org.gradle.nativeplatform.Tool> toolsByName = ImmutableMap.<String, org.gradle.nativeplatform.Tool>builder()
             .put("assembler", assembler)
             .put("cCompiler", cCompiler)
             .put("cppCompiler", cppCompiler)
@@ -72,10 +64,10 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
             .build();
 
     private PlatformToolProvider toolProvider;
-    private Flavor flavor;
+    private org.gradle.nativeplatform.Flavor flavor;
     private NativeToolChain toolChain;
     private NativePlatform targetPlatform;
-    private BuildType buildType;
+    private org.gradle.nativeplatform.BuildType buildType;
     private NativeDependencyResolver resolver;
     private Map<File, PreCompiledHeader> prefixFileToPCH = new HashMap<>();
     private FileCollectionFactory fileCollectionFactory;
@@ -86,17 +78,17 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     @Override
-    public NativeComponentSpec getComponent() {
-        return getComponentAs(NativeComponentSpec.class);
+    public org.gradle.nativeplatform.NativeComponentSpec getComponent() {
+        return getComponentAs(org.gradle.nativeplatform.NativeComponentSpec.class);
     }
 
     @Override
-    public Flavor getFlavor() {
+    public org.gradle.nativeplatform.Flavor getFlavor() {
         return flavor;
     }
 
     @Override
-    public void setFlavor(Flavor flavor) {
+    public void setFlavor(org.gradle.nativeplatform.Flavor flavor) {
         this.flavor = flavor;
     }
 
@@ -121,67 +113,67 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     @Override
-    public BuildType getBuildType() {
+    public org.gradle.nativeplatform.BuildType getBuildType() {
         return buildType;
     }
 
     @Override
-    public void setBuildType(BuildType buildType) {
+    public void setBuildType(org.gradle.nativeplatform.BuildType buildType) {
         this.buildType = buildType;
     }
 
     @Override
-    public Tool getLinker() {
+    public org.gradle.nativeplatform.Tool getLinker() {
         return linker;
     }
 
     @Override
-    public Tool getStaticLibArchiver() {
+    public org.gradle.nativeplatform.Tool getStaticLibArchiver() {
         return staticLibArchiver;
     }
 
     @Override
-    public Tool getAssembler() {
+    public org.gradle.nativeplatform.Tool getAssembler() {
         return assembler;
     }
 
     @Override
-    public PreprocessingTool getcCompiler() {
+    public org.gradle.nativeplatform.PreprocessingTool getcCompiler() {
         return cCompiler;
     }
 
     @Override
-    public PreprocessingTool getCppCompiler() {
+    public org.gradle.nativeplatform.PreprocessingTool getCppCompiler() {
         return cppCompiler;
     }
 
     @Override
-    public PreprocessingTool getObjcCompiler() {
+    public org.gradle.nativeplatform.PreprocessingTool getObjcCompiler() {
         return objcCompiler;
     }
 
     @Override
-    public PreprocessingTool getObjcppCompiler() {
+    public org.gradle.nativeplatform.PreprocessingTool getObjcppCompiler() {
         return objcppCompiler;
     }
 
     @Override
-    public PreprocessingTool getRcCompiler() {
+    public org.gradle.nativeplatform.PreprocessingTool getRcCompiler() {
         return rcCompiler;
     }
 
     @Override
-    public Tool getToolByName(String name) {
+    public org.gradle.nativeplatform.Tool getToolByName(String name) {
         return toolsByName.get(name);
     }
 
     @Override
-    public Collection<NativeDependencySet> getLibs() {
-        return resolve(getInputs().withType(DependentSourceSet.class)).getAllResults();
+    public Collection<org.gradle.nativeplatform.NativeDependencySet> getLibs() {
+        return resolve(getInputs().withType(org.gradle.language.nativeplatform.DependentSourceSet.class)).getAllResults();
     }
 
     @Override
-    public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
+    public Collection<org.gradle.nativeplatform.NativeDependencySet> getLibs(org.gradle.language.nativeplatform.DependentSourceSet sourceSet) {
         return resolve(Collections.singleton(sourceSet)).getAllResults();
     }
 
@@ -191,13 +183,13 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     @Override
-    public Collection<NativeLibraryBinary> getDependentBinaries() {
-        return resolve(getInputs().withType(DependentSourceSet.class)).getAllLibraryBinaries();
+    public Collection<org.gradle.nativeplatform.NativeLibraryBinary> getDependentBinaries() {
+        return resolve(getInputs().withType(org.gradle.language.nativeplatform.DependentSourceSet.class)).getAllLibraryBinaries();
     }
 
     @Override
     public Collection<NativeBinaryRequirementResolveResult> getAllResolutions() {
-        return resolve(getInputs().withType(DependentSourceSet.class)).getAllResolutions();
+        return resolve(getInputs().withType(org.gradle.language.nativeplatform.DependentSourceSet.class)).getAllResolutions();
     }
 
     @Override
@@ -206,15 +198,15 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     @Override
-    public void addPreCompiledHeaderFor(DependentSourceSet sourceSet) {
+    public void addPreCompiledHeaderFor(org.gradle.language.nativeplatform.DependentSourceSet sourceSet) {
         prefixFileToPCH.put(
             ((DependentSourceSetInternal)sourceSet).getPrefixHeaderFile(),
             new PreCompiledHeader(getIdentifier().child("pch")));
     }
 
-    private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {
+    private NativeBinaryResolveResult resolve(Iterable<? extends org.gradle.language.nativeplatform.DependentSourceSet> sourceSets) {
         Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
-        for (DependentSourceSet dependentSourceSet : sourceSets) {
+        for (org.gradle.language.nativeplatform.DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
         }
         NativeBinaryResolveResult resolution = new NativeBinaryResolveResult(this, allLibs);

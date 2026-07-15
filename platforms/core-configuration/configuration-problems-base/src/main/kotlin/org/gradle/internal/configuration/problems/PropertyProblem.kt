@@ -46,7 +46,6 @@ data class PropertyProblem(
 // TODO:configuration-cache extract interface and move enum back to :configuration-cache
 enum class DocumentationSection(val page: String, val anchor: String) {
     NotYetImplemented("configuration_cache_status", "config_cache:not_yet_implemented"),
-    NotYetImplementedSourceDependencies("configuration_cache_status", "config_cache:not_yet_implemented:source_dependencies"),
     NotYetImplementedJavaSerialization("configuration_cache_status", "config_cache:not_yet_implemented:java_serialization"),
     NotYetImplementedBuildServiceInFingerprint("configuration_cache_status", "config_cache:not_yet_implemented:build_services_in_fingerprint"),
     NotYetImplementedBuildEventListeners("configuration_cache_status", "config_cache:not_yet_implemented:more_build_event_listeners"),

@@ -113,8 +113,15 @@ public interface ArtifactView extends HasAttributes {
         /**
          * When invoked, this view will disregard existing attributes of its parent configuration and re-resolve the artifacts
          * using only the attributes in the view's attribute container.
+         * <p>
+         * This behavior cannot be unset on a particular view once this method is invoked.
          *
-         * <p>This behavior cannot be unset on a particular view once this method is invoked.
+         * @apiNote Reselection operates on the components already present in the resolved graph: it picks a
+         * different variant of each component selected by the original graph resolution. It does not re-run
+         * graph resolution. As a consequence, variants that delegate to a different component via an
+         * {@code available-at} pointer in Gradle Module Metadata are not followed, and the artifacts of the
+         * pointed-at component do not appear in the view. To resolve such variants, declare a separate
+         * {@link Configuration} whose request attributes already select them.
          *
          * @since 7.5
          */

@@ -90,7 +90,7 @@ public class DocumentationRegistry {
     }
 
     public String getSampleFor(String id) {
-        return String.format(getSampleIndex() + "/sample_%s.html", id);
+        return String.format("%s/sample_%s.html", getSampleIndex(), id);
     }
 
     public String getSampleForMessage(String id) {

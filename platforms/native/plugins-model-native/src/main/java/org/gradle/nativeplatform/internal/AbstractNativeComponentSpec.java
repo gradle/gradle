@@ -15,17 +15,14 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.ObjectFile;
-import org.gradle.platform.base.TransformationFileType;
-import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.util.internal.GUtil;
 
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec, HasIntermediateOutputsComponentSpec {
+@SuppressWarnings("deprecation")
+public abstract class AbstractNativeComponentSpec extends org.gradle.platform.base.component.BaseComponentSpec implements org.gradle.nativeplatform.NativeComponentSpec, HasIntermediateOutputsComponentSpec {
     private String baseName;
 
     @Override
@@ -39,7 +36,7 @@ public abstract class AbstractNativeComponentSpec extends BaseComponentSpec impl
     }
 
     @Override
-    public Set<? extends Class<? extends TransformationFileType>> getIntermediateTypes() {
-        return Collections.singleton(ObjectFile.class);
+    public Set<? extends Class<? extends org.gradle.platform.base.TransformationFileType>> getIntermediateTypes() {
+        return Collections.singleton(org.gradle.nativeplatform.ObjectFile.class);
     }
 }

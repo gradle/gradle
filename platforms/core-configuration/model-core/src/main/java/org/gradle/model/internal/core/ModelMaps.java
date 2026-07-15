@@ -18,11 +18,11 @@ package org.gradle.model.internal.core;
 
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.RuleContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
+@SuppressWarnings("deprecation")
 public class ModelMaps {
 
     private static final ModelReference<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY_MODEL_REFERENCE = ModelReference.of(NodeInitializerRegistry.class);
@@ -51,7 +51,7 @@ public class ModelMaps {
         return mapNode;
     }
 
-    public static <T> ModelMap<T> toView(MutableModelNode mapNode, ModelType<T> elementModelType) {
+    public static <T> org.gradle.model.ModelMap<T> toView(MutableModelNode mapNode, ModelType<T> elementModelType) {
         mapNode.ensureUsable();
         return mapNode.asMutable(
                 ModelTypes.modelMap(elementModelType),

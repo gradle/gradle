@@ -18,7 +18,6 @@ package org.gradle.internal.rules;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.model.Mutate;
 import org.gradle.model.internal.inspect.DefaultRuleSourceValidationProblemCollector;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
@@ -33,6 +32,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
     private final R instance;
     private final JavaMethod<R, T> ruleMethod;
@@ -46,15 +46,15 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
 
     public static <R, T> RuleSourceBackedRuleAction<R, T> create(ModelType<T> subjectType, R ruleSourceInstance) {
         ModelType<R> ruleSourceType = ModelType.typeOf(ruleSourceInstance);
-        List<Method> mutateMethods = findAllMethods(ruleSourceType.getConcreteClass(), element -> element.isAnnotationPresent(Mutate.class));
+        List<Method> mutateMethods = findAllMethods(ruleSourceType.getConcreteClass(), element -> element.isAnnotationPresent(org.gradle.model.Mutate.class));
         FormattingValidationProblemCollector problemsFormatter = new FormattingValidationProblemCollector("rule source", ruleSourceType);
         RuleSourceValidationProblemCollector problems = new DefaultRuleSourceValidationProblemCollector(problemsFormatter);
 
         if (mutateMethods.size() == 0) {
-            problems.add("Must have at exactly one method annotated with @" + Mutate.class.getName());
+            problems.add("Must have at exactly one method annotated with @" + org.gradle.model.Mutate.class.getName());
         } else {
             if (mutateMethods.size() > 1) {
-                problems.add("More than one method is annotated with @" + Mutate.class.getName());
+                problems.add("More than one method is annotated with @" + org.gradle.model.Mutate.class.getName());
             }
 
             for (Method ruleMethod : mutateMethods) {
@@ -116,7 +116,6 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
             List<Method> seenWithName = seen.get(method.getName());
             Method override = CollectionUtils.findFirst(seenWithName, potentionOverride -> potentionOverride.getName().equals(method.getName())
                 && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes()));
-
 
             if (override == null) {
                 seenWithName.add(method);

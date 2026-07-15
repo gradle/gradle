@@ -47,7 +47,8 @@ import java.util.Collection;
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
  */
 @HasInternalProtocol
-@ServiceScope(Scope.Build.class)
+// Public `Gradle` service shadowed at the project scope by the IP reporting wrapper
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface Gradle extends PluginAware, ExtensionAware {
 
     /**

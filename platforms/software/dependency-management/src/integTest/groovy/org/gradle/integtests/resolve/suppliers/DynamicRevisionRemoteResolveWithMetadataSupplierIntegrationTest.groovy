@@ -442,7 +442,7 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         then:
         fails 'checkDeps'
         failure.assertHasCause("Could not resolve group:projectB:latest.release.")
-        failure.assertHasCause("Could not GET '${server.uri}/repo/group/projectB/2.2/status.txt'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${server.uri}/repo/group/projectB/2.2/status.txt'. Received status code 500 from server: Internal Server Error")
 
         when:
         resetExpectations()

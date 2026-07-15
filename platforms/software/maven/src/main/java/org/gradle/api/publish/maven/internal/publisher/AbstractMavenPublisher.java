@@ -20,7 +20,6 @@ import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
@@ -290,22 +289,6 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         private void publishChecksums(ExternalResourceName destination, File content) {
             publishChecksum(destination, content, Hashing.sha1());
             publishChecksum(destination, content, Hashing.md5());
-            if (!ExternalResourceResolver.disableExtraChecksums()) {
-                publishPossiblyUnsupportedChecksum(destination, content, Hashing.sha256());
-                publishPossiblyUnsupportedChecksum(destination, content, Hashing.sha512());
-            }
-        }
-
-        private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, HashFunction hashFunction) {
-            try {
-                publishChecksum(destination, content, hashFunction);
-            } catch (Exception ex) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + hashFunction + ". This will not fail the build.", ex);
-                } else {
-                    LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + hashFunction + ". This will not fail the build.");
-                }
-            }
         }
 
         private void publishChecksum(ExternalResourceName destination, File content, HashFunction hashFunction) {

@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.serialize
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
@@ -110,6 +111,7 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
@@ -140,6 +142,7 @@ import org.gradle.internal.serialize.codecs.dm.transform.TransformStepSpecCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedExternalArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedProjectArtifactSetCodec
+import org.gradle.internal.serialize.codecs.stdlib.KotlinObjectCodec
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
@@ -205,8 +208,14 @@ class DefaultConfigurationCacheCodecs(
     moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
-    problems: ProblemsInternal
+    problems: ProblemsInternal,
+    private val objectOpener: ObjectOpener,
+    startParameter: StartParameterInternal
 ) : ConfigurationCacheCodecs {
+
+    private
+    val serializeTaskLoggingListeners = !startParameter.isConfigurationCacheSkipTaskLoggingListenersSerialization
+
 
     private
     val parallelStore: Boolean = modelParameters.isConfigurationCacheParallelStore
@@ -224,7 +233,7 @@ class DefaultConfigurationCacheCodecs(
         fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
             unsupportedTypes()
 
-            baseTypes()
+            baseTypes(objectOpener)
 
             bind(HASHCODE_SERIALIZER)
 
@@ -240,7 +249,7 @@ class DefaultConfigurationCacheCodecs(
             bind(org.gradle.internal.serialize.codecs.core.ApiTextResourceAdapterCodec)
 
             groovyCodecs()
-            bind(SerializedLambdaParametersCheckingCodec)
+            bind(SerializedLambdaParametersCheckingCodec(objectOpener))
 
             // Dependency management types
             val immutableAttributesCodec = ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry)
@@ -271,7 +280,7 @@ class DefaultConfigurationCacheCodecs(
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
             bind(DefaultComponentArtifactsResultCodec())
-            bind(DefaultResolvedArtifactResultCodec())
+            bind(DefaultResolvedArtifactResultCodec(immutableAttributesCodec, immutableCapabilitiesCodec))
             bind(DefaultUnresolvedComponentResultCodec())
 
             val graphStructureCodec = DefaultGraphStructureCodec(
@@ -339,8 +348,9 @@ class DefaultConfigurationCacheCodecs(
 
     private
     fun Bindings.completeWithStatefulCodecs() = append {
+        bind(KotlinObjectCodec)
         bind(ExternalizableCodec)
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))
         bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
@@ -356,7 +366,7 @@ class DefaultConfigurationCacheCodecs(
 
     private
     val internalTypesBindings = Bindings.of {
-        baseTypes()
+        baseTypes(objectOpener)
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
@@ -369,7 +379,7 @@ class DefaultConfigurationCacheCodecs(
     override fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {
         val userTypesCodec = userTypesCodec()
 
-        bind(TaskNodeCodec(userTypesCodec))
+        bind(TaskNodeCodec(userTypesCodec, serializeTaskLoggingListeners))
         bind(DelegatingCodec<TransformStepNode>(userTypesCodec))
         bind(org.gradle.internal.serialize.codecs.core.ActionNodeCodec(userTypesCodec))
         bind(OrdinalNodeCodec)

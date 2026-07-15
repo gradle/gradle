@@ -20,6 +20,7 @@ import org.gradle.model.Each
 import org.gradle.model.RuleSource
 import org.gradle.model.Rules
 
+@SuppressWarnings("deprecation")
 class EachBeanViaRuleSource extends RuleSource {
     @Rules
     void mutateBeans(BeanRules rules, @Each DefaultModelRegistryTest.Bean bean) {

@@ -22,22 +22,14 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.PreprocessingTool;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -47,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+@SuppressWarnings("deprecation")
 public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
 
     private final NativeLanguageTransform<?> languageTransform;
@@ -68,7 +61,7 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
     }
 
     @Override
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+    public void configureTask(Task task, org.gradle.platform.base.BinarySpec binary, org.gradle.language.base.LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureCompileTaskCommon((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
         configureCompileTask((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
     }
@@ -76,14 +69,14 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
     private void configureCompileTaskCommon(final AbstractNativeCompileTask task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
         task.getToolChain().set(binary.getToolChain());
         task.getTargetPlatform().set(binary.getTargetPlatform());
-        task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
+        task.setPositionIndependentCode(binary instanceof org.gradle.nativeplatform.SharedLibraryBinarySpec);
 
-        task.includes(((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSourceDirectories());
+        task.includes(((org.gradle.language.nativeplatform.HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSourceDirectories());
         task.includes(new Callable<List<FileCollection>>() {
             @Override
             public List<FileCollection> call() {
-                Collection<NativeDependencySet> libs = binary.getLibs((DependentSourceSet) sourceSet);
-                return CollectionUtils.collect(libs, NativeDependencySet::getIncludeRoots);
+                Collection<org.gradle.nativeplatform.NativeDependencySet> libs = binary.getLibs((org.gradle.language.nativeplatform.DependentSourceSet) sourceSet);
+                return CollectionUtils.collect(libs, org.gradle.nativeplatform.NativeDependencySet::getIncludeRoots);
             }
         });
         FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
@@ -102,9 +95,9 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
         }));
 
         for (String toolName : languageTransform.getBinaryTools().keySet()) {
-            Tool tool = binary.getToolByName(toolName);
-            if (tool instanceof PreprocessingTool) {
-                task.setMacros(((PreprocessingTool) tool).getMacros());
+            org.gradle.nativeplatform.Tool tool = binary.getToolByName(toolName);
+            if (tool instanceof org.gradle.nativeplatform.PreprocessingTool) {
+                task.setMacros(((org.gradle.nativeplatform.PreprocessingTool) tool).getMacros());
             }
 
             task.getCompilerArgs().set(tool.getArgs());

@@ -35,6 +35,7 @@ import org.gradle.internal.cc.operations.withWorkGraphStoreOperation
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildTreeModelCreatorResult
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.ToolingModelRequestContext
@@ -53,6 +54,7 @@ import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintStar
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
+import org.gradle.internal.cc.impl.models.BuildTreeModel
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
@@ -75,7 +77,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
@@ -117,6 +119,10 @@ class DefaultConfigurationCache internal constructor(
     // Have one or more values been successfully written to the entry?
     private
     var cacheEntryRequiresCommit = false
+
+    // Did model building produce failures, so the entry must be discarded rather than stored?
+    private
+    var entryDiscardRequested = false
 
     private
     val host by lazy { deferredRootBuildGradle.gradle.services.get<HostServiceProvider>() }
@@ -289,28 +295,45 @@ class DefaultConfigurationCache internal constructor(
         return loadWorkGraph(graph, graphBuilder, true)
     }
 
-    override fun maybePrepareModel(action: () -> Unit) {
+    override fun maybePrepareModel(action: () -> BuildTreeModelCreatorResult<Void>): BuildTreeModelCreatorResult<Void> {
         if (isLoaded) {
-            return
+            return BuildTreeModelCreatorResult.of(null)
         }
-        runWorkThatContributesToCacheEntry {
-            action()
+        return runWorkThatContributesToCacheEntry {
+            runAndDiscardEntryOnFailures(action)
         }
     }
 
-    override fun <T : Any> loadOrCreateModel(creator: () -> T): T {
+    override fun <T : Any> loadOrCreateModel(creator: () -> BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T> {
         if (isLoaded) {
             runLoadedSideEffects()
-            return loadModel().uncheckedCast()
+            return BuildTreeModelCreatorResult.of(loadModel().uncheckedCast<BuildTreeModel>().result<T>())
         }
 
         return runWorkThatContributesToCacheEntry {
-            val model = creator()
-            // Graceful degradation. We don't care about the models saving at the moment since it's happening
-            // only when Isolated Projects enabled. That's it, there is no model saving in CC + noIP mode.
-            saveModel(model)
-            model
+            val result = runAndDiscardEntryOnFailures(creator)
+            if (!result.hasFailures()) {
+                // Graceful degradation. We don't care about the models saving at the moment since it's happening
+                // only when Isolated Projects enabled. That's it, there is no model saving in CC + noIP mode.
+                val model = when (val value = result.model) {
+                    null -> BuildTreeModel.NullModel
+                    else -> BuildTreeModel.Model(value)
+                }
+                saveModel(model)
+            }
+            result
         }
+    }
+
+    private
+    fun <T : Any> runAndDiscardEntryOnFailures(action: () -> BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T> {
+        val result = action()
+        if (result.hasFailures()) {
+            // Model building produced failures, so the resulting partial configuration must not be reused:
+            // discard the entry so the next build re-runs and re-reports the failures.
+            entryDiscardRequested = true
+        }
+        return result
     }
 
     private
@@ -331,8 +354,8 @@ class DefaultConfigurationCache internal constructor(
         project: ProjectIdentity?,
         modelRequestContext: ToolingModelRequestContext,
         parameter: ToolingModelParameterCarrier?,
-        creator: () -> ToolingModelBuilderResultInternal
-    ): ToolingModelBuilderResultInternal {
+        creator: () -> ToolingModelScopeResult
+    ): ToolingModelScopeResult {
         return intermediateModels.loadOrCreateIntermediateModel(project, modelRequestContext, parameter, creator)
     }
 
@@ -352,7 +375,7 @@ class DefaultConfigurationCache internal constructor(
                 require(!cacheEntryRequiresCommit)
             }
 
-            problems.shouldDiscardEntry -> {
+            entryDiscardRequested || problems.shouldDiscardEntry -> {
                 discardEntry()
                 cacheEntryRequiresCommit = false
             }
@@ -815,6 +838,18 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprint(candidateEntry: CandidateEntry, rootDirs: List<File>): CheckedFingerprint {
+        if (rootDirs.isNotEmpty() && startParameter.buildTreeRootDirectory !in rootDirs) {
+            return CheckedFingerprint.Invalid(
+                buildPath(),
+                StructuredMessage.build {
+                    text("the location of the build has changed from ")
+                    reference(rootDirs.first().path)
+                    text(" to ")
+                    reference(startParameter.buildTreeRootDirectory.path)
+                }
+            )
+        }
+
         // Register all included build root directories as watchable hierarchies,
         // so we can load the fingerprint for build scripts and other files from included builds
         // without violating file system invariants.

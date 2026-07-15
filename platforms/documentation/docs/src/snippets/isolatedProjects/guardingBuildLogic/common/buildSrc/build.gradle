@@ -1,0 +1,20 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+    plugins {
+        guardedConvention {
+            id = 'my.guarded-convention'
+            implementationClass = 'com.example.GuardedConventionPlugin'
+        }
+        incompatible {
+            id = 'com.example.incompatible'
+            implementationClass = 'com.example.ThirdPartyPlugin'
+        }
+        applier {
+            id = 'my.applier'
+            implementationClass = 'com.example.ApplierConventionPlugin'
+        }
+    }
+}

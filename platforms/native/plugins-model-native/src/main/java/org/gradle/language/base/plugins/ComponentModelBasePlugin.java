@@ -94,8 +94,11 @@ import static com.google.common.base.Strings.emptyToNull;
  * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code components} to the model.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
     @Override
@@ -109,7 +112,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
         project.getPluginManager().withPlugin("org.gradle.visual-studio", appliedPlugin -> {
             project.getPluginManager().apply(VisualStudioExtensionRules.class);
-            if (project == project.getRootProject()) {
+            if (project == project.getRootProject()) { // FIXME: verify this is safe even if the root project is decorated - https://github.com/gradle/gradle/pull/38269#discussion_r3473033760
                 project.getPluginManager().apply(VisualStudioPluginRootRules.class);
             }
             project.getPluginManager().apply(VisualStudioPluginProjectRules.class);

@@ -182,11 +182,11 @@ on two lines -->
 
     def "can declare trusted keys"() {
         when:
-        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false)
-        builder.addTrustedKey("B000000000000000000000000000000000000000", "g2", "m1", null, "file.jar", true)
-        builder.addTrustedKey("C000000000000000000000000000000000000000", "g3", "m2", "1.0", null, true)
-        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false)
-        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true)
+        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false, null, null)
+        builder.addTrustedKey("B000000000000000000000000000000000000000", "g2", "m1", null, "file.jar", true, null, null)
+        builder.addTrustedKey("C000000000000000000000000000000000000000", "g3", "m2", "1.0", null, true, null, null)
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false, null, null)
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true, null, null)
         serialize()
 
         then:
@@ -210,6 +210,117 @@ on two lines -->
 """
         and:
         validateAgainstSchemasSince("1.3")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37538")
+    def "can declare origin and reason of trusted keys"() {
+        when:
+        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false, "https://example.com/a.asc", "verified manually")
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false, "https://example.com/d.asc", "shared key")
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true, "https://example.com/d.asc", "shared key")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="A000000000000000000000000000000000000000" group="g1" origin="https://example.com/a.asc" reason="verified manually"/>
+         <trusted-key id="D000000000000000000000000000000000000000" origin="https://example.com/d.asc" reason="shared key">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        validateAgainstSchemasSince("1.4")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37538")
+    def "writes per-entry origin and reason on grouped trusted keys when they differ"() {
+        when:
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false, "https://example.com/m3.asc", "trusted for m3")
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true, "https://example.com/m4.asc", "trusted for m4")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="D000000000000000000000000000000000000000">
+            <trusting name="m3" version="1.4" file="file.zip" origin="https://example.com/m3.asc" reason="trusted for m3"/>
+            <trusting name="m4" file="other-file.zip" regex="true" origin="https://example.com/m4.asc" reason="trusted for m4"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        validateAgainstSchemasSince("1.4")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37538")
+    def "hoists the most common origin and reason of grouped trusted keys and only repeats the overriding entry"() {
+        when:
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false, "https://example.com/common.asc", "common reason")
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true, "https://example.com/common.asc", "common reason")
+        builder.addTrustedKey("D000000000000000000000000000000000000000", "g5", "m5", null, null, false, "https://example.com/special.asc", "special reason")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="D000000000000000000000000000000000000000" origin="https://example.com/common.asc" reason="common reason">
+            <trusting name="m3" version="1.4" file="file.zip"/>
+            <trusting group="g5" name="m5" origin="https://example.com/special.asc" reason="special reason"/>
+            <trusting name="m4" file="other-file.zip" regex="true"/>
+         </trusted-key>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        validateAgainstSchemasSince("1.4")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37538")
+    def "can declare origin and reason of an artifact specific trusted pgp key"() {
+        when:
+        declareTrustedPgpKey("org:foo:1.0", "foo-1.0.jar", "ABCDEF0123456789ABCDEF0123456789ABCDEF01", "https://example.com/key.asc", "trusted maintainer")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <pgp value="ABCDEF0123456789ABCDEF0123456789ABCDEF01" origin="https://example.com/key.asc" reason="trusted maintainer"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+        and:
+        validateAgainstSchemasSince("1.4")
     }
 
     def "can declare ignored keys for specific artifact"() {
@@ -409,7 +520,7 @@ on two lines -->
     }
 
     private boolean hasNamespaceDeclaration() {
-        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd"')
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd"')
     }
 
     private void addIgnoredKeyForArtifact(String id, String fileName, String key, String reason = null) {
@@ -423,6 +534,22 @@ on two lines -->
                 fileName
             ),
             new IgnoredKey(key, reason)
+        )
+    }
+
+    private void declareTrustedPgpKey(String id, String fileName, String key, String origin = null, String reason = null) {
+        def (group, name, version) = id.split(":")
+        builder.addTrustedKey(
+            new ModuleComponentFileArtifactIdentifier(
+                DefaultModuleComponentIdentifier.newId(
+                    DefaultModuleIdentifier.newId(group, name),
+                    version
+                ),
+                fileName
+            ),
+            key,
+            origin,
+            reason
         )
     }
 
@@ -459,7 +586,7 @@ on two lines -->
 
     private Map<String, Schema> loadSchemas() {
         // NOTE: it would be nice to load all schemas from the classpath, but 1.0, 1.1 and 1.2 are invalid
-        def versions = ["1.3"]
+        def versions = ["1.3", "1.4"]
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
         def result = versions.collectEntries { version ->

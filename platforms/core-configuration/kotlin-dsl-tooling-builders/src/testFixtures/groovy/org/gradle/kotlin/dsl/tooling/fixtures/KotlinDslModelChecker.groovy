@@ -21,7 +21,6 @@ import java.nio.file.Paths
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
-import spock.lang.Issue
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
 
@@ -49,8 +48,8 @@ class KotlinDslModelChecker {
 
     static void checkKotlinDslScriptModel(KotlinDslScriptModel actual, KotlinDslScriptModel expected) {
         checkModel(actual, expected, [
-            { withNormalizedAccessorHash(it.classPath) },
-            { withNormalizedAccessorHash(it.sourcePath) },
+            { it.classPath },
+            { it.sourcePath },
             { it.implicitImports },
             [{ it.editorReports }, { a, e -> checkEditorReport(a, e) }],
             // Stack-trace strings legitimately differ between IP and non-IP runs
@@ -90,19 +89,5 @@ class KotlinDslModelChecker {
                 { it.column },
             ]]
         ])
-    }
-
-    // replaces `kotlin-dsl/accessors/*hash*/` with `kotlin-dsl/accessors/<hash>`
-    @Issue("https://github.com/gradle/gradle/issues/37719")
-    private static List<File> withNormalizedAccessorHash(List<File> paths) {
-        final String accessorPathPrefix = "kotlin-dsl" + File.separator + "accessors" + File.separator
-        paths.collect { File f ->
-            int idx = f.path.indexOf(accessorPathPrefix)
-            if (idx < 0) {
-                return f
-            }
-            int hashEnd = f.path.indexOf(File.separator, idx + accessorPathPrefix.length())
-            return new File(f.path.substring(0, idx + accessorPathPrefix.length()) + "<hash>" + f.path.substring(hashEnd))
-        }
     }
 }

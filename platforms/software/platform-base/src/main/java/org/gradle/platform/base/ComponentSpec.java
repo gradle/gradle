@@ -22,9 +22,12 @@ import org.gradle.model.ModelElement;
 
 /**
  * A software component that is built by Gradle.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
 @HasInternalProtocol
+@Deprecated
 public interface ComponentSpec extends ModelElement {
     /**
      * The path to the project containing this component.

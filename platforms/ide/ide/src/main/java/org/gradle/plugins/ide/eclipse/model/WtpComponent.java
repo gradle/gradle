@@ -36,7 +36,10 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Creates the .settings/org.eclipse.wst.common.component file for WTP projects.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public class WtpComponent extends XmlPersistableConfigurationObject {
 
     private String deployName;

@@ -21,6 +21,7 @@ import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class DefaultNativeLibrarySpecTest extends Specification {
     final library = BaseComponentFixtures.create(NativeLibrarySpec, DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("project-path", "someLib"))
 
