@@ -55,6 +55,7 @@ tomlj = "1.0.0!!"
 ant = { group = "org.apache.ant", name = "ant", version.ref = "ant" }
 antLauncher = { group = "org.apache.ant", name = "ant-launcher", version.ref = "ant" }
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
+asmAnalysis = { group = "org.ow2.asm", name = "asm-analysis", version.ref = "asm" }
 asmCommons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
 asmTree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm" }
 awsS3Core = { group = "com.amazonaws", name = "aws-java-sdk-core", version.ref = "awsS3" }
