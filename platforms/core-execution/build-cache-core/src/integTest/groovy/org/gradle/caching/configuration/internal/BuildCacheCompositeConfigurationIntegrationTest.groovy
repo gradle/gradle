@@ -47,6 +47,11 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             executer.beforeExecute {
                 withBuildCacheEnabled()
             }
+        } else {
+            // Enabling the build cache from build logic is deprecated;
+            executer.beforeExecute {
+                noDeprecationChecks()
+            }
         }
 
         def mainCache = new TestBuildCache(file("main-cache"))

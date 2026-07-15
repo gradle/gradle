@@ -110,15 +110,19 @@ public class StartParameterInternal extends StartParameter {
     /**
      * Sets build cache enablement from a source other than user build logic
      */
+    @SuppressWarnings("deprecation")
     public void setBuildCacheEnabledInternal(boolean buildCacheEnabled, boolean configuredByBuildLogic) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.buildCacheEnabledConfiguredByBuildLogic = configuredByBuildLogic;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
+    @Deprecated
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         super.setBuildCacheEnabled(buildCacheEnabled);
         this.buildCacheEnabledConfiguredByBuildLogic = true;
+        StartParameterDeprecations.nagOnSetBuildCacheEnabled();
     }
 
     /**
@@ -156,6 +160,8 @@ public class StartParameterInternal extends StartParameter {
     @Override
     protected StartParameterInternal prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
+        // super copies the buildCacheEnabled value; carry over its provenance too so a copy equals the original.
+        p.buildCacheEnabledConfiguredByBuildLogic = buildCacheEnabledConfiguredByBuildLogic;
         p.watchFileSystemMode = watchFileSystemMode;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;

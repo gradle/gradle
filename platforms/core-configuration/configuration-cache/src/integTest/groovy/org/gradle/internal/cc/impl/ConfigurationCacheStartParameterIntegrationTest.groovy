@@ -22,6 +22,11 @@ import spock.lang.Issue
 
 class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    private static final String SET_BUILD_CACHE_ENABLED_DEPRECATION = "The StartParameter.setBuildCacheEnabled(boolean) method has been deprecated. " +
+        "This is scheduled to be removed in Gradle 10. " +
+        "Use the 'org.gradle.caching' Gradle property to enable the build cache instead. " +
+        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecation_enabling_build_cache_from_build_logic"
+
     ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
 
     def "resolved default task names are restored on the build start parameter for a configuration cache hit"() {
@@ -70,6 +75,7 @@ class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurat
         """
 
         when: "store run: settings script runs and enables the build cache"
+        executer.expectDocumentedDeprecationWarning(SET_BUILD_CACHE_ENABLED_DEPRECATION)
         configurationCacheRun("printBuildCache")
 
         then:
@@ -95,6 +101,7 @@ class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurat
         cacheableTask()
 
         when: "store run populates the build cache"
+        executer.expectDocumentedDeprecationWarning(SET_BUILD_CACHE_ENABLED_DEPRECATION)
         configurationCacheRun("customTask")
 
         then: "the task runs and its output is stored in the cache"

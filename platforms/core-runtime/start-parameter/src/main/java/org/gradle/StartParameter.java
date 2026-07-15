@@ -822,7 +822,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Enables/disables the build cache.
      *
      * @since 3.5
+     * @deprecated Use {@code org.gradle.caching} Gradle property instead.
      */
+    @Deprecated
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         onMutableCall("setBuildCacheEnabled(boolean)");
         this.buildCacheEnabled = buildCacheEnabled;
