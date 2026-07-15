@@ -37,16 +37,16 @@ import org.objectweb.asm.tree.analysis.Value
  * inspects its operands: a tainted receiver of a top-level val/var getter/setter is a liftable
  * read/write; a tainted last argument into a rewritable inner lambda's `<init>` is a thread; ANY other
  * consumption of a tainted value (argument to another call, `putfield`, `areturn`, array store, an
- * inherited or other method on the script, reading a non-liftable field) [bails][Result.bail].
+ * inherited or other method on the script, reading a non-liftable field) [bails][MutableResult.bail].
  */
-internal fun analyzeScriptReferenceFlow(
+internal fun analyzeScriptReferenceFlowInLambdaMethod(
     lambda: Lambda,
     method: MethodNode,
     scriptModel: ScriptModel,
-    lambdaClasses: Set<String>,
-): Result {
-    val result = Result()
-    Analyzer(ScriptReferenceInterpreter(lambda, scriptModel, lambdaClasses, result)).analyze(lambda.name, method)
+    lambdaClasses: Set<InternalClassName>,
+): MutableResult {
+    val result = MutableResult()
+    Analyzer(ScriptReferenceInterpreter(lambda, scriptModel, lambdaClasses, result)).analyze(lambda.internalClassName.className, method)
     return result
 }
 
@@ -61,14 +61,14 @@ internal class Access(
 }
 
 /** The accumulated result of analyzing one method body. */
-internal class Result {
+internal class MutableResult {
 
     val valReads = linkedSetOf<String>()
     val varReads = linkedSetOf<String>()
     val varWrites = linkedSetOf<String>()
 
     /** Inner lambda classes the script is threaded into. */
-    val threaded = linkedSetOf<String>()
+    val threaded = linkedSetOf<InternalClassName>()
 
     /** Classified script-reference uses, in encounter order, for precise body rewriting. */
     val accesses = mutableListOf<Access>()
@@ -98,14 +98,14 @@ internal class Result {
 }
 
 /**
- * Abstract value carrying the JVM slot [size], whether it may be the script reference ([script]), and
- * the set of `getfield this$0` instructions that produced it ([src]), which lets the rewriter replace
+ * Abstract value carrying the JVM slot [size], whether it may be the script reference ([isThisScript]), and
+ * the set of `getfield this$0` instructions that produced it ([producedBy]), which lets the rewriter replace
  * exactly the right instructions. Equality (used by the analyzer's fixpoint) covers all three.
  */
-private data class V(
+private data class TrackedValue(
     val slotSize: Int,
-    val script: Boolean,
-    val src: Set<AbstractInsnNode> = emptySet(),
+    val isThisScript: Boolean,
+    val producedBy: Set<AbstractInsnNode> = emptySet(),
 ) : Value {
     override fun getSize(): Int = slotSize
 }
@@ -113,185 +113,185 @@ private data class V(
 private class ScriptReferenceInterpreter(
     private val lambda: Lambda,
     private val scriptModel: ScriptModel,
-    private val lambdaClasses: Set<String>,
-    private val result: Result,
-) : Interpreter<V>(AsmConstants.ASM_LEVEL) {
+    private val lambdaClasses: Set<InternalClassName>,
+    private val mutableResult: MutableResult,
+) : Interpreter<TrackedValue>(AsmConstants.ASM_LEVEL) {
 
-    override fun newValue(type: Type?): V? = when {
-        type == null -> V(1, false) // uninitialized local
+    override fun newValue(type: Type?): TrackedValue? = when {
+        type == null -> TrackedValue(1, false) // uninitialized local
         type.sort == Type.VOID -> null
-        else -> V(type.size, false)
+        else -> TrackedValue(type.size, false)
     }
 
-    override fun newOperation(insn: AbstractInsnNode): V = when (insn.opcode) {
-        Opcodes.LCONST_0, Opcodes.LCONST_1, Opcodes.DCONST_0, Opcodes.DCONST_1 -> V(2, false)
+    override fun newOperation(insn: AbstractInsnNode): TrackedValue = when (insn.opcode) {
+        Opcodes.LCONST_0, Opcodes.LCONST_1, Opcodes.DCONST_0, Opcodes.DCONST_1 -> TrackedValue(2, false)
         Opcodes.LDC -> {
             val constant = (insn as LdcInsnNode).cst
-            V(if (constant is Long || constant is Double) 2 else 1, false)
+            TrackedValue(if (constant is Long || constant is Double) 2 else 1, false)
         }
-        Opcodes.GETSTATIC -> V(Type.getType((insn as FieldInsnNode).desc).size, false)
-        else -> V(1, false)
+        Opcodes.GETSTATIC -> TrackedValue(Type.getType((insn as FieldInsnNode).desc).size, false)
+        else -> TrackedValue(1, false)
     }
 
-    override fun copyOperation(insn: AbstractInsnNode, value: V): V {
+    override fun copyOperation(insn: AbstractInsnNode, value: TrackedValue): TrackedValue {
         // Storing the script into a local would let that slot's type change (script -> cell) at a
         // stack-map frame, which preserving the compiler's frames cannot express. Kotlin never caches
         // this$0 like this for a property read, so bailing here costs nothing in practice and keeps
         // every rewrite frame-neutral.
-        if (value.script && insn.opcode == Opcodes.ASTORE) {
-            result.bail("script stored to a local")
+        if (value.isThisScript && insn.opcode == Opcodes.ASTORE) {
+            mutableResult.bail("script stored to a local")
         }
         return value // loads/stores/dup otherwise preserve taint
     }
 
-    override fun unaryOperation(insn: AbstractInsnNode, value: V): V? = when (insn.opcode) {
+    override fun unaryOperation(insn: AbstractInsnNode, value: TrackedValue): TrackedValue? = when (insn.opcode) {
         Opcodes.GETFIELD -> {
             val field = insn as FieldInsnNode
-            if (field.owner == lambda.name && field.name == THIS0) {
-                V(1, true, setOf(insn)) // the source: reading the captured script
+            if (field.ownerInternalClassName == lambda.internalClassName && field.name == THIS0) {
+                TrackedValue(1, isThisScript = true, setOf(insn)) // the source: reading the captured script
             } else {
-                if (value.script) classifyFieldRead(field, value) // reading a field of the script directly
-                V(Type.getType(field.desc).size, false)
+                if (value.isThisScript)
+                    classifyFieldRead(field, value) // reading a field of the script directly
+                TrackedValue(Type.getType(field.desc).size, false)
             }
         }
         Opcodes.CHECKCAST -> {
             // A checkcast between the script load and its use would survive the rewrite and end up
             // casting the substituted Ref cell to the script type (a ClassCastException). Bail rather
             // than emit that, but keep the taint so any further use of the script is still detected.
-            if (value.script) result.bail("script -> checkcast")
+            if (value.isThisScript)
+                mutableResult.bail("script -> checkcast")
             value
         }
         Opcodes.PUTSTATIC -> {
-            if (value.script) result.bail("script -> putstatic")
+            if (value.isThisScript)
+                mutableResult.bail("script -> putstatic")
             null
         }
         Opcodes.INSTANCEOF -> {
-            if (value.script) result.bail("script -> instanceof")
-            V(1, false)
+            if (value.isThisScript)
+                mutableResult.bail("script -> instanceof")
+            TrackedValue(1, false)
         }
         Opcodes.INEG, Opcodes.L2I, Opcodes.F2I, Opcodes.D2I, Opcodes.I2B, Opcodes.I2C, Opcodes.I2S,
-        Opcodes.FNEG, Opcodes.ARRAYLENGTH -> V(1, false)
+        Opcodes.FNEG, Opcodes.ARRAYLENGTH -> TrackedValue(1, false)
         Opcodes.LNEG, Opcodes.DNEG, Opcodes.I2L, Opcodes.F2L, Opcodes.D2L, Opcodes.I2D, Opcodes.L2D,
-        Opcodes.F2D -> V(2, false)
+        Opcodes.F2D -> TrackedValue(2, false)
         else -> {
-            if (value.script) result.bail("script -> unary op ${insn.opcode}")
-            V(1, false)
+            if (value.isThisScript)
+                mutableResult.bail("script -> unary op ${insn.opcode}")
+            TrackedValue(1, false)
         }
     }
 
-    override fun binaryOperation(insn: AbstractInsnNode, value1: V, value2: V): V? {
+    override fun binaryOperation(insn: AbstractInsnNode, value1: TrackedValue, value2: TrackedValue): TrackedValue? {
         if (insn.opcode == Opcodes.PUTFIELD) {
             val field = insn as FieldInsnNode
-            if (value2.script) result.bail("script stored into field ${field.name}")
-            if (value1.script) classifyFieldWrite(field, value1) // this$0.<field> = ...
+            if (value2.isThisScript) mutableResult.bail("script stored into field ${field.name}")
+            if (value1.isThisScript) classifyFieldWrite(field, value1) // this$0.<field> = ...
             return null
         }
-        if (value1.script || value2.script) {
+        if (value1.isThisScript || value2.isThisScript) {
             // array loads / arithmetic on a script value are never legitimate lifts
-            result.bail(if (insn.opcode == Opcodes.AALOAD) "script indexed" else "script -> binary op ${insn.opcode}")
+            mutableResult.bail(if (insn.opcode == Opcodes.AALOAD) "script indexed" else "script -> binary op ${insn.opcode}")
         }
         return when (insn.opcode) {
             Opcodes.LALOAD, Opcodes.DALOAD, Opcodes.LADD, Opcodes.DADD, Opcodes.LSUB, Opcodes.DSUB,
             Opcodes.LMUL, Opcodes.DMUL, Opcodes.LDIV, Opcodes.DDIV, Opcodes.LREM, Opcodes.DREM,
-            Opcodes.LSHL, Opcodes.LSHR, Opcodes.LUSHR, Opcodes.LAND, Opcodes.LOR, Opcodes.LXOR -> V(2, false)
-            else -> V(1, false)
+            Opcodes.LSHL, Opcodes.LSHR, Opcodes.LUSHR, Opcodes.LAND, Opcodes.LOR, Opcodes.LXOR -> TrackedValue(2, false)
+            else -> TrackedValue(1, false)
         }
     }
 
-    override fun ternaryOperation(insn: AbstractInsnNode, value1: V, value2: V, value3: V): V? {
-        if (value1.script || value2.script || value3.script) result.bail("script -> array store")
+    override fun ternaryOperation(insn: AbstractInsnNode, value1: TrackedValue, value2: TrackedValue, value3: TrackedValue): TrackedValue? {
+        if (value1.isThisScript || value2.isThisScript || value3.isThisScript) mutableResult.bail("script -> array store")
         return null
     }
 
-    override fun naryOperation(insn: AbstractInsnNode, values: List<V>): V? = when (insn) {
+    override fun naryOperation(insn: AbstractInsnNode, values: List<TrackedValue>): TrackedValue? = when (insn) {
         is MethodInsnNode -> {
             val hasReceiver = insn.opcode != Opcodes.INVOKESTATIC
-            if (hasReceiver && values[0].script) {
+            if (hasReceiver && values[0].isThisScript) {
                 classifyReceiverCall(insn, values[0])
             }
             val firstArg = if (hasReceiver) 1 else 0
             for (i in firstArg until values.size) {
-                if (values[i].script) checkScriptArgument(insn, i, values.size)
+                if (values[i].isThisScript) checkScriptArgument(insn, i, values.size)
             }
             returnValueOf(insn.desc)
         }
         is InvokeDynamicInsnNode -> {
-            if (values.any { it.script }) result.bail("script captured by invokedynamic")
+            if (values.any { it.isThisScript }) mutableResult.bail("script captured by invokedynamic")
             returnValueOf(insn.desc)
         }
         else -> { // MULTIANEWARRAY
-            if (values.any { it.script }) result.bail("script -> multianewarray")
-            V(1, false)
+            if (values.any { it.isThisScript }) mutableResult.bail("script -> multianewarray")
+            TrackedValue(1, false)
         }
     }
 
-    override fun returnOperation(insn: AbstractInsnNode, value: V, expected: V) {
-        if (value.script) result.bail("script returned")
+    override fun returnOperation(insn: AbstractInsnNode, value: TrackedValue, expected: TrackedValue) {
+        if (value.isThisScript) mutableResult.bail("script returned")
     }
 
-    override fun merge(value1: V, value2: V): V {
+    override fun merge(value1: TrackedValue, value2: TrackedValue): TrackedValue {
         if (value1 == value2) return value1
-        val mergedSources = when {
-            value1.src.isEmpty() -> value2.src
-            value2.src.isEmpty() -> value1.src
-            else -> value1.src + value2.src
-        }
         // taint is conservative (OR); size is the safe minimum
-        return V(minOf(value1.slotSize, value2.slotSize), value1.script || value2.script, mergedSources)
+        return TrackedValue(minOf(value1.slotSize, value2.slotSize), value1.isThisScript || value2.isThisScript, value1.producedBy + value2.producedBy)
     }
 
-    private fun returnValueOf(methodDescriptor: String): V? {
+    private fun returnValueOf(methodDescriptor: String): TrackedValue? {
         val returnType = Type.getReturnType(methodDescriptor)
-        return if (returnType.sort == Type.VOID) null else V(returnType.size, false)
+        return if (returnType.sort == Type.VOID) null else TrackedValue(returnType.size, false)
     }
 
     /** A tainted method argument is only allowed as the trailing script argument of a rewritable inner lambda's `<init>`. */
     private fun checkScriptArgument(call: MethodInsnNode, argIndex: Int, argCount: Int) {
         val threadsIntoInnerLambda = call.opcode == Opcodes.INVOKESPECIAL &&
             call.name == "<init>" &&
-            call.owner in lambdaClasses &&
+            call.ownerInternalClassName in lambdaClasses &&
             argIndex == argCount - 1 &&
-            scriptIsLastAndUniqueArg(call.desc, lambda.scriptType)
+            scriptIsLastAndUniqueArg(call.desc, lambda.receiverType)
         if (threadsIntoInnerLambda) {
-            result.threaded.add(call.owner)
+            mutableResult.threaded.add(call.ownerInternalClassName)
         } else {
-            result.bail("script passed as arg to ${call.owner}.${call.name}")
+            mutableResult.bail("script passed as arg to ${call.owner}.${call.name}")
         }
     }
 
-    private fun classifyReceiverCall(call: MethodInsnNode, receiver: V) {
-        if (call.owner != lambda.scriptType) {
-            result.bail("script call on non-script owner ${call.owner}")
+    private fun classifyReceiverCall(call: MethodInsnNode, receiver: TrackedValue) {
+        if (call.ownerInternalClassName != lambda.receiverType) {
+            mutableResult.bail("script call on non-script owner ${call.owner}")
             return
         }
         val valField = scriptModel.valGetterToField[call.name]
         if (valField != null && call.desc == "()" + scriptModel.valFieldDesc[valField]) {
-            result.recordAccess(Access.Kind.VAL_READ, valField, call, receiver.src)
+            mutableResult.recordAccess(Access.Kind.VAL_READ, valField, call, receiver.producedBy)
             return
         }
         val varField = scriptModel.varField(call.name)
         if (varField != null) {
             val kind = if (call.name.startsWith("set")) Access.Kind.VAR_WRITE else Access.Kind.VAR_READ
-            result.recordAccess(kind, varField, call, receiver.src)
+            mutableResult.recordAccess(kind, varField, call, receiver.producedBy)
             return
         }
-        result.bail("non-liftable script call ${call.name}${call.desc}")
+        mutableResult.bail("non-liftable script call ${call.name}${call.desc}")
     }
 
-    private fun classifyFieldRead(field: FieldInsnNode, receiver: V) {
+    private fun classifyFieldRead(field: FieldInsnNode, receiver: TrackedValue) {
         when {
-            field.owner != lambda.scriptType -> result.bail("field read on non-script owner")
-            field.name in scriptModel.valFieldDesc -> result.recordAccess(Access.Kind.VAL_READ, field.name, field, receiver.src)
-            field.name in scriptModel.varFields -> result.recordAccess(Access.Kind.VAR_READ, field.name, field, receiver.src)
-            else -> result.bail("direct read of non-liftable script field ${field.name}")
+            field.ownerInternalClassName != lambda.receiverType -> mutableResult.bail("field read on non-script owner")
+            field.name in scriptModel.valFieldDesc -> mutableResult.recordAccess(Access.Kind.VAL_READ, field.name, field, receiver.producedBy)
+            field.name in scriptModel.varFields -> mutableResult.recordAccess(Access.Kind.VAR_READ, field.name, field, receiver.producedBy)
+            else -> mutableResult.bail("direct read of non-liftable script field ${field.name}")
         }
     }
 
-    private fun classifyFieldWrite(field: FieldInsnNode, receiver: V) {
-        if (field.owner == lambda.scriptType && field.name in scriptModel.varFields) {
-            result.recordAccess(Access.Kind.VAR_WRITE, field.name, field, receiver.src)
+    private fun classifyFieldWrite(field: FieldInsnNode, receiver: TrackedValue) {
+        if (field.ownerInternalClassName == lambda.receiverType && field.name in scriptModel.varFields) {
+            mutableResult.recordAccess(Access.Kind.VAR_WRITE, field.name, field, receiver.producedBy)
         } else {
-            result.bail("direct write of non-var script field ${field.name}")
+            mutableResult.bail("direct write of non-var script field ${field.name}")
         }
     }
 }

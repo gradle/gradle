@@ -33,61 +33,71 @@ import java.nio.file.Files
 import java.util.SortedSet
 
 /**
- * Applies the decisions made in [World] to the bytecode: reshapes each rewritable lambda to carry
- * shared cells instead of the script, fixes every site that constructs such a lambda, gives each
- * captured top-level field a shared cell on the script, and writes the mutated classes back.
+ * Applies a [RewritePlan] to the bytecode: reshapes each rewritable lambda to carry shared cells instead
+ * of the script, fixes every site that constructs such a lambda, gives each captured top-level field a
+ * shared cell on its script, and writes the mutated classes back. The set of classes it touches is kept
+ * here rather than in [ClassesScope]; the only result it produces is the number of lambdas de-captured.
  */
-internal class CaptureRewriter(private val world: World) {
+internal class CaptureRewriter(
+    private val classesScope: ClassesScope,
+    private val plan: RewritePlan,
+) {
+    /** Classes this rewrite mutates, collected here and written out at the end. */
+    private val changed = mutableSetOf<InternalClassName>()
 
-    /** Rewrites all decided lambdas and their scripts in place, returning the number of lambdas de-captured. */
+    /** Rewrites every planned lambda and its script in place, returning the number of lambdas de-captured. */
     fun rewriteAndWrite(): Int {
-        val rewritten = world.lambdas.values.filter { it.rewritable }
-        rewritten.forEach { lambda ->
-            rewriteLambdaShape(lambda)
-            world.changed.add(lambda.name)
+        plan.rewritableLambdas.forEach { rewritable ->
+            rewriteLambdaShape(rewritable)
+            changed += rewritable.lambda.internalClassName
         }
-        rewritten.forEach { lambda ->
-            world.sitesFor(lambda).forEach { site ->
-                rewriteCreationSite(lambda, site)
-                world.changed.add(site.ownerClass.name)
+        plan.rewritableLambdas.forEach { rewritable ->
+            rewritable.sites.forEach { site ->
+                rewriteCreationSite(rewritable, site)
+                changed += site.inOwnerClass.internalName
             }
         }
         rewriteScripts()
-        world.changed.forEach { writeClass(world.classes.getValue(it)) }
-        return rewritten.size
+        changed.forEach { writeClass(classesScope.classes.getValue(it)) }
+        return plan.rewritableLambdas.size
     }
+
+    private fun scriptModelOf(rewritable: RewritableLambda): ScriptModel =
+        classesScope.scripts.getValue(rewritable.lambda.receiverType)
 
     // ---- lambda side: replace the captured script with one shared cell per captured item ----
 
-    private fun rewriteLambdaShape(lambda: Lambda) {
-        val model = world.scripts.getValue(lambda.scriptType)
-        lambda.classNode.fields.removeAll { it.name == THIS0 }
-        for (item in lambda.order) {
-            lambda.classNode.fields.add(
+    private fun rewriteLambdaShape(rewritable: RewritableLambda) {
+        val model = scriptModelOf(rewritable)
+        val lambdaClass = rewritable.lambda.classNode
+        lambdaClass.fields.removeAll { it.name == THIS0 }
+        for (item in rewritable.capturedOrder) {
+            lambdaClass.fields.add(
                 FieldNode(Opcodes.ACC_FINAL or Opcodes.ACC_SYNTHETIC, CM_PREFIX + item, model.cellDescriptorFor(item), null, null)
             )
         }
-        regenerateConstructor(lambda, model)
-        rewriteBodyAccesses(lambda, model)
+        regenerateConstructor(rewritable, model)
+        rewriteBodyAccesses(rewritable, model)
     }
 
-    private fun regenerateConstructor(lambda: Lambda, model: ScriptModel) {
-        val params = constructorParams(lambda, model)
+    private fun regenerateConstructor(rewritable: RewritableLambda, model: ScriptModel) {
+        val lambdaClass = rewritable.lambda.classNode
+        val params = constructorParams(rewritable, model)
         val ctor = MethodNode(Opcodes.ACC_PUBLIC, "<init>", params.toDescriptor(), null, null)
         ctor.instructions.apply {
             add(VarInsnNode(Opcodes.ALOAD, 0))
-            add(MethodInsnNode(Opcodes.INVOKESPECIAL, lambda.classNode.superName, "<init>", "()V", false))
+            add(MethodInsnNode(Opcodes.INVOKESPECIAL, lambdaClass.superName, "<init>", "()V", false))
             var slot = 1
             for ((name, desc) in params) {
                 val type = Type.getType(desc)
                 add(VarInsnNode(Opcodes.ALOAD, 0))
                 add(VarInsnNode(type.getOpcode(Opcodes.ILOAD), slot))
-                add(FieldInsnNode(Opcodes.PUTFIELD, lambda.name, name, desc))
+                add(FieldInsnNode(Opcodes.PUTFIELD, lambdaClass.name, name, desc))
                 slot += type.size
             }
             add(InsnNode(Opcodes.RETURN))
         }
-        val methods = lambda.classNode.methods
+        val methods = lambdaClass.methods
         methods[methods.indexOfFirst { it.name == "<init>" }] = ctor
     }
 
@@ -96,13 +106,14 @@ internal class CaptureRewriter(private val world: World) {
      * `getfield this$0` that produced the receiver loads the cell, a read becomes `cell.element`
      * (plus a checkcast for object cells), and a write becomes `cell.element = ...`.
      */
-    private fun rewriteBodyAccesses(lambda: Lambda, model: ScriptModel) {
-        for ((method, accesses) in lambda.accessesByMethod) {
+    private fun rewriteBodyAccesses(rewritable: RewritableLambda, model: ScriptModel) {
+        val lambdaName = rewritable.lambda.classNode.name
+        for ((method, accesses) in rewritable.accessesByMethod) {
             val instructions = method.instructions
             for (access in accesses) {
                 val cell = cellFor(model.fieldDesc(access.field))
                 for (source in access.receiverSources) {
-                    instructions.set(source, FieldInsnNode(Opcodes.GETFIELD, lambda.name, CM_PREFIX + access.field, cell.descriptor))
+                    instructions.set(source, FieldInsnNode(Opcodes.GETFIELD, lambdaName, CM_PREFIX + access.field, cell.descriptor))
                 }
                 when (access.kind) {
                     Access.Kind.VAR_WRITE ->
@@ -116,27 +127,27 @@ internal class CaptureRewriter(private val world: World) {
 
     // ---- creation sites: drop the script push, push the shared cells, fix the constructor descriptor ----
 
-    private fun rewriteCreationSite(lambda: Lambda, site: Site) {
-        val model = world.scripts.getValue(lambda.scriptType)
-        val instructions = site.method.instructions
+    private fun rewriteCreationSite(rewritable: RewritableLambda, site: LambdaInstantiationSite) {
+        val model = scriptModelOf(rewritable)
+        val instructions = site.inMethod.instructions
         removeScriptPush(instructions, site)
         // Each item's shared cell: the script's own cell (script context) or the enclosing lambda's
         // captured cell (lambda context) — both named cm$<item>.
-        val cellOwner = if (site.scriptContext) lambda.scriptType else site.ownerClass.name
+        val cellOwner = if (site.isInImmediateScriptClass) rewritable.lambda.receiverType.className else site.inOwnerClass.name
         val push = InsnList().apply {
-            for (item in lambda.order) {
+            for (item in rewritable.capturedOrder) {
                 add(VarInsnNode(Opcodes.ALOAD, 0))
                 add(FieldInsnNode(Opcodes.GETFIELD, cellOwner, CM_PREFIX + item, model.cellDescriptorFor(item)))
             }
         }
-        instructions.insertBefore(site.init, push)
-        site.init.desc = constructorParams(lambda, model).toDescriptor()
+        instructions.insertBefore(site.initInsn, push)
+        site.initInsn.desc = constructorParams(rewritable, model).toDescriptor()
     }
 
-    private fun removeScriptPush(instructions: InsnList, site: Site) {
+    private fun removeScriptPush(instructions: InsnList, site: LambdaInstantiationSite) {
         // Undo the clean script-push suffix validated by isCleanScriptPushSuffix.
-        val scriptPush = site.init.requirePreviousReal()
-        if (site.scriptContext) {
+        val scriptPush = site.initInsn.requirePreviousReal()
+        if (site.isInImmediateScriptClass) {
             instructions.remove(scriptPush) // aload_0 (the script `this`)
         } else {
             val aload0 = scriptPush.requirePreviousReal()
@@ -149,19 +160,18 @@ internal class CaptureRewriter(private val world: World) {
 
     private fun rewriteScripts() {
         for ((scriptName, fields) in fieldsToConvertByScript()) {
-            val scriptClass = world.classes.getValue(scriptName)
-            val model = world.scripts.getValue(scriptName)
+            val scriptClass = classesScope.classes.getValue(scriptName)
+            val model = classesScope.scripts.getValue(scriptName)
             fields.forEach { convertFieldToCell(scriptClass, model, it) }
-            world.changed.add(scriptClass.name)
+            changed += scriptName
         }
     }
 
-    private fun fieldsToConvertByScript(): Map<String, SortedSet<String>> {
-        val result = mutableMapOf<String, SortedSet<String>>()
-        for (lambda in world.lambdas.values) {
-            if (!lambda.rewritable) continue
-            for (item in lambda.order) {
-                result.getOrPut(lambda.scriptType) { sortedSetOf() }.add(item)
+    private fun fieldsToConvertByScript(): Map<InternalClassName, SortedSet<String>> {
+        val result = mutableMapOf<InternalClassName, SortedSet<String>>()
+        for (rewritable in plan.rewritableLambdas) {
+            for (item in rewritable.capturedOrder) {
+                result.getOrPut(rewritable.lambda.receiverType) { sortedSetOf() }.add(item)
             }
         }
         return result
@@ -233,37 +243,17 @@ internal class CaptureRewriter(private val world: World) {
         // so ASM neither recomputes them nor needs to load any class to find common supertypes.
         val writer = ClassWriter(ClassWriter.COMPUTE_MAXS)
         classNode.accept(writer)
-        val file = world.dir.resolve(classNode.name + ".class")
+        val file = classesScope.dir.resolve(classNode.name + ".class")
         Files.createDirectories(file.parent)
         Files.write(file, writer.toByteArray())
     }
 
-    private fun constructorParams(lambda: Lambda, model: ScriptModel): List<Pair<String, String>> =
+    private fun constructorParams(rewritable: RewritableLambda, model: ScriptModel): List<Pair<String, String>> =
         buildList {
-            lambda.otherFields.forEach { add(it.name to it.desc) }
-            lambda.order.forEach { add(CM_PREFIX + it to model.cellDescriptorFor(it)) }
+            rewritable.lambda.otherFields.forEach { add(it.name to it.desc) }
+            rewritable.capturedOrder.forEach { add(CM_PREFIX + it to model.cellDescriptorFor(it)) }
         }
 }
-
-/** A `kotlin.jvm.internal.Ref$XxxRef` mutable cell holding a captured field's value in its `element`. */
-internal data class Cell(val internalName: String, val elementDesc: String, val isObject: Boolean) {
-    val descriptor: String get() = "L$internalName;"
-}
-
-internal fun cellFor(fieldDesc: String): Cell = when (fieldDesc) {
-    "I" -> Cell("kotlin/jvm/internal/Ref\$IntRef", "I", false)
-    "J" -> Cell("kotlin/jvm/internal/Ref\$LongRef", "J", false)
-    "Z" -> Cell("kotlin/jvm/internal/Ref\$BooleanRef", "Z", false)
-    "B" -> Cell("kotlin/jvm/internal/Ref\$ByteRef", "B", false)
-    "C" -> Cell("kotlin/jvm/internal/Ref\$CharRef", "C", false)
-    "S" -> Cell("kotlin/jvm/internal/Ref\$ShortRef", "S", false)
-    "F" -> Cell("kotlin/jvm/internal/Ref\$FloatRef", "F", false)
-    "D" -> Cell("kotlin/jvm/internal/Ref\$DoubleRef", "D", false)
-    else -> Cell("kotlin/jvm/internal/Ref\$ObjectRef", "Ljava/lang/Object;", true)
-}
-
-/** The cell descriptor for a captured item — the shared-cell type is always what a lambda carries. */
-private fun ScriptModel.cellDescriptorFor(item: String): String = cellFor(fieldDesc(item)).descriptor
 
 private fun List<Pair<String, String>>.toDescriptor(): String =
     joinToString(separator = "", prefix = "(", postfix = ")V") { it.second }
