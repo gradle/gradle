@@ -115,11 +115,22 @@ abstract class ConfigurationCacheReportFixture {
         protected static Map<String, Object> readJsModelFrom(File reportFile) {
             assertTrue("HTML report HTML file '$reportFile' not found", reportFile.isFile())
 
-            // ConfigurationCacheReport ensures the pure json model can be read
-            // by looking for `// begin-report-data` and `// end-report-data`
-            def jsonText = linesBetween(reportFile, '// begin-report-data', '// end-report-data')
-            assert jsonText: "malformed report file"
-            new JsonSlurper().parseText(jsonText) as Map<String, Object>
+            // The report data region is JavaScript that assembles the model object, not a single JSON
+            // value (see HtmlReportWriter). The producer wraps the two JSON pieces in their own markers
+            // so each is readable as plain JSON: the diagnostics array and the envelope ("model")
+            // object. We reassemble them the same way the generated JS does: model.diagnostics = [...].
+            // TODO(mlopatkin): update this when HtmlReportWriter starts producing a string directly.
+            def slurper = new JsonSlurper()
+
+            def diagnosticsText = linesBetween(reportFile, '// begin-report-diagnostics', '// end-report-diagnostics')
+            assert diagnosticsText: "malformed report file: diagnostics region not found"
+
+            def modelText = linesBetween(reportFile, '// begin-report-model', '// end-report-model')
+            assert modelText: "malformed report file: model region not found"
+
+            def jsModel = slurper.parseText(modelText) as Map<String, Object>
+            jsModel.diagnostics = slurper.parseText(diagnosticsText)
+            return jsModel
         }
 
         private static String linesBetween(File file, String beginLine, String endLine) {

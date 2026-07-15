@@ -80,6 +80,9 @@ dependencies {
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
+    implementation(libs.configurationCacheReport) {
+        because("The configuration cache report summary is handed to the report writer here")
+    }
     implementation(libs.guava)
     implementation(libs.fastutil)
     implementation(libs.kryo)

@@ -22,9 +22,6 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging.getLogger
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.HtmlReportWriter
-import org.gradle.internal.cc.impl.problems.JsonModelWriter
-import org.gradle.internal.cc.impl.problems.JsonSource
-import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -34,12 +31,14 @@ import org.gradle.internal.hash.HashingOutputStream
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.problems.internal.report.model.JsonSource
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
+import kotlinx.serialization.json.Json
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -69,11 +68,7 @@ class CommonReport(
 
 
     private
-    fun keyFor(kind: DiagnosticKind) = when (kind) {
-        DiagnosticKind.PROBLEM -> "problem"
-        DiagnosticKind.INPUT -> "input"
-        DiagnosticKind.INCOMPATIBLE_TASK -> "incompatibleTask"
-    }
+    val json = Json { }
 
 
     sealed class State {
@@ -124,7 +119,8 @@ class CommonReport(
             spoolFileProvider: TemporaryFileProvider,
             private val reportFileName: String,
             val executor: ManagedExecutor,
-            private val distinctReports: Boolean
+            private val distinctReports: Boolean,
+            private val json: Json
         ) : State() {
 
             private
@@ -145,13 +141,12 @@ class CommonReport(
             private fun createHtmlReportWriter(hashingStream: HashingOutputStream): HtmlReportWriter {
                 val htmlReportTemplateLoader = HtmlReportTemplateLoader().load()
                 val hashingWriter = hashingStream.writer()
-                val jsonModelWriter = JsonModelWriter(JsonWriter(hashingWriter))
-                return HtmlReportWriter(hashingWriter, htmlReportTemplateLoader, jsonModelWriter)
+                return HtmlReportWriter(hashingWriter, htmlReportTemplateLoader)
             }
 
             override fun onDiagnostic(problem: JsonSource): State {
                 executor.submit {
-                    problem.writeToJson(writer.jsonModelWriter.modelWriter)
+                    writer.writeDiagnostic(problem.toJson(json))
                 }
                 return this
             }
@@ -188,7 +183,7 @@ class CommonReport(
 
             private
             fun closeHtmlReport(details: JsonSource) {
-                writer.endHtmlReport(details)
+                writer.endHtmlReport(details.toJson(json))
                 writer.close()
             }
 
@@ -253,7 +248,8 @@ class CommonReport(
             temporaryFileProvider,
             reportFileName,
             executorFactory.create("${reportContext.capitalized()} writer", 1),
-            distinctReports
+            distinctReports,
+            json
         ).onDiagnostic(problem)
     }
 
@@ -264,20 +260,18 @@ class CommonReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem, diagnosticKind: DiagnosticKind, kind: String): JsonSource {
+    fun decorateProblem(problem: PropertyProblem, diagnosticKind: DiagnosticKind): JsonSource {
         val failure = problem.stackTracingFailure
         val link = problem.documentationSection?.let { section ->
             this.documentationRegistry.documentationLinkFor(section)
         }
-        return DecoratedReportProblemJsonSource(
-            DecoratedReportProblem(
-                problem.trace,
-                decorateMessage(problem, failure),
-                decoratedFailureFor(failure, diagnosticKind == DiagnosticKind.PROBLEM),
-                link,
-                kind
-            )
-        )
+        return DecoratedReportProblem(
+            problem.trace,
+            decorateMessage(problem, failure),
+            decoratedFailureFor(failure, diagnosticKind == DiagnosticKind.PROBLEM),
+            link,
+            diagnosticKind
+        ).toJsDiagnostic()
     }
 
     private
@@ -325,7 +319,7 @@ class CommonReport(
         kind: DiagnosticKind,
         problem: PropertyProblem
     ) {
-        onProblem(decorateProblem(problem, kind, keyFor(kind)))
+        onProblem(decorateProblem(problem, kind))
     }
 
     fun onProblem(decoratedProblem: JsonSource) {

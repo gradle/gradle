@@ -47,7 +47,7 @@ import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemReportDetails
-import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
+import org.gradle.internal.configuration.problems.toJsModel
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -424,7 +424,7 @@ class ConfigurationCacheProblems(
         val hasNoProblemsForConsole = summary.consoleProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, details.toJsModel())
         val areTaskDegradationReasonsPresent = degradationDecision.degradedTaskCount > 0
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
