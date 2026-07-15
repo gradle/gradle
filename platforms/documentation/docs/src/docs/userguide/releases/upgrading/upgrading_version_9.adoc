@@ -145,14 +145,14 @@ The same guidance about wiring the provider lazily to task inputs applies.
 This behavior will become an error in Gradle 11.
 
 [[deprecation_enabling_build_cache_from_build_logic]]
-==== Deprecation of enabling the build cache from build logic
+==== Deprecation of enabling the Build Cache from build logic
 
-Enabling the build cache from build logic by mutating the start parameter — for example `gradle.startParameter.buildCacheEnabled = true` in a `settings.gradle(.kts)` file or init script — is now deprecated and will be removed in Gradle 10.
+Enabling the Build Cache from build logic by mutating the start parameter, for example `gradle.startParameter.buildCacheEnabled = true` in a `settings.gradle(.kts)` file or init script, is now deprecated and will be removed in Gradle 10.
 
-The start parameter is provided by Gradle and is not intended to be reconfigured by build logic.
+Whether the Build Cache is enabled is determined by the Gradle invocation (`--build-cache` / `--no-build-cache`) and the `org.gradle.caching` Gradle property, and is not intended to be overridden by build logic.
 
-Enable the build cache with the `org.gradle.caching` Gradle property instead.
-See <<build_cache.adoc#sec:build_cache_enable,Enable the build cache>> for details about enabling the build cache.
+Enable the Build Cache with the `org.gradle.caching` Gradle property instead.
+See <<build_cache.adoc#sec:build_cache_enable,Enable the Build Cache>> for details.
 
 
 [[changes_9.7.0]]
