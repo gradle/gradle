@@ -62,6 +62,7 @@ import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
+import org.gradle.kotlin.dsl.provider.capture.CaptureMinimizer
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
@@ -409,6 +410,7 @@ class StandardKotlinScriptEvaluator(
             const val SOURCE_HASH = "sourceHash"
             const val COMPILATION_CLASS_PATH = "compilationClassPath"
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
+            const val CAPTURE_MINIMIZER_VERSION = "captureMinimizerVersion"
         }
 
         private val cachingDisabledReason = KotlinDslInternalOptions.cachingDisabledReason(internalOptions)
@@ -438,12 +440,16 @@ class StandardKotlinScriptEvaluator(
             visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
             visitor.visitInputProperty(COMPILATION_CLASS_PATH) { classpathHasher.hash(compilationClassPath) }
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
+            visitor.visitInputProperty(CAPTURE_MINIMIZER_VERSION) { CaptureMinimizer.VERSION }
         }
 
         override fun compile(workspace: File): File {
             return File(workspace, "classes").apply {
                 mkdirs()
                 compileTo.invoke(this)
+                // Minimize configuration-cache over-capture: rewrite task-action lambdas so they capture
+                // only the top-level script variables they use instead of the whole compiled script.
+                CaptureMinimizer.minimize(toPath())
             }
         }
 

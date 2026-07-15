@@ -76,6 +76,8 @@ dependencies {
     implementation(projects.javaApiExtractor)
 
     implementation(libs.asm)
+    implementation(libs.asmAnalysis)
+    implementation(libs.asmTree)
     implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinBuildToolsApi)
     implementation(libs.kotlinReflect)

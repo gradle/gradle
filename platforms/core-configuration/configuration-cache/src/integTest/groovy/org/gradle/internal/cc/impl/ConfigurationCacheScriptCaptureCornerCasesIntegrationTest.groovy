@@ -49,6 +49,47 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         }
     }
 
+    def "a top-level var is shared across task actions via an identity-preserving cell"() {
+        given:
+        // Capture minimization lifts the `var` into a shared kotlin.jvm.internal.Ref cell. Both actions
+        // must observe each other's writes, which requires the configuration cache to deduplicate the
+        // (bean) cell across the two lambdas that capture it. If it did not, each action would get its
+        // own cell and the result would be "RESULT: 1".
+        buildKotlinFile """
+            var counter = 0
+            tasks.register("t") {
+                doLast { counter += 1 }
+                doLast { counter += 1; println("RESULT: " + counter) }
+            }
+        """
+
+        expect:
+        2.times {
+            configurationCacheRun "t"
+            outputContains("RESULT: 2")
+        }
+    }
+
+    def "an is-prefixed boolean var is lifted into a shared cell using its Kotlin accessor names"() {
+        given:
+        // Kotlin names an `is`-prefixed property's accessors isReady()/setReady(), not getIsReady()/
+        // setIsReady(); capture minimization must use those names to recognize and lift the var. Both
+        // actions must observe the shared cell, so the flag flipped by the first is seen by the second.
+        buildKotlinFile """
+            var isReady = false
+            tasks.register("t") {
+                doLast { isReady = true }
+                doLast { println("RESULT: " + isReady) }
+            }
+        """
+
+        expect:
+        2.times {
+            configurationCacheRun "t"
+            outputContains("RESULT: true")
+        }
+    }
+
     def "unevaluated lazy that reads another script val works at execution"() {
         given:
         buildKotlinFile """
@@ -97,6 +138,22 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         failure.assertHasCause("Invocation of 'getProjectDir' references a Project object from a Kotlin script lambda at execution time, which is unsupported with the configuration cache.")
     }
 
+    def "a captured function-typed var that reads the build model at execution fails gracefully"() {
+        given:
+        // Like the val case above, a function-typed `var` must not be lifted: its value is a lambda that
+        // captured the script, so it stays behind the scrubbed script and fails gracefully at execution.
+        buildKotlinFile """
+            var readDir: () -> String = { projectDir.name }
+            tasks.register("t") { doLast { println("RESULT: " + readDir()) } }
+        """
+
+        when:
+        configurationCacheFails "t"
+
+        then:
+        failure.assertHasCause("Invocation of 'getProjectDir' references a Project object from a Kotlin script lambda at execution time, which is unsupported with the configuration cache.")
+    }
+
     def "script logger works at execution"() {
         given:
         buildKotlinFile """
@@ -110,8 +167,12 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         }
     }
 
-    def "capturing a Project-typed script val fails gracefully when used at execution"() {
+    def "capturing a Project-typed script val fails fast at store because the project cannot be serialized"() {
         given:
+        // The task action reads only the top-level `val p`, so capture minimization lifts it out of the
+        // script. `p` is the real Project, which the configuration cache cannot serialize — so the build
+        // fails fast at store time. That is preferable to storing a scrubbed proxy that would only fail
+        // later when the task runs.
         buildKotlinFile """
             val p = project
             tasks.register("t") { doLast { println("RESULT: " + p.name) } }
@@ -121,7 +182,8 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         configurationCacheFails "t"
 
         then:
-        failure.assertHasCause("Invocation of 'getName' references a Project object from a Kotlin script lambda at execution time, which is unsupported with the configuration cache.")
+        failure.assertHasDescription("Configuration cache problems found in this build.")
+        failure.assertHasErrorOutput("cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
     }
 
     def "task action defined in a settings script can capture settings-script state"() {
@@ -294,40 +356,24 @@ class ConfigurationCacheScriptCaptureCornerCasesIntegrationTest extends Abstract
         outputContains("RESULT: []")
     }
 
-    def "an unused script by-lazy is forced at store because capturing the script serializes it"() {
+    def "an unused script by-lazy is not forced because the task action does not capture the whole script"() {
         given:
-        // This test captures potentially undesired behavior.
-        //
-        // Capturing the script serializes the whole instance, which forces every `by lazy`
-        //   field (via kotlin.Lazy.writeReplace) at store time — even ones no task uses. Without the
-        //   cache an unused lazy is never evaluated.
+        // Capture minimization: the doLast action reads only the top-level `val used` (an immutable
+        // String), so it is rewritten to carry that value directly instead of the whole compiled script.
+        // The script — and therefore the unused `by lazy` — is never serialized, so the lazy is not
+        // forced at store time (mirroring the no-cache behavior, where an unused lazy is never evaluated).
         buildKotlinFile """
             val used = "hi"
             val neverUsed: String by lazy { println("LAZY-FORCED"); "x" }
             tasks.register("t") { doLast { println("RESULT: " + used) } }
         """
 
-        when:
-        configurationCacheRun "t"
-
-        then:
-        outputContains("RESULT: hi")
-        outputContains("LAZY-FORCED")
+        expect:
+        2.times {
+            configurationCacheRun "t"
+            outputContains("RESULT: hi")
+            outputDoesNotContain("LAZY-FORCED")
+        }
     }
 
-    def "rendering a captured build-model object fails gracefully instead of yielding a stand-in value"() {
-        given:
-        buildKotlinFile """
-            val p = project
-            tasks.register("t") { doLast { println(p) } }
-        """
-
-        when:
-        configurationCacheFails "t"
-
-        then:
-        // toString/hashCode/equals on the broken model proxy report the problem too, so `println(p)`
-        // fails rather than printing a benign "broken Project reference".
-        failure.assertHasCause("Invocation of 'toString' references a Project object from a Kotlin script lambda at execution time, which is unsupported with the configuration cache.")
-    }
 }
