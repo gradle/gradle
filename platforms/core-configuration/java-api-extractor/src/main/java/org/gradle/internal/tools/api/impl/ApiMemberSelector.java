@@ -54,9 +54,6 @@ public class ApiMemberSelector extends ClassVisitor {
     private final boolean apiIncludesPackagePrivateMembers;
 
     private boolean isInnerClass;
-    // TODO: Replace the suppression with an @Initializer-style annotation
-    //  (https://github.com/uber/NullAway/wiki/Supported-Annotations#initialization).
-    @SuppressWarnings("NullAway")
     private ClassMember classMember;
     private boolean thisClassIsPrivateInnerClass;
 
@@ -71,6 +68,7 @@ public class ApiMemberSelector extends ClassVisitor {
         return thisClassIsPrivateInnerClass;
     }
 
+    @Initializer
     @Override
     public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, String @Nullable [] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
