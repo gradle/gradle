@@ -96,3 +96,118 @@ include::sample[dir="snippets/reference/plugin-development/managingTransitiveDep
 include::sample[dir="snippets/reference/plugin-development/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy",files="platform/build.gradle[tags=convention]"]
 ====
 
+
+
+[[managing_kotlin_daemon_memory]]
+== Managing Kotlin daemon memory
+
+When using convention plugins with the `kotlin-dsl` plugin, you may encounter unexpected memory usage due to multiple Kotlin compiler daemons running simultaneously.
+Understanding how these daemons are created and how to control their memory usage is important for managing build performance, especially in CI environments.
+
+[[why_multiple_kotlin_daemons]]
+=== Why multiple Kotlin daemons spawn
+
+The Kotlin compiler daemon is spawned separately for each distinct Kotlin version used in your build.
+This can happen when:
+
+1. Your project uses a specific Kotlin version (e.g., Kotlin 2.1.20)
+2. The `kotlin-dsl` plugin embedded in your Gradle version uses a different Kotlin version (e.g., Kotlin 2.2)
+3. Dependencies bring in transitive Kotlin libraries with yet another version (e.g., Spring Boot → Jackson → jackson-module-kotlin uses Kotlin 1.9.25)
+
+In this scenario, three separate Kotlin compiler daemons will be created, one for each version.
+
+[[memory_implications]]
+=== Memory implications
+
+By default, each Kotlin daemon inherits the JVM arguments from the Gradle daemon, including memory settings.
+If your `gradle.properties` contains:
+
+[source,properties]
+----
+org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m
+----
+
+Each Kotlin daemon will attempt to use similar memory settings, potentially consuming:
+
+* 3 daemons × ~1GB heap each = ~3GB heap memory
+* 3 daemons × 512MB metaspace each = ~1.5GB metaspace
+* Total: ~4.5GB+ just for Kotlin compilation
+
+This can quickly exhaust available memory, especially in resource-constrained CI environments.
+
+[[controlling_kotlin_daemon_memory]]
+=== Controlling Kotlin daemon memory
+
+To manage Kotlin daemon memory independently from the Gradle daemon, use the `kotlin.daemon.jvmargs` property.
+Add this to your `gradle.properties`:
+
+[source,properties]
+----
+# Gradle daemon memory
+org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m
+
+# Kotlin daemon memory (separate, more conservative settings)
+kotlin.daemon.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=256m
+----
+
+This gives each Kotlin daemon only 512MB heap and 256MB metaspace, which is usually sufficient for compiling build scripts and convention plugins.
+
+[[important_note_included_builds]]
+==== Important: Included builds and buildSrc
+
+The `gradle.properties` file is **not inherited** by included builds or `buildSrc`.
+If you use convention plugins in an included build (commonly named `build-logic/`), you must create a separate `gradle.properties` file in that directory:
+
+[source]
+----
+.
+├── gradle.properties              # Main project settings
+├── settings.gradle.kts
+├── build.gradle.kts
+├── app/
+├── core/
+└── build-logic/                   # Included build for convention plugins
+    ├── gradle.properties          # Must create this separately!
+    ├── settings.gradle.kts
+    └── src/
+        └── main/
+            └── kotlin/
+                └── my-conventions.gradle.kts
+----
+
+Each `gradle.properties` file should contain the `kotlin.daemon.jvmargs` setting:
+
+.build-logic/gradle.properties
+[source,properties]
+----
+kotlin.daemon.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=256m
+----
+
+[[verifying_kotlin_daemon_configuration]]
+=== Verifying Kotlin daemon configuration
+
+To verify which Kotlin daemons are running and their memory usage, you can:
+
+1. Check running Kotlin daemons on Unix-like systems:
++
+[source,shell]
+----
+ps aux | grep kotlin
+----
+
+2. Check running Kotlin daemons on Windows:
++
+[source,shell]
+----
+tasklist /FI "IMAGENAME eq java.exe" /V
+----
+
+3. Review Kotlin compiler logs by enabling verbose output:
++
+[source,properties]
+----
+# In gradle.properties
+kotlin.daemon.verbose=true
+----
+
+For more details on Kotlin daemon configuration, see the https://kotlinlang.org/docs/gradle-compilation-and-caches.html#setting-kotlin-daemon-s-jvm-arguments[Kotlin documentation on Gradle compilation and caches].
