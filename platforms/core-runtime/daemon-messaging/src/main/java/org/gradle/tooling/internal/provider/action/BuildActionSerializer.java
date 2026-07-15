@@ -239,7 +239,7 @@ public class BuildActionSerializer {
             startParameter.setContinueOnFailure(decoder.readBoolean());
             startParameter.setOffline(decoder.readBoolean());
             startParameter.setRefreshDependencies(decoder.readBoolean());
-            startParameter.setBuildCacheEnabled(decoder.readBoolean());
+            startParameter.setBuildCacheEnabledInternal(decoder.readBoolean(), false);
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
             startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
             startParameter.setVfsVerboseLogging(decoder.readBoolean());

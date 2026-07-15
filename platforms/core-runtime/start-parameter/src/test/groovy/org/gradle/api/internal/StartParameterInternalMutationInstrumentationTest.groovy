@@ -117,7 +117,7 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         // Tooling model builders legitimately replace the requested tasks while the build runs.
         "setTaskNames(Iterable)",
         "setTaskRequests(Iterable)",
-        "restoreBuildCacheEnabled(boolean)"
+        "setBuildCacheEnabledInternal(boolean, boolean)",
     ]
 
     private static final List<String> NOT_NOTIFYING = EXEMPT_MUTATORS + [
@@ -172,6 +172,7 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "hashCode()",
         "isBuildCacheDebugLogging()",
         "isBuildCacheEnabled()",
+        "isBuildCacheEnabledConfiguredByBuildLogic()",
         "isBuildProjectDependencies()",
         "isBuildScan()",
         "isConfigurationCacheDebug()",

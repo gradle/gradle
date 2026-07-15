@@ -92,17 +92,7 @@ class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurat
         settingsFile(cache.localCacheConfiguration() + """
             gradle.startParameter.buildCacheEnabled = true
         """)
-        buildFile """
-            @CacheableTask
-            abstract class CustomTask extends DefaultTask {
-                @Input String content = "content"
-                @OutputFile abstract RegularFileProperty getOutputFile()
-                @TaskAction void run() { outputFile.get().asFile.text = content }
-            }
-            tasks.register('customTask', CustomTask) {
-                outputFile = layout.buildDirectory.file("out.txt")
-            }
-        """
+        cacheableTask()
 
         when: "store run populates the build cache"
         configurationCacheRun("customTask")
@@ -120,4 +110,67 @@ class ConfigurationCacheStartParameterIntegrationTest extends AbstractConfigurat
         result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37088")
+    def "build cache enabled only via --build-cache is not restored on a later invocation without it"() {
+        given: "the build cache is not enabled by build logic, only available via the command line"
+        executer.requireOwnGradleUserHomeDir()
+        def cache = new TestBuildCache(file("cache-dir"))
+        settingsFile(cache.localCacheConfiguration())
+        cacheableTask()
+
+        when: "store run with --build-cache populates the cache"
+        configurationCacheRun("customTask", "--build-cache")
+
+        then:
+        fixture.assertStateStored()
+        !cache.empty
+
+        when: "the output is removed and the build is rerun as a hit without --build-cache"
+        file("build").forceDeleteDir()
+        configurationCacheRun("customTask")
+
+        then: "the current invocation wins: the build cache is off, so the task executes instead of loading from cache"
+        fixture.assertStateLoaded()
+        result.groupedOutput.task(":customTask").outcome != "FROM-CACHE"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37088")
+    def "build cache enabled only via the org.gradle.caching property is not restored on a later invocation that disables it"() {
+        given: "the build cache is enabled by a Gradle property, not by build logic"
+        executer.requireOwnGradleUserHomeDir()
+        def cache = new TestBuildCache(file("cache-dir"))
+        settingsFile(cache.localCacheConfiguration())
+        file("gradle.properties") << "org.gradle.caching=true"
+        cacheableTask()
+
+        when: "store run enabled by the property populates the cache"
+        configurationCacheRun("customTask")
+
+        then:
+        fixture.assertStateStored()
+        !cache.empty
+
+        when: "the output is removed and the build is rerun as a hit, disabling the cache via --no-build-cache"
+        // The property is unchanged (so the entry is reused) but the command line overrides it this run.
+        file("build").forceDeleteDir()
+        configurationCacheRun("customTask", "--no-build-cache")
+
+        then: "the current invocation wins: the build cache is off, so the task executes instead of loading from cache"
+        fixture.assertStateLoaded()
+        result.groupedOutput.task(":customTask").outcome != "FROM-CACHE"
+    }
+
+    private void cacheableTask() {
+        buildFile """
+            @CacheableTask
+            abstract class CustomTask extends DefaultTask {
+                @Input String content = "content"
+                @OutputFile abstract RegularFileProperty getOutputFile()
+                @TaskAction void run() { outputFile.get().asFile.text = content }
+            }
+            tasks.register('customTask', CustomTask) {
+                outputFile = layout.buildDirectory.file("out.txt")
+            }
+        """
+    }
 }

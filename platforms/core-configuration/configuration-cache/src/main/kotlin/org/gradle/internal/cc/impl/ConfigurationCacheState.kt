@@ -770,7 +770,12 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeBuildCacheConfiguration(gradle: GradleInternal) {
-        writeBoolean(gradle.startParameter.isBuildCacheEnabled)
+        val startParameter = gradle.startParameter
+        val configuredByBuildLogic = startParameter.isBuildCacheEnabledConfiguredByBuildLogic
+        writeBoolean(configuredByBuildLogic)
+        if (configuredByBuildLogic) {
+            writeBoolean(startParameter.isBuildCacheEnabled)
+        }
         gradle.settings.buildCache.let { buildCache ->
             write(buildCache.local)
             write(buildCache.remote)
@@ -780,7 +785,10 @@ class ConfigurationCacheState(
 
     private
     suspend fun ReadContext.readBuildCacheConfiguration(gradle: GradleInternal) {
-        gradle.startParameter.restoreBuildCacheEnabled(readBoolean())
+        val configuredByBuildLogic = readBoolean()
+        if (configuredByBuildLogic) {
+            gradle.startParameter.setBuildCacheEnabledInternal(readBoolean(), true)
+        }
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?

@@ -67,6 +67,7 @@ public class StartParameterInternal extends StartParameter {
     // Runtime-only wiring, deliberately transient: a StartParameter captured in task state must be
     // serializable to the configuration cache without dragging the listener (and its services) along.
     private transient @Nullable Consumer<String> mutationListener;
+    private boolean buildCacheEnabledConfiguredByBuildLogic = false;
 
     public StartParameterInternal() {
         // Delegate to the protected constructor rather than the deprecated no-arg super().
@@ -107,11 +108,24 @@ public class StartParameterInternal extends StartParameter {
     }
 
     /**
-     * Restores build cache enablement from the configuration cache without reporting the change.
-     * Should only be used by CC engine.
+     * Sets build cache enablement from a source other than user build logic
      */
-    public void restoreBuildCacheEnabled(boolean buildCacheEnabled) {
+    public void setBuildCacheEnabledInternal(boolean buildCacheEnabled, boolean configuredByBuildLogic) {
         this.buildCacheEnabled = buildCacheEnabled;
+        this.buildCacheEnabledConfiguredByBuildLogic = configuredByBuildLogic;
+    }
+
+    @Override
+    public void setBuildCacheEnabled(boolean buildCacheEnabled) {
+        super.setBuildCacheEnabled(buildCacheEnabled);
+        this.buildCacheEnabledConfiguredByBuildLogic = true;
+    }
+
+    /**
+     * Is build cache flag set by build logic?
+     */
+    public boolean isBuildCacheEnabledConfiguredByBuildLogic() {
+        return buildCacheEnabledConfiguredByBuildLogic;
     }
 
     // The public copy methods are deprecated. They are still reached at runtime via a StartParameter
