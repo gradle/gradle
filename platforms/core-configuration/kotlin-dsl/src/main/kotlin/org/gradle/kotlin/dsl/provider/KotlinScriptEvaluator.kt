@@ -171,25 +171,18 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
+        val interpreterHost = InterpreterHost(
+            gradleProperties,
+            buildTreeRootDir,
+            moduleRegistry,
+            classLoaderFactory,
+            fileSystemAccess,
+            classpathSnapshotCache,
+            incrementalCompilationCache
+        )
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(
-                InterpreterHostWithoutInMemoryCache(gradleProperties, buildTreeRootDir),
-                buildOperationRunner,
-                moduleRegistry,
-                classLoaderFactory,
-                fileSystemAccess,
-                classpathSnapshotCache,
-                incrementalCompilationCache
-            )
-            false -> Interpreter(
-                InterpreterHost(gradleProperties, buildTreeRootDir),
-                buildOperationRunner,
-                moduleRegistry,
-                classLoaderFactory,
-                fileSystemAccess,
-                classpathSnapshotCache,
-                incrementalCompilationCache
-            )
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(interpreterHost), buildOperationRunner)
+            false -> Interpreter(interpreterHost, buildOperationRunner)
         }
     }
 
@@ -197,10 +190,9 @@ class StandardKotlinScriptEvaluator(
      * An interpreter host that doesn't cache compiled scripts in memory.
      * Used for property upgrade report since we don't cache a report in-memory.
      */
-    inner class InterpreterHostWithoutInMemoryCache(
-        gradleProperties: GradleProperties,
-        override val buildTreeRootDir: Path,
-    ) : Interpreter.Host by InterpreterHost(gradleProperties, buildTreeRootDir) {
+    class InterpreterHostWithoutInMemoryCache(
+        delegate: Interpreter.Host
+    ) : Interpreter.Host by delegate {
         override fun cachedClassFor(programId: ProgramId): CompiledScript? = null
         override fun cache(specializedProgram: CompiledScript, programId: ProgramId) = Unit
     }
@@ -208,6 +200,11 @@ class StandardKotlinScriptEvaluator(
     inner class InterpreterHost(
         gradleProperties: GradleProperties,
         override val buildTreeRootDir: Path,
+        override val moduleRegistry: ModuleRegistry,
+        override val classLoaderFactory: ClassLoaderFactory,
+        override val fileSystemAccess: FileSystemAccess,
+        override val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
+        override val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
     ) : Interpreter.Host {
 
         override val compilerOptions: KotlinCompilerOptions =

@@ -128,12 +128,7 @@ class SimplifiedKotlinScriptEvaluator(
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
         Interpreter(
             InterpreterHost(),
-            TestBuildOperationRunner(),
-            TestModuleRegistry(),
-            DefaultClassLoaderFactory(),
-            TestFiles.fileSystemAccess(),
-            sharedTestClasspathSnapshotCache,
-            sharedTestIncrementalCompilationCache
+            TestBuildOperationRunner()
         ).eval(
             target,
             scriptSourceFor(script),
@@ -192,6 +187,16 @@ class SimplifiedKotlinScriptEvaluator(
 
         override val buildTreeRootDir: Path
             get() = buildTreeRootDirFile.toPath()
+
+        override val moduleRegistry = TestModuleRegistry()
+
+        override val classLoaderFactory = DefaultClassLoaderFactory()
+
+        override val fileSystemAccess = TestFiles.fileSystemAccess()
+
+        override val classpathEntrySnapshotCache = sharedTestClasspathSnapshotCache
+
+        override val incrementalCompilationCache = sharedTestIncrementalCompilationCache
 
         override fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry =
             serviceRegistry
