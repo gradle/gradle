@@ -22,11 +22,13 @@ import org.gradle.api.Incubating;
  * A Provider of {@link ToolChain}s.
  * @param <P> the Platform type
  * @param <T> the ToolChain type
+ * @since 2.2
  */
 @Incubating
 public interface ToolChainRegistry<P extends Platform, T extends ToolChain> {
     /**
      * Returns the best tool chain to build for the target platform.
+     * @since 2.2
      */
     T getForPlatform(P targetPlatform);
 }

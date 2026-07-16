@@ -34,6 +34,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * First point of entry when it comes to customizing the IDEA generation.
  * <p>
  * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}.
+ * @since 1.0
  */
 public abstract class IdeaModel {
 
@@ -45,22 +46,34 @@ public abstract class IdeaModel {
 
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
+     * @since 1.0
      */
     public IdeaModule getModule() {
         return module;
     }
 
+    /**
+     * Sets the module.
+     *
+     * @since 1.0
+     */
     public void setModule(IdeaModule module) {
         this.module = module;
     }
 
     /**
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
+     * @since 1.0
      */
     public IdeaProject getProject() {
         return project;
     }
 
+    /**
+     * Sets the project.
+     *
+     * @since 1.0
+     */
     public void setProject(IdeaProject project) {
         this.project = project;
     }
@@ -71,6 +84,7 @@ public abstract class IdeaModel {
      * For examples see docs for {@link IdeaWorkspace}.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public IdeaWorkspace getWorkspace() {
@@ -82,6 +96,7 @@ public abstract class IdeaModel {
      * Set workspace.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setWorkspace(IdeaWorkspace workspace) {
@@ -93,6 +108,7 @@ public abstract class IdeaModel {
      * Configures the target IDEA version.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 2.12
      */
     @Deprecated
     public String getTargetVersion() {
@@ -104,6 +120,7 @@ public abstract class IdeaModel {
      * Sets the target IDEA version.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 2.12
      */
     @Deprecated
     public void setTargetVersion(String targetVersion) {
@@ -113,6 +130,7 @@ public abstract class IdeaModel {
 
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
+     * @since 1.0
      */
     public void module(@DelegatesTo(IdeaModule.class)
                        @ClosureParams(value = SimpleType.class, options = "org.gradle.plugins.ide.idea.model.IdeaModule")
@@ -130,6 +148,7 @@ public abstract class IdeaModel {
 
     /**
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
+     * @since 1.0
      */
     public void project(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaProject.class) Closure closure) {
         configure(closure, getProject());
@@ -147,6 +166,7 @@ public abstract class IdeaModel {
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void workspace(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaWorkspace.class) Closure closure) {
@@ -168,6 +188,7 @@ public abstract class IdeaModel {
      *
      * @param pathVariables A map with String-&gt;File pairs.
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void pathVariables(Map<String, File> pathVariables) {

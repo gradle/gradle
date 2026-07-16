@@ -48,20 +48,35 @@ import java.util.Locale;
 
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
+ * @since 1.6
  */
 public abstract class JacocoTaskExtension {
 
     /**
      * The types of output that the agent can use for execution data.
+     * @since 1.6
      */
     public enum Output {
+        /**
+         * @since 1.6
+         */
         FILE,
+        /**
+         * @since 1.6
+         */
         TCP_SERVER,
+        /**
+         * @since 1.6
+         */
         TCP_CLIENT,
+        /**
+         * @since 1.6
+         */
         NONE;
 
         /**
          * Gets type in format of agent argument.
+         * @since 1.6
          */
         public String getAsArg() {
             return toString().toLowerCase(Locale.US).replaceAll("_", "");
@@ -102,6 +117,7 @@ public abstract class JacocoTaskExtension {
 
     /**
      * Whether or not the task should generate execution data. Defaults to {@code true}.
+     * @since 1.6
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -109,12 +125,18 @@ public abstract class JacocoTaskExtension {
         return enabled;
     }
 
+    /**
+     * Sets the enabled.
+     *
+     * @since 1.6
+     */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
     /**
      * The path for the execution data to be written to.
+     * @since 1.7
      */
     @Nullable
     @Optional
@@ -137,12 +159,18 @@ public abstract class JacocoTaskExtension {
         this.destinationFile.fileProvider(destinationFile.flatMap(Providers::of));
     }
 
+    /**
+     * Sets the destination file.
+     *
+     * @since 1.7
+     */
     public void setDestinationFile(@Nullable File destinationFile) {
         this.destinationFile.set(destinationFile);
     }
 
     /**
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
+     * @since 1.6
      */
     @Nullable
     @Optional
@@ -152,12 +180,18 @@ public abstract class JacocoTaskExtension {
         return includes;
     }
 
+    /**
+     * Sets the includes.
+     *
+     * @since 1.6
+     */
     public void setIncludes(@Nullable List<String> includes) {
         this.includes = includes;
     }
 
     /**
      * List of class names that should be excluded from analysis. Names can use wildcard (* and ?). Defaults to an empty list.
+     * @since 1.6
      */
     @Nullable
     @Optional
@@ -167,12 +201,18 @@ public abstract class JacocoTaskExtension {
         return excludes;
     }
 
+    /**
+     * Sets the excludes.
+     *
+     * @since 1.6
+     */
     public void setExcludes(@Nullable List<String> excludes) {
         this.excludes = excludes;
     }
 
     /**
      * List of classloader names that should be excluded from analysis. Names can use wildcards (* and ?). Defaults to an empty list.
+     * @since 1.6
      */
     @Nullable
     @Optional
@@ -182,6 +222,11 @@ public abstract class JacocoTaskExtension {
         return excludeClassLoaders;
     }
 
+    /**
+     * Sets the exclude class loaders.
+     *
+     * @since 1.6
+     */
     public void setExcludeClassLoaders(@Nullable List<String> excludeClassLoaders) {
         this.excludeClassLoaders = excludeClassLoaders;
     }
@@ -190,6 +235,7 @@ public abstract class JacocoTaskExtension {
      * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
      *
      * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.7.6)
+     * @since 2.13
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -197,12 +243,18 @@ public abstract class JacocoTaskExtension {
         return includeNoLocationClasses;
     }
 
+    /**
+     * Sets the include no location classes.
+     *
+     * @since 2.13
+     */
     public void setIncludeNoLocationClasses(boolean includeNoLocationClasses) {
         this.includeNoLocationClasses = includeNoLocationClasses;
     }
 
     /**
      * An identifier for the session written to the execution data. Defaults to an auto-generated identifier.
+     * @since 1.6
      */
     @Nullable
     @Optional
@@ -212,12 +264,18 @@ public abstract class JacocoTaskExtension {
         return sessionId;
     }
 
+    /**
+     * Sets the session id.
+     *
+     * @since 1.6
+     */
     public void setSessionId(@Nullable String sessionId) {
         this.sessionId = sessionId;
     }
 
     /**
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
+     * @since 1.6
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -225,12 +283,18 @@ public abstract class JacocoTaskExtension {
         return dumpOnExit;
     }
 
+    /**
+     * Sets the dump on exit.
+     *
+     * @since 1.6
+     */
     public void setDumpOnExit(boolean dumpOnExit) {
         this.dumpOnExit = dumpOnExit;
     }
 
     /**
      * The type of output to generate. Defaults to {@link Output#FILE}.
+     * @since 1.6
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -238,12 +302,18 @@ public abstract class JacocoTaskExtension {
         return output;
     }
 
+    /**
+     * Sets the output.
+     *
+     * @since 1.6
+     */
     public void setOutput(Output output) {
         this.output = output;
     }
 
     /**
      * IP address or hostname to use with {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to localhost.
+     * @since 1.6
      */
     @Nullable
     @Optional
@@ -253,12 +323,18 @@ public abstract class JacocoTaskExtension {
         return address;
     }
 
+    /**
+     * Sets the address.
+     *
+     * @since 1.6
+     */
     public void setAddress(@Nullable String address) {
         this.address = address;
     }
 
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
+     * @since 1.6
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -266,6 +342,11 @@ public abstract class JacocoTaskExtension {
         return port;
     }
 
+    /**
+     * Sets the port.
+     *
+     * @since 1.6
+     */
     public void setPort(int port) {
         this.port = port;
     }
@@ -306,6 +387,7 @@ public abstract class JacocoTaskExtension {
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.
      *
      * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.6.2)
+     * @since 1.6
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -313,6 +395,11 @@ public abstract class JacocoTaskExtension {
         return jmx;
     }
 
+    /**
+     * Sets the jmx.
+     *
+     * @since 1.6
+     */
     public void setJmx(boolean jmx) {
         this.jmx = jmx;
     }
@@ -334,6 +421,7 @@ public abstract class JacocoTaskExtension {
      * Gets all properties in the format expected of the agent JVM argument.
      *
      * @return state of extension in a JVM argument
+     * @since 1.6
      */
     @Internal
     @ToBeReplacedByLazyProperty

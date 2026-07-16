@@ -64,6 +64,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Generates parsers from Antlr grammars.
+ * @since 0.9
  */
 @SuppressWarnings("this-escape")
 @NullMarked
@@ -84,6 +85,7 @@ public abstract class AntlrTask extends SourceTask {
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -91,12 +93,18 @@ public abstract class AntlrTask extends SourceTask {
         return trace;
     }
 
+    /**
+     * Sets the trace.
+     *
+     * @since 0.9
+     */
     public void setTrace(boolean trace) {
         this.trace = trace;
     }
 
     /**
      * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -104,12 +112,18 @@ public abstract class AntlrTask extends SourceTask {
         return traceLexer;
     }
 
+    /**
+     * Sets the trace lexer.
+     *
+     * @since 0.9
+     */
     public void setTraceLexer(boolean traceLexer) {
         this.traceLexer = traceLexer;
     }
 
     /**
      * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -117,12 +131,18 @@ public abstract class AntlrTask extends SourceTask {
         return traceParser;
     }
 
+    /**
+     * Sets the trace parser.
+     *
+     * @since 0.9
+     */
     public void setTraceParser(boolean traceParser) {
         this.traceParser = traceParser;
     }
 
     /**
      * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -130,12 +150,18 @@ public abstract class AntlrTask extends SourceTask {
         return traceTreeWalker;
     }
 
+    /**
+     * Sets the trace tree walker.
+     *
+     * @since 0.9
+     */
     public void setTraceTreeWalker(boolean traceTreeWalker) {
         this.traceTreeWalker = traceTreeWalker;
     }
 
     /**
      * The maximum heap size for the forked antlr process (ex: '1g').
+     * @since 2.3
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -143,10 +169,20 @@ public abstract class AntlrTask extends SourceTask {
         return maxHeapSize;
     }
 
+    /**
+     * Sets the max heap size.
+     *
+     * @since 2.3
+     */
     public void setMaxHeapSize(String maxHeapSize) {
         this.maxHeapSize = maxHeapSize;
     }
 
+    /**
+     * Sets the arguments.
+     *
+     * @since 2.3
+     */
     public void setArguments(List<String> arguments) {
         if (arguments != null) {
             this.arguments = arguments;
@@ -158,6 +194,7 @@ public abstract class AntlrTask extends SourceTask {
      * List of command-line arguments passed to the antlr process
      *
      * @return The antlr command-line arguments
+     * @since 2.3
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -169,6 +206,7 @@ public abstract class AntlrTask extends SourceTask {
      * Returns the directory to generate the parser source files into.
      *
      * @return The output directory.
+     * @since 0.9
      */
     @OutputDirectory
     @ToBeReplacedByLazyProperty
@@ -180,6 +218,7 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies the directory to generate the parser source files into.
      *
      * @param outputDirectory The output directory. Must not be null.
+     * @since 0.9
      */
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
@@ -189,6 +228,7 @@ public abstract class AntlrTask extends SourceTask {
      * Returns the classpath containing the Ant ANTLR task implementation.
      *
      * @return The Ant task implementation classpath.
+     * @since 0.9
      */
     @Classpath
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Setter has protected access")
@@ -200,6 +240,7 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies the classpath containing the Ant ANTLR task implementation.
      *
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
+     * @since 0.9
      */
     protected void setAntlrClasspath(FileCollection antlrClasspath) {
         this.antlrClasspath = antlrClasspath;

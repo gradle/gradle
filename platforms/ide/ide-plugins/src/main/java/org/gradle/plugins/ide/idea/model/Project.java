@@ -39,6 +39,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 public class Project extends XmlPersistableConfigurationObject {
@@ -53,6 +54,11 @@ public class Project extends XmlPersistableConfigurationObject {
     private String vcs;
     private Set<ProjectLibrary> projectLibraries = new LinkedHashSet<>();
 
+    /**
+     * Creates a new {@code Project}.
+     *
+     * @since 1.0
+     */
     public Project(XmlTransformer xmlTransformer, Object pathFactory) {
         super(xmlTransformer);
         this.pathFactory = (PathFactory) pathFactory;
@@ -60,11 +66,17 @@ public class Project extends XmlPersistableConfigurationObject {
 
     /**
      * A set of {@link Path} instances pointing to the modules contained in the ipr.
+     * @since 1.0
      */
     public Set<Path> getModulePaths() {
         return modulePaths;
     }
 
+    /**
+     * Sets the module paths.
+     *
+     * @since 1.0
+     */
     public void setModulePaths(Set<Path> modulePaths) {
         this.modulePaths = modulePaths;
     }
@@ -82,44 +94,68 @@ public class Project extends XmlPersistableConfigurationObject {
 
     /**
      * A set of wildcard string to be included/excluded from the resources.
+     * @since 1.0
      */
     public Set<String> getWildcards() {
         return wildcards;
     }
 
+    /**
+     * Sets the wildcards.
+     *
+     * @since 1.0
+     */
     public void setWildcards(Set<String> wildcards) {
         this.wildcards = wildcards;
     }
 
     /**
      * Represent the jdk information of the project java sdk.
+     * @since 1.0
      */
     public Jdk getJdk() {
         return jdk;
     }
 
+    /**
+     * Sets the jdk.
+     *
+     * @since 1.0
+     */
     public void setJdk(Jdk jdk) {
         this.jdk = jdk;
     }
 
     /**
      * The vcs used by the project.
+     * @since 2.2
      */
     public String getVcs() {
         return vcs;
     }
 
+    /**
+     * Sets the vcs.
+     *
+     * @since 2.2
+     */
     public void setVcs(String vcs) {
         this.vcs = vcs;
     }
 
     /**
      * The project-level libraries of the IDEA project.
+     * @since 1.5
      */
     public Set<ProjectLibrary> getProjectLibraries() {
         return projectLibraries;
     }
 
+    /**
+     * Sets the project libraries.
+     *
+     * @since 1.5
+     */
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
         this.projectLibraries = projectLibraries;
     }
@@ -129,6 +165,11 @@ public class Project extends XmlPersistableConfigurationObject {
         return "defaultProject.xml";
     }
 
+    /**
+     * Configure.
+     *
+     * @since 2.12
+     */
     @SuppressWarnings("deprecation")
     public void configure(List<IdeaModule> modules,
                           String jdkName, IdeaLanguageLevel languageLevel, JavaVersion bytecodeVersion,

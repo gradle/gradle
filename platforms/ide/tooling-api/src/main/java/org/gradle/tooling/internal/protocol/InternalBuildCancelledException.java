@@ -21,7 +21,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  *
- * @since 2.2-rc-1
+ * @since 2.2
  */
 public class InternalBuildCancelledException extends RuntimeException {
     public InternalBuildCancelledException(Throwable cause) {

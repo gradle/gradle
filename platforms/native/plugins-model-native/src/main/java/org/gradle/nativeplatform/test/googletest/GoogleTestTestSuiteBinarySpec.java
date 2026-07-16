@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
  * An executable which run a Google Test test suite.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.4
  */
 @Incubating
 @Deprecated

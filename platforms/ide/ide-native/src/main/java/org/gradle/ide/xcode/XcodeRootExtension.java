@@ -24,6 +24,7 @@ package org.gradle.ide.xcode;
 public interface XcodeRootExtension extends XcodeExtension {
     /**
      * Returns the generated Xcode workspace for this Gradle build.
+     * @since 4.7
      */
     XcodeWorkspace getWorkspace();
 }

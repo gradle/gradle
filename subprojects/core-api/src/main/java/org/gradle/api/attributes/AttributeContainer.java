@@ -55,6 +55,7 @@ public interface AttributeContainer extends HasAttributes {
     /**
      * Returns the set of attribute keys of this container.
      * @return the set of attribute keys.
+     * @since 3.3
      */
     Set<Attribute<?>> keySet();
 
@@ -66,6 +67,7 @@ public interface AttributeContainer extends HasAttributes {
      * @param key the attribute key
      * @param value the attribute value
      * @return this container
+     * @since 3.3
      */
     <T> AttributeContainer attribute(Attribute<T> key, T value);
 
@@ -136,6 +138,7 @@ public interface AttributeContainer extends HasAttributes {
      * @param <T> the type of the attribute
      * @param key the attribute key
      * @return the attribute value, or {@code null} if not found
+     * @since 3.3
      */
     @Nullable
     <T> T getAttribute(Attribute<T> key);
@@ -143,6 +146,7 @@ public interface AttributeContainer extends HasAttributes {
     /**
      * Returns true if this container is empty.
      * @return true if this container is empty.
+     * @since 3.3
      */
     boolean isEmpty();
 
@@ -150,6 +154,7 @@ public interface AttributeContainer extends HasAttributes {
      * Tells if a specific attribute is found in this container.
      * @param key the key of the attribute
      * @return true if this attribute is found in this container.
+     * @since 3.3
      */
     boolean contains(Attribute<?> key);
 

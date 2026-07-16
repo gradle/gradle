@@ -32,21 +32,25 @@ public interface MavenPomRelocation {
 
     /**
      * The new group ID of the artifact.
+     * @since 4.8
      */
     Property<String> getGroupId();
 
     /**
      * The new artifact ID of the artifact.
+     * @since 4.8
      */
     Property<String> getArtifactId();
 
     /**
      * The new version of the artifact.
+     * @since 4.8
      */
     Property<String> getVersion();
 
     /**
      * The message to show the user for this relocation.
+     * @since 4.8
      */
     Property<String> getMessage();
 

@@ -23,6 +23,7 @@ package org.gradle.api.artifacts.result;
 public interface UnresolvedArtifactResult extends ArtifactResult {
     /**
      * The failure that occurred when the artifact was resolved.
+     * @since 2.0
      */
     Throwable getFailure();
 }

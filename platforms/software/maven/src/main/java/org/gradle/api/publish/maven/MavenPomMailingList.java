@@ -30,31 +30,37 @@ public interface MavenPomMailingList {
 
     /**
      * The name of this mailing list.
+     * @since 4.8
      */
     Property<String> getName();
 
     /**
      * The email address or link that can be used to subscribe to this mailing list.
+     * @since 4.8
      */
     Property<String> getSubscribe();
 
     /**
      * The email address or link that can be used to subscribe to this mailing list.
+     * @since 4.8
      */
     Property<String> getUnsubscribe();
 
     /**
      * The email address or link that can be used to post to this mailing list.
+     * @since 4.8
      */
     Property<String> getPost();
 
     /**
      * The URL where you can browse the archive of this mailing list.
+     * @since 4.8
      */
     Property<String> getArchive();
 
     /**
      * The alternate URLs where you can browse the archive of this mailing list.
+     * @since 4.8
      */
     SetProperty<String> getOtherArchives();
 

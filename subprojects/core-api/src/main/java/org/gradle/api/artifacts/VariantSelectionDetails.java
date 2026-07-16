@@ -29,16 +29,19 @@ import org.gradle.api.attributes.AttributeContainer;
 public interface VariantSelectionDetails {
     /**
      * Selects the platform variant of a component
+     * @since 6.6
      */
     void platform();
 
     /**
      * Selects the enforced platform variant of a component
+     * @since 6.6
      */
     void enforcedPlatform();
 
     /**
      * Selects the library variant of a component
+     * @since 6.6
      */
     void library();
 
@@ -46,6 +49,7 @@ public interface VariantSelectionDetails {
      * Replaces the provided selector attributes with the attributes configured
      * via the configuration action.
      * @param configurationAction the configuration action
+     * @since 6.6
      */
     void attributes(Action<? super AttributeContainer> configurationAction);
 
@@ -53,6 +57,7 @@ public interface VariantSelectionDetails {
      * Replaces the provided selector capabilities with the capabilities configured
      * via the configuration action.
      * @param configurationAction the configuration action
+     * @since 6.6
      */
     void capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configurationAction);
 

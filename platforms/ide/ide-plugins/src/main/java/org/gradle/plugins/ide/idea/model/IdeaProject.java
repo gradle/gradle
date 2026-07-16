@@ -117,6 +117,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *   }
  * }
  * </pre>
+ * @since 1.0
  */
 public abstract class IdeaProject implements IdeWorkspace {
 
@@ -127,7 +128,17 @@ public abstract class IdeaProject implements IdeWorkspace {
 
     private List<IdeaModule> modules;
     private String jdkName;
+    /**
+     * The language level.
+     *
+     * @since 8.6
+     */
     protected IdeaLanguageLevel languageLevel;
+    /**
+     * The target bytecode version.
+     *
+     * @since 8.6
+     */
     protected JavaVersion targetBytecodeVersion;
     private String vcs;
     private Set<String> wildcards = new LinkedHashSet<>();
@@ -161,6 +172,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * An owner of this IDEA project.
      * <p>
      * If IdeaProject requires some information from gradle this field should not be used for this purpose.
+     * @since 2.11
      */
     public org.gradle.api.Project getProject() {
         return project;
@@ -170,6 +182,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * See {@link #ipr(Action) }
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public XmlFileContentMerger getIpr() {
@@ -184,6 +197,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * See the examples in the docs for {@link IdeaProject}
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void ipr(@SuppressWarnings("rawtypes") @DelegatesTo(XmlFileContentMerger.class) Closure closure) {
@@ -209,6 +223,7 @@ public abstract class IdeaProject implements IdeWorkspace {
     /**
      * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
      * In IDEA, the project name is driven by the name of the 'ipr' file.
+     * @since 1.0
      */
     @SuppressWarnings("deprecation")
     public String getName() {
@@ -219,11 +234,17 @@ public abstract class IdeaProject implements IdeWorkspace {
      * Modules for the ipr file.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
+     * @since 1.0
      */
     public List<IdeaModule> getModules() {
         return modules;
     }
 
+    /**
+     * Sets the modules.
+     *
+     * @since 1.0
+     */
     public void setModules(List<IdeaModule> modules) {
         this.modules = modules;
     }
@@ -232,11 +253,17 @@ public abstract class IdeaProject implements IdeWorkspace {
      * The java version used for defining the project sdk.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
+     * @since 1.0
      */
     public String getJdkName() {
         return jdkName;
     }
 
+    /**
+     * Sets the jdk name.
+     *
+     * @since 1.0
+     */
     public void setJdkName(String jdkName) {
         this.jdkName = jdkName;
     }
@@ -249,6 +276,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * settings when compiling.
      * <p>
      * When not explicitly set, this is calculated as the maximum language level for the Idea modules of this Idea project.
+     * @since 1.0
      */
     public IdeaLanguageLevel getLanguageLevel() {
         return languageLevel;
@@ -274,6 +302,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * <p>
      * When explicitly set in the build script, this setting overrides any calculated values for Idea project
      * and Idea module.
+     * @since 1.0
      */
     public void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel);
@@ -287,11 +316,17 @@ public abstract class IdeaProject implements IdeWorkspace {
      * settings when compiling.
      * <p>
      * When {@code languageLevel} is not explicitly set, this is calculated as the maximum target bytecode version for the Idea modules of this Idea project.
+     * @since 2.11
      */
     public JavaVersion getTargetBytecodeVersion() {
         return targetBytecodeVersion;
     }
 
+    /**
+     * Sets the target bytecode version.
+     *
+     * @since 2.12
+     */
     public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
     }
@@ -302,11 +337,17 @@ public abstract class IdeaProject implements IdeWorkspace {
      * Values are the same as used in IDEA's "Version Control" preference window (e.g. 'Git', 'Subversion').
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
+     * @since 2.2
      */
     public String getVcs() {
         return vcs;
     }
 
+    /**
+     * Sets the vcs.
+     *
+     * @since 2.2
+     */
     public void setVcs(String vcs) {
         this.vcs = vcs;
     }
@@ -315,11 +356,17 @@ public abstract class IdeaProject implements IdeWorkspace {
      * The wildcard resource patterns.
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
+     * @since 1.0
      */
     public Set<String> getWildcards() {
         return wildcards;
     }
 
+    /**
+     * Sets the wildcards.
+     *
+     * @since 1.0
+     */
     public void setWildcards(Set<String> wildcards) {
         this.wildcards = wildcards;
     }
@@ -328,11 +375,17 @@ public abstract class IdeaProject implements IdeWorkspace {
      * Output *.ipr
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
+     * @since 1.0
      */
     public File getOutputFile() {
         return outputFile.get().getAsFile();
     }
 
+    /**
+     * Sets the output file.
+     *
+     * @since 1.0
+     */
     public void setOutputFile(File outputFile) {
         this.outputFile.set(outputFile);
     }
@@ -341,6 +394,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * The project-level libraries to be added to the IDEA project.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.5
      */
     @Deprecated
     public Set<ProjectLibrary> getProjectLibraries() {
@@ -352,6 +406,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * Sets the project-level libraries.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.5
      */
     @Deprecated
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
@@ -363,6 +418,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * Returns the path factory used to construct paths in the generated *.ipr file.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public PathFactory getPathFactory() {
@@ -374,6 +430,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * Sets the path factory used to construct paths in the generated *.ipr file.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setPathFactory(PathFactory pathFactory) {
@@ -385,6 +442,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * Merges the existing *.ipr content with the configuration from this model.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     @SuppressWarnings("unchecked")

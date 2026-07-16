@@ -32,6 +32,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseJdt}.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -39,6 +40,11 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     private EclipseJdt jdt;
 
+    /**
+     * Creates a new {@code GenerateEclipseJdt}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public GenerateEclipseJdt() {
         jdt = getInstantiator().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(getTransformer()));
@@ -83,12 +89,18 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     /**
      * Eclipse JDT model that contains information needed to generate the JDT file.
+     * @since 1.0
      */
     @Internal
     public EclipseJdt getJdt() {
         return jdt;
     }
 
+    /**
+     * Sets the jdt.
+     *
+     * @since 1.0
+     */
     public void setJdt(EclipseJdt jdt) {
         this.jdt = jdt;
     }

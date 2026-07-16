@@ -48,6 +48,7 @@ import java.util.Set;
 
 /**
  * Generates build dashboard report.
+ * @since 1.5
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
@@ -55,6 +56,11 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     private final BuildDashboardReports reports;
 
+    /**
+     * Creates a new {@code GenerateBuildDashboard}.
+     *
+     * @since 2.0
+     */
     @SuppressWarnings("this-escape")
     public GenerateBuildDashboard() {
         ConfigurationCacheDegradation.requireDegradation(this, "Task is not compatible with the Configuration Cache");
@@ -62,6 +68,11 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
         reports.getHtml().getRequired().set(true);
     }
 
+    /**
+     * Returns the input reports.
+     *
+     * @since 1.7
+     */
     @Input
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Skipped for report since ReportState is private")
     @SuppressWarnings("ExposedPrivateType")
@@ -117,6 +128,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
      * </pre>
      *
      * @param reportings an array of {@link Reporting} instances that are to be aggregated
+     * @since 1.5
      */
     @SafeVarargs
     @SuppressWarnings("varargs")

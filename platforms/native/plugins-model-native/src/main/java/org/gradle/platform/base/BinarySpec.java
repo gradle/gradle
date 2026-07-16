@@ -28,6 +28,7 @@ import org.gradle.model.ModelMap;
  * Represents a binary that is the result of building a component.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating @HasInternalProtocol
 @Deprecated
@@ -35,6 +36,7 @@ public interface BinarySpec extends BuildableComponentSpec, CheckableComponentSp
 
     /**
      * Can this binary be built in the current environment?
+     * @since 2.2
      */
     boolean isBuildable();
 
@@ -42,6 +44,7 @@ public interface BinarySpec extends BuildableComponentSpec, CheckableComponentSp
      * The sources owned by this binary.
      *
      * @return the sources owned by the binary.
+     * @since 2.6
      */
     ModelMap<LanguageSourceSet> getSources();
 
@@ -50,11 +53,13 @@ public interface BinarySpec extends BuildableComponentSpec, CheckableComponentSp
      * and other source sets created elsewhere (e.g. inherited from the binary's component).
      *
      * @return all inputs of the binary.
+     * @since 2.6
      */
     DomainObjectSet<LanguageSourceSet> getInputs();
 
     /**
      * The set of tasks associated with this binary.
+     * @since 2.2
      */
     BinaryTasksCollection getTasks();
 }

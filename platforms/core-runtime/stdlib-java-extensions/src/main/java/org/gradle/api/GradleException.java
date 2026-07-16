@@ -20,16 +20,32 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
+ * @since 0.7
  */
 public class GradleException extends RuntimeException {
+    /**
+     * Creates a new {@code GradleException}.
+     *
+     * @since 0.7
+     */
     public GradleException() {
         super();
     }
 
+    /**
+     * Creates a new {@code GradleException}.
+     *
+     * @since 0.7
+     */
     public GradleException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code GradleException}.
+     *
+     * @since 0.7
+     */
     public GradleException(String message, @Nullable Throwable cause) {
         super(message, cause);
     }

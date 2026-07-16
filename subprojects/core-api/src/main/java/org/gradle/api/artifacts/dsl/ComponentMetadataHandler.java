@@ -72,6 +72,7 @@ public interface ComponentMetadataHandler {
      *
      * @param rule the rule to be added
      * @return this
+     * @since 2.3
      */
     ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule);
 
@@ -94,6 +95,7 @@ public interface ComponentMetadataHandler {
      *
      * @param rule the rule to be added
      * @return this
+     * @since 2.3
      */
     ComponentMetadataHandler all(@DelegatesTo(ComponentMetadataDetails.class) Closure<?> rule);
 
@@ -112,6 +114,7 @@ public interface ComponentMetadataHandler {
      * @param ruleSource the rule source object to be added
      * @return this
      * @deprecated Use {@link #all(Action)} or {@link #all(Class)} instead.
+     * @since 2.3
      */
     @Deprecated
     ComponentMetadataHandler all(Object ruleSource);
@@ -144,6 +147,7 @@ public interface ComponentMetadataHandler {
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param rule the rule to be added
      * @return this
+     * @since 2.3
      */
     ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule);
 
@@ -155,6 +159,7 @@ public interface ComponentMetadataHandler {
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param rule the rule to be added
      * @return this
+     * @since 2.3
      */
     ComponentMetadataHandler withModule(Object id, @DelegatesTo(ComponentMetadataDetails.class) Closure<?> rule);
 
@@ -167,6 +172,7 @@ public interface ComponentMetadataHandler {
      * @param ruleSource the rule source object to be added
      * @return this
      * @deprecated Use {@link #withModule(Object, Action)} or {@link #withModule(Object, Class)} instead.
+     * @since 2.3
      */
     @Deprecated
     ComponentMetadataHandler withModule(Object id, Object ruleSource);

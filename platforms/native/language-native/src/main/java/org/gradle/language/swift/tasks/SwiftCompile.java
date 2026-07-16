@@ -136,7 +136,7 @@ public abstract class SwiftCompile extends DefaultTask {
     /**
      * Should the compiler generate debuggable code?
      *
-     * @since 4.7
+     * @since 4.4
      */
     @Internal
     public boolean isDebuggable() {
@@ -156,7 +156,7 @@ public abstract class SwiftCompile extends DefaultTask {
     /**
      * Should the compiler generate debuggable code?
      *
-     * @since 4.7
+     * @since 4.4
      */
     @Internal
     public boolean isOptimized() {
@@ -199,6 +199,7 @@ public abstract class SwiftCompile extends DefaultTask {
 
     /**
      * The name of the module to produce.
+     * @since 4.1
      */
     @Optional
     @Input
@@ -238,6 +239,11 @@ public abstract class SwiftCompile extends DefaultTask {
         return toolProvider.newCompiler(SwiftCompileSpec.class);
     }
 
+    /**
+     * Compile.
+     *
+     * @since 6.0
+     */
     @TaskAction
     protected void compile(InputChanges inputs) {
         final List<File> removedFiles = new ArrayList<>();

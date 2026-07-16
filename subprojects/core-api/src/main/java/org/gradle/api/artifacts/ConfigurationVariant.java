@@ -40,6 +40,7 @@ public interface ConfigurationVariant extends Named, HasConfigurableAttributes<C
 
     /**
      * Returns the artifacts associated with this variant.
+     * @since 3.3
      */
     PublishArtifactSet getArtifacts();
 
@@ -47,6 +48,7 @@ public interface ConfigurationVariant extends Named, HasConfigurableAttributes<C
      * Adds an artifact to this variant.
      *
      * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
+     * @since 3.3
      */
     void artifact(Object notation);
 
@@ -54,6 +56,7 @@ public interface ConfigurationVariant extends Named, HasConfigurableAttributes<C
      * Adds an artifact to this variant, configuring it using the given action.
      *
      * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
+     * @since 3.3
      */
     void artifact(Object notation, Action<? super ConfigurablePublishArtifact> configureAction);
 }

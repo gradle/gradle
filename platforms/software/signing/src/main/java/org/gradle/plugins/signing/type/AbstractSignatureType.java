@@ -29,6 +29,7 @@ import java.io.OutputStream;
 
 /**
  * Convenience base class for {@link SignatureType} implementations.
+ * @since 1.0
  */
 public abstract class AbstractSignatureType implements SignatureType {
 

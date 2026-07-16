@@ -21,11 +21,17 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code UnknownPluginException} is thrown when an unknown plugin id is provided.
+ * @since 0.7
  */
 public class UnknownPluginException extends InvalidUserDataException {
 
     private final @Nullable String pluginId;
 
+    /**
+     * Creates a new {@code UnknownPluginException}.
+     *
+     * @since 0.7
+     */
     public UnknownPluginException(String message) {
         this(message, null);
     }

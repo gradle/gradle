@@ -37,6 +37,7 @@ public interface ExecOperations extends TaskService {
      *
      * @param action Action to configure the ExecSpec
      * @return {@link ExecResult} that can be used to check if the execution worked
+     * @since 6.0
      */
     ExecResult exec(Action<? super ExecSpec> action);
 
@@ -46,6 +47,7 @@ public interface ExecOperations extends TaskService {
      *
      * @param action Action to configure the JavaExecSpec
      * @return {@link ExecResult} that can be used to check if the execution worked
+     * @since 6.0
      */
     ExecResult javaexec(Action<? super JavaExecSpec> action);
 }

@@ -51,11 +51,13 @@ public interface KotlinDslScriptsModel {
 
     /**
      * Gradle property name for the set of scripts to be queried for.
+     * @since 6.0
      */
     String SCRIPTS_GRADLE_PROPERTY_NAME = "org.gradle.tooling.model.kotlin.dsl.scripts";
 
     /**
      * Script models by file.
+     * @since 6.0
      */
     Map<File, KotlinDslScriptModel> getScriptModels();
 }

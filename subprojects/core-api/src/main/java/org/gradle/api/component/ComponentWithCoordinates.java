@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 public interface ComponentWithCoordinates extends SoftwareComponent {
     /**
      * The publication coordinates for this component.
+     * @since 4.7
      */
     ModuleVersionIdentifier getCoordinates();
 }

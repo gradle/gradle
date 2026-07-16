@@ -30,6 +30,7 @@ import java.lang.annotation.Target;
  * If the annotation is not present for a property that is not a managed type, a fatal error will occur.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.3
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

@@ -30,6 +30,7 @@ import java.io.File;
  * Generates an IDEA project file for root project *only*. If you want to fine tune the idea configuration <p> At this moment nearly all configuration is done via {@link IdeaProject}.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -37,6 +38,11 @@ public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
     private IdeaProject ideaProject;
 
+    /**
+     * Creates a new {@code GenerateIdeaProject}.
+     *
+     * @since 1.0
+     */
     public GenerateIdeaProject() {}
 
     @Inject
@@ -90,12 +96,18 @@ public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
     /**
      * The Idea project model containing the details required to generate the project file.
+     * @since 1.0
      */
     @Internal
     public IdeaProject getIdeaProject() {
         return ideaProject;
     }
 
+    /**
+     * Sets the idea project.
+     *
+     * @since 1.0
+     */
     public void setIdeaProject(IdeaProject ideaProject) {
         this.ideaProject = ideaProject;
     }

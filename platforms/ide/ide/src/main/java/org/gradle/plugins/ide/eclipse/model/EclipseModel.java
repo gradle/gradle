@@ -64,6 +64,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * </pre>
  *
  * More examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
+ * @since 1.0
  */
 public abstract class EclipseModel {
 
@@ -79,6 +80,11 @@ public abstract class EclipseModel {
 
     private final DefaultTaskDependency autoBuildTasks;
 
+    /**
+     * Creates a new {@code EclipseModel}.
+     *
+     * @since 1.0
+     */
     public EclipseModel() {
         synchronizationTasks = new DefaultTaskDependency();
         autoBuildTasks = new DefaultTaskDependency();
@@ -108,6 +114,7 @@ public abstract class EclipseModel {
      * Configures eclipse project information
      * <p>
      * For examples see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public EclipseProject getProject() {
         if (project == null) {
@@ -118,6 +125,11 @@ public abstract class EclipseModel {
         return project;
     }
 
+    /**
+     * Sets the project.
+     *
+     * @since 1.0
+     */
     public void setProject(EclipseProject project) {
         this.project = project;
     }
@@ -126,11 +138,17 @@ public abstract class EclipseModel {
      * Configures eclipse classpath information
      * <p>
      * For examples see docs for {@link EclipseClasspath}
+     * @since 1.0
      */
     public EclipseClasspath getClasspath() {
         return classpath;
     }
 
+    /**
+     * Sets the classpath.
+     *
+     * @since 1.0
+     */
     public void setClasspath(EclipseClasspath classpath) {
         this.classpath = classpath;
     }
@@ -139,11 +157,17 @@ public abstract class EclipseModel {
      * Configures eclipse java compatibility information (jdt)
      * <p>
      * For examples see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public EclipseJdt getJdt() {
         return jdt;
     }
 
+    /**
+     * Sets the jdt.
+     *
+     * @since 1.0
+     */
     public void setJdt(EclipseJdt jdt) {
         this.jdt = jdt;
     }
@@ -152,6 +176,7 @@ public abstract class EclipseModel {
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
+     * @since 1.0
      */
     public EclipseWtp getWtp() {
         if (wtp == null) {
@@ -160,6 +185,11 @@ public abstract class EclipseModel {
         return wtp;
     }
 
+    /**
+     * Sets the wtp.
+     *
+     * @since 1.0
+     */
     public void setWtp(EclipseWtp wtp) {
         this.wtp = wtp;
     }
@@ -168,6 +198,7 @@ public abstract class EclipseModel {
      * Configures eclipse project information
      * <p>
      * For examples see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void project(@DelegatesTo(EclipseProject.class) Closure closure) {
         configure(closure, getProject());
@@ -188,6 +219,7 @@ public abstract class EclipseModel {
      * Configures eclipse classpath information
      * <p>
      * For examples see docs for {@link EclipseClasspath}
+     * @since 1.0
      */
     public void classpath(@DelegatesTo(EclipseClasspath.class) Closure closure) {
         configure(closure, classpath);
@@ -208,6 +240,7 @@ public abstract class EclipseModel {
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
+     * @since 1.0
      */
     public void wtp(@DelegatesTo(EclipseWtp.class) Closure closure) {
         configure(closure, wtp);
@@ -228,6 +261,7 @@ public abstract class EclipseModel {
      * Configures eclipse java compatibility information (jdt)
      * <p>
      * For examples see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void jdt(@DelegatesTo(EclipseJdt.class) Closure closure) {
         configure(closure, getJdt());
@@ -302,6 +336,7 @@ public abstract class EclipseModel {
      * For example see docs for {@link EclipseModel}
      *
      * @param pathVariables A map with String-&gt;File pairs.
+     * @since 1.0
      */
     public void pathVariables(Map<String, File> pathVariables) {
         Preconditions.checkNotNull(pathVariables);
