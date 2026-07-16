@@ -884,12 +884,13 @@ When that value happens to be a collection, Gradle cannot see the elements insid
 The dedicated collection types lift the collection into the property itself, so Gradle understands its structure.
 This is what makes incremental composition possible:
 
-* *Contributions are additive.* `add(T)`, `addAll(Iterable<T>)`, and `put(K, V)` let a plugin, a convention plugin, and a build script each contribute independently, without knowing what the others contributed.
-* *Individual elements can be lazy.* `add(Provider<T>)` accepts a provider for a _single element_. If that provider is a task output, the collection property carries the producing task's dependency automatically, so no explicit `dependsOn` is required.
-* *No eager reads are needed.* Appending to a plain `Property` forces you to call `get()` at configuration time to read the current collection before writing a new one back, which violates <<avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>>.
+* *Contributions are additive:* `add(T)`, `addAll(Iterable<T>)`, and `put(K, V)` let a plugin, a convention plugin, and a build script each contribute independently, without knowing what the others contributed.
+* *Individual elements can be lazy:* `add(Provider<T>)` accepts a provider for a _single element_. If that provider is a task output, the collection property carries the producing task's dependency automatically, so no explicit `dependsOn` is required.
+* *No eager reads are needed:* Appending to a plain `Property` forces you to call `get()` at configuration time to read the current collection before writing a new one back, which violates <<avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>>.
 
 Gradle rejects the most common forms of this mistake outright.
 Creating a `Property<List<T>>`, `Property<Set<T>>`, or `Property<Map<K, V>>` fails with an error directing you to the corresponding collection type.
+
 However, several equivalent declarations are _not_ rejected and are just as wrong:
 
 * `Property<Collection<T>>` and `Property<Iterable<T>>`
