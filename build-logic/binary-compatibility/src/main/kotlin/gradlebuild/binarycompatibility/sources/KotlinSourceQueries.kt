@@ -41,6 +41,8 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTypeParameterListOwner
@@ -73,9 +75,13 @@ object KotlinSourceQueries {
 
     fun isGenerated(member: JApiCompatibility): (KtFile) -> Boolean = { ktFile ->
         when (val ctMember = member.newCtMember) {
-            is CtMethod -> ctMember.isSynthetic || ctMember.isGenerated(ktFile, ctMember.declaringClass)
+            is CtMethod -> ctMember.isSynthetic || ctMember.hasMangledName ||
+                ctMember.isGenerated(ktFile, ctMember.declaringClass) ||
+                ctMember.isInheritedFromSupertype()
             is CtClass -> false
-            is CtField -> ctMember.isGeneratedObjectInstanceField(ktFile, ctMember.declaringClass)
+            is CtField -> ctMember.hasMangledName ||
+                ctMember.isGeneratedObjectInstanceField(ktFile, ctMember.declaringClass) ||
+                ctMember.isGeneratedCompanionField(ktFile, ctMember.declaringClass)
             is CtConstructor -> ctMember.isGeneratedConstructor(ktFile, ctMember.declaringClass)
             else -> error("Unsupported japicmp member type '${member::class}'")
         }
@@ -107,6 +113,11 @@ object KotlinSourceQueries {
         val properties = collectKtPropertiesFor(qualifiedBaseName, method)
         if (properties.isNotEmpty()) {
             return getSinceStatus(properties)
+        }
+
+        val constructorProperties = collectKtConstructorPropertiesFor(qualifiedBaseName, method)
+        if (constructorProperties.isNotEmpty()) {
+            return getSinceStatus(constructorProperties)
         }
 
         return SinceTagStatus.Missing
@@ -160,14 +171,27 @@ fun CtMethod.isGeneratedDataClassMethod(ktFile: KtFile, declaringClass: CtClass)
 
 
 private
+val CtMember.hasMangledName: Boolean
+    get() = name.contains('$')
+
+
+private
 fun CtField.isGeneratedObjectInstanceField(ktFile: KtFile, declaringClass: CtClass): Boolean =
     name == "INSTANCE" && ktFile.ktClassOf(declaringClass) is KtObjectDeclaration
 
 
 private
+fun CtField.isGeneratedCompanionField(ktFile: KtFile, declaringClass: CtClass): Boolean =
+    (ktFile.ktClassOf(declaringClass) as? KtClassOrObject)
+        ?.companionObjects?.any { (it.name ?: "Companion") == name } == true
+
+
+private
 fun CtConstructor.isGeneratedConstructor(ktFile: KtFile, declaringClass: CtClass): Boolean {
     val ktClass = ktFile.ktClassOf(declaringClass) as? KtClass ?: return false
-    return ktClass.secondaryConstructors.none { matches(it) }
+    val primaryConstructor = ktClass.primaryConstructor
+        ?: return parameterTypes.isEmpty()
+    return matches(primaryConstructor)
 }
 
 
@@ -215,7 +239,7 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
         // Preliminary extension function check
         val allowJvmOverloads = ktFunction.hasJvmOverloads
         val extensionCandidate = couldBeExtensionFunction && ktFunction.receiverTypeReference != null &&
-            method.firstParameterMatches(ktFunction.receiverTypeReference!!) &&
+            method.firstParameterMatches(ktFunction.receiverTypeReference!!, ktFunction.typeParameterBounds) &&
             ktFunction.acceptsValueParameterCount(paramCountWithReceiver, allowJvmOverloads)
         if (!(extensionCandidate || ktFunction.acceptsValueParameterCount(paramCount, allowJvmOverloads))) {
             return@collectDescendantsOfType false
@@ -230,9 +254,10 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
             .drop(if (extensionCandidate) 1 else 0)
             .withIndex()
             .all {
-                val ktParamType = ktFunction.valueParameters[it.index].typeReference!!
+                val ktParam = ktFunction.valueParameters[it.index]
+                val ktParamType = ktParam.typeReference!!
                 it.value.isLikelyEquivalentTo(ktParamType, typeParameterBounds) ||
-                    (isVarargs && it.value.componentType?.isLikelyEquivalentTo(ktParamType, typeParameterBounds) == true)
+                    ((isVarargs || ktParam.isVarArg) && it.value.componentType?.isLikelyEquivalentTo(ktParamType, typeParameterBounds) == true)
             }
     }
 }
@@ -248,6 +273,11 @@ val KtTypeParameterListOwner?.typeParameterBounds: Map<String, KtTypeReference?>
 
 private
 val KtFunction.typeParameterBounds: Map<String, KtTypeReference?>
+    get() = (containingClassOrObject as? KtTypeParameterListOwner).typeParameterBounds +
+        typeParameters.associate { it.name!! to it.extendsBound }
+
+private
+val KtProperty.typeParameterBounds: Map<String, KtTypeReference?>
     get() = (containingClassOrObject as? KtTypeParameterListOwner).typeParameterBounds +
         typeParameters.associate { it.name!! to it.extendsBound }
 
@@ -346,7 +376,7 @@ fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): 
             ktProperty.fqName?.asString() !in propertyQualifiedNames -> false
             couldBeExtensionProperty -> {
                 ktProperty.receiverTypeReference != null &&
-                    method.firstParameterMatches(ktProperty.receiverTypeReference!!)
+                    method.firstParameterMatches(ktProperty.receiverTypeReference!!, ktProperty.typeParameterBounds)
             }
             couldBeProperty -> {
                 ktProperty.receiverTypeReference == null
@@ -354,6 +384,25 @@ fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): 
             else -> false
         }
     }
+}
+
+
+fun KtFile.collectKtConstructorPropertiesFor(qualifiedBaseName: String, method: CtMethod): List<KtParameter> {
+    val hasGetGetterName = method.name.matches(propertyGetterNameRegex)
+    val hasIsGetterName = method.name.matches(propertyIsGetterNameRegex)
+    val hasSetterName = method.name.matches(propertySetterNameRegex)
+    val paramCount = method.parameterTypes.size
+    val couldBeProperty =
+        ((hasGetGetterName || hasIsGetterName) && paramCount == 0 && method.returnType.name != "void") ||
+            (hasSetterName && paramCount == 1)
+    if (!couldBeProperty) {
+        return emptyList()
+    }
+    val propertyName = if (hasIsGetterName) method.name else method.name.drop(3).decapitalize()
+    return collectDescendantsOfType<KtPrimaryConstructor>()
+        .filter { it.containingClassOrObject?.fqName?.asString() == qualifiedBaseName }
+        .flatMap { it.valueParameters }
+        .filter { it.hasValOrVar() && it.name == propertyName }
 }
 
 
@@ -368,7 +417,7 @@ fun KtFile.collectRenamedKtPropertiesFor(qualifiedBaseName: String, method: CtMe
         }
         val receiverParamCount = if (ktProperty.receiverTypeReference != null) 1 else 0
         val receiverMatches = ktProperty.receiverTypeReference
-            ?.let { method.firstParameterMatches(it) } ?: true
+            ?.let { method.firstParameterMatches(it, ktProperty.typeParameterBounds) } ?: true
         when (method.name) {
             ktProperty.getterJvmName -> paramCount == receiverParamCount && !returnsVoid && receiverMatches
             ktProperty.setterJvmName -> paramCount == receiverParamCount + 1 && returnsVoid && receiverMatches
@@ -430,8 +479,11 @@ val CtClass.isKotlinFileFacadeClass: Boolean
 
 
 private
-fun CtBehavior.firstParameterMatches(ktTypeReference: KtTypeReference): Boolean =
-    parameterTypes.firstOrNull()?.isLikelyEquivalentTo(ktTypeReference) ?: false
+fun CtBehavior.firstParameterMatches(
+    ktTypeReference: KtTypeReference,
+    typeParameterBounds: Map<String, KtTypeReference?> = emptyMap()
+): Boolean =
+    parameterTypes.firstOrNull()?.isLikelyEquivalentTo(ktTypeReference, typeParameterBounds) ?: false
 
 
 private
@@ -459,7 +511,40 @@ fun CtClass.isLikelyEquivalentTo(ktTypeReference: KtTypeReference, typeParameter
 
 private
 fun KtFile.ktClassOf(member: CtClass) =
-    collectDescendantsOfType<KtClassOrObject> { it.fqName?.asString() == member.name }.singleOrNull()
+    collectDescendantsOfType<KtClassOrObject> { it.fqName?.asString() == member.name.replace('$', '.') }.singleOrNull()
+
+
+private
+fun CtMethod.isInheritedFromSupertype(): Boolean {
+    val paramTypeNames = parameterTypes.map { it.name }
+    return declaringClass.supertypes().any { supertype ->
+        supertype.declaredMethods.any {
+            // Match the full erased signature, not just name + arity: an unrelated same-arity
+            // overload (e.g. a new foo(String) beside an inherited foo(Integer)) must still be
+            // checked. A genuine inherited / `by`-delegated method shares the supertype signature.
+            it.name == name && it.parameterTypes.map { param -> param.name } == paramTypeNames
+        }
+    }
+}
+
+
+private
+fun CtClass.supertypes(): Sequence<CtClass> {
+    val seen = mutableSetOf<String>()
+    fun walk(type: CtClass): Sequence<CtClass> = sequence {
+        val parents = buildList {
+            type.superclass?.let { add(it) }
+            addAll(type.interfaces)
+        }
+        for (parent in parents) {
+            if (seen.add(parent.name)) {
+                yield(parent)
+                yieldAll(walk(parent))
+            }
+        }
+    }
+    return walk(this)
+}
 
 
 private

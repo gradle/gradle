@@ -701,4 +701,157 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             )
         }
     }
+
+    @Test
+    fun `a primary constructor property carries its own @since`() {
+        checkNotBinaryCompatibleKotlin(
+            v2 = """
+
+            /** @since 2.0 */
+            @Incubating
+            class Bar
+            /** @since 2.0 */
+            @Incubating
+            constructor(
+                @get:Incubating
+                val baz: String
+            )
+
+            """
+        ) {
+            assertHasNoWarning()
+            assertHasErrors(
+                listOf("Method com.example.Bar.getBaz(): Is not annotated with @since 2.0."),
+            )
+        }
+
+        checkBinaryCompatibleKotlin(
+            v2 = """
+
+            /** @since 2.0 */
+            @Incubating
+            class Bar
+            /** @since 2.0 */
+            @Incubating
+            constructor(
+                /** @since 2.0 */
+                @get:Incubating
+                val baz: String
+            )
+
+            """
+        )
+    }
+
+    @Test
+    fun `members synthesized by interface delegation do not require @since`() {
+        checkBinaryCompatibleKotlin(
+            v2 = """
+
+            /** @since 2.0 */
+            @Incubating
+            interface Foo {
+
+                /** @since 2.0 */
+                @Incubating
+                fun foo()
+            }
+
+            /** @since 2.0 */
+            @Incubating
+            class Bar
+            /** @since 2.0 */
+            @Incubating
+            constructor(delegate: Foo) : Foo by delegate
+
+            """
+        )
+    }
+
+    @Test
+    fun `a new overload is not treated as inherited when a same-arity supertype method has different parameter types`() {
+        checkNotBinaryCompatibleKotlin(
+            v2 = """
+
+            /** @since 2.0 */
+            @Incubating
+            open class Foo {
+
+                /** @since 2.0 */
+                @Incubating
+                open fun foo(value: Int) {}
+            }
+
+            /** @since 2.0 */
+            @Incubating
+            class Bar : Foo() {
+
+                @Incubating
+                fun foo(value: String) {}
+            }
+
+            """
+        ) {
+            assertHasNoWarning()
+            assertHasErrors(
+                listOf("Method com.example.Bar.foo(java.lang.String): Is not annotated with @since 2.0."),
+            )
+        }
+    }
+
+    @Test
+    fun `compiler-generated companion, data class and default-argument members do not require @since`() {
+        checkBinaryCompatibleKotlin(
+            v2 = """
+
+            /** @since 2.0 */
+            @Incubating
+            class WithCompanion {
+
+                /** @since 2.0 */
+                @Incubating
+                companion object
+            }
+
+            /** @since 2.0 */
+            @Incubating
+            data class DataThing
+            /** @since 2.0 */
+            @Incubating
+            constructor(
+                /** @since 2.0 */
+                @get:Incubating
+                val value: String
+            )
+
+            /** @since 2.0 */
+            @Incubating
+            class WithDefaults {
+
+                /** @since 2.0 */
+                @Incubating
+                fun withDefault(a: Int = 0) {}
+            }
+
+            """
+        )
+    }
+
+    @Test
+    fun `a non-last vararg parameter is matched to its compiled array parameter`() {
+        checkBinaryCompatibleKotlin(
+            v2 = """
+
+            /** @since 2.0 */
+            @Incubating
+            class Bar {
+
+                /** @since 2.0 */
+                @Incubating
+                fun foo(vararg xs: String, other: Int) {}
+            }
+
+            """
+        )
+    }
 }
