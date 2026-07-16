@@ -29,7 +29,7 @@ import kotlin.io.path.createDirectories
 
 /**
  * On-disk cache of per-script incremental-compilation state, backed by a
- * [FineGrainedPersistentCache] under `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl-ic/` and
+ * [FineGrainedPersistentCache] under `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl/ic/` and
  * owned by [KotlinDslIncrementalCompilationStore].
  *
  * One entry per script, keyed by a hash of its identity, at `<scriptHash>/`:

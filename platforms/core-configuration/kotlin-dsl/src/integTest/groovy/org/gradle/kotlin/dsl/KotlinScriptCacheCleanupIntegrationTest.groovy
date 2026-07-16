@@ -410,11 +410,11 @@ class KotlinScriptCacheCleanupIntegrationTest
     }
 
     TestFile getIcCacheDir() {
-        return userHomeCacheDir.file(GradleVersion.current().version).file('kotlin-dsl-ic')
+        return userHomeCacheDir.file(GradleVersion.current().version).file('kotlin-dsl').file('ic')
     }
 
     TestFile getClasspathSnapshotCacheDir() {
-        return userHomeCacheDir.file(GradleVersion.current().version).file('kotlin-dsl-classpath-snapshots')
+        return userHomeCacheDir.file(GradleVersion.current().version).file('kotlin-dsl').file('classpath-snapshots')
     }
 
     TestFile getClasspathSnapshotsDir() {
