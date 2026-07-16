@@ -127,9 +127,35 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         List<ProjectFeatureImplementation<?, ?>> results = new ArrayList<>(1);
         ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext featureDefinitionContext = ProjectFeatureSupportInternal.tryGetContext(project);
         if (featureDefinitionContext != null) {
+            // Get top-level project types (features)
             results.addAll(featureDefinitionContext.childFeatures().keySet());
+            
+            // Recursively collect all nested features from each top-level feature
+            collectNestedFeatures(featureDefinitionContext, results);
         }
         return results;
+    }
+    
+    /**
+     * Recursively collects all nested features from the given feature definition context.
+     */
+    private static void collectNestedFeatures(
+        ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext context,
+        List<ProjectFeatureImplementation<?, ?>> collector
+    ) {
+        for (ProjectFeatureImplementation<?, ?> feature : context.childFeatures().keySet()) {
+            // Try to get the nested context from this feature's build model
+            Object buildModel = context.childFeatures().get(feature).getBuildModel();
+            ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext nestedContext = 
+                ProjectFeatureSupportInternal.tryGetContext(buildModel);
+            
+            if (nestedContext != null && !nestedContext.childFeatures().isEmpty()) {
+                // Add nested features
+                collector.addAll(nestedContext.childFeatures().keySet());
+                // Recursively collect from nested features
+                collectNestedFeatures(nestedContext, collector);
+            }
+        }
     }
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
@@ -255,8 +281,13 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     private void renderProjectType(ProjectReportModel model) {
         if (!model.projectTypes.isEmpty()) {
             StyledTextOutput textOutput = getRenderer().getTextOutput();
-            assert model.projectTypes.size() == 1;
-            textOutput.append(" (").append(model.projectTypes.get(0).getFeatureName()).append(")");
+            // Display all project types and features
+            List<String> featureNames = model.projectTypes.stream()
+                .map(ProjectFeatureImplementation::getFeatureName)
+                .sorted()
+                .collect(Collectors.toList());
+            
+            textOutput.append(" (").append(String.join(", ", featureNames)).append(")");
         }
     }
 
