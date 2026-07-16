@@ -484,9 +484,12 @@ fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
 
 
 @VisibleForTesting
-fun JvmTarget.toBuildToolsApiJvmTarget(): BtaJvmTarget =
-    // Match on string value: the two enums agree on values ("1.8", "9", ... "26") but not on names (e.g. JVM_1_8 vs JVM1_8).
-    BtaJvmTarget.entries.first { it.stringValue == description }
+/* Match on string value: the two enums agree on values ("1.8", "9", ... "26")
+ * but not on names (e.g. JVM_1_8 vs JVM1_8). */
+internal fun JvmTarget.toBuildToolsApiJvmTarget(): BtaJvmTarget =
+
+    @Suppress("EnumValuesSoftDeprecate") // entries emits a synthetic public EnumEntries<BtaJvmTarget> field, exposing the type in this module's ABI.
+    BtaJvmTarget.values().first { it.stringValue == description }
 
 
 @OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
