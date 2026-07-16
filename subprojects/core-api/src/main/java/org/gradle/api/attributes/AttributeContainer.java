@@ -27,16 +27,24 @@ import java.util.Set;
 
 /**
  * An attribute container is a container of {@link Attribute attributes}, which are
- * strongly typed named entities. Such a container is responsible for storing and
+ * strongly typed named entities.
+ * <p>
+ * Such a container is responsible for storing and
  * getting attributes in a type safe way. In particular, attributes are strongly typed,
  * meaning that when we get a value from the container, the returned value type is
  * inferred from the type of the attribute. In a way, an attribute container is
  * similar to a {@link java.util.Map} where the entry is a "typed String" and the value
  * is of the string type. However, the set of methods available to the container is
  * much more limited.
- *
+ * <p>
  * It is not allowed to have two attributes with the same name but different types in
  * the container.
+ * <p>
+ * Supported attribute value types are: {@code String}, {@code Boolean}, any subtype of {@link Number},
+ * and any type implementing {@link Named}.
+ * <p>
+ * Plain Java {@link Enum} types (that do <strong>NOT</strong> implement {@link Named}) are
+ * <strong>NOT</strong> supported.
  *
  * @since 3.3
  */
@@ -53,6 +61,7 @@ public interface AttributeContainer extends HasAttributes {
     /**
      * Sets an attribute value. It is not allowed to use <code>null</code> as
      * an attribute value.
+     *
      * @param <T> the type of the attribute
      * @param key the attribute key
      * @param value the attribute value

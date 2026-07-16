@@ -26,6 +26,7 @@ final class TestAttributes {
     static final Attribute<String> FOO = Attribute.of("foo", String)
     static final Attribute<String> BAR = Attribute.of("bar", String)
     static final Attribute<Boolean> BOOLEAN_BAR = Attribute.of("bar", Boolean.class)
-    static final Attribute<Object> OBJECT_BAR = Attribute.of("bar", Object.class)
+    static final Attribute<Number> NUMBER_BAR = Attribute.of("bar", Number.class)
+    static final Attribute<Integer> INTEGER_BAR = Attribute.of("bar", Integer.class)
     static final Attribute<String> BAZ = Attribute.of("baz", String)
 }

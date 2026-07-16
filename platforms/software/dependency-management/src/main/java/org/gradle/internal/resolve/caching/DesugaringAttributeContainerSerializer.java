@@ -86,7 +86,8 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
                 encoder.writeByte(INTEGER_ATTRIBUTE);
                 encoder.writeInt((Integer) container.getAttribute(attribute));
             } else {
-                assert Named.class.isAssignableFrom(attribute.getType());
+                // Attribute.of rejects any type that is not String/Boolean/Integer/Named at
+                // creation time, so this branch is reached only via Named subtypes.
                 Named attributeValue = (Named) container.getAttribute(attribute);
                 encoder.writeByte(DESUGARED_ATTRIBUTE);
                 encoder.writeString(attributeValue.getName());

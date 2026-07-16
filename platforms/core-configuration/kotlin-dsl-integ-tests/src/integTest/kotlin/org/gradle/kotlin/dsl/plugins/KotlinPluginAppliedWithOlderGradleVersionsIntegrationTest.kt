@@ -49,8 +49,9 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             arrayOf("8.9", "1.9.23", "1.8"),
             arrayOf("8.10", "1.9.24", "1.8"),
             arrayOf("8.11", "2.0.20", "1.8"),
-            arrayOf("8.12", "2.0.21", "1.8")
-            ,
+            arrayOf("8.12", "2.0.21", "1.8"),
+            arrayOf("8.13", "2.1.0", "2.1"),
+            arrayOf("8.14", "2.1.21", "2.1"),
             arrayOf("9.0.0", "2.2.0", "2.2"),
             arrayOf("9.2.0", "2.2.20", "2.2"),
             arrayOf("9.3.0", "2.2.21", "2.2"),
@@ -154,12 +155,29 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             """
         )
 
-        inDirectory(file("plugin"))
+        val result = inDirectory(file("plugin"))
             .withTasks("publish")
             .withJavaHome(jdk.javaHome.absolutePath)
             .noDeprecationChecks() // KGP emits deprecation warnings that vary by version and are not what we test here.
             .withStackTraceChecksDisabled() // The Kotlin compiler daemon intermittently crashes and logs a stack trace before falling back; that's not what we test here.
             .run()
+
+        // KGP 2.0.20 and 2.0.21 register an attribute whose type is a plain enum
+        // (KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes). Gradle allows
+        // this via a targeted compatibility exception in Attribute.of and emits a deprecation
+        // warning. Verify the warning is present for those specific KGP versions and absent
+        // for the neighboring 2.1.0 and 2.1.21 versions (which no longer use the plain enum).
+        val kgpEnumDeprecationSummary =
+            "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated."
+        if (kgpVersion == "2.0.20" || kgpVersion == "2.0.21") {
+            result.assertOutputContains(kgpEnumDeprecationSummary)
+        } else {
+            check(!result.output.contains(kgpEnumDeprecationSummary)) {
+                "KGP $kgpVersion unexpectedly emitted the KotlinNativeBundleArtifactsTypes deprecation. " +
+                    "If KGP started re-using the plain enum, the special case in Attribute.of and the " +
+                    "'upgrade to 2.1.0 or later' guidance in the upgrade guide need to be revisited."
+            }
+        }
     }
 
     private fun applyPlugin(jdk: Jvm): ExecutionResult {

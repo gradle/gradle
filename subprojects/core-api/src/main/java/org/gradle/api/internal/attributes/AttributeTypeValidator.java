@@ -1,0 +1,118 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.attributes;
+
+import org.gradle.api.Named;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Runtime validation helpers for attribute value types.
+ * <p>
+ * The public {@link org.gradle.api.attributes.Attribute#of(String, Class)} factory validates
+ * attribute value types up front at declaration. This helper provides the same allowlist check
+ * so it can be reused by rule-registration code that needs to fail-fast when a rule is written
+ * against an unsupported attribute value type — a case that Java generics don't catch when
+ * rules are registered through raw types, wildcards, or reflection.
+ */
+public final class AttributeTypeValidator {
+    /**
+     * Rule classes that have already been validated. Prevents the reflective type-parameter
+     * extraction below from running on every attribute match — the check runs at most once per
+     * concrete rule class per JVM.
+     */
+    private static final Set<Class<?>> ALREADY_VALIDATED_RULES = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Returns whether the given class is one of the supported attribute value types:
+     * {@code String}, {@code Boolean}, any subtype of {@code Number}, or a type implementing
+     * {@link Named}.
+     */
+    public static boolean isSupportedAttributeType(Class<?> type) {
+        return type == String.class
+            || type == Boolean.class
+            || Number.class.isAssignableFrom(type)
+            || Named.class.isAssignableFrom(type);
+    }
+
+    /**
+     * Validates that the type argument the given rule class supplies to the given rule interface
+     * (typically {@code AttributeCompatibilityRule} or {@code AttributeDisambiguationRule}) is
+     * a supported attribute value type.
+     * <p>
+     * Runs at most once per {@code ruleClass}. Silently accepts if:
+     * <ul>
+     *   <li>the type argument cannot be resolved to a concrete class (rule is itself generic,
+     *       uses a wildcard, or hides its type argument behind an abstract intermediate whose
+     *       interface uses an unbound variable), or</li>
+     *   <li>the type argument is {@link Object} — this is the erasure default for raw-typed rule
+     *       declarations, and rejecting it would break test-only "accept-anything" rules that
+     *       intentionally don't care about the value type.</li>
+     * </ul>
+     * <p>
+     * Emits a deprecation warning if the type argument is resolved to a class that is not
+     * one of the supported attribute value types. This will become an error in Gradle 10.
+     */
+    public static void validateRuleTypeParameter(Class<?> ruleClass, Class<?> ruleInterface) {
+        if (!ALREADY_VALIDATED_RULES.add(ruleClass)) {
+            return;
+        }
+        Class<?> typeArg = extractInterfaceTypeArgument(ruleClass, ruleInterface);
+        if (typeArg == null || typeArg == Object.class) {
+            return;
+        }
+        if (!isSupportedAttributeType(typeArg)) {
+            DeprecationLogger.deprecate("Using type '" + typeArg.getName() + "' as the type parameter of attribute rule '" + ruleClass.getName() + "'")
+                .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
+                .nagUser();
+        }
+    }
+
+    /**
+     * Walks the given concrete class's superclass/superinterface chain looking for the first
+     * declaration of {@code targetInterface} whose type argument resolves to a concrete class.
+     * Returns {@code null} if no such declaration is found or the type argument is a wildcard
+     * or unbound type variable.
+     */
+    @Nullable
+    private static Class<?> extractInterfaceTypeArgument(Class<?> concrete, Class<?> targetInterface) {
+        Class<?> current = concrete;
+        while (current != null && current != Object.class) {
+            for (Type iface : current.getGenericInterfaces()) {
+                if (iface instanceof ParameterizedType) {
+                    ParameterizedType pt = (ParameterizedType) iface;
+                    if (pt.getRawType() == targetInterface) {
+                        Type[] args = pt.getActualTypeArguments();
+                        if (args.length == 1 && args[0] instanceof Class) {
+                            return (Class<?>) args[0];
+                        }
+                        return null;
+                    }
+                }
+            }
+            current = current.getSuperclass();
+        }
+        return null;
+    }
+}

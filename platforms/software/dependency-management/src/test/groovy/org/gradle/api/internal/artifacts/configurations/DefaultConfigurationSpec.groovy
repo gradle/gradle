@@ -1959,8 +1959,13 @@ This method is only meant to be called on configurations which allow the (non-de
         String name
     }
 
-    enum Platform {
+    enum Platform implements Named {
         JAVA6,
         JAVA7
+
+        @Override
+        String getName() {
+            return this
+        }
     }
 }

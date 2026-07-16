@@ -107,7 +107,7 @@ import spock.lang.Specification
         }
     }
 
-    def "can't contain 2 identically named attributes with the same type loaded from different classloaders"() {
+    def "can't load Named in a second classloader to make an attribute value"() {
         given: "a second classloader, that has no parent, and can load the Named class"
 
         URL[] urls = [Named.class, MyNamed.class].collect {
@@ -134,19 +134,12 @@ import spock.lang.Specification
 
         namedInstance.class != named2Instance.class
 
-        when:
-        def container = createContainer([(Attribute.of("test", Named)): namedInstance, (Attribute.of("test", named2)): named2Instance])
-        container.keySet() // Realize elements of the container
+        when: "an Attribute is declared with the Named class loaded from an alien classloader — Named.class.isAssignableFrom uses reference equality, so this fails the supported-type check"
+        Attribute.of("test", named2)
 
-        then:
-        def exception = thrown(Exception)
-        if (exception instanceof AttributeMergingException) {
-            assert exception.message == "An attribute named 'test' of type 'org.gradle.api.Named' already exists in this container"
-        } else if (container instanceof ImmutableAttributes) {
-            assert exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'org.gradle.api.Named' and you are trying to store another one of type 'org.gradle.api.Named'"
-        } else {
-            assert exception.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'test' of type 'org.gradle.api.Named' and another attribute of type 'org.gradle.api.Named'"
-        }
+        then: "Attribute.of emits the unsupported-type deprecation warning (will become an error in Gradle 10)"
+        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        events.size() == 1
+        events[0].message == "Using type 'org.gradle.api.Named' as a value type for attribute 'test' has been deprecated. This will fail with an error in Gradle 10. Attribute values must be of type String, Boolean, a subtype of Number, or implement org.gradle.api.Named. Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#unsupported_attribute_value_type"
     }
-
 }

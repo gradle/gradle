@@ -391,48 +391,6 @@ class DefaultAttributeMatcherTest extends Specification {
         matcher.matchMultipleCandidates([candidate1, candidate2], requested) == [candidate1]
     }
 
-    def "cannot match when producer uses desugared attribute of unsupported type"() {
-        given:
-        def consumer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
-        def producer = Attribute.of("a", String)
-
-        def matcher = newMatcher {
-            attribute(consumer)
-        }
-
-        def candidate1 = candidateTyped((producer): "name1")
-        def candidate2 = candidateTyped((producer): "name2")
-        def requested = attributesTyped((consumer): new NotSerializableInGradleMetadataAttribute("name1"))
-
-        when:
-        matcher.matchMultipleCandidates([candidate1, candidate2], requested)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type org.gradle.api.internal.attributes.matching.DefaultAttributeMatcherTest\$NotSerializableInGradleMetadataAttribute but found a value of type java.lang.String."
-    }
-
-    def "cannot match when consumer uses desugared attribute of unsupported type"() {
-        given:
-        def consumer = Attribute.of("a", String)
-        def producer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
-
-        def matcher = newMatcher {
-            attribute(consumer)
-        }
-
-        def candidate1 = candidateTyped((producer): new NotSerializableInGradleMetadataAttribute("name1"))
-        def candidate2 = candidateTyped((producer): new NotSerializableInGradleMetadataAttribute("name2"))
-        def requested = attributesTyped((consumer): "name1")
-
-        when:
-        matcher.matchMultipleCandidates([candidate1, candidate2], requested)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type java.lang.String but found a value of type org.gradle.api.internal.attributes.matching.DefaultAttributeMatcherTest\$NotSerializableInGradleMetadataAttribute."
-    }
-
     def "matching fails when attribute has incompatible types in consumer and producer"() {
         given:
         def consumer = Attribute.of("a", String)
@@ -538,13 +496,11 @@ class DefaultAttributeMatcherTest extends Specification {
     }
 
     interface NamedTestAttribute extends Named { }
-    enum EnumTestAttribute { NAME1, NAME2 }
-    static class NotSerializableInGradleMetadataAttribute implements Serializable {
-        String name
+    enum EnumTestAttribute implements Named {
+        NAME1, NAME2
 
-        NotSerializableInGradleMetadataAttribute(String name) {
-            this.name = name
-        }
+        @Override
+        String getName() { return name() }
     }
 
     private AttributeMatcher newMatcher(@DelegatesTo(TestSchema) Closure<?> action = {}) {

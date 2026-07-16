@@ -43,25 +43,12 @@ class DefaultAttributesSchemaTest extends Specification {
         ]
     }
 
-    def "can create an attribute of array type #type"() {
-        when:
-        Attribute.of('foo', type)
-
-        then:
-        noExceptionThrown()
-
-        where:
-        type << [
-            String[].class,
-            Number[].class,
-            MyEnum[].class,
-            Flavor[].class
-        ]
-    }
-
-    enum MyEnum {
+    enum MyEnum implements Named {
         FOO,
         BAR
+
+        @Override
+        String getName() { return name() }
     }
 
     def "fails if no strategy is declared for custom type"() {

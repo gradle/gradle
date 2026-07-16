@@ -75,7 +75,48 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
         ConfigurableRule<CompatibilityCheckDetails<T>> rule,
         Instantiator instantiator
     ) {
-        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
+        Class<?> ruleClass = rule.getRuleClass();
+        Action<CompatibilityCheckDetails<T>> delegate =
+            new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(ruleClass));
+        return new ValidatingAction<>(ruleClass, delegate);
+    }
+
+    /**
+     * Wraps an {@link InstantiatingAction} with a per-class fail-fast check that the rule's
+     * declared type parameter is a supported attribute value type. Implemented as a named
+     * inner class rather than a lambda so it can be serialized by the configuration cache
+     * (lambda-synthesized classes aren't visible to the CC classloader hierarchy).
+     */
+    private static class ValidatingAction<T> implements Action<CompatibilityCheckDetails<T>> {
+        private final Class<?> ruleClass;
+        private final Action<CompatibilityCheckDetails<T>> delegate;
+
+        ValidatingAction(Class<?> ruleClass, Action<CompatibilityCheckDetails<T>> delegate) {
+            this.ruleClass = ruleClass;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void execute(CompatibilityCheckDetails<T> details) {
+            AttributeTypeValidator.validateRuleTypeParameter(ruleClass, AttributeCompatibilityRule.class);
+            delegate.execute(details);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            return delegate.equals(((ValidatingAction<?>) o).delegate);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
     }
 
     private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {

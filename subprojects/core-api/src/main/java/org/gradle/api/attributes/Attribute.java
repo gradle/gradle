@@ -17,12 +17,19 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Named;
+import org.gradle.api.internal.attributes.AttributeTypeValidator;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 /**
  * An attribute is a named entity with a type. It is used in conjunction with a {@link AttributeContainer}
  * to provide a type safe container for attributes. This class isn't intended to store the value of an
  * attribute, but only represent the identity of the attribute. It means that an attribute must be immutable
  * and can potentially be pooled. Attributes can be created using the {@link #of(String, Class) factory method}.
+ * <p>
+ * Supported attribute value types are: {@code String}, {@code Boolean}, any subtype of {@link Number},
+ * and any type implementing {@link Named}. {@link #of(String, Class)} emits a deprecation warning for
+ * any other type — including plain Java {@link Enum} types that do not implement {@link Named} — and
+ * this will become an error in Gradle 10.
  *
  * @param <T> the type of the named attribute
  *
@@ -39,12 +46,45 @@ public class Attribute<T> implements Named {
      * of {@link Attribute}, so consumers are required to compare the attributes with the {@link #equals(Object)}
      * method.
      * @param name the name of the attribute
-     * @param type the class of the attribute
+     * @param type the class of the attribute; must be {@code String}, {@code Boolean}, a subtype of
+     *             {@link Number}, or a subtype of {@link Named}
      * @param <T> the type of the attribute
      * @return an attribute with the given name and type
      */
     public static <T> Attribute<T> of(String name, Class<T> type) {
+        validateSupportedType(name, type);
         return new Attribute<T>(name, type);
+    }
+
+    /**
+     * Fully-qualified name of a plain enum used as an attribute value type by the Kotlin Gradle
+     * Plugin 2.0.x line (empirically observed in 2.0.0 through 2.0.21). KGP 2.1.0+ no longer uses
+     * this enum. To preserve compatibility with the affected KGP versions, this exact class name
+     * is allowed to pass {@link #validateSupportedType(String, Class)} with a targeted deprecation
+     * warning identifying KGP as the source, instead of the generic unsupported-type deprecation.
+     * <p>
+     * This special case should be removed when compatibility with KGP 2.0.x is no longer required.
+     */
+    private static final String KGP_NATIVE_BUNDLE_ENUM_FQN =
+        "org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat$KotlinNativeBundleArtifactsTypes";
+
+    private static void validateSupportedType(String name, Class<?> type) {
+        if (AttributeTypeValidator.isSupportedAttributeType(type)) {
+            return;
+        }
+        if (KGP_NATIVE_BUNDLE_ENUM_FQN.equals(type.getName())) {
+            DeprecationLogger.deprecate("Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type")
+                .withContext("This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "kgp_native_bundle_attribute_enum")
+                .nagUser();
+            return;
+        }
+        DeprecationLogger.deprecate("Using type '" + type.getName() + "' as a value type for attribute '" + name + "'")
+            .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
+            .nagUser();
     }
 
     /**

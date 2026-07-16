@@ -79,7 +79,48 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         ConfigurableRule<MultipleCandidatesDetails<T>> rule,
         Instantiator instantiator
     ) {
-        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
+        Class<?> ruleClass = rule.getRuleClass();
+        Action<MultipleCandidatesDetails<T>> delegate =
+            new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(ruleClass));
+        return new ValidatingAction<>(ruleClass, delegate);
+    }
+
+    /**
+     * Wraps an {@link InstantiatingAction} with a per-class fail-fast check that the rule's
+     * declared type parameter is a supported attribute value type. Implemented as a named
+     * inner class rather than a lambda so it can be serialized by the configuration cache
+     * (lambda-synthesized classes aren't visible to the CC classloader hierarchy).
+     */
+    private static class ValidatingAction<T> implements Action<MultipleCandidatesDetails<T>> {
+        private final Class<?> ruleClass;
+        private final Action<MultipleCandidatesDetails<T>> delegate;
+
+        ValidatingAction(Class<?> ruleClass, Action<MultipleCandidatesDetails<T>> delegate) {
+            this.ruleClass = ruleClass;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void execute(MultipleCandidatesDetails<T> details) {
+            AttributeTypeValidator.validateRuleTypeParameter(ruleClass, AttributeDisambiguationRule.class);
+            delegate.execute(details);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            return delegate.equals(((ValidatingAction<?>) o).delegate);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
     }
 
     private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<MultipleCandidatesDetails<T>> {

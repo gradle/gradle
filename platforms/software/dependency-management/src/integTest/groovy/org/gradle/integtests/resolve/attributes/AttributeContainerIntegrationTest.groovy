@@ -47,8 +47,6 @@ class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
         where:
         type      | value
         "Thing"   | "new Thing(name: 'broken')"
-        "Project" | "project"
-        "List"    | "[{}]"
     }
 
     def "can use attribute value that can be made isolated - #type"() {
@@ -71,38 +69,8 @@ class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
         type       | value
         "Integer"  | "123"
         "Number"   | "123"
-        "Object"   | "123"
-        "List"     | "['string']"
         "Flavor"   | "objects.named(Flavor, 'abc')"
         "Named"    | "objects.named(Named, 'abc')"
-        "Number[]" | "[1, 1.2] as Number[]"
-    }
-
-    def "attribute value is isolated from original value"() {
-        given:
-        buildFile << """
-    class Thing implements Named, Serializable {
-        String name
-    }
-    def attr = Attribute.of(List)
-
-    configurations {
-        ok
-    }
-    def value = [new Thing(name: 'a'), new Thing(name: 'b')]
-    configurations.ok.attributes.attribute(attr, value)
-
-    value[0].name = 'other'
-    value.add(new Thing(name: 'c'))
-
-    def isolated = configurations.ok.attributes.getAttribute(attr)
-    assert isolated.size() == 2
-    assert isolated[0].name == 'a'
-    assert isolated[1].name == 'b'
-"""
-
-        expect:
-        succeeds()
     }
 
     def "can use addAllLater in Kotlin"() {
