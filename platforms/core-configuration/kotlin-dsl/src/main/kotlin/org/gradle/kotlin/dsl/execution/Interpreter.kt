@@ -77,15 +77,7 @@ import java.nio.file.Path
  * @see ResidualProgramCompiler
  */
 internal
-class Interpreter(
-    val host: Host,
-    val buildOperationRunner: BuildOperationRunner,
-    val moduleRegistry: ModuleRegistry,
-    val classLoaderFactory: ClassLoaderFactory,
-    val fileSystemAccess: FileSystemAccess,
-    val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
-    val incrementalCompilationCache: KotlinDslIncrementalCompilationCache
-) {
+class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner) {
 
     interface Host {
 
@@ -160,6 +152,16 @@ class Interpreter(
         val compilerOptions: KotlinCompilerOptions
 
         val buildTreeRootDir: Path
+
+        val moduleRegistry: ModuleRegistry
+
+        val classLoaderFactory: ClassLoaderFactory
+
+        val fileSystemAccess: FileSystemAccess
+
+        val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache
+
+        val incrementalCompilationCache: KotlinDslIncrementalCompilationCache
 
         fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
             ProgramTarget.Project -> serviceRegistryOf(target as Project)
@@ -350,12 +352,12 @@ class Interpreter(
                     programKind = programKind,
                     programTarget = programTarget,
                     implicitImports = host.implicitImports,
-                    moduleRegistry = moduleRegistry,
-                    classLoaderFactory = classLoaderFactory,
+                    moduleRegistry = host.moduleRegistry,
+                    classLoaderFactory = host.classLoaderFactory,
                     metadataCompatibilityChecker = metadataCompatibilityChecker,
-                    fileSystemAccess = fileSystemAccess,
-                    classpathEntrySnapshotCache = classpathEntrySnapshotCache,
-                    incrementalCompilationCache = incrementalCompilationCache,
+                    fileSystemAccess = host.fileSystemAccess,
+                    classpathEntrySnapshotCache = host.classpathEntrySnapshotCache,
+                    incrementalCompilationCache = host.incrementalCompilationCache,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
@@ -512,12 +514,12 @@ class Interpreter(
                                 programKind = programKind,
                                 programTarget = programTarget,
                                 implicitImports = host.implicitImports,
-                                moduleRegistry = moduleRegistry,
-                                classLoaderFactory = classLoaderFactory,
+                                moduleRegistry = host.moduleRegistry,
+                                classLoaderFactory = host.classLoaderFactory,
                                 metadataCompatibilityChecker = scriptHost.metadataCompatibilityChecker,
-                                fileSystemAccess = fileSystemAccess,
-                                classpathEntrySnapshotCache = classpathEntrySnapshotCache,
-                                incrementalCompilationCache = incrementalCompilationCache,
+                                fileSystemAccess = host.fileSystemAccess,
+                                classpathEntrySnapshotCache = host.classpathEntrySnapshotCache,
+                                incrementalCompilationCache = host.incrementalCompilationCache,
                                 compileBuildOperationRunner = host::runCompileBuildOperation,
                                 logger = interpreterLogger
                             ).emitStage2ProgramFor(

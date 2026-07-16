@@ -129,6 +129,11 @@ class InterpreterTest : TestWithTempFiles() {
         }
 
         val buildOperationRunner = TestBuildOperationRunner()
+        val testModuleRegistry = TestModuleRegistry()
+        val testClassLoaderFactory = DefaultClassLoaderFactory()
+        val testFileSystemAccess = TestFiles.fileSystemAccess()
+        val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
+        val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
         val host = mock<Interpreter.Host> {
 
             on { serviceRegistryFor(any(), any()) } doReturn mockServiceRegistry
@@ -187,20 +192,17 @@ class InterpreterTest : TestWithTempFiles() {
 
             on { compilerOptions } doReturn KotlinCompilerOptions()
             on { buildTreeRootDir } doReturn root.toPath()
+            on { moduleRegistry } doReturn testModuleRegistry
+            on { classLoaderFactory } doReturn testClassLoaderFactory
+            on { fileSystemAccess } doReturn testFileSystemAccess
+            on { classpathEntrySnapshotCache } doReturn testClasspathSnapshotCache
+            on { incrementalCompilationCache } doReturn testIncrementalCompilationCache
         }
 
         try {
 
             val target = mock<Settings>()
-            val subject = Interpreter(
-                host,
-                buildOperationRunner,
-                TestModuleRegistry(),
-                DefaultClassLoaderFactory(),
-                TestFiles.fileSystemAccess(),
-                sharedTestClasspathSnapshotCache,
-                sharedTestIncrementalCompilationCache
-            )
+            val subject = Interpreter(host, buildOperationRunner)
             assertStandardOutputOf("stage 1\nstage 2\n") {
                 subject.eval(
                     target,
@@ -300,15 +302,7 @@ class InterpreterTest : TestWithTempFiles() {
         val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(DummyCompiledScript(TestProgram1::class.java))
 
-        val interpreter = Interpreter(
-            cachingHost.host,
-            buildOperationRunner,
-            TestModuleRegistry(),
-            DefaultClassLoaderFactory(),
-            TestFiles.fileSystemAccess(),
-            sharedTestClasspathSnapshotCache,
-            sharedTestIncrementalCompilationCache
-        )
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
         val target = mock<Settings>()
 
         // When we eval the same script twice
@@ -343,15 +337,7 @@ class InterpreterTest : TestWithTempFiles() {
         val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(compiledProgram1, compiledProgram2)
 
-        val interpreter = Interpreter(
-            cachingHost.host,
-            buildOperationRunner,
-            TestModuleRegistry(),
-            DefaultClassLoaderFactory(),
-            TestFiles.fileSystemAccess(),
-            sharedTestClasspathSnapshotCache,
-            sharedTestIncrementalCompilationCache
-        )
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
         val target = mock<Settings>()
 
         // When we eval the first script with the first filename
@@ -398,15 +384,7 @@ class InterpreterTest : TestWithTempFiles() {
         val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(compiledProgram1, compiledProgram2)
 
-        val interpreter = Interpreter(
-            cachingHost.host,
-            buildOperationRunner,
-            TestModuleRegistry(),
-            DefaultClassLoaderFactory(),
-            TestFiles.fileSystemAccess(),
-            sharedTestClasspathSnapshotCache,
-            sharedTestIncrementalCompilationCache
-        )
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
         val target = mock<Settings>()
 
         // When we eval the first script with the first content
@@ -455,6 +433,12 @@ class InterpreterTest : TestWithTempFiles() {
             }
         }
 
+        val testModuleRegistry = TestModuleRegistry()
+        val testClassLoaderFactory = DefaultClassLoaderFactory()
+        val testFileSystemAccess = TestFiles.fileSystemAccess()
+        val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
+        val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
+
         val host = mock<Interpreter.Host> {
             on { cachedClassFor(any()) } doAnswer { invocation ->
                 val programId = invocation.getArgument<ProgramId>(0)
@@ -492,6 +476,11 @@ class InterpreterTest : TestWithTempFiles() {
                 it.getArgument<() -> String>(2)()
             }
             on { buildTreeRootDir } doReturn root.toPath()
+            on { moduleRegistry } doReturn testModuleRegistry
+            on { classLoaderFactory } doReturn testClassLoaderFactory
+            on { fileSystemAccess } doReturn testFileSystemAccess
+            on { classpathEntrySnapshotCache } doReturn testClasspathSnapshotCache
+            on { incrementalCompilationCache } doReturn testIncrementalCompilationCache
         }
 
         return CachingHostMock(host, programCache, compilationCountRef)
