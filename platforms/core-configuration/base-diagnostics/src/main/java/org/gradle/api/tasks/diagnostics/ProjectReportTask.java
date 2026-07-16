@@ -27,6 +27,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.features.internal.binding.ProjectFeatureApplicator;
 import org.gradle.features.internal.binding.ProjectFeatureImplementation;
 import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.util.Path;
@@ -143,11 +144,11 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext context,
         List<ProjectFeatureImplementation<?, ?>> collector
     ) {
-        for (ProjectFeatureImplementation<?, ?> feature : context.childFeatures().keySet()) {
-            // Try to get the nested context from this feature's build model
-            Object buildModel = context.childFeatures().get(feature).getBuildModel();
+        for (Map.Entry<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> entry : context.childFeatures().entrySet()) {
+            // Try to get the nested context from this feature's definition instance
+            Object definitionInstance = entry.getValue().getDefinitionInstance();
             ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext nestedContext = 
-                ProjectFeatureSupportInternal.tryGetContext(buildModel);
+                ProjectFeatureSupportInternal.tryGetContext(definitionInstance);
             
             if (nestedContext != null && !nestedContext.childFeatures().isEmpty()) {
                 // Add nested features
