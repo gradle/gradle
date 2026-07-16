@@ -312,6 +312,11 @@ class ProblemReportingCrossProjectModelAccess(
             return super.getObjects()
         }
 
+        override fun <T : Any> service(serviceType: Class<T>): T {
+            onIsolationViolation("service")
+            return delegate.service(serviceType)
+        }
+
         override fun mkdir(path: Any): File {
             onIsolationViolation("mkdir")
             return super.mkdir(path)

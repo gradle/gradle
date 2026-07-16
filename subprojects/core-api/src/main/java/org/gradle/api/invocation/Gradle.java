@@ -417,4 +417,28 @@ public interface Gradle extends PluginAware, ExtensionAware {
      */
     @Incubating
     ProviderFactory getProviders();
+
+    /**
+     * Looks up a service provided by Gradle for use in init scripts and {@link Gradle} plugins.
+     *
+     * <p>The following services are available:</p>
+     * <ul>
+     * <li>{@link org.gradle.api.model.ObjectFactory}</li>
+     * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
+     * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
+     * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
+     * <li>{@link org.gradle.process.ExecOperations}</li>
+     * </ul>
+     *
+     * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
+     * use {@link #getSharedServices()} to access those.</p>
+     *
+     * @param serviceType the type of the service to look up
+     * @param <T> the service type
+     * @return the service instance. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException when the given type is not one of the services available in this scope
+     * @since 9.8.0
+     */
+    @Incubating
+    <T> T service(Class<T> serviceType);
 }

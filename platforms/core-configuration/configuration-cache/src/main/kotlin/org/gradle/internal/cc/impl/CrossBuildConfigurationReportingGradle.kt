@@ -335,6 +335,11 @@ class CrossBuildConfigurationReportingGradle(
         return delegate.getProviders()
     }
 
+    override fun <T : Any> service(serviceType: Class<T>): T {
+        onBuildMutableStateAccess("service")
+        return delegate.service(serviceType)
+    }
+
     override fun getPlugins(): PluginContainer {
         onBuildMutableStateAccess("getPlugins")
         return delegate.getPlugins()

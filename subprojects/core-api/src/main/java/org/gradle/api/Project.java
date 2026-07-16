@@ -1113,6 +1113,35 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ProjectLayout getLayout();
 
     /**
+     * Looks up a service provided by Gradle for use in this project.
+     *
+     * <p>The following services are available in project scripts and plugins:</p>
+     * <ul>
+     * <li>{@link org.gradle.api.model.ObjectFactory}</li>
+     * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
+     * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
+     * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
+     * <li>{@link org.gradle.process.ExecOperations}</li>
+     * <li>{@link org.gradle.api.file.ProjectLayout}</li>
+     * </ul>
+     *
+     * <p>The lookup can be used both at configuration time and at execution time. The returned instance
+     * may be captured in a task action and is safe to use with the configuration cache.</p>
+     *
+     * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
+     * use {@link org.gradle.api.services.ServiceReference} to access those.</p>
+     *
+     * @param serviceType the type of the service to look up
+     * @param <T> the service type
+     * @return the service instance. Never returns null.
+     * @throws InvalidUserDataException when the given type is not one of the services available in this scope
+     * @since 9.8.0
+     */
+    @Incubating
+    @HiddenInDefinition
+    <T> T service(Class<T> serviceType);
+
+    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.

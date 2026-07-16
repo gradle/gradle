@@ -811,4 +811,42 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @see org.gradle.api.services.ServiceReference
      */
     void usesService(Provider<? extends BuildService<?>> service);
+
+    /**
+     * Looks up a service provided by Gradle for use in this task.
+     *
+     * <p>The following services are available:</p>
+     * <ul>
+     * <li>{@link org.gradle.api.model.ObjectFactory}</li>
+     * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
+     * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
+     * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
+     * <li>{@link org.gradle.process.ExecOperations}</li>
+     * <li>{@link org.gradle.api.file.ProjectLayout}</li>
+     * </ul>
+     *
+     * <p>The lookup can be used both at configuration time and from task actions at execution time,
+     * and is safe to use with the configuration cache:</p>
+     *
+     * <pre>
+     * tasks.register("cleanThing") {
+     *     doLast {
+     *         service(FileSystemOperations).delete {
+     *             delete("thing")
+     *         }
+     *     }
+     * }
+     * </pre>
+     *
+     * <p>This method does not provide access to {@link BuildService shared build services};
+     * use {@link org.gradle.api.services.ServiceReference} to access those.</p>
+     *
+     * @param serviceType the type of the service to look up
+     * @param <T> the service type
+     * @return the service instance. Never returns null.
+     * @throws InvalidUserDataException when the given type is not one of the services available in this scope
+     * @since 9.8.0
+     */
+    @Incubating
+    <T> T service(Class<T> serviceType);
 }

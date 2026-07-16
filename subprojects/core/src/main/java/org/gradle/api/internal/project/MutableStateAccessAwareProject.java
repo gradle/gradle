@@ -650,6 +650,15 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    public <T> T service(Class<T> serviceType) {
+        if (ProjectLayout.class.equals(serviceType)) {
+            // parity with getLayout()
+            onMutableStateAccess("layout");
+        }
+        return delegate.service(serviceType);
+    }
+
+    @Override
     public String relativePath(Object path) {
         return delegate.relativePath(path);
     }
