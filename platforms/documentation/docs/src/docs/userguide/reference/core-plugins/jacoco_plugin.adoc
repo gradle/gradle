@@ -53,7 +53,7 @@ include::sample[dir="snippets/reference/core-plugins/jacoco-quickstart/groovy",f
 [%header%autowidth,compact]
 |===
 | Property | Gradle default
-| toolVersion | `0.8.14`
+| toolVersion | `0.8.15`
 | reportsDirectory | `layout.buildDirectory.dir("reports/jacoco")`
 |===
 

@@ -67,6 +67,15 @@ You can extract the URL from YouTube by clicking the "Share" button.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a id="java-27"></a>
+### Support for Java 27
+
+With this release, Gradle supports [Java 27](https://openjdk.org/projects/jdk/27/).
+This means you can now use Java 27 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
+Third-party tool compatibility with Java 27 may still be limited.
+
+See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
+
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
