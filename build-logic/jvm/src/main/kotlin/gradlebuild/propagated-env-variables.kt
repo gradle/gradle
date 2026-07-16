@@ -92,7 +92,13 @@ val propagatedEnvironmentVariables = listOf(
     OperatingSystem.current().pathVar,
     "PATHEXT",
     // Used by KotlinMultiplatformPluginSmokeTest, see https://github.com/gradle/gradle-private/issues/4223
-    "CHROME_BIN"
+    "CHROME_BIN",
+
+    // Propagate to smoke test JVMs so inner Gradle builds match the outer build's Develocity server
+    // and edge discovery, instead of falling back to https://ge.gradle.org as an explicit remote
+    // build cache server (which caused cache load stack traces to fail no-stack-trace assertions).
+    "DEVELOCITY_SERVER_URL",
+    "DEVELOCITY_EDGE_DISCOVERY"
 )
 
 

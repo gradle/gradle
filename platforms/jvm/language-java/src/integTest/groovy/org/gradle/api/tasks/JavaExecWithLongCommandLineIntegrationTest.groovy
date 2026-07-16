@@ -20,7 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
-import org.gradle.test.fixtures.Flaky
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.util.Matchers.containsText
 
@@ -85,7 +86,11 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/5122")
+    // On Linux the total command-line limit (ARG_MAX) is derived from the stack ulimit, so on agents with a
+    // large/unlimited stack the "too long" command line is accepted and the process starts successfully,
+    // making this assertion flaky. macOS and Windows have small fixed limits, so the failure is reliable there.
+    // See https://github.com/gradle/gradle-private/issues/5122
+    @Requires(UnitTestPreconditions.NotLinux)
     def "still fail when classpath doesn't shorten the command line enough with #method"() {
         def veryLongCommandLineArgs = getLongCommandLine(getMaxArgs() * 16)
         buildFile << """
