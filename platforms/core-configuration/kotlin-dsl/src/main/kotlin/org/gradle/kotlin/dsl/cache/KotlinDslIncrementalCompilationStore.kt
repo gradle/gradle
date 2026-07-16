@@ -31,7 +31,7 @@ import java.io.Closeable
 
 /**
  * Owns the [FineGrainedPersistentCache] backing [KotlinDslIncrementalCompilationCache], rooted at
- * `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl-ic/`. Holds only the mutable, per-script
+ * `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl/ic/`. Holds only the mutable, per-script
  * incremental-compilation state.
  *
  * Per-script entries (`<scriptHash>/`, one cache key each) are reclaimed by the mark-and-sweep LRU
@@ -54,7 +54,7 @@ internal class KotlinDslIncrementalCompilationStore(
     )
 
     val cache: FineGrainedPersistentCache = cacheBuilderFactory
-        .createFineGrainedCacheBuilder("kotlin-dsl-ic")
+        .createFineGrainedCacheBuilder("kotlin-dsl/ic")
         .withDisplayName("Kotlin DSL incremental compilation cache")
         .withCleanupStrategy(cleanupStrategy)
         .open()
