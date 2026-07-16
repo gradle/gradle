@@ -39,7 +39,7 @@ import kotlin.io.path.createDirectories
 /**
  * Owns the [PersistentCache] backing [KotlinDslClasspathEntrySnapshotCache].
  *
- * Layout under `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl-classpath-snapshots/`:
+ * Layout under `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl/classpath-snapshots/`:
  *  - `snapshots/<contentHash>.snapshot` - content-addressed BTA classpath snapshots (incremental compilation).
  *  - `snapshots/<contentHash>.abi`      - content-addressed ABI hashes (compile avoidance).
  *
@@ -99,6 +99,6 @@ internal class KotlinDslClasspathEntrySnapshotStore(
     }
 }
 
-private const val CACHE_KEY = "kotlin-dsl-classpath-snapshots"
+private const val CACHE_KEY = "kotlin-dsl/classpath-snapshots"
 
 private const val ENTRY_DEPTH = 1
