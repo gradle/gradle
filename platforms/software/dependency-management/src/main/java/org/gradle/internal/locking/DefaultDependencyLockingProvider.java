@@ -48,6 +48,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.jspecify.annotations.Nullable;
 
@@ -82,9 +83,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         this.context = context;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
         this.writeLocks = startParameter.isWriteDependencyLocks();
-        if (writeLocks) {
-            LOGGER.debug("Write locks is enabled");
-        }
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         updateLockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate, "Update lock", true);
@@ -148,7 +146,15 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private List<String> findLockedModules(String lockId) {
         List<String> result = allLockState.get(lockId);
         if (result == null) {
-            result = lockFileReaderWriter.readLockFile(lockId);
+            result = lockFileReaderWriter.readLegacyLockFile(lockId);
+            if (result != null) {
+                DeprecationLogger.deprecateAction("Storing dependency lock state using the legacy format")
+                    .withContext("Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format.")
+                    .withAdvice("Run `./gradlew dependencies --write-locks` to update your build to the new format.")
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "legacy_dependency_lock_format")
+                    .nagUser();
+            }
         }
         return result;
     }

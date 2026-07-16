@@ -131,7 +131,7 @@ line1
 line2"""
 
         when:
-        def result = lockFileReaderWriter.readLockFile('conf')
+        def result = lockFileReaderWriter.readLegacyLockFile('conf')
 
         then:
         result == ['line1', 'line2']
@@ -234,7 +234,7 @@ line1
 line2"""
 
         when:
-        def result = lockFileReaderWriter.readLockFile('conf')
+        def result = lockFileReaderWriter.readLegacyLockFile('conf')
 
         then:
         result == ['line1', 'line2']
@@ -300,7 +300,7 @@ empty=d
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)
 
         when:
-        lockFileReaderWriter.readLockFile('foo')
+        lockFileReaderWriter.readLegacyLockFile('foo')
 
         then:
         def ex = thrown(IllegalStateException)

@@ -97,7 +97,7 @@ empty=
 
     def 'can load lockfile as strict constraints (Unique: #unique)'() {
         given:
-        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
+        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
@@ -107,12 +107,6 @@ empty=
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.3'), newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')] as Set
 
         1 * listener.fileObserved(_)
-        if (!unique) {
-            1 * listener.fileObserved(_)
-        }
-
-        where:
-        unique << [true, false]
     }
 
     def 'can load lockfile as prefer constraints in update mode (Unique: #unique)'() {
@@ -121,7 +115,7 @@ empty=
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:foo']
         provider = newProvider()
-        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
+        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
@@ -129,9 +123,6 @@ empty=
         then:
         !result.mustValidateLockState()
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.3')] as Set
-
-        where:
-        unique << [true, false]
     }
 
     def 'can filter lock entries using module update patterns (Unique: #unique)'() {
@@ -140,7 +131,7 @@ empty=
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:*']
         provider = newProvider()
-        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
+        writeLockFile(['org:bar:1.3', 'org:foo:1.0'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
@@ -148,9 +139,6 @@ empty=
         then:
         !result.mustValidateLockState()
         result.getLockedDependencies() == [] as Set
-
-        where:
-        unique << [true, false]
     }
 
     def 'can filter lock entries using group update patterns (Unique: #unique)'() {
@@ -159,7 +147,7 @@ empty=
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org.*:foo']
         provider = newProvider()
-        writeLockFile(['org.bar:foo:1.3', 'com:foo:1.0'], unique)
+        writeLockFile(['org.bar:foo:1.3', 'com:foo:1.0'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
@@ -167,9 +155,6 @@ empty=
         then:
         !result.mustValidateLockState()
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('com', 'foo'), '1.0')] as Set
-
-        where:
-        unique << [true, false]
     }
 
     def 'can filter lock entries impacted by dependency substitutions (Unique: #unique)'() {
@@ -183,21 +168,18 @@ empty=
             }
         }
         provider = newProvider()
-        writeLockFile(['org:bar:1.1', 'org:foo:1.1'], unique)
+        writeLockFile(['org:bar:1.1', 'org:foo:1.1'], true)
 
         when:
         def result = provider.loadLockState('conf', owner)
 
         then:
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.1')] as Set
-
-        where:
-        unique << [true, false]
     }
 
     def 'fails with invalid content in lock file (Unique: #unique)'() {
         given:
-        writeLockFile(["invalid"], unique)
+        writeLockFile(["invalid"], true)
 
         when:
         provider.loadLockState('conf', owner)
@@ -207,16 +189,13 @@ empty=
         1 * owner.getDisplayName() >> "owner"
         ex.message == 'Invalid lock state for owner'
         ex.cause.message == 'The module notation does not respect the lock file format of \'group:name:version\' - received \'invalid\''
-
-        where:
-        unique << [true, false]
     }
 
     private ModuleComponentIdentifier module(String org, String name, String version) {
         return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(org, name), version)
     }
 
-    def 'fails with missing lockfile in strict mode (Unique: #unique)'() {
+    def 'fails with missing lockfile in strict mode'() {
         given:
         provider.getLockMode().set(LockMode.STRICT)
 
@@ -229,9 +208,6 @@ empty=
         ex.message == 'Locking strict mode: Owner is locked but does not have lock state.'
         ex.resolutions == ["To create the lock state, run a task that performs dependency resolution and add '--write-locks' to the command line.",
                             "For more information on generating lock state, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#generating_and_updating_dependency_locks in the Gradle documentation."]
-
-        where:
-        unique << [true, false]
     }
 
     def 'fails with invalid ignored dependencies notation #notation'() {

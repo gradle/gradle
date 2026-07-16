@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyResolutionTest {
 
@@ -29,7 +30,7 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
         """
     }
 
-    def 'does not apply lock defined in a dependent project'() {
+    def 'does not apply lock defined in a dependent project (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -61,9 +62,12 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
             }
         """
 
-        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
+        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
 
         then:
@@ -74,9 +78,12 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
 
         then:
         outputContains('org:foo:1.1')
+
+        where:
+        unique << [true, false]
     }
 
-    def 'does apply lock to transitive dependencies from dependent project'() {
+    def 'does apply lock to transitive dependencies from dependent project (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -108,9 +115,12 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
             }
         """
 
-        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
+        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
 
         then:
@@ -121,6 +131,9 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
 
         then:
         outputContains('org:foo:1.1')
+
+        where:
+        unique << [true, false]
     }
 
     def 'creates a lock file including transitive dependencies of dependent project'() {

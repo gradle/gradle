@@ -93,6 +93,25 @@ Additionally, the transitional system property `org.gradle.tooling.parallel.igno
 Once `org.gradle.parallel` and `org.gradle.tooling.parallel` are independent, the flag is redundant, so Gradle 10 simply ignores it.
 No action is required in Gradle 9.x; if you set it explicitly, you can remove it when upgrading to Gradle 10.
 
+[[legacy_dependency_lock_format]]
+==== Deprecation of the legacy dependency lock file format
+
+Before Gradle 6.4, <<dependency_locking.adoc#locking-versions,dependency locking>> stored lock state in a separate file per locked configuration, located in the `gradle/dependency-locks` directory under that configuration's project directory.
+Since Gradle 6.4, lock state has been stored in a single `gradle.lockfile` per project, but Gradle has continued to read lock state stored in the legacy format.
+
+Loading lock state from legacy lock files is now deprecated.
+Starting in Gradle 10, Gradle will no longer read legacy lock files.
+
+To migrate to the new format, regenerate the lock state of affected projects by running:
+
+[source,bash]
+----
+./gradlew dependencies --write-locks
+----
+
+When writing the new lock file, Gradle automatically deletes the legacy lock files whose state was migrated.
+See <<dependency_locking.adoc#sec:migrate-single-lockfile,Migrating your legacy lockfile>> for details.
+
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
 
