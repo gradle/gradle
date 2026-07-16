@@ -337,7 +337,7 @@ public abstract class IdeaPlugin extends IdePlugin {
             public PathFactory call() {
                 final PathFactory factory = new PathFactory();
                 factory.addPathVariable("MODULE_DIR", task.get().getOutputFile().getParentFile());
-                for (Map.Entry<String, File> entry : module.getPathVariables().entrySet()) {
+                for (Map.Entry<String, File> entry : DeprecationLogger.whileDisabled(() -> module.getPathVariables()).entrySet()) {
                     factory.addPathVariable(entry.getKey(), entry.getValue());
                 }
                 return factory;
@@ -509,6 +509,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         return !moduleLanguageLevel.equals(ideaProject.getLanguageLevel());
     }
 
+    @SuppressWarnings("deprecation")
     private void configureForScalaPlugin() {
         boolean isolatedProjects = getBuildFeatures().getIsolatedProjects().getActive().get();
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
@@ -571,6 +572,12 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     }
 
+    /**
+     * Injects and returns an instance of {@link BuildFeatures}.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     @Inject
     protected abstract BuildFeatures getBuildFeatures();
 }

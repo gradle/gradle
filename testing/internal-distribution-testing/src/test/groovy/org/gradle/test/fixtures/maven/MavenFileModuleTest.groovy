@@ -171,7 +171,7 @@ class MavenFileModuleTest extends Specification {
 
     def "Publish artifacts for non-snapshot"() {
         when:
-        MavenModule mavenModule = mavenFileModule.withoutExtraChecksums().publish()
+        MavenModule mavenModule = mavenFileModule.publish()
         def publishedFiles = Arrays.asList(testFile.listFiles())
 
         then:
@@ -183,7 +183,7 @@ class MavenFileModuleTest extends Specification {
 
     def "Publish artifacts for unique snapshot"() {
         when:
-        MavenModule mavenModule = snapshotMavenFileModule.withoutExtraChecksums().publish()
+        MavenModule mavenModule = snapshotMavenFileModule.publish()
         def publishedFiles = Arrays.asList(testFile.listFiles())
 
         then:
@@ -200,7 +200,7 @@ class MavenFileModuleTest extends Specification {
         snapshotMavenFileModule.withNonUniqueSnapshots()
 
         when:
-        MavenModule mavenModule = snapshotMavenFileModule.withoutExtraChecksums().publish()
+        MavenModule mavenModule = snapshotMavenFileModule.publish()
         def publishedFiles = Arrays.asList(testFile.listFiles())
 
         then:

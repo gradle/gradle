@@ -181,6 +181,12 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             groovydoc.getIncludeAuthor().convention(false);
             groovydoc.getProcessScripts().convention(true);
             groovydoc.getIncludeMainForScripts().convention(true);
+            groovydoc.getShowInternal().convention(false);
+            groovydoc.getNoIndex().convention(false);
+            groovydoc.getNoDeprecatedList().convention(false);
+            groovydoc.getNoHelp().convention(false);
+            groovydoc.getSyntaxHighlighter().convention("none");
+            groovydoc.getTheme().convention("auto");
         });
     }
 

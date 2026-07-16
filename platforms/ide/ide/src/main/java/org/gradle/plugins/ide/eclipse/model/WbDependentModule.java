@@ -26,7 +26,10 @@ import java.util.Map;
 
 /**
  * A wtp descriptor dependent module entry.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public class WbDependentModule implements WbModuleEntry {
 
     private String archiveName;

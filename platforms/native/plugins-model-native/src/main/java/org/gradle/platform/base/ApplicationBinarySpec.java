@@ -20,8 +20,11 @@ import org.gradle.api.Incubating;
 
 /**
  * A binary produced from a `{@link org.gradle.platform.base.ApplicationSpec}`.
+*
+* @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  * */
 @Incubating
+@Deprecated
 public interface ApplicationBinarySpec extends BinarySpec {
     /**
      * The application that this binary belongs to.

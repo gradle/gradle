@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -31,6 +29,7 @@ import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
@@ -144,8 +143,8 @@ class DefaultProjectState implements ProjectState, Closeable {
     }
 
     @Override
-    public Iterable<ProjectState> getUnorderedChildProjects() {
-        return Iterables.transform(descriptor.getChildren(), this::getState);
+    public Collection<ProjectState> getUnorderedChildProjects() {
+        return CollectionUtils.transform(descriptor.getChildren(), this::getState);
     }
 
     private ProjectState getState(ProjectIdentity identity) {
@@ -154,20 +153,6 @@ class DefaultProjectState implements ProjectState, Closeable {
             throw new IllegalStateException("Project '" + identity.getBuildTreePath() + "' is not found in the registry");
         }
         return state;
-    }
-
-    @Override
-    public Set<ProjectState> getAllProjects() {
-        ImmutableSortedSet.Builder<ProjectState> result = ImmutableSortedSet.orderedBy(ProjectOrderingUtil::compare);
-        collectAllProjects(this, result);
-        return result.build();
-    }
-
-    private static void collectAllProjects(ProjectState project, ImmutableSortedSet.Builder<ProjectState> result) {
-        result.add(project);
-        for (ProjectState child : project.getUnorderedChildProjects()) {
-            collectAllProjects(child, result);
-        }
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectOrderingUtil
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
@@ -90,7 +91,7 @@ abstract class AbstractKotlinDslScriptsModelBuilder : ToolingModelBuilder {
 
     private
     fun requireRootProject(project: Project) =
-        require(project == project.rootProject) {
+        require(project.parent == null) {
             "$MODEL_NAME can only be requested on the root project, got $project"
         }
 }
@@ -166,10 +167,13 @@ fun Project.collectKotlinDslScripts(): List<File> = buildList {
     addAll(discoverInitScripts())
     addNotNull(discoverSettingScript())
 
-    allprojects.forEach { p ->
-        addNotNull(p.discoverBuildScript())
-        addAll(p.discoverPrecompiledScriptPluginScripts())
-    }
+    ProjectOrderingUtil.orderedAllProjectsOf((project as ProjectInternal).owner)
+        .asSequence()
+        .map { it.mutableModelEvenAfterFailure }
+        .forEach { p ->
+            addNotNull(p.discoverBuildScript())
+            addAll(p.discoverPrecompiledScriptPluginScripts())
+        }
 }
 
 

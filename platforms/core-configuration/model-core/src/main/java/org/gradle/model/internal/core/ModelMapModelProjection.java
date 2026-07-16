@@ -17,7 +17,6 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
@@ -28,6 +27,7 @@ import java.util.Collections;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
+@SuppressWarnings("deprecation")
 public class ModelMapModelProjection<I> implements ModelProjection {
     private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
 
@@ -57,7 +57,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     private ModelType<? extends I> itemType(ModelType<?> targetType) {
         Class<?> targetClass = targetType.getRawClass();
-        if (targetClass.equals(ModelMap.class)) {
+        if (targetClass.equals(org.gradle.model.ModelMap.class)) {
             ModelType<?> targetItemClass = targetType.getTypeVariables().get(0);
             if (targetItemClass.isAssignableFrom(baseItemModelType)) {
                 return baseItemModelType;
@@ -67,7 +67,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
             }
             return null;
         }
-        if (targetClass.isAssignableFrom(ModelMap.class)) {
+        if (targetClass.isAssignableFrom(org.gradle.model.ModelMap.class)) {
             return baseItemModelType;
         }
         return null;
@@ -97,7 +97,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return null;
     }
 
-    private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, ModelType<S> itemType, boolean mutable, boolean canReadChildren) {
+    private <T, S extends I> ModelView<org.gradle.model.ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, ModelType<S> itemType, boolean mutable, boolean canReadChildren) {
         ChildNodeInitializerStrategy<? super I> creatorStrategy = creatorStrategyAccessor.getStrategy(node);
         DefaultModelViewState state = new DefaultModelViewState(node.getPath(), targetType, sourceDescriptor, mutable, canReadChildren);
         NodeBackedModelMap<I> builder = new NodeBackedModelMap<I>(publicType, baseItemModelType, sourceDescriptor, node, state, creatorStrategy);
@@ -112,7 +112,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     @Override
     public Iterable<String> getTypeDescriptions(MutableModelNode node) {
-        return Collections.singleton(ModelMap.class.getName() + "<" + baseItemModelType.getConcreteClass().getName() + ">");
+        return Collections.singleton(org.gradle.model.ModelMap.class.getName() + "<" + baseItemModelType.getConcreteClass().getName() + ">");
     }
 
     @Override

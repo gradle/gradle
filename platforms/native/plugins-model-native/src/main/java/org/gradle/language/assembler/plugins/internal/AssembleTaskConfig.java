@@ -24,21 +24,19 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.assembler.tasks.Assemble;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.platform.base.BinarySpec;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class AssembleTaskConfig implements SourceTransformTaskConfig {
     @Override
     public String getTaskPrefix() {
@@ -51,7 +49,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
     }
 
     @Override
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+    public void configureTask(Task task, org.gradle.platform.base.BinarySpec binary, org.gradle.language.base.LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureAssembleTask((Assemble) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
     }
 
@@ -80,7 +78,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         final Project project = task.getProject();
         task.setObjectFileDir(project.getLayout().getBuildDirectory().getAsFile().map(it -> new File(binary.getNamingScheme().getOutputDirectory(it, "objs"), sourceSet.getProjectScopedName())).get());
 
-        Tool assemblerTool = binary.getToolByName("assembler");
+        org.gradle.nativeplatform.Tool assemblerTool = binary.getToolByName("assembler");
         task.setAssemblerArgs(assemblerTool.getArgs());
 
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

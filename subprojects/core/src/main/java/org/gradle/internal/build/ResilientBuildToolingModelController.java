@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
@@ -45,6 +46,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel",
         "org.gradle.kotlin.dsl.tooling.builders.internal.IsolatedScriptsModel"
     );
+
 
     private final FailureFactory failureFactory;
 
@@ -81,8 +83,12 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     private static ToolingModelScopeResult configurationFailureResult(FailureFactory failureFactory, Throwable configurationFailure, @Nullable Object model) {
-        ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failureFactory.create(configurationFailure)));
-        return ToolingModelScopeResult.withConfigurationFailure(clientResult, configurationFailure);
+        return configurationFailureResult(failureFactory, configurationFailure, configurationFailure, model);
+    }
+
+    private static ToolingModelScopeResult configurationFailureResult(FailureFactory failureFactory, Throwable clientFailure, Throwable buildFailure, @Nullable Object model) {
+        ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failureFactory.create(clientFailure)));
+        return ToolingModelScopeResult.withConfigurationFailure(clientResult, buildFailure);
     }
 
     private static boolean canRunEvenIfProjectNotFullyConfigured(String modelName) {
@@ -125,7 +131,8 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
                 Object model = canRunEvenIfProjectNotFullyConfigured(modelName)
                     ? Try.ofFailable(() -> buildModelWithParameter(parameter)).getOrMapFailure(failure -> null)
                     : null;
-                return configurationFailureResult(failureFactory, projectConfiguration.getFailure().get(), model);
+                Throwable buildFailure = projectConfiguration.getFailure().get();
+                return configurationFailureResult(failureFactory, projectOwnConfigurationFailure(), buildFailure, model);
             }
 
             // The project configured successfully, but the model builder itself may still fail.
@@ -137,6 +144,18 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
                 ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.create(failure)));
                 return ToolingModelScopeResult.withModelBuilderFailure(clientResult, failure);
             });
+        }
+
+        /**
+         * The target project's own recorded configuration failure, read from state without reconfiguring it.
+         * Falls back to a general failure when the project has none of its own: it configured cleanly, or was never reached because another project aborted configuration.
+         */
+        private Throwable projectOwnConfigurationFailure() {
+            Throwable ownFailure = targetProject.getMutableModelEvenAfterFailure().getState().getFailure();
+            if (ownFailure != null) {
+                return ownFailure;
+            }
+            return new GeneralConfigurationFailure();
         }
 
         @Override
@@ -174,6 +193,22 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
                 .map(Failure::getOriginal)
                 .collect(toImmutableList());
             return ToolingModelScopeResult.withConfigurationFailures(clientResult, configurationFailures);
+        }
+    }
+
+    /**
+     * The failure reported for a project that has no configuration failure of its own. Stackless, since it
+     * exists only to carry this constant message to the client: the real failure travels separately as the
+     * build failure, so a stack trace here is never useful.
+     */
+    private static final class GeneralConfigurationFailure extends GradleException {
+        GeneralConfigurationFailure() {
+            super("The build could not be configured; see the reported build failures for the underlying problems.");
+        }
+
+        @Override
+        public Throwable fillInStackTrace() {
+            return this;
         }
     }
 

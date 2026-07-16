@@ -34,7 +34,10 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public class Module extends XmlPersistableConfigurationObject {
 
     public static final String INHERITED = "inherited";

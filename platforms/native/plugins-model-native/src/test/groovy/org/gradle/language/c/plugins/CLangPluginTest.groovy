@@ -18,6 +18,7 @@ package org.gradle.language.c.plugins
 import org.gradle.language.c.CSourceSet
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
+@SuppressWarnings("deprecation")
 class CLangPluginTest extends AbstractLanguagePluginSpec {
     @Override
     Class getPluginClass() {

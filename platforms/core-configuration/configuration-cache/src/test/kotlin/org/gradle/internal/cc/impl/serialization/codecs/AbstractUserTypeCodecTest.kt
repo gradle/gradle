@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -236,7 +237,8 @@ abstract class AbstractUserTypeCodecTest {
         problems = mock(),
         taskDependencyFactory = mock(),
         moduleIdentifierFactory = mock(),
-        objectOpener = ObjectOpener.agentless()
+        objectOpener = ObjectOpener.agentless(),
+        startParameter = StartParameterInternal()
     )
 
     private

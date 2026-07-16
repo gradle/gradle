@@ -68,7 +68,6 @@ dependencies {
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.commonsIo)
-    crossVersionTestImplementation(testLibs.jettyWebApp)
     crossVersionTestRuntimeOnly(testLibs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }

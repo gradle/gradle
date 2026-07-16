@@ -21,6 +21,7 @@ import groovy.lang.DelegatesTo;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import java.io.File;
@@ -90,12 +91,23 @@ public abstract class IdeaModel {
 
     /**
      * Configures the target IDEA version.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public String getTargetVersion() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModel.class, "targetVersion");
         return targetVersion;
     }
 
+    /**
+     * Sets the target IDEA version.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setTargetVersion(String targetVersion) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModel.class, "targetVersion");
         this.targetVersion = targetVersion;
     }
 
@@ -155,9 +167,12 @@ public abstract class IdeaModel {
      * Adds path variables to be used for replacing absolute paths in resulting files (*.iml, etc.). <p> For example see docs for {@link IdeaModule}.
      *
      * @param pathVariables A map with String-&gt;File pairs.
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void pathVariables(Map<String, File> pathVariables) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModel.class, "pathVariables");
         Preconditions.checkNotNull(pathVariables);
-        module.getPathVariables().putAll(pathVariables);
+        DeprecationLogger.whileDisabled(() -> module.getPathVariables()).putAll(pathVariables);
     }
 }

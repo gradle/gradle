@@ -21,8 +21,11 @@ import java.util.List;
 
 /**
  * Configuration of the arguments of a ToolChain executable.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface Tool {
     /**
      * The arguments passed when executing this tool.

@@ -67,7 +67,6 @@ dependencies {
     integTestImplementation(testFixtures(projects.platformNative))
 
     integTestImplementation(libs.jsoup)
-    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

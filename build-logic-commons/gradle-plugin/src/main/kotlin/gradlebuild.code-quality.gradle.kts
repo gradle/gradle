@@ -194,6 +194,11 @@ dependencies {
     buildLibs?.let {
         codenarc(buildLibs.findLibrary("codenarc").get())
         codenarc(buildLibs.findLibrary("kotlinCompilerEmbeddable").get())
+        constraints {
+            checkstyle(buildLibs.findLibrary("plexusUtils").get()) {
+                because("Checkstyle transitively pulls plexus-utils 3.3.0 which is vulnerable to CVE-2025-67030")
+            }
+        }
     }
 }
 

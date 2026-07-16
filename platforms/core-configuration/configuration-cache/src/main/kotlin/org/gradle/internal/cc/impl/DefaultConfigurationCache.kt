@@ -838,6 +838,18 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprint(candidateEntry: CandidateEntry, rootDirs: List<File>): CheckedFingerprint {
+        if (rootDirs.isNotEmpty() && startParameter.buildTreeRootDirectory !in rootDirs) {
+            return CheckedFingerprint.Invalid(
+                buildPath(),
+                StructuredMessage.build {
+                    text("the location of the build has changed from ")
+                    reference(rootDirs.first().path)
+                    text(" to ")
+                    reference(startParameter.buildTreeRootDirectory.path)
+                }
+            )
+        }
+
         // Register all included build root directories as watchable hierarchies,
         // so we can load the fingerprint for build scripts and other files from included builds
         // without violating file system invariants.

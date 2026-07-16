@@ -256,7 +256,7 @@ fun lifecyclePluginHint(pluginId: String, fromIncludedPluginBuild: Boolean, docu
                 "published from that build (recommended)."
         else ""
     val documentation =
-        documentationRegistry.getDocumentationRecommendationFor("information", "isolated_projects", "sec:lifecycle_callbacks_with_included_plugin_builds")
+        documentationRegistry.getDocumentationRecommendationFor("information", "isolated_projects", "sec:applying_plugins_from_a_lifecycle_callback")
     return "\n" + genericAdvice + includedBuildAdvice + "\n" + documentation
 }
 

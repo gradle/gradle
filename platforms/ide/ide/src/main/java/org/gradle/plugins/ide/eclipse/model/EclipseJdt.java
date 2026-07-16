@@ -71,9 +71,11 @@ public abstract class EclipseJdt {
 
     private String javaRuntimeName;
 
+    @SuppressWarnings("deprecation")
     private final PropertiesFileContentMerger file;
 
     @Inject
+    @SuppressWarnings("deprecation")
     public EclipseJdt(PropertiesFileContentMerger file) {
         this.file = file;
     }
@@ -152,6 +154,9 @@ public abstract class EclipseJdt {
         this.javaRuntimeName = javaRuntimeName;
     }
 
+    // The getter does not nag: Groovy's dynamic dispatch probes the `file` property for any
+    // unresolved `file(...)` call inside a `jdt { }` block, which would produce false-positive
+    // warnings. The file(Closure)/file(Action) hooks nag instead.
     /**
      * See {@link #file(Action) }
      *
@@ -159,7 +164,6 @@ public abstract class EclipseJdt {
      */
     @Deprecated
     public PropertiesFileContentMerger getFile() {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
         return file;
     }
 

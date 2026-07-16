@@ -16,14 +16,14 @@
 
 package org.gradle.api;
 
-import org.gradle.platform.base.ComponentSpec;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A {@link ComponentSpec} that is directly checkable via a specified task.
+ * A {@link org.gradle.platform.base.ComponentSpec} that is directly checkable via a specified task.
  */
 @Incubating
-public interface CheckableComponentSpec extends ComponentSpec {
+@Deprecated
+public interface CheckableComponentSpec extends org.gradle.platform.base.ComponentSpec {
 
     /**
      * Returns the task responsible for checking this component.

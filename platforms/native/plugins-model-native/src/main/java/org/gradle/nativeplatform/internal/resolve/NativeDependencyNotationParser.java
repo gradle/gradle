@@ -22,32 +22,31 @@ import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
-import org.gradle.nativeplatform.NativeLibraryRequirement;
-import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement;
 import org.jspecify.annotations.Nullable;
 
+@SuppressWarnings("deprecation")
 class NativeDependencyNotationParser {
-    public static NotationParser<Object, NativeLibraryRequirement> parser() {
+    public static NotationParser<Object, org.gradle.nativeplatform.NativeLibraryRequirement> parser() {
         return NotationParserBuilder
-                .toType(NativeLibraryRequirement.class)
+                .toType(org.gradle.nativeplatform.NativeLibraryRequirement.class)
                 .converter(new LibraryConverter())
                 .converter(new NativeLibraryRequirementMapNotationConverter())
                 .toComposite();
     }
 
-    private static class LibraryConverter extends TypedNotationConverter<NativeLibrarySpec, NativeLibraryRequirement> {
+    private static class LibraryConverter extends TypedNotationConverter<org.gradle.nativeplatform.NativeLibrarySpec, org.gradle.nativeplatform.NativeLibraryRequirement> {
         private LibraryConverter() {
-            super(NativeLibrarySpec.class);
+            super(org.gradle.nativeplatform.NativeLibrarySpec.class);
         }
 
         @Override
-        protected NativeLibraryRequirement parseType(NativeLibrarySpec notation) {
+        protected org.gradle.nativeplatform.NativeLibraryRequirement parseType(org.gradle.nativeplatform.NativeLibrarySpec notation) {
             return notation.getShared();
         }
     }
 
-    private static class NativeLibraryRequirementMapNotationConverter extends MapNotationConverter<NativeLibraryRequirement> {
+    private static class NativeLibraryRequirementMapNotationConverter extends MapNotationConverter<org.gradle.nativeplatform.NativeLibraryRequirement> {
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
@@ -55,7 +54,7 @@ class NativeDependencyNotationParser {
         }
 
         @SuppressWarnings("unused")
-        protected NativeLibraryRequirement parseMap(
+        protected org.gradle.nativeplatform.NativeLibraryRequirement parseMap(
             @MapKey("library") String libraryName,
             @MapKey("project") @Nullable String projectPath,
             @MapKey("linkage") @Nullable String linkage

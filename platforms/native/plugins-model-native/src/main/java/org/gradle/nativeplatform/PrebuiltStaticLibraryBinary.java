@@ -22,8 +22,11 @@ import java.io.File;
 
 /**
  * A static library that exists at a known location on the filesystem.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface PrebuiltStaticLibraryBinary extends StaticLibraryBinary {
     /**
      * The static library binary file.

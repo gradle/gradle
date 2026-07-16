@@ -24,8 +24,11 @@ import java.io.File;
 
 /**
  * A shared library binary built by Gradle for a native library.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface SharedLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * Provides access to key tasks used for building the binary.

@@ -16,10 +16,14 @@
 
 package org.gradle
 
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.DefaultTaskExecutionRequest
+import org.gradle.internal.Factory
 import org.gradle.internal.RunDefaultTasksExecutionRequest
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -34,8 +38,42 @@ class StartParameterTest extends Specification {
     @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule private SetSystemProperties systemProperties = new SetSystemProperties()
 
+    @ExpectDeprecation("Creating a StartParameter instance directly has been deprecated")
+    void "constructing a StartParameter directly emits a deprecation warning"() {
+        expect:
+        new StartParameter() != null
+    }
+
+    @ExpectDeprecation("The StartParameter.newInstance() method has been deprecated")
+    void "copying a StartParameter with newInstance emits a deprecation warning"() {
+        expect:
+        newStartParameter().newInstance() != null
+    }
+
+    @ExpectDeprecation("The StartParameter.newBuild() method has been deprecated")
+    void "copying a StartParameter with newBuild emits a deprecation warning"() {
+        expect:
+        newStartParameter().newBuild() != null
+    }
+
+    // StartParameter is part of the public API and declares Serializable, so verify that contract on the
+    // public type. StartParameterInternal (used by the tests below) is not Java-serializable by design.
+    void "public StartParameter is serializable"() {
+        given:
+        StartParameter parameter = DeprecationLogger.whileDisabled({ new StartParameter() } as Factory)
+        parameter.taskNames = ['a', 'b']
+        parameter.excludedTaskNames = ['c']
+        parameter.projectProperties = [p: 'v']
+        parameter.systemPropertiesArgs = [s: 'v']
+        parameter.initScripts = [new File('init.gradle')]
+        parameter.currentDir = new File('some-dir')
+
+        expect:
+        assertThat(parameter, isSerializable())
+    }
+
     void "new instance has correct state"() {
-        def parameter = new StartParameter()
+        def parameter = newStartParameter()
         parameter.taskNames = ['a']
         parameter.buildProjectDependencies = true
         parameter.currentDir = new File('a')
@@ -56,7 +94,7 @@ class StartParameterTest extends Specification {
         parameter.includeBuild(new File('participant'))
 
         when:
-        def newInstance = parameter.newInstance()
+        def newInstance = newInstanceOf(parameter)
 
         then:
         parameter == newInstance
@@ -69,7 +107,7 @@ class StartParameterTest extends Specification {
     }
 
     void "mutable collections are not shared"() {
-        def parameter = new StartParameter()
+        def parameter = newStartParameter()
         parameter.taskNames = ['a']
         parameter.excludedTaskNames = ['foo']
         parameter.projectProperties = [a: 'a']
@@ -78,7 +116,7 @@ class StartParameterTest extends Specification {
         parameter.includedBuilds = [new File('participant'), new File("/path/to/another/participant")]
 
         when:
-        def newInstance = parameter.newInstance()
+        def newInstance = newInstanceOf(parameter)
 
         then:
         !parameter.initScripts.is(newInstance.initScripts)
@@ -98,7 +136,7 @@ class StartParameterTest extends Specification {
     }
 
     void "default values"() {
-        def parameter = new StartParameter()
+        def parameter = newStartParameter()
 
         expect:
         parameter.gradleUserHomeDir == StartParameter.DEFAULT_GRADLE_USER_HOME
@@ -117,8 +155,6 @@ class StartParameterTest extends Specification {
         !parameter.buildCacheEnabled
         !parameter.writeDependencyLocks
         parameter.lockedDependenciesToUpdate.isEmpty()
-
-        assertThat(parameter, isSerializable())
     }
 
     void "uses gradle user home system property"() {
@@ -126,13 +162,13 @@ class StartParameterTest extends Specification {
         System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
 
         when:
-        def parameter = new StartParameter()
+        def parameter = newStartParameter()
         then:
         parameter.gradleUserHomeDir == gradleUserHome
     }
 
     void "canonicalizes current dir"() {
-        StartParameter parameter = new StartParameter()
+        StartParameter parameter = newStartParameter()
         File dir = new File('current')
 
         when:
@@ -140,11 +176,10 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.currentDir == dir.canonicalFile
-        assertThat(parameter, isSerializable())
     }
 
     void "can configure project dir"() {
-        StartParameter parameter = new StartParameter()
+        StartParameter parameter = newStartParameter()
         File file = new File('test/project dir')
 
         when:
@@ -152,11 +187,10 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.currentDir == file.canonicalFile
-        assertThat(parameter, isSerializable())
     }
 
     void "can configure null project dir"() {
-        StartParameter parameter = new StartParameter()
+        StartParameter parameter = newStartParameter()
         parameter.projectDir = new File('test/project dir')
 
         when:
@@ -164,18 +198,16 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.currentDir == new File(System.getProperty("user.dir")).getCanonicalFile()
-        assertThat(parameter, isSerializable())
     }
 
     void "can configure null user home dir"() {
-        StartParameter parameter = new StartParameter()
+        StartParameter parameter = newStartParameter()
 
         when:
         parameter.gradleUserHomeDir = null
 
         then:
         parameter.gradleUserHomeDir == StartParameter.DEFAULT_GRADLE_USER_HOME
-        assertThat(parameter, isSerializable())
     }
 
     void "considers system properties for null user home dir"() {
@@ -183,7 +215,7 @@ class StartParameterTest extends Specification {
         System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
 
         given:
-        StartParameter parameter = new StartParameter()
+        StartParameter parameter = newStartParameter()
         parameter.gradleUserHomeDir = tmpDir.file("ignore-me")
 
         when:
@@ -191,11 +223,10 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.gradleUserHomeDir == gradleUserHome
-        assertThat(parameter, isSerializable())
     }
 
     void "creates parameter for new build"() {
-        StartParameter parameter = new StartParameter()
+        StartParameter parameter = newStartParameter()
 
         // Copied properties
         parameter.gradleUserHomeDir = new File("home")
@@ -218,10 +249,8 @@ class StartParameterTest extends Specification {
         parameter.writeDependencyLocks = true
         parameter.lockedDependenciesToUpdate = ['foo']
 
-        assertThat(parameter, isSerializable())
-
         when:
-        StartParameter newParameter = parameter.newBuild()
+        StartParameter newParameter = newBuildOf(parameter)
 
         then:
         newParameter != parameter
@@ -244,13 +273,12 @@ class StartParameterTest extends Specification {
         assertRunsDefaultTasks(newParameter)
         newParameter.excludedTaskNames.empty
         newParameter.currentDir == new File(System.getProperty("user.dir")).getCanonicalFile()
-        assertThat(newParameter, isSerializable())
     }
 
     void "gets all init scripts"() {
         def gradleUserHomeDir = tmpDir.testDirectory.createDir("gradleUserHomeDie")
         def gradleHomeDir = tmpDir.testDirectory.createDir("gradleHomeDir")
-        StartParameter parameter = new StartParameter()
+        StartParameter parameter = newStartParameter()
 
         when:
         parameter.gradleUserHomeDir = gradleUserHomeDir
@@ -280,7 +308,7 @@ class StartParameterTest extends Specification {
     }
 
     def 'taskNames getter defaults to taskParameters'() {
-        def parameter = new StartParameter()
+        def parameter = newStartParameter()
         def requests = [new DefaultTaskExecutionRequest(['a']), new DefaultTaskExecutionRequest(['b'])]
 
         when:
@@ -292,7 +320,7 @@ class StartParameterTest extends Specification {
     }
 
     def 'taskNames setter defaults to taskParameters'() {
-        StartParameter parameter = new StartParameter()
+        StartParameter parameter = newStartParameter()
 
         when:
         parameter.taskNames = [ 'a', 'b' ]
@@ -313,12 +341,27 @@ class StartParameterTest extends Specification {
         assert parameter.taskRequests.size() == 1 && parameter.taskRequests[0] instanceof RunDefaultTasksExecutionRequest
     }
 
+    // These tests exercise StartParameterInternal, the type actually used at runtime, via its
+    // non-deprecated internal construction and copy methods. The deprecation warnings on the public
+    // constructor and copy methods are covered by the dedicated tests at the top of this class.
+    private static StartParameterInternal newStartParameter() {
+        new StartParameterInternal()
+    }
+
+    private static StartParameterInternal newInstanceOf(StartParameterInternal parameter) {
+        parameter.newInstanceInternal()
+    }
+
+    private static StartParameterInternal newBuildOf(StartParameterInternal parameter) {
+        parameter.newBuildInternal()
+    }
+
     // Previously StartParameter's toString got wildly out of sync with the state inside of it
     // Ensure that all state is represented in the toString, so it's more useful for debugging
     // In the future StartParameter should be replaced with a `record` so this doesn't need to be checked
     void "all state is represented in toString"() {
         given:
-        def parameter = new StartParameter()
+        def parameter = newStartParameter()
         def fieldNames = StartParameter.class.getDeclaredFields()
             .findAll { !it.synthetic }
             .collect { it.name }

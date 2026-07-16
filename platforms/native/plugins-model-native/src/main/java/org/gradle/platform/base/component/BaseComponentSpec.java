@@ -30,8 +30,11 @@ import org.gradle.platform.base.component.internal.DefaultComponentSpec;
 /**
  * Base class that may be used for custom {@link GeneralComponentSpec} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public class BaseComponentSpec extends DefaultComponentSpec implements GeneralComponentSpec {
     private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
     private static final ModelType<Binary> BINARY_MODEL_TYPE = ModelType.of(Binary.class);

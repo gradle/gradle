@@ -25,9 +25,12 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes that the {@link RuleSource} method rule carrying this annotation defines additional rules based on its inputs.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
+@Deprecated
 public @interface Rules {
 }

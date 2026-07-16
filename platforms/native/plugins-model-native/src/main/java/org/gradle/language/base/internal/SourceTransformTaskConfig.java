@@ -19,11 +19,10 @@ package org.gradle.language.base.internal;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.BinarySpec;
 
+@SuppressWarnings("deprecation")
 public interface SourceTransformTaskConfig {
     String getTaskPrefix();
     Class<? extends DefaultTask> getTaskType();
-    void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry);
+    void configureTask(Task task, org.gradle.platform.base.BinarySpec binary, org.gradle.language.base.LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry);
 }

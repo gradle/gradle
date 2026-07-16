@@ -28,6 +28,7 @@ import spock.lang.Specification
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 
+@SuppressWarnings("deprecation")
 class ProjectLibraryBinaryLocatorTest extends Specification {
     def projectModel = Mock(ModelRegistry)
     def projectLocator = Mock(ProjectModelResolver)

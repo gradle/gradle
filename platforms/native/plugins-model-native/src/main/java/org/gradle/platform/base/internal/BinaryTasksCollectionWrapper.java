@@ -21,11 +21,11 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
-import org.gradle.platform.base.BinaryTasksCollection;
 
-public class BinaryTasksCollectionWrapper extends DelegatingDomainObjectSet<Task> implements BinaryTasksCollection {
+@SuppressWarnings("deprecation")
+public class BinaryTasksCollectionWrapper extends DelegatingDomainObjectSet<Task> implements org.gradle.platform.base.BinaryTasksCollection {
 
-    public BinaryTasksCollectionWrapper(BinaryTasksCollection delegate) {
+    public BinaryTasksCollectionWrapper(org.gradle.platform.base.BinaryTasksCollection delegate) {
         super(delegate);
     }
 
@@ -41,8 +41,8 @@ public class BinaryTasksCollectionWrapper extends DelegatingDomainObjectSet<Task
     }
 
     @Override
-    protected BinaryTasksCollection getDelegate() {
-        return (BinaryTasksCollection) super.getDelegate();
+    protected org.gradle.platform.base.BinaryTasksCollection getDelegate() {
+        return (org.gradle.platform.base.BinaryTasksCollection) super.getDelegate();
     }
 
     @Override

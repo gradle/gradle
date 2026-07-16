@@ -479,7 +479,7 @@ task showBroken {
         }
         failure.assertResolutionFailure(':broken')
             .assertHasCause('Could not resolve group:projectA:1.3.')
-            .assertHasCause("Could not GET '${module.ivy.uri}'. Received status code 500 from server: broken")
+            .assertHasCause("Could not GET '${module.ivy.uri}'. Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()
@@ -567,7 +567,7 @@ task retrieve(type: Sync) {
         then:
         fails "retrieve"
         failure.assertHasCause("Could not download projectA-1.2.jar (group:projectA:1.2)")
-        failure.assertHasCause("Could not GET '${module.jar.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${module.jar.uri}'. Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()

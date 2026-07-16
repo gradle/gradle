@@ -51,15 +51,11 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         settingsFile << "rootProject.name = '$name'"
     }
 
-    def "can publish to an unauthenticated http repo (with extra checksums = #extraChecksums)"() {
+    def "can publish to an unauthenticated http repo"() {
         given:
         buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
 
-        if (!extraChecksums) {
-            executer.withArgument("-Dorg.gradle.internal.publish.checksums.insecure=true")
-            module.withoutExtraChecksums()
-        }
-        expectModulePublish(module, extraChecksums)
+        expectModulePublish(module)
 
         when:
         succeeds 'publish'
@@ -76,43 +72,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2"]
         module.moduleMetadata.verifyChecksums()
-
-        where:
-        extraChecksums << [true, false]
-    }
-
-    def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
-        given:
-        buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
-        maxUploadAttempts = 1
-
-        when:
-        module.artifact.expectPut()
-        module.artifact.sha1.expectPut()
-        module.artifact.sha256.expectPutBroken()
-        module.artifact.sha512.expectPutBroken()
-        module.artifact.md5.expectPut()
-        module.rootMetaData.expectGetMissing()
-        module.rootMetaData.expectPut()
-        module.rootMetaData.sha1.expectPut()
-        module.rootMetaData.sha256.expectPutBroken()
-        module.rootMetaData.sha512.expectPutBroken()
-        module.rootMetaData.md5.expectPut()
-        module.pom.expectPut()
-        module.pom.sha1.expectPut()
-        module.pom.sha256.expectPutBroken()
-        module.pom.sha512.expectPutBroken()
-        module.pom.md5.expectPut()
-        module.moduleMetadata.expectPut()
-        module.moduleMetadata.sha1.expectPut()
-        module.moduleMetadata.sha256.expectPutBroken()
-        module.moduleMetadata.sha512.expectPutBroken()
-        module.moduleMetadata.md5.expectPut()
-
-        then:
-        succeeds 'publish'
-        outputContains("remote repository doesn't support SHA-256. This will not fail the build.")
-        outputContains("remote repository doesn't support SHA-512. This will not fail the build.")
     }
 
     def "can publish to authenticated repository using #authScheme auth"() {
@@ -463,39 +422,31 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     private static void expectPublishModuleWithCredentials(MavenHttpModule module, HttpServer.PasswordCredentials credentials) {
         module.artifact.expectPut(credentials)
         module.artifact.sha1.expectPut(credentials)
-        module.artifact.sha256.expectPut(credentials)
-        module.artifact.sha512.expectPut(credentials)
         module.artifact.md5.expectPut(credentials)
         module.rootMetaData.expectGetMissing(credentials)
         module.rootMetaData.expectPut(credentials)
         module.rootMetaData.sha1.expectPut(credentials)
-        module.rootMetaData.sha256.expectPut(credentials)
-        module.rootMetaData.sha512.expectPut(credentials)
         module.rootMetaData.md5.expectPut(credentials)
         module.pom.expectPut(credentials)
         module.pom.sha1.expectPut(credentials)
-        module.pom.sha256.expectPut(credentials)
-        module.pom.sha512.expectPut(credentials)
         module.pom.md5.expectPut(credentials)
         module.moduleMetadata.expectPut(credentials)
         module.moduleMetadata.sha1.expectPut(credentials)
-        module.moduleMetadata.sha256.expectPut(credentials)
-        module.moduleMetadata.sha512.expectPut(credentials)
         module.moduleMetadata.md5.expectPut(credentials)
     }
 
-    private static void expectModulePublish(MavenHttpModule module, boolean extraChecksums = true) {
-        module.artifact.expectPublish(extraChecksums)
+    private static void expectModulePublish(MavenHttpModule module) {
+        module.artifact.expectPublish()
         module.rootMetaData.expectGetMissing()
-        module.rootMetaData.expectPublish(extraChecksums)
-        module.pom.expectPublish(extraChecksums)
-        module.moduleMetadata.expectPublish(extraChecksums)
+        module.rootMetaData.expectPublish()
+        module.pom.expectPublish()
+        module.moduleMetadata.expectPublish()
     }
 
     private static void expectModulePublishViaRedirect(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, HttpServer.PasswordCredentials credentials = null) {
         String redirectUri = targetServerUri.toString()
         [module.artifact, module.pom, module.rootMetaData, module.moduleMetadata].each { artifact ->
-            [artifact, artifact.sha1, artifact.md5, artifact.sha256, artifact.sha512].each { innerArtifact ->
+            [artifact, artifact.sha1, artifact.md5].each { innerArtifact ->
                 httpServer.expectPutRedirected(innerArtifact.path, "${redirectUri}${innerArtifact.path}", credentials)
                 innerArtifact.expectPut()
             }

@@ -100,8 +100,6 @@ class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
         then:
         file("build/repo/org.gradle/test/1.0/test-1.0.jar").exists()
         file("build/repo/org.gradle/test/1.0/test-1.0.jar.sha1").exists()
-        file("build/repo/org.gradle/test/1.0/test-1.0.jar.sha256").exists()
-        file("build/repo/org.gradle/test/1.0/test-1.0.jar.sha512").exists()
 
         when:
         fails "publish", "-PjarEnabled=false"
@@ -153,8 +151,6 @@ class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
         then:
         file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar").exists()
         file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha1").exists()
-        file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha256").exists()
-        file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha512").exists()
         publishedModule.parsedModuleMetadata.variant("javadocElements") {
             assert files*.name == ['test-1.0-javadoc.jar']
         }
@@ -168,8 +164,6 @@ class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
         skipped(":javadocJar")
         !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar").exists()
         !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha1").exists()
-        !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha256").exists()
-        !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha512").exists()
         publishedModule.parsedModuleMetadata.variant("javadocElements") {
             assert files*.name == []
         }

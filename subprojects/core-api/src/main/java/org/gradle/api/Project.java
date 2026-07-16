@@ -143,8 +143,11 @@ import java.util.concurrent.Callable;
  * <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
  * of the corresponding getter or setter method.</li>
  *
- * <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
- * can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
+ * <li>The <em>extra</em> properties of the project. Each project maintains a map of extra properties, which
+ * can contain any arbitrary name -&gt; value pair. Project-scoped Gradle properties that are not mapped directly to a
+ * {@code Project} property are also available in this scope. Values added explicitly to the extra properties extension
+ * take precedence over Gradle properties with the same name.
+ * Once defined, the properties of this scope are readable and writable.
  * See <a href="#extraproperties">extra properties</a> for more details.</li>
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
@@ -153,8 +156,8 @@ import java.util.concurrent.Callable;
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
  * property.</li>
  *
- * <li>The extra properties and convention properties are inherited from the project's parent, recursively up to the root
- * project. The properties of this scope are read-only.</li>
+ * <li>The extra properties and extensions of ancestor projects, starting with the parent project and continuing to
+ * the root project. The properties of this scope are read-only.</li>
  *
  * </ul>
  *
@@ -1494,17 +1497,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>If this project object has a property with the given name, return the value of the property.</li>
      *
-     * <li>If this project has an extension with the given name, return the extension.</li>
-     *
-     * <li>If this project's convention object has a property with the given name, return the value of the
-     * property.</li>
-     *
      * <li>If this project has an extra property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has an extension with the given name, return the extension.</li>
      *
      * <li>If this project has a task with the given name, return the task.</li>
      *
-     * <li>Search up through this project's ancestor projects for a convention property or extra property with the
-     * given name.</li>
+     * <li>Search up through this project's ancestor projects, starting with the parent project, for an extra property
+     * or extension with the given name.</li>
      *
      * <li>If not found, a {@link MissingPropertyException} is thrown.</li>
      *
@@ -1527,17 +1527,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>If this project object has a property with the given name, return the value of the property.</li>
      *
-     * <li>If this project has an extension with the given name, return the extension.</li>
-     *
-     * <li>If this project's convention object has a property with the given name, return the value of the
-     * property.</li>
-     *
      * <li>If this project has an extra property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has an extension with the given name, return the extension.</li>
      *
      * <li>If this project has a task with the given name, return the task.</li>
      *
-     * <li>Search up through this project's ancestor projects for a convention property or extra property with the
-     * given name.</li>
+     * <li>Search up through this project's ancestor projects, starting with the parent project, for an extra property
+     * or extension with the given name.</li>
      *
      * <li>If not found, null value is returned.</li>
      *

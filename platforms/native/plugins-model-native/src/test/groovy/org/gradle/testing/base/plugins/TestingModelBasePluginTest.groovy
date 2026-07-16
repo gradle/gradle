@@ -37,6 +37,7 @@ import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.testing.base.TestSuiteContainer
 import org.gradle.testing.base.TestSuiteSpec
 
+@SuppressWarnings("deprecation")
 class TestingModelBasePluginTest extends PlatformBaseSpecification {
     TestSuiteContainer realizeTestSuites() {
         project.modelRegistry.find("testSuites", TestSuiteContainer)

@@ -25,9 +25,12 @@ import java.lang.annotation.Target;
 
 /**
  * Signals that a {@link RuleSource} rule should be applied to all matching descendant elements of the scope instead of the scope itself.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 @Incubating
+@Deprecated
 public @interface Each {
 }

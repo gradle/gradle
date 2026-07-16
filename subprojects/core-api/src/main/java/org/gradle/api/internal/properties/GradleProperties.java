@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Gradle properties of a build or a project. Only build-scoped properties when injected as a service.
  * <p>
- * See {@link org.gradle.initialization.GradlePropertiesController GradlePropertiesController} on how these properties
+ * See {@link org.gradle.api.internal.properties.GradlePropertiesController GradlePropertiesController} on how these properties
  * are loaded and what contributes to their values at each scope.
  * <p>
  * Build-scoped properties are accessible by users via {@link ProviderFactory#gradleProperty(String)}.

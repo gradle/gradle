@@ -69,7 +69,6 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation(testLibs.selenium)
     testImplementation(libs.commonsHttpclient)
     testImplementation(testLibs.httpmime)
 
@@ -81,12 +80,6 @@ dependencies {
     docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
-
-    constraints {
-        // Selenium transitively requests an old (CVE-vulnerable) websocket-client.
-        // This forces it up to the secure version pinned in the test catalog.
-        testImplementation(testLibs.jettyWebsocket)
-    }
 }
 
 jvmCompile {

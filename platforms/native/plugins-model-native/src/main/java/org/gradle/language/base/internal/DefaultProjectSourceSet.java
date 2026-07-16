@@ -17,11 +17,10 @@ package org.gradle.language.base.internal;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
 
-public class DefaultProjectSourceSet extends DefaultDomainObjectSet<LanguageSourceSet> implements ProjectSourceSet {
+@SuppressWarnings("deprecation")
+public class DefaultProjectSourceSet extends DefaultDomainObjectSet<org.gradle.language.base.LanguageSourceSet> implements org.gradle.language.base.ProjectSourceSet {
     public DefaultProjectSourceSet(CollectionCallbackActionDecorator decorator) {
-        super(LanguageSourceSet.class, decorator);
+        super(org.gradle.language.base.LanguageSourceSet.class, decorator);
     }
 }

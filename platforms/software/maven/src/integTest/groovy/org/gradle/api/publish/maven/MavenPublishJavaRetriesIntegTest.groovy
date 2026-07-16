@@ -100,8 +100,6 @@ class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
         server.expect("/repo/org/gradle/test/testMavenRetries/1.9/testMavenRetries-1.9.jar", ['PUT'], new HttpServer.ServiceUnavailableAction("intermittent network issue"))
         module.artifact.expectPut()
         module.artifact.sha1.expectPut()
-        module.artifact.sha256.expectPut()
-        module.artifact.sha512.expectPut()
         module.artifact.md5.expectPut()
         module.rootMetaData.expectGetMissing()
         module.rootMetaData.expectPublish()

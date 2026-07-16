@@ -114,7 +114,7 @@ Beta and RC versions may or may not work.
 [[groovy_compatibility]]
 == Groovy
 
-Gradle is tested with Groovy 1.5.8 through 5.0.2.
+Gradle is tested with Groovy 1.5.8 through 6.0.0-alpha-2.
 
 Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 

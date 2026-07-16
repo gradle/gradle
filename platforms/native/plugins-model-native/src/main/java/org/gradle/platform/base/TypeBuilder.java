@@ -22,9 +22,12 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * A TypeBuilder to configure the registration of a type.
  * @param <T> The registered type.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
 @HasInternalProtocol
+@Deprecated
 public interface TypeBuilder<T> {
 
     /**

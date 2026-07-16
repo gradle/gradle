@@ -20,9 +20,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.reporting.ReportRenderer;
 
 import java.util.Collection;
@@ -30,10 +27,11 @@ import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
+@SuppressWarnings("deprecation")
 public class ComponentReportRenderer extends TextReportRenderer {
     private final ComponentRenderer componentRenderer;
-    private final TrackingReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
-    private final TrackingReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
+    private final TrackingReportRenderer<org.gradle.language.base.LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
+    private final TrackingReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder> binaryRenderer;
 
     @SuppressWarnings("this-escape")
     public ComponentReportRenderer(FileResolver fileResolver, TypeAwareBinaryRenderer binaryRenderer) {
@@ -50,13 +48,13 @@ public class ComponentReportRenderer extends TextReportRenderer {
         super.complete();
     }
 
-    public void renderComponents(Collection<ComponentSpec> components) {
+    public void renderComponents(Collection<org.gradle.platform.base.ComponentSpec> components) {
         if (components.isEmpty()) {
             getTextOutput().withStyle(Info).println("No components defined for this project.");
             return;
         }
         boolean seen = false;
-        for (ComponentSpec component : components) {
+        for (org.gradle.platform.base.ComponentSpec component : components) {
             if (seen) {
                 getBuilder().getOutput().println();
             } else {
@@ -66,25 +64,25 @@ public class ComponentReportRenderer extends TextReportRenderer {
         }
     }
 
-    public void renderSourceSets(Collection<LanguageSourceSet> sourceSets) {
-        Set<LanguageSourceSet> additionalSourceSets = collectAdditionalSourceSets(sourceSets);
+    public void renderSourceSets(Collection<org.gradle.language.base.LanguageSourceSet> sourceSets) {
+        Set<org.gradle.language.base.LanguageSourceSet> additionalSourceSets = collectAdditionalSourceSets(sourceSets);
         outputCollection(additionalSourceSets, "Additional source sets", sourceSetRenderer, "source sets");
     }
 
-   public void renderBinaries(Collection<BinarySpec> binaries) {
-        Set<BinarySpec> additionalBinaries = collectAdditionalBinaries(binaries);
+   public void renderBinaries(Collection<org.gradle.platform.base.BinarySpec> binaries) {
+        Set<org.gradle.platform.base.BinarySpec> additionalBinaries = collectAdditionalBinaries(binaries);
         outputCollection(additionalBinaries, "Additional binaries", binaryRenderer, "binaries");
     }
 
-    private Set<LanguageSourceSet> collectAdditionalSourceSets(Collection<LanguageSourceSet> sourceSets) {
-        Set<LanguageSourceSet> result = Sets.newTreeSet(SourceSetRenderer.SORT_ORDER);
+    private Set<org.gradle.language.base.LanguageSourceSet> collectAdditionalSourceSets(Collection<org.gradle.language.base.LanguageSourceSet> sourceSets) {
+        Set<org.gradle.language.base.LanguageSourceSet> result = Sets.newTreeSet(SourceSetRenderer.SORT_ORDER);
         result.addAll(sourceSets);
         result.removeAll(sourceSetRenderer.getItems());
         return result;
     }
 
-   private Set<BinarySpec> collectAdditionalBinaries(Collection<BinarySpec> binaries) {
-       Set<BinarySpec> result = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
+   private Set<org.gradle.platform.base.BinarySpec> collectAdditionalBinaries(Collection<org.gradle.platform.base.BinarySpec> binaries) {
+       Set<org.gradle.platform.base.BinarySpec> result = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
        result.addAll(binaries);
        result.removeAll(binaryRenderer.getItems());
        return result;

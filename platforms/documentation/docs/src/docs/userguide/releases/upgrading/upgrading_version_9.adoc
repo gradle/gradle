@@ -36,11 +36,80 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle :wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.8.0]]
+== Upgrading from 9.7.0 and earlier
+
+=== Potential breaking changes
+
+[[task_logging_listeners_are_now_stored_in_the_configuration_cache]]
+==== Task logging listeners are now stored in the Configuration Cache
+
+Standard output and error listeners registered on a task's logging manager during configuration (for example via link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardOutputListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardOutputListener`] or link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardErrorListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardErrorListener`]) are now stored in the Configuration Cache and re-registered on a cache hit, so they receive the task's output as they would without the Configuration Cache.
+
+Previously, these listeners were silently discarded and never received output when the Configuration Cache was used.
+
+A listener that cannot be serialized is now reported as a Configuration Cache problem instead of being silently dropped, which may cause a build that previously worked to fail.
+If your build registers such a listener and the listener is nonessential, you can opt out and restore the previous behavior — listeners are not serialized, so they are dropped on a cache hit and no problem is reported — by setting:
+
+[source,properties]
+----
+org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
+----
+
+This property is a temporary opt-out and will be removed in a future Gradle release.
+
+[[kotlin_object_singletons_in_configuration_cache]]
+==== Kotlin `object` singletons keep their identity in the Configuration Cache
+
+A Kotlin `object` (including `companion object` declarations) stored in the Configuration Cache is now restored as the same singleton instance.
+As a consequence, only the singleton's identity is restored, not any mutable state it may hold.
+
+Previously, each `object` was serialized as a regular bean and rebuilt as a _new_ instance on a cache hit, so `deserialized === TheObject` was `false`.
+If you relied on mutable state surviving a cache hit, move it into a task property or another bean type that is serialized by value.
+
+=== Deprecations
+
+[[deprecate_implicit_parallel_model_building]]
+==== Deprecation of implicit opt-in to parallel model building
+
+Parallel model building lets Tooling API clients (most commonly IDEs during project synchronization) build project models in parallel.
+Historically, it had no dedicated control and was enabled implicitly whenever parallel execution (`org.gradle.parallel=true` or `--parallel`) was enabled.
+
+Gradle 9.4.0 introduced the dedicated `org.gradle.tooling.parallel` property to control parallel model building explicitly.
+When that property is not set, its value is currently derived from `org.gradle.parallel` to preserve backward compatibility.
+
+Relying on this implicit behavior is now deprecated.
+When `org.gradle.parallel` is enabled and `org.gradle.tooling.parallel` is not set explicitly during model building, Gradle emits a deprecation warning.
+In Gradle 10, the two properties will become independent, and enabling `org.gradle.parallel` without an explicit value for `org.gradle.tooling.parallel` during model building will be an error.
+
+To avoid the warning and prepare for Gradle 10, set `org.gradle.tooling.parallel` explicitly to either `true` or `false`, for example in `gradle.properties`:
+
+[source,properties]
+----
+org.gradle.tooling.parallel=true
+----
+
+Additionally, the transitional system property `org.gradle.tooling.parallel.ignore-legacy-default` (used by some IDEs during sync to opt out of the legacy default) will no longer be honored in Gradle 10.
+Once `org.gradle.parallel` and `org.gradle.tooling.parallel` are independent, the flag is redundant, so Gradle 10 simply ignores it.
+No action is required in Gradle 9.x; if you set it explicitly, you can remove it when upgrading to Gradle 10.
+
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
 
 === Potential breaking changes
 
+[[publish_no_sha256_sha512_checksums]]
+==== SHA-256 and SHA-512 checksums are no longer published
+
+When publishing to Maven or Ivy repositories, Gradle no longer publishes `.sha256` and `.sha512` checksum files alongside each artifact.
+Only universally supported checksums are published: `.sha1` and `.md5` for Maven and `.sha1` for Ivy.
+
+These extra checksums were rarely consumed and frequently rejected by repositories that do not recognize them.
+Consuming builds are unaffected as Gradle has never required SHA-256 or SHA-512 checksums to be present in order to resolve or verify artifacts.
+
+The internal, undocumented `org.gradle.internal.publish.checksums.insecure` system property, which previously suppressed these extra checksums, no longer has any effect and can be removed.
+
+[[project_cache_dir_no_longer_watched]]
 ==== The project cache directory is no longer watched
 
 Gradle no longer watches the _project cache directory_ (the `.gradle` directory in the root project, or a custom location set with `--project-cache-dir`).
@@ -50,10 +119,12 @@ As a result, a custom project cache directory no longer disables file system wat
 Previously, `--project-cache-dir` (or `org.gradle.projectcachedir`) was incompatible with watching: passing `--watch-fs` alongside it failed the build, and leaving watching at its default silently disabled it.
 File system watching now follows the usual rules regardless of where the project cache directory is located.
 
-This also applies to source-dependency check-outs, which live under the project cache directory: their roots are no longer registered as watchable hierarchies.
+This applies to the project cache directory itself.
+Source-dependency check-outs, which live under the project cache directory but whose contents can change externally, remain watched as regular build directories.
 
 See <<file_system_watching.adoc#sec:excluding_files_and_directories,Excluding files and directories>> for details.
 
+[[kotlin_2_4_0]]
 ==== Upgrade to Kotlin 2.4.0
 
 The embedded Kotlin has been upgraded from 2.3.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.0[Kotlin 2.4.0].
@@ -137,6 +208,27 @@ enableFeaturePreview("ENHANCED_GRAPH_ORDERING")
 
 === Deprecations
 
+[[deprecated_software_model]]
+==== Deprecation of the software model
+
+The Gradle software model — including the `model { }` DSL, link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`] plugins, and the native and JVM component types built on top of them — is deprecated and will be removed in Gradle 10.
+
+This affects the following groups of public API types:
+
+- The rule-authoring API in `org.gradle.model`: `RuleSource`, `ModelMap`, `ModelSet`, `ModelElement`, and the `@Model`, `@Mutate`, `@Defaults`, `@Finalize`, `@Validate`, `@Each`, `@Path`, `@RuleInput`, `@RuleTarget`, `@Rules`, `@Managed`, and `@Unmanaged` annotations.
+- The component-model base API in `org.gradle.platform.base` and `org.gradle.language.base`: `ComponentSpec`, `BinarySpec`, `LibrarySpec`, `ApplicationSpec`, `LanguageSourceSet`, and related container, builder, and annotation types.
+- The native component plugins: `c`, `cpp`, `objective-c`, `objective-cpp`, `assembler`, `windows-resources`, and `native-component`, along with their source-set, binary-spec, build-type, flavor, and prebuilt-library types in `org.gradle.nativeplatform` and `org.gradle.language.*`.
+- The native test plugins `cunit`, `cunit-test-suite`, `google-test`, and `google-test-test-suite`, along with the rule-based `test-suite-base` infrastructure in `org.gradle.testing.base`.
+- The `componentReport` and `dependentComponents` diagnostic tasks.
+
+Replace software-model-based builds with the current component model:
+
+- For C and {cpp}, use the link:{userManualPath}/cpp_application_plugin.html[`cpp-application`] and link:{userManualPath}/cpp_library_plugin.html[`cpp-library`] plugins.
+- For Swift, use the link:{userManualPath}/swift_application_plugin.html[`swift-application`] and link:{userManualPath}/swift_library_plugin.html[`swift-library`] plugins.
+- For native testing, use the link:{userManualPath}/cpp_unit_test_plugin.html[`cpp-unit-test`] and link:{userManualPath}/xctest_plugin.html[`xctest`] plugins.
+
+The new plugins configure components through ordinary Gradle extensions (`application { }`, `library { }`, `unitTest { }`) without the `model { }` block, integrate with the configuration cache, and support Gradle's standard dependency-management features.
+
 [[deprecated_unsafe_isolated_projects_properties]]
 ==== Deprecation of `org.gradle.unsafe.isolated-projects*` property names
 
@@ -172,6 +264,20 @@ Referencing such a custom subtype from a task field or task action is now deprec
 To fix it, use a standard collection or map type instead of a custom subtype, and store any extra data in separate fields.
 
 See <<configuration_cache_requirements.adoc#config_cache:requirements:custom_collection_types, Custom Collection and Map Types>> for details.
+
+[[deprecated_startparameter_construction]]
+==== Deprecation of creating and copying `StartParameter`
+
+Starting in Gradle 10, constructing new instances of link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter`] will no longer be permitted.
+It was never intended to be instantiated or copied by build logic, but the public no-argument constructor and the `newInstance()` / `newBuild()` methods made that possible.
+
+The following have been deprecated for removal:
+
+- the public link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter()`] constructor
+- link:{javadocPath}/org/gradle/StartParameter.html#newInstance()[`StartParameter.newInstance()`]
+- link:{javadocPath}/org/gradle/StartParameter.html#newBuild()[`StartParameter.newBuild()`]
+
+The existing `StartParameter` instance for a build may be obtained via link:{javadocPath}/org/gradle/api/invocation/Gradle.html#getStartParameter()[`Gradle.getStartParameter()`] instead of constructing or copying one.
 
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
@@ -989,7 +1095,10 @@ We are deprecating these file generation tasks:
 * associated `clean*` tasks
 
 In addition to the tasks, certain model properties that only affect the generated files are also deprecated.
-These include `idea.module.iml { ... }`, `idea.project.ipr { ... }`, `idea.workspace { ... }`, `eclipse.wtp { ... }`, and the `file { ... }` merging hooks on `EclipseJdt`.
+These include `idea.module.iml { ... }`, `idea.project.ipr { ... }`, `idea.workspace { ... }`, `idea.targetVersion`, `idea.pathVariables`, `idea.module.pathVariables`, `idea.project.projectLibraries`, `eclipse.wtp.facet { ... }`, the `file { ... }` merging hooks on `EclipseJdt` and `eclipse.wtp.component`, and the `withXml { ... }` hook on all `file { ... }` blocks.
+The `beforeMerged { ... }` and `whenMerged { ... }` hooks on the eclipse project and classpath models are _not_ deprecated, as they also affect the model consumed by the IDE.
+
+The rest of `eclipse.wtp { ... }` is _not_ deprecated: the `eclipse.wtp.component { ... }` configuration feeds the WTP classpath attributes surfaced via the Tooling API, which Eclipse Buildship consumes.
 
 The model properties that affect how IDEs understand your project (source directories, language levels, dependency scopes, etc.) are _not_ deprecated.
 When you apply the plugins and configure the `idea { ... }` or `eclipse { ... }` blocks in your build scripts, you can customize how your IDE understands your project.

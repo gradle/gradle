@@ -201,8 +201,23 @@ public abstract class Jar extends Zip {
      *
      * <p>The given action is executed to configure the manifest.</p>
      *
+     * <pre class='autoTested'>
+     * plugins {
+     *     id 'java'
+     * }
+     *
+     * def buildNumber = providers.gradleProperty('buildNumber').orElse('0')
+     *
+     * tasks.named('jar', Jar) {
+     *     manifest {
+     *         attributes('Build-Number': buildNumber)
+     *     }
+     * }
+     * </pre>
+     *
      * @param configureAction The action.
      * @return This.
+     * @see Manifest#attributes(java.util.Map)
      * @since 3.5
      */
     public Jar manifest(Action<? super Manifest> configureAction) {

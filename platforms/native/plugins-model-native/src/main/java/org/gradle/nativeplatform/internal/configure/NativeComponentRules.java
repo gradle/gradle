@@ -17,9 +17,6 @@
 package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -39,12 +36,13 @@ import java.util.Set;
 /**
  * Cross cutting rules for all instances of {@link org.gradle.nativeplatform.NativeComponentSpec}
  */
+@SuppressWarnings("deprecation")
 public class NativeComponentRules {
     public static void createBinariesImpl(
         TargetedNativeComponentInternal nativeComponent,
         PlatformResolvers platforms,
-        Set<? extends BuildType> buildTypes,
-        Set<? extends Flavor> flavors,
+        Set<? extends org.gradle.nativeplatform.BuildType> buildTypes,
+        Set<? extends org.gradle.nativeplatform.Flavor> flavors,
         NativePlatforms nativePlatforms,
         NativeDependencyResolver nativeDependencyResolver,
         FileCollectionFactory fileCollectionFactory
@@ -79,13 +77,13 @@ public class NativeComponentRules {
         TargetedNativeComponentInternal projectNativeComponent,
         NativePlatformInternal platform,
         BinaryNamingScheme namingScheme,
-        Set<? extends BuildType> allBuildTypes,
-        Set<? extends Flavor> allFlavors,
+        Set<? extends org.gradle.nativeplatform.BuildType> allBuildTypes,
+        Set<? extends org.gradle.nativeplatform.Flavor> allFlavors,
         NativeDependencyResolver nativeDependencyResolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        Set<BuildType> targetBuildTypes = projectNativeComponent.chooseBuildTypes(allBuildTypes);
-        for (BuildType buildType : targetBuildTypes) {
+        Set<org.gradle.nativeplatform.BuildType> targetBuildTypes = projectNativeComponent.chooseBuildTypes(allBuildTypes);
+        for (org.gradle.nativeplatform.BuildType buildType : targetBuildTypes) {
             BinaryNamingScheme namingSchemeWithBuildType = namingScheme.withVariantDimension(buildType, targetBuildTypes);
             executeForEachFlavor(
                 projectNativeComponent,
@@ -102,18 +100,18 @@ public class NativeComponentRules {
     private static void executeForEachFlavor(
         TargetedNativeComponentInternal projectNativeComponent,
         NativePlatform platform,
-        BuildType buildType,
+        org.gradle.nativeplatform.BuildType buildType,
         BinaryNamingScheme namingScheme,
-        Set<? extends Flavor> allFlavors,
+        Set<? extends org.gradle.nativeplatform.Flavor> allFlavors,
         NativeDependencyResolver nativeDependencyResolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        Set<Flavor> targetFlavors = projectNativeComponent.chooseFlavors(allFlavors);
-        for (Flavor flavor : targetFlavors) {
+        Set<org.gradle.nativeplatform.Flavor> targetFlavors = projectNativeComponent.chooseFlavors(allFlavors);
+        for (org.gradle.nativeplatform.Flavor flavor : targetFlavors) {
             BinaryNamingScheme namingSchemeWithFlavor = namingScheme.withVariantDimension(flavor, targetFlavors);
             NativeBinaries.createNativeBinaries(
                 projectNativeComponent,
-                projectNativeComponent.getBinaries().withType(NativeBinarySpec.class),
+                projectNativeComponent.getBinaries().withType(org.gradle.nativeplatform.NativeBinarySpec.class),
                 nativeDependencyResolver,
                 fileCollectionFactory,
                 namingSchemeWithFlavor,

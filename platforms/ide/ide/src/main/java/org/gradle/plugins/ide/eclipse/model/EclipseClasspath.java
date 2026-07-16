@@ -107,7 +107,7 @@ import java.util.Set;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'

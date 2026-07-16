@@ -53,6 +53,7 @@ class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
         expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         expectTaskTypeDeprecations(
                 ("org.gradle.plugins.ide.idea.model.IdeaProject.ipr"): 1,
+                ("org.gradle.plugins.ide.api.XmlFileContentMerger.withXml"): 1,
         )
         def result = runTask ':idea', 'include "someProjectThatWillBeExcluded", "api"', '''
             allprojects {

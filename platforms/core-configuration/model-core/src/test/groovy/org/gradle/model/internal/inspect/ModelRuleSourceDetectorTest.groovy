@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
+@SuppressWarnings("deprecation")
 class ModelRuleSourceDetectorTest extends Specification {
 
     private ModelRuleSourceDetector detector = new ModelRuleSourceDetector()

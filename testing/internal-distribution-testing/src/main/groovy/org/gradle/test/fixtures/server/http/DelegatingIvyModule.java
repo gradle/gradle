@@ -137,18 +137,6 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     }
 
     @Override
-    public IvyModule withoutExtraChecksums() {
-        backingModule.withoutExtraChecksums();
-        return t();
-    }
-
-    @Override
-    public IvyModule withExtraChecksums() {
-        backingModule.withExtraChecksums();
-        return t();
-    }
-
-    @Override
     public IvyModule withBranch(String branch) {
         backingModule.withBranch(branch);
         return t();

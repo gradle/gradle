@@ -26,8 +26,11 @@ import java.io.File;
 
 /**
  * Generated the Gradle CUnit launcher: main method and header.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @DisableCachingByDefault(because = "Not worth caching")
+@Deprecated
 public abstract class GenerateCUnitLauncher extends DefaultTask {
     private File sourceDir;
     private File headerDir;

@@ -18,6 +18,7 @@ package org.gradle.api.java.archives;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
@@ -45,9 +46,10 @@ public interface Manifest {
     /**
      * Adds content to the main attributes of the manifest.
      *
-     * @param attributes The values to add to the main attributes. The values can be any object. For evaluating the value objects
-     * their {@link Object#toString()} method is used. This is done lazily either before writing or when {@link #getEffectiveManifest()}
-     * is called.
+     * @param attributes The values to add to the main attributes.
+     *     The values can be any object, including {@link Provider} instances.
+     *     Provider values are queried lazily either before writing or when {@link #getEffectiveManifest()} is called.
+     *     Non-provider values are evaluated by using their {@link Object#toString()} method.
      *
      * @return this
      * @throws ManifestException If a key is invalid according to the manifest spec or if a key or value is null.
@@ -57,9 +59,10 @@ public interface Manifest {
     /**
      * Adds content to the given section of the manifest.
      *
-     * @param attributes The values to add to the section. The values can be any object. For evaluating the value objects
-     * their {@link Object#toString()} method is used. This is done lazily either before writing or when {@link #getEffectiveManifest()}
-     * is called.
+     * @param attributes The values to add to the section.
+     *     The values can be any object, including {@link Provider} instances.
+     *     Provider values are queried lazily either before writing or when {@link #getEffectiveManifest()} is called.
+     *     Non-provider values are evaluated by using their {@link Object#toString()} method.
      * @param sectionName The name of the section
      *
      * @return this

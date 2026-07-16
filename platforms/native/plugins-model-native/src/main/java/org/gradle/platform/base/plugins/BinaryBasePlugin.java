@@ -45,8 +45,11 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
  * - For each {@link BinarySpec}, registers a lifecycle task to assemble that binary.
  * - For each {@link BinarySpec}, adds the binary's source sets as its default inputs.
  * - Links the tasks for each {@link BinarySpec} across to the tasks container.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public abstract class BinaryBasePlugin implements Plugin<Project> {
 
     @Override

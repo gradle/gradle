@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.file.RelativeFilePathResolver;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.dsl.internal.transform.ClosureBackedRuleFactory;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.internal.core.*;
@@ -32,6 +31,7 @@ import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFA
 import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 @ThreadSafe
+@SuppressWarnings("deprecation")
 public class TransformedModelDslBacking {
     private final ModelRegistry modelRegistry;
     private final ClosureBackedRuleFactory ruleFactory;
@@ -63,7 +63,7 @@ public class TransformedModelDslBacking {
             NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(forType(modelType));
             modelRegistry.register(ModelRegistrations.of(modelPath, nodeInitializer).descriptor(descriptor).build());
         } catch (ModelTypeInitializationException e) {
-            throw new InvalidModelRuleDeclarationException(descriptor, e);
+            throw new org.gradle.model.InvalidModelRuleDeclarationException(descriptor, e);
         }
         registerAction(modelPath, modelType, ModelActionRole.Initialize, modelAction);
     }

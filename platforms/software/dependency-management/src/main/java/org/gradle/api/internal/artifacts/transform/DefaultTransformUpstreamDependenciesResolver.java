@@ -119,8 +119,8 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
      * with dependencies, as the incomplete graph used to initially determine upstream transforms does
      * not represent the final dependency graph.
      * <p>
-     * See {@link org.gradle.integtests.resolve.transform.ArtifactTransformWithDependenciesParallelIntegrationTest}
-     * for the test that exercises the scenario that necessitates this behavior.
+     * See {@code ArtifactTransformWithDependenciesParallelIntegrationTest} in {@code :dependency-management}'s
+     * integration tests for the test that exercises the scenario that necessitates this behavior.
      */
     public DefaultTransformUpstreamDependenciesResolver(
         ResolutionHost resolutionHost,
