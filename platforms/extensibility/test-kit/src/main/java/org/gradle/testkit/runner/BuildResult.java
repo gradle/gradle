@@ -101,4 +101,16 @@ public interface BuildResult {
     @Nullable
     BuildTask task(String taskPath);
 
+    /**
+     * The outcome of configuration caching for the build.
+     * <p>
+     * Returns {@link ConfigurationCacheOutcome#NOT_ENABLED} if the configuration cache was not enabled for the build.
+     *
+     * @return the configuration cache outcome, never null
+     * @throws UnsupportedFeatureException when the build was run with a version of Gradle that does not report the outcome (older than 9.8.0)
+     * @since 9.8.0
+     */
+    @Incubating
+    ConfigurationCacheOutcome getConfigurationCacheOutcome();
+
 }

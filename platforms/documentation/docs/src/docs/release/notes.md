@@ -70,6 +70,25 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### TestKit API for asserting the Configuration Cache outcome
+
+Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded — an approach that broke whenever the wording of the console messages changed.
+
+The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly:
+
+```groovy
+def result = GradleRunner.create()
+    .withProjectDir(projectDir)
+    .withArguments("myTask", "--configuration-cache")
+    .build()
+
+assert result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
+```
+
+See [`ConfigurationCacheOutcome`](javadoc/org/gradle/testkit/runner/ConfigurationCacheOutcome.html) for the possible outcomes, and the [TestKit user guide](userguide/test_kit.html#sub:test-kit-configuration-cache) for details.
+
+The outcome is also available to any Tooling API client through a new [`CONFIGURATION_CACHE`](javadoc/org/gradle/tooling/events/OperationType.html#CONFIGURATION_CACHE) progress event type.
+
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 

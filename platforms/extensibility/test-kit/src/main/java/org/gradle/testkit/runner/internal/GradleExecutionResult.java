@@ -30,6 +30,8 @@ public class GradleExecutionResult {
     private final ByteSource outputSource;
     private final List<BuildTask> tasks;
     @Nullable
+    private final String configurationCacheOutcome;
+    @Nullable
     private final Throwable throwable;
 
     public GradleExecutionResult(BuildOperationParameters buildOperationParameters, String standardOutput, List<BuildTask> tasks) {
@@ -42,22 +44,24 @@ public class GradleExecutionResult {
         List<BuildTask> tasks,
         @Nullable Throwable throwable
     ) {
-        this(buildOperationParameters, ByteSource.wrap(standardOutput.getBytes(Charset.defaultCharset())), tasks, throwable);
+        this(buildOperationParameters, ByteSource.wrap(standardOutput.getBytes(Charset.defaultCharset())), tasks, null, throwable);
     }
 
     public GradleExecutionResult(BuildOperationParameters buildOperationParameters, ByteSource outputSource, List<BuildTask> tasks) {
-        this(buildOperationParameters, outputSource, tasks, null);
+        this(buildOperationParameters, outputSource, tasks, null, null);
     }
 
     public GradleExecutionResult(
         BuildOperationParameters buildOperationParameters,
         ByteSource outputSource,
         List<BuildTask> tasks,
+        @Nullable String configurationCacheOutcome,
         @Nullable Throwable throwable
     ) {
         this.buildOperationParameters = buildOperationParameters;
         this.outputSource = outputSource;
         this.tasks = tasks;
+        this.configurationCacheOutcome = configurationCacheOutcome;
         this.throwable = throwable;
     }
 
@@ -72,6 +76,15 @@ public class GradleExecutionResult {
 
     public List<BuildTask> getTasks() {
         return tasks;
+    }
+
+    /**
+     * The raw outcome name reported by the build's configuration cache entry outcome event,
+     * or {@code null} if no such event was received.
+     */
+    @Nullable
+    public String getConfigurationCacheOutcome() {
+        return configurationCacheOutcome;
     }
 
     @Nullable

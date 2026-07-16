@@ -19,8 +19,10 @@ package org.gradle.testkit.runner.internal;
 import com.google.common.io.ByteSource;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.ConfigurationCacheOutcome;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.internal.feature.BuildResultOutputFeatureCheck;
+import org.gradle.testkit.runner.internal.feature.ConfigurationCacheOutcomeFeatureCheck;
 import org.gradle.testkit.runner.internal.feature.FeatureCheck;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -33,9 +35,10 @@ public class FeatureCheckBuildResult implements BuildResult {
 
     private final BuildResult delegateBuildResult;
     private final FeatureCheck outputFeatureCheck;
+    private final FeatureCheck configurationCacheOutcomeFeatureCheck;
 
     public FeatureCheckBuildResult(BuildOperationParameters buildOperationParameters, @NonNull String output, List<BuildTask> tasks) {
-        this(buildOperationParameters, ByteSource.wrap(output.getBytes(Charset.defaultCharset())), tasks);
+        this(buildOperationParameters, ByteSource.wrap(output.getBytes(Charset.defaultCharset())), tasks, null);
     }
 
     public FeatureCheckBuildResult(
@@ -43,8 +46,18 @@ public class FeatureCheckBuildResult implements BuildResult {
         @NonNull ByteSource outputSource,
         List<BuildTask> tasks
     ) {
-        delegateBuildResult = new DefaultBuildResult(outputSource, tasks);
+        this(buildOperationParameters, outputSource, tasks, null);
+    }
+
+    public FeatureCheckBuildResult(
+        BuildOperationParameters buildOperationParameters,
+        @NonNull ByteSource outputSource,
+        List<BuildTask> tasks,
+        @Nullable String configurationCacheOutcome
+    ) {
+        delegateBuildResult = new DefaultBuildResult(outputSource, tasks, configurationCacheOutcome);
         outputFeatureCheck = new BuildResultOutputFeatureCheck(buildOperationParameters.getTargetGradleVersion(), buildOperationParameters.isEmbedded());
+        configurationCacheOutcomeFeatureCheck = new ConfigurationCacheOutcomeFeatureCheck(buildOperationParameters.getTargetGradleVersion());
     }
 
     @Override
@@ -78,5 +91,11 @@ public class FeatureCheckBuildResult implements BuildResult {
     @Override
     public BuildTask task(String taskPath) {
         return delegateBuildResult.task(taskPath);
+    }
+
+    @Override
+    public ConfigurationCacheOutcome getConfigurationCacheOutcome() {
+        configurationCacheOutcomeFeatureCheck.verify();
+        return delegateBuildResult.getConfigurationCacheOutcome();
     }
 }

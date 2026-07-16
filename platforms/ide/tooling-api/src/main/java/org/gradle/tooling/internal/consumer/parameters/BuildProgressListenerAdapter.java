@@ -39,6 +39,15 @@ import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurat
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationOperationDescriptor;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationStartEvent;
 import org.gradle.tooling.events.configuration.internal.DefaultProjectConfigurationSuccessResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryOutcomeResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheFinishEvent;
+import org.gradle.tooling.events.configuration.ConfigurationCacheOperationDescriptor;
+import org.gradle.tooling.events.configuration.ConfigurationCacheProgressEvent;
+import org.gradle.tooling.events.configuration.ConfigurationCacheStartEvent;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryOutcomeResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheFinishEvent;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheOperationDescriptor;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheStartEvent;
 import org.gradle.tooling.events.download.FileDownloadFinishEvent;
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
 import org.gradle.tooling.events.download.FileDownloadProgressEvent;
@@ -193,6 +202,8 @@ import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryOutcomeResult;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
 import org.gradle.tooling.internal.protocol.events.InternalFilePosition;
@@ -299,6 +310,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> problemListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> rootBuildListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> configurationCacheListeners = new ListenerBroadcast<>(ProgressListener.class);
 
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<>();
 
@@ -315,6 +327,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         buildPhaseListeners.addAll(getOrDefault(listeners, OperationType.BUILD_PHASE));
         problemListeners.addAll(getOrDefault(listeners, OperationType.PROBLEMS));
         rootBuildListeners.addAll(getOrDefault(listeners, OperationType.ROOT));
+        configurationCacheListeners.addAll(getOrDefault(listeners, OperationType.CONFIGURATION_CACHE));
     }
 
     private static List<ProgressListener> getOrDefault(Map<OperationType, List<ProgressListener>> listeners, OperationType operationType) {
@@ -365,6 +378,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (!rootBuildListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.ROOT);
         }
+        if (!configurationCacheListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.CONFIGURATION_CACHE);
+        }
         return operations;
     }
 
@@ -401,6 +417,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             buildPhaseListeners.getSource().statusChanged(event);
         } else if (event instanceof ProblemEvent) {
             problemListeners.getSource().statusChanged(event);
+        } else if (event instanceof ConfigurationCacheProgressEvent) {
+            configurationCacheListeners.getSource().statusChanged(event);
         } else if (event instanceof FileDownloadProgressEvent || event instanceof DefaultStatusEvent) {
             fileDownloadListeners.getSource().statusChanged(event);
         } else {
@@ -436,6 +454,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             } else {
                 broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
             }
+        } else if (descriptor instanceof InternalConfigurationCacheDescriptor) {
+            broadcastConfigurationCacheEvent(progressEvent, (InternalConfigurationCacheDescriptor) descriptor);
         } else if (descriptor instanceof InternalBuildPhaseDescriptor) {
             broadcastBuildPhaseEvent(progressEvent, (InternalBuildPhaseDescriptor) descriptor);
         } else if (descriptor instanceof InternalProblemDescriptor) {
@@ -522,6 +542,42 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     /*
      * Does not handle file download update events, see #broadcastStatusEvent for those
      */
+    private void broadcastConfigurationCacheEvent(InternalProgressEvent event, InternalConfigurationCacheDescriptor descriptor) {
+        ProgressEvent progressEvent = toConfigurationCacheProgressEvent(event, descriptor);
+        if (progressEvent != null) {
+            configurationCacheListeners.getSource().statusChanged(progressEvent);
+        }
+    }
+
+    private @Nullable ConfigurationCacheProgressEvent toConfigurationCacheProgressEvent(InternalProgressEvent event, InternalConfigurationCacheDescriptor descriptor) {
+        if (event instanceof InternalOperationStartedProgressEvent) {
+            return configurationCacheStartEvent((InternalOperationStartedProgressEvent) event, descriptor);
+        } else if (event instanceof InternalOperationFinishedProgressEvent) {
+            return configurationCacheFinishedEvent((InternalOperationFinishedProgressEvent) event);
+        } else {
+            return null;
+        }
+    }
+
+    private ConfigurationCacheStartEvent configurationCacheStartEvent(InternalOperationStartedProgressEvent event, InternalConfigurationCacheDescriptor descriptor) {
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
+        ConfigurationCacheOperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), new DefaultConfigurationCacheOperationDescriptor(descriptor, parent));
+        return new DefaultConfigurationCacheStartEvent(event.getEventTime(), event.getDisplayName(), clientDescriptor);
+    }
+
+    private ConfigurationCacheFinishEvent configurationCacheFinishedEvent(InternalOperationFinishedProgressEvent event) {
+        ConfigurationCacheOperationDescriptor descriptor = removeDescriptor(ConfigurationCacheOperationDescriptor.class, event.getDescriptor());
+        return new DefaultConfigurationCacheFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toConfigurationCacheEntryOutcomeResult(event.getResult()));
+    }
+
+    private static @Nullable ConfigurationCacheEntryOutcomeResult toConfigurationCacheEntryOutcomeResult(InternalOperationResult result) {
+        if (!(result instanceof InternalConfigurationCacheEntryOutcomeResult)) {
+            return null;
+        }
+        InternalConfigurationCacheEntryOutcomeResult outcomeResult = (InternalConfigurationCacheEntryOutcomeResult) result;
+        return new DefaultConfigurationCacheEntryOutcomeResult(result.getStartTime(), result.getEndTime(), outcomeResult.getOutcome(), outcomeResult.getProblemCount());
+    }
+
     private void broadcastFileDownloadEvent(InternalProgressEvent event, InternalFileDownloadDescriptor descriptor) {
         ProgressEvent progressEvent = toFileDownloadProgressEvent(event, descriptor);
         if (progressEvent != null) {
