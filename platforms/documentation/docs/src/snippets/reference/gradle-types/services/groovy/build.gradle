@@ -371,3 +371,22 @@ abstract class CleanTempTask extends DefaultTask {
 
 tasks.register("cleanTemp", CleanTempTask) {}
 // end::clean-temp-inject[]
+
+// tag::service-lookup[]
+tasks.register('checkJavaVersion') {
+    doLast {
+        service(ExecOperations).exec {
+            commandLine 'java', '-version'
+        }
+    }
+}
+// end::service-lookup[]
+
+// tag::service-lookup-capture[]
+tasks.register('cleanReports') {
+    def fs = service(FileSystemOperations) // looked up and captured at configuration time
+    doLast {
+        fs.delete { delete('build/reports') }
+    }
+}
+// end::service-lookup-capture[]

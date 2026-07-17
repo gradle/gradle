@@ -310,3 +310,22 @@ tasks.register("cleanTemp", CleanTempTask::class) {}
 // Also exercise the Java implementation that lives in buildSrc, so the snippets
 // integration test compiles and instantiates org.example.CleanTempTask.
 tasks.register<org.example.CleanTempTask>("cleanTempJava") {}
+
+// tag::service-lookup[]
+tasks.register("checkJavaVersion") {
+    doLast {
+        service<ExecOperations>().exec {
+            commandLine("java", "-version")
+        }
+    }
+}
+// end::service-lookup[]
+
+// tag::service-lookup-capture[]
+tasks.register("cleanReports") {
+    val fs = service<FileSystemOperations>() // looked up and captured at configuration time
+    doLast {
+        fs.delete { delete("build/reports") }
+    }
+}
+// end::service-lookup-capture[]

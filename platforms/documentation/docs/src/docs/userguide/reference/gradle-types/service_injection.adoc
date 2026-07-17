@@ -141,6 +141,59 @@ The following services are available for injection in settings plugins, extensio
 | Provides access to important locations for a Gradle build, such as the root directory and settings file. Use it from a settings plugin to resolve paths relative to the root settings directory.
 |===
 
+[[looking_up_services]]
+== Looking up services in scripts incubating-label:[]
+
+Instead of declaring an `@Inject` point, build, settings, and init scripts — and task actions — can look up a curated set of Gradle services directly with `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL.
+This avoids the ad-hoc `objects.newInstance(...)` ceremony shown in the per-service sections below, while remaining compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>> and <<isolated_projects.adoc#isolated_projects,Isolated Projects>>.
+
+The most common use is from a task action:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=service-lookup]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=service-lookup]"]
+====
+
+A looked-up service can also be captured at configuration time and used later from a task action; the captured instance is safe to store in the Configuration Cache:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=service-lookup-capture]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=service-lookup-capture]"]
+====
+
+=== Services available for lookup
+
+The set of services you can look up depends on where the lookup happens:
+
+[%header,cols="2,1,1,1"]
+|===
+| Service | Project scripts, plugins & task actions | Settings scripts & plugins | Init scripts & `Gradle` plugins
+
+| <<objectfactory,`ObjectFactory`>>               | ✓ | ✓ | ✓
+| <<providerfactory,`ProviderFactory`>>           | ✓ | ✓ | ✓
+| <<filesystemoperations,`FileSystemOperations`>> | ✓ | ✓ | ✓
+| <<archiveoperations,`ArchiveOperations`>>       | ✓ | ✓ | ✓
+| <<execoperations,`ExecOperations`>>             | ✓ | ✓ | ✓
+| <<sec:projectlayout,`ProjectLayout`>>           | ✓ |   |
+| <<buildlayout,`BuildLayout`>>                   |   | ✓ |
+|===
+
+Looking up a type that is not available in the current scope, an internal type, or a <<build_services.adoc#build_services,shared build service>> fails with an `InvalidUserDataException` whose message lists the services that _are_ available in that scope; for a build service it points you to `@ServiceReference` and `gradle.sharedServices` instead.
+
+Relative paths passed to a looked-up `FileSystemOperations` or `ArchiveOperations` are resolved the same way as for the enclosing scope: against the project directory for a project script or task action, and against the build's root directory for a settings or init script.
+
+=== Cross-project access and Isolated Projects
+
+`service(...)` resolves against the scope in which it is called.
+Calling it on another project — for example `project(":other").service(ObjectFactory)` — reaches across the project boundary and is reported as a problem under <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, exactly like `project(":other").getObjects()`.
+Look services up from the owning project instead.
+
+NOTE: A service that is only available in the settings scope (such as `BuildLayout`) can be captured in a settings script and referenced from a task action, but it cannot be restored when that task runs from the Configuration Cache, because it is re-resolved against the task's own project scope. Look up project-scoped services (or `ProjectLayout`) from the task instead.
+
+=== When to use a lookup
+
+Prefer a looked-up `FileSystemOperations`, `ArchiveOperations`, or `ExecOperations` over hand-rolled `java.io`/`java.nio` code or `Runtime.exec(...)` when you need Gradle's path resolution, copy and sync specs, or robust deletion, and you want the code to keep working with the Configuration Cache.
+
 [[objectfactory]]
 == `ObjectFactory`
 
