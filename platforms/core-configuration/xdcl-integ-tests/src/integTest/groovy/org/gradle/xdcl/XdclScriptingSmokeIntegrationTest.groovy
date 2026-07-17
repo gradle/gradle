@@ -610,11 +610,11 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                   "app",
                   "lib",
                 ]
-                defaults {
+                defaults [
                   library { name "my lib" }
                   application { name "my app" }
-                  for MyComponent { version "0.1.0" }
-                }
+                  MyComponent { version "0.1.0" }
+                ]
             }
         '''
         xdclFile 'app/build.gradle.xdcl', '''
@@ -710,10 +710,10 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                 pluginManagement { includedBuilds ["build-logic"] }
                 plugins [ { id "components" } ]
                 include [ "app" ]
-                defaults {
-                  for MyComponent { version "1.0" }
-                  for MyComponent { version "2.0" }
-                }
+                defaults [
+                  MyComponent { version "1.0" }
+                  MyComponent { version "2.0" }
+                ]
             }
         '''
         // The project omits `version`, so it REACHES the poisoned cell — a hard, located error (D9:
@@ -751,10 +751,10 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                 pluginManagement { includedBuilds ["build-logic"] }
                 plugins [ { id "components" } ]
                 include [ "app" ]
-                defaults {
-                  for MyComponent { version "1.0" }
-                  for MyComponent { version "2.0" }
-                }
+                defaults [
+                  MyComponent { version "1.0" }
+                  MyComponent { version "2.0" }
+                ]
             }
         '''
         // The project SUPPLIES the conflicted property, so the per-project error dissolves — but the
@@ -781,7 +781,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         // (xdcl-gradle-plugin generates the Plugin<Settings> carrier) — no hand-written plugin, no manual
         // gradlePlugin registration. The filename is the canonical plugin id ("components"). The
         // templates are `with DefaultsContributor`, so a project's build.gradle.xdcl can host its own
-        // project-stratum `defaults { }` block.
+        // project-stratum `defaults [ ]` block.
         xdclFile 'build-logic/settings.gradle.xdcl', 'settings {}'
         buildFile 'build-logic/build.gradle', '''
             plugins {
@@ -810,12 +810,12 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         xdclFile 'build-logic/src/main/xdcl/components.xdcl', '''
             plugin {
               reactions [:my.ApplicationReaction, :my.LibraryReaction]
-              defaults {
-                for MyComponent {
+              defaults [
+                MyComponent {
                   name "plugin-name"
                   version "plugin-ver"
                 }
-              }
+              ]
             }
         '''
         javaFile 'build-logic/src/main/java/my/ApplicationReaction.java', """
@@ -849,15 +849,15 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                 pluginManagement { includedBuilds ["build-logic"] }
                 plugins [ { id "components" } ]
                 include [ "app", "lib" ]
-                defaults {
-                  for MyComponent { version "settings-ver" }
-                }
+                defaults [
+                  MyComponent { version "settings-ver" }
+                ]
             }
         '''
         // app: a PROJECT-stratum default sets `name`; `version` falls through to the settings stratum.
         xdclFile 'app/build.gradle.xdcl', '''
             application {
-              defaults { for MyComponent { name "app-name" } }
+              defaults [ MyComponent { name "app-name" } ]
             }
         '''
         // lib: no project default, but sets `version` explicitly (config). `name` falls through to the plugin.
