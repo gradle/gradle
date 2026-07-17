@@ -96,6 +96,8 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
             gradle.rootProject {
                 tasks.register("useLayout") {
                     doLast {
+                        // Tripwire on the first line: if the action is ever entered, this prints.
+                        println("REACHED ACTION")
                         println("settings dir: " + captured.settingsDirectory.asFile.name)
                     }
                 }
@@ -106,12 +108,16 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
         run ":useLayout"
 
         then:
+        outputContains("REACHED ACTION")
         outputContains("settings dir: " + testDirectory.name)
 
         when: "run with the configuration cache, the captured service is re-resolved from the task's own project registry, which cannot see the settings scope"
         configurationCacheFails ":useLayout"
 
         then:
+        // The failure happens while loading the cache entry, before the task action runs...
         failure.assertHasCause("No service of type BuildLayout available in project services.")
+        // ...so the action is never entered on the reused build.
+        outputDoesNotContain("REACHED ACTION")
     }
 }
