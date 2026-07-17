@@ -18,12 +18,17 @@ package org.gradle.kotlin.dsl.tooling.fixtures
 
 
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.newCorrelationId
 
 class KotlinScriptModelParameters {
+
+    /**
+     * The explicit-scripts property, removed from the public KotlinDslScriptsModel API in Gradle 9.8.
+     * Only honored by Gradle versions where the legacy builder is in effect.
+     */
+    static final String SCRIPTS_GRADLE_PROPERTY_NAME = "org.gradle.tooling.model.kotlin.dsl.scripts"
     static setModelParameters(modelBuilder, boolean lenient, boolean explicitlyRequestPreparationTasks = true, Iterable<File> scripts = []) {
         if (lenient) {
             modelBuilder.setJvmArguments([KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION])
@@ -41,7 +46,7 @@ class KotlinScriptModelParameters {
              "-Dorg.gradle.internal.plugins.portal.url.override=${gradlePluginRepositoryMirrorUrl()}".toString()]
 
         if (!scripts.toList().isEmpty()) {
-            arguments += "-P${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME}=${scripts.toList().collect { it.canonicalPath }.join("|")}".toString()
+            arguments += "-P${SCRIPTS_GRADLE_PROPERTY_NAME}=${scripts.toList().collect { it.canonicalPath }.join("|")}".toString()
         }
         modelBuilder.withArguments(arguments)
     }

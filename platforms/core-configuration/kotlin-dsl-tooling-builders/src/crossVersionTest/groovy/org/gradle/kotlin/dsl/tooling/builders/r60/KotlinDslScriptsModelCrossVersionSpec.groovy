@@ -60,6 +60,8 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
         }
     }
 
+    // Since Gradle 9.8 the scripts property passed below is rejected: the model is always built for all scripts.
+    @TargetGradleVersion(">=6.0 <9.8")
     def "multi-scripts model is dehydrated over the wire"() {
 
         given:
