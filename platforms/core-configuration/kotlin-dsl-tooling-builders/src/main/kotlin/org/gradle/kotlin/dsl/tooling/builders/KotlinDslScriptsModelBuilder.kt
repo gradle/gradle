@@ -32,6 +32,15 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 
 
+/**
+ * Gradle property that used to restrict the set of scripts the model is built for.
+ * No longer part of the public [KotlinDslScriptsModel] API: it is only honored by the legacy builder
+ * and dies with it.
+ */
+internal
+const val SCRIPTS_GRADLE_PROPERTY_NAME = "org.gradle.tooling.model.kotlin.dsl.scripts"
+
+
 internal
 fun createStandardKotlinDslScriptsModel(scriptModels: Map<File, KotlinDslScriptModel>): StandardKotlinDslScriptsModel {
     val commonClassPath = commonPrefixOf(scriptModels.values.map { it.classPath })
@@ -151,7 +160,7 @@ fun Project.resolveScriptsParameter(): List<File> =
 
 private
 fun Project.resolveExplicitScriptsParameter(): List<File>? =
-    (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
+    (findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
         ?.split("|")
         ?.asSequence()
         ?.filter { it.isNotBlank() }
