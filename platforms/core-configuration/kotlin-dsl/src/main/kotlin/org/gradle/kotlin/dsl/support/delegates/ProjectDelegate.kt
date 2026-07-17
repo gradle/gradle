@@ -478,6 +478,9 @@ abstract class ProjectDelegate : Project {
     override fun getProviders(): ProviderFactory =
         delegate.providers
 
+    override fun <T : Any> service(serviceType: Class<T>): T =
+        delegate.service(serviceType)
+
     override fun getSubprojects(): MutableSet<Project> =
         delegate.subprojects
 

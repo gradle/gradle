@@ -186,4 +186,7 @@ abstract class GradleDelegate : Gradle {
 
     override fun getProviders(): ProviderFactory =
         delegate.providers
+
+    override fun <T : Any> service(serviceType: Class<T>): T =
+        delegate.service(serviceType)
 }
