@@ -17,21 +17,23 @@
 package org.gradle.internal.work;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.function.BooleanSupplier;
 
 @ThreadSafe
 public interface SubmissionQueue {
     void add(Runnable task);
 
     /**
-     * Process work from this queue on the current thread until the queue is empty or
-     * the given stopping condition is met.
+     * Process work from this queue on the current thread until the queue is empty.
      *
      * <p>
      * Only processes work if needed. Some implementations may choose to not process work
      * if there is already sufficient concurrency.
      *
-     * @param stoppingCondition a condition that indicates when to stop processing work
+     * <p>
+     * The caller must stop submitting to this queue before draining it, otherwise concurrent
+     * {@link #add(Runnable)} calls can keep the current thread here indefinitely. Work already
+     * submitted may still be running on other threads when this returns; this only guarantees
+     * that nothing is left queued.
      */
-    void processWorkUsingCurrentThreadUntilEmptyOr(BooleanSupplier stoppingCondition);
+    void processWorkUsingCurrentThreadUntilEmpty();
 }

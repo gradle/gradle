@@ -158,8 +158,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
         if (!prev.isComplete()) {
             // Drain on the current thread while there is queued work to pull.
+            //
+            // The drain terminates because the status flip above makes add() throw, so nothing more
+            // can be submitted. Operations polled by other threads may still be running afterwards;
+            // allOperationsComplete below is what waits for those.
             if (prev.pendingOperations > 0) {
-                submissionQueue.processWorkUsingCurrentThreadUntilEmptyOr(() -> state.get().pendingOperations == 0);
+                submissionQueue.processWorkUsingCurrentThreadUntilEmpty();
             }
 
             // Release the worker lease while blocked, but only drop the project lock if the work

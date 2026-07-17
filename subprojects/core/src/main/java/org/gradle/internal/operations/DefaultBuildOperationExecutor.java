@@ -33,7 +33,6 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
@@ -162,7 +161,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
 
         @Override
-        public void processWorkUsingCurrentThreadUntilEmptyOr(BooleanSupplier stoppingCondition) {
+        public void processWorkUsingCurrentThreadUntilEmpty() {
             // No-op, we're not limited by leases.
         }
     }

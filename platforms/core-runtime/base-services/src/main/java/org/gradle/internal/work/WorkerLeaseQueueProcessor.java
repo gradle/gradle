@@ -26,39 +26,43 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BooleanSupplier;
 
 /**
  * Processes queues of runnables, rather than just single runnables, always executing them under a worker lease.
  */
 public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
-    private final class SubmissionQueueImpl implements SubmissionQueue {
+    private static final class SubmissionQueueImpl implements SubmissionQueue {
+        private final WorkerLeaseQueueProcessor processor;
         // Only using @Nullable here to convince IntelliJ that queue.poll() can return null
         private final MessagePassingQueue<@Nullable Runnable> queue = new MpmcUnboundedXaddArrayQueue<>(64);
-        private final AtomicBoolean isSubmitted = new AtomicBoolean(false);
+
+        SubmissionQueueImpl(WorkerLeaseQueueProcessor processor) {
+            this.processor = processor;
+        }
 
         @Override
         public void add(Runnable task) {
+            if (processor.shutdown.get()) {
+                throw new IllegalStateException("Cannot add to a queue owned by a shutdown processor.");
+            }
             if (!queue.offer(task)) {
                 // Should never happen since the queue is unbounded
                 throw new AssertionError("WorkerLeaseQueueProcessor submission queue is full.");
             }
-            if (isSubmitted.compareAndSet(false, true)) {
-                activeQueues.add(this);
-            }
-            // We always spawn a worker even if already submitted, as we want to process a single submission queue in parallel.
-            trySpawnWorker();
+            processor.activeQueues.add(this);
+            // We always spawn a worker even if already active, as we want to process a single submission queue in parallel.
+            processor.trySpawnWorker();
         }
 
         @Override
-        public void processWorkUsingCurrentThreadUntilEmptyOr(BooleanSupplier stoppingCondition) {
-            if (!workerThreadRegistry.isWorkerThread()) {
+        public void processWorkUsingCurrentThreadUntilEmpty() {
+            if (!processor.workerThreadRegistry.isWorkerThread()) {
                 throw new IllegalStateException("Current thread is not a worker thread.");
             }
-            while (!stoppingCondition.getAsBoolean() && !shutdown.get()) {
+            while (!processor.shutdown.get()) {
                 Runnable work = poll();
                 if (work == null) {
-                    break;
+                    return;
                 }
 
                 try {
@@ -66,33 +70,31 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
                 } catch (Throwable t) {
                     // Re-throw inside executor to avoid killing this thread, which we don't manage.
                     // Most task throwables will be handled by FutureTask.
-                    backingExecutor.execute(() -> {
+                    processor.backingExecutor.execute(() -> {
                         throw t;
                     });
                 }
             }
+            // Discard remaining work on shutdown.
+            // This is a best-effort attempt to clean up,
+            // it doesn't matter too much if we miss some work here as the processor is likely about to be GC'd.
+            queue.clear();
+            processor.activeQueues.remove(this);
         }
 
         @Nullable
         Runnable poll() {
             Runnable item = queue.poll();
             if (item == null) {
-                // No more work in the queue, so mark as not submitted and remove from active queues.
-                if (!isSubmitted.compareAndSet(true, false)) {
-                    // Some other thread did/will handle deactivating.
-                    // There is some small concern here that we won't reach full parallelism if we immediately reactivate,
-                    // but generally that should be limited to small edge cases.
+                if (!processor.activeQueues.remove(this)) {
                     return null;
                 }
-                activeQueues.remove(this);
-                // Verify that no new work was added, we can rarely have concurrent interactions with add() that cause
-                // us to miss work if we don't check again after removing from active queues.
+                // add() offers before the queue is put in the active set, so a concurrent add() may have offered work
+                // between our poll and our remove. We need to re-check that there is no work to do, or we will leave
+                // a queue with work in it removed from the active set.
                 item = queue.poll();
                 if (item != null) {
-                    // New work was added, so re-activate.
-                    if (isSubmitted.compareAndSet(false, true)) {
-                        activeQueues.add(this);
-                    }
+                    processor.activeQueues.add(this);
                 }
             }
             return item;
@@ -116,7 +118,7 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
     /**
      * Create a new submission queue to this processor. Tasks added to the submission queue will be executed by this processor,
      * but may be executed in parallel with other tasks from the same submission queue. The submission queue may also be
-     * drained on its own using {@link SubmissionQueue#processWorkUsingCurrentThreadUntilEmptyOr(BooleanSupplier)}.
+     * drained on its own using {@link SubmissionQueue#processWorkUsingCurrentThreadUntilEmpty()}.
      *
      * <p>The returned submission queue is thread-safe and can be used concurrently from multiple threads.
      *
@@ -126,7 +128,7 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
         if (shutdown.get()) {
             throw new IllegalStateException("Cannot create submission queue for a shutdown processor.");
         }
-        return new SubmissionQueueImpl();
+        return new SubmissionQueueImpl(this);
     }
 
     private void trySpawnWorker() {

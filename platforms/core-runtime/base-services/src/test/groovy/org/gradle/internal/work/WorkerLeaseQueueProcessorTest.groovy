@@ -144,7 +144,7 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         gate?.countDown()
     }
 
-    def "processWorkUsingCurrentThreadUntilEmptyOr throws on non-worker thread"() {
+    def "processWorkUsingCurrentThreadUntilEmpty throws on non-worker thread"() {
         given:
         createProcessor(1)
         def queue = leaseProcessor.createSubmissionQueue()
@@ -153,7 +153,7 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         when:
         def t = new Thread({
             try {
-                queue.processWorkUsingCurrentThreadUntilEmptyOr({ false })
+                queue.processWorkUsingCurrentThreadUntilEmpty()
             } catch (Throwable e) {
                 caught.set(e)
             }
@@ -166,7 +166,7 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         caught.get().message == "Current thread is not a worker thread."
     }
 
-    def "processWorkUsingCurrentThreadUntilEmptyOr drains the queue when called from a worker thread"() {
+    def "processWorkUsingCurrentThreadUntilEmpty drains the queue when called from a worker thread"() {
         given:
         createProcessor(1)
         def queue = leaseProcessor.createSubmissionQueue()
@@ -179,31 +179,16 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         5.times {
             queue.add({ threadIds.add(Thread.currentThread().id) } as Runnable)
         }
-        queue.processWorkUsingCurrentThreadUntilEmptyOr({ false })
+        queue.processWorkUsingCurrentThreadUntilEmpty()
 
         then:
         threadIds.size() == 5
         threadIds.every { it == mainId }
+        // The drain ends on the poll that finds the queue empty, which is what deactivates it.
+        leaseProcessor.@activeQueues.isEmpty()
     }
 
-    def "processWorkUsingCurrentThreadUntilEmptyOr stops when stopping condition returns true"() {
-        given:
-        createProcessor(1)
-        def queue = leaseProcessor.createSubmissionQueue()
-        heldLease = registry.startWorker()
-        def counter = new AtomicInteger()
-
-        when:
-        10.times {
-            queue.add({ counter.incrementAndGet() } as Runnable)
-        }
-        queue.processWorkUsingCurrentThreadUntilEmptyOr({ counter.get() >= 3 })
-
-        then:
-        counter.get() == 3
-    }
-
-    def "processWorkUsingCurrentThreadUntilEmptyOr stops when executor is shut down"() {
+    def "processWorkUsingCurrentThreadUntilEmpty stops when executor is shut down"() {
         given:
         createProcessor(1)
         def queue = leaseProcessor.createSubmissionQueue()
@@ -218,7 +203,7 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         when:
         def drainThread = new Thread({
             registry.runAsWorkerThread({
-                queue.processWorkUsingCurrentThreadUntilEmptyOr({ false })
+                queue.processWorkUsingCurrentThreadUntilEmpty()
             } as Runnable)
             returned.countDown()
         })
@@ -373,7 +358,7 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
 
         when:
         queue.add({ throw new RuntimeException("BOOM-drain") } as Runnable)
-        queue.processWorkUsingCurrentThreadUntilEmptyOr({ false })
+        queue.processWorkUsingCurrentThreadUntilEmpty()
 
         then:
         // Drain uncaught before the spec cleanup shuts down the backing executor,
