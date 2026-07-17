@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 @Timeout(value = 30, unit = TimeUnit.SECONDS)
-class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
+class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
 
     static class CountingThreadFactory implements ThreadFactory {
         final AtomicInteger threadsCreated = new AtomicInteger()
@@ -40,7 +40,7 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
         @Override
         Thread newThread(Runnable r) {
-            def t = new Thread(r, "wlqe-test-" + threadsCreated.incrementAndGet())
+            def t = new Thread(r, "wlqp-test-" + threadsCreated.incrementAndGet())
             t.daemon = true
             t.uncaughtExceptionHandler = { Thread th, Throwable e -> uncaught.offer(e) } as Thread.UncaughtExceptionHandler
             return t
@@ -49,20 +49,20 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     WorkerLeaseService registry
     ExecutorService backingExecutor
-    WorkerLeaseQueueExecutor leaseExecutor
+    WorkerLeaseQueueProcessor leaseProcessor
     CountingThreadFactory threadFactory
     WorkerLeaseRegistry.WorkerLeaseCompletion heldLease
 
-    private WorkerLeaseQueueExecutor createExecutor(int maxWorkers, int maxUnconstrainedWorkers = maxWorkers * 2) {
+    private WorkerLeaseQueueProcessor createProcessor(int maxWorkers, int maxUnconstrainedWorkers = maxWorkers * 2) {
         registry = workerLeaseService(maxWorkers)
         threadFactory = new CountingThreadFactory()
         backingExecutor = Executors.newCachedThreadPool(threadFactory)
-        leaseExecutor = new WorkerLeaseQueueExecutor(coordinationService, registry, backingExecutor, maxWorkers, maxUnconstrainedWorkers)
-        return leaseExecutor
+        leaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, registry, backingExecutor, maxWorkers, maxUnconstrainedWorkers)
+        return leaseProcessor
     }
 
     def cleanup() {
-        leaseExecutor?.shutdown()
+        leaseProcessor?.shutdown()
         heldLease?.leaseFinish()
         backingExecutor?.shutdown()
         backingExecutor?.awaitTermination(15, TimeUnit.SECONDS)
@@ -71,11 +71,11 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "createSubmissionQueue throws after shutdown"() {
         given:
-        createExecutor(1)
-        leaseExecutor.shutdown()
+        createProcessor(1)
+        leaseProcessor.shutdown()
 
         when:
-        leaseExecutor.createSubmissionQueue()
+        leaseProcessor.createSubmissionQueue()
 
         then:
         thrown(IllegalStateException)
@@ -83,8 +83,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "add to a submission queue spawns a worker that runs the task"() {
         given:
-        createExecutor(1)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
         def ran = new CountDownLatch(1)
 
         when:
@@ -96,8 +96,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "peak concurrent task execution does not exceed maxWorkers"() {
         given:
-        createExecutor(2)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(2)
+        def queue = leaseProcessor.createSubmissionQueue()
         def concurrent = new AtomicInteger()
         def peak = new AtomicInteger()
         def done = new CountDownLatch(10)
@@ -120,8 +120,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "tryClaimSlot honors maxWorkers under contention"() {
         given:
-        createExecutor(2)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(2)
+        def queue = leaseProcessor.createSubmissionQueue()
         def gate = new CountDownLatch(1)
         def started = new CountDownLatch(2)
 
@@ -146,8 +146,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "processWorkUsingCurrentThreadUntilEmptyOr throws on non-worker thread"() {
         given:
-        createExecutor(1)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
         def caught = new AtomicReference<Throwable>()
 
         when:
@@ -168,8 +168,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "processWorkUsingCurrentThreadUntilEmptyOr drains the queue when called from a worker thread"() {
         given:
-        createExecutor(1)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
         // Hold the only lease so the spawned worker starves and we are forced to drain on main.
         heldLease = registry.startWorker()
         def threadIds = new CopyOnWriteArrayList<Long>()
@@ -188,8 +188,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "processWorkUsingCurrentThreadUntilEmptyOr stops when stopping condition returns true"() {
         given:
-        createExecutor(1)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
         heldLease = registry.startWorker()
         def counter = new AtomicInteger()
 
@@ -205,8 +205,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "processWorkUsingCurrentThreadUntilEmptyOr stops when executor is shut down"() {
         given:
-        createExecutor(1)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
         def started = new CountDownLatch(1)
         def release = new CountDownLatch(1)
         def secondRan = new AtomicBoolean()
@@ -225,7 +225,7 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
         drainThread.start()
 
         assert started.await(15, TimeUnit.SECONDS)
-        leaseExecutor.shutdown()
+        leaseProcessor.shutdown()
         release.countDown()
 
         then:
@@ -238,8 +238,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
         // owningThreadPool.notifyBlockingWorkStarting, which is what the executor's
         // compensation path is wired up to.
         given:
-        createExecutor(1, 4)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1, 4)
+        def queue = leaseProcessor.createSubmissionQueue()
         def started = new CountDownLatch(2)
         def release = new CountDownLatch(1)
 
@@ -267,8 +267,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
         // exactly one compensation worker (slot 2). Further blocking tasks must not push
         // the thread count past 2.
         given:
-        createExecutor(1, 2)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1, 2)
+        def queue = leaseProcessor.createSubmissionQueue()
         def started = new CountDownLatch(2)
         def release = new CountDownLatch(1)
 
@@ -295,9 +295,9 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "tasks from independent submission queues run concurrently up to maxWorkers"() {
         given:
-        createExecutor(2)
-        def q1 = leaseExecutor.createSubmissionQueue()
-        def q2 = leaseExecutor.createSubmissionQueue()
+        createProcessor(2)
+        def q1 = leaseProcessor.createSubmissionQueue()
+        def q2 = leaseProcessor.createSubmissionQueue()
         // `started` only reaches zero if both tasks run concurrently, since each
         // blocks on `release` after counting down.
         def started = new CountDownLatch(2)
@@ -316,8 +316,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "worker releases its slot after the loop completes so a fresh add can spawn a new worker"() {
         given:
-        createExecutor(1)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
         def first = new CountDownLatch(1)
         def second = new CountDownLatch(1)
 
@@ -348,16 +348,16 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
         registry.startProjectExecution(true)
         threadFactory = new CountingThreadFactory()
         backingExecutor = Executors.newCachedThreadPool(threadFactory)
-        leaseExecutor = new WorkerLeaseQueueExecutor(coordinationService, registry, backingExecutor, 1, 2)
+        leaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, registry, backingExecutor, 1, 2)
         heldLease = registry.startWorker()
-        def queue = leaseExecutor.createSubmissionQueue()
+        def queue = leaseProcessor.createSubmissionQueue()
         def taskRan = new AtomicBoolean()
 
         when:
         queue.add({ taskRan.set(true) } as Runnable)
         assert workerStartedLoop.await(15, TimeUnit.SECONDS)
 
-        leaseExecutor.shutdown()
+        leaseProcessor.shutdown()
         backingExecutor.shutdown()
 
         then:
@@ -367,8 +367,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "uncaught throwables during current-thread drain are surfaced via the backing executor"() {
         given:
-        createExecutor(1)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
         heldLease = registry.startWorker()
 
         when:
@@ -385,8 +385,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "worker releases its slot when runnable throws"() {
         given:
-        createExecutor(1)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
         def firstFailed = new CountDownLatch(1)
         def secondRan = new CountDownLatch(1)
 
@@ -412,8 +412,8 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
 
     def "an over-max worker exits via shouldContinue when blocking finishes and effective max shrinks"() {
         given:
-        createExecutor(1, 2)
-        def queue = leaseExecutor.createSubmissionQueue()
+        createProcessor(1, 2)
+        def queue = leaseProcessor.createSubmissionQueue()
         def aBlockingStarted = new CountDownLatch(1)
         def aRelease = new CountDownLatch(1)
         def bRunning = new CountDownLatch(1)
@@ -443,7 +443,7 @@ class WorkerLeaseQueueExecutorTest extends AbstractWorkerLeaseServiceTest {
         // Exactly one worker survives and only one probe runs; the other probe
         // stays queued.
         ConcurrentTestUtil.poll(15) {
-            assert leaseExecutor.@workerCounter.currentWorkerCount() == 1
+            assert leaseProcessor.@workerCounter.currentWorkerCount() == 1
             assert probesStarted.get() == 1
         }
 

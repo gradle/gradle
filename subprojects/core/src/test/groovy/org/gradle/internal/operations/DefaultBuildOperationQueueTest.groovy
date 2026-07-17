@@ -23,7 +23,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.ResourceLockStatistics
-import org.gradle.internal.work.WorkerLeaseQueueExecutor
+import org.gradle.internal.work.WorkerLeaseQueueProcessor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.internal.work.WorkerLoop
@@ -75,7 +75,7 @@ class DefaultBuildOperationQueueTest extends Specification {
     BuildOperationQueue operationQueue
     WorkerLeaseService workerRegistry
     WorkerLeaseRegistry.WorkerLeaseCompletion lease
-    WorkerLeaseQueueExecutor workerLeaseExecutor
+    WorkerLeaseQueueProcessor workerLeaseProcessor
     ExecutorService backingExecutor
 
     void setupQueue(int threads) {
@@ -85,8 +85,8 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease = workerRegistry.startWorker()
 
         backingExecutor = Executors.newCachedThreadPool()
-        workerLeaseExecutor = new WorkerLeaseQueueExecutor(coordinationService, workerRegistry, backingExecutor, threads, threads * 2)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseExecutor.createSubmissionQueue(), new SimpleWorker(), null)
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, threads, threads * 2)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), new SimpleWorker(), null)
     }
 
     def cleanup() {
@@ -94,7 +94,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         // so any starved worker still blocked acquiring a lease will not wake from shutdown alone.
         // Releasing the lease next triggers notifyStateChange, the worker re-evaluates
         // shouldContinue (now false), and exits its lock-acquisition retry loop.
-        workerLeaseExecutor?.shutdown()
+        workerLeaseProcessor?.shutdown()
         lease?.leaseFinish()
         backingExecutor?.shutdown()
         backingExecutor?.awaitTermination(15, TimeUnit.SECONDS)
@@ -249,8 +249,8 @@ class DefaultBuildOperationQueueTest extends Specification {
         // Keep the lease on the main thread so the spawned worker starves on runWorkerLoop.
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
-        workerLeaseExecutor = new WorkerLeaseQueueExecutor(coordinationService, workerRegistry, backingExecutor, 1, 2)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseExecutor.createSubmissionQueue(), recordingWorker, null)
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), recordingWorker, null)
 
         when:
         operationQueue.add(new Success())
@@ -304,8 +304,8 @@ class DefaultBuildOperationQueueTest extends Specification {
         workerRegistry.startProjectExecution(true)
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
-        workerLeaseExecutor = new WorkerLeaseQueueExecutor(coordinationService, workerRegistry, backingExecutor, 2, 4)
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseExecutor.createSubmissionQueue(), new SimpleWorker(), null)
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 2, 4)
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), new SimpleWorker(), null)
 
         when:
         operationQueue.add(new SynchronizedBuildOperation({}, startedLatch, releaseLatch))
@@ -350,8 +350,8 @@ class DefaultBuildOperationQueueTest extends Specification {
         workerRegistry.startProjectExecution(true)
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
-        workerLeaseExecutor = new WorkerLeaseQueueExecutor(coordinationService, workerRegistry, backingExecutor, 1, 2)
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseExecutor.createSubmissionQueue(), recordingWorker, null)
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), recordingWorker, null)
 
         when:
         operationQueue.add(new Success())

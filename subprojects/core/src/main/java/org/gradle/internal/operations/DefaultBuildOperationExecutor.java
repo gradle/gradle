@@ -26,7 +26,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.SubmissionQueue;
-import org.gradle.internal.work.WorkerLeaseQueueExecutor;
+import org.gradle.internal.work.WorkerLeaseQueueProcessor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
 import org.jspecify.annotations.NullMarked;
@@ -43,7 +43,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final CurrentBuildOperationRef currentBuildOperationRef;
 
-    private final WorkerLeaseQueueExecutor maxWorkersExecutor;
+    private final WorkerLeaseQueueProcessor maxWorkersProcessor;
     private final ManagedExecutor maxWorkersBackingExecutor;
     private final ManagedExecutor unconstrainedExecutor;
 
@@ -68,7 +68,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             "Build operations",
             workerLimits.getMaxWorkerCount()
         );
-        this.maxWorkersExecutor = new WorkerLeaseQueueExecutor(
+        this.maxWorkersProcessor = new WorkerLeaseQueueProcessor(
             coordinationService,
             workerLeaseService,
             maxWorkersBackingExecutor,
@@ -149,7 +149,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private SubmissionQueue getSubmissionQueueFor(BuildOperationConstraint buildOperationConstraint) {
         switch (buildOperationConstraint) {
             case UNCONSTRAINED: return new UnconstrainedSubmissionQueue();
-            case MAX_WORKERS: return maxWorkersExecutor.createSubmissionQueue();
+            case MAX_WORKERS: return maxWorkersProcessor.createSubmissionQueue();
             default: throw new IllegalArgumentException("Unknown build operation constraint: " + buildOperationConstraint);
         }
     }
@@ -177,7 +177,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     public void stop() {
         // Shut down the lease-aware service first so it stops accepting new work; then stop the
         // backing pools, which waits for in-flight work to drain.
-        maxWorkersExecutor.shutdown();
+        maxWorkersProcessor.shutdown();
         CompositeStoppable.stoppable(maxWorkersBackingExecutor, unconstrainedExecutor).stop();
     }
 }

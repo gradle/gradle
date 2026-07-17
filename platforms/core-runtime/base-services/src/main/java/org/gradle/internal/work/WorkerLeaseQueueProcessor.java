@@ -29,11 +29,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 
 /**
- * A executor that takes a queue of runnables, rather than just one. that always executes tasks under a worker lease.
- * It should be provided with an unbounded thread pool as its backing executor,
- * as it may need to spawn new threads to execute tasks when all existing workers are blocked.
+ * Processes queues of runnables, rather than just single runnables, always executing them under a worker lease.
  */
-public final class WorkerLeaseQueueExecutor implements WorkerThreadPool {
+public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
     private final class SubmissionQueueImpl implements SubmissionQueue {
         // Only using @Nullable here to convince IntelliJ that queue.poll() can return null
         private final MessagePassingQueue<@Nullable Runnable> queue = new MpmcUnboundedXaddArrayQueue<>(64);
@@ -43,7 +41,7 @@ public final class WorkerLeaseQueueExecutor implements WorkerThreadPool {
         public void add(Runnable task) {
             if (!queue.offer(task)) {
                 // Should never happen since the queue is unbounded
-                throw new AssertionError("WorkerLeaseQueueExecutor submission queue is full.");
+                throw new AssertionError("WorkerLeaseQueueProcessor submission queue is full.");
             }
             if (isSubmitted.compareAndSet(false, true)) {
                 activeQueues.add(this);
@@ -108,7 +106,7 @@ public final class WorkerLeaseQueueExecutor implements WorkerThreadPool {
     private final AtomicBoolean shutdown = new AtomicBoolean();
     private final Set<SubmissionQueueImpl> activeQueues = ConcurrentHashMap.newKeySet();
 
-    public WorkerLeaseQueueExecutor(ResourceLockCoordinationService coordinationService, WorkerThreadRegistry workerThreadRegistry, ExecutorService backingExecutor, int maxWorkers, int maxUnconstrainedWorkers) {
+    public WorkerLeaseQueueProcessor(ResourceLockCoordinationService coordinationService, WorkerThreadRegistry workerThreadRegistry, ExecutorService backingExecutor, int maxWorkers, int maxUnconstrainedWorkers) {
         this.coordinationService = coordinationService;
         this.workerThreadRegistry = workerThreadRegistry;
         this.backingExecutor = backingExecutor;
@@ -116,7 +114,7 @@ public final class WorkerLeaseQueueExecutor implements WorkerThreadPool {
     }
 
     /**
-     * Create a new submission queue to this executor. Tasks added to the submission queue will be executed by this executor,
+     * Create a new submission queue to this processor. Tasks added to the submission queue will be executed by this processor,
      * but may be executed in parallel with other tasks from the same submission queue. The submission queue may also be
      * drained on its own using {@link SubmissionQueue#processWorkUsingCurrentThreadUntilEmptyOr(BooleanSupplier)}.
      *
@@ -126,7 +124,7 @@ public final class WorkerLeaseQueueExecutor implements WorkerThreadPool {
      */
     public SubmissionQueue createSubmissionQueue() {
         if (shutdown.get()) {
-            throw new IllegalStateException("Cannot create submission queue for a shutdown executor.");
+            throw new IllegalStateException("Cannot create submission queue for a shutdown processor.");
         }
         return new SubmissionQueueImpl();
     }
