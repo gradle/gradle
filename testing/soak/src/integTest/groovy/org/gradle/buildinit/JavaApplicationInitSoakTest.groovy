@@ -17,6 +17,7 @@
 package org.gradle.buildinit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 
 class JavaApplicationInitSoakTest extends AbstractIntegrationSpec {
 
@@ -32,6 +33,7 @@ class JavaApplicationInitSoakTest extends AbstractIntegrationSpec {
 
         and:
         executer.withToolchainDownloadEnabled()
+        executer.withArguments("-Porg.gradle.java.installations.paths=" + AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(","))
         succeeds('run')
 
         then:
