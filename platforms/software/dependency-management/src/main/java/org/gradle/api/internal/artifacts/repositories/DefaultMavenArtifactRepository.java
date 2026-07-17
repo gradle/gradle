@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
@@ -270,8 +271,11 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         if (mavenMirrorResolver == null) {
             return url;
         }
-        return mavenMirrorResolver.mirrorFor(url)
+        return mavenMirrorResolver.mirrorFor(url, getName())
             .map(mirror -> {
+                if (mirror.isBlocked()) {
+                    throw new InvalidUserDataException(String.format("Repository '%s' (%s) is blocked by Maven mirror '%s' declared in the Maven settings.", getName(), url, mirror.getId()));
+                }
                 if (!url.equals(mirrorAppliedTo)) {
                     mirrorAppliedTo = url;
                     LOGGER.lifecycle("Applying Maven mirror '{}' for repository '{}': {} -> {}", mirror.getId(), getName(), url, mirror.getUrl());
@@ -384,9 +388,13 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         if (originalUrl == null) {
             return getConfiguredAuthentication();
         }
-        Optional<MavenMirrorResolver.MirroredRepository> mirror = mavenMirrorResolver.mirrorFor(originalUrl);
+        Optional<MavenMirrorResolver.MirroredRepository> mirror = mavenMirrorResolver.mirrorFor(originalUrl, getName());
         if (!mirror.isPresent()) {
             return getConfiguredAuthentication();
+        }
+        if (mirror.get().isBlocked()) {
+            // Resolution fails in validateUrl() before the transport is used
+            return Collections.emptyList();
         }
         if (usesCredentials() && !mirrorCredentialsWarningLogged) {
             mirrorCredentialsWarningLogged = true;

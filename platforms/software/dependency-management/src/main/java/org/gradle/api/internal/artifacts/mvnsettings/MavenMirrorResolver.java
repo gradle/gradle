@@ -27,8 +27,7 @@ import java.util.Optional;
  * mirrors declared in the local Maven {@code settings.xml} files.
  *
  * <p>Prototype: only enabled when the {@code org.gradle.internal.mavenMirrors}
- * Gradle property is set to {@code true}, and only {@code <mirrorOf>*</mirrorOf>}
- * mirrors are honored.
+ * Gradle property is set to {@code true}.
  */
 @ServiceScope(Scope.Build.class)
 public interface MavenMirrorResolver {
@@ -36,11 +35,15 @@ public interface MavenMirrorResolver {
     /**
      * Returns the mirror that should replace the given repository URL, if any.
      *
-     * <p>Empty when the feature is disabled, no wildcard mirror is configured,
-     * the URL is not a remote ({@code http}/{@code https}) URL, or the URL is
-     * already the mirror URL.
+     * <p>Mirrors are matched in settings declaration order against the repository's
+     * effective id — {@code central} when the URL is Maven Central's, the Gradle
+     * repository name otherwise — using the Maven {@code mirrorOf} grammar; the first
+     * match wins. Empty when the feature is disabled, no mirror matches, the URL is
+     * not a remote ({@code http}/{@code https}) URL, or the URL is already the mirror
+     * URL. A returned mirror may be {@link MirroredRepository#isBlocked() blocked},
+     * in which case the repository must not be used at all.
      */
-    Optional<MirroredRepository> mirrorFor(URI original);
+    Optional<MirroredRepository> mirrorFor(URI original, String repositoryName);
 
     /**
      * A mirror selected for a repository: the mirror id from settings.xml, its URL,
@@ -49,12 +52,14 @@ public interface MavenMirrorResolver {
     final class MirroredRepository {
         private final String id;
         private final URI url;
+        private final boolean blocked;
         private final @Nullable MirrorCredentials credentials;
         private final @Nullable MirrorHttpHeader httpHeader;
 
-        public MirroredRepository(String id, URI url, @Nullable MirrorCredentials credentials, @Nullable MirrorHttpHeader httpHeader) {
+        public MirroredRepository(String id, URI url, boolean blocked, @Nullable MirrorCredentials credentials, @Nullable MirrorHttpHeader httpHeader) {
             this.id = id;
             this.url = url;
+            this.blocked = blocked;
             this.credentials = credentials;
             this.httpHeader = httpHeader;
         }
@@ -65,6 +70,15 @@ public interface MavenMirrorResolver {
 
         public URI getUrl() {
             return url;
+        }
+
+        /**
+         * Whether the mirror blocks the repositories it matches ({@code <blocked>true</blocked>},
+         * Maven 3.8+). Resolution against a blocked repository must fail rather than contact
+         * either the original URL or the mirror URL.
+         */
+        public boolean isBlocked() {
+            return blocked;
         }
 
         /**

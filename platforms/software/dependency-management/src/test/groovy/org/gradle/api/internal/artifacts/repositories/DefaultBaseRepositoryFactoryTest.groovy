@@ -61,7 +61,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()
     final MavenMirrorResolver mavenMirrorResolver = Mock(MavenMirrorResolver) {
-        mirrorFor(_) >> Optional.empty()
+        mirrorFor(_, _) >> Optional.empty()
     }
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
