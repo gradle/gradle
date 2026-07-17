@@ -11,8 +11,8 @@ dependencies {
     api(projects.core)
     api(projects.serviceProvider)
     api(libs.kotlinStdlib)
+    api(projects.buildOption)
 
-    implementation(projects.buildOption)
     implementation(projects.classloaders)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
