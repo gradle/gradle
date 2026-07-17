@@ -93,7 +93,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         file('libs').assertHasDescendants('projectA-1.0.jar')
     }
 
-    def "unsupported mirrorOf value emits a warning and is not applied"() {
+    def "external wildcard mirror does not match local repositories"() {
         given:
         def originalRepo = mavenHttpRepo("original")
         def mirrorRepo = mavenHttpRepo("mirror")
@@ -103,6 +103,32 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         buildFile << """
             repositories {
                 maven { url = '${originalRepo.uri}' }
+            }
+        """
+
+        and: "the repository is served from 127.0.0.1, which external:* excludes"
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        outputDoesNotContain("Applying Maven mirror")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "mirrorOf central matches the default maven central repository"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "central", "central-mirror")
+
+        buildFile << """
+            repositories {
+                mavenCentral()
             }
         """
 
@@ -116,9 +142,73 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         run 'retrieve'
 
         then:
-        outputContains("Maven mirror 'selective' with mirrorOf 'external:*' is not supported and will be ignored (only '*' is supported).")
-        outputDoesNotContain("Applying Maven mirror")
+        outputContains("Applying Maven mirror 'central-mirror' for repository 'MavenRepo': ${RepositoryHandler.MAVEN_CENTRAL_URL} -> ${mirrorRepo.uri}")
         file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "mirrorOf matches a repository by its gradle name"() {
+        given:
+        def originalRepo = mavenHttpRepo("original")
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "corp-repo", "corp-mirror")
+
+        buildFile << """
+            repositories {
+                maven {
+                    name = 'corp-repo'
+                    url = '${originalRepo.uri}'
+                }
+            }
+        """
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        outputContains("Applying Maven mirror 'corp-mirror' for repository 'corp-repo': ${originalRepo.uri} -> ${mirrorRepo.uri}")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "blocked mirror fails resolution of the repositories it matches"() {
+        given:
+        def originalRepo = mavenHttpRepo("original")
+        originalRepo.module("org.test", "projectA", "1.0").publish()
+        m2.userSettingsFile.text = """
+            <settings>
+                <mirrors>
+                    <mirror>
+                        <id>blocker</id>
+                        <mirrorOf>*</mirrorOf>
+                        <url>http://0.0.0.0/</url>
+                        <blocked>true</blocked>
+                    </mirror>
+                </mirrors>
+            </settings>
+        """
+
+        buildFile << """
+            repositories {
+                maven {
+                    name = 'corp-repo'
+                    url = '${originalRepo.uri}'
+                }
+            }
+        """
+
+        when:
+        using m2
+        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        fails 'retrieve'
+
+        then:
+        failure.assertHasCause("Repository 'corp-repo' (${originalRepo.uri}) is blocked by Maven mirror 'blocker' declared in the Maven settings.")
     }
 
     def "repository credentials are not sent to the mirror"() {

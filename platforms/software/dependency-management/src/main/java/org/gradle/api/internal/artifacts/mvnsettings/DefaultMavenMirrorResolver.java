@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.maven.settings.Mirror;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.ProviderFactory;
@@ -30,19 +32,21 @@ import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Optional;
 
 public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
     public static final String ENABLE_PROPERTY = "org.gradle.internal.mavenMirrors";
 
     private static final Logger LOGGER = Logging.getLogger(DefaultMavenMirrorResolver.class);
-    private static final String WILDCARD_MIRROR_OF = "*";
+    private static final String CENTRAL_REPOSITORY_ID = "central";
+    private static final String CENTRAL_REPOSITORY_URL = normalizeUrl(ArtifactRepositoryContainer.MAVEN_CENTRAL_URL);
 
     private final MavenSettingsProvider settingsProvider;
     private final ProviderFactory providerFactory;
 
     private volatile boolean computed;
-    private @Nullable MirroredRepository wildcardMirror;
+    private List<MirrorCandidate> mirrors = ImmutableList.of();
 
     public DefaultMavenMirrorResolver(MavenSettingsProvider settingsProvider, ProviderFactory providerFactory) {
         this.settingsProvider = settingsProvider;
@@ -50,9 +54,9 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
     }
 
     @Override
-    public Optional<MirroredRepository> mirrorFor(URI original) {
-        MirroredRepository mirror = getWildcardMirror();
-        if (mirror == null) {
+    public Optional<MirroredRepository> mirrorFor(URI original, String repositoryName) {
+        List<MirrorCandidate> candidates = getMirrors();
+        if (candidates.isEmpty()) {
             return Optional.empty();
         }
         String scheme = original.getScheme();
@@ -60,70 +64,95 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
             // Only remote repositories are mirrored, in particular this excludes mavenLocal()
             return Optional.empty();
         }
-        if (original.equals(mirror.getUrl())) {
-            return Optional.empty();
+        String effectiveId = effectiveIdOf(original, repositoryName);
+        for (MirrorCandidate candidate : candidates) {
+            if (MirrorOfMatcher.matches(candidate.mirrorOf, effectiveId, original)) {
+                if (original.equals(candidate.mirror.getUrl())) {
+                    return Optional.empty();
+                }
+                return Optional.of(candidate.mirror);
+            }
         }
-        return Optional.of(mirror);
+        return Optional.empty();
     }
 
-    private @Nullable MirroredRepository getWildcardMirror() {
+    /**
+     * The id a repository is matched by: {@code central} when its URL is Maven Central's
+     * (the id the Super POM gives that URL), the Gradle repository name otherwise.
+     */
+    private static String effectiveIdOf(URI url, String repositoryName) {
+        return CENTRAL_REPOSITORY_URL.equals(normalizeUrl(url.toString())) ? CENTRAL_REPOSITORY_ID : repositoryName;
+    }
+
+    private static String normalizeUrl(String url) {
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+    }
+
+    private List<MirrorCandidate> getMirrors() {
         if (!computed) {
             synchronized (this) {
                 if (!computed) {
-                    wildcardMirror = computeWildcardMirror();
+                    mirrors = computeMirrors();
                     computed = true;
                 }
             }
         }
-        return wildcardMirror;
+        return mirrors;
     }
 
-    private @Nullable MirroredRepository computeWildcardMirror() {
+    private List<MirrorCandidate> computeMirrors() {
         if (!isEnabled()) {
-            return null;
+            return ImmutableList.of();
         }
         // Obtaining the value source registers the settings.xml and settings-security.xml
         // checksums as a build input, so that the configuration cache is invalidated when
         // the Maven settings change. This only happens when the feature is enabled: the
         // property read above is the only input registered otherwise.
         providerFactory.of(MavenSettingsChecksumValueSource.class, spec -> {}).getOrNull();
-        MirroredRepository selected = null;
+        ImmutableList.Builder<MirrorCandidate> result = ImmutableList.builder();
         try {
             Settings settings = settingsProvider.buildSettings();
             for (Mirror mirror : settings.getMirrors()) {
-                if (!WILDCARD_MIRROR_OF.equals(mirror.getMirrorOf())) {
-                    LOGGER.lifecycle("Maven mirror '{}' with mirrorOf '{}' is not supported and will be ignored (only '*' is supported).", mirror.getId(), mirror.getMirrorOf());
-                    continue;
-                }
-                if (selected != null) {
-                    LOGGER.lifecycle("Maven mirror '{}' is ignored: mirror '{}' already matches all repositories.", mirror.getId(), selected.getId());
-                    continue;
-                }
                 MirroredRepository candidate = toMirroredRepository(mirror, settings);
                 if (candidate != null) {
-                    selected = candidate;
+                    result.add(new MirrorCandidate(mirror.getMirrorOf(), candidate));
                 }
             }
         } catch (Exception e) {
             LOGGER.warn("Cannot read Maven mirrors from Maven settings, no mirror will be applied.", e);
-            return null;
+            return ImmutableList.of();
         }
-        return selected;
+        return result.build();
     }
 
     private @Nullable MirroredRepository toMirroredRepository(Mirror mirror, Settings settings) {
         String mirrorId = mirror.getId();
         try {
             URI url = new URI(mirror.getUrl());
+            if (mirror.isBlocked()) {
+                // A blocked mirror fails the repositories it matches; its URL is never
+                // contacted and its credentials are irrelevant
+                return new MirroredRepository(mirrorId, url, true, null, null);
+            }
             if (!"https".equalsIgnoreCase(url.getScheme())) {
                 LOGGER.lifecycle("Maven mirror '{}' does not use HTTPS: {}", mirrorId, url);
             }
             MirrorCredentials credentials = resolveCredentials(mirrorId, settings);
             MirrorHttpHeader httpHeader = credentials == null ? resolveHttpHeader(mirrorId, settings) : null;
-            return new MirroredRepository(mirrorId, url, credentials, httpHeader);
+            return new MirroredRepository(mirrorId, url, false, credentials, httpHeader);
         } catch (URISyntaxException e) {
             LOGGER.lifecycle("Maven mirror '{}' has an invalid URL and will be ignored: {}", mirrorId, mirror.getUrl());
             return null;
+        }
+    }
+
+    private static class MirrorCandidate {
+        final @Nullable String mirrorOf;
+        final MirroredRepository mirror;
+
+        MirrorCandidate(@Nullable String mirrorOf, MirroredRepository mirror) {
+            this.mirrorOf = mirrorOf;
+            this.mirror = mirror;
         }
     }
 

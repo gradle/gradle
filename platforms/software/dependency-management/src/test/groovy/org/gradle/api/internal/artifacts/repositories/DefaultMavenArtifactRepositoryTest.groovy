@@ -411,7 +411,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
             artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
             Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
             TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser(),
-            Mock(MavenMirrorResolver) { mirrorFor(_) >> Optional.empty() })
+            Mock(MavenMirrorResolver) { mirrorFor(_, _) >> Optional.empty() })
         repo.name = 'repo'
         repo.allowInsecureContinueWhenDisabled.convention(false)
         return repo

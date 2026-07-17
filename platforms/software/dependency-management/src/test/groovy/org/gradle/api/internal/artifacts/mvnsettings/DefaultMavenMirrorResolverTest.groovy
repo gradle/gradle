@@ -45,7 +45,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         providerFactory.gradleProperty(DefaultMavenMirrorResolver.ENABLE_PROPERTY) >> Providers.notDefined()
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         !result.present
@@ -58,7 +58,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         mirrors()
 
         expect:
-        !resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/")).present
+        !resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo").present
     }
 
     def "returns wildcard mirror for remote repository url"() {
@@ -67,7 +67,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         mirrors(mirror("corp-mirror", "*", "https://mirror.example.com/maven2"))
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.present
@@ -75,45 +75,90 @@ class DefaultMavenMirrorResolverTest extends Specification {
         result.get().url == URI.create("https://mirror.example.com/maven2")
     }
 
-    def "ignores mirror with unsupported mirrorOf value"() {
+    def "mirror with non-matching mirrorOf is not applied"() {
         given:
         featureEnabled()
         mirrors(mirror("selective", mirrorOf, "https://mirror.example.com/maven2"))
 
         expect:
-        !resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/")).present
+        !resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo").present
 
         where:
-        mirrorOf << ["external:*", "!central", "central", "repo1,repo2", "*,!central"]
+        mirrorOf << ["central", "other-repo", "repo1,repo2", "*,!test-repo", "external:http:*", ""]
     }
 
-    def "first wildcard mirror wins when several are declared"() {
+    def "mirrorOf central matches the maven central url regardless of the repository name"() {
+        given:
+        featureEnabled()
+        mirrors(mirror("central-mirror", "central", "https://mirror.example.com/maven2"))
+
+        expect:
+        resolver.mirrorFor(URI.create("https://repo.maven.apache.org/maven2/"), "MavenRepo").present
+        resolver.mirrorFor(URI.create("https://repo.maven.apache.org/maven2"), "some-name").present
+        !resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo").present
+    }
+
+    def "central url repository is matched by the central id and not by its gradle name"() {
+        given:
+        featureEnabled()
+        mirrors(mirror("name-mirror", "MavenRepo", "https://mirror.example.com/maven2"))
+
+        expect:
+        !resolver.mirrorFor(URI.create("https://repo.maven.apache.org/maven2/"), "MavenRepo").present
+    }
+
+    def "mirrorOf matches the gradle repository name"() {
+        given:
+        featureEnabled()
+        mirrors(mirror("corp", "corp-repo", "https://mirror.example.com/maven2"))
+
+        expect:
+        resolver.mirrorFor(URI.create("https://repo.example.com/maven2/"), "corp-repo").present
+        !resolver.mirrorFor(URI.create("https://repo.example.com/maven2/"), "other-repo").present
+    }
+
+    def "first matching mirror wins when several are declared"() {
         given:
         featureEnabled()
         mirrors(
+            mirror("selective", "other-repo", "https://selective.example.com/maven2"),
             mirror("first", "*", "https://first.example.com/maven2"),
             mirror("second", "*", "https://second.example.com/maven2"))
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().id == "first"
         result.get().url == URI.create("https://first.example.com/maven2")
     }
 
-    def "wildcard mirror after an unsupported mirror is still used"() {
+    def "different repositories can match different mirrors"() {
         given:
         featureEnabled()
         mirrors(
-            mirror("selective", "external:*", "https://selective.example.com/maven2"),
-            mirror("wildcard", "*", "https://wildcard.example.com/maven2"))
+            mirror("central-mirror", "central", "https://central.example.com/maven2"),
+            mirror("corp", "corp-repo", "https://corp.example.com/maven2"))
+
+        expect:
+        resolver.mirrorFor(URI.create("https://repo.maven.apache.org/maven2/"), "MavenRepo").get().id == "central-mirror"
+        resolver.mirrorFor(URI.create("https://repo.example.com/maven2/"), "corp-repo").get().id == "corp"
+        !resolver.mirrorFor(URI.create("https://repo.example.com/maven2/"), "unmatched").present
+    }
+
+    def "blocked mirror is returned with the blocked flag"() {
+        given:
+        featureEnabled()
+        def blocker = mirror("blocker", "*", "http://0.0.0.0/")
+        blocker.blocked = true
+        mirrors(blocker)
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
-        result.get().id == "wildcard"
+        result.get().blocked
+        result.get().credentials == null
     }
 
     def "returns no mirror when the url is already the mirror url"() {
@@ -122,7 +167,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         mirrors(mirror("corp-mirror", "*", "https://mirror.example.com/maven2"))
 
         expect:
-        !resolver.mirrorFor(URI.create("https://mirror.example.com/maven2")).present
+        !resolver.mirrorFor(URI.create("https://mirror.example.com/maven2"), "test-repo").present
     }
 
     def "does not mirror non-remote urls"() {
@@ -131,7 +176,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         mirrors(mirror("corp-mirror", "*", "https://mirror.example.com/maven2"))
 
         expect:
-        !resolver.mirrorFor(URI.create("file:/home/user/.m2/repository")).present
+        !resolver.mirrorFor(URI.create("file:/home/user/.m2/repository"), "mavenLocal").present
     }
 
     def "returns no mirror when settings cannot be read"() {
@@ -140,7 +185,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         settingsProvider.buildSettings() >> { throw new RuntimeException("broken") }
 
         expect:
-        !resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/")).present
+        !resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo").present
     }
 
     def "parses settings only once"() {
@@ -148,8 +193,8 @@ class DefaultMavenMirrorResolverTest extends Specification {
         featureEnabled()
 
         when:
-        resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
-        resolver.mirrorFor(URI.create("https://google.example.com/maven2/"))
+        resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
+        resolver.mirrorFor(URI.create("https://google.example.com/maven2/"), "other-repo")
 
         then:
         1 * settingsProvider.buildSettings() >> settingsWith(mirror("corp-mirror", "*", "https://mirror.example.com/maven2"))
@@ -162,7 +207,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
             [server("other", "nobody", "nothing"), server("corp-mirror", "mirror-user", "plain-secret")])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().credentials.username == "mirror-user"
@@ -175,7 +220,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("other", "nobody", "nothing")])
 
         expect:
-        resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/")).get().credentials == null
+        resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo").get().credentials == null
     }
 
     def "gradle properties override the settings server credentials"() {
@@ -184,7 +229,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("corp-mirror", "mirror-user", "plain-secret")])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().credentials.username == "prop-user"
@@ -197,7 +242,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("corp-mirror", "mirror-user", "plain-secret")])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().credentials.username == "mirror-user"
@@ -215,7 +260,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("corp-mirror", "mirror-user", ENCRYPTED_PASSWORD)])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().credentials.username == "mirror-user"
@@ -231,7 +276,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server("corp-mirror", "mirror-user", ENCRYPTED_PASSWORD)])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.present
@@ -245,7 +290,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
             [serverWithHeaders("corp-mirror", ["Private-Token": "token-123"])])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().credentials == null
@@ -260,7 +305,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
             [serverWithHeaders("corp-mirror", ["First-Header": "first", "Second-Header": "second"])])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().httpHeader.name == "First-Header"
@@ -276,7 +321,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().credentials.username == "mirror-user"
@@ -295,7 +340,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
             [serverWithHeaders("corp-mirror", ["Private-Token": ENCRYPTED_PASSWORD])])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.get().httpHeader.value == "mirror-secret"
@@ -317,7 +362,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         settings([mirror("corp-mirror", "*", "https://mirror.example.com/maven2")], [server])
 
         when:
-        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"))
+        def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
 
         then:
         result.present
