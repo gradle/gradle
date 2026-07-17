@@ -151,19 +151,48 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         outputContains("init exec ops: true")
     }
 
-    def "ProjectLayout can be looked up on a task at configuration time"() {
+    def "each project's task resolves its own project-scoped service when registered from an allprojects block"() {
+        createDirs("a")
+        settingsFile << """
+            include("a")
+        """
         buildFile << """
-            tasks.register("showLayout") {
-                def dirName = service(ProjectLayout).projectDirectory.asFile.name
-                doLast {
-                    println("project dir name: " + dirName)
+            allprojects { proj ->
+                tasks.register("ping") {
+                    def projectPath = proj.path
+                    def captured = service(ProjectLayout)
+                    doLast {
+                        println("layout for " + projectPath + ": " + captured.projectDirectory.asFile.name)
+                    }
                 }
             }
         """
 
-        expect:
-        succeeds("showLayout")
-        outputContains("project dir name: " + testDirectory.name)
+        when:
+        succeeds("ping")
+
+        then:
+        outputContains("layout for :: " + testDirectory.name)
+        outputContains("layout for :a: a")
+    }
+
+    def "service can be looked up from a closure nested inside a task action"() {
+        buildFile << """
+            tasks.register("nested") {
+                doLast {
+                    def makeProperty = { service(ObjectFactory).property(String) }
+                    def p = makeProperty()
+                    p.set("nested-value")
+                    println("out: " + p.get())
+                }
+            }
+        """
+
+        when:
+        succeeds("nested")
+
+        then:
+        outputContains("out: nested-value")
     }
 
     def "looking up a project-only service from a settings script fails with a helpful message"() {
