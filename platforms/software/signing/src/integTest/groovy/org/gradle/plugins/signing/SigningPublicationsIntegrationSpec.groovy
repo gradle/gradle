@@ -19,6 +19,11 @@ package org.gradle.plugins.signing
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.function.Function
+import java.util.stream.Collectors
+
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
     def "signs single Maven publication"() {
@@ -845,5 +850,81 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
+    }
+
+    def "Maven publication signatures do not have checksums"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        group = 'sign'
+                        artifactId = '$artifactId'
+                        version = '$version'
+                        from components.java
+                        $config
+                    }
+                }
+                repositories {
+                    maven {
+                        name = "BuildDir"
+                        setUrl(layout.buildDirectory.file("repo"))
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.mavenJava
+            }
+        """
+
+        when:
+        run "publishAllPublicationsToBuildDirRepository"
+
+        then:
+        Path repoDir = file("build", "repo").toPath()
+
+        List<Path> sigFiles = Files.walk(repoDir)
+            .filter(Files::isRegularFile)
+            .filter { it.fileName.toString().endsWith(".asc") }
+            .toList()
+
+        def mapSigsToChecksums = sigFiles
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Function.identity(),
+                    { Path p ->
+                        Files.list(p.parent)
+                            .filter(Files::isRegularFile)
+                            .filter { it.fileName.toString().startsWith(p.fileName.toString() + ".") }
+                            .map { repoDir.relativize(it).join('/') }
+                            .sorted()
+                            .toList()
+                    }
+                )
+            )
+
+        expect:
+        for (Path sigFile : sigFiles) {
+            def actualChecksums = mapSigsToChecksums[sigFile]
+            def expected = expectedChecksums.stream()
+                .map { cs -> sigFile.resolveSibling(sigFile.fileName.toString() + "." + cs) }
+                .map { repoDir.relativize(it).join('/') }
+                .sorted()
+                .toList()
+
+            assert actualChecksums == expected
+        }
+
+        where:
+        config                                          | expectedChecksums
+        "enableChecksumsForDerivedArtifacts.set(true)"  | ["md5", "sha1", "sha256", "sha512"]
+        "enableChecksumsForDerivedArtifacts.set(false)" | []
+        "// not configured"                             | []
     }
 }
