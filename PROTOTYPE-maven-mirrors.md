@@ -5,7 +5,7 @@ Status: design note + spike. Not for merge. Feature flag: `org.gradle.internal.m
 Scope of this cut:
 
 - Parse mirrors from Maven `settings.xml` only (user + global, as already merged by `DefaultMavenSettingsProvider`).
-- Only `<mirrorOf>*</mirrorOf>` is honored. Any other `mirrorOf` value produces a lifecycle warning and is skipped.
+- The full Maven `mirrorOf` grammar is honored (see the "mirrorOf matching" section): `*`, exact ids, `!id` negation, comma-separated lists, `external:*` and `external:http:*`, matched per repository against an "effective id" (`central` for Maven Central's URL, the Gradle repository name otherwise).
 - Only remote `MavenArtifactRepository` instances are rewritten. Ivy, flat-dir and `mavenLocal()` are untouched.
 
 ## 1. Where to hook
@@ -140,6 +140,25 @@ Design choices worth noting:
 - The value source returns a *checksum*, not the parsed mirror. The fingerprint check on every CC-hit build therefore only hashes two small files; the expensive `buildSettings()` parse still happens at most once per build and only when a Maven repository URL is actually finalized.
 - Value sources cannot inject build-scoped services, so the value source constructs `DefaultMavenFileLocations` itself to locate the files. This duplicates the location logic entry point (not the logic), and means the `M2_HOME`/`user.home` inputs behind it are not individually tracked — acceptable for the prototype.
 
+## 7. `mirrorOf` matching
+
+Maven matches `mirrorOf` patterns against repository *ids*, which Gradle repositories don't have. The prototype bridges that with one concept:
+
+**Effective id.** A repository's effective id is `central` when its root URL is Maven Central's, and its Gradle repository *name* otherwise. Both facts are grounded:
+
+- The Super POM (verified in the `maven-model-builder` 3.9.5 jar Gradle ships) declares Maven Central as `<id>central</id>` → `https://repo.maven.apache.org/maven2`, for both `<repositories>` and `<pluginRepositories>`. So `<mirrorOf>central</mirrorOf>` — the most common corporate configuration — maps cleanly onto any Gradle repository pointing at that URL. Matching by **URL** rather than by Gradle name (`MavenRepo`) also catches `maven { url = "https://repo.maven.apache.org/maven2" }` written longhand, and matches the setting's *intent*. A central-URL repository is matchable *only* as `central` (the effective id shadows the name), keeping one id per repository like Maven.
+- Every other repository matches by its Gradle name. This is a documented convention, not parity: settings.xml ids come from POM/settings declarations that have no relation to Gradle names unless the team aligns them deliberately. Sharp edge: unnamed repositories get auto-generated names (`maven`, `maven2`, … in declaration order), so a `mirrorOf` matching those is order-sensitive — name your repositories if you want to match them. The "Applying Maven mirror" lifecycle line makes every match visible.
+
+**Pattern grammar.** The matcher is a port of the one Maven 3.9 actually uses (`org.eclipse.aether.util.repository.DefaultMirrorSelector`, verified against the resolver-util 1.9.16 bytecode): `*`, exact id, `!id` negation, comma-separated lists, `external:*` (not localhost/127.0.0.1, not `file://`), and `external:http:*` (external and plain http). **There are no partial globs** — `corp-*` is not Maven syntax and is deliberately not invented here. Semantics ported exactly: mirrors are tried in settings declaration order and the first whose pattern matches wins; within a pattern, a matching `!id` short-circuits to "no match", while positive tokens keep scanning so a later `!id` can override an earlier `*` (`*,!central` works).
+
+**Blocked mirrors.** Maven 3.8+ mirrors carry `<blocked>` — and Maven's own bundled `conf/settings.xml` contains `maven-default-http-blocker` (`mirrorOf` `external:http:*`, URL `http://0.0.0.0/`, blocked). Since the settings provider merges global settings, supporting `external:http:*` *without* honoring `blocked` would silently rewrite external http repositories to `http://0.0.0.0/` on any machine with `M2_HOME` set. So a matched blocked mirror fails resolution of that repository with an explicit error, Maven-style — a prerequisite for `external:http:*`, not an optional extra.
+
+Notes:
+
+- The plugin portal (`gradlePluginPortal()`) is a Maven-format repository built through the same factory, so `*` captures it — probably desired in locked-down environments; its effective id is its Gradle name, so it can be exempted with `!<name>`.
+- `mirrorOfLayouts` is ignored: Gradle only has the "default" layout, and Maven's default value (`default,legacy`) matches everything anyway, so ignoring is behavior-identical.
+- Follow-up idea, not in this cut: an end-of-build info summary of mirrors that matched nothing (typo diagnostics — `mirrorOf` failures are silent in Maven too).
+
 ## What the spike changes
 
 - New: `mvnsettings/MavenMirrorResolver.java` (internal interface + `MirroredRepository` value), `mvnsettings/DefaultMavenMirrorResolver.java`, `mvnsettings/MavenSettingsChecksumValueSource.java` (CC input tracking).
@@ -151,6 +170,6 @@ Design choices worth noting:
 ## Gaps before this could be a real feature
 
 1. **Auth**: mostly closed in this cut (leak prevention + Option C hybrid credentials with decryption + first-header `<httpHeaders>` mapping). Remaining: multiple HTTP headers per mirror, and the Maven 4 encryption format.
-2. **`mirrorOf` matching semantics**: `external:*`, `!excludes`, id lists, per-repo matching by repository id (requires a mapping from Gradle repo names to Maven repo ids — non-obvious).
+2. **`mirrorOf` matching**: closed in this cut (full Maven grammar, effective ids, blocked mirrors — see section 7). Remaining: the name-matching convention needs a real design discussion before anything user-visible ships, and match diagnostics for typos.
 3. **Repository identity/reporting**: descriptor should expose original + mirror; build scans and the resolution cache key need a deliberate decision.
 4. **Surface**: environment-variable/DSL opt-in story, interaction with `dependencyResolutionManagement` repositories and repository content filtering, Ivy repos, documentation.
