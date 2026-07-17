@@ -84,7 +84,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private final boolean allowAccessToProjectState;
     private final WorkerLeaseService workerLeases;
-    private final SubmissionQueue submissionQueue;
+    private final SubmissionQueue constrainedQueue;
+    private final SubmissionQueue unconstrainedQueue;
     private final QueueWorker<T> queueWorker;
     private final @Nullable BuildOperationRef parent;
 
@@ -97,19 +98,35 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     DefaultBuildOperationQueue(
         boolean allowAccessToProjectState,
         WorkerLeaseService workerLeases,
-        SubmissionQueue submissionQueue,
+        SubmissionQueue constrainedQueue,
+        SubmissionQueue unconstrainedQueue,
         QueueWorker<T> queueWorker,
         @Nullable BuildOperationRef parent
     ) {
         this.allowAccessToProjectState = allowAccessToProjectState;
         this.workerLeases = workerLeases;
-        this.submissionQueue = submissionQueue;
+        this.constrainedQueue = constrainedQueue;
+        this.unconstrainedQueue = unconstrainedQueue;
         this.queueWorker = queueWorker;
         this.parent = parent;
     }
 
     @Override
     public void add(T operation) {
+        constrainedQueue.add(registerOperation(operation));
+    }
+
+    @Override
+    public void addUnconstrained(T operation) {
+        unconstrainedQueue.add(registerOperation(operation));
+    }
+
+    /**
+     * Accounts for a newly submitted operation and wraps it for execution.
+     *
+     * @throws IllegalStateException if this queue has already been cancelled or completed
+     */
+    private OperationRunnable registerOperation(T operation) {
         state.updateAndGet(s -> {
             switch (s.status) {
                 case WORKING:
@@ -122,7 +139,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                     throw new AssertionError("Unknown queue status: " + s.status);
             }
         });
-        submissionQueue.add(new OperationRunnable(operation));
+        return new OperationRunnable(operation);
     }
 
     @Override
@@ -157,18 +174,20 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         });
 
         if (!prev.isComplete()) {
-            // Drain on the current thread while there is queued work to pull.
+            // Only the constrained queue is drained: it can stall when every lease is held elsewhere,
+            // and this thread has one to lend. See https://github.com/gradle/gradle/issues/37613
+            // Unconstrained work cannot stall that way, and running it here would put it back under a lease.
             //
             // The drain terminates because the status flip above makes add() throw, so nothing more
             // can be submitted. Operations polled by other threads may still be running afterwards;
             // allOperationsComplete below is what waits for those.
             if (prev.pendingOperations > 0) {
-                submissionQueue.processWorkUsingCurrentThreadUntilEmpty();
+                constrainedQueue.processWorkUsingCurrentThreadUntilEmpty();
             }
 
             // Release the worker lease while blocked, but only drop the project lock if the work
             // might need it (allowAccessToProjectState); otherwise hold it to avoid deadlocks when a
-            // resource lock is held above (see gradle/gradle#38154).
+            // resource lock is held above. See https://github.com/gradle/gradle/issues/38154
             if (allowAccessToProjectState) {
                 awaitAllOperationsComplete();
             } else {

@@ -26,10 +26,10 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.SubmissionQueue;
+import org.gradle.internal.work.UnconstrainedSubmissionQueue;
 import org.gradle.internal.work.WorkerLeaseQueueProcessor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
-import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +45,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final WorkerLeaseQueueProcessor maxWorkersProcessor;
     private final ManagedExecutor maxWorkersBackingExecutor;
     private final ManagedExecutor unconstrainedExecutor;
+    private final SubmissionQueue unconstrainedSubmissionQueue;
 
     public DefaultBuildOperationExecutor(
         BuildOperationRunner buildOperationRunner,
@@ -78,47 +79,32 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             "Unconstrained build operations",
             workerLimits.getMaxUnconstrainedWorkerCount()
         );
+        this.unconstrainedSubmissionQueue = new UnconstrainedSubmissionQueue(unconstrainedExecutor);
     }
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
-        runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
-    }
-
-    @Override
-    public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        executeInParallel(false, RunnableBuildOperation::run, schedulingAction, buildOperationConstraint);
+        executeInParallel(false, RunnableBuildOperation::run, schedulingAction);
     }
 
     @Override
     public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction) {
-        runAllWithAccessToProjectState(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
-    }
-
-    @Override
-    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        executeInParallel(true, RunnableBuildOperation::run, schedulingAction, buildOperationConstraint);
+        executeInParallel(true, RunnableBuildOperation::run, schedulingAction);
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-        runAll(worker, schedulingAction, BuildOperationConstraint.MAX_WORKERS);
-    }
-
-    @Override
-    public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        executeInParallel(false, worker, schedulingAction, buildOperationConstraint);
+        executeInParallel(false, worker, schedulingAction);
     }
 
     private <O extends BuildOperation> void executeInParallel(
         boolean allowAccessToProjectState,
         BuildOperationWorker<O> worker,
-        Action<BuildOperationQueue<O>> queueAction,
-        BuildOperationConstraint buildOperationConstraint
+        Action<BuildOperationQueue<O>> queueAction
     ) {
-        SubmissionQueue submissionQueue = getSubmissionQueueFor(buildOperationConstraint);
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(
-            submissionQueue,
+            maxWorkersProcessor.createSubmissionQueue(),
+            unconstrainedSubmissionQueue,
             allowAccessToProjectState,
             operation -> runner.execute(operation, worker),
             currentBuildOperationRef.get()
@@ -142,27 +128,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             throw failures.get(0);
         } else if (failures.size() > 1) {
             throw new DefaultMultiCauseException(formatMultipleFailureMessage(failures), failures);
-        }
-    }
-
-    private SubmissionQueue getSubmissionQueueFor(BuildOperationConstraint buildOperationConstraint) {
-        switch (buildOperationConstraint) {
-            case UNCONSTRAINED: return new UnconstrainedSubmissionQueue();
-            case MAX_WORKERS: return maxWorkersProcessor.createSubmissionQueue();
-            default: throw new IllegalArgumentException("Unknown build operation constraint: " + buildOperationConstraint);
-        }
-    }
-
-    @NullMarked
-    private class UnconstrainedSubmissionQueue implements SubmissionQueue {
-        @Override
-        public void add(Runnable task) {
-            unconstrainedExecutor.execute(task);
-        }
-
-        @Override
-        public void processWorkUsingCurrentThreadUntilEmpty() {
-            // No-op, we're not limited by leases.
         }
     }
 

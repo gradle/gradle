@@ -30,10 +30,31 @@ public interface BuildOperationQueue<T extends BuildOperation> {
 
     /**
      * Adds an operation to be executed, potentially executing it instantly.
+     * <p>
+     * Execution is constrained by the configured maximum number of workers: the operation is required to
+     * acquire a {@link org.gradle.internal.work.WorkerLeaseRegistry worker lease} before proceeding.
+     * Intended for CPU intensive operations.
      *
      * @param operation operation to execute
+     * @see #addUnconstrained for IO intensive operations
      */
     void add(T operation);
+
+    /**
+     * Adds an operation to be executed without holding a worker lease, potentially executing it instantly.
+     * <p>
+     * Execution is not constrained by the configured maximum number of workers, allowing as many threads as
+     * required up to a separate, higher limit. Intended for IO intensive operations. Such operations must not
+     * depend on acquiring a worker lease.
+     * <p>
+     * Operations added this way are tracked by this queue just like those added via {@link #add}: they are
+     * covered by {@link #cancel()} and awaited by {@link #waitForCompletion()}, and their failures are
+     * reported together.
+     *
+     * @param operation operation to execute
+     * @see #add for CPU intensive operations
+     */
+    void addUnconstrained(T operation);
 
     /**
      * Cancels all queued operations in this queue.  Any operations that have started will be allowed to complete.

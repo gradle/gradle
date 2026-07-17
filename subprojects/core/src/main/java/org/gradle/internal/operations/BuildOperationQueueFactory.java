@@ -20,8 +20,13 @@ import org.gradle.internal.work.SubmissionQueue;
 import org.jspecify.annotations.Nullable;
 
 public interface BuildOperationQueueFactory {
+    /**
+     * @param constrainedQueue receives work added via {@link BuildOperationQueue#add}, which must hold a worker lease
+     * @param unconstrainedQueue receives work added via {@link BuildOperationQueue#addUnconstrained}, which must not
+     */
     <T extends BuildOperation> BuildOperationQueue<T> create(
-        SubmissionQueue submissionQueue,
+        SubmissionQueue constrainedQueue,
+        SubmissionQueue unconstrainedQueue,
         boolean allowAccessToProjectState,
         BuildOperationQueue.QueueWorker<T> worker,
         @Nullable BuildOperationRef parent

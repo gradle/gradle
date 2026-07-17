@@ -23,6 +23,8 @@ import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.ResourceLockStatistics
+import org.gradle.internal.work.SubmissionQueue
+import org.gradle.internal.work.UnconstrainedSubmissionQueue
 import org.gradle.internal.work.WorkerLeaseQueueProcessor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
@@ -77,8 +79,13 @@ class DefaultBuildOperationQueueTest extends Specification {
     WorkerLeaseRegistry.WorkerLeaseCompletion lease
     WorkerLeaseQueueProcessor workerLeaseProcessor
     ExecutorService backingExecutor
+    ExecutorService unconstrainedExecutor
 
     void setupQueue(int threads) {
+        setupQueue(threads, Executors.newCachedThreadPool())
+    }
+
+    void setupQueue(int threads, ExecutorService unconstrainedPool) {
         coordinationService = new DefaultResourceLockCoordinationService()
         workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(threads), ResourceLockStatistics.NO_OP) {}
         workerRegistry.startProjectExecution(true)
@@ -86,7 +93,16 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, threads, threads * 2)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), new SimpleWorker(), null)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), unconstrainedQueue(unconstrainedPool), new SimpleWorker(), null)
+    }
+
+    /**
+     * An unconstrained queue backed by its own pool, mirroring how DefaultBuildOperationExecutor
+     * wires one up. Deliberately independent of the worker leases.
+     */
+    SubmissionQueue unconstrainedQueue(ExecutorService pool = Executors.newCachedThreadPool()) {
+        unconstrainedExecutor = pool
+        return new UnconstrainedSubmissionQueue(unconstrainedExecutor)
     }
 
     def cleanup() {
@@ -98,6 +114,8 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease?.leaseFinish()
         backingExecutor?.shutdown()
         backingExecutor?.awaitTermination(15, TimeUnit.SECONDS)
+        unconstrainedExecutor?.shutdown()
+        unconstrainedExecutor?.awaitTermination(15, TimeUnit.SECONDS)
         workerRegistry?.stop()
     }
 
@@ -138,6 +156,94 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         then:
         thrown IllegalStateException
+    }
+
+    def "cannot add an unconstrained operation once the queue has completed"() {
+        given:
+        setupQueue(1)
+        operationQueue.waitForCompletion()
+
+        when:
+        operationQueue.addUnconstrained(Mock(TestBuildOperation))
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "unconstrained operations do not run on a worker thread"() {
+        given:
+        // Exactly one lease, held by the main thread, so a constrained operation could only ever
+        // run via the main thread's self-drain -- which is a worker thread.
+        setupQueue(1)
+        def ranOnWorkerThread = new AtomicBoolean(true)
+
+        when:
+        operationQueue.addUnconstrained(operation { ranOnWorkerThread.set(workerRegistry.isWorkerThread()) })
+        operationQueue.waitForCompletion()
+
+        then:
+        !ranOnWorkerThread.get()
+    }
+
+    def "unconstrained operations execute concurrently beyond the max worker count"() {
+        given:
+        setupQueue(1)
+        int operations = 4
+        def peakConcurrency = new AtomicInteger()
+        def currentConcurrency = new AtomicInteger()
+        def allStarted = new CountDownLatch(operations)
+
+        when:
+        operations.times {
+            operationQueue.addUnconstrained(operation {
+                int running = currentConcurrency.incrementAndGet()
+                peakConcurrency.updateAndGet { Math.max(it, running) }
+                allStarted.countDown()
+                allStarted.await(2, TimeUnit.SECONDS)
+                currentConcurrency.decrementAndGet()
+            })
+        }
+        operationQueue.waitForCompletion()
+
+        then:
+        peakConcurrency.get() == operations
+    }
+
+    def "queue mixing constrained and unconstrained operations routes each kind to its own pool"() {
+        given:
+        setupQueue(2)
+        def constrainedOnWorkerThread = new CopyOnWriteArrayList<Boolean>()
+        def unconstrainedOnWorkerThread = new CopyOnWriteArrayList<Boolean>()
+
+        when:
+        3.times {
+            operationQueue.add(operation { constrainedOnWorkerThread.add(workerRegistry.isWorkerThread()) })
+            operationQueue.addUnconstrained(operation { unconstrainedOnWorkerThread.add(workerRegistry.isWorkerThread()) })
+        }
+        operationQueue.waitForCompletion()
+
+        then:
+        constrainedOnWorkerThread.size() == 3
+        unconstrainedOnWorkerThread.size() == 3
+        constrainedOnWorkerThread.every()
+        !unconstrainedOnWorkerThread.any()
+    }
+
+    def "failures from constrained and unconstrained operations propagate together"() {
+        given:
+        setupQueue(2)
+
+        when:
+        operationQueue.add(new Success())
+        operationQueue.add(new Failure())
+        operationQueue.addUnconstrained(new Success())
+        operationQueue.addUnconstrained(new Failure())
+        operationQueue.waitForCompletion()
+
+        then:
+        MultipleBuildOperationFailures e = thrown()
+        e.causes.size() == 2
+        e.causes.every { it instanceof GradleException }
     }
 
     def "failures propagate to caller regardless of when it failed #operations with #threads threads"() {
@@ -216,6 +322,34 @@ class DefaultBuildOperationQueueTest extends Specification {
         5    | 10
     }
 
+    def "when queue is canceled, unstarted operations of both kinds do not execute"() {
+        CountDownLatch startedLatch = new CountDownLatch(2)
+        CountDownLatch releaseLatch = new CountDownLatch(1)
+        def executedAfterCancel = new AtomicInteger()
+
+        given:
+        // A single lease and a single unconstrained thread, so the operations queued behind the
+        // blocking ones below are still unstarted when cancel() is called.
+        setupQueue(1, Executors.newSingleThreadExecutor())
+        lease.leaseFinish()
+        lease = null
+
+        when:
+        operationQueue.add(new SynchronizedBuildOperation({}, startedLatch, releaseLatch))
+        operationQueue.addUnconstrained(new SynchronizedBuildOperation({}, startedLatch, releaseLatch))
+        assert startedLatch.await(30, TimeUnit.SECONDS)
+
+        and:
+        5.times { operationQueue.add(operation { executedAfterCancel.incrementAndGet() }) }
+        5.times { operationQueue.addUnconstrained(operation { executedAfterCancel.incrementAndGet() }) }
+        operationQueue.cancel()
+        releaseLatch.countDown()
+        operationQueue.waitForCompletion()
+
+        then:
+        executedAfterCancel.get() == 0
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/37613")
     def "workers do not pull operations without a lease, and main thread can progress the queue"() {
         given:
@@ -250,7 +384,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), recordingWorker, null)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), unconstrainedQueue(), recordingWorker, null)
 
         when:
         operationQueue.add(new Success())
@@ -305,7 +439,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 2, 4)
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), new SimpleWorker(), null)
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), unconstrainedQueue(), new SimpleWorker(), null)
 
         when:
         operationQueue.add(new SynchronizedBuildOperation({}, startedLatch, releaseLatch))
@@ -351,7 +485,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), recordingWorker, null)
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), unconstrainedQueue(), recordingWorker, null)
 
         when:
         operationQueue.add(new Success())
@@ -365,6 +499,15 @@ class DefaultBuildOperationQueueTest extends Specification {
         false                     | true
         true                      | false
         policyDesc = lockChangesDisallowed ? "disallows" : "allows"
+    }
+
+    private static TestBuildOperation operation(Closure<?> body) {
+        return new TestBuildOperation() {
+            @Override
+            void run(BuildOperationContext context) {
+                body.call()
+            }
+        }
     }
 
     static class SynchronizedBuildOperation extends TestBuildOperation {
