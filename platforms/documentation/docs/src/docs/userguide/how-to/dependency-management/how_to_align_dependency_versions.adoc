@@ -73,6 +73,13 @@ If no public BOM exists, you can create a **virtual platform**.
 In this case, Gradle builds the platform **dynamically** based on the modules being used.
 For this, you must define <<component_metadata_rules.adoc#component-metadata-rules,**component metadata rules**>>:
 
+[NOTE]
+====
+Some libraries, such as Jackson, now publish Gradle Module Metadata that includes version alignment information.
+This means Gradle can automatically align their module versions without any manual configuration.
+The Jackson-based virtual platform example shown below is for illustration only; the virtual platform approach remains essential for libraries that do not publish such metadata.
+====
+
 ====
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/aligning-versions/kotlin",files="build.gradle.kts[tags=dependency-full-platform]"]
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/aligning-versions/groovy",files="build.gradle[tags=dependency-full-platform]"]
