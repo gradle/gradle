@@ -12,6 +12,7 @@ dependencies {
     api(projects.serviceProvider)
     api(libs.kotlinStdlib)
 
+    implementation(projects.buildOption)
     implementation(projects.classloaders)
     implementation(projects.serviceLookup)
     implementation(projects.time)

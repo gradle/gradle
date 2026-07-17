@@ -17,6 +17,7 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.project.ProjectConfigureAction
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelBuilder
@@ -31,17 +32,23 @@ import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrant
  */
 class KotlinScriptingModelBuildersRegistrant(
     private val modelParameters: BuildModelParameters,
+    private val internalOptions: InternalOptions,
     private val intermediateModelProvider: IntermediateToolingModelProvider
 ) : ToolingModelBuilderRegistrant {
+
+    companion object {
+        val LEGACY_SCRIPTS_MODEL_BUILDER = InternalOptions.ofBoolean("org.gradle.internal.legacy-kotlin-dsl-scripts-model", false)
+    }
 
     override fun registerForProject(registry: ToolingModelBuilderRegistry, isRootProject: Boolean) {
         registry.register(KotlinBuildScriptModelBuilder)
         registry.register(IsolatedScriptsModelBuilder)
 
         if (isRootProject) {
+            val useLegacyBuilder = !modelParameters.isIsolatedProjects && internalOptions.getBoolean(LEGACY_SCRIPTS_MODEL_BUILDER)
             val builder = when {
-                modelParameters.isIsolatedProjects -> IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider)
-                else -> KotlinDslScriptsModelBuilder
+                useLegacyBuilder -> KotlinDslScriptsModelBuilder
+                else -> IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider)
             }
             registry.register(builder)
         }
