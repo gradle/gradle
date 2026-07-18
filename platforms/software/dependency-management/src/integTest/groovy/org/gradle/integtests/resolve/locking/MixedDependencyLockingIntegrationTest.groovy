@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -26,7 +27,7 @@ class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolution
         settingsFile << "rootProject.name = 'mixedDepLock'"
     }
 
-    def 'can resolve locked and unlocked configurations'() {
+    def 'can resolve locked and unlocked configurations (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -51,9 +52,12 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
@@ -67,9 +71,11 @@ dependencies {
         outputContains('org:foo:1.1')
         outputDoesNotContain('constraint')
 
+        where:
+        unique << [true, false]
     }
 
-    def 'ignores the lockfile of a parent configuration when resolving an unlocked child configuration'() {
+    def 'ignores the lockfile of a parent configuration when resolving an unlocked child configuration (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -93,7 +99,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'unlockedConf', '--dependency', 'foo'
@@ -101,9 +107,12 @@ dependencies {
         then:
         outputContains('org:foo:1.1')
         outputDoesNotContain('constraint')
+
+        where:
+        unique << [true, false]
     }
 
-    def 'applies the lock file to inherited dependencies'() {
+    def 'applies the lock file to inherited dependencies (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -128,14 +137,20 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique && GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
         outputContains('org:foo:1.0')
         outputContains('Dependency version enforced by Dependency Locking')
+
+        where:
+        unique << [true, false]
     }
 
     def 'writes lock file entries for inherited dependencies'() {

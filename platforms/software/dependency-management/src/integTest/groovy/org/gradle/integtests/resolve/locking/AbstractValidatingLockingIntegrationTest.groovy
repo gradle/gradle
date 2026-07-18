@@ -49,6 +49,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         fails 'checkDeps'
 
         then:
@@ -90,6 +93,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         fails 'checkDeps'
 
         then:
@@ -130,6 +136,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         fails 'checkDeps'
 
         then:
@@ -170,6 +179,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         fails 'checkDeps'
 
         then:
@@ -202,6 +214,9 @@ configurations {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         fails 'checkDeps'
 
         then:
@@ -243,11 +258,14 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         run 'dependencies'
 
         then:
-        outputContains """lockedConf
-+--- org:foo:1.+ FAILED
+        outputContains 'lockedConf'
+        outputContains """+--- org:foo:1.+ FAILED
 +--- org:foo:1.1 FAILED
 \\--- org:foo:{strictly 1.0} FAILED"""
 
@@ -287,11 +305,14 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
         run 'dependencies'
 
         then:
-        outputContains """lockedConf
-+--- org:foo:[1.0, 1.1] FAILED
+        outputContains 'lockedConf'
+        outputContains """+--- org:foo:[1.0, 1.1] FAILED
 +--- org:foo:1.1 FAILED
 +--- org:foo:{strictly 1.0} FAILED
 \\--- org:bar:1.0 FAILED
@@ -328,6 +349,10 @@ dependencies {
 """
 
         lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'], unique)
+
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
 
         expect:
         succeeds 'checkDeps'
@@ -366,6 +391,10 @@ dependencies {
 """
 
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
+
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning("Storing dependency lock state using the legacy format has been deprecated. This is scheduled to be removed in Gradle 10. Since Gradle 6.4, dependency lock state is stored in a single file per project. Your build still stores lock state in a legacy format. Run `./gradlew dependencies --write-locks` to update your build to the new format. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#legacy_dependency_lock_format")
+        }
 
         expect:
         succeeds 'checkDeps'
