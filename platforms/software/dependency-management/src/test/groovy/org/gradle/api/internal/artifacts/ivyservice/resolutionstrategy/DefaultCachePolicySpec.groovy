@@ -240,10 +240,29 @@ class DefaultCachePolicySpec extends Specification {
         cachePolicy.asImmutable().artifactExpiry(null, null, Duration.ofMillis(1000), true, false).mustCheck
     }
 
-    def "provides a copy"() {
+    def "when rules are empty copy reuses rules"() {
         expect:
         def copy = cachePolicy.copy()
 
+        !copy.is(cachePolicy)
+        copy.dependencyCacheRules.is(cachePolicy.dependencyCacheRules)
+        copy.moduleCacheRules.is(cachePolicy.moduleCacheRules)
+        copy.artifactCacheRules.is(cachePolicy.artifactCacheRules)
+
+        copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
+        copy.moduleCacheRules == cachePolicy.moduleCacheRules
+        copy.artifactCacheRules == cachePolicy.artifactCacheRules
+    }
+
+    def "when rules are not empty copy creates independent rules"() {
+        given:
+        cachePolicy.cacheDynamicVersionsFor(10, TimeUnit.SECONDS)
+        cachePolicy.cacheChangingModulesFor(10, TimeUnit.SECONDS)
+
+        when:
+        def copy = cachePolicy.copy()
+
+        then:
         !copy.is(cachePolicy)
         !copy.dependencyCacheRules.is(cachePolicy.dependencyCacheRules)
         !copy.moduleCacheRules.is(cachePolicy.moduleCacheRules)
@@ -252,6 +271,15 @@ class DefaultCachePolicySpec extends Specification {
         copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
         copy.moduleCacheRules == cachePolicy.moduleCacheRules
         copy.artifactCacheRules == cachePolicy.artifactCacheRules
+
+        when:
+        copy.cacheDynamicVersionsFor(20, TimeUnit.SECONDS)
+        copy.cacheChangingModulesFor(20, TimeUnit.SECONDS)
+
+        then:
+        copy.dependencyCacheRules != cachePolicy.dependencyCacheRules
+        copy.moduleCacheRules != cachePolicy.moduleCacheRules
+        copy.artifactCacheRules != cachePolicy.artifactCacheRules
     }
 
     def "mutation is checked"() {
