@@ -71,6 +71,13 @@ import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompil
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
+import org.jetbrains.kotlin.K1Deprecation
+import org.jetbrains.kotlin.cli.create
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.jetbrains.kotlin.cli.jvm.compiler.setupIdeaStandaloneExecution
+import org.jetbrains.kotlin.com.intellij.openapi.Disposable
+import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.name.NameUtils
@@ -492,7 +499,7 @@ internal fun JvmTarget.toBuildToolsApiJvmTarget(): BtaJvmTarget =
     BtaJvmTarget.values().first { it.stringValue == description }
 
 
-@OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
+@OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class, K1Deprecation::class)
 private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: ClassLoader) {
 
     companion object {
@@ -503,11 +510,26 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
     private lateinit var toolchains: KotlinToolchains
     private lateinit var buildSession: KotlinToolchains.BuildSession
 
+    // Keeps KotlinCoreEnvironment's ref-count on the process-global application environment above zero until
+    // clean(), so it isn't disposed (jar caches and all) between the build's script compiles.
+    // The `kotlin.environment.keepalive` property is no substitute: BTA registers compilations
+    // deep inside executeOperation(), so the property would have to stay set across whole
+    // compiles — which either serializes the daemon (synchronized SystemProperties helper) or
+    // races with concurrent compiles (raw set/restore). An explicit
+    // disposeApplicationEnvironment() still wins over the pin; KotlinCompilerContextDisposer only
+    // issues it once the whole build tree is configured.
+    private val applicationEnvironmentPin: Disposable = Disposer.newDisposable("kotlin-dsl BTA application environment pin")
+
     init {
         toolchains = KotlinToolchains.loadImplementation(classLoader)
         if (!::buildSession.isInitialized) {
             buildSession = toolchains.createBuildSession()
         }
+
+        // Same setup order as KotlinCoreEnvironment.createForProduction: the standalone-mode system
+        // properties must be in place before the application environment is first created.
+        setupIdeaStandaloneExecution()
+        KotlinCoreEnvironment.getOrCreateApplicationEnvironmentForProduction(applicationEnvironmentPin, CompilerConfiguration.create())
     }
 
     private val plugins: List<CompilerPlugin> = createPlugins()
@@ -597,6 +619,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         if (::buildSession.isInitialized) {
             buildSession.close()
         }
+        Disposer.dispose(applicationEnvironmentPin)
     }
 
     private fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
