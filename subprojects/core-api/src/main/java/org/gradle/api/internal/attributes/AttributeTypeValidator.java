@@ -22,26 +22,22 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Runtime validation helpers for attribute value types.
  * <p>
  * The public {@link org.gradle.api.attributes.Attribute#of(String, Class)} factory validates
  * attribute value types up front at declaration. This helper provides the same allowlist check
- * so it can be reused by rule-registration code that needs to fail-fast when a rule is written
- * against an unsupported attribute value type — a case that Java generics don't catch when
- * rules are registered through raw types, wildcards, or reflection.
+ * so it can be reused by attribute rule chains, which warn when a rule is written against an
+ * unsupported attribute value type — a case that Java generics don't catch when rules are
+ * registered through raw types, wildcards, or reflection.
+ * <p>
+ * Unlike the factory, this check runs lazily: it fires the first time a rule is exercised during
+ * attribute matching (not at rule registration), so a rule whose attribute is never matched emits
+ * no warning. When an unsupported type is detected it emits a deprecation warning rather than
+ * failing — see {@link #validateRuleTypeParameter}.
  */
 public final class AttributeTypeValidator {
-    /**
-     * Rule classes that have already been validated. Prevents the reflective type-parameter
-     * extraction below from running on every attribute match — the check runs at most once per
-     * concrete rule class per JVM.
-     */
-    private static final Set<Class<?>> ALREADY_VALIDATED_RULES = ConcurrentHashMap.newKeySet();
-
     /**
      * Returns whether the given class is one of the supported attribute value types:
      * {@code String}, {@code Boolean}, any subtype of {@code Number}, or a type implementing
@@ -59,7 +55,14 @@ public final class AttributeTypeValidator {
      * (typically {@code AttributeCompatibilityRule} or {@code AttributeDisambiguationRule}) is
      * a supported attribute value type.
      * <p>
-     * Runs at most once per {@code ruleClass}. Silently accepts if:
+     * This performs reflective type-argument extraction on every call, so callers that invoke it
+     * on a hot path (e.g. per attribute match) are responsible for throttling it — see the
+     * per-instance guard in the rule-chain {@code ValidatingAction}s. It deliberately keeps no
+     * static state of its own: caching validated rule classes in a JVM-lifetime static would
+     * both leak plugin classloaders across builds and suppress the deprecation on every build
+     * after the first in a reused daemon.
+     * <p>
+     * Silently accepts if:
      * <ul>
      *   <li>the type argument cannot be resolved to a concrete class (rule is itself generic,
      *       uses a wildcard, or hides its type argument behind an abstract intermediate whose
@@ -73,9 +76,6 @@ public final class AttributeTypeValidator {
      * one of the supported attribute value types. This will become an error in Gradle 10.
      */
     public static void validateRuleTypeParameter(Class<?> ruleClass, Class<?> ruleInterface) {
-        if (!ALREADY_VALIDATED_RULES.add(ruleClass)) {
-            return;
-        }
         Class<?> typeArg = extractInterfaceTypeArgument(ruleClass, ruleInterface);
         if (typeArg == null || typeArg == Object.class) {
             return;

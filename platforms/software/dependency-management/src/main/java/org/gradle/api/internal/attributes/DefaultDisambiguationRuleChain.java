@@ -95,6 +95,15 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         private final Class<?> ruleClass;
         private final Action<MultipleCandidatesDetails<T>> delegate;
 
+        /**
+         * Throttles the reflective type-parameter validation, which would otherwise run on every
+         * attribute match. Kept as per-instance state (rather than a static across all rules) so it
+         * neither leaks the rule's plugin classloader for the life of the daemon nor suppresses the
+         * deprecation on builds after the first. Transient so a config-cache restore re-validates
+         * rather than inheriting a stale "already validated" flag.
+         */
+        private transient volatile boolean validated;
+
         ValidatingAction(Class<?> ruleClass, Action<MultipleCandidatesDetails<T>> delegate) {
             this.ruleClass = ruleClass;
             this.delegate = delegate;
@@ -102,7 +111,10 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
 
         @Override
         public void execute(MultipleCandidatesDetails<T> details) {
-            AttributeTypeValidator.validateRuleTypeParameter(ruleClass, AttributeDisambiguationRule.class);
+            if (!validated) {
+                validated = true;
+                AttributeTypeValidator.validateRuleTypeParameter(ruleClass, AttributeDisambiguationRule.class);
+            }
             delegate.execute(details);
         }
 
