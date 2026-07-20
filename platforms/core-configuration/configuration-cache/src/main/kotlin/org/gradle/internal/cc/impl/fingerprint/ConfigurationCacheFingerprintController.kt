@@ -249,6 +249,18 @@ class ConfigurationCacheFingerprintController internal constructor(
             return Idle()
         }
 
+        override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
+            if (!atConfigurationTime()) {
+                // Scripts resolved after the configuration phase cannot be fingerprinted
+                // anymore. This happens, for example, when a source dependency's build is
+                // configured lazily while resolving a dependency at execution time. When the
+                // build has gracefully degraded the fingerprint is discarded, so it is safe
+                // to run the action without recording anything.
+                return action()
+            }
+            return super.resolveScriptsForProject(project, action)
+        }
+
         override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
             if (!atConfigurationTime()) {
                 return

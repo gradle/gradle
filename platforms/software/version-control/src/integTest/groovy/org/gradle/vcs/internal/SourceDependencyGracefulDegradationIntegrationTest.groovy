@@ -17,11 +17,14 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/36610")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class SourceDependencyGracefulDegradationIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
 
     @Rule
