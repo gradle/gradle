@@ -32,7 +32,6 @@ import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
@@ -183,10 +182,6 @@ object BuildServices : ServiceRegistrationProvider {
             },
             fileCollectionFactory
         )
-
-    @Provides
-    fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =
-        KotlinCompilerContextDisposer(listenerManager)
 
     private
     val isKotlinScriptCompilationAvoidanceEnabled: Boolean
