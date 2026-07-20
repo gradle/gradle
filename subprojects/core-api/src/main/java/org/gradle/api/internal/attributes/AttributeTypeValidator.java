@@ -39,6 +39,15 @@ import java.lang.reflect.Type;
  */
 public final class AttributeTypeValidator {
     /**
+     * Fully-qualified name of a plain enum used as an attribute value type by the Kotlin Gradle
+     * Plugin 2.0.x line (empirically observed in 2.0.0 through 2.0.21). KGP 2.1.0+ no longer
+     * uses this enum. Not referenced by class literal because the enum lives in the KGP
+     * distribution and is not on Gradle's compile classpath.
+     */
+    private static final String KGP_NATIVE_BUNDLE_ENUM_FQN =
+        "org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat$KotlinNativeBundleArtifactsTypes";
+
+    /**
      * Returns whether the given class is one of the supported attribute value types:
      * {@code String}, {@code Boolean}, any subtype of {@code Number}, or a type implementing
      * {@link Named}.
@@ -48,6 +57,45 @@ public final class AttributeTypeValidator {
             || type == Boolean.class
             || Number.class.isAssignableFrom(type)
             || Named.class.isAssignableFrom(type);
+    }
+
+    /**
+     * Returns whether the given type is the specific plain-enum class
+     * {@code KotlinNativeBundleArtifactsTypes} used as an attribute value type by the Kotlin
+     * Gradle Plugin 2.0.x line (empirically observed in 2.0.0 through 2.0.21). KGP 2.1.0+ no
+     * longer uses this enum. Callers may accept this type with a targeted deprecation warning
+     * identifying KGP as the source, instead of the generic unsupported-type deprecation.
+     * <p>
+     * This special case should be removed when compatibility with KGP 2.0.x is no longer required.
+     */
+    public static boolean isKGPSpecialCase(Class<?> type) {
+        return KGP_NATIVE_BUNDLE_ENUM_FQN.equals(type.getName());
+    }
+
+    /**
+     * Returns whether the given type has, anywhere in its supertype chain (interfaces or
+     * superclasses, recursively), an interface whose fully-qualified name is
+     * {@code "org.gradle.api.Named"} but whose {@link Class} identity differs from {@link Named}.
+     * This "alien Named" situation almost always indicates a shaded or duplicated {@code gradle-api}
+     * on the classpath — the same interface loaded twice by different classloaders is treated by
+     * the JVM as two unrelated types, so {@code Named.class.isAssignableFrom(type)} returns
+     * {@code false} even though the type does implement (a copy of) {@code Named}.
+     * <p>
+     * This detection is intended to run only after {@link #isSupportedAttributeType(Class)} has
+     * already returned {@code false}, so a type that implements our real {@code Named} alongside
+     * an alien {@code Named} still short-circuits via that check and never reaches here.
+     */
+    public static boolean isAlienNamedSpecialCase(Class<?> type) {
+        if ("org.gradle.api.Named".equals(type.getName()) && type != Named.class) {
+            return true;
+        }
+        for (Class<?> iface : type.getInterfaces()) {
+            if (isAlienNamedSpecialCase(iface)) {
+                return true;
+            }
+        }
+        Class<?> sup = type.getSuperclass();
+        return sup != null && isAlienNamedSpecialCase(sup);
     }
 
     /**

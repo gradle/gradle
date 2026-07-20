@@ -56,26 +56,21 @@ public class Attribute<T> implements Named {
         return new Attribute<T>(name, type);
     }
 
-    /**
-     * Fully-qualified name of a plain enum used as an attribute value type by the Kotlin Gradle
-     * Plugin 2.0.x line (empirically observed in 2.0.0 through 2.0.21). KGP 2.1.0+ no longer uses
-     * this enum. To preserve compatibility with the affected KGP versions, this exact class name
-     * is allowed to pass {@link #validateSupportedType(String, Class)} with a targeted deprecation
-     * warning identifying KGP as the source, instead of the generic unsupported-type deprecation.
-     * <p>
-     * This special case should be removed when compatibility with KGP 2.0.x is no longer required.
-     */
-    private static final String KGP_NATIVE_BUNDLE_ENUM_FQN =
-        "org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat$KotlinNativeBundleArtifactsTypes";
-
     private static void validateSupportedType(String name, Class<?> type) {
         if (!AttributeTypeValidator.isSupportedAttributeType(type)) {
-            if (KGP_NATIVE_BUNDLE_ENUM_FQN.equals(type.getName())) {
-                DeprecationLogger.deprecate("Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type")
+            if (AttributeTypeValidator.isKGPSpecialCase(type)) {
+                DeprecationLogger.deprecate("Using the enum type " + type.getSimpleName() + " as an attribute value type")
                     .withContext("This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute.")
                     .willBecomeAnErrorInGradle10()
                     .withUpgradeGuideSection(9, "kgp_native_bundle_attribute_enum")
                     .nagUser();
+            } else if (AttributeTypeValidator.isAlienNamedSpecialCase(type)) {
+                throw new IllegalArgumentException(String.format(
+                    "Using an attribute value type that implements org.gradle.api.Named loaded from a different classloader is not supported. " +
+                        "The type '%s' declared for attribute '%s' was loaded from %s, but Gradle's own Named class is in %s. " +
+                        "This may indicate a shaded or duplicated Gradle API on the classpath.",
+                    type.getName(), name, type.getClassLoader(), Named.class.getClassLoader()
+                ));
             } else {
                 DeprecationLogger.deprecate("Using type '" + type.getName() + "' as a value type for attribute '" + name + "'")
                     .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")

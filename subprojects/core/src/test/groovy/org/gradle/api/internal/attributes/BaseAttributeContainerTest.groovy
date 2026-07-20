@@ -137,9 +137,37 @@ import spock.lang.Specification
         when: "an Attribute is declared with the Named class loaded from an alien classloader — Named.class.isAssignableFrom uses reference equality, so this fails the supported-type check"
         Attribute.of("test", named2)
 
-        then: "Attribute.of emits the unsupported-type deprecation warning (will become an error in Gradle 10)"
-        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
-        events.size() == 1
-        events[0].message == "Using type 'org.gradle.api.Named' as a value type for attribute 'test' has been deprecated. This will fail with an error in Gradle 10. Attribute values must be of type String, Boolean, a subtype of Number, or implement org.gradle.api.Named. Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#unsupported_attribute_value_type"
+        then: "Attribute.of throws IllegalArgumentException identifying the classloader mismatch as the actual problem"
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("Using an attribute value type that implements org.gradle.api.Named loaded from a different classloader is not supported.")
+        e.message.contains("The type 'org.gradle.api.Named' declared for attribute 'test' was loaded from ")
+        e.message.contains("This may indicate a shaded or duplicated Gradle API on the classpath.")
+
+        and: "no deprecation warning is emitted — the misconfiguration is reported via the thrown exception, not the deprecation channel"
+        outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }.empty
+    }
+
+    def "declaring an attribute with a type implementing proper Named succeeds even when an alien Named is also on the classpath"() {
+        given: "a second classloader with its own copy of Named, coexisting with Gradle's proper Named"
+        URL[] urls = [Named.class, MyNamed.class].collect {
+            ClasspathUtil.getClasspathForClass(it).toURI().toURL()
+        }.toArray(new URL[0])
+        ClassLoader loader2 = new URLClassLoader(urls, (ClassLoader) null)
+        Class<?> named2 = loader2.loadClass(Named.name)
+
+        expect: "the alien classloader really does define a distinct Named Class object"
+        named2 != Named
+        named2.classLoader != Named.classLoader
+
+        when: "an Attribute is declared with a type implementing the proper (Gradle-loaded) Named"
+        def attr = Attribute.of("test", MyNamed)
+
+        then: "Attribute.of accepts the type cleanly — Named.class.isAssignableFrom(MyNamed) is true, so the isSupportedAttributeType early-return short-circuits the alien-Named walker before it can inspect the hierarchy"
+        attr != null
+        attr.name == "test"
+        attr.type == MyNamed
+
+        and: "no deprecation warning is emitted — a type implementing proper Named is fully supported regardless of what other Nameds exist elsewhere on the classpath"
+        outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }.empty
     }
 }
