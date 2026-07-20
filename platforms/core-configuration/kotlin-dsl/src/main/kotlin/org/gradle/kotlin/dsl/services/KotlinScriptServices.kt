@@ -31,6 +31,7 @@ class KotlinScriptServices : AbstractGradleModuleServices() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.addProvider(org.gradle.kotlin.dsl.accessors.BuildTreeServices)
+        registration.addProvider(org.gradle.kotlin.dsl.provider.BuildTreeServices)
         registration.addProvider(org.gradle.kotlin.dsl.support.BuildTreeServices)
         registration.add(org.gradle.kotlin.dsl.resolver.internal.SourceDistributionResolutionCache::class.java)
     }
