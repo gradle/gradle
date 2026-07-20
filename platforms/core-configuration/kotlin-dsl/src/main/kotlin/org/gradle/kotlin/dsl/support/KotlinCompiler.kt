@@ -102,10 +102,6 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
-// Master switch for BTA incremental compilation; even when on, cold compiles skip IC (see
-// KotlinDslIncrementalCompilationCache.shouldConfigureIncrementalCompilation). Off compiles plain.
-private const val INCREMENTAL_COMPILATION_ENABLED = true
-
 private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutableMapOf() // necessary because some Kotlin code is retaining them and we can't clean it up properly
 private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompilerImpl> = mutableMapOf()
 
@@ -577,7 +573,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         }
 
         incrementalCompilationCache.markCompilationStarted(scriptIdentity)
-        if (INCREMENTAL_COMPILATION_ENABLED && incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
+        if (incrementalCompilationCache.shouldConfigureIncrementalCompilation(scriptIdentity)) {
             try {
                 runCompilation(incremental = true)
             } catch (e: Exception) {
