@@ -68,6 +68,7 @@ import org.gradle.internal.serialize.codecs.core.FileCollectionCodec
 import org.gradle.internal.serialize.codecs.core.FileTreeCodec
 import org.gradle.internal.serialize.codecs.core.FileValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCodec
+import org.gradle.internal.serialize.codecs.core.ConfigurationCacheOutcomeProviderCodec
 import org.gradle.internal.serialize.codecs.core.FlowProvidersCodec
 import org.gradle.internal.serialize.codecs.core.GradlePropertiesCodec
 import org.gradle.internal.serialize.codecs.core.IntegerValueSnapshotCodec
@@ -102,6 +103,7 @@ import org.gradle.internal.serialize.codecs.core.TaskInAnotherBuildCodec
 import org.gradle.internal.serialize.codecs.core.TaskNodeCodec
 import org.gradle.internal.serialize.codecs.core.TaskReferenceCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintBuildServiceProviderCodec
+import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintConfigurationCacheOutcomeProvider
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintFlowProviders
 import org.gradle.internal.serialize.codecs.core.UserCodeSourceCodec
 import org.gradle.internal.serialize.codecs.core.ValueSourceProviderCodec
@@ -418,7 +420,8 @@ class DefaultConfigurationCacheCodecs(
         defaultCodecForProviderWithChangingValue(
             ValueSourceProviderCodec(::userTypesCodec),
             BuildServiceProviderCodec(buildStateRegistry),
-            FlowProvidersCodec
+            FlowProvidersCodec,
+            ConfigurationCacheOutcomeProviderCodec
         )
     )
 
@@ -430,7 +433,8 @@ class DefaultConfigurationCacheCodecs(
         defaultCodecForProviderWithChangingValue(
             ValueSourceProviderCodec(::fingerprintTypesCodec),
             UnsupportedFingerprintBuildServiceProviderCodec,
-            UnsupportedFingerprintFlowProviders
+            UnsupportedFingerprintFlowProviders,
+            UnsupportedFingerprintConfigurationCacheOutcomeProvider
         )
     )
 

@@ -515,6 +515,15 @@ class ConfigurationCacheProblems(
         FateAndProblemCount(fateOfEntryInBuild(summary), summary.consoleProblemCount)
     }
 
+    /**
+     * The outcome for the configuration cache entry of this build invocation.
+     *
+     * Must only be queried once the scheduled work of the build has completed. Querying memoizes
+     * the fate, so the console message and the entry outcome build operation report the same value.
+     */
+    internal
+    fun queryEntryOutcome(): Outcome = memoizedFateOfEntryInBuild.fate.outcome
+
     @Suppress("CyclomaticComplexMethod")
     private fun fateOfEntryInBuild(summary: Summary): FateOfEntryInBuild {
         val consoleProblemCount = summary.consoleProblemCount
