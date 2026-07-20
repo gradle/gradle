@@ -511,11 +511,9 @@ class ConfigurationCacheProblems(
         }
 
         override fun beforeComplete(failure: Throwable?) {
-            val summary = summarizer.get()
-
-            val fateOfEntryInBuild = fateOfEntryInBuild(summary)
-            fateOfEntryInBuild.message?.let { log(it) }
-            buildOperationRunner.emitConfigurationCacheEntryOutcomeOperation(fateOfEntryInBuild.outcome, summary.consoleProblemCount)
+            val (fate, consoleProblemCount) = memoizedFateOfEntryInBuild
+            fate.message?.let { log(it) }
+            buildOperationRunner.emitConfigurationCacheEntryOutcomeOperation(fate.outcome, consoleProblemCount)
 
             if (isIsolatedProjectsDangerouslyIgnoreProblems) {
                 logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
@@ -528,6 +526,21 @@ class ConfigurationCacheProblems(
      */
     private
     data class FateOfEntryInBuild(val outcome: Outcome, val message: String?)
+
+    private
+    data class FateAndProblemCount(val fate: FateOfEntryInBuild, val consoleProblemCount: Int)
+
+    /**
+     * The fate is computed once, from the problem summary at the time of the first query, and every
+     * consumer — the console message, the build operation and any earlier query — observes that same value.
+     * Late problems remain visible in the report but no longer change the reported outcome, which is
+     * decided at [org.gradle.internal.cc.impl.DefaultConfigurationCache.finalizeCacheEntry] anyway.
+     */
+    private
+    val memoizedFateOfEntryInBuild: FateAndProblemCount by lazy {
+        val summary = summarizer.get()
+        FateAndProblemCount(fateOfEntryInBuild(summary), summary.consoleProblemCount)
+    }
 
     @Suppress("CyclomaticComplexMethod")
     private fun fateOfEntryInBuild(summary: Summary): FateOfEntryInBuild {
