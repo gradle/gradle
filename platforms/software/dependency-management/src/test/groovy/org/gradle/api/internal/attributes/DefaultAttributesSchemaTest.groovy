@@ -18,7 +18,17 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.GradleVersion
+import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 /**
@@ -26,6 +36,18 @@ import spock.lang.Specification
  */
 class DefaultAttributesSchemaTest extends Specification {
     def schema = AttributeTestUtil.mutableSchema()
+
+    // Capture WARN-level events so we can assert on the deprecation warnings emitted by
+    // Attribute.of when an unsupported attribute value type is declared.
+    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+
+    def setup() {
+        def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
+        DeprecationLogger.reset()
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+    }
 
     def "can create an attribute of scalar type #type"() {
         when:
@@ -40,6 +62,27 @@ class DefaultAttributesSchemaTest extends Specification {
             Number,
             MyEnum,
             Flavor
+        ]
+    }
+
+    def "creating an attribute of array type #type emits the unsupported-type deprecation"() {
+        when:
+        Attribute.of('foo', type)
+
+        then:
+        // Array types are not in the allowlist (only String, Boolean, Number-subtypes, and
+        // Named-subtypes are). Attribute.of now emits a deprecation warning rather than
+        // throwing — this will fail with an error in Gradle 10.
+        def warns = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        warns.size() == 1
+        warns[0].message == "Using type '${type.name}' as a value type for attribute 'foo' has been deprecated. This will fail with an error in Gradle 10. Attribute values must be of type String, Boolean, a subtype of Number, or implement org.gradle.api.Named. Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#unsupported_attribute_value_type"
+
+        where:
+        type << [
+            String[].class,
+            Number[].class,
+            MyEnum[].class,
+            Flavor[].class
         ]
     }
 

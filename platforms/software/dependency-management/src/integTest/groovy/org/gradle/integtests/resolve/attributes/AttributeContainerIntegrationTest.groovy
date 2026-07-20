@@ -23,6 +23,20 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 
 class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
+
+    /**
+     * Builds the exact deprecation warning that {@code Attribute.of} emits when an unsupported
+     * type is used as an attribute value type.
+     */
+    private static String unsupportedTypeDeprecation(String typeName, String attributeName) {
+        return "Using type '${typeName}' as a value type for attribute '${attributeName}' has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Attribute values must be of type String, Boolean, a subtype of Number, or implement org.gradle.api.Named. " +
+            "Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#unsupported_attribute_value_type"
+    }
+
     def "cannot use an attribute value that cannot be made isolated - #type"() {
         given:
         buildFile << """
@@ -38,6 +52,9 @@ class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
 """
 
         when:
+        if (expectedDeprecation) {
+            executer.expectDocumentedDeprecationWarning(expectedDeprecation)
+        }
         fails()
 
         then:
@@ -45,8 +62,14 @@ class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not serialize value of type ")
 
         where:
-        type      | value
-        "Thing"   | "new Thing(name: 'broken')"
+        // Attribute.of(Class) uses the type's canonical name — with WordUtils.uncapitalize applied,
+        // which only lowercases the first character of the whole string. For 'Project' and 'List'
+        // that first character is already lowercase, so the attribute name ends up equal to the
+        // full canonical name. Thing implements Named, so no deprecation fires for that row.
+        type      | value                       | expectedDeprecation
+        "Thing"   | "new Thing(name: 'broken')" | null
+        "Project" | "project"                   | unsupportedTypeDeprecation("org.gradle.api.Project", "org.gradle.api.Project")
+        "List"    | "[{}]"                      | unsupportedTypeDeprecation("java.util.List", "java.util.List")
     }
 
     def "can use attribute value that can be made isolated - #type"() {
@@ -62,15 +85,57 @@ class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
     configurations.ok.files.each { println it }
 """
 
-        expect:
+        when:
+        if (expectedDeprecation) {
+            executer.expectDocumentedDeprecationWarning(expectedDeprecation)
+        }
+
+        then:
         succeeds()
 
         where:
-        type       | value
-        "Integer"  | "123"
-        "Number"   | "123"
-        "Flavor"   | "objects.named(Flavor, 'abc')"
-        "Named"    | "objects.named(Named, 'abc')"
+        // Integer/Number are subtypes of Number, and Flavor/Named implement Named — all allowlisted.
+        // Object, List, Number[] are not allowlisted and trigger the deprecation.
+        // Note: for Number[] the deprecation message uses Class.getName() (JVM binary form) for the
+        // type portion but the canonical name for the attribute-name portion.
+        type       | value                              | expectedDeprecation
+        "Integer"  | "123"                              | null
+        "Number"   | "123"                              | null
+        "Object"   | "123"                              | unsupportedTypeDeprecation("java.lang.Object", "java.lang.Object")
+        "List"     | "['string']"                       | unsupportedTypeDeprecation("java.util.List", "java.util.List")
+        "Flavor"   | "objects.named(Flavor, 'abc')"     | null
+        "Named"    | "objects.named(Named, 'abc')"      | null
+        "Number[]" | "[1, 1.2] as Number[]"             | unsupportedTypeDeprecation("[Ljava.lang.Number;", "java.lang.Number[]")
+    }
+
+    def "attribute value is isolated from original value"() {
+        given:
+        buildFile << """
+    class Thing implements Named, Serializable {
+        String name
+    }
+    def attr = Attribute.of(List)
+
+    configurations {
+        ok
+    }
+    def value = [new Thing(name: 'a'), new Thing(name: 'b')]
+    configurations.ok.attributes.attribute(attr, value)
+
+    value[0].name = 'other'
+    value.add(new Thing(name: 'c'))
+
+    def isolated = configurations.ok.attributes.getAttribute(attr)
+    assert isolated.size() == 2
+    assert isolated[0].name == 'a'
+    assert isolated[1].name == 'b'
+"""
+
+        expect:
+        // Attribute.of(List) trips the unsupported-type deprecation; the isolation logic itself
+        // still works (List of Serializable Named is isolatable) so the build succeeds.
+        executer.expectDocumentedDeprecationWarning(unsupportedTypeDeprecation("java.util.List", "java.util.List"))
+        succeeds()
     }
 
     def "can use addAllLater in Kotlin"() {

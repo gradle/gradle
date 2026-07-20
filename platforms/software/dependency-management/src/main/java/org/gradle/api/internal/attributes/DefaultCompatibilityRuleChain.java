@@ -76,8 +76,7 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
         Instantiator instantiator
     ) {
         Class<?> ruleClass = rule.getRuleClass();
-        Action<CompatibilityCheckDetails<T>> delegate =
-            new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(ruleClass));
+        Action<CompatibilityCheckDetails<T>> delegate = new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(ruleClass));
         return new ValidatingAction<>(ruleClass, delegate);
     }
 

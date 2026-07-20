@@ -69,22 +69,21 @@ public class Attribute<T> implements Named {
         "org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat$KotlinNativeBundleArtifactsTypes";
 
     private static void validateSupportedType(String name, Class<?> type) {
-        if (AttributeTypeValidator.isSupportedAttributeType(type)) {
-            return;
+        if (!AttributeTypeValidator.isSupportedAttributeType(type)) {
+            if (KGP_NATIVE_BUNDLE_ENUM_FQN.equals(type.getName())) {
+                DeprecationLogger.deprecate("Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type")
+                    .withContext("This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute.")
+                    .willBecomeAnErrorInGradle10()
+                    .withUpgradeGuideSection(9, "kgp_native_bundle_attribute_enum")
+                    .nagUser();
+            } else {
+                DeprecationLogger.deprecate("Using type '" + type.getName() + "' as a value type for attribute '" + name + "'")
+                    .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")
+                    .willBecomeAnErrorInGradle10()
+                    .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
+                    .nagUser();
+            }
         }
-        if (KGP_NATIVE_BUNDLE_ENUM_FQN.equals(type.getName())) {
-            DeprecationLogger.deprecate("Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type")
-                .withContext("This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute.")
-                .willBecomeAnErrorInGradle10()
-                .withUpgradeGuideSection(9, "kgp_native_bundle_attribute_enum")
-                .nagUser();
-            return;
-        }
-        DeprecationLogger.deprecate("Using type '" + type.getName() + "' as a value type for attribute '" + name + "'")
-            .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
-            .nagUser();
     }
 
     /**

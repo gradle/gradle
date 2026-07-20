@@ -25,9 +25,18 @@ import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.GradleVersion
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -37,6 +46,18 @@ import static org.gradle.util.AttributeTestUtil.attributesTyped
 import static org.gradle.util.TestUtil.objectFactory
 
 class DefaultAttributeMatcherTest extends Specification {
+
+    // Capture WARN-level events so we can assert on the deprecation warnings emitted by
+    // Attribute.of when an unsupported attribute value type is declared.
+    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+
+    def setup() {
+        def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
+        DeprecationLogger.reset()
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+    }
 
     def "selects candidate with same set of attributes and whose values match"() {
         given:
@@ -391,6 +412,69 @@ class DefaultAttributeMatcherTest extends Specification {
         matcher.matchMultipleCandidates([candidate1, candidate2], requested) == [candidate1]
     }
 
+    def "cannot match when producer uses desugared attribute of unsupported type"() {
+        given:
+        def consumer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
+        def producer = Attribute.of("a", String)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
+
+        def candidate1 = candidateTyped((producer): "name1")
+        def candidate2 = candidateTyped((producer): "name2")
+        def requested = attributesTyped((consumer): new NotSerializableInGradleMetadataAttribute("name1"))
+
+        when:
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type org.gradle.api.internal.attributes.matching.DefaultAttributeMatcherTest\$NotSerializableInGradleMetadataAttribute but found a value of type java.lang.String."
+
+        and:
+        // Attribute.of on the consumer's unsupported type emits the deprecation warning too.
+        def warns = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        warns.size() == 1
+        warns[0].message == unsupportedTypeDeprecation(NotSerializableInGradleMetadataAttribute.name, 'a')
+    }
+
+    def "cannot match when consumer uses desugared attribute of unsupported type"() {
+        given:
+        def consumer = Attribute.of("a", String)
+        def producer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
+
+        def candidate1 = candidateTyped((producer): new NotSerializableInGradleMetadataAttribute("name1"))
+        def candidate2 = candidateTyped((producer): new NotSerializableInGradleMetadataAttribute("name2"))
+        def requested = attributesTyped((consumer): "name1")
+
+        when:
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type java.lang.String but found a value of type org.gradle.api.internal.attributes.matching.DefaultAttributeMatcherTest\$NotSerializableInGradleMetadataAttribute."
+
+        and:
+        // Attribute.of on the producer's unsupported type emits the deprecation warning too.
+        def warns = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        warns.size() == 1
+        warns[0].message == unsupportedTypeDeprecation(NotSerializableInGradleMetadataAttribute.name, 'a')
+    }
+
+    private static String unsupportedTypeDeprecation(String typeName, String attributeName) {
+        return "Using type '${typeName}' as a value type for attribute '${attributeName}' has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Attribute values must be of type String, Boolean, a subtype of Number, or implement org.gradle.api.Named. " +
+            "Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#unsupported_attribute_value_type"
+    }
+
     def "matching fails when attribute has incompatible types in consumer and producer"() {
         given:
         def consumer = Attribute.of("a", String)
@@ -495,12 +579,21 @@ class DefaultAttributeMatcherTest extends Specification {
         new ImmutableAttributesBackedMatchingCandidate(attributesTyped(attributes))
     }
 
-    interface NamedTestAttribute extends Named { }
-    enum EnumTestAttribute implements Named {
+    private static interface NamedTestAttribute extends Named { }
+
+    private enum EnumTestAttribute implements Named {
         NAME1, NAME2
 
         @Override
         String getName() { return name() }
+    }
+
+    private static class NotSerializableInGradleMetadataAttribute implements Serializable {
+        String name
+
+        NotSerializableInGradleMetadataAttribute(String name) {
+            this.name = name
+        }
     }
 
     private AttributeMatcher newMatcher(@DelegatesTo(TestSchema) Closure<?> action = {}) {
