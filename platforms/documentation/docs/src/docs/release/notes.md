@@ -81,7 +81,7 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engine
 
 #### Look up Gradle services from scripts and task actions
 
-Build, settings, and init scripts — and task actions — can now look up commonly used Gradle services directly, without declaring an `@Inject` point or going through the `objects.newInstance(...)` ceremony:
+Build, settings, and init scripts, as well as task actions, can now [look up commonly used Gradle services](userguide/service_injection.html#looking_up_services) directly, without declaring an `@Inject` point or going through the `objects.newInstance(...)` ceremony:
 
 ```kotlin
 tasks.register("cleanReports") {
@@ -96,9 +96,7 @@ Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. T
 
 Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or later at runtime.
 
-If your build or plugin already declares a `service` method, property, or extension on `Project`, `Settings`, `Gradle`, or a task, the new built-in `service(...)` member may shadow it; rename yours to avoid ambiguity.
-
-See [Looking up services in scripts](userguide/service_injection.html#looking_up_services) for details.
+See the [Looking up services in scripts](userguide/service_injection.html#looking_up_services) section in the Gradle User Manual for more details.
 
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
