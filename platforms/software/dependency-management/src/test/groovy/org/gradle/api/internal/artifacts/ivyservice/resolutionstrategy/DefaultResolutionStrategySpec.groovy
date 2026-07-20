@@ -35,6 +35,8 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Actions
+import org.gradle.internal.Factories
+import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.rules.NoInputsRuleAction
@@ -62,7 +64,7 @@ class DefaultResolutionStrategySpec extends Specification {
     def dependencyLockingProvider = Mock(DependencyLockingProvider)
 
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, null, TestUtil.objectFactory())
+    def strategy = new DefaultResolutionStrategy(cachePolicy, Factories.constant(dependencySubstitutions), globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, null, TestUtil.objectFactory())
 
     def "allows setting forced modules"() {
         expect:
@@ -89,7 +91,7 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.force 'org.foo:bar:1.0'
 
         when:
-        strategy.forcedModules = ['hello:world:1.0', [group:'g', name:'n', version:'1']]
+        strategy.forcedModules = ['hello:world:1.0', [group: 'g', name: 'n', version: '1']]
 
         then:
         def versions = strategy.forcedModules as List
@@ -127,10 +129,11 @@ class DefaultResolutionStrategySpec extends Specification {
         1 * dependencySubstitutions.allWithDependencyResolveDetails(action, componentSelectorConverter)
     }
 
-    def "provides dependency resolve rule with forced modules first and then user specified rules"() {
+    def "provides dependency resolve rule when given action with forced modules first and then user specified rules"() {
         def mid = DefaultModuleIdentifier.newId('org', 'foo')
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
+        strategy.dependencySubstitution(Actions.doNothing()) // realize the lazy dependency substitutions
         def details = Mock(DependencySubstitutionInternal)
         def substitutionAction = Mock(Action)
 
@@ -146,6 +149,26 @@ class DefaultResolutionStrategySpec extends Specification {
 
         then: //user rules follow:
         1 * substitutionAction.execute(details)
+        0 * details._
+    }
+
+    def "dependency substitution factory isn't realized when no action was given"() {
+        def mid = DefaultModuleIdentifier.newId('org', 'foo')
+        given:
+        strategy.force 'org:bar:1.0', 'org:foo:2.0'
+        def details = Mock(DependencySubstitutionInternal)
+
+        when:
+        strategy.dependencySubstitutionRule.execute(details)
+
+        then: //forced modules:
+        _ * details.requested >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
+        _ * details.oldRequested >> newSelector(mid, "1.0")
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), ComponentSelectionReasons.FORCED)
+        _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
+
+        then:
+        0 * dependencySubstitutions._
         0 * details._
     }
 
@@ -179,6 +202,7 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.failOnChangingVersions()
         strategy.force("org:foo:1.0")
         strategy.componentSelection.addRule(new NoInputsRuleAction<ComponentSelection>({}))
+        strategy.eachDependency(Actions.doNothing()) // realize the lazy dependency substitutions
 
         when:
         def copy = strategy.copy()
@@ -194,8 +218,46 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.dependencySubstitution == dependencySubstitutions
         copy.dependencySubstitution == newDependencySubstitutions
 
-        ((ResolutionStrategyInternal)copy).isFailingOnDynamicVersions() == ((ResolutionStrategyInternal)strategy).isFailingOnDynamicVersions()
-        ((ResolutionStrategyInternal)copy).isFailingOnChangingVersions() == ((ResolutionStrategyInternal)strategy).isFailingOnChangingVersions()
+        ((ResolutionStrategyInternal) copy).isFailingOnDynamicVersions() == ((ResolutionStrategyInternal) strategy).isFailingOnDynamicVersions()
+        ((ResolutionStrategyInternal) copy).isFailingOnChangingVersions() == ((ResolutionStrategyInternal) strategy).isFailingOnChangingVersions()
+    }
+
+    def "dependency substitutions are only created when needed"() {
+        given:
+        def substitutions = Mock(DependencySubstitutionsInternal)
+        def factory = Mock(Factory)
+        def lazyStrategy = new DefaultResolutionStrategy(cachePolicy, factory, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, null, TestUtil.objectFactory())
+        lazyStrategy.useGlobalDependencySubstitutionRules.set(false)
+
+        when: "methods that do not require substitutions are called"
+        lazyStrategy.setMutationValidator(Mock(MutationValidator))
+        lazyStrategy.getDependencySubstitutionRule()
+        lazyStrategy.resolveGraphToDetermineTaskDependencies()
+        lazyStrategy.maybeDiscardStateRequiredForGraphResolution()
+
+        then: "the substitutions are not created"
+        0 * factory._
+
+        when: "the substitutions are accessed"
+        def result = lazyStrategy.dependencySubstitution
+
+        then: "they are created and the current validator is applied"
+        1 * factory.create() >> substitutions
+        1 * substitutions.setMutationValidator(_)
+        result == substitutions
+    }
+
+    def "copy of unrealized strategy keeps dependency substitutions lazy"() {
+        given:
+        def factory = Mock(Factory)
+        def lazyStrategy = new DefaultResolutionStrategy(cachePolicy, factory, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, null, TestUtil.objectFactory())
+
+        when:
+        def copy = lazyStrategy.copy()
+
+        then: "neither the strategy nor its copy realized the substitutions"
+        0 * factory._
+        copy != null
     }
 
     def "configures changing modules cache with jdk5+ units"() {
@@ -254,66 +316,93 @@ class DefaultResolutionStrategySpec extends Specification {
         def validator = Mock(MutationValidator)
         strategy.setMutationValidator(validator)
 
-        when: strategy.failOnVersionConflict()
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnVersionConflict()
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.failOnDynamicVersions()
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnDynamicVersions()
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.failOnChangingVersions()
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnChangingVersions()
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.failOnNonReproducibleResolution()
-        then: 2 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnNonReproducibleResolution()
+        then:
+        2 * validator.validateMutation(STRATEGY)
 
-        when: strategy.force("org.utils:api:1.3")
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.force("org.utils:api:1.3")
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.forcedModules = ["org.utils:api:1.4"]
-        then: (1.._) * validator.validateMutation(STRATEGY)
+        when:
+        strategy.forcedModules = ["org.utils:api:1.4"]
+        then:
+        (1.._) * validator.validateMutation(STRATEGY)
 
         // DependencySubstitutionsInternal.allWithDependencyResolveDetails() will call back to validateMutation() instead
-        when: strategy.eachDependency(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.eachDependency(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.componentSelection.all(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.componentSelection.all(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.componentSelection(new Action<ComponentSelectionRules>() {
+        when:
+        strategy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
             void execute(ComponentSelectionRules componentSelectionRules) {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 1 * validator.validateMutation(STRATEGY)
+        then:
+        1 * validator.validateMutation(STRATEGY)
     }
 
     def "mutation is not checked for copy"() {
         given:
-        dependencySubstitutions.copy() >> Mock(DependencySubstitutionsInternal)
         def validator = Mock(MutationValidator)
         strategy.setMutationValidator(validator)
         def copy = strategy.copy()
 
-        when: copy.failOnVersionConflict()
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.failOnVersionConflict()
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.force("org.utils:api:1.3")
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.force("org.utils:api:1.3")
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.forcedModules = ["org.utils:api:1.4"]
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.forcedModules = ["org.utils:api:1.4"]
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.componentSelection.all(Actions.doNothing())
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.componentSelection.all(Actions.doNothing())
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.componentSelection(new Action<ComponentSelectionRules>() {
+        when:
+        copy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
             void execute(ComponentSelectionRules componentSelectionRules) {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 0 * validator.validateMutation(_)
+        then:
+        0 * validator.validateMutation(_)
     }
 
     def 'provides the expected DependencyLockingProvider'() {
