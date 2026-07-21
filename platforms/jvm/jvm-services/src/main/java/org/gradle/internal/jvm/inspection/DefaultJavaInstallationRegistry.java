@@ -22,8 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -69,7 +68,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     private final OperatingSystem os;
     private final @Nullable ProgressLoggerFactory progressLoggerFactory;
     private final JvmInstallationProblemReporter problemReporter;
-    private final @Nullable InternalProblems problems;
+    private final @Nullable ProblemsInternal problems;
 
     @Inject
     public DefaultJavaInstallationRegistry(
@@ -82,7 +81,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         FileResolver fileResolver,
         JdkCacheDirectory jdkCacheDirectory,
         JvmInstallationProblemReporter problemReporter,
-        @Nullable InternalProblems problems
+        @Nullable ProblemsInternal problems
     ) {
         this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problemReporter, problems);
     }
@@ -98,7 +97,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         OperatingSystem os,
         @Nullable ProgressLoggerFactory progressLoggerFactory,
         JvmInstallationProblemReporter problemReporter,
-        @Nullable InternalProblems problems
+        @Nullable ProblemsInternal problems
     ) {
         this.logger = logger;
         this.buildOperationRunner = buildOperationRunner;
@@ -218,7 +217,6 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
             ProblemId problemId = ProblemId.create("invalid-jvm-installation", "Invalid JVM installation", TOOLCHAIN_PROBLEM_GROUP);
             problems.getInternalReporter().report(problemId, spec -> spec
                 .contextualLabel(message)
-                .severity(installationLocation.isAutoDetected() ? Severity.ADVICE : Severity.WARNING)
                 .solution("Ensure that the configured JVM installation path is a valid, absolute path to a JDK or JRE installation")
             );
         }

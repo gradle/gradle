@@ -212,7 +212,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "valid installations are still discovered when invalid paths report problems"() {
         enableProblemsApiCheck()
 
