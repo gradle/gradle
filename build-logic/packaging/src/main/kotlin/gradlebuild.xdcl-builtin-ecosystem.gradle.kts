@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
+import gradlebuild.xdcl.GenerateXdclBuiltinEcosystemManifests
 import gradlebuild.xdcl.XdclBuiltinEcosystemExtension
+import gradlebuild.xdcl.excludeGeneratedXdclSourcesFromChecks
 
 /**
- * Packs an xdcl-builtin-ecosystem manifest into a built-in XDCL ecosystem plugin jar: a
- * `META-INF/xdcl-builtin-ecosystem/<pluginId>.properties` resource naming the distribution schema
- * module(s) the runtime glue resolves (via `ModuleRegistry`) and contributes to the settings
- * registry. Models `gradlebuild.api-metadata` (WriteProperties -> output.dir -> jar).
+ * Packs the built-in-ecosystem manifests into a distribution ecosystem plugin jar. For every plugin
+ * carrier under `src/main/xdcl/` (an `.xdcl` with a top-level `plugin { }` block) it emits a
+ * `META-INF/xdcl-builtin-ecosystem/<plugin-id>.properties` naming the distribution schema module(s)
+ * the runtime glue resolves (via `ModuleRegistry`) and contributes to the settings registry. The
+ * plugin id is the carrier's file name, so a module declares no ids here.
  */
 
 plugins {
     java
+    id("xdcl-gradle-plugin")
 }
+
+excludeGeneratedXdclSourcesFromChecks()
 
 // Every built-in ecosystem carrier's generated carrier + its reactions reference org.gradle.api.xdcl.*
 // (Reaction/ReactionScope/BindReaction/PluginDefaults). It is Gradle API in the distribution at runtime,
@@ -40,13 +46,14 @@ xdclBuiltinEcosystem.schemaModules.convention(listOf("gradle-${project.name}"))
 
 val generatedDir = layout.buildDirectory.dir("generated/xdcl-builtin-ecosystem")
 
-val writeXdclBuiltinEcosystemManifest = tasks.register<WriteProperties>("writeXdclBuiltinEcosystemManifest") {
-    destinationFile = xdclBuiltinEcosystem.pluginId.flatMap { id ->
-        generatedDir.map { it.file("META-INF/xdcl-builtin-ecosystem/$id.properties") }
-    }
-    property("schemaModules", xdclBuiltinEcosystem.schemaModules.map { it.joinToString(",") })
+val writeXdclBuiltinEcosystemManifests = tasks.register<GenerateXdclBuiltinEcosystemManifests>("writeXdclBuiltinEcosystemManifests") {
+    description = "Generates the built-in-ecosystem manifest resource for each plugin carrier in the module"
+    group = "build"
+    carrierFiles.from(project.fileTree("src/main/xdcl") { include("*.xdcl") })
+    schemaModules = xdclBuiltinEcosystem.schemaModules
+    outputDir = generatedDir
 }
 
 sourceSets.main {
-    output.dir(mapOf("builtBy" to writeXdclBuiltinEcosystemManifest), generatedDir)
+    output.dir(mapOf("builtBy" to writeXdclBuiltinEcosystemManifests), generatedDir)
 }

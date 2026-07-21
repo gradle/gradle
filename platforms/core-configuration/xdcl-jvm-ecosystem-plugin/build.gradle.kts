@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.api.tasks.javadoc.Javadoc
-
 plugins {
     id("gradlebuild.distribution.implementation-java")
     id("xdcl-gradle-plugin")
@@ -24,27 +21,6 @@ plugins {
 }
 
 description = "The built-in XDCL JVM ecosystem plugin (java-ecosystem): a carrier generated from java-ecosystem.xdcl that binds JavaLibraryReaction and ships the plugin-stratum defaults. Shipped in the distribution and applied by id; the schema + facades it consumes live in the published :xdcl-jvm-ecosystem library."
-
-// xdcl-gradle-plugin generates the carrier from src/main/xdcl/java-ecosystem.xdcl and wires the
-// generated facade sources into main. They are build artifacts, so the style/header/javadoc gates
-// that apply to authored source must not see them.
-tasks.withType<Checkstyle>().configureEach {
-    exclude { it.file.absolutePath.contains("/generated/xdcl/") }
-}
-tasks.withType<Javadoc>().configureEach {
-    exclude { it.file.absolutePath.contains("/generated/xdcl/") }
-}
-
-// The manifest the provider reads (keyed by plugin id) to PULL this ecosystem's schema module via
-// ModuleRegistry when the plugin is applied — the built-in-distribution contribution channel. No
-// hand-written Plugin<Settings> and no ModuleRegistry code here: the carrier is Gary-style generated,
-// the module-layout knowledge lives only in this build + the provider.
-xdclBuiltinEcosystem {
-    pluginId = "java-ecosystem"
-    // No schema-module list: the convention defaults to this plugin's own module, and the provider
-    // walks its dependency closure (ModuleRegistry) to pick up every schema-carrying jar — the
-    // plugin's own schema here, and transitively any schema modules a future ecosystem depends on.
-}
 
 dependencies {
     api(projects.coreApi)

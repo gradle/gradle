@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.api.tasks.javadoc.Javadoc
-
 plugins {
     id("gradlebuild.distribution.implementation-java")
     id("gradlebuild.publish-public-libraries")
@@ -25,15 +22,6 @@ plugins {
 }
 
 description = "Built-in XDCL instrumentation ecosystem schema: the instrument { } extension per source set + generated facades. Depends on the JVM ecosystem schema it augments. Published for plugin authors and shipped in the distribution (prototype)"
-
-// The facades are generated build artifacts (regenerated every build); keep the style/header and the
-// (published) javadoc gates off them — the schema's `///` docs aren't valid Javadoc.
-tasks.withType<Checkstyle>().configureEach {
-    exclude { it.file.absolutePath.contains("/generated/xdcl/") }
-}
-tasks.withType<Javadoc>().configureEach {
-    exclude { it.file.absolutePath.contains("/generated/xdcl/") }
-}
 
 // A schema-only ecosystem library: instrumentation.xdsl (packed under META-INF/xdcl/ by
 // xdcl-gradle-plugin) and the facades generated from it. The reaction that activates it (ASM bytecode
