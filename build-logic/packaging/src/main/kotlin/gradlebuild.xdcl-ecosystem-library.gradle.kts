@@ -22,9 +22,14 @@
  * `gradlebuild.publish-public-libraries` + `xdcl-gradle-plugin`.
  */
 
+import gradlebuild.xdcl.excludeGeneratedXdclSourcesFromChecks
+
 plugins {
     `java-library`
+    id("xdcl-gradle-plugin")
 }
+
+excludeGeneratedXdclSourcesFromChecks()
 
 // External (org.xdcl) facade base types the generated facades extend; `api` so consumers of the
 // published library get them transitively.
