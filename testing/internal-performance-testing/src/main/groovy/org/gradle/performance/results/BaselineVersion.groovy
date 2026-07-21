@@ -83,6 +83,19 @@ class BaselineVersion implements VersionResults {
         }
     }
 
+    /**
+     * The exact criterion {@code assertCurrentVersionHasNotRegressed} uses to fail a performance test: the baseline
+     * is significantly faster than the current version. Exposed statically so the aggregate report can re-derive the
+     * same verdict from measurements stored in the performance database.
+     */
+    static boolean significantlyFasterThan(MeasuredOperationList faster, MeasuredOperationList slower) {
+        def fasterTime = faster.totalTime
+        def slowerTime = slower.totalTime
+        return fasterTime && !fasterTime.empty && !slowerTime.empty &&
+            fasterTime.median < slowerTime.median &&
+            differenceIsSignificant(fasterTime, slowerTime, MINIMUM_CONFIDENCE)
+    }
+
     boolean significantlyFasterByMedianThan(MeasuredOperationList other, double minRelativeMedianDifference = MINIMUM_RELATIVE_MEDIAN_DIFFERENCE) {
         return significantlyFasterThanBy(other) { myTime, otherTime ->
             differenceInMedianIsSignificant(myTime, otherTime, minRelativeMedianDifference)

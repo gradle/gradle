@@ -21,6 +21,7 @@ import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.DefaultPerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.PerformanceFlakinessDataProvider;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.ResultsStoreHelper;
 
 import java.util.Set;
@@ -50,19 +51,25 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
     protected void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
         executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
-                if (scenario.isBuildFailed()) {
-                    failureCollector.scenarioFailed(scenario);
-                } else if (scenario.isRegressed()) {
-                    Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getCurrentExecutions().stream()
-                        .map(execution -> flakinessDataProvider.getScenarioRegressionResult(scenario.getPerformanceExperiment(), execution))
-                        .collect(Collectors.toSet());
-                    if (regressionResults.contains(STABLE_REGRESSION)) {
-                        failureCollector.scenarioRegressed(scenario);
-                    } else if (regressionResults.stream().allMatch(BIG_FLAKY_REGRESSION::equals)) {
-                        failureCollector.flakyScenarioWithBigRegression(scenario);
-                    } else {
-                        failureCollector.flakyScenarioWithSmallRegression(scenario);
-                    }
+                // Compute pass/fail from this pipeline's own measurements in the DB, not from the result JSON's status.
+                // The bucket task is cacheable and bakes its status + teamCityBuildId into the output, so on a build-cache
+                // hit the JSON replays a previous build's verdict. A scenario whose measurements were not produced by
+                // this pipeline (e.g. served from the build cache, or not run) has no current executions here, so
+                // isRegressedByMeasurement() is false and it is simply not gated.
+                if (!scenario.isRegressedByMeasurement()) {
+                    return;
+                }
+                Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getCurrentExecutions().stream()
+                    .filter(PerformanceReportScenarioHistoryExecution::regressedSignificantly)
+                    .map(execution -> flakinessDataProvider.getScenarioRegressionResult(scenario.getPerformanceExperiment(), execution))
+                    .collect(Collectors.toSet());
+                System.out.println("Scenario regressed based on measured results: " + scenario.getName());
+                if (regressionResults.contains(STABLE_REGRESSION)) {
+                    failureCollector.scenarioRegressed(scenario);
+                } else if (regressionResults.stream().allMatch(BIG_FLAKY_REGRESSION::equals)) {
+                    failureCollector.flakyScenarioWithBigRegression(scenario);
+                } else {
+                    failureCollector.flakyScenarioWithSmallRegression(scenario);
                 }
             });
     }

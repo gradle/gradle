@@ -87,6 +87,13 @@ abstract class PerformanceTestReport : DefaultTask() {
     @get:Input
     abstract val projectName: Property<String>
 
+    /**
+     * Comma-separated TeamCity build IDs of the performance test buckets this pipeline actually triggered,
+     * passed authoritatively by the Trigger build from the TeamCity dependency graph. Used by the report to
+     * tell results produced by this pipeline apart from results restored from the Gradle build cache (whose
+     * baked-in `teamCityBuildId` points at the original producing build). Empty when not running on CI.
+     */
+    @get:Optional
     @get:Input
     abstract val dependencyBuildIds: Property<String>
 
