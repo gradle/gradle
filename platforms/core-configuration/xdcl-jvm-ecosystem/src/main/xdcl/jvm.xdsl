@@ -1,7 +1,0 @@
-package org.gradle.xdcl.jvm
-
-template JavaLibrary {
-  javaLibrary {
-    javaVersion: Int = 17
-  }
-}

@@ -24,7 +24,7 @@ plugins {
     id("gradlebuild.xdcl-ecosystem-library")
 }
 
-description = "Built-in XDCL JVM ecosystem: schema + generated facades, published for plugin authors and shipped in the distribution (prototype)"
+description = "Built-in XDCL Groovy ecosystem: schema (groovy.xdsl) + generated facades + the GroovyLibraryModel runtime build model. A sibling of the JVM ecosystem (shares the common dependency/repository schema). Published for plugin authors and shipped in the distribution (prototype)"
 
 // The facades are generated build artifacts (regenerated every build); keep the style/header and the
 // (published) javadoc gates off them — the schema's `///` docs aren't valid Javadoc.
@@ -35,15 +35,14 @@ tasks.withType<Javadoc>().configureEach {
     exclude { it.file.absolutePath.contains("/generated/xdcl/") }
 }
 
-// The consumable ecosystem library: its `.xdsl` schema (packed under META-INF/xdcl/ by
-// xdcl-gradle-plugin) and the Java facades generated from it. A downstream XDCL plugin depends on
-// THIS to `import` the schema and reference the facades; the plugin that activates the ecosystem
-// (applied by id) lives in the sibling :xdcl-jvm-ecosystem-plugin. Publishable because it carries
-// no internal-Gradle dependency — only the external org.xdcl facade API.
+// A schema+model library: groovy.xdsl (packed under META-INF/xdcl/ by xdcl-gradle-plugin), the facades
+// generated from it, and the GroovyLibraryModel/GroovyClasses runtime build model (public Gradle API
+// only, so compileOnly(gradleApi) keeps them off the published/gate-checked variants). The reaction
+// that activates it lives in the sibling carrier :xdcl-groovy-ecosystem-plugin.
 dependencies {
-    // The shared schema java.xdsl `import`s (org.gradle.demos.common.dsl): dependency scopes,
-    // repositories, and the HasDependencies/HasRepositories capability traits the JavaLibrary template
-    // composes. `api` so consumers importing the JVM schema also see the common facades, and so
-    // xdclCodegen resolves the import from this dependency's packed schema (importedSchemaDirectories).
+    // groovy.xdsl `import`s org.gradle.demos.common.dsl (Dependencies/Repository + HasDependencies/
+    // HasRepositories traits the GroovyLibrary template composes), and GroovyLibraryModel references the
+    // common TestReports. `api` so consumers see the common facades; also how xdclCodegen resolves the
+    // import (importedSchemaDirectories). Published, so the externally-available gate is satisfied.
     api(projects.xdclCommonEcosystem)
 }
