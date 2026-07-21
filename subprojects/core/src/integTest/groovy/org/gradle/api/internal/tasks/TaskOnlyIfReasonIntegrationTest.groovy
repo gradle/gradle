@@ -114,6 +114,58 @@ class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
         marker.exists()
     }
 
+    /**
+     * Characterizes {@code ValueSource.map { ... }} composition: the transformer piggybacks on the source
+     * ValueSource's laziness. Under the configuration cache, {@code MappingProvider.calculateExecutionTimeValue()}
+     * detects that its source is an un-obtained {@code ValueSourceProvider} (a "changing value") and stores itself
+     * as a recipe — <em>without</em> calling the transformer. Both the underlying {@code obtain()} and the
+     * transformer run only when the mapped provider is first {@code get()}-ed, i.e., when the task is skipped.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/38488")
+    def 'mapped ValueSource-backed reason: neither source nor transformer runs unless the task is skipped (taskPasses=#taskPasses)'() {
+        def obtainMarker = file("value-source-obtained.txt")
+        def mapMarker = file("map-invoked.txt")
+        buildFile("""
+            import org.gradle.api.provider.ValueSource
+            import org.gradle.api.provider.ValueSourceParameters
+
+            abstract class RawReason implements ValueSource<String, ValueSourceParameters.None> {
+                @Override
+                String obtain() {
+                    new File('${obtainMarker.absolutePath.replace('\\', '/')}').text = 'obtained'
+                    return 'raw'
+                }
+            }
+
+            def raw = providers.of(RawReason) {}
+            def mapped = raw.map { s ->
+                new File('${mapMarker.absolutePath.replace('\\', '/')}').text = 'mapped'
+                "mapped(" + s + ")"
+            }
+
+            tasks.register("task") {
+                onlyIf(mapped) { $taskPasses }
+                doLast {}
+            }
+        """)
+
+        when:
+        executer.withArgument("--info")
+        succeeds(":task")
+
+        then:
+        if (taskPasses) {
+            outputDoesNotContain("Skipping task ':task'")
+        } else {
+            assertTaskSkippedWithMessage("mapped(raw)", ":task")
+        }
+        assert obtainMarker.exists() == !taskPasses
+        assert mapMarker.exists() == !taskPasses
+
+        where:
+        taskPasses << [true, false]
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/38488")
     def 'only failing onlyIf reason Providers are queried, in registration order (earlier=#earlierPasses, later=#laterPasses)'() {
         def earlierMarker = file("earlier-obtained.txt")
