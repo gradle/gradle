@@ -112,9 +112,9 @@ See <<working_with_files.adoc#sec:unpacking_archives_example, Unpacking archives
 === Potential breaking changes
 
 [[kotlin_2_4_10]]
-==== Upgrade to Kotlin 2.4.10
+==== Upgrade to Kotlin 2.4.20-Beta2
 
-The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.10[Kotlin 2.4.10].
+The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20-Beta2[Kotlin 2.4.20-Beta2].
 
 [[upgrade_to_asm_9_10_1]]
 ==== Upgrade to ASM 9.10.1
