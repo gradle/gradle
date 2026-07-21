@@ -18,20 +18,32 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
+import org.jspecify.annotations.Nullable;
 
 public class SelfDescribingSpec<T> implements Describable, Spec<T> {
-    private final String description;
     private final Spec<? super T> spec;
+    private final Provider<String> descriptionProvider;
+    @Nullable
+    private String resolvedDescription;
 
     public SelfDescribingSpec(Spec<? super T> spec, String description) {
+        this(spec, Providers.of(description));
+    }
+
+    public SelfDescribingSpec(Spec<? super T> spec, Provider<String> descriptionProvider) {
         this.spec = spec;
-        this.description = description;
+        this.descriptionProvider = descriptionProvider;
     }
 
     @Override
     public String getDisplayName() {
-        return description;
+        if (resolvedDescription == null) {
+            resolvedDescription = descriptionProvider.get();
+        }
+        return resolvedDescription;
     }
 
     @Override
@@ -45,8 +57,8 @@ public class SelfDescribingSpec<T> implements Describable, Spec<T> {
 
     @Override
     public String toString() {
-        return "SelfDescribingSpec{"
-            + "description='" + description + '\''
+        return "SelfDescribingSpec{description="
+            + (resolvedDescription != null ? "'" + resolvedDescription + "'" : "<UNEVALUATED>")
             + '}';
     }
 }

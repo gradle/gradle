@@ -21,6 +21,7 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.CompositeSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.internal.ClosureSpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
@@ -59,6 +60,10 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
 
     public DescribingAndSpec<T> and(Spec<? super T> spec, String description) {
         return new DescribingAndSpec<>(specHolder.and(new SelfDescribingSpec<>(spec, description)));
+    }
+
+    public DescribingAndSpec<T> and(Spec<? super T> spec, Provider<String> descriptionProvider) {
+        return new DescribingAndSpec<>(specHolder.and(new SelfDescribingSpec<>(spec, descriptionProvider)));
     }
 
     @SuppressWarnings("rawtypes")
