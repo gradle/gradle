@@ -17,7 +17,6 @@
 plugins {
     id("gradlebuild.distribution.implementation-java")
     id("gradlebuild.publish-public-libraries")
-    id("xdcl-gradle-plugin")
     id("gradlebuild.xdcl-ecosystem-library")
 }
 
