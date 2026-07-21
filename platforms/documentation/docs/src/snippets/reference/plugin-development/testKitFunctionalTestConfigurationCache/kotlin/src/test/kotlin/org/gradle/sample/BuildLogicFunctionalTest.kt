@@ -1,7 +1,8 @@
-package org.example
+package org.gradle.sample
 
 import org.gradle.testkit.runner.ConfigurationCacheOutcome
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -23,28 +24,28 @@ class BuildLogicFunctionalTest {
         buildFile = testProjectDir.newFile("build.gradle")
     }
 
-    // tag::functional-test-configuration-cache[]
+    // tag::functional-test-configuration-cache-outcome[]
     @Test
-    fun `my task can be loaded from the configuration cache`() {
-
+    fun `myTask's configuration cache entry is stored and then reused`() {
         buildFile.writeText("""
             plugins {
-                id 'org.example.my-plugin'
+                id 'org.gradle.sample.my-plugin'
             }
         """)
 
-        runner()
-            .withArguments("--configuration-cache", "myTask")        // <1>
+        var result = runner()
+            .withArguments("--configuration-cache", "myTask")       // <1>
             .build()
 
-        val result = runner()
-            .withArguments("--configuration-cache", "myTask")        // <2>
+        assertEquals(ConfigurationCacheOutcome.STORED, result.configurationCacheOutcome)
+
+        result = runner()
+            .withArguments("--configuration-cache", "myTask")       // <2>
             .build()
 
-        require(result.configurationCacheOutcome == ConfigurationCacheOutcome.REUSED) // <3>
-        // ... more assertions on your task behavior
+        assertEquals(ConfigurationCacheOutcome.REUSED, result.configurationCacheOutcome)
     }
-    // end::functional-test-configuration-cache[]
+    // end::functional-test-configuration-cache-outcome[]
 
     private
     fun runner() =

@@ -255,15 +255,14 @@ To verify that your plugin is compatible with the <<configuration_cache.adoc#con
 The outcome of configuration caching is available via link:{javadocPath}/org/gradle/testkit/runner/BuildResult.html#getConfigurationCacheOutcome--[`BuildResult.getConfigurationCacheOutcome()`].
 For example, running the same build twice lets you assert that the cache entry was stored and then reused:
 
-[source,groovy]
-----
-def result = runner.withArguments('myTask', '--configuration-cache').build()
-assert result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
+====
+include::sample[dir="snippets/reference/plugin-development/testKitFunctionalTestConfigurationCache/kotlin",files="src/test/kotlin/org/gradle/sample/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache-outcome]"]
+include::sample[dir="snippets/reference/plugin-development/testKitFunctionalTestConfigurationCache/groovy",files="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache-outcome]"]
+====
+<1> First run primes the Configuration Cache.
+<2> Second run reuses the Configuration Cache.
 
-result = runner.withArguments('myTask', '--configuration-cache').build()
-assert result.configurationCacheOutcome == ConfigurationCacheOutcome.REUSED
-----
+See link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html[`ConfigurationCacheOutcome`] for all possible outcomes, including link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html#DISCARDED[`DISCARDED`], which indicates that the entry was not kept, for example because of Configuration Cache problems, a serialization error, or an incompatible task.
 
-See link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html[`ConfigurationCacheOutcome`] for all possible outcomes, including link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html#DISCARDED[`DISCARDED`], which indicates that the entry was not kept, e.g. because of Configuration Cache problems.
-
-Inspecting the outcome requires the build under test to run with Gradle 9.8 or later; for older versions (via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion-java.lang.String-[`GradleRunner.withGradleVersion(java.lang.String)`]) accessing it throws link:{javadocPath}/org/gradle/testkit/runner/UnsupportedFeatureException.html[`UnsupportedFeatureException`].
+Inspecting the outcome requires the build under test to run with Gradle 9.8 or later.
+For older Gradle versions selected via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion-java.lang.String-[`GradleRunner.withGradleVersion(java.lang.String)`], calling `getConfigurationCacheOutcome()` throws link:{javadocPath}/org/gradle/testkit/runner/UnsupportedFeatureException.html[`UnsupportedFeatureException`].
