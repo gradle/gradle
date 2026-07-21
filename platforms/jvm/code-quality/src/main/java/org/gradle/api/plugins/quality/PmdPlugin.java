@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
@@ -245,6 +246,10 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             conf.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
             // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
             getJvmPluginServices().configureAsRuntimeClasspath(conf);
+            conf.attributes(attributes ->
+                attributes.attributeProvider(
+                    TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                    task.getJavaLauncher().map(launcher -> launcher.getMetadata().getLanguageVersion().asInt())));
         });
 
         // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the compileClasspathConfiguration. In particular, compile
