@@ -362,8 +362,105 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
+    def "relative installation path is resolved against the root project dir and reported with the resolved absolute path"() {
+        enableProblemsApiCheck()
+
+        def resolvedAbsolutePath = file("missing-relative-jdk").absolutePath
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=./missing-relative-jdk")
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
+
+        then:
+        verifyAll(receivedProblem) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Directory '${resolvedAbsolutePath}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist"
+        }
+    }
+
+    /**
+     * Documents observed behavior in a composite build with a relative
+     * {@code org.gradle.java.installations.paths} value: even though the
+     * root and included builds have distinct root project directories, the
+     * property is resolved once (against the outer build's root) and only
+     * one Problems-API warning is emitted, using that outer-resolved path.
+     * <p>
+     * This test pins that behavior so any future change to
+     * {@code FileResolver} scoping for the installation registry is
+     * visible. See discussion on gradle/gradle#37254.
+     */
+    def "in a composite build, a relative installation path resolves once against the outer build's root and fires a single warning"() {
+        enableProblemsApiCheck()
+
+        file("included").createDir()
+        def outerResolvedAbsolutePath = file("missing-jdks").absolutePath
+        def wouldHaveBeenIncludedResolvedAbsolutePath = file("included/missing-jdks").absolutePath
+
+        def showPluginScript = """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        settingsFile << """
+            includeBuild 'included'
+        """
+        buildFile << showPluginScript
+
+        file("included/settings.gradle") << ""
+        file("included/build.gradle") << showPluginScript
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=./missing-jdks")
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            .withTasks("show", ":included:show")
+            .run()
+
+        then:
+        receivedProblems.size() == 1
+        verifyAll(receivedProblem) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Directory '${outerResolvedAbsolutePath}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist"
+            // Confirm the included build's own root directory is NOT what the path resolved to.
+            !contextualLabel.contains(wouldHaveBeenIncludedResolvedAbsolutePath)
+        }
+    }
+
     private static String relativePath(TestFile from, String to) {
         from.toPath().relativize(new File(to).toPath()).toString()
     }
-
 }

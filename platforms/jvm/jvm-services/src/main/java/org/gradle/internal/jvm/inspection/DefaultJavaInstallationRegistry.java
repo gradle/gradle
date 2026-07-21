@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
 
 @NullMarked
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
-
     private static final ProblemGroup TOOLCHAIN_PROBLEM_GROUP = ProblemGroup.create("jvm-toolchain", "JVM Toolchain");
 
     private final @Nullable BuildOperationRunner buildOperationRunner;
@@ -198,8 +197,9 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         }
         return true;
     }
-
-    private @Nullable InstallationLocation canonicalize(InstallationLocation location) {
+    
+    @Nullable
+    private InstallationLocation canonicalize(InstallationLocation location) {
         final File file = location.getLocation();
         try {
             final File canonicalFile = file.getCanonicalFile();
