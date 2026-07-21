@@ -145,7 +145,25 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_classifier]"]
 ====
 
+For example, to include source JARs and Javadoc JARs for IDE integration:
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/kotlin",files="build.gradle.kts[tags=use_classifier_sources]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_classifier_sources]"]
+====
+
 This keeps the catalog focused on coordinates while letting each consumer choose the appropriate classifier.
+
+**Common use cases for classifiers:**
+
+* **Sources and Javadoc JARs**: Many libraries publish separate JARs containing source code (`sources` classifier) or API documentation (`javadoc` classifier). IDEs and documentation tools can consume these artifacts.
+
+* **Test Fixtures**: Libraries that publish reusable test utilities often use a `test-fixtures` classifier.
+
+* **Platform-specific artifacts**: Native libraries may publish separate artifacts for different operating systems or architectures (e.g., `linux-x86_64`, `windows-x86_64`).
+
+The `variantOf()` function creates a dependency variant based on the catalog entry but with the specified classifier applied.
+Each project can independently decide which classifier variant it needs without duplicating the base coordinates in the catalog.
 
 For artifact types (common in Android projects needing `@aar`), use the `artifact` block:
 
@@ -383,6 +401,9 @@ These are explicit limitations the catalog TOML format does not support:
 * `type = "aar"` or `ext = "zip"` artifact types
 * `exclude` rules
 * `capabilities` requirements
+
+**Workarounds**: For classifiers and artifact types, see <<#sec:classifiers_artifact_types_and_capabilities, Classifiers, artifact types, and capabilities>>.
+For excludes and capabilities, apply them at the dependency declaration site in your build script using the standard dependency configuration DSL.
 
 [[sec:programmatic-catalog-versions]]
 == Programming catalogs
