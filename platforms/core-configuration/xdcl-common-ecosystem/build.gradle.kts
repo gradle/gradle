@@ -24,7 +24,7 @@ plugins {
     id("gradlebuild.xdcl-ecosystem-library")
 }
 
-description = "Built-in XDCL JVM ecosystem: schema + generated facades, published for plugin authors and shipped in the distribution (prototype)"
+description = "Shared XDCL schema common to the built-in ecosystems: dependency scopes, repositories, and the capability traits (HasDependencies/HasRepositories) that every ecosystem's project types compose. Published for plugin authors and shipped in the distribution (prototype)"
 
 // The facades are generated build artifacts (regenerated every build); keep the style/header and the
 // (published) javadoc gates off them — the schema's `///` docs aren't valid Javadoc.
@@ -35,15 +35,10 @@ tasks.withType<Javadoc>().configureEach {
     exclude { it.file.absolutePath.contains("/generated/xdcl/") }
 }
 
-// The consumable ecosystem library: its `.xdsl` schema (packed under META-INF/xdcl/ by
-// xdcl-gradle-plugin) and the Java facades generated from it. A downstream XDCL plugin depends on
-// THIS to `import` the schema and reference the facades; the plugin that activates the ecosystem
-// (applied by id) lives in the sibling :xdcl-jvm-ecosystem-plugin. Publishable because it carries
-// no internal-Gradle dependency — only the external org.xdcl facade API.
-dependencies {
-    // The shared schema java.xdsl `import`s (org.gradle.demos.common.dsl): dependency scopes,
-    // repositories, and the HasDependencies/HasRepositories capability traits the JavaLibrary template
-    // composes. `api` so consumers importing the JVM schema also see the common facades, and so
-    // xdclCodegen resolves the import from this dependency's packed schema (importedSchemaDirectories).
-    api(projects.xdclCommonEcosystem)
-}
+// A schema-only ecosystem foundation: common.xdsl (packed under META-INF/xdcl/ by xdcl-gradle-plugin)
+// and the Java facades generated from it. The JVM ecosystem (and future Native etc.) `import` this
+// schema and `with` its capability traits, so the shared dependency/repository surface is declared
+// once. Publishable because it carries no internal-Gradle dependency — only the external org.xdcl
+// facade API.
+// No dependencies block: the facade base types (org.gradle.api.xdcl.*) come as `api` from the
+// gradlebuild.xdcl-ecosystem-library convention, and this foundational schema imports nothing else.
