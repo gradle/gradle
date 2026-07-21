@@ -18,6 +18,9 @@
 
 If all you want to do is run an existing Gradle project, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>.
 
+If you're **starting a new project from scratch** (especially as a CLI user without an IDE), you'll need to install Gradle first, then use `gradle init` to bootstrap your project with the Gradle Wrapper.
+Once the Wrapper is set up, you and your team can use `./gradlew` instead of the installed Gradle version.
+
 [[gs:installation]]
 == Gradle Installation
 
@@ -270,6 +273,42 @@ $ export PATH=$GRADLE_HOME/bin:$PATH
 [[windows_installation]]
 == Windows installation
 
+.Installing with a package manager
+[%collapsible]
+=====
+
+link:http://sdkman.io[SDKMAN!] is available for Windows through WSL (Windows Subsystem for Linux):
+
+[source,bash]
+----
+$ sdk install gradle
+----
+
+Using link:https://chocolatey.org/[Chocolatey]:
+
+[source,powershell]
+----
+> choco install gradle
+----
+
+Using link:https://scoop.sh/[Scoop]:
+
+[source,powershell]
+----
+> scoop install gradle
+----
+
+Using link:https://learn.microsoft.com/en-us/windows/package-manager/winget/[winget] (Windows Package Manager):
+
+[source,powershell]
+----
+> winget install Gradle.Gradle
+----
+
+Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc.
+
+=====
+
 .Installing manually
 [%collapsible]
 =====
@@ -335,3 +374,70 @@ OS:            Mac OS X 14.7.4 aarch64
 ----
 
 You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:{website}/releases[releases page]) and following these <<gradle_wrapper.adoc#sec:verification,verification instructions>>.
+
+[[sec:bootstrapping_new_gradle_projects]]
+== Bootstrapping new projects
+
+Once Gradle is installed, you can bootstrap a new Gradle project using the `gradle init` command.
+This is particularly useful for CLI users starting a project from scratch without an IDE.
+
+[source,bash]
+----
+$ gradle init
+----
+
+The `init` task generates a new Gradle project with the following:
+
+- A `build.gradle` or `build.gradle.kts` build script
+- A `settings.gradle` or `settings.gradle.kts` settings file
+- The <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>> files (`gradlew`, `gradlew.bat`, and wrapper JAR)
+- Sample source code (optional, based on project type selection)
+
+The command runs interactively, allowing you to:
+
+- Select a project type (basic, application, library, Gradle plugin, etc.)
+- Choose a build script DSL (Groovy or Kotlin)
+- Select a test framework
+- Set project and source package names
+
+Once the project is initialized with the Gradle Wrapper, team members can build the project using `./gradlew` (or `gradlew.bat` on Windows) without installing Gradle themselves.
+
+**Example: Creating a new Java application**
+
+[source,bash]
+----
+$ mkdir my-app && cd my-app
+$ gradle init
+Select type of build to generate:
+  1: Application
+  2: Library
+  ...
+Enter selection (default: Application) [1..4] 1
+
+Select implementation language:
+  1: Java
+  2: Kotlin
+  ...
+Enter selection (default: Java) [1..6] 1
+
+...
+
+BUILD SUCCESSFUL
+----
+
+After initialization, you can build and run the project:
+
+[source,bash]
+----
+$ ./gradlew build
+$ ./gradlew run
+----
+
+For non-interactive project generation, you can pass options directly:
+
+[source,bash]
+----
+$ gradle init --type java-application --dsl kotlin --test-framework junit-jupiter --package com.example --project-name my-app
+----
+
+See the <<build_init_plugin.adoc#build_init_plugin,Build Init Plugin>> documentation for more details on project types and options.
