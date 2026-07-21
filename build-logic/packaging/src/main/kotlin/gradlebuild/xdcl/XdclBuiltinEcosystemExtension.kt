@@ -17,27 +17,23 @@
 package gradlebuild.xdcl
 
 import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
 
 /**
- * Configures the xdcl-builtin-ecosystem manifest for a built-in XDCL ecosystem plugin module.
+ * Configures the xdcl-builtin-ecosystem manifests for a built-in XDCL ecosystem plugin module.
  *
  * A built-in ecosystem ships its schemas in the distribution but is applied by id (a distribution
  * plugin), so its jar never lands on the settings plugin classpath and the transform-over-classpath
- * schema discovery is blind to it. The manifest — `META-INF/xdcl-builtin-ecosystem/<pluginId>.properties`,
- * keyed by plugin id so the runtime glue reads its own off the shared distro classloader — names
- * the distribution schema module(s) whose jars the glue resolves via `ModuleRegistry` and hands to
- * the XDCL registry assembly. See `integrations/gradle/doc/builtin-ecosystem-schemas-prototype.md`.
+ * schema discovery is blind to it. One `META-INF/xdcl-builtin-ecosystem/<plugin-id>.properties` is
+ * written per plugin carrier in the module (the ids come from the `.xdcl` file names, so there is
+ * nothing to declare here); each names the distribution schema module(s) whose jars the provider
+ * resolves via `ModuleRegistry`. See `integrations/gradle/doc/builtin-ecosystem-schemas.md`.
  */
 interface XdclBuiltinEcosystemExtension {
 
-    /** The id the ecosystem `Plugin<Settings>` is applied as; the manifest resource is keyed by it. */
-    val pluginId: Property<String>
-
     /**
-     * Distribution module names carrying this ecosystem's schemas. Defaults to the module of the
-     * project applying the convention (`gradle-${project.name}`), i.e. schemas live in the plugin's
-     * own module; override to point at dedicated schema-only modules.
+     * Distribution module names carrying this module's ecosystem schemas. Defaults to the module of
+     * the project applying the convention (`gradle-${project.name}`), i.e. schemas live in the
+     * plugin's own module; override to point at dedicated schema-only modules.
      */
     val schemaModules: ListProperty<String>
 }

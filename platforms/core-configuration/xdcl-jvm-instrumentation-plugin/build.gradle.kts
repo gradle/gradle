@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.api.tasks.javadoc.Javadoc
-
 plugins {
     id("gradlebuild.distribution.implementation-java")
     id("xdcl-gradle-plugin")
@@ -24,21 +21,6 @@ plugins {
 }
 
 description = "The built-in XDCL instrumentation ecosystem plugin (instrumentation-ecosystem): a carrier generated from instrumentation-ecosystem.xdcl that binds the ASM bytecode-rewrite reaction. Shipped in the distribution and applied by id; the schema + facades it consumes live in the published :xdcl-jvm-instrumentation library."
-
-tasks.withType<Checkstyle>().configureEach {
-    exclude { it.file.absolutePath.contains("/generated/xdcl/") }
-}
-tasks.withType<Javadoc>().configureEach {
-    exclude { it.file.absolutePath.contains("/generated/xdcl/") }
-}
-
-// The manifest the provider reads (keyed by plugin id) to PULL this ecosystem's schema module via
-// ModuleRegistry when the plugin is applied. schemaModules defaults to this module's own name; the
-// provider walks its dependency closure (instrumentation lib -> JVM lib -> common lib) and picks up
-// every schema-carrying jar transitively.
-xdclBuiltinEcosystem {
-    pluginId = "instrumentation-ecosystem"
-}
 
 dependencies {
     api(projects.coreApi)

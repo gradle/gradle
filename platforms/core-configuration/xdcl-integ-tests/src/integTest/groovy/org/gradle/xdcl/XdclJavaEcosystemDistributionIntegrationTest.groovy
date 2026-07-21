@@ -128,4 +128,32 @@ class XdclJavaEcosystemDistributionIntegrationTest extends AbstractIntegrationSp
         and: 'the instrumentation ecosystem (bound to the JVM source set) registered its task'
         outputContains("instrumentMainClasses")
     }
+
+    def "a template from an unapplied ecosystem stays out of the registry"() {
+        given: 'only the JVM ecosystem is applied — the Groovy ecosystem ships in the distribution but is not applied here'
+        enableProblemsApiCheck()
+        file('settings.gradle.xdcl') << '''
+            settings {
+              plugins [
+                { id "java-ecosystem" }
+              ]
+              rootProject { name "demo" }
+            }
+        '''
+
+        and: 'the build script names groovyLibrary { }, a top-level template owned by the unapplied Groovy ecosystem'
+        file('build.gradle.xdcl') << '''
+            groovyLibrary {
+            }
+        '''
+
+        when: 'the unapplied ecosystem contributed no schema, so its template never reached the frozen registry'
+        fails("help")
+
+        then: 'evaluation fails on the unknown template — the completion-scoping property, proven negatively'
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'scripts:xdcl:xdcl-evaluation-error'
+            contextualLabel.contains("groovyLibrary")
+        }
+    }
 }
