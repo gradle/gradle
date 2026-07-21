@@ -24,7 +24,7 @@ plugins {
     id("gradlebuild.xdcl-ecosystem-library")
 }
 
-description = "Built-in XDCL JVM ecosystem: schema + generated facades, published for plugin authors and shipped in the distribution (prototype)"
+description = "Built-in XDCL checkstyle ecosystem schema: the checkstyle { } extensions (on the JVM library and per source set) + generated facades. Depends on the JVM ecosystem schema it augments. Published for plugin authors and shipped in the distribution (prototype)"
 
 // The facades are generated build artifacts (regenerated every build); keep the style/header and the
 // (published) javadoc gates off them — the schema's `///` docs aren't valid Javadoc.
@@ -35,15 +35,13 @@ tasks.withType<Javadoc>().configureEach {
     exclude { it.file.absolutePath.contains("/generated/xdcl/") }
 }
 
-// The consumable ecosystem library: its `.xdsl` schema (packed under META-INF/xdcl/ by
-// xdcl-gradle-plugin) and the Java facades generated from it. A downstream XDCL plugin depends on
-// THIS to `import` the schema and reference the facades; the plugin that activates the ecosystem
-// (applied by id) lives in the sibling :xdcl-jvm-ecosystem-plugin. Publishable because it carries
-// no internal-Gradle dependency — only the external org.xdcl facade API.
+// A schema-only ecosystem library: checkstyle.xdsl (packed under META-INF/xdcl/ by xdcl-gradle-plugin)
+// and the facades generated from it. The reactions that activate it live in the sibling carrier
+// :xdcl-jvm-checkstyle-plugin. Publishable because it carries no internal-Gradle dependency.
 dependencies {
-    // The shared schema java.xdsl `import`s (org.gradle.demos.common.dsl): dependency scopes,
-    // repositories, and the HasDependencies/HasRepositories capability traits the JavaLibrary template
-    // composes. `api` so consumers importing the JVM schema also see the common facades, and so
-    // xdclCodegen resolves the import from this dependency's packed schema (importedSchemaDirectories).
-    api(projects.xdclCommonEcosystem)
+    // checkstyle.xdsl `import`s org.gradle.demos.java.dsl (extends JavaComponent / HasJavaSources) and
+    // its facades reference the JVM ones, so the JVM ecosystem schema+facades are part of this library's
+    // API. `api` so consumers importing the checkstyle schema also see the JVM facades. Published, so the
+    // gate is satisfied; also the source xdclCodegen resolves the import from (importedSchemaDirectories).
+    api(projects.xdclJvmEcosystem)
 }
