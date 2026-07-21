@@ -65,3 +65,12 @@ org.gradle.util.**
 
 NOTE: The `\*` wildcard matches only classes directly in the package (e.g., `org.gradle.Foo`), but **does not include subpackages** like `org.gradle.something.Foo`.
 Conversely, the `**` wildcard matches the noted package and its subpackages.
+
+[[kotlin_dsl_packages]]
+== Kotlin DSL packages
+
+The Kotlin DSL provides a public API on top of the Gradle API.
+Only the top-level `org.gradle.kotlin.dsl` package is public API.
+Its subpackages, such as `org.gradle.kotlin.dsl.support`, are internal implementation details and must not be used from plugins or build scripts.
+
+NOTE: For more details, see <<kotlin_dsl.adoc#avoid_using_internal_kotlin_dsl_apis,Avoid Using Internal Kotlin DSL APIs>>.
