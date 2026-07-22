@@ -105,7 +105,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         )
 
         buildAndFail("compileKotlin").apply {
-            assertHasCause("Compilation error.")
+            assertHasCause("Kotlin compiler error")
             assertOutputContainsPattern("""Unresolved reference 'after'\.\s+Location: .*?consumer\.plugin\.gradle\.kts:4""")
         }
     }
