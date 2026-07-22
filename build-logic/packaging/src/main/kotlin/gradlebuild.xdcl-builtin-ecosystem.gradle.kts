@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-import gradlebuild.xdcl.GenerateXdclBuiltinEcosystemManifests
+import gradlebuild.xdcl.GenerateXdclCarrierManifests
 import gradlebuild.xdcl.XdclBuiltinEcosystemExtension
 import gradlebuild.xdcl.excludeGeneratedXdclSourcesFromChecks
 
 /**
- * Packs the built-in-ecosystem manifests into a distribution ecosystem plugin jar. For every plugin
- * carrier under `src/main/xdcl/` (an `.xdcl` with a top-level `plugin { }` block) it emits a
- * `META-INF/xdcl-builtin-ecosystem/<plugin-id>.properties` naming the distribution schema module(s)
- * the runtime glue resolves (via `ModuleRegistry`) and contributes to the settings registry. The
- * plugin id is the carrier's file name, so a module declares no ids here.
+ * Packs the per-carrier manifests into a distribution ecosystem plugin jar. For every plugin carrier
+ * under `src/main/xdcl/` (an `.xdcl` with a top-level `plugin { }` block) it emits both the standard
+ * `META-INF/gradle-plugins/<plugin-id>.properties` descriptor (binding the id to its implementation
+ * class — synthesized here because these bundled modules don't apply `java-gradle-plugin`) and the
+ * `META-INF/xdcl-builtin-ecosystem/<plugin-id>.properties` marker naming the distribution schema
+ * module(s) the runtime glue resolves (via `ModuleRegistry`) and contributes to the settings
+ * registry. The plugin id is the carrier's file name, so a module declares no ids here.
  */
 
 plugins {
@@ -44,10 +46,10 @@ dependencies {
 val xdclBuiltinEcosystem = extensions.create<XdclBuiltinEcosystemExtension>("xdclBuiltinEcosystem")
 xdclBuiltinEcosystem.schemaModules.convention(listOf("gradle-${project.name}"))
 
-val generatedDir = layout.buildDirectory.dir("generated/xdcl-builtin-ecosystem")
+val generatedDir = layout.buildDirectory.dir("generated/xdcl-carrier-manifests")
 
-val writeXdclBuiltinEcosystemManifests = tasks.register<GenerateXdclBuiltinEcosystemManifests>("writeXdclBuiltinEcosystemManifests") {
-    description = "Generates the built-in-ecosystem manifest resource for each plugin carrier in the module"
+val writeXdclCarrierManifests = tasks.register<GenerateXdclCarrierManifests>("writeXdclCarrierManifests") {
+    description = "Generates the plugin descriptor and built-in-ecosystem marker for each plugin carrier in the module"
     group = "build"
     carrierFiles.from(project.fileTree("src/main/xdcl") { include("*.xdcl") })
     schemaModules = xdclBuiltinEcosystem.schemaModules
@@ -55,5 +57,5 @@ val writeXdclBuiltinEcosystemManifests = tasks.register<GenerateXdclBuiltinEcosy
 }
 
 sourceSets.main {
-    output.dir(mapOf("builtBy" to writeXdclBuiltinEcosystemManifests), generatedDir)
+    output.dir(mapOf("builtBy" to writeXdclCarrierManifests), generatedDir)
 }
