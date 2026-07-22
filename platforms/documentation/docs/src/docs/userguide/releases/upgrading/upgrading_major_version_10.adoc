@@ -62,5 +62,7 @@ The model properties that only affected the generated files are removed with the
 The plugins themselves are *not* removed.
 The `idea { ... }` and `eclipse { ... }` model configuration that affects how IDEs understand your project (source directories, language levels, dependency scopes, `eclipse.wtp.component`, etc.) continues to work unchanged and is picked up automatically by the Gradle integration built into IDEs.
 
+If you used the removed hooks to write additional Eclipse settings files (for example `eclipse.jdt.file.withProperties { ... }` to add entries to `.settings/org.eclipse.jdt.core.prefs`), register a custom task for the file — for properties files, link:{javadocPath}/org/gradle/plugins/ide/api/PropertiesGeneratorTask.html[`PropertiesGeneratorTask`] remains available as a base class — and wire it into Buildship's synchronization via `eclipse.synchronizationTasks(...)`, which runs it on every project import and refresh.
+
 NOTE: A plugin compiled against one of the removed classes (for example a plugin that configures link:{javadocPath}/org/gradle/plugins/ide/idea/model/IdeaModule.html[`IdeaModule`] via the removed `GenerateIdeaModule` task type) fails at plugin application time with a `NoClassDefFoundError` or `NoSuchMethodError`, even in builds that never use IDE integration.
 If applying a plugin fails this way, update to a plugin version that no longer references the removed API.
