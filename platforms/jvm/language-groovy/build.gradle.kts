@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
+    implementation(projects.workerShared)
 
     implementation(libs.guava)
     implementation(libs.asm)

@@ -60,7 +60,8 @@ class Rfc9457ErrorDetailIntegrationTest extends Specification {
         client.performGet(URI.create("${httpServer.address}/artifact.jar"), ImmutableMap.of())
 
         then:
-        HttpErrorStatusCodeException e = thrown()
+        HttpRequestException outer = thrown()
+        HttpErrorStatusCodeException e = outer.cause as HttpErrorStatusCodeException
         e.statusCode == 403
         e.message.contains("Artifact Quarantined")
     }
@@ -78,7 +79,8 @@ class Rfc9457ErrorDetailIntegrationTest extends Specification {
         client.performGet(URI.create("${httpServer.address}/artifact.jar"), ImmutableMap.of())
 
         then:
-        HttpErrorStatusCodeException e = thrown()
+        HttpRequestException outer = thrown()
+        HttpErrorStatusCodeException e = outer.cause as HttpErrorStatusCodeException
         e.statusCode == 403
         e.message.contains("Repository policy violation: artifact contains known vulnerabilities")
     }
@@ -100,7 +102,8 @@ class Rfc9457ErrorDetailIntegrationTest extends Specification {
         client.performGet(URI.create("${httpServer.address}/artifact.jar"), ImmutableMap.of())
 
         then:
-        HttpErrorStatusCodeException e = thrown()
+        HttpRequestException outer = thrown()
+        HttpErrorStatusCodeException e = outer.cause as HttpErrorStatusCodeException
         e.statusCode == 451
         e.message.contains("The artifact com.example:my-library:1.0.0 violates the organization's license policy (GPL license not allowed)")
     }
@@ -113,7 +116,8 @@ class Rfc9457ErrorDetailIntegrationTest extends Specification {
         client.performGet(URI.create("${httpServer.address}/artifact.jar"), ImmutableMap.of())
 
         then:
-        HttpErrorStatusCodeException e = thrown()
+        HttpRequestException outer = thrown()
+        HttpErrorStatusCodeException e = outer.cause as HttpErrorStatusCodeException
         e.statusCode == 403
         e.message.contains("Forbidden")
     }
@@ -127,11 +131,12 @@ class Rfc9457ErrorDetailIntegrationTest extends Specification {
         client.performGet(URI.create("${httpServer.address}/artifact.jar"), ImmutableMap.of())
 
         then:
-        HttpErrorStatusCodeException e = thrown()
+        HttpRequestException outer = thrown()
+        HttpErrorStatusCodeException e = outer.cause as HttpErrorStatusCodeException
         e.statusCode == 500
 
-        and: "should fall back to reason phrase or empty string"
-        e.message.contains("Could not GET")
+        and: "should fall back to reason phrase or empty string on the outer wrapper"
+        outer.message.contains("Could not GET")
     }
 
     def "5xx responses without RFC9457 body still produce a server-error exception"() {
@@ -142,10 +147,11 @@ class Rfc9457ErrorDetailIntegrationTest extends Specification {
         client.performGet(URI.create("${httpServer.address}/broken.jar"), ImmutableMap.of())
 
         then:
-        HttpErrorStatusCodeException e = thrown()
+        HttpRequestException outer = thrown()
+        HttpErrorStatusCodeException e = outer.cause as HttpErrorStatusCodeException
         e.statusCode == 500
         e.serverError
-        e.message.contains("Could not GET")
+        outer.message.contains("Could not GET")
         e.message.contains("500")
     }
 
@@ -158,11 +164,12 @@ class Rfc9457ErrorDetailIntegrationTest extends Specification {
         client.performGet(URI.create("${httpServer.address}/artifact.jar"), ImmutableMap.of())
 
         then:
-        HttpErrorStatusCodeException e = thrown()
+        HttpRequestException outer = thrown()
+        HttpErrorStatusCodeException e = outer.cause as HttpErrorStatusCodeException
         e.statusCode == 403
 
-        and: "should fall back to reason phrase or empty string"
-        e.message.contains("Could not GET")
+        and: "should fall back to reason phrase or empty string on the outer wrapper"
+        outer.message.contains("Could not GET")
     }
 
     /**

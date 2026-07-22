@@ -64,6 +64,7 @@ dependencies {
     implementation(projects.time)
     implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
+    implementation(projects.workerShared)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

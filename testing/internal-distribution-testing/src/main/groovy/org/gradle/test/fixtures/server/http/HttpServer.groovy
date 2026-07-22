@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.http
 import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
 import com.google.gson.JsonElement
+import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.xml.MarkupBuilder
 import org.gradle.internal.hash.Hashing
@@ -287,6 +288,63 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      */
     void expectGetBroken(String path) {
         expect(path, false, ['GET'], broken())
+    }
+
+    /**
+     * Expects one GET request, which fails with the given status code and an
+     * <a href="https://www.rfc-editor.org/rfc/rfc9457.html">RFC 9457 Problem Details</a>
+     * response body built from the provided detail message. Reasonable defaults are
+     * supplied for the other RFC 9457 fields (type, title, status, instance).
+     */
+    void expectGetBroken(String path, int statusCode, String rfc9457Detail) {
+        Map<String, Object> problem = [
+            type    : "about:blank",
+            title   : defaultTitleForStatus(statusCode),
+            status  : statusCode,
+            detail  : rfc9457Detail,
+            instance: path
+        ]
+        expectGetBroken(path, statusCode, problem)
+    }
+
+    /**
+     * Expects one GET request, which fails with the given status code and the supplied
+     * <a href="https://www.rfc-editor.org/rfc/rfc9457.html">RFC 9457 Problem Details</a>
+     * JSON body. The map is serialized as JSON and served with
+     * {@code Content-Type: application/problem+json}.
+     */
+    void expectGetBroken(String path, int statusCode, Map<String, ?> rfc9457ProblemJson) {
+        expect(path, false, ['GET'], rfc9457Broken(statusCode, JsonOutput.toJson(rfc9457ProblemJson)))
+    }
+
+    private static String defaultTitleForStatus(int statusCode) {
+        switch (statusCode) {
+            case 400: return "Bad Request"
+            case 401: return "Unauthorized"
+            case 403: return "Forbidden"
+            case 404: return "Not Found"
+            case 409: return "Conflict"
+            case 429: return "Too Many Requests"
+            case 451: return "Unavailable For Legal Reasons"
+            case 500: return "Internal Server Error"
+            case 502: return "Bad Gateway"
+            case 503: return "Service Unavailable"
+            default: return "HTTP ${statusCode}"
+        }
+    }
+
+    private Action rfc9457Broken(int statusCode, String jsonBody) {
+        new ActionSupport("return ${statusCode} with RFC 9457 problem+json body") {
+            @Override
+            void handle(HttpRequest request, HttpResponse response) {
+                response.setStatus(statusCode)
+                response.setContentType("application/problem+json")
+                byte[] bytes = jsonBody.getBytes("UTF-8")
+                response.setContentLength(bytes.length)
+                response.outputStream.write(bytes)
+                response.outputStream.flush()
+            }
+        }
     }
 
     /**

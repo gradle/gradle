@@ -48,7 +48,7 @@ class NetworkOperationBackOffAndRetryTest extends Specification {
             new SocketException("something went wrong"),
             new SocketTimeoutException("something went wrong"),
             new HttpHostConnectException(new IOException("something went wrong"), null, null),
-            new HttpErrorStatusCodeException("something", "something", 503, "something"),
+            new HttpErrorStatusCodeException(503, "something"),
             new RuntimeException("with cause", new SocketTimeoutException("something went wrong"))
         ]
     }
@@ -74,7 +74,7 @@ class NetworkOperationBackOffAndRetryTest extends Specification {
                 new SocketException("something went wrong"),
                 new SocketTimeoutException("something went wrong"),
                 new HttpHostConnectException(new IOException("something went wrong"), null, null),
-                new HttpErrorStatusCodeException("something", "something", 503, "something"),
+                new HttpErrorStatusCodeException(503, "something"),
                 new RuntimeException("with cause", new SocketTimeoutException("something went wrong"))
         ]
     }
@@ -97,7 +97,7 @@ class NetworkOperationBackOffAndRetryTest extends Specification {
         where:
         ex << [
             new RuntimeException("non network issue"),
-            new HttpErrorStatusCodeException("something", "something", 400, "something")
+            new HttpErrorStatusCodeException(400, "something")
         ]
     }
 }

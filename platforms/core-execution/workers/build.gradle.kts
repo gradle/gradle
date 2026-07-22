@@ -26,6 +26,7 @@ dependencies {
     api(projects.problemsApi)
     api(projects.workerMain)
     api(projects.workerProcessServices)
+    api(projects.workerShared)
 
     api(libs.inject)
     api(libs.jspecify)

@@ -99,7 +99,7 @@ Once `org.gradle.parallel` and `org.gradle.tooling.parallel` are independent, th
 No action is required in Gradle 9.x; if you set it explicitly, you can remove it when upgrading to Gradle 10.
 
 [[config_time_external_processes]]
-==== Starting external processes at configuration time with `ExecOperations` and Java/Groovy standard APIs
+==== Deprecation of starting external processes at configuration time with `ExecOperations` and Java/Groovy standard APIs
 
 Starting an external process at configuration time with link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] or the Java and Groovy standard APIs directly is now deprecated.
 This includes:

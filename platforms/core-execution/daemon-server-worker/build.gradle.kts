@@ -35,6 +35,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.ant)
     implementation(projects.baseServices)
     implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
@@ -45,22 +46,15 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.groovyLoader)
     implementation(projects.hashing)
+    implementation(projects.isolatedAntBuilder)
     implementation(projects.messaging)
     implementation(projects.persistentCache)
-    implementation(projects.processServices)
     implementation(projects.problemsApi)
+    implementation(projects.processServices)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.workerMain)
-
-    // The worker infrastructure should _not_ depend on :core. :core contains much
-    // of the Gradle daemon implementation, and brings in a much larger classpath
-    // than what the workers require. Furthermore, the daemon and workers have different
-    // JVM version requirements. Depending on :core from here restricts the daemon
-    // from upgrading its target bytecode version.
-    implementation(projects.ant)
-    implementation(projects.antImpl)  // WorkerDaemonServer directly references DefaultIsolatedAntBuilder
-    implementation(projects.core)
+    implementation(projects.workerShared)
 
     implementation(libs.guava)
 

@@ -294,7 +294,8 @@ public class ApacheCommonsHttpClient implements HttpClient {
             // Close the response to avoid leaving connections open
             response.close();
 
-            throw new HttpErrorStatusCodeException(method, effectiveUri.toString(), statusCode, errorDetail);
+            HttpErrorStatusCodeException statusCause = new HttpErrorStatusCodeException(statusCode, errorDetail);
+            throw new HttpRequestException(String.format("Could not %s '%s'.", method, effectiveUri), statusCause);
         }
     }
 

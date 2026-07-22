@@ -86,7 +86,8 @@ class ApacheCommonsHttpClientTest extends Specification {
         client.performGet(URI.create("http://gradle.org"), ImmutableMap.of())
 
         then:
-        thrown(HttpErrorStatusCodeException)
+        def e = thrown(HttpRequestException)
+        e.cause instanceof HttpErrorStatusCodeException
         1 * response.close()
         1 * response.entity.content.close()
     }

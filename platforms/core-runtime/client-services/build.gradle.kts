@@ -74,6 +74,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.processServicesApi)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.workerShared)
 
     implementation(libs.asm)
     implementation(libs.guava)

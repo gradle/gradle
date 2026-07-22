@@ -903,6 +903,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "isolated-ant-builder",
+    "path": "platforms/software/isolated-ant-builder",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "ivy",
     "path": "platforms/software/ivy",
     "unitTests": true,
@@ -1719,6 +1726,13 @@
     "path": "platforms/core-execution/worker-process-services",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "worker-shared",
+    "path": "platforms/core-execution/worker-shared",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

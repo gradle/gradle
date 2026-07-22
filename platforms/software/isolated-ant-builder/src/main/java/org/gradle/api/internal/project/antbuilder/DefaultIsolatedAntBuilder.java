@@ -188,7 +188,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             Method addBuildListener = projectClass.getDeclaredMethod("addBuildListener", buildListenerClass);
             Method removeBuildListener = projectClass.getDeclaredMethod("removeBuildListener", buildListenerClass);
             Method getBuildListeners = projectClass.getDeclaredMethod("getBuildListeners");
-            Vector listeners = (Vector) getBuildListeners.invoke(project);
+            Vector<?> listeners = (Vector) getBuildListeners.invoke(project);
             removeBuildListener.invoke(project, listeners.get(0));
             addBuildListener.invoke(project, antLogger);
         } catch (Exception ex) {

@@ -154,6 +154,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "versioned-cache",
         "worker-main",
         "worker-process-services",
+        "worker-shared",
         "wrapper-shared",
     ]
 
@@ -185,7 +186,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        97
+        98
     }
 
     /**

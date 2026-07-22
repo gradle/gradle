@@ -44,6 +44,7 @@ dependencies {
     implementation(projects.scopedPersistentCache)
     implementation(projects.serviceLookup)
     implementation(projects.workerMain)
+    implementation(projects.workerShared)
 
     implementation(libs.guava)
 
