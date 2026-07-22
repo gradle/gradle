@@ -67,10 +67,10 @@ class PublicServiceLookupsTest extends Specification {
 
         where:
         serviceType   | entryPoint | message
-        ProjectLayout | SETTINGS   | "org.gradle.api.file.ProjectLayout is not available in settings scripts and settings plugins. It is available in project scripts, project plugins, and tasks."
-        ProjectLayout | GRADLE     | "org.gradle.api.file.ProjectLayout is not available in init scripts and init plugins. It is available in project scripts, project plugins, and tasks."
-        BuildLayout   | PROJECT    | "org.gradle.api.file.BuildLayout is not available in project scripts and project plugins. It is available in settings scripts and settings plugins."
-        BuildLayout   | TASK       | "org.gradle.api.file.BuildLayout is not available in tasks. It is available in settings scripts and settings plugins."
+        ProjectLayout | SETTINGS   | "org.gradle.api.file.ProjectLayout is not available in settings scripts and settings plugins.\nIt is available in project scripts, project plugins, and tasks."
+        ProjectLayout | GRADLE     | "org.gradle.api.file.ProjectLayout is not available in init scripts and init plugins.\nIt is available in project scripts, project plugins, and tasks."
+        BuildLayout   | PROJECT    | "org.gradle.api.file.BuildLayout is not available in project scripts and project plugins.\nIt is available in settings scripts and settings plugins."
+        BuildLayout   | TASK       | "org.gradle.api.file.BuildLayout is not available in tasks.\nIt is available in settings scripts and settings plugins."
     }
 
     def "rejects internal or unknown type with enumeration of available services"() {

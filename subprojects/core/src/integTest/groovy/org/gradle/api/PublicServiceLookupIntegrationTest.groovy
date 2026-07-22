@@ -88,29 +88,63 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         file("zip-src/entry.txt").text = "entry"
         file("zip-src").zipTo(file("stuff.zip"))
         buildFile """
-            tasks.register("use") {
-                def captured = service($serviceType)
+            tasks.register("useObjectFactory") {
+                def captured = service(ObjectFactory)
+                doLast {
+                    def p = captured.property(String)
+                    p.set("captured-value")
+                    println("out: " + p.get())
+                }
+            }
+            tasks.register("useProviderFactory") {
+                def captured = service(ProviderFactory)
+                doLast {
+                    println("out: " + captured.provider { "provided-value" }.get())
+                }
+            }
+            tasks.register("useFileSystemOperations") {
+                def captured = service(FileSystemOperations)
                 def targetFile = file("doomed.txt")
                 doLast {
-                    ${action.replace("JAVA_EXE", jvmPath)}
+                    captured.delete { delete(targetFile) }
+                    println("out: exists=" + targetFile.exists())
+                }
+            }
+            tasks.register("useArchiveOperations") {
+                def captured = service(ArchiveOperations)
+                doLast {
+                    println("out: " + captured.zipTree("stuff.zip").files*.name.sort())
+                }
+            }
+            tasks.register("useExecOperations") {
+                def captured = service(ExecOperations)
+                doLast {
+                    def result = captured.exec { commandLine("${jvmPath}", "-version") }
+                    println("out: " + result.exitValue)
+                }
+            }
+            tasks.register("useProjectLayout") {
+                def captured = service(ProjectLayout)
+                doLast {
+                    println("out: " + captured.projectDirectory.asFile.name)
                 }
             }
         """
 
         when:
-        succeeds("use")
+        succeeds("use$serviceType")
 
         then:
         outputContains(expectedOutput.replace("@PROJECT_DIR_NAME@", testDirectory.name))
 
         where:
-        serviceType            | action                                                                                        | expectedOutput
-        "ObjectFactory"        | 'def p = captured.property(String); p.set("captured-value"); println("out: " + p.get())'     | "out: captured-value"
-        "ProviderFactory"      | 'println("out: " + captured.provider { "provided-value" }.get())'                            | "out: provided-value"
-        "FileSystemOperations" | 'captured.delete { delete(targetFile) }; println("out: exists=" + targetFile.exists())'      | "out: exists=false"
-        "ArchiveOperations"    | 'println("out: " + captured.zipTree("stuff.zip").files*.name.sort())'                        | "out: [entry.txt]"
-        "ExecOperations"       | 'def r = captured.exec { commandLine("JAVA_EXE", "-version") }; println("out: " + r.exitValue)' | "out: 0"
-        "ProjectLayout"        | 'println("out: " + captured.projectDirectory.asFile.name)'                                   | "out: @PROJECT_DIR_NAME@"
+        serviceType            | expectedOutput
+        "ObjectFactory"        | "out: captured-value"
+        "ProviderFactory"      | "out: provided-value"
+        "FileSystemOperations" | "out: exists=false"
+        "ArchiveOperations"    | "out: [entry.txt]"
+        "ExecOperations"       | "out: 0"
+        "ProjectLayout"        | "out: @PROJECT_DIR_NAME@"
     }
 
     private static String getJvmPath() {
@@ -142,33 +176,41 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         file("local.txt").exists()
     }
 
-    def "services can be looked up in a settings script"() {
+    def "all documented services can be looked up in a settings script"() {
         settingsFile """
-            def layout = service(BuildLayout)
-            println("settings dir name: " + layout.settingsDirectory.asFile.name)
+            def services = [
+                service(ObjectFactory),
+                service(ProviderFactory),
+                service(FileSystemOperations),
+                service(ArchiveOperations),
+                service(BuildLayout),
+            ]
+            println("resolved services: " + services.count { it != null })
 
-            def property = service(ObjectFactory).property(String)
-            property.set("from-settings")
-            println("settings property: " + property.get())
+            println("settings dir name: " + service(BuildLayout).settingsDirectory.asFile.name)
         """
 
         expect:
         succeeds("help")
+        outputContains("resolved services: 5")
         outputContains("settings dir name: " + testDirectory.name)
-        outputContains("settings property: from-settings")
     }
 
-    def "services can be looked up in an init script"() {
+    def "all documented services can be looked up in an init script"() {
         initScriptFile """
-            def property = service(ObjectFactory).property(String)
-            property.set("from-init")
-            println("init property: " + property.get())
+            def services = [
+                service(ObjectFactory),
+                service(ProviderFactory),
+                service(FileSystemOperations),
+                service(ArchiveOperations),
+            ]
+            println("resolved services: " + services.count { it != null })
         """
 
         expect:
         args("-I", "init.gradle")
         succeeds("help")
-        outputContains("init property: from-init")
+        outputContains("resolved services: 4")
     }
 
     def "each project's task resolves its own project-scoped service when registered from an allprojects block"() {
@@ -224,7 +266,8 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("org.gradle.api.file.ProjectLayout is not available in settings scripts and settings plugins. It is available in project scripts, project plugins, and tasks.")
+        failure.assertHasCause("org.gradle.api.file.ProjectLayout is not available in settings scripts and settings plugins." +
+            "\nIt is available in project scripts, project plugins, and tasks.")
     }
 
     def "looking up an execution-only service from a build script fails with a helpful message"() {
@@ -236,7 +279,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("org.gradle.process.ExecOperations is not available in project scripts and project plugins. It is available in tasks.")
+        failure.assertHasCause("org.gradle.process.ExecOperations is not available in project scripts and project plugins.\nIt is available in tasks.")
     }
 
     def "looking up an internal service fails and enumerates the available services"() {

@@ -82,7 +82,7 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
         then:
         // The rejection happens while the task is being created, not while it runs...
         failure.assertHasCause("Could not create task ':useLayout'.")
-        failure.assertHasCause("org.gradle.api.file.BuildLayout is not available in tasks. It is available in settings scripts and settings plugins.")
+        failure.assertHasCause("org.gradle.api.file.BuildLayout is not available in tasks.\nIt is available in settings scripts and settings plugins.")
         // ...so the task action is never entered.
         outputDoesNotContain("REACHED ACTION")
     }

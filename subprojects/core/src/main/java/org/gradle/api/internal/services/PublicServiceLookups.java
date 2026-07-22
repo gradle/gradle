@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.services;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -90,6 +91,7 @@ public final class PublicServiceLookups {
      * Visible for testing: the authoritative service→scopes allowlist, so the marker/bound consistency
      * test can assert the compile-time markers and method bounds agree with it.
      */
+    @VisibleForTesting
     static ImmutableMap<Class<?>, ImmutableSet<EntryPoint>> availableServices() {
         return AVAILABLE_SERVICES;
     }
@@ -104,6 +106,12 @@ public final class PublicServiceLookups {
      * then queries the {@link ServiceRegistry}. So a caller-supplied type that merely implements a marker is
      * rejected, and is never resolved or executed through Gradle's DI container.</p>
      *
+     * @param serviceType the service type requested by user code. May be {@code null}: the typed
+     *     {@code service(Class)} entry points are reachable with {@code null} from Groovy
+     *     ({@code service(null)}), which has no compile-time null check, so a null type is treated as
+     *     invalid user input rather than an internal precondition violation.
+     * @param entryPoint the scope the lookup was made through; supplied by Gradle, never {@code null}
+     * @param services the registry backing this scope; supplied by Gradle, never {@code null}
      * @throws InvalidUserDataException if the type is null, not allowlisted, or not available in this scope
      */
     public static <T> T lookup(@Nullable Class<T> serviceType, EntryPoint entryPoint, ServiceRegistry services) {
@@ -138,7 +146,7 @@ public final class PublicServiceLookups {
 
     private static String wrongScopeMessage(Class<?> serviceType, EntryPoint entryPoint, Set<EntryPoint> availableIn) {
         return String.format(
-            "%s is not available in %s. It is available in %s.",
+            "%s is not available in %s.\nIt is available in %s.",
             serviceType.getName(), entryPoint.getDisplayNames().stream().collect(RenderingUtils.oxfordJoin("and")),
             availableIn.stream().flatMap(e -> e.getDisplayNames().stream()).collect(RenderingUtils.oxfordJoin("and")));
     }
