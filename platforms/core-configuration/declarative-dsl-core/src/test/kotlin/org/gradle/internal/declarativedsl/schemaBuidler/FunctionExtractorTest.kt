@@ -47,7 +47,7 @@ class FunctionExtractorTest {
         }.run {
             Assert.assertEquals("""
                 |An @Adding function with a Unit return type may not accept configuring lambdas
-                |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.ReceiverTwo.adding((org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.ReceiverTwo) -> kotlin.Unit): kotlin.Unit'
+                |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.ReceiverTwo.adding(org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.ReceiverTwo.() -> kotlin.Unit): kotlin.Unit'
                 |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.ReceiverTwo'
             """.trimMargin("|"), message)
         }
