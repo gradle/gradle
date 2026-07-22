@@ -32,6 +32,7 @@ import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.C
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_SUPER_TYPES_MERGE_TASK
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.UPGRADED_PROPERTIES_MERGE_TASK
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinExtensionsForGradleApi
+import java.util.jar.JarFile
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
@@ -203,7 +204,11 @@ dependencies {
 }
 val gradleApiKotlinExtensions = tasks.register<GenerateKotlinExtensionsForGradleApi>("gradleApiKotlinExtensions") {
     sharedRuntimeClasspath.from(kotlinDslSharedRuntimeClasspath)
-    classpath.from(runtimeClasspath)
+    classpath.from(
+        runtimeClasspath.filter { jar ->
+            // Filter out the XDCL plugins, as we don't want to expose them as public API accessors yet, and having no Kotlin DSL accessors for them is fine since they are meant to be used in XDCL
+            !(jar.isFile && jar.name.endsWith(".jar") && JarFile(jar).use { opened -> opened.entries().asSequence().any { it.name.startsWith("META-INF/xdcl-builtin-ecosystem/") } })
+    })
     sources.from(gradleApiSources)
     destinationDirectory = layout.buildDirectory.dir("generated-sources/kotlin-dsl-extensions")
 }

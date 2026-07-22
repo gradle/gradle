@@ -23,13 +23,10 @@ description = "The built-in XDCL Groovy ecosystem plugin (groovy-ecosystem): a c
 
 dependencies {
     api(projects.coreApi)
-    api(projects.baseServices) // Named, Describable, capitalize used by the reaction
+    api(projects.xdclGroovyEcosystem)
 
-    // The single source of truth for this ecosystem's schema + facades + model. Pure CARRIER (only
-    // groovy-ecosystem.xdcl, no local .xdsl): xdclCodegen resolves the .xdcl against the lib's schema
-    // via importedSchemaDirectories and generates just the carrier; the reaction compiles against the
-    // lib's facades and GroovyLibraryModel. Transitively brings :xdcl-common-ecosystem.
-    implementation(projects.xdclGroovyEcosystem)
+    implementation(projects.xdclCommonEcosystem)
+    implementation(projects.baseServices) // Named, Describable, capitalize used by the reaction
 
     // Shared imperative helpers (DependencyScopes/Repositories) for the common HasDependencies/
     // HasRepositories capability traits — used by every ecosystem carrier that wires them.
