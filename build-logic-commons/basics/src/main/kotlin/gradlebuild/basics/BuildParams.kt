@@ -29,6 +29,7 @@ import gradlebuild.basics.BuildParams.BUILD_RC_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
+import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_MAJOR
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import gradlebuild.basics.BuildParams.DEBUG_DAEMON
 import gradlebuild.basics.BuildParams.DEBUG_LAUNCHER
@@ -141,6 +142,7 @@ object BuildParams {
     const val RUN_IDE_IN_HEADLESS_MODE = "runIdeInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
     const val IDEA_HOME = "ideaHome"
+    const val BUNDLE_GROOVY_MAJOR = "bundleGroovyMajor"
     const val DEBUG_DAEMON = "debugDaemon"
     const val DEBUG_LAUNCHER = "debugLauncher"
 
@@ -460,6 +462,22 @@ val Project.isPromotionBuild: Boolean
         return taskNames.contains("promotionBuild") ||
             taskNames.any { it.contains("updateReleasedVersions") }
     }
+
+
+/**
+ * Override the version of Groovy bundled by Gradle. Must be greater than or equal to the major version of Groovy used by Gradle.
+ */
+val Project.bundleGroovyMajor: Int
+    get() = systemProperty(BUNDLE_GROOVY_MAJOR).orNull?.toInt() ?: 4
+
+
+/**
+ * The lowest JVM version the bundled Groovy can run on. Groovy 4 runs on Java 8, Groovy 5 needs Java 11.
+ *
+ * This is the JVM `groovyc` itself has to run on, which is not the same as the bytecode it emits.
+ */
+val Project.bundleGroovyMinimumJvm: Int
+    get() = if (bundleGroovyMajor >= 5) 11 else 8
 
 
 val Project.daemonDebuggingIsEnabled: Boolean
