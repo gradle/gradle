@@ -46,6 +46,11 @@ import java.nio.file.Path;
  * a {@link #preserve(Action)} is specified.
  *
  * <p>
+ * Since Gradle 9.8.0, an empty source no longer skips the task: the destination is cleared instead
+ * (unless there is no record of a previous sync into that destination, in which case the task does nothing
+ * to avoid wiping content it never wrote).
+ *
+ * <p>
  * Examples:
  * <pre class='autoTested'>
  *
