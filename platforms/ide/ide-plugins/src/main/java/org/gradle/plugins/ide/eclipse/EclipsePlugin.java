@@ -200,8 +200,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                     public void execute(Project p) {
                         // keep the ordering we had in earlier gradle versions
                         Set<String> containers = new LinkedHashSet<>();
-                        String javaRuntimeName = eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
-                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + javaRuntimeName + "/");
+                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + model.getJdt().getJavaRuntimeName() + "/");
                         containers.addAll(model.getClasspath().getContainers());
                         model.getClasspath().setContainers(containers);
                     }
@@ -351,6 +350,13 @@ public abstract class EclipsePlugin extends IdePlugin {
                     @Override
                     public JavaVersion call() {
                         return project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
+                    }
+
+                });
+                conventionMapping.map("javaRuntimeName", new Callable<String>() {
+                    @Override
+                    public String call() {
+                        return eclipseJavaRuntimeNameFor(project.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility());
                     }
 
                 });

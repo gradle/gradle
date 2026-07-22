@@ -34,6 +34,7 @@ import javax.inject.Inject;
  *     //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
  *     sourceCompatibility = 1.6
  *     targetCompatibility = 1.5
+ *     javaRuntimeName = "J2SE-1.5"
  *   }
  * }
  * </pre>
@@ -43,6 +44,8 @@ public abstract class EclipseJdt {
     private JavaVersion sourceCompatibility = JavaVersion.current();
 
     private JavaVersion targetCompatibility = JavaVersion.current();
+
+    private String javaRuntimeName;
 
     @Inject
     public EclipseJdt() {
@@ -96,6 +99,22 @@ public abstract class EclipseJdt {
         if (version != null) {
             this.targetCompatibility = version;
         }
+    }
+
+    /**
+     * The name of the Java Runtime to use.
+     * <p>
+     * For example see docs for {@link EclipseJdt}
+     */
+    public String getJavaRuntimeName() {
+        return javaRuntimeName;
+    }
+
+    /**
+     * Set Java Runtime name.
+     */
+    public void setJavaRuntimeName(String javaRuntimeName) {
+        this.javaRuntimeName = javaRuntimeName;
     }
 
 }

@@ -131,6 +131,17 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         folders == [project.file('generated-folder'), project.file('ws-generated'), project.file('generated-test'), project.file('test-resources'), project.file('../some/external/dir')]
     }
 
+    def "custom javaRuntimeName is used for the JRE container"() {
+        when:
+        eclipsePlugin.apply(project)
+        project.apply(plugin: 'java')
+        project.eclipse.jdt.javaRuntimeName = 'customJavaRuntime'
+        project.evaluate()
+
+        then:
+        project.eclipse.classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/customJavaRuntime/'] as Set
+    }
+
     def "configures internal class folders for custom source sets"() {
         when:
         eclipsePlugin.apply(project)

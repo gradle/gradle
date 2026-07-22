@@ -593,22 +593,6 @@
             ]
         },
         {
-            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
-            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.getJavaRuntimeName()",
-            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ide.eclipse.model.EclipseJdt",
-            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.setJavaRuntimeName(java.lang.String)",
-            "acceptation": "Deprecated IDE file generation model properties removed in Gradle 10",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
             "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtp",
             "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtp.facet(groovy.lang.Closure)",
             "acceptation": "WTP facet DSL and file merging hooks removed in Gradle 10; component configuration kept for Tooling API attributes",
