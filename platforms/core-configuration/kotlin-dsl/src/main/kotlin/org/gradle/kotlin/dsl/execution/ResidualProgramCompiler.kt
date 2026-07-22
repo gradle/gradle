@@ -729,7 +729,8 @@ class ResidualProgramCompiler(
                         incrementalCompilationCache,
                         scriptIdentity
                     ) { path ->
-                        if (path == scriptFile.path) originalPath
+                        // Compare as Files: the compiler may report the path with '/' separators on Windows
+                        if (File(path) == scriptFile) originalPath
                         else path
                     }
                 }.let { compiledScriptClassName ->

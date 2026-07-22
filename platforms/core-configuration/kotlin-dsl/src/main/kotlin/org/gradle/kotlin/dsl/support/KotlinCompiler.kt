@@ -46,7 +46,6 @@ import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Com
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_METADATA_VERSION_CHECK
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_PRERELEASE_CHECK
-import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_USE_FIR_LT
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
@@ -646,7 +645,6 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
 
     private fun JvmCompilerArguments.Builder.configureMisc() {
         this[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
-        this[X_USE_FIR_LT] = false
         this[X_SAM_CONVERSIONS] = SamConversionsMode.CLASS
 
         this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
