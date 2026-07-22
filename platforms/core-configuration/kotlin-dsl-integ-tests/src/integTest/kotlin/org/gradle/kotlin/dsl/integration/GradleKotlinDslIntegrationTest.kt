@@ -644,8 +644,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 Script compilation error:
 
                   Line 1: publishing { }
-                          ^ Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-                              val PluginDependenciesSpec.publishing: PluginDependencySpec
+                          ^ Candidate 'val PluginDependenciesSpec.publishing: PluginDependencySpec' is inapplicable because of a receiver type mismatch.
 
                 1 error
                 """
@@ -679,7 +678,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     |                   ^ Unresolved reference 'foo'.
                     |
                     |  Line 06: println("foo").bar.bazar
-                    |                          ^ Unresolved reference 'bar'.
+                    |                          ^ Unresolved reference 'bar' on receiver of type 'Unit'.
                     |
                     |  Line 10: println(cathedral)
                     |                   ^ Unresolved reference 'cathedral'.
