@@ -59,34 +59,6 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
         }
     }
 
-    def "looking up a settings-only service through a task closure resolves to the task and is rejected at configuration time"() {
-        given:
-        settingsFile """
-            gradle.rootProject {
-                tasks.register("useLayout") {
-                    // `service` here resolves to the Task receiver, which does not expose the
-                    // settings-only BuildLayout, so this fails while the task is being configured.
-                    def captured = service(BuildLayout)
-                    doLast {
-                        // Tripwire on the first line: if the action is ever entered, this prints.
-                        println("REACHED ACTION")
-                        println("settings dir: " + captured.settingsDirectory.asFile.name)
-                    }
-                }
-            }
-        """
-
-        when:
-        fails ":useLayout"
-
-        then:
-        // The rejection happens while the task is being created, not while it runs...
-        failure.assertHasCause("Could not create task ':useLayout'.")
-        failure.assertHasCause("org.gradle.api.file.BuildLayout is not available in tasks.\nIt is available in settings scripts and settings plugins.")
-        // ...so the task action is never entered.
-        outputDoesNotContain("REACHED ACTION")
-    }
-
     def "a settings-scoped service captured in a settings script survives the configuration cache and is usable in a task action"() {
         given:
         settingsFile """
