@@ -542,6 +542,8 @@ To integrate a new type of value source:
 The returned `Provider` can be passed to task properties or queried during the configuration phase.
 If the value is queried at configuration time, the source is automatically considered a build configuration input.
 
+TIP: A `ValueSource`-backed provider can also be passed as the reason argument to <<controlling_task_execution.adoc#sec:lazy_onlyif_reason, `Task.onlyIf`>>, deferring an expensive skip-reason computation until the task is actually skipped.
+
 NOTE: Do not implement `getParameters()` in your class—Gradle provides the implementation automatically.
 
 TIP: Your `ValueSource` implementation does not need to be thread-safe, Gradle synchronizes calls to `obtain()`.
@@ -564,6 +566,14 @@ Because `obtain()` is called on every build (see <<#sec:configuration_cache_beha
 
 You can also use standard Java/Kotlin/Groovy process APIs such as `java.lang.ProcessBuilder` inside `obtain()`.
 
+
+=== Composing a `ValueSource` with `map`
+
+A provider returned by `providers.of(...)` can be transformed with link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[`.map { ... }`] like any other provider.
+The transformer preserves the source `ValueSource`'s laziness: neither the source's `obtain()` nor the mapping transformer runs unless the resulting provider is actually queried.
+
+Under the Configuration Cache, the mapped chain is stored as a recipe.
+The source `ValueSource` is invoked only if the mapped provider is queried on a later build — for example when it is used to compute a task input, or passed as the reason to <<controlling_task_execution.adoc#sec:lazy_onlyif_reason, `Task.onlyIf`>> and the task is skipped.
 
 [[sec:configuration_cache_behavior]]
 === Configuration Cache Behavior

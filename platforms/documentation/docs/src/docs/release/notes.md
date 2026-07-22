@@ -82,10 +82,12 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engine
 #### Lazy `onlyIf` reasons
 [`Task.onlyIf`](dsl/org.gradle.api.Task.html#onlyIf) and [`Task.setOnlyIf`](dsl/org.gradle.api.Task.html#setOnlyIf) now accept a `Provider<String>` that reports the reason for the task being skipped.
 
-This provider is only computed when the task is actually skipped.  
-This will avoid expensive I/O such as running an external process or reading environment state, unless the reason is needed.
+This provider is only computed when the task is actually skipped.
+This avoids expensive I/O such as running an external process or reading environment state, unless the reason is needed.
 
-Using a [`ValueSource`](userguide/configuration_cache_requirements.html#config_cache:requirements:value_source) provider will keep the computation lazy even when the task is serialized in the [Configuration Cache](userguide/configuration_cache.html).
+Using a [`ValueSource`](userguide/configuration_cache_requirements.html#config_cache:requirements:value_source) provider keeps the computation lazy even when the task is serialized in the [Configuration Cache](userguide/configuration_cache.html).
+
+See the [Using a predicate](userguide/controlling_task_execution.html#sec:using_a_predicate) section in the Gradle User Manual for more details.
 
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
