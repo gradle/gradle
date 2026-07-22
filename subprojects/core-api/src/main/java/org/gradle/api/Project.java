@@ -1125,11 +1125,13 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>{@link org.gradle.api.file.ProjectLayout}</li>
      * </ul>
      *
-     * <p>The lookup can be used both at configuration time and at execution time. The returned instance
-     * may be captured in a task action and is safe to use with the configuration cache.</p>
+     * <p>Perform this lookup at configuration time. The returned instance may be captured and used later
+     * from a task action, and is safe to store in the configuration cache. To look a service up from
+     * within a task action, use {@link Task#service(Class)} instead.</p>
      *
      * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
-     * use {@link org.gradle.api.services.ServiceReference} to access those.</p>
+     * use {@link org.gradle.api.services.ServiceReference} or {@link org.gradle.api.invocation.Gradle#getSharedServices()}
+     * to access those.</p>
      *
      * @param serviceType the type of the service to look up
      * @param <T> the service type

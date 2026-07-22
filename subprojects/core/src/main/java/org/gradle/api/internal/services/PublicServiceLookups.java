@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.services;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -27,10 +28,12 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildService;
+import org.gradle.internal.RenderingUtils;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,19 +54,19 @@ public final class PublicServiceLookups {
      * and which scope's registry backs the lookup.
      */
     public enum EntryPoint {
-        PROJECT("project scripts and plugins"),
+        PROJECT("project scripts", "project plugins"),
         TASK("tasks"),
-        SETTINGS("settings scripts and plugins"),
-        GRADLE("init scripts and Gradle plugins");
+        SETTINGS("settings scripts", "settings plugins"),
+        GRADLE("init scripts", "init plugins");
 
-        private final String displayName;
+        private final ImmutableList<String> displayNames;
 
-        EntryPoint(String displayName) {
-            this.displayName = displayName;
+        EntryPoint(String... displayNames) {
+            this.displayNames = ImmutableList.copyOf(displayNames);
         }
 
-        public String getDisplayName() {
-            return displayName;
+        public Collection<String> getDisplayNames() {
+            return displayNames;
         }
     }
 
@@ -128,14 +131,16 @@ public final class PublicServiceLookups {
         }
         return String.format(
             "%s is not a service that is available for lookup with service(). The following services are available in %s: %s.",
-            serviceType.getName(), entryPoint.getDisplayName(), servicesAvailableIn(entryPoint));
+            serviceType.getName(),
+            entryPoint.getDisplayNames().stream().collect(RenderingUtils.oxfordJoin("and")),
+            servicesAvailableIn(entryPoint));
     }
 
     private static String wrongScopeMessage(Class<?> serviceType, EntryPoint entryPoint, Set<EntryPoint> availableIn) {
         return String.format(
             "%s is not available in %s. It is available in %s.",
-            serviceType.getName(), entryPoint.getDisplayName(),
-            availableIn.stream().map(EntryPoint::getDisplayName).collect(Collectors.joining(" and ")));
+            serviceType.getName(), entryPoint.getDisplayNames().stream().collect(RenderingUtils.oxfordJoin("and")),
+            availableIn.stream().flatMap(e -> e.getDisplayNames().stream()).collect(RenderingUtils.oxfordJoin("and")));
     }
 
     private static String servicesAvailableIn(EntryPoint entryPoint) {

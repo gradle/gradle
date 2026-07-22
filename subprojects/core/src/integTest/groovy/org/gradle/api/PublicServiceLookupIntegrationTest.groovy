@@ -41,7 +41,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         outputContains("resolved services: 5")
     }
 
-    def "can delete files with FileSystemOperations looked up inside a task action"() {
+    def "can look up and use a service inside a task action"() {
         file("thing.txt").text = "content"
         buildFile """
             tasks.register("cleanThing") {
@@ -58,6 +58,29 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         !file("thing.txt").exists()
+    }
+
+    def "a service resolves from the Gradle, Project, and Task scopes"() {
+        initScriptFile """
+            println("gradle-scope: " + (service(ObjectFactory) != null))
+        """
+        buildFile """
+            println("project-scope: " + (service(ObjectFactory) != null))
+            tasks.register("check") {
+                doLast {
+                    println("task-scope: " + (service(ObjectFactory) != null))
+                }
+            }
+        """
+
+        when:
+        args("-I", "init.gradle")
+        succeeds("check")
+
+        then:
+        outputContains("gradle-scope: true")
+        outputContains("project-scope: true")
+        outputContains("task-scope: true")
     }
 
     def "can capture #serviceType at configuration time and use it in a task action"() {
@@ -201,7 +224,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("org.gradle.api.file.ProjectLayout is not available in settings scripts and plugins. It is available in project scripts and plugins and tasks.")
+        failure.assertHasCause("org.gradle.api.file.ProjectLayout is not available in settings scripts and settings plugins. It is available in project scripts, project plugins, and tasks.")
     }
 
     def "looking up an execution-only service from a build script fails with a helpful message"() {
@@ -213,7 +236,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("org.gradle.process.ExecOperations is not available in project scripts and plugins. It is available in tasks.")
+        failure.assertHasCause("org.gradle.process.ExecOperations is not available in project scripts and project plugins. It is available in tasks.")
     }
 
     def "looking up an internal service fails and enumerates the available services"() {
@@ -226,7 +249,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("org.gradle.api.internal.project.ProjectInternal is not a service that is available for lookup with service(). " +
-            "The following services are available in project scripts and plugins: " +
+            "The following services are available in project scripts and project plugins: " +
             "org.gradle.api.model.ObjectFactory, org.gradle.api.provider.ProviderFactory, " +
             "org.gradle.api.file.FileSystemOperations, org.gradle.api.file.ArchiveOperations, " +
             "org.gradle.api.file.ProjectLayout.")
@@ -258,7 +281,9 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("CounterService is a shared build service, which cannot be obtained with service().")
+        failure.assertHasCause("CounterService is a shared build service, which cannot be obtained with service(). " +
+            "Register it with gradle.sharedServices.registerIfAbsent() and access it " +
+            "via a property annotated with @ServiceReference, or via the provider returned from registration.")
     }
 
     def "looking up a null service type fails with a helpful message"() {
