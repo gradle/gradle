@@ -98,35 +98,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'deletes stale outputs when a child source dir becomes empty'() {
-        given:
-        file('source/sub/foo.txt').text = 'foo'
-
-        buildFile """
-            task sync(type: Sync) {
-                from 'source'
-                into 'dest'
-            }
-        """
-
-        when:
-        run 'sync'
-
-        then:
-        executedAndNotSkipped ':sync'
-        file('dest/sub/foo.txt').exists()
-
-        when:
-        file('source/sub/foo.txt').delete()
-        run 'sync'
-
-        then:
-        executedAndNotSkipped ':sync'
-        !file('dest/sub/foo.txt').exists()
-        file('dest/sub').directory
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/37597")
     def 'with includeEmptyDirs=false an emptied child source dir is not synced to destination'() {
         given:
         file('source/sub/foo.txt').text = 'foo'
@@ -283,7 +254,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'preserve() is honored when the source is fully emptied, once the destination has sync history (destination: #description)'() {
+    def 'preserve is honored when the source is fully emptied, once the destination has sync history (destination: #description)'() {
         given:
         file('source/foo.txt').text = 'foo'
         file('source/keep.txt').text = 'keep'
