@@ -73,7 +73,6 @@ public final class PublicServiceLookups {
 
     private static final ImmutableSet<EntryPoint> ALL_ENTRY_POINTS = Sets.immutableEnumSet(EnumSet.allOf(EntryPoint.class));
 
-    // Iteration order is meaningful: error messages enumerate the entries in this order.
     private static final ImmutableMap<Class<?>, ImmutableSet<EntryPoint>> AVAILABLE_SERVICES = ImmutableMap.<Class<?>, ImmutableSet<EntryPoint>>builder()
         .put(ObjectFactory.class, ALL_ENTRY_POINTS)
         .put(ProviderFactory.class, ALL_ENTRY_POINTS)
@@ -155,6 +154,7 @@ public final class PublicServiceLookups {
         return AVAILABLE_SERVICES.entrySet().stream()
             .filter(entry -> entry.getValue().contains(entryPoint))
             .map(entry -> entry.getKey().getName())
+            .sorted()
             .collect(Collectors.joining(", "));
     }
 }

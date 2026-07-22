@@ -321,9 +321,9 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("org.gradle.api.internal.project.ProjectInternal is not a service that is available for lookup with service(). " +
             "The following services are available in project scripts and project plugins: " +
-            "org.gradle.api.model.ObjectFactory, org.gradle.api.provider.ProviderFactory, " +
-            "org.gradle.api.file.FileSystemOperations, org.gradle.api.file.ArchiveOperations, " +
-            "org.gradle.api.file.ProjectLayout.")
+            "org.gradle.api.file.ArchiveOperations, org.gradle.api.file.FileSystemOperations, " +
+            "org.gradle.api.file.ProjectLayout, org.gradle.api.model.ObjectFactory, " +
+            "org.gradle.api.provider.ProviderFactory.")
     }
 
     def "a user type that implements a scope marker but is not a Gradle service is still rejected at runtime"() {
