@@ -322,7 +322,7 @@ include::sample[dir="snippets/reference/task-development/taskOnlyIfLazy/kotlin",
 include::sample[dir="snippets/reference/task-development/taskOnlyIfLazy/groovy",files="build.gradle[]"]
 ====
 
-Under the <<configuration_cache.adoc#config_cache,Configuration Cache>>, only a provider backed by a <<configuration_cache_requirements.adoc#config_cache:requirements:value_source, `ValueSource`>> stays fully lazy — including any `ValueSource.map { ... }` chain built on top of one.
+Under the <<configuration_cache.adoc#config_cache,Configuration Cache>>, only a provider backed by a <<configuration_cache_requirements.adoc#config_cache:requirements:value_source, `ValueSource`>> stays fully lazy, including any `ValueSource.map { ... }` chain built on top of one.
 A provider created via `providers.provider { ... }` is resolved eagerly at cache store time, so use a `ValueSource` when the reason involves I/O or external process invocation.
 
 [[sec:using_stopexecutionexception]]

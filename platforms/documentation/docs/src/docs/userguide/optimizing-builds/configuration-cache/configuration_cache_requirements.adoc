@@ -566,7 +566,6 @@ Because `obtain()` is called on every build (see <<#sec:configuration_cache_beha
 
 You can also use standard Java/Kotlin/Groovy process APIs such as `java.lang.ProcessBuilder` inside `obtain()`.
 
-
 === Composing a `ValueSource` with `map`
 
 A provider returned by `providers.of(...)` can be transformed with link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[`.map { ... }`] like any other provider.
