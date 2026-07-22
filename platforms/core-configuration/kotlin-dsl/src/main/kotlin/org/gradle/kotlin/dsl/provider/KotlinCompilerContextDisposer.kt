@@ -23,6 +23,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.support.cleanupKotlinCompilers
+import org.jetbrains.kotlin.CoreEnvironmentDeprecation
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 
@@ -58,7 +59,7 @@ class KotlinCompilerContextDisposer(
         }
     }
 
-    @OptIn(K1Deprecation::class)
+    @OptIn(K1Deprecation::class, CoreEnvironmentDeprecation::class)
     private fun cleanup() {
         KotlinCoreEnvironment.disposeApplicationEnvironment()
         cleanupKotlinCompilers()

@@ -70,6 +70,7 @@ import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompil
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
+import org.jetbrains.kotlin.CoreEnvironmentDeprecation
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
@@ -494,7 +495,7 @@ internal fun JvmTarget.toBuildToolsApiJvmTarget(): BtaJvmTarget =
     BtaJvmTarget.values().first { it.stringValue == description }
 
 
-@OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class, K1Deprecation::class)
+@OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class, K1Deprecation::class, CoreEnvironmentDeprecation::class)
 private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: ClassLoader) {
 
     companion object {
