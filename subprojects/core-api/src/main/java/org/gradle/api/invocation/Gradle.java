@@ -422,13 +422,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
     /**
      * Looks up a service provided by Gradle for use in init scripts and {@link Gradle} plugins.
      *
-     * <p>The following services are available:</p>
-     * <ul>
-     * <li>{@link org.gradle.api.model.ObjectFactory}</li>
-     * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
-     * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
-     * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
-     * </ul>
+     * <p>The services available for lookup are the Gradle types that implement {@link GradleService}.</p>
      *
      * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
      * use {@link #getSharedServices()} to access those.</p>

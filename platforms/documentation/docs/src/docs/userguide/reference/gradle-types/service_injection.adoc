@@ -167,7 +167,7 @@ The set of services you can look up depends on where the lookup happens:
 
 [%header,cols="2,1,1,1,1"]
 |===
-| Service | Build scripts & project plugins | Task actions | Settings scripts & plugins | Init scripts & `Gradle` plugins
+| Service | Project scripts & project plugins | Tasks | Settings scripts & settings plugins | Init scripts & init plugins
 
 | <<objectfactory,`ObjectFactory`>>               | ✓ | ✓ | ✓ | ✓
 | <<providerfactory,`ProviderFactory`>>           | ✓ | ✓ | ✓ | ✓
@@ -179,7 +179,7 @@ The set of services you can look up depends on where the lookup happens:
 |===
 
 In the Kotlin and Java DSLs each `service(...)` is bounded to the scopes above, so requesting a service that is not available in the current scope — or a type that is not a Gradle service at all — is a compile error.
-In the Groovy DSL, where the bound is not enforced (or when the type is supplied reflectively as a `Class`), the same request instead fails at runtime with an `InvalidUserDataException` whose message lists the services available in that scope; for a <<build_services.adoc#build_services,shared build service>> it points you to `@ServiceReference` and `gradle.sharedServices` instead.
+In the Groovy DSL, where the bound is not enforced (or when the type is supplied reflectively as a `Class`), the same request instead fails at runtime with an `InvalidUserDataException`: for a service requested outside its scope the message names the scopes where it _is_ available, and for a type that is not a Gradle service at all it lists the services available in the current scope; for a <<build_services.adoc#build_services,shared build service>> it points you to `@ServiceReference` and `gradle.sharedServices` instead.
 This check covers only _where_ a service can be looked up; it does not distinguish configuration-time from execution-time use, nor does it police cross-project access (see below).
 
 Relative paths passed to a looked-up `FileSystemOperations` or `ArchiveOperations` are resolved the same way as for the enclosing scope: against the project directory for a project script or task action, and against the build's root directory for a settings or init script.

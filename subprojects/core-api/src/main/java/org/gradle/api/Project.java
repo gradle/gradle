@@ -1116,14 +1116,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Looks up a service provided by Gradle for use in this project.
      *
-     * <p>The following services are available in project scripts and plugins:</p>
-     * <ul>
-     * <li>{@link org.gradle.api.model.ObjectFactory}</li>
-     * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
-     * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
-     * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
-     * <li>{@link org.gradle.api.file.ProjectLayout}</li>
-     * </ul>
+     * <p>The services available for lookup are the Gradle types that implement {@link ProjectService}.</p>
      *
      * <p>Perform this lookup at configuration time. The returned instance may be captured and used later
      * from a task action, and is safe to store in the configuration cache. To look a service up from

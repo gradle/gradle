@@ -310,14 +310,7 @@ public interface Settings extends PluginAware, ExtensionAware {
     /**
      * Looks up a service provided by Gradle for use in this build.
      *
-     * <p>The following services are available in settings scripts and plugins:</p>
-     * <ul>
-     * <li>{@link org.gradle.api.model.ObjectFactory}</li>
-     * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
-     * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
-     * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
-     * <li>{@link BuildLayout}</li>
-     * </ul>
+     * <p>The services available for lookup are the Gradle types that implement {@link SettingsService}.</p>
      *
      * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
      * use {@link Gradle#getSharedServices()} to access those.</p>

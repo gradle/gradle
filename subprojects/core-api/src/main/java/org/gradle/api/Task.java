@@ -816,15 +816,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     /**
      * Looks up a service provided by Gradle for use in this task.
      *
-     * <p>The following services are available:</p>
-     * <ul>
-     * <li>{@link org.gradle.api.model.ObjectFactory}</li>
-     * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
-     * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
-     * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
-     * <li>{@link org.gradle.process.ExecOperations}</li>
-     * <li>{@link org.gradle.api.file.ProjectLayout}</li>
-     * </ul>
+     * <p>The services available for lookup are the Gradle types that implement {@link TaskService}.</p>
      *
      * <p>The lookup can be used both at configuration time and from task actions at execution time,
      * and is safe to use with the configuration cache:</p>
