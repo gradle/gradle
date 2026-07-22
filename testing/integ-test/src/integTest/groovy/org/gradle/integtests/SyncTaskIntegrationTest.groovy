@@ -29,14 +29,16 @@ import spock.lang.Issue
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'deletes stale outputs when source becomes empty'() {
+    def 'deletes stale outputs when source becomes empty (destination: #description)'() {
         given:
         file('source/foo.txt').text = 'foo'
 
         buildFile """
+            // `base` is responsible for registering build-owned locations
+            apply plugin: 'base'
             task sync(type: Sync) {
                 from 'source'
-                into 'dest'
+                into $into
             }
         """
 
@@ -45,7 +47,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
 
         then:
         executedAndNotSkipped ':sync'
-        file('dest/foo.txt').exists()
+        file("$destDir/foo.txt").exists()
 
         when:
         file('source/foo.txt').delete()
@@ -53,16 +55,21 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
 
         then:
         executedAndNotSkipped ':sync'
-        !file('dest/foo.txt').exists()
-        file('dest').directory
+        !file("$destDir/foo.txt").exists()
+        file(destDir).directory
 
         when:
         run 'sync'
 
         then:
         skipped ':sync'
-        !file('dest/foo.txt').exists()
-        file('dest').directory
+        !file("$destDir/foo.txt").exists()
+        file(destDir).directory
+
+        where:
+        description         | into                                    | destDir
+        'build-owned'       | 'layout.buildDirectory.dir("out")'      | 'build/out'
+        'non-build-owned'   | 'layout.projectDirectory.dir("out")'    | 'out'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
@@ -300,55 +307,17 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'preserved files survive while non-preserved stale files are deleted once the destination has sync history'() {
-        given:
-        file('source/foo.txt').text = 'foo'
-        file('dest').create {
-            preservedDir { file 'keep.txt' }
-        }
-
-        buildFile """
-            task sync(type: Sync) {
-                from 'source'
-                into 'dest'
-                preserve {
-                    include 'preservedDir/**'
-                }
-            }
-        """
-
-        when:
-        run 'sync'
-
-        then:
-        executedAndNotSkipped ':sync'
-        file('dest/foo.txt').exists()
-        file('dest/preservedDir/keep.txt').exists()
-
-        when:
-        file('source/foo.txt').delete()
-        run 'sync'
-
-        then:
-        // 'dest' has sync history from the previous run, so the safety guard does not apply: the real copy
-        // action runs, honoring the preserve spec. foo.txt is stale (not in the now-empty source, not preserved)
-        // and is deleted, while preservedDir/keep.txt matches the preserve spec and survives.
-        executedAndNotSkipped ':sync'
-        !file('dest/foo.txt').exists()
-        file('dest/preservedDir/keep.txt').exists()
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'preserve() is honored when the source is fully emptied, even for a build-managed destination'() {
+    def 'preserve() is honored when the source is fully emptied, once the destination has sync history (destination: #description)'() {
         given:
         file('source/foo.txt').text = 'foo'
         file('source/keep.txt').text = 'keep'
 
         buildFile """
+            // `base` is responsible for registering build-owned locations
             apply plugin: 'base'
             task sync(type: Sync) {
                 from 'source'
-                into layout.buildDirectory.dir('dest')
+                into $into
                 preserve {
                     include 'keep.txt'
                 }
@@ -359,8 +328,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         run 'sync'
 
         then:
-        file('build/dest/foo.txt').exists()
-        file('build/dest/keep.txt').exists()
+        executedAndNotSkipped ':sync'
+        file("$destDir/foo.txt").exists()
+        file("$destDir/keep.txt").exists()
 
         when:
         file('source/foo.txt').delete()
@@ -368,11 +338,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         run 'sync'
 
         then:
-        // preserve() is honored the same way for a build-managed destination as for any other: keep.txt
-        // survives, while foo.txt is stale (not in the now-empty source, not preserved) and is deleted.
         executedAndNotSkipped ':sync'
-        !file('build/dest/foo.txt').exists()
-        file('build/dest/keep.txt').exists()
+        !file("$destDir/foo.txt").exists()
+        file("$destDir/keep.txt").exists()
+
+        where:
+        description         | into                                    | destDir
+        'build-owned'       | 'layout.buildDirectory.dir("out")'      | 'build/out'
+        'non-build-owned'   | 'layout.projectDirectory.dir("out")'    | 'out'
     }
 
     def 'only excluding non-preserved files works as expected'() {
