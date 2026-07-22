@@ -25,6 +25,8 @@ description = "Shared imperative build logic for the built-in XDCL ecosystem car
 dependencies {
     api(projects.coreApi)                // Project, Configuration(Container), Usage, FileCollection, Provider
     api(projects.xdclCommonEcosystem)    // the common facades in the helper signatures (HasDependencies/HasRepositories/Repository/Dependencies)
+
+    implementation(projects.baseServices)
 }
 
 gradleModule {
