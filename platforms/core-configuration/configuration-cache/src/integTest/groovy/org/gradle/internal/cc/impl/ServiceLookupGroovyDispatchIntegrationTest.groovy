@@ -87,7 +87,7 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
         outputDoesNotContain("REACHED ACTION")
     }
 
-    def "a settings-scoped service captured in a settings script and used in a task action cannot be re-resolved under the configuration cache"() {
+    def "a settings-scoped service captured in a settings script survives the configuration cache and is usable in a task action"() {
         given:
         settingsFile """
             // Captured at settings-script scope, where `service` resolves to the Settings receiver
@@ -96,7 +96,7 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
             gradle.rootProject {
                 tasks.register("useLayout") {
                     doLast {
-                        // Tripwire on the first line: if the action is ever entered, this prints.
+                        // Tripwire on the first line: prints only if the action is actually entered.
                         println("REACHED ACTION")
                         println("settings dir: " + captured.settingsDirectory.asFile.name)
                     }
@@ -111,13 +111,20 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
         outputContains("REACHED ACTION")
         outputContains("settings dir: " + testDirectory.name)
 
-        when: "run with the configuration cache, the captured service is re-resolved from the task's own project registry, which cannot see the settings scope"
-        configurationCacheFails ":useLayout"
+        when: "the configuration cache entry is stored, BuildLayout is captured by value"
+        configurationCacheRun ":useLayout"
 
         then:
-        // The failure happens while loading the cache entry, before the task action runs...
-        failure.assertHasCause("No service of type BuildLayout available in project services.")
-        // ...so the action is never entered on the reused build.
-        outputDoesNotContain("REACHED ACTION")
+        configurationCache.assertStateStored()
+        outputContains("REACHED ACTION")
+        outputContains("settings dir: " + testDirectory.name)
+
+        when: "the configuration cache entry is reused, the captured BuildLayout is restored by value"
+        configurationCacheRun ":useLayout"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("REACHED ACTION")
+        outputContains("settings dir: " + testDirectory.name)
     }
 }

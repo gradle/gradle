@@ -190,9 +190,7 @@ Relative paths passed to a looked-up `FileSystemOperations` or `ArchiveOperation
 Calling it on another project — for example `project(":other").service(ObjectFactory)` — reaches across the project boundary and is reported as a problem under <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, exactly like `project(":other").getObjects()`.
 Look services up from the owning project instead.
 
-NOTE: A service that is only available in the settings scope (such as `BuildLayout`) can be captured in a settings script and referenced from a task action, but the captured reference cannot be restored when that task runs from the Configuration Cache.
-The reference is re-resolved against the task's own project scope, which does not expose settings-only services.
-Look up project-scoped services (or `ProjectLayout`) from the task instead.
+NOTE: A service that is only available in the settings scope (such as `BuildLayout`) can be captured in a settings script and referenced from a task action, and the captured instance is preserved when that task runs from the Configuration Cache.
 
 === When to use a lookup
 

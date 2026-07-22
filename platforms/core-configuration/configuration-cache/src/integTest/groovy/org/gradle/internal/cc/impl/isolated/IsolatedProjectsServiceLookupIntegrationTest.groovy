@@ -109,4 +109,26 @@ class IsolatedProjectsServiceLookupIntegrationTest extends AbstractIsolatedProje
         }
         outputContains("settings dir name: " + testDirectory.name)
     }
+
+    def "can capture a settings-scoped service and use it from an isolated project action"() {
+        createDirs("a")
+        settingsFile """
+            include("a")
+            // Captured at settings scope and used from an isolated 'beforeProject' action,
+            // which is serialized per project. The captured BuildLayout must survive that.
+            def captured = service(BuildLayout)
+            gradle.lifecycle.beforeProject { project ->
+                println(project.path + " settings dir: " + captured.settingsDirectory.asFile.name)
+            }
+        """
+
+        when:
+        isolatedProjectsRun(":a:help")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a")
+        }
+        outputContains(":a settings dir: " + testDirectory.name)
+    }
 }
