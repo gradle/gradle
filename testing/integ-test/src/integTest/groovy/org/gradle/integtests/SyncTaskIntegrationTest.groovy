@@ -89,9 +89,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         run 'sync'
 
         then:
-        // The task attempts to run (Sync's source is never skip-when-empty), but since there is no record of
-        // this task ever having synced into 'dest' before, the safety guard makes it a no-op: it reports
-        // setDidWork(false), which the engine surfaces as UP-TO-DATE, and 'dest' is left untouched.
         skipped ':sync'
         file('dest/unrelated.txt').text == 'do not delete me'
         file('dest').assertHasDescendants('unrelated.txt')
@@ -128,8 +125,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    // A source made up only of empty directories still counts as real content: Sync creates the corresponding
-    // empty directories in the destination on its first run, consistent with the default includeEmptyDirs = true.
     def 'a source of only empty directories is synced on first run when includeEmptyDirs is true'() {
         given:
         file('source').create {
@@ -140,6 +135,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
+                // includeEmptyDirs = true (default)
             }
         """
 
@@ -152,9 +148,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    // An untracked task never accumulates sync history, so stale outputs from a real prior run are not
-    // auto-cleaned when the source later becomes empty -- Gradle has no way to safely tell such output apart
-    // from unrelated content that happens to already be in the destination.
     def 'does not delete stale outputs when source becomes empty for an untracked task'() {
         given:
         file('source/foo.txt').text = 'foo'
