@@ -27,8 +27,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.FileSystemTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
 
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DaemonCompatibilitySpecSpec extends Specification {
@@ -186,6 +188,76 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         where:
         clientStatus << [true, false]
+    }
+
+    def "native-image capable criteria is satisfied by the native-image executable"() {
+        javaHome.file("bin", OperatingSystem.current().getExecutableName("native-image")).touch()
+        clientWantsNativeCompatibleImage()
+
+        expect:
+        compatible
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36118")
+    @Requires(OsTestPreconditions.Windows)
+    def "native-image capable criteria is satisfied by a #script script on Windows"() {
+        javaHome.file("bin/$script").touch()
+        clientWantsNativeCompatibleImage()
+
+        expect:
+        compatible
+
+        where:
+        // We test non-lowercase variants, but Windows is typically case-insensitive so these generally pass
+        // even if we don't explicitly support them.
+        // Testing case-sensitive behavior is not feasible as we would need elevated privileges to set that,
+        // or a local FS that is case-sensitive, which is not available in CI.
+        script << ["native-image.cmd", "native-image.CMD", "NATIVE-IMAGE.cmd"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36118")
+    @Requires(OsTestPreconditions.Windows)
+    def "native-image capable criteria is satisfied when both the native-image executable and the .cmd script are present on Windows"() {
+        javaHome.file("bin", OperatingSystem.current().getExecutableName("native-image")).touch()
+        javaHome.file("bin/native-image.cmd").touch()
+        clientWantsNativeCompatibleImage()
+
+        expect:
+        compatible
+    }
+
+    @Requires(OsTestPreconditions.NotWindows)
+    def "native-image capable criteria is not satisfied by a native-image.cmd script on non-Windows OS"() {
+        javaHome.file("bin/native-image.cmd").touch()
+        clientWantsNativeCompatibleImage()
+
+        expect:
+        !compatible
+        unsatisfiedReason.contains "JVM is incompatible"
+    }
+
+    def "native-image capable criteria is not satisfied when no native-image tool is present"() {
+        clientWantsNativeCompatibleImage()
+
+        expect:
+        !compatible
+        unsatisfiedReason.contains "JVM is incompatible"
+    }
+
+    /**
+     * Sets up a request for a native-image capable daemon and a candidate whose JVM
+     * matches on everything except the presence of the native-image tool.
+     */
+    private void clientWantsNativeCompatibleImage() {
+        clientWants(new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(17), JvmVendorSpec.BELLSOFT, JvmImplementation.VENDOR_SPECIFIC, true))
+
+        candidate.javaHome >> javaHome
+        candidate.javaVersion >> JavaLanguageVersion.of(17)
+        candidate.javaVendor >> "BellSoft"
+        candidate.daemonOpts >> []
+        candidate.priority >> DaemonPriority.NORMAL
+        candidate.shouldApplyInstrumentationAgent() >> false
+        candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
     }
 
     def "context with same agent status"() {
