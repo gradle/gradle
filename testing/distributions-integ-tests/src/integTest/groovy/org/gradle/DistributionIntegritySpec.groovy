@@ -82,9 +82,15 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         jarsWithDuplicateFiles == [:]
 
         and:
-        def duplicateClasses = classesIndex.findAll { it.value.size() > 1 }
+        def duplicateClasses = classesIndex.findAll { it.value.size() > 1 && !(it.key in KNOWN_KOTLIN_DUPLICATES) }
         duplicateClasses.isEmpty()
     }
+
+    // https://youtrack.jetbrains.com/issue/KT-87922/K1FakeDescriptorsForReferencesKt-classes-duplicated-between-kotlin-scripting-compiler-embeddable-and-kotlin-build-tools-impl
+    private static final List<String> KNOWN_KOTLIN_DUPLICATES = [
+        'org/jetbrains/kotlin/codegen/K1FakeDescriptorsForReferencesKt.class',
+        'org/jetbrains/kotlin/codegen/K1FakeDescriptorsForReferencesKt$substituteTopLevelType$wrappedSubstitution$1.class',
+    ]
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {
         if (file.name.endsWith('.jar')) {
