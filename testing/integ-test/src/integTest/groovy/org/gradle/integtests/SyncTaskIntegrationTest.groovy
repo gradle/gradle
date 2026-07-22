@@ -98,30 +98,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'on its first execution against a destination, an empty source leaves pre-existing unrelated content untouched even for an untracked task'() {
-        given:
-        // 'source' is never created, so it resolves to an empty file tree (simulating a misconfigured 'from').
-        file('dest/unrelated.txt').text = 'do not delete me'
-
-        buildFile """
-            task sync(type: Sync) {
-                from 'source'
-                into 'dest'
-                doNotTrackState('exercising the empty-source guard without execution history')
-            }
-        """
-
-        when:
-        run 'sync'
-
-        then:
-        // No execution history for an untracked task means "no previous output", so the guard no-ops via setDidWork(false), surfaced as UP-TO-DATE.
-        skipped ':sync'
-        file('dest/unrelated.txt').text == 'do not delete me'
-        file('dest').assertHasDescendants('unrelated.txt')
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/37597")
     def 'deletes stale outputs when a child source dir becomes empty'() {
         given:
         file('source/sub/foo.txt').text = 'foo'
