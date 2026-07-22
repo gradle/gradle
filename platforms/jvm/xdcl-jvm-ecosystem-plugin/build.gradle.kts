@@ -23,17 +23,10 @@ description = "The built-in XDCL JVM ecosystem plugin (java-ecosystem): a carrie
 
 dependencies {
     api(projects.coreApi)
-    api(projects.baseServices) // Named, Describable, capitalize used by the reaction/model
+    api(projects.xdclJvmEcosystem)
 
-    // The single source of truth for the schema + facades. This is a PURE CARRIER module (only
-    // java-ecosystem.xdcl, no local .xdsl): xdclCodegen resolves the `.xdcl`'s references against the
-    // lib's schema via importedSchemaDirectories (runtimeClasspath) and generates just the carrier,
-    // and the reaction compiles against the lib's facades (JavaLibrary, JavaSource). At runtime the
-    // provider walks this module's dependency closure and finds the lib jar's schema. No duplication.
-    implementation(projects.xdclJvmEcosystem)
-
-    // Shared imperative helpers (DependencyScopes/Repositories) for the common HasDependencies/
-    // HasRepositories capability traits — used by every ecosystem carrier that wires them.
+    implementation(projects.baseServices)
+    implementation(projects.xdclCommonEcosystem)
     implementation(projects.xdclEcosystemSupport)
 
     // Real task types the JavaLibraryReaction registers:

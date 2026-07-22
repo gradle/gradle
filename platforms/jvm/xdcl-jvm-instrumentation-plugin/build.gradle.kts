@@ -23,16 +23,13 @@ description = "The built-in XDCL instrumentation ecosystem plugin (instrumentati
 
 dependencies {
     api(projects.coreApi)
-    api(projects.baseServices)
+    api(libs.asm)
+    api(projects.xdclJvmInstrumentation)
 
-    // The single source of truth for this ecosystem's schema + facades. Pure CARRIER (only
-    // instrumentation-ecosystem.xdcl, no local .xdsl): xdclCodegen resolves the .xdcl against the lib's
-    // schema via importedSchemaDirectories and generates just the carrier; the reaction compiles against
-    // the lib's facades. Transitively brings the JVM ecosystem lib, whose JavaLibraryModel / JavaClasses /
-    // HasJavaSources the InstrumentReaction reads — no dependency on the JVM plugin module.
-    implementation(projects.xdclJvmInstrumentation)
+    implementation(projects.baseServices)
+    implementation(projects.loggingApi)
+    implementation(projects.xdclJvmEcosystem)
 
-    implementation(libs.asm) // ClassReader/ClassWriter/MethodVisitor — the bytecode rewrite in InstrumentClasses
 }
 
 gradleModule {

@@ -23,14 +23,13 @@ description = "The built-in XDCL checkstyle ecosystem plugin (checkstyle-ecosyst
 
 dependencies {
     api(projects.coreApi)
-    api(projects.baseServices)
+    api(projects.xdclJvmCheckstyle)
 
-    // The single source of truth for this ecosystem's schema + facades. Pure CARRIER (only
-    // checkstyle-ecosystem.xdcl, no local .xdsl): xdclCodegen resolves the .xdcl against the lib's
-    // schema via importedSchemaDirectories and generates just the carrier; the reactions compile
-    // against the lib's facades. Transitively brings the JVM ecosystem lib, whose JavaLibraryModel /
-    // JavaClasses / HasJavaSources the CheckstyleReaction reads — no dependency on the JVM plugin module.
-    implementation(projects.xdclJvmCheckstyle)
+    implementation(projects.baseServices)
+    implementation(projects.loggingApi)
+    implementation(projects.reporting)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.xdclJvmEcosystem)
 
     // Real task types the reactions register / attributes they resolve with:
     implementation(projects.codeQuality) // org.gradle.api.plugins.quality.Checkstyle task
