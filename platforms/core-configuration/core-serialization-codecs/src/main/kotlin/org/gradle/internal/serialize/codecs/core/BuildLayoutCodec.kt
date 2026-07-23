@@ -18,12 +18,9 @@ package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.file.BuildLayout
 import org.gradle.api.file.Directory
-import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.Decoding
-import org.gradle.internal.serialize.graph.codecs.Encoding
-import org.gradle.internal.serialize.graph.codecs.EncodingProducer
 import org.gradle.internal.serialize.graph.readNonNull
 
 
@@ -32,33 +29,27 @@ import org.gradle.internal.serialize.graph.readNonNull
  *
  * [BuildLayout] is a Settings-scoped service, but the data it exposes — the settings and root
  * directories — is immutable for the build. It can be captured in a settings script and used from a
- * task action, so it must survive the configuration cache. The general [org.gradle.internal.serialize.graph.codecs.ServicesCodec]
- * cannot help here: it re-resolves a service from the isolate owner's registry on load, and a task's
- * registry is Project-scoped, a sibling of the Settings scope, so the settings-scoped [BuildLayout]
- * is unreachable (and the Settings registry no longer exists at execution time). Instead, this codec
- * writes the two directories and reconstructs an immutable value on load.
+ * task action, so it must survive the configuration cache. The general
+ * [org.gradle.internal.serialize.graph.codecs.ServicesCodec] cannot help: it re-resolves a service
+ * from the isolate owner's registry on load, and a task's registry is Project-scoped, a sibling of
+ * the Settings scope, so the settings-scoped [BuildLayout] is unreachable (and the Settings registry
+ * no longer exists at execution time). Instead, this codec writes the two directories and
+ * reconstructs an immutable value on load.
  *
- * Must be bound ahead of [org.gradle.internal.serialize.graph.codecs.ServicesCodec] so that it wins
- * for this type (first matching binding is used).
+ * Must be bound ahead of [org.gradle.internal.serialize.graph.codecs.ServicesCodec], which also
+ * matches [BuildLayout] via its {@code @ServiceScope} annotation, so that this codec wins.
  */
-object BuildLayoutCodec : EncodingProducer, Decoding {
+object BuildLayoutCodec : Codec<BuildLayout> {
 
-    override fun encodingForType(type: Class<*>): Encoding? =
-        if (BuildLayout::class.java.isAssignableFrom(GeneratedSubclasses.unpack(type))) BuildLayoutEncoding else null
+    override suspend fun WriteContext.encode(value: BuildLayout) {
+        write(value.settingsDirectory)
+        write(value.rootDirectory)
+    }
 
     override suspend fun ReadContext.decode(): BuildLayout {
         val settingsDirectory = readNonNull<Directory>()
         val rootDirectory = readNonNull<Directory>()
         return SerializedBuildLayout(settingsDirectory, rootDirectory)
-    }
-}
-
-
-private object BuildLayoutEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
-        value as BuildLayout
-        write(value.settingsDirectory)
-        write(value.rootDirectory)
     }
 }
 
