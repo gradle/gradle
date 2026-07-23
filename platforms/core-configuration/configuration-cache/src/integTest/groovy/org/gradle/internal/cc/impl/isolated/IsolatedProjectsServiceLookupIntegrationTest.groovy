@@ -26,7 +26,7 @@ class IsolatedProjectsServiceLookupIntegrationTest extends AbstractIsolatedProje
             include("a")
         """
         file("a/thing.txt").text = "content"
-        file("a/build.gradle") << """
+        buildFile("a/build.gradle", """
             tasks.register("cleanThing") {
                 doLast {
                     service(FileSystemOperations).delete {
@@ -34,7 +34,7 @@ class IsolatedProjectsServiceLookupIntegrationTest extends AbstractIsolatedProje
                     }
                 }
             }
-        """
+        """)
 
         when:
         isolatedProjectsRun(":a:cleanThing")
@@ -43,22 +43,22 @@ class IsolatedProjectsServiceLookupIntegrationTest extends AbstractIsolatedProje
         fixture.assertStateStored {
             projectsConfigured(":", ":a")
         }
+        and:
         !file("a/thing.txt").exists()
     }
 
     def "can look up a service at configuration time of the owning project"() {
-        createDirs("a")
         settingsFile """
             include("a")
         """
-        file("a/build.gradle") << """
+        buildFile("a/build.gradle", """
             def dirName = service(ProjectLayout).projectDirectory.asFile.name
             tasks.register("show") {
                 doLast {
                     println("project dir name: " + dirName)
                 }
             }
-        """
+        """)
 
         when:
         isolatedProjectsRun(":a:show")
@@ -67,6 +67,7 @@ class IsolatedProjectsServiceLookupIntegrationTest extends AbstractIsolatedProje
         fixture.assertStateStored {
             projectsConfigured(":", ":a")
         }
+        and:
         outputContains("project dir name: a")
     }
 
@@ -106,6 +107,7 @@ class IsolatedProjectsServiceLookupIntegrationTest extends AbstractIsolatedProje
         fixture.assertStateStored {
             projectsConfigured(":")
         }
+        and:
         outputContains("settings dir name: " + testDirectory.name)
     }
 
@@ -128,6 +130,7 @@ class IsolatedProjectsServiceLookupIntegrationTest extends AbstractIsolatedProje
         fixture.assertStateStored {
             projectsConfigured(":", ":a")
         }
+        and:
         outputContains(":a settings dir: " + testDirectory.name)
     }
 }

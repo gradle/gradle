@@ -152,13 +152,12 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "FileSystemOperations from a project script resolves paths relative to the project directory"() {
-        createDirs("sub")
         settingsFile """
             include("sub")
         """
         file("local.txt").text = "root"
         file("sub/local.txt").text = "sub"
-        file("sub/build.gradle") << """
+        buildFile("sub/build.gradle", """
             tasks.register("cleanLocal") {
                 doLast {
                     service(FileSystemOperations).delete {
@@ -166,7 +165,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-        """
+        """)
 
         when:
         succeeds(":sub:cleanLocal")
