@@ -307,6 +307,8 @@ platform("extensibility") {
     subproject("plugin-development")
     subproject("unit-test-fixtures")
     subproject("test-kit")
+    subproject("xdcl-plugin-development")
+    subproject("xdcl-plugin-development-plugin")
 }
 
 // Native Platform

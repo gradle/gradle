@@ -51,6 +51,10 @@ dependencies {
     // The Groovy ecosystem — a sibling of the JVM one (shares the common schema, not the JVM schema).
     pluginsRuntimeOnly(projects.xdclGroovyEcosystem)
     pluginsRuntimeOnly(projects.xdclGroovyEcosystemPlugin)
+    // The plugin-development ecosystem — the declarative face of authoring an XDCL plugin; its
+    // reaction drives the real java-library/java-gradle-plugin/xdcl-gradle-plugin machinery.
+    pluginsRuntimeOnly(projects.xdclPluginDevelopment)
+    pluginsRuntimeOnly(projects.xdclPluginDevelopmentPlugin)
 }
 
 // External plugin modules don't follow the gradle-<name>.jar naming the manifest derives module
@@ -62,6 +66,7 @@ tasks.named<gradlebuild.packaging.tasks.PluginsManifest>("implementationPluginsM
     additionalPlugins.add("checkstyle-ecosystem")
     additionalPlugins.add("instrumentation-ecosystem")
     additionalPlugins.add("groovy-ecosystem")
+    additionalPlugins.add("plugin-development-ecosystem")
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future

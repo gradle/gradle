@@ -1839,5 +1839,19 @@
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-plugin-development",
+    "path": "platforms/extensibility/xdcl-plugin-development",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-plugin-development-plugin",
+    "path": "platforms/extensibility/xdcl-plugin-development-plugin",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
   }
 ]
