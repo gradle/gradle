@@ -197,7 +197,7 @@ NOTE: A service that is only available in the settings scope (such as `BuildLayo
 Prefer a looked-up `FileSystemOperations`, `ArchiveOperations`, or `ExecOperations` over hand-rolled `java.io`/`java.nio` code or `Runtime.exec(...)`.
 The Gradle services give you path resolution, copy and sync specs, and robust deletion, and they keep your code compatible with the Configuration Cache.
 
-`ExecOperations` can be looked up only from a task action, reflecting that running external processes at configuration time is incompatible with the Configuration Cache.
+`ExecOperations` can be looked up only through a task (via `Task.service`), not from a project, settings, or init script.
 
 [[objectfactory]]
 == `ObjectFactory`
@@ -400,7 +400,7 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 The `ExecOperations` is injected into the `MyExecOperationsTask` task's constructor using the `@Inject` annotation.
 
 To run an external process from an ad-hoc task, look `ExecOperations` up with `service()` from the task action — see <<looking_up_services,Looking up services in scripts>>.
-It can be looked up only from a task action, not at configuration time.
+To run one at configuration time instead, use `providers.exec` or a `ValueSource`, which are compatible with the Configuration Cache.
 
 [[toolingmodelbuilderregistry]]
 == `ToolingModelBuilderRegistry`
