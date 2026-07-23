@@ -22,29 +22,28 @@ import java.util.Properties
  *
  * Default should match the Groovy version declared in `gradle/dependency-management/shared-versions.properties`.
  */
-val bundleGroovyMajor = providers.systemProperty("bundleGroovyMajor").map(String::toInt).getOrElse(4)
+val defaultGroovyMajor = 4
+val bundleGroovyMajor = providers.systemProperty("bundleGroovyMajor").map(String::toInt).getOrElse(defaultGroovyMajor)
 
-/**
- * Version-catalog aliases that must change together when bundling a non-default Groovy major.
- * CodeNarc is intentionally excluded: it has no Groovy 5 build, and its analysis runtime is
- * independent of the Groovy version bundled into the distribution.
- */
-val groovyMajorOverrides: Map<String, String> = when (bundleGroovyMajor) {
-    4 -> emptyMap()
-    5 -> mapOf(
-        "groovy" to "5.0.7!!",
-        "spock" to "2.4-groovy-5.0!!",
-    )
-    else -> error("Unsupported bundled Groovy major version: $bundleGroovyMajor")
-}
-
-dependencyResolutionManagement {
+val basePath = run {
     val root = if (rootProject.name.startsWith("build-logic")) {
         layout.rootDirectory.dir("..")
     } else {
         layout.rootDirectory
     }
-    val basePath = root.dir("gradle").dir("dependency-management")
+    root.dir("gradle").dir("dependency-management")
+}
+
+/**
+ * Version-catalog aliases that must change together when bundling a non-default Groovy major,
+ * loaded from `groovy-versions.properties` (keyed as `groovy<major>.<alias>`).
+ *
+ * CodeNarc is intentionally excluded: it has no Groovy 5 build, and its analysis runtime is
+ * independent of the Groovy version bundled into the distribution.
+ */
+val groovyMajorOverrides: Map<String, String> = loadGroovyMajorOverrides()
+
+dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             applyGroovyMajorOverrides()
@@ -69,6 +68,28 @@ dependencyResolutionManagement {
             }
         }
     }
+}
+
+/**
+ * Loads the [groovyMajorOverrides] for [bundleGroovyMajor] from `groovy-versions.properties`,
+ * selecting entries keyed `groovy<major>.<alias>`. The default major needs no overrides, as its
+ * versions already come from the imported TOML catalogs.
+ */
+fun loadGroovyMajorOverrides(): Map<String, String> {
+    if (bundleGroovyMajor == defaultGroovyMajor) {
+        return emptyMap()
+    }
+    val prefix = "groovy$bundleGroovyMajor."
+    val groovyVersions = basePath.file("groovy-versions.properties").asFile.inputStream().use {
+        Properties().apply { load(it) }
+    }
+    val overrides = groovyVersions.entries
+        .filter { (key, _) -> key.toString().startsWith(prefix) }
+        .associate { (key, value) -> key.toString().removePrefix(prefix) to value.toString() }
+    require(overrides.isNotEmpty()) {
+        "Unsupported bundled Groovy major version: $bundleGroovyMajor"
+    }
+    return overrides
 }
 
 /**
