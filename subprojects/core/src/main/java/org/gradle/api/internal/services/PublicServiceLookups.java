@@ -35,7 +35,9 @@ import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -137,7 +139,7 @@ public final class PublicServiceLookups {
                 serviceType.getName());
         }
         return String.format(
-            "%s is not a service that is available for lookup with service(). The following services are available in %s: %s.",
+            "%s is not a service that is available for lookup with service(). The following services are available in %s:%s",
             serviceType.getName(),
             entryPoint.getDisplayNames().stream().collect(RenderingUtils.oxfordJoin("and")),
             servicesAvailableIn(entryPoint));
@@ -153,8 +155,9 @@ public final class PublicServiceLookups {
     private static String servicesAvailableIn(EntryPoint entryPoint) {
         return AVAILABLE_SERVICES.entrySet().stream()
             .filter(entry -> entry.getValue().contains(entryPoint))
-            .map(entry -> entry.getKey().getName())
-            .sorted()
-            .collect(Collectors.joining(", "));
+            .map(Map.Entry::getKey)
+            .sorted(Comparator.comparing(Class::getSimpleName))
+            .map(serviceType -> "\n - " + serviceType.getName())
+            .collect(Collectors.joining());
     }
 }
