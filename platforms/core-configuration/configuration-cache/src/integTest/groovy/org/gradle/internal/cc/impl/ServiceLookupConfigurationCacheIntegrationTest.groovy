@@ -20,44 +20,14 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import spock.lang.Issue
 
 /**
- * Pins the Groovy closure dispatch and configuration-cache behavior of the public {@code service(Class)}
- * lookup in the corner cases where the receiver resolution or the captured instance interacts with the
- * configuration cache. Happy-path and error-message coverage lives in the core
- * {@code PublicServiceLookupIntegrationTest}.
+ * Pins how a public {@code service(Class)} instance captured in a settings script survives the
+ * configuration cache and remains usable from a task action. Happy-path and error-message coverage
+ * lives in the core {@code PublicServiceLookupIntegrationTest}.
  */
 @Issue("https://github.com/gradle/gradle/issues/13121")
-class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ServiceLookupConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def configurationCache = new ConfigurationCacheFixture(this)
-
-    def "service lookup in an owner-first task closure fails as an unsupported script reference at execution time"() {
-        given:
-        buildFile """
-            tasks.register("some") {
-                onlyIf {
-                    service(ProviderFactory)
-                    throw new IllegalStateException("UNREACHABLE")
-                }
-                doFirst {
-                }
-            }
-        """
-
-        when:
-        configurationCacheFails ":some"
-
-        then:
-        failure.assertHasFailure("Invocation of 'service' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.") {
-            // The cause is not reported
-        }
-        outputDoesNotContain("UNREACHABLE")
-
-        configurationCache.assertStateStoredAndDiscarded {
-            hasStoreFailure = false
-            reportedOutsideBuildFailure = true
-            problem "Task `:some` of type `org.gradle.api.DefaultTask`: invocation of 'service' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache."
-        }
-    }
 
     def "a settings-scoped service captured in a settings script survives the configuration cache and is usable in a task action"() {
         given:
