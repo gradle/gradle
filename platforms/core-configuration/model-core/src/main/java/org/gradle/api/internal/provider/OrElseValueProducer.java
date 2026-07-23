@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.evaluation.EvaluationOwner;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
@@ -56,17 +55,38 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
+    public TaskDependencyContainer getDependencies() {
+        ValueSupplier.@Nullable ValueProducer delegateProducer = getDelegateProducer();
+        if (delegateProducer != null) {
+            return delegateProducer.getDependencies();
+        }
+        return TaskDependencyContainer.EMPTY;
+    }
+
+    @Override
+    public TaskDependencyContainer getContentDependencies() {
+        ValueSupplier.@Nullable ValueProducer delegateProducer = getDelegateProducer();
+        if (delegateProducer != null) {
+            return delegateProducer.getContentDependencies();
+        }
+        return TaskDependencyContainer.EMPTY;
+    }
+
+    private ValueSupplier.@Nullable ValueProducer getDelegateProducer() {
         try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
-                    leftProducer.visitProducerTasks(visitor);
+                    return leftProducer;
                 }
-                return;
+
+                return null;
             }
+
             if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
-                rightProducer.visitProducerTasks(visitor);
+                return rightProducer;
             }
+
+            return null;
         }
     }
 

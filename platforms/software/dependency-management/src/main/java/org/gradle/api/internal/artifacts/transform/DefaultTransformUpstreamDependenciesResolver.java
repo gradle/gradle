@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.transform;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -62,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.gradle.internal.resources.ResourceLock;
 
 public class DefaultTransformUpstreamDependenciesResolver implements TransformUpstreamDependenciesResolver {
     public static final TransformDependencies NO_RESULT = new TransformDependencies() {
@@ -331,12 +331,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
 
         @Override
-        public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+        public @Nullable ResourceLock getAccessLock() {
+            return owner.getModel().getAccessLock();
         }
 
         @Override
-        public ProjectInternal getOwningProject() {
+        public @Nullable ProjectInternal getOwningProject() {
             return owner.getProject();
         }
 
@@ -369,8 +369,8 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             final List<TaskNode> tasks = new ArrayList<>();
 
             @Override
-            public boolean usesMutableProjectState() {
-                return FinalizeTransformDependenciesFromSelectedArtifacts.this.usesMutableProjectState();
+            public @Nullable ResourceLock getAccessLock() {
+                return FinalizeTransformDependenciesFromSelectedArtifacts.this.getAccessLock();
             }
 
             @Nullable

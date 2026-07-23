@@ -16,6 +16,7 @@
 
 package org.gradle.internal.model;
 
+import org.gradle.internal.resources.ResourceLock;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -51,6 +52,12 @@ public interface ModelContainer<T> {
      * However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
      */
     void applyToMutableState(Consumer<? super T> action);
+
+    /**
+     * Returns the lock that will be acquired when accessing the mutable state of this model via {@link #applyToMutableState(Consumer)} and {@link #fromMutableState(Function)}.
+     * A caller can optionally acquire this lock before calling one of these accessor methods, in order to avoid those methods blocking.
+     */
+    @Nullable ResourceLock getAccessLock();
 
     /**
      * Returns whether or not the current thread has access to the mutable model.

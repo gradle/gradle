@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -26,16 +23,15 @@ import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
+public class ProviderWithDependencies<T> extends AbstractProviderWithValue<T> {
 
     private final TaskDependencyContainer dependencies;
     private final Class<T> valueType;
     private final Factory<T> valueFactory;
 
-    public BuildableBackedProvider(TaskDependencyContainer dependencies, Class<T> valueType, Factory<T> valueFactory) {
+    public ProviderWithDependencies(TaskDependencyContainer dependencies, Class<T> valueType, Factory<T> valueFactory) {
         this.dependencies = dependencies;
         this.valueType = valueType;
         this.valueFactory = valueFactory;
@@ -49,19 +45,15 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ValueProducer getProducer() {
-        // not a lambda for readability purposes.
-        //noinspection Convert2Lambda
         return new ValueProducer() {
             @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                dependencies.visitDependencies(context);
+            public TaskDependencyContainer getDependencies() {
+                return dependencies;
             }
 
             @Override
-            public void visitProducerTasks(Action<? super Task> visitor) {
-                for (Task dependency : buildableDependencies()) {
-                    visitor.execute(dependency);
-                }
+            public TaskDependencyContainer getContentDependencies() {
+                return dependencies;
             }
         };
     }
@@ -99,10 +91,6 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
             }
         });
         return hasDependency.get();
-    }
-
-    private Set<? extends Task> buildableDependencies() {
-        return AbstractTaskDependency.getTaskDependencies(dependencies, null);
     }
 
     @Override

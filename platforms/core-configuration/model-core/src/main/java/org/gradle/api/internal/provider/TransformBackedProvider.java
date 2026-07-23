@@ -17,7 +17,10 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -92,13 +95,14 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     protected void beforeRead(EvaluationScopeContext context) {
-        provider.getProducer().visitContentProducerTasks(producer -> {
-            if (!producer.getState().getExecuted()) {
+        TaskDependencyContainer dependencies = provider.getProducer().getContentDependencies();
+        for (Task task : AbstractTaskDependency.getDependencyTasks(dependencies, null)) {
+            if (!task.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
-                    String.format("Querying the mapped value of %s before %s has completed is not supported", provider, producer)
+                    String.format("Querying the mapped value of %s before %s has completed is not supported", provider, task)
                 );
             }
-        });
+        }
     }
 
     @Override

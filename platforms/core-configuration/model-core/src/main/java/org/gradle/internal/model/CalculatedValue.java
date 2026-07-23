@@ -17,6 +17,8 @@
 package org.gradle.internal.model;
 
 import org.gradle.internal.Try;
+import org.gradle.internal.resources.ResourceLock;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -52,11 +54,15 @@ public interface CalculatedValue<T> {
     /**
      * Calculates the value, if not already calculated. Collects any exception and does not rethrow them.
      * Blocks until the value is finalized, either by this thread or some other thread.
+     *
+     * @return true if this call caused the value to be calculated, false if it was already
+     * finalized prior to this call or another thread finalized it during this call.
      */
-    void finalizeIfNotAlready();
+    boolean finalizeIfNotAlready();
 
     /**
      * Returns the resource that will be required to calculate this value.
      */
-    ModelContainer<?> getResourceToLock();
+    @Nullable ResourceLock getAccessLock();
+
 }

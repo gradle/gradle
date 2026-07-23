@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
@@ -43,9 +42,9 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
-import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -95,6 +94,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.gradle.internal.resources.ResourceLock;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -608,8 +608,8 @@ public class DefaultTransform implements Transform {
         }
 
         @Override
-        public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+        public @Nullable ResourceLock getAccessLock() {
+            return owner.getModel().getAccessLock();
         }
 
         @Nullable

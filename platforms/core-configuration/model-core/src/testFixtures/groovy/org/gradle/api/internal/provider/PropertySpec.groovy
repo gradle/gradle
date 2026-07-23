@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
@@ -2778,6 +2778,7 @@ The value of this provider is derived from:
 
     def "fails when property has producer with no task"() {
         def owner = owner()
+        def context = Mock(TaskDependencyResolveContext)
         owner.taskThatOwnsThisObject >> null
         owner.modelIdentityDisplayName >> displayName("<owner>")
 
@@ -2786,7 +2787,7 @@ The value of this provider is derived from:
         property.attachProducer(owner)
 
         when:
-        property.producer.visitProducerTasks(Stub(Action))
+        property.producer.dependencies.visitDependencies(context)
 
         then:
         def e = thrown(IllegalStateException)
