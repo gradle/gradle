@@ -22,7 +22,6 @@ import spock.lang.Issue
 class IsolatedProjectsServiceLookupIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     def "can look up a service in a task action of the owning project"() {
-        createDirs("a")
         settingsFile """
             include("a")
         """
