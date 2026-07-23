@@ -647,9 +647,8 @@ Occasionally, you want to copy files or directories as _part_ of a task.
 For example, a custom archiving task based on an unsupported archive format might want to copy files to a temporary directory before they are archived.
 You still want to take advantage of Gradle's copy API without introducing an extra `Copy` task.
 
-The solution is to use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)] method.
-Configuring it with a copy spec works like the `Copy` task.
-Here's a trivial example:
+As noted in the warning above, prefer link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy-org.gradle.api.Action-[`FileSystemOperations.copy`] for configuration-cache compatibility; it configures a copy spec just like the `Copy` task.
+The older link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)] method shown here works the same way but is not compatible with the configuration cache:
 
 ====
 include::sample[dir="snippets/reference/gradle-types/copy/kotlin",files="build.gradle.kts[tags=copy-method]"]
