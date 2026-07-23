@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -254,6 +255,26 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("out: nested-value")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "an onlyIf closure resolves owner-first, so service() resolves to the enclosing script, and a script object cannot be referenced from a Groovy closure at execution time under the configuration cache")
+    def "a service can be looked up from an onlyIf predicate"() {
+        buildFile """
+            tasks.register("check") {
+                onlyIf {
+                    service(ProviderFactory) != null
+                }
+                doLast {
+                    println("out: ran")
+                }
+            }
+        """
+
+        when:
+        succeeds("check")
+
+        then:
+        outputContains("out: ran")
     }
 
     def "looking up a project-only service from a settings script fails with a helpful message"() {
