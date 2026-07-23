@@ -18,6 +18,7 @@ package org.gradle.internal.exceptions;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -25,11 +26,13 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DefaultMultiCauseException extends GradleException implements MultiCauseException, NonGradleCauseExceptionsHolder {
     private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
+    private final List<String> causeResolutions = new ArrayList<>();
     private transient ThreadLocal<Boolean> hideCause = threadLocal();
     private transient @Nullable Factory<String> messageFactory;
     private @Nullable String message;
@@ -39,10 +42,11 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         this.message = message;
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(String message, Throwable... causes) {
         super(message);
         this.message = message;
-        this.causes.addAll(Arrays.asList(causes));
+        initCauses(Arrays.asList(causes));
     }
 
     @SuppressWarnings("this-escape")
@@ -52,13 +56,21 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         initCauses(causes);
     }
 
+    @SuppressWarnings("this-escape")
+    public DefaultMultiCauseException(String message, Iterable<? extends Throwable> causes, List<String> resolutions) {
+        super(message, resolutions);
+        this.message = message;
+        initCauses(causes);
+    }
+
     public DefaultMultiCauseException(Factory<String> messageFactory) {
         this.messageFactory = messageFactory;
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(Factory<String> messageFactory, Throwable... causes) {
         this(messageFactory);
-        this.causes.addAll(Arrays.asList(causes));
+        initCauses(Arrays.asList(causes));
     }
 
     @SuppressWarnings("this-escape")
@@ -78,19 +90,12 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         out.defaultWriteObject();
     }
 
-    private ThreadLocal<Boolean> threadLocal() {
-        return new HideStacktrace();
+    protected List<String> getDirectResolutions() {
+        return super.getResolutions();
     }
 
-    @Override
-    public List<String> getResolutions() {
-        List<String> resolutions = new ArrayList<String>(causes.size()); // Typical case is 0 or 1 resolutions/cause
-        for (Throwable cause : causes) {
-            if (cause instanceof ResolutionProvider) {
-                resolutions.addAll(((ResolutionProvider) cause).getResolutions());
-            }
-        }
-        return resolutions;
+    private ThreadLocal<Boolean> threadLocal() {
+        return new HideStacktrace();
     }
 
     private static class HideStacktrace extends ThreadLocal<Boolean> {
@@ -107,16 +112,38 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     @Override
     public synchronized Throwable initCause(Throwable throwable) {
-        causes.clear();
-        causes.add(throwable);
+        return initCauses(Collections.singletonList(throwable));
+    }
+
+    public Throwable initCauses(Iterable<? extends Throwable> causes) {
+        this.causes.clear();
+        this.causeResolutions.clear();
+        addCauses(causes);
         return this;
     }
 
-    public void initCauses(Iterable<? extends Throwable> causes) {
-        this.causes.clear();
+    private void addCauses(Iterable<? extends Throwable> causes) {
         for (Throwable cause : causes) {
             this.causes.add(cause);
+            addResolutionsFrom(cause);
         }
+    }
+
+    private void addResolutionsFrom(Throwable cause) {
+        if (cause instanceof ResolutionProvider) {
+            List<String> fromCause = ((ResolutionProvider) cause).getResolutions();
+            if (fromCause != null) {
+                causeResolutions.addAll(fromCause);
+            }
+        }
+    }
+
+    @NonNull
+    @Override
+    public List<String> getResolutions() {
+        List<String> combined = new ArrayList<>(super.getResolutions());
+        combined.addAll(causeResolutions);
+        return Collections.unmodifiableList(combined);
     }
 
     @Override

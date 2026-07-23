@@ -221,7 +221,7 @@ fun lifecyclePluginHintFor(t: Throwable, gradle: GradleInternal): Throwable? {
     val pluginId = unknown.pluginId ?: return null
     val documentationRegistry = gradle.services.get(DocumentationRegistry::class.java)
     val hint = lifecyclePluginHint(pluginId, hasIncludedPluginBuilds(gradle), documentationRegistry)
-    return UnknownPluginException(unknown.message + hint, pluginId).also { it.initCause(t) }
+    return UnknownPluginException(unknown.message + hint, t, pluginId)
 }
 
 

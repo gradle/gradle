@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class DefaultUrlArtifactRepository {
@@ -95,10 +96,12 @@ public class DefaultUrlArtifactRepository {
     }
 
     private void throwExceptionDueToInsecureProtocol() throws InvalidUserCodeException {
-        throw new InsecureProtocolException(
+        throw new InvalidUserCodeException(
             "Using insecure protocols with repositories, without explicit opt-in, is unsupported.",
-            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.", repositoryType, displayNameSupplier.get()),
-            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
+            Arrays.asList(
+                String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.", repositoryType, displayNameSupplier.get()),
+                Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
+            )
         );
     }
 
@@ -113,10 +116,12 @@ public class DefaultUrlArtifactRepository {
         } else {
             contextualAdvice = "";
         }
-        throw new InsecureProtocolException(
+        throw new InvalidUserCodeException(
             "Redirecting from secure protocol to insecure protocol, without explicit opt-in, is unsupported." + contextualAdvice,
-            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ", repositoryType, displayNameSupplier.get()),
-            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
+            Arrays.asList(
+                String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ", repositoryType, displayNameSupplier.get()),
+                Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
+            )
         );
     }
 

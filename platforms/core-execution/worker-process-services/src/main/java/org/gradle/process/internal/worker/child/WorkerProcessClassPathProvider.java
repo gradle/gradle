@@ -36,6 +36,7 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
@@ -162,6 +163,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
                 JavaReflectionUtil.class,
                 JavaMethod.class,
                 GradleException.class,
+                ResolutionProvider.class,
                 NoSuchPropertyException.class,
                 NoSuchMethodException.class,
                 UncheckedException.class,

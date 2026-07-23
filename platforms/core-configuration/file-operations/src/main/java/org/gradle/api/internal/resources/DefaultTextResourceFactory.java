@@ -29,6 +29,7 @@ import org.gradle.util.internal.GUtil;
 
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 public class DefaultTextResourceFactory implements TextResourceFactory {
     private final FileOperations fileOperations;
@@ -92,18 +93,22 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
     }
 
     private static void throwExceptionDueToInsecureProtocol(URI rootUri) {
-        throw new InsecureProtocolException(
+        throw new InvalidUserCodeException(
             "Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. " + String.format("The provided URI '%s' uses an insecure protocol (HTTP). ", rootUri),
-            String.format("Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning. ", GUtil.toSecureUrl(rootUri), rootUri),
-            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+            Arrays.asList(
+                String.format("Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning. ", GUtil.toSecureUrl(rootUri), rootUri),
+                Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+            )
         );
     }
 
     private static void throwExceptionDueToInsecureRedirect(Object uri, URI redirect) throws InvalidUserCodeException {
-        throw new InsecureProtocolException(
+        throw new InvalidUserCodeException(
             "Loading a TextResource from an insecure redirect, without explicit opt-in, is unsupported. " + String.format("'%s' redirects to insecure '%s'.", uri, redirect),
-            "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.",
-            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+            Arrays.asList(
+                "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.",
+                Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+            )
         );
     }
 }

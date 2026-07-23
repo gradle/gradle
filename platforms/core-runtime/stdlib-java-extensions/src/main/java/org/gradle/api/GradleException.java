@@ -16,21 +16,62 @@
 
 package org.gradle.api;
 
+import org.gradle.internal.exceptions.ResolutionProvider;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
  */
-public class GradleException extends RuntimeException {
-    public GradleException() {
-        super();
-    }
+@NullMarked
+public class GradleException extends RuntimeException implements ResolutionProvider {
+    private final List<String> resolutions = new ArrayList<>();
+
+    public GradleException() { /* Empty */ }
 
     public GradleException(String message) {
-        super(message);
+        this(message, (Throwable) null);
     }
 
     public GradleException(String message, @Nullable Throwable cause) {
+        this(message, cause, Collections.emptyList());
+    }
+
+    public GradleException(String message, Iterable<String> resolutions) {
+        this(message, null, resolutions);
+    }
+
+    public GradleException(String message, @Nullable Throwable cause, Iterable<String> resolutions) {
         super(message, cause);
+        resolutions.forEach(this.resolutions::add);
+    }
+
+    /**
+     * Adds a potential resolution to this exception.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    public final void addResolution(String resolution) {
+        resolutions.add(resolution);
+    }
+
+    /**
+     * Clears the resolutions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    public final void clearResolutions() {
+        resolutions.clear();
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return Collections.unmodifiableList(new ArrayList<>(resolutions));
     }
 }

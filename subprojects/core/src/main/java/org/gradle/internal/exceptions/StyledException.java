@@ -23,6 +23,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,16 +44,6 @@ public class StyledException extends GradleException {
     private final static Pattern STYLES_REGEX = Pattern.compile("<([A-Za-z]+)>(?:<([A-Za-z]+)>)*(.*?)(?:</\\2>)*</\\1>");
     private final String styledMessage;
 
-    public StyledException() {
-        super();
-        styledMessage = "";
-    }
-
-    public StyledException(String message) {
-        super(unstyled(message));
-        styledMessage = message;
-    }
-
     private static String unstyled(String message) {
         Matcher matcher = STYLES_REGEX.matcher(message);
         StringBuffer buf = new StringBuffer();
@@ -65,6 +56,11 @@ public class StyledException extends GradleException {
 
     public StyledException(String message, @Nullable Throwable cause) {
         super(unstyled(message), cause);
+        styledMessage = message;
+    }
+
+    public StyledException(String message, @Nullable Throwable cause, List<String> resolutions) {
+        super(unstyled(message), cause, resolutions);
         styledMessage = message;
     }
 

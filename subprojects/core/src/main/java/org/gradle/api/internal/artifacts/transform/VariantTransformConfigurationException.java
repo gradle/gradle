@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.ResolutionProvider;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,28 +27,20 @@ import java.util.List;
  * An exception to report a problem registering or configuring an Artifact Transform that also provides helpful resolutions.
  */
 @Contextual
-public final class VariantTransformConfigurationException extends GradleException implements ResolutionProvider {
+public final class VariantTransformConfigurationException extends GradleException {
     private static final String RUN_REPORT_SUGGESTION = "Run the 'artifactTransforms' report task to view details about registered transforms.";
-    private final List<String> resolutions;
 
+    @SuppressWarnings("this-escape")
     public VariantTransformConfigurationException(String message, Throwable cause, DocumentationRegistry documentationRegistry) {
-        super(message, cause);
-        resolutions = buildResolutions(documentationRegistry);
+        super(message, cause, buildStandardResolutions(documentationRegistry));
     }
 
+    @SuppressWarnings("this-escape")
     public VariantTransformConfigurationException(String message, DocumentationRegistry documentationRegistry) {
-        super(message);
-        resolutions = buildResolutions(documentationRegistry);
+        super(message, buildStandardResolutions(documentationRegistry));
     }
 
-    private static List<String> buildResolutions(DocumentationRegistry documentationRegistry) {
-        return Arrays.asList(
-            RUN_REPORT_SUGGESTION,
-            "Review the documentation on Artifact Transforms at " + documentationRegistry.getDocumentationFor("artifact_transforms") + ".");
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return resolutions;
+    private static List<String> buildStandardResolutions(DocumentationRegistry documentationRegistry) {
+        return Arrays.asList(RUN_REPORT_SUGGESTION, "Review the documentation on Artifact Transforms at " + documentationRegistry.getDocumentationFor("artifact_transforms") + ".");
     }
 }

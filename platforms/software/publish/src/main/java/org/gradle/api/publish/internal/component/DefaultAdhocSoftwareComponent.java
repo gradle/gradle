@@ -29,7 +29,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.deprecation.Documentation;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -125,18 +124,9 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
      */
     protected void checkNotObserved() {
         if (cachedVariants != null) {
-            throw new MetadataModificationException("Gradle Module Metadata can't be modified after an eagerly populated publication.");
-        }
-    }
-
-    public static final class MetadataModificationException extends GradleException implements ResolutionProvider {
-        public MetadataModificationException(String message) {
-            super(message);
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage());
+            throw new GradleException(
+                "Gradle Module Metadata can't be modified after an eagerly populated publication.",
+                Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage()));
         }
     }
 

@@ -30,6 +30,16 @@ public class InvalidUserCodeException extends GradleException {
         super(message);
     }
 
+    /**
+     * Constructor that allows adding potential resolutions to this exception.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    public InvalidUserCodeException(String message, Iterable<String> resolutions) {
+        super(message, resolutions);
+    }
+
     public InvalidUserCodeException(String message, Throwable cause) {
         super(message, cause);
     }
