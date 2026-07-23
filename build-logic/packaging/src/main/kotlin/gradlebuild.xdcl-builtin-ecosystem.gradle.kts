@@ -57,5 +57,7 @@ val writeXdclCarrierManifests = tasks.register<GenerateXdclCarrierManifests>("wr
 }
 
 sourceSets.main {
-    output.dir(mapOf("builtBy" to writeXdclCarrierManifests), generatedDir)
+    // The task's @OutputDirectory is its sole output, so passing the provider registers that dir and
+    // wires `builtBy` — no `mapOf("builtBy" to …)`.
+    output.dir(writeXdclCarrierManifests)
 }

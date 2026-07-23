@@ -36,3 +36,21 @@ excludeGeneratedXdclSourcesFromChecks()
 dependencies {
     "api"(project.versionCatalogs.named("libs").findLibrary("xdclGradleApi").get())
 }
+
+// Ship a built-in-ecosystem marker naming this library's own distribution module. It rides in the
+// published jar AND (unchanged) when the same jar is bundled into the distribution, so that a
+// consuming build which resolves both the published library and the running distribution's copy can
+// tell they are the same ecosystem: the settings provider drops the published copy and the running
+// distribution wins (see doc/builtin-ecosystem-schemas.md and SettingsRegistryAssembler).
+val builtinEcosystemModule = "gradle-${project.name}"
+val builtinEcosystemMarkerDir = layout.buildDirectory.dir("generated/xdcl-builtin-ecosystem")
+val writeXdclBuiltinEcosystemLibraryMarker = tasks.register<WriteProperties>("writeXdclBuiltinEcosystemLibraryMarker") {
+    description = "Generates the built-in-ecosystem self-marker naming this schema library's distribution module"
+    destinationFile = builtinEcosystemMarkerDir.map { it.file("META-INF/xdcl-builtin-ecosystem/$builtinEcosystemModule.properties") }
+    property("schemaModules", builtinEcosystemModule)
+}
+sourceSets.main {
+    // The marker task provider carries its own task dependency, so `output.dir` wires `builtBy`
+    // automatically — no `mapOf("builtBy" to …)`.
+    output.dir(writeXdclBuiltinEcosystemLibraryMarker.map { builtinEcosystemMarkerDir.get() })
+}
