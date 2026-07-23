@@ -172,6 +172,17 @@ abstract class MyArchiveOperationsTask
 tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class)
 // end::archive-op-inject[]
 
+// tag::archive-op-lookup[]
+tasks.register("listArchiveEntries") {
+    val archiveOperations = service<ArchiveOperations>()
+    val layout = service<ProjectLayout>()
+    doLast {
+        val entries = archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")).files
+        println("Entries: ${entries.map { it.name }}")
+    }
+}
+// end::archive-op-lookup[]
+
 // tag::exec-op-inject[]
 abstract class MyExecOperationsTask
 @Inject constructor(private var execOperations: ExecOperations) : DefaultTask() {
@@ -186,6 +197,17 @@ abstract class MyExecOperationsTask
 
 tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class)
 // end::exec-op-inject[]
+
+// tag::exec-op-lookup[]
+tasks.register("printGitStatus") {
+    val execOperations = service<ExecOperations>()
+    doLast {
+        execOperations.exec {
+            commandLine("git", "status")
+        }
+    }
+}
+// end::exec-op-lookup[]
 
 // tag::tooling-model[]
 // Implements the ToolingModelBuilder interface.

@@ -384,6 +384,11 @@ The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` t
 
 To use `ArchiveOperations` in an ad-hoc task without writing a dedicated class, look it up with `service()` — see <<looking_up_services,Looking up services in scripts>>.
 
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-lookup]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-lookup]"]
+====
+
 [[execoperations]]
 == `ExecOperations`
 
@@ -401,6 +406,11 @@ The `ExecOperations` is injected into the `MyExecOperationsTask` task's construc
 
 To run an external process from an ad-hoc task, look `ExecOperations` up with `service()` from the task action — see <<looking_up_services,Looking up services in scripts>>.
 To run one at configuration time instead, use `providers.exec` or a `ValueSource`, which are compatible with the Configuration Cache.
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-lookup]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-lookup]"]
+====
 
 [[toolingmodelbuilderregistry]]
 == `ToolingModelBuilderRegistry`
