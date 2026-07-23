@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client;
 
-public interface DaemonStarter {
+/**
+ * Implements the entry-point for forked and embedded daemons
+ */
+@NullMarked
+package org.gradle.launcher.daemon.bootstrap;
 
-    /**
-     * Starts a new daemon, returning once the daemon has completed its startup handshake.
-     */
-    DaemonHandle startDaemon(boolean singleRun);
-
-}
+import org.jspecify.annotations.NullMarked;
