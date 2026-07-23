@@ -172,20 +172,6 @@ abstract class MyArchiveOperationsTask
 tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class)
 // end::archive-op-inject[]
 
-// tag::archive-op-adhoc[]
-interface InjectedArcOps {
-    @get:Inject val arcOps: ArchiveOperations
-}
-
-tasks.register("myAdHocArchiveOperationsTask") {
-    val injected = project.objects.newInstance<InjectedArcOps>()
-    val archiveFile = "${project.projectDir}/sources.jar"
-    doLast {
-        injected.arcOps.zipTree(archiveFile)
-    }
-}
-// end::archive-op-adhoc[]
-
 // tag::exec-op-inject[]
 abstract class MyExecOperationsTask
 @Inject constructor(private var execOperations: ExecOperations) : DefaultTask() {
@@ -200,22 +186,6 @@ abstract class MyExecOperationsTask
 
 tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class)
 // end::exec-op-inject[]
-
-// tag::exec-op-adhoc[]
-interface InjectedExecOps {
-    @get:Inject val execOps: ExecOperations
-}
-
-tasks.register("myAdHocExecOperationsTask") {
-    val injected = project.objects.newInstance<InjectedExecOps>()
-
-    doLast {
-        injected.execOps.exec {
-            commandLine("ls", "-la")
-        }
-    }
-}
-// end::exec-op-adhoc[]
 
 // tag::tooling-model[]
 // Implements the ToolingModelBuilder interface.
