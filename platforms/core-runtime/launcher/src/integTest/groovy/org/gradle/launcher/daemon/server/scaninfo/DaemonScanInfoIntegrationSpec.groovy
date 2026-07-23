@@ -16,15 +16,11 @@
 
 package org.gradle.launcher.daemon.server.scaninfo
 
-
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
 import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
 
@@ -58,9 +54,11 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments('help', '--continuous', '-i').run().assertTasksScheduled(':help')
     }
 
-    //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(JdkVersionTestPreconditions.Jdk8OrEarlier)
     def "should capture basic data when a foreground daemon runs multiple builds"() {
+        // Both the foreground daemon and the client must request the same daemon JVM args,
+        // so the client's build runs in the foreground daemon instead of a forked daemon.
+        List<String> daemonJvmArgs = ["-ea", "-Xms256m", "-Xmx512m"]
+
         given:
         buildFile << """
         ${imports()}
@@ -70,13 +68,17 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
+        executer.useOnlyRequestedJvmOpts()
+        executer.withBuildJvmOpts(daemonJvmArgs)
         def daemon = startAForegroundDaemon()
 
         List<ExecutionResult> captureResults = []
-        captureResults << executer.withTasks('capture1').run()
-        captureResults << executer.withTasks('capture2').run()
+        captureResults << executer.useOnlyRequestedJvmOpts().withArgument("-Dorg.gradle.jvmargs=${daemonJvmArgs.join(" ")}").withTasks('capture1').run()
+        captureResults << executer.useOnlyRequestedJvmOpts().withArgument("-Dorg.gradle.jvmargs=${daemonJvmArgs.join(" ")}").withTasks('capture2').run()
 
         then:
+        // Make sure we didn't start a new daemon.
+        daemons.registry.all.size() == 1
         captureResults[0].assertTaskScheduled(':capture1')
         captureResults[1].assertTaskScheduled(':capture2')
 
