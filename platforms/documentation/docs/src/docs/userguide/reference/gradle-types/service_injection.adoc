@@ -383,7 +383,6 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
 
 To use `ArchiveOperations` in an ad-hoc task without writing a dedicated class, look it up with `service()` — see <<looking_up_services,Looking up services in scripts>>.
-For a service that is not available through the lookup, use the `ObjectFactory.newInstance` injection point shown for <<filesystemoperations,`FileSystemOperations`>>.
 
 [[execoperations]]
 == `ExecOperations`
@@ -402,7 +401,6 @@ The `ExecOperations` is injected into the `MyExecOperationsTask` task's construc
 
 To run an external process from an ad-hoc task, look `ExecOperations` up with `service()` from the task action — see <<looking_up_services,Looking up services in scripts>>.
 It can be looked up only from a task action, not at configuration time.
-For a service that is not available through the lookup, use the `ObjectFactory.newInstance` injection point shown for <<filesystemoperations,`FileSystemOperations`>>.
 
 [[toolingmodelbuilderregistry]]
 == `ToolingModelBuilderRegistry`
