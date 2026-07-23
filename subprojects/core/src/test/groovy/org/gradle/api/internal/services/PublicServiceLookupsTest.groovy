@@ -26,7 +26,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.process.ExecOperations
 import spock.lang.Specification
 
 import static org.gradle.api.internal.services.PublicServiceLookups.EntryPoint.GRADLE
@@ -50,7 +49,7 @@ class PublicServiceLookupsTest extends Specification {
 
         where:
         [serviceType, entryPoint] << [
-            [ObjectFactory, ProviderFactory, FileSystemOperations, ArchiveOperations, ExecOperations].collectMany { type ->
+            [ObjectFactory, ProviderFactory, FileSystemOperations, ArchiveOperations].collectMany { type ->
                 [PROJECT, TASK, SETTINGS, GRADLE].collect { [type, it] }
             },
             [[ProjectLayout, PROJECT], [ProjectLayout, TASK], [BuildLayout, SETTINGS]]
@@ -83,7 +82,6 @@ class PublicServiceLookupsTest extends Specification {
         def e = thrown(InvalidUserDataException)
         e.message.startsWith("org.gradle.internal.service.ServiceRegistry is not a service that is available for lookup with service().")
         e.message.contains("org.gradle.api.model.ObjectFactory")
-        e.message.contains("org.gradle.process.ExecOperations")
         e.message.contains("org.gradle.api.file.ProjectLayout")
         !e.message.contains("org.gradle.api.file.BuildLayout")
     }

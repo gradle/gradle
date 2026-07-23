@@ -47,6 +47,7 @@ import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
@@ -1121,7 +1122,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
      * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
      * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
-     * <li>{@link org.gradle.process.ExecOperations}</li>
      * <li>{@link org.gradle.api.file.ProjectLayout}</li>
      * </ul>
      *
@@ -1139,7 +1139,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     @HiddenInDefinition
-    <T> T service(Class<T> serviceType);
+    <T extends ProjectService> T service(Class<T> serviceType);
 
     /**
      * Creates a directory and returns a file pointing to it.

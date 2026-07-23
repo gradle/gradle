@@ -80,6 +80,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -929,7 +930,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract ProjectLayout getLayout();
 
     @Override
-    public <T> T service(Class<T> serviceType) {
+    public <T extends ProjectService> T service(Class<T> serviceType) {
         return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.PROJECT, getServices());
     }
 

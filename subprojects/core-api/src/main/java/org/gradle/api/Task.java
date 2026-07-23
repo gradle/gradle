@@ -28,6 +28,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceRegistration;
+import org.gradle.api.services.TaskService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
@@ -848,5 +849,5 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @since 9.8.0
      */
     @Incubating
-    <T> T service(Class<T> serviceType);
+    <T extends TaskService> T service(Class<T> serviceType);
 }

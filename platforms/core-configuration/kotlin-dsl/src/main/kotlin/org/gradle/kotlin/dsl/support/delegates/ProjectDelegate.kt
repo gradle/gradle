@@ -25,6 +25,7 @@ import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectState
 import org.gradle.api.Task
+import org.gradle.api.services.ProjectService
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyFactory
@@ -478,7 +479,7 @@ abstract class ProjectDelegate : Project {
     override fun getProviders(): ProviderFactory =
         delegate.providers
 
-    override fun <T : Any> service(serviceType: Class<T>): T =
+    override fun <T : ProjectService> service(serviceType: Class<T>): T =
         delegate.service(serviceType)
 
     override fun getSubprojects(): MutableSet<Project> =

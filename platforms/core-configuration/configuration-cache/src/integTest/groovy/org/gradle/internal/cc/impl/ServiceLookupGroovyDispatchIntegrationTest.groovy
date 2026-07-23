@@ -32,7 +32,7 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
 
     def "service lookup in an owner-first task closure fails as an unsupported script reference at execution time"() {
         given:
-        buildFile << """
+        buildFile """
             tasks.register("some") {
                 onlyIf {
                     service(ProviderFactory)
@@ -61,7 +61,7 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
 
     def "looking up a settings-only service through a task closure resolves to the task and is rejected at configuration time"() {
         given:
-        settingsFile << """
+        settingsFile """
             gradle.rootProject {
                 tasks.register("useLayout") {
                     // `service` here resolves to the Task receiver, which does not expose the
@@ -89,7 +89,7 @@ class ServiceLookupGroovyDispatchIntegrationTest extends AbstractConfigurationCa
 
     def "a settings-scoped service captured in a settings script and used in a task action cannot be re-resolved under the configuration cache"() {
         given:
-        settingsFile << """
+        settingsFile """
             // Captured at settings-script scope, where `service` resolves to the Settings receiver
             // and BuildLayout is available. The instance is then used from a task action.
             def captured = service(BuildLayout)

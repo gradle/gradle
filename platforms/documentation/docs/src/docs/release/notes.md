@@ -92,7 +92,7 @@ tasks.register("cleanReports") {
 }
 ```
 
-Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. The lookup works both at configuration time and from task actions, is compatible with the Configuration Cache and Isolated Projects, and covers `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations`, `ExecOperations`, and the scope-specific `ProjectLayout` and `BuildLayout`.
+Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. It is compatible with the Configuration Cache and Isolated Projects, and covers `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, and `ArchiveOperations` in every scope, `ProjectLayout` in projects and tasks, `BuildLayout` in settings, and `ExecOperations` in task actions. In the Kotlin and Java DSLs, looking up a service that is not available in the current scope is caught at compile time.
 
 Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or later at runtime.
 

@@ -165,22 +165,22 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The set of services you can look up depends on where the lookup happens:
 
-[%header,cols="2,1,1,1"]
+[%header,cols="2,1,1,1,1"]
 |===
-| Service | Project scripts, plugins & task actions | Settings scripts & plugins | Init scripts & `Gradle` plugins
+| Service | Build scripts & project plugins | Task actions | Settings scripts & plugins | Init scripts & `Gradle` plugins
 
-| <<objectfactory,`ObjectFactory`>>               | ✓ | ✓ | ✓
-| <<providerfactory,`ProviderFactory`>>           | ✓ | ✓ | ✓
-| <<filesystemoperations,`FileSystemOperations`>> | ✓ | ✓ | ✓
-| <<archiveoperations,`ArchiveOperations`>>       | ✓ | ✓ | ✓
-| <<execoperations,`ExecOperations`>>             | ✓ | ✓ | ✓
-| <<sec:projectlayout,`ProjectLayout`>>           | ✓ |   |
-| <<buildlayout,`BuildLayout`>>                   |   | ✓ |
+| <<objectfactory,`ObjectFactory`>>               | ✓ | ✓ | ✓ | ✓
+| <<providerfactory,`ProviderFactory`>>           | ✓ | ✓ | ✓ | ✓
+| <<filesystemoperations,`FileSystemOperations`>> | ✓ | ✓ | ✓ | ✓
+| <<archiveoperations,`ArchiveOperations`>>       | ✓ | ✓ | ✓ | ✓
+| <<execoperations,`ExecOperations`>>             |   | ✓ |   |
+| <<sec:projectlayout,`ProjectLayout`>>           | ✓ | ✓ |   |
+| <<buildlayout,`BuildLayout`>>                   |   |   | ✓ |
 |===
 
-Looking up a type that is not available in the current scope, an internal type, or a <<build_services.adoc#build_services,shared build service>> fails with an `InvalidUserDataException`.
-The message lists the services that _are_ available in that scope.
-For a shared build service, the message points you to `@ServiceReference` and `gradle.sharedServices` instead.
+In the Kotlin and Java DSLs each `service(...)` is bounded to the scopes above, so requesting a service that is not available in the current scope — or a type that is not a Gradle service at all — is a compile error.
+In the Groovy DSL, where the bound is not enforced (or when the type is supplied reflectively as a `Class`), the same request instead fails at runtime with an `InvalidUserDataException` whose message lists the services available in that scope; for a <<build_services.adoc#build_services,shared build service>> it points you to `@ServiceReference` and `gradle.sharedServices` instead.
+This check covers only _where_ a service can be looked up; it does not distinguish configuration-time from execution-time use, nor does it police cross-project access (see below).
 
 Relative paths passed to a looked-up `FileSystemOperations` or `ArchiveOperations` are resolved the same way as for the enclosing scope: against the project directory for a project script or task action, and against the build's root directory for a settings or init script.
 
@@ -198,6 +198,8 @@ Look up project-scoped services (or `ProjectLayout`) from the task instead.
 
 Prefer a looked-up `FileSystemOperations`, `ArchiveOperations`, or `ExecOperations` over hand-rolled `java.io`/`java.nio` code or `Runtime.exec(...)`.
 The Gradle services give you path resolution, copy and sync specs, and robust deletion, and they keep your code compatible with the Configuration Cache.
+
+`ExecOperations` can be looked up only from a task action, reflecting that running external processes at configuration time is incompatible with the Configuration Cache.
 
 [[objectfactory]]
 == `ObjectFactory`
@@ -352,14 +354,17 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `FileSystemOperations` service is injected into the `MyFileSystemOperationsTask` task's constructor using the `@Inject` annotation.
 
-With some ceremony, it is possible to use `FileSystemOperations` in an ad-hoc task defined in a build script:
+To use `FileSystemOperations` in an ad-hoc task without writing a dedicated class, look it up with `service()` — see <<looking_up_services,Looking up services in scripts>>.
+
+It can also be obtained through an injection point created with `ObjectFactory.newInstance`.
+This is more verbose, but works for any injectable service, including those not available through `service()`:
 
 ====
 include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=file-system-adhoc]"]
 include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=file-system-adhoc]"]
 ====
 
-First, you need to declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
+First, you declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
 Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
 
 TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
@@ -379,17 +384,8 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
 
-With some ceremony, it is possible to use `ArchiveOperations` in an ad-hoc task defined in a build script:
-
-====
-include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-adhoc]"]
-include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-adhoc]"]
-====
-
-First, you need to declare an interface with a property of type `ArchiveOperations`, here named `InjectedArcOps`, to serve as an injection point.
-Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
-
-TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
+To use `ArchiveOperations` in an ad-hoc task without writing a dedicated class, look it up with `service()` — see <<looking_up_services,Looking up services in scripts>>.
+For a service that is not available through the lookup, use the `ObjectFactory.newInstance` injection point shown for <<filesystemoperations,`FileSystemOperations`>>.
 
 [[execoperations]]
 == `ExecOperations`
@@ -406,17 +402,9 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `ExecOperations` is injected into the `MyExecOperationsTask` task's constructor using the `@Inject` annotation.
 
-With some ceremony, it is possible to use `ExecOperations` in an ad-hoc task defined in a build script:
-
-====
-include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-adhoc]"]
-include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-adhoc]"]
-====
-
-First, you need to declare an interface with a property of type `ExecOperations`, here named `InjectedExecOps`, to serve as an injection point.
-Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
-
-TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
+To run an external process from an ad-hoc task, look `ExecOperations` up with `service()` from the task action — see <<looking_up_services,Looking up services in scripts>>.
+It can be looked up only from a task action, not at configuration time.
+For a service that is not available through the lookup, use the `ObjectFactory.newInstance` injection point shown for <<filesystemoperations,`FileSystemOperations`>>.
 
 [[toolingmodelbuilderregistry]]
 == `ToolingModelBuilderRegistry`

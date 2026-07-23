@@ -25,13 +25,12 @@ import spock.lang.Issue
 class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
 
     def "all documented services can be looked up in a build script"() {
-        buildFile << """
+        buildFile """
             def services = [
                 service(ObjectFactory),
                 service(ProviderFactory),
                 service(FileSystemOperations),
                 service(ArchiveOperations),
-                service(ExecOperations),
                 service(ProjectLayout),
             ]
             println("resolved services: " + services.count { it != null })
@@ -39,12 +38,12 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("help")
-        outputContains("resolved services: 6")
+        outputContains("resolved services: 5")
     }
 
     def "can delete files with FileSystemOperations looked up inside a task action"() {
         file("thing.txt").text = "content"
-        buildFile << """
+        buildFile """
             tasks.register("cleanThing") {
                 doLast {
                     service(FileSystemOperations).delete {
@@ -65,7 +64,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         file("doomed.txt").text = "content"
         file("zip-src/entry.txt").text = "entry"
         file("zip-src").zipTo(file("stuff.zip"))
-        buildFile << """
+        buildFile """
             tasks.register("use") {
                 def captured = service($serviceType)
                 def targetFile = file("doomed.txt")
@@ -97,7 +96,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
 
     def "FileSystemOperations from a project script resolves paths relative to the project directory"() {
         createDirs("sub")
-        settingsFile << """
+        settingsFile """
             include("sub")
         """
         file("local.txt").text = "root"
@@ -121,7 +120,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "services can be looked up in a settings script"() {
-        settingsFile << """
+        settingsFile """
             def layout = service(BuildLayout)
             println("settings dir name: " + layout.settingsDirectory.asFile.name)
 
@@ -137,26 +136,24 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "services can be looked up in an init script"() {
-        initScriptFile << """
+        initScriptFile """
             def property = service(ObjectFactory).property(String)
             property.set("from-init")
             println("init property: " + property.get())
-            println("init exec ops: " + (service(ExecOperations) != null))
         """
 
         expect:
         args("-I", "init.gradle")
         succeeds("help")
         outputContains("init property: from-init")
-        outputContains("init exec ops: true")
     }
 
     def "each project's task resolves its own project-scoped service when registered from an allprojects block"() {
         createDirs("a")
-        settingsFile << """
+        settingsFile """
             include("a")
         """
-        buildFile << """
+        buildFile """
             allprojects { proj ->
                 tasks.register("ping") {
                     def projectPath = proj.path
@@ -177,7 +174,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "service can be looked up from a closure nested inside a task action"() {
-        buildFile << """
+        buildFile """
             tasks.register("nested") {
                 doLast {
                     def makeProperty = { service(ObjectFactory).property(String) }
@@ -196,7 +193,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "looking up a project-only service from a settings script fails with a helpful message"() {
-        settingsFile << """
+        settingsFile """
             service(ProjectLayout)
         """
 
@@ -207,8 +204,20 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("org.gradle.api.file.ProjectLayout is not available in settings scripts and plugins. It is available in project scripts and plugins and tasks.")
     }
 
+    def "looking up an execution-only service from a build script fails with a helpful message"() {
+        buildFile """
+            service(ExecOperations)
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("org.gradle.process.ExecOperations is not available in project scripts and plugins. It is available in tasks.")
+    }
+
     def "looking up an internal service fails and enumerates the available services"() {
-        buildFile << """
+        buildFile """
             service(org.gradle.api.internal.project.ProjectInternal)
         """
 
@@ -220,11 +229,25 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
             "The following services are available in project scripts and plugins: " +
             "org.gradle.api.model.ObjectFactory, org.gradle.api.provider.ProviderFactory, " +
             "org.gradle.api.file.FileSystemOperations, org.gradle.api.file.ArchiveOperations, " +
-            "org.gradle.process.ExecOperations, org.gradle.api.file.ProjectLayout.")
+            "org.gradle.api.file.ProjectLayout.")
+    }
+
+    def "a user type that implements a scope marker but is not a Gradle service is still rejected at runtime"() {
+        buildFile """
+            abstract class NotAService implements org.gradle.api.services.ProjectService {}
+
+            service(NotAService)
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("NotAService is not a service that is available for lookup with service().")
     }
 
     def "looking up a shared build service fails with a pointer to the build service APIs"() {
-        buildFile << """
+        buildFile """
             abstract class CounterService implements org.gradle.api.services.BuildService<org.gradle.api.services.BuildServiceParameters.None> {
             }
 
@@ -239,7 +262,7 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "looking up a null service type fails with a helpful message"() {
-        buildFile << """
+        buildFile """
             service(null)
         """
 

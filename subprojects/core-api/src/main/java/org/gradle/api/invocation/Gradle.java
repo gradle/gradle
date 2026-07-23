@@ -32,6 +32,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.api.services.GradleService;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.service.scopes.Scope;
@@ -427,7 +428,6 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * <li>{@link org.gradle.api.provider.ProviderFactory}</li>
      * <li>{@link org.gradle.api.file.FileSystemOperations}</li>
      * <li>{@link org.gradle.api.file.ArchiveOperations}</li>
-     * <li>{@link org.gradle.process.ExecOperations}</li>
      * </ul>
      *
      * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
@@ -440,5 +440,5 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @since 9.8.0
      */
     @Incubating
-    <T> T service(Class<T> serviceType);
+    <T extends GradleService> T service(Class<T> serviceType);
 }

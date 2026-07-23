@@ -36,13 +36,12 @@ class PublicServiceLookupIntegrationTest : AbstractKotlinIntegrationTest() {
                 service<ProviderFactory>(),
                 service<FileSystemOperations>(),
                 service<ArchiveOperations>(),
-                service<ExecOperations>(),
                 service<ProjectLayout>(),
             )
             println("resolved services: " + services.size)
         """)
 
-        assertThat(build("help").output, containsString("resolved services: 6"))
+        assertThat(build("help").output, containsString("resolved services: 5"))
     }
 
     @Test
@@ -119,8 +118,8 @@ class PublicServiceLookupIntegrationTest : AbstractKotlinIntegrationTest() {
     fun `services can be looked up via the generated KClass overload`() {
         withDefaultSettings()
         withBuildScript("""
-            val execOps = service(ExecOperations::class)
-            println("kclass lookup: " + (execOps is ExecOperations))
+            val objectFactory = service(ObjectFactory::class)
+            println("kclass lookup: " + (objectFactory is ObjectFactory))
         """)
 
         assertThat(build("help").output, containsString("kclass lookup: true"))
@@ -154,35 +153,47 @@ class PublicServiceLookupIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `looking up an internal service fails and enumerates the available services`() {
+    fun `looking up an internal service does not compile`() {
+        // A type that implements none of the scope markers is rejected by the bound at compile time.
+        // The runtime message that enumerates the available services is covered by the Groovy DSL test.
         withDefaultSettings()
         withBuildScript("""
             service<org.gradle.api.internal.project.ProjectInternal>()
         """)
 
-        val failure = buildAndFail("help")
-
-        failure.assertHasDescription(
-            "org.gradle.api.internal.project.ProjectInternal is not a service that is available for lookup with service(). " +
-                "The following services are available in project scripts and plugins: " +
-                "org.gradle.api.model.ObjectFactory, org.gradle.api.provider.ProviderFactory, " +
-                "org.gradle.api.file.FileSystemOperations, org.gradle.api.file.ArchiveOperations, " +
-                "org.gradle.process.ExecOperations, org.gradle.api.file.ProjectLayout."
-        )
+        buildAndFail("help").apply {
+            assertHasErrorOutput("Script compilation error")
+        }
     }
 
     @Test
-    fun `looking up a project-only service from a settings script fails with a helpful message`() {
+    fun `looking up a project-only service from a settings script does not compile`() {
+        // ProjectLayout is not available in the settings scope, so the SettingsService bound
+        // rejects it at compile time. The runtime message is covered by the Groovy DSL test.
         withSettings("""
             service<ProjectLayout>()
         """)
         withBuildScript("")
 
-        val failure = buildAndFail("help")
+        buildAndFail("help").apply {
+            assertHasErrorOutput("Script compilation error")
+            assertHasErrorOutput("Service")
+        }
+    }
 
-        failure.assertHasDescription(
-            "org.gradle.api.file.ProjectLayout is not available in settings scripts and plugins. " +
-                "It is available in project scripts and plugins and tasks."
-        )
+    @Test
+    fun `looking up a settings-only service from a task does not compile`() {
+        withDefaultSettings()
+        withBuildScript("""
+            tasks.register("useLayout") {
+                // BuildLayout is only available in the settings scope, so the bound rejects this at compile time
+                service<BuildLayout>()
+            }
+        """)
+
+        buildAndFail("useLayout").apply {
+            assertHasErrorOutput("Script compilation error")
+            assertHasErrorOutput("Service")
+        }
     }
 }

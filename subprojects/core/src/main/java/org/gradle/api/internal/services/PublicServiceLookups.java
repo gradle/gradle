@@ -75,7 +75,7 @@ public final class PublicServiceLookups {
         .put(ProviderFactory.class, ALL_ENTRY_POINTS)
         .put(FileSystemOperations.class, ALL_ENTRY_POINTS)
         .put(ArchiveOperations.class, ALL_ENTRY_POINTS)
-        .put(ExecOperations.class, ALL_ENTRY_POINTS)
+        .put(ExecOperations.class, Sets.immutableEnumSet(EntryPoint.TASK))
         .put(ProjectLayout.class, Sets.immutableEnumSet(EntryPoint.PROJECT, EntryPoint.TASK))
         .put(BuildLayout.class, Sets.immutableEnumSet(EntryPoint.SETTINGS))
         .build();
@@ -83,10 +83,31 @@ public final class PublicServiceLookups {
     private PublicServiceLookups() {
     }
 
+    /**
+     * Visible for testing: the authoritative service→scopes allowlist, so the marker/bound consistency
+     * test can assert the compile-time markers and method bounds agree with it.
+     */
+    static ImmutableMap<Class<?>, ImmutableSet<EntryPoint>> availableServices() {
+        return AVAILABLE_SERVICES;
+    }
+
+    /**
+     * Resolves a public service, enforcing the curated allowlist at runtime.
+     *
+     * <p>The marker interfaces ({@code ProjectService}, {@code TaskService}, etc.) are only a compile-time
+     * convenience, not a trust boundary: they are unsealed, so third-party code can implement one to satisfy
+     * the bound, and Groovy/reflective calls skip it entirely. This method matches {@code serviceType} by
+     * <strong>exact identity</strong> against {@link #AVAILABLE_SERVICES} (never {@code instanceof}) and only
+     * then queries the {@link ServiceRegistry}. So a caller-supplied type that merely implements a marker is
+     * rejected, and is never resolved or executed through Gradle's DI container.</p>
+     *
+     * @throws InvalidUserDataException if the type is null, not allowlisted, or not available in this scope
+     */
     public static <T> T lookup(@Nullable Class<T> serviceType, EntryPoint entryPoint, ServiceRegistry services) {
         if (serviceType == null) {
             throw new InvalidUserDataException("The service type given to service() must not be null.");
         }
+        // Identity check: a user type that only implements a marker is not a key here, so it never reaches the registry.
         Set<EntryPoint> availableIn = AVAILABLE_SERVICES.get(serviceType);
         if (availableIn == null) {
             throw new InvalidUserDataException(unknownServiceMessage(serviceType, entryPoint));

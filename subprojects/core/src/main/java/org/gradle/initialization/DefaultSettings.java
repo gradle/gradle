@@ -40,6 +40,7 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.services.PublicServiceLookups;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.SettingsService;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
@@ -320,7 +321,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public <T> T service(Class<T> serviceType) {
+    public <T extends SettingsService> T service(Class<T> serviceType) {
         return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.SETTINGS, getServices());
     }
 

@@ -57,6 +57,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.services.BuildService;
+import org.gradle.api.services.TaskService;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
@@ -693,7 +694,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public <T> T service(Class<T> serviceType) {
+    public <T extends TaskService> T service(Class<T> serviceType) {
         return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.TASK, getServices());
     }
 
