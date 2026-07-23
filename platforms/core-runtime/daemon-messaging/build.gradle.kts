@@ -4,7 +4,8 @@ plugins {
 
 description = """
     Classes and serializers for classes intended to be serialized for
-    communication between clients and the Gradle daemon on the daemon socket.
+    communication between clients and the Gradle daemon during startup
+    over stdin/stdout and during runtime over the daemon socket.
 """
 
 dependencies {
@@ -12,6 +13,8 @@ dependencies {
     api(projects.classloaders)
     api(projects.logging)
     api(projects.loggingApi)
+    api(projects.messaging)
+    api(projects.native)
     api(projects.problemsApi)
     api(projects.serialization)
     api(projects.startParameter)

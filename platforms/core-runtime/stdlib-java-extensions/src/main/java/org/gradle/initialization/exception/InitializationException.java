@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client;
 
-import org.gradle.launcher.daemon.startup.DaemonStartupInfo;
+package org.gradle.initialization.exception;
 
-public interface DaemonStarter {
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
-    DaemonStartupInfo startDaemon(boolean singleRun);
+@Contextual
+public class InitializationException extends GradleException {
+
+    public InitializationException(String message) {
+        super(message);
+    }
+
+    public InitializationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

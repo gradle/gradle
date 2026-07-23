@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.configuration;
+/**
+ * Logic for communicating between client and daemon during initial
+ * handshake over stdin/stdout.
+ */
+@NullMarked
+package org.gradle.launcher.daemon.startup;
 
-public enum DaemonPriority {
-    LOW,
-    NORMAL,
-}
+import org.jspecify.annotations.NullMarked;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.exception;
+package org.gradle.launcher.daemon.startup;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
-
-@Contextual
-public class InitializationException extends GradleException {
-
-    public InitializationException(Throwable cause) {
-        super("Gradle could not start your build.", cause);
-    }
+public enum DaemonPriority {
+    LOW,
+    NORMAL,
 }

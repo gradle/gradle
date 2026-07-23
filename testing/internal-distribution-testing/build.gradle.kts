@@ -50,6 +50,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.daemonLogging)
+    implementation(projects.daemonMessaging)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)

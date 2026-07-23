@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.configuration;
+package org.gradle.launcher.daemon.startup;
 
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 
@@ -22,6 +22,8 @@ import java.io.File;
 import java.util.List;
 
 public interface DaemonServerConfiguration {
+
+    File getGradleUserHomeDir();
 
     File getBaseDir();
 
@@ -40,4 +42,5 @@ public interface DaemonServerConfiguration {
     boolean isInstrumentationAgentAllowed();
 
     NativeServicesMode getNativeServicesMode();
+
 }
