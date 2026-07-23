@@ -89,15 +89,14 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  * </pre>
  *
- * For tackling edge cases users can perform advanced configuration on resulting XML file.
- * It is also possible to affect the way eclipse plugin merges the existing configuration
+ * For tackling edge cases users can perform advanced configuration on the project model
  * via beforeMerged and whenMerged closures.
  * <p>
  * beforeMerged and whenMerged closures receive {@link Project} object
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTestedWithDeprecations'>
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'
@@ -107,21 +106,14 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *   project {
  *
  *     file {
- *       //if you want to mess with the resulting XML in whatever way you fancy
- *       withXml {
- *         def node = it.asNode()
- *         node.appendNode('xml', 'is what I love')
- *       }
- *
- *       //closure executed after .project content is loaded from existing file
- *       //but before gradle build information is merged
+ *       //closure executed on the empty model
+ *       //before gradle build information is merged
  *       beforeMerged { project -&gt;
  *         //if you want skip merging natures... (a very abstract example)
  *         project.natures.clear()
  *       }
  *
- *       //closure executed after .project content is loaded from existing file
- *       //and after gradle build information is merged
+ *       //closure executed after gradle build information is merged
  *       whenMerged { project -&gt;
  *         //you can tinker with the {@link Project} here
  *       }

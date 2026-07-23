@@ -30,11 +30,11 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.process.ExecOperations;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.awt.*;
@@ -81,26 +81,23 @@ public abstract class IdePlugin implements Plugin<Project> {
     @Override
     public void apply(Project target) {
         project = target;
-        lifecycleTask = target.getTasks().register(getLifecycleTaskName());
-        cleanTask = target.getTasks().register(cleanName(getLifecycleTaskName()), Delete.class, new Action<Delete>() {
-            @Override
-            public void execute(Delete task) {
-                task.setGroup("IDE");
-                if (shouldDeprecateLifecycleTask()) {
-                    task.doFirst(deprecateTaskAction());
+        String lifecycleTaskName = getLifecycleTaskName();
+        if (lifecycleTaskName != null) {
+            lifecycleTask = target.getTasks().register(lifecycleTaskName);
+            cleanTask = target.getTasks().register(cleanName(lifecycleTaskName), Delete.class, new Action<Delete>() {
+                @Override
+                public void execute(Delete task) {
+                    task.setGroup("IDE");
                 }
-            }
-        });
-        lifecycleTask.configure(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.setGroup("IDE");
-                task.shouldRunAfter(cleanTask);
-                if (shouldDeprecateLifecycleTask()) {
-                    task.doFirst(deprecateTaskAction());
+            });
+            lifecycleTask.configure(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    task.setGroup("IDE");
+                    task.shouldRunAfter(cleanTask);
                 }
-            }
-        });
+            });
+        }
         onApply(target);
     }
 
@@ -134,7 +131,6 @@ public abstract class IdePlugin implements Plugin<Project> {
             @Override
             public void execute(Delete cleanWorker) {
                 cleanWorker.delete(worker);
-                cleanWorker.doFirst(deprecateTaskAction());
             }
         });
 
@@ -169,13 +165,6 @@ public abstract class IdePlugin implements Plugin<Project> {
         };
     }
 
-    private static Action<Task> deprecateTaskAction() {
-        return SerializableLambdas.action(task -> DeprecationLogger.deprecateTask(task.getName())
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "ide_task_deprecation")
-            .nagUser());
-    }
-
     protected static Action<? super Task> withDescription(final String description) {
         return new Action<Task>() {
             @Override
@@ -208,9 +197,6 @@ public abstract class IdePlugin implements Plugin<Project> {
                 openTask.setDescription("Opens the " + workspace.getDisplayName());
 
                 ExecOperations execOperations = getExecOperations();
-                if (shouldDeprecateLifecycleTask()) {
-                    openTask.doFirst(deprecateTaskAction());
-                }
                 openTask.doLast(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
@@ -229,11 +215,15 @@ public abstract class IdePlugin implements Plugin<Project> {
         });
     }
 
-    protected abstract String getLifecycleTaskName();
-
-    protected boolean shouldDeprecateLifecycleTask() {
-        return false;
-    };
+    /**
+     * The name of the lifecycle task this plugin registers, or {@code null} if it registers no tasks.
+     * The idea and eclipse plugins no longer generate files and register no tasks at all; they feed
+     * IDEs through the Tooling API models instead.
+     */
+    @Nullable
+    protected String getLifecycleTaskName() {
+        return null;
+    }
 
     public boolean isRoot() {
         return project.getParent() == null;

@@ -17,18 +17,9 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
-import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
-import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
@@ -96,52 +86,10 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  * </pre>
  *
- * For tackling edge cases users can perform advanced configuration on resulting XML file.
- * It is also possible to affect the way eclipse plugin merges the existing configuration
- * via beforeMerged and whenMerged closures.
- * <p>
- * beforeMerged and whenMerged closures receive {@link WtpComponent} object
- * <p>
- * Examples of advanced configuration:
- *
- * <pre class='autoTestedWithDeprecations'>
- * plugins {
- *     id 'war'
- *     id 'eclipse-wtp'
- * }
- *
- * eclipse {
- *
- *   wtp {
- *     component {
- *       file {
- *         //if you want to mess with the resulting XML in whatever way you fancy
- *         withXml {
- *           def node = it.asNode()
- *           node.appendNode('xml', 'is what I love')
- *         }
- *
- *         //closure executed after wtp component file content is loaded from existing file
- *         //but before gradle build information is merged
- *         beforeMerged { wtpComponent -&gt;
- *           //tinker with {@link WtpComponent} here
- *         }
- *
- *         //closure executed after wtp component file content is loaded from existing file
- *         //and after gradle build information is merged
- *         whenMerged { wtpComponent -&gt;
- *           //you can tinker with the {@link WtpComponent} here
- *         }
- *       }
- *     }
- *   }
- * }
- * </pre>
  */
 public abstract class EclipseWtpComponent {
 
     private final Project project;
-    private final XmlFileContentMerger file;
 
     private Set<File> sourceDirs;
     private Set<Configuration> rootConfigurations = new LinkedHashSet<>();
@@ -156,57 +104,12 @@ public abstract class EclipseWtpComponent {
     private Map<String, File> pathVariables = new HashMap<>();
 
     @Inject
-    public EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {
+    public EclipseWtpComponent(org.gradle.api.Project project) {
         this.project = project;
-        this.file = file;
     }
 
     public Project getProject() {
         return project;
-    }
-
-    // The getter does not nag: Groovy's dynamic dispatch probes the `file` property for any
-    // unresolved `file(...)` call inside a `component { }` block (e.g. `sourceDirs += file(...)`),
-    // which would produce false-positive warnings. The file(Closure)/file(Action) hooks nag instead.
-    /**
-     * See {@link #file(Action) }
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public XmlFileContentMerger getFile() {
-        return file;
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing wtp component file content is merged with gradle build information
-     * <p>
-     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpComponent}
-     * <p>
-     * For example see docs for {@link EclipseWtpComponent}
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseWtpComponent.class, "file");
-        configure(closure, file);
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing wtp component file content is merged with gradle build information.
-     * <p>
-     * For example see docs for {@link EclipseWtpComponent}
-     *
-     * @since 3.5
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void file(Action<? super XmlFileContentMerger> action) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseWtpComponent.class, "file");
-        action.execute(file);
     }
 
     /**
@@ -383,11 +286,6 @@ public abstract class EclipseWtpComponent {
         this.libDeployPath = libDeployPath;
     }
 
-    /**
-     * The variables to be used for replacing absolute path in dependent-module elements.
-     * <p>
-     * For examples see docs for {@link EclipseModel}
-     */
     public Map<String, File> getPathVariables() {
         return pathVariables;
     }
@@ -402,21 +300,5 @@ public abstract class EclipseWtpComponent {
             referenceFactory.addPathVariable(pathVariable.getKey(), pathVariable.getValue());
         }
         return referenceFactory;
-    }
-
-    /**
-     * Merges the existing component file content with the configuration from this model.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public void mergeXmlComponent(WtpComponent xmlComponent) {
-        file.getBeforeMerged().execute(xmlComponent);
-        ProjectInternal projectInternal = (ProjectInternal) this.project;
-        IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        new WtpComponentFactory(projectInternal, ideArtifactRegistry, projectRegistry).configure(this, xmlComponent);
-        file.getWhenMerged().execute(xmlComponent);
     }
 }

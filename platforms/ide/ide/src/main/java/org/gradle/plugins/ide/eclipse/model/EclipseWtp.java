@@ -18,13 +18,6 @@ package org.gradle.plugins.ide.eclipse.model;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.internal.IdeDeprecations;
-
-import javax.inject.Inject;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
@@ -58,18 +51,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class EclipseWtp {
 
     private EclipseWtpComponent component;
-    @SuppressWarnings("deprecation")
-    private EclipseWtpFacet facet;
-
-    /**
-     * Injects and returns an instance of {@link ObjectFactory}.
-     *
-     * @since 4.9
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Configures wtp component.
@@ -104,55 +85,4 @@ public abstract class EclipseWtp {
         action.execute(component);
     }
 
-    /**
-     * Configures wtp facet.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public EclipseWtpFacet getFacet() {
-        IdeDeprecations.nagDeprecatedProperty(EclipseWtp.class, "facet");
-        if (facet == null) {
-            facet = DeprecationLogger.whileDisabled(() -> {
-                XmlTransformer xmlTransformer = new XmlTransformer();
-                xmlTransformer.setIndentation("\t");
-                return getObjectFactory().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(xmlTransformer));
-            });
-        }
-        return facet;
-    }
-
-    /**
-     * Sets the wtp facet configuration.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setFacet(EclipseWtpFacet facet) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseWtp.class, "facet");
-        this.facet = facet;
-    }
-
-    /**
-     * Configures wtp facet.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void facet(@DelegatesTo(EclipseWtpFacet.class) Closure action) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseWtp.class, "facet");
-        configure(action, DeprecationLogger.whileDisabled(this::getFacet));
-    }
-
-    /**
-     * Configures wtp facet.
-     *
-     * @since 3.5
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void facet(Action<? super EclipseWtpFacet> action) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseWtp.class, "facet");
-        action.execute(DeprecationLogger.whileDisabled(this::getFacet));
-    }
 }

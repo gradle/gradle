@@ -1,0 +1,68 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_major_version_10]]
+
+= Upgrading to Gradle 10.0.0
+
+This chapter provides the information you need to migrate your Gradle 9.x builds to Gradle 10.0.0.
+For migrating within Gradle 9.x, see the <<upgrading_version_9.adoc#upgrading_version_9, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
++
+image::deprecations.png[Deprecations View in a Build Scan]
++
+This lets you see any deprecation warnings that apply to your build.
++
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins may break with a new major version of Gradle, as these releases can remove public APIs.
+Using the latest version of a plugin increases the likelihood that it is already compatible with the new major Gradle version.
++
+. Run `gradle :wrapper --gradle-version 10.0.0` to update the project to 10.0.0.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_major_10]]
+== Plugin changes
+
+[[ide_task_removal]]
+=== File generation tasks of IDE plugins removed
+
+The file generation tasks of the <<idea_plugin.adoc#idea_plugin,`idea`>> and <<eclipse_plugin.adoc#eclipse_plugin,`eclipse`>> plugins, deprecated in Gradle 9.x (see the <<upgrading_version_9.adoc#ide_task_deprecation,deprecation entry>>), have been removed.
+All modern IDEs import Gradle projects through their built-in Gradle integration (IntelliJ IDEA's Gradle import, Eclipse Buildship), which does not use these generated files.
+
+The removed tasks are:
+
+* `idea` / `ideaProject` / `ideaModule` / `ideaWorkspace` (generated `.ipr`, `.iml`, `.iws` files)
+* `eclipse` / `eclipseProject` / `eclipseClasspath` / `eclipseJdt` / `eclipseWtpComponent` / `eclipseWtpFacet` (generated `.project`, `.classpath`, `.settings/` files)
+* `openIdea`
+* associated `clean*` tasks
+
+The model properties that only affected the generated files are removed with them:
+
+* `idea.module.iml { ... }`, `idea.project.ipr { ... }`, `idea.workspace { ... }`, `idea.targetVersion`, `idea.pathVariables`, `idea.module.pathVariables`, `idea.project.projectLibraries`, and the `pathFactory` properties
+* `eclipse.wtp.facet { ... }` and the `file { ... }` merging hooks on `EclipseJdt` and `eclipse.wtp.component`, including the `PropertiesFileContentMerger` type that backed `EclipseJdt.file`; `eclipse.jdt.javaRuntimeName` is *not* removed, as it affects the JRE classpath container in the Tooling API model
+* the `withXml { ... }` hook and the XML transformer accessors on `XmlFileContentMerger` — they only affected the persisted files; the `beforeMerged { ... }` and `whenMerged { ... }` hooks on the eclipse project and classpath models remain, as they affect the model consumed by the IDE
+* the types that represented the generated XML files: `Module`, `Project`, `Workspace`, `ProjectLibrary` (idea) and `Jdt`, `Facet`, `WtpFacet`, `WtpComponent`, `WbDependentModule` (eclipse)
+
+The plugins themselves are *not* removed.
+The `idea { ... }` and `eclipse { ... }` model configuration that affects how IDEs understand your project (source directories, language levels, dependency scopes, `eclipse.wtp.component`, etc.) continues to work unchanged and is picked up automatically by the Gradle integration built into IDEs.
+
+If you used the removed hooks to write additional Eclipse settings files (for example `eclipse.jdt.file.withProperties { ... }` to add entries to `.settings/org.eclipse.jdt.core.prefs`), register a custom task for the file — for properties files, link:{javadocPath}/org/gradle/plugins/ide/api/PropertiesGeneratorTask.html[`PropertiesGeneratorTask`] remains available as a base class — and wire it into Buildship's synchronization via `eclipse.synchronizationTasks(...)`, which runs it on every project import and refresh.
+
+NOTE: A plugin compiled against one of the removed classes (for example a plugin that configures link:{javadocPath}/org/gradle/plugins/ide/idea/model/IdeaModule.html[`IdeaModule`] via the removed `GenerateIdeaModule` task type) fails at plugin application time with a `NoClassDefFoundError` or `NoSuchMethodError`, even in builds that never use IDE integration.
+If applying a plugin fails this way, update to a plugin version that no longer references the removed API.

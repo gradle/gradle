@@ -16,10 +16,6 @@
                 <td>targetCompatibility</td>
                 <td><literal>project.targetCompatibility</literal></td>
             </tr>
-            <tr>
-                <td>file</td>
-                <td/>
-            </tr>
         </table>
     </section>
     <section>
@@ -30,9 +26,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>file</td>
-            </tr>
         </table>
     </section>
 </section>

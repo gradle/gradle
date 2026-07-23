@@ -40,19 +40,9 @@
                 <td/>
             </tr>
             <tr>
-                <td>ipr</td>
-                <td/>
-                <td/>
-            </tr>
-            <tr>
                 <td>outputFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.ipr</literal></td>
                 <td/>
-            </tr>
-            <tr>
-                <td>projectLibraries</td>
-                <td><literal>[]</literal> (<literal>[scala-library]</literal> with <literal>scala-base</literal> plugin)</td>
-                <td><literal>[]</literal> (<literal>[scala-library]</literal> with <literal>scala-base</literal> plugin)</td>
             </tr>
         </table>
     </section>
@@ -64,9 +54,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>ipr</td>
-            </tr>
         </table>
     </section>
 </section>

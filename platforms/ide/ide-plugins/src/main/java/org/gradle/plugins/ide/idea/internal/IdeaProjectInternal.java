@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.idea.internal;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.jspecify.annotations.NullMarked;
@@ -30,8 +29,8 @@ import javax.inject.Inject;
 public abstract class IdeaProjectInternal extends IdeaProject {
 
     @Inject
-    public IdeaProjectInternal(Project project, XmlFileContentMerger ipr) {
-        super(project, ipr);
+    public IdeaProjectInternal(Project project) {
+        super(project);
     }
 
     /**

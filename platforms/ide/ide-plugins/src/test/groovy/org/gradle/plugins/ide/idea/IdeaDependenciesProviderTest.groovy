@@ -46,7 +46,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         module.offline = true
 
         when:
@@ -60,7 +60,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         module.offline = true
 
         when:
@@ -78,7 +78,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         project.configurations.create('excluded')
         module.offline = true
 
@@ -96,7 +96,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         project.configurations.create('excluded1')
         project.configurations.create('excluded2')
         module.offline = true
@@ -118,7 +118,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module
+        def module = project.idea.module
         def extraDependency = project.dependencies.create(project.layout.files('lib/guava.jar'))
         def detachedCfg = project.configurations.detachedConfiguration(extraDependency)
         module.offline = true
@@ -137,7 +137,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'java')
         childProject.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         module.offline = true
 
         when:
@@ -154,7 +154,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'java')
         childProject.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         module.offline = true
 
         when:
@@ -169,7 +169,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         module.offline = true
 
         when:
@@ -187,7 +187,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         module.offline = true
 
         when:
@@ -205,7 +205,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         module.offline = true
 
         when:
@@ -225,7 +225,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def module = project.ideaModule.module // Mock(IdeaModule)
+        def module = project.idea.module // Mock(IdeaModule)
         module.offline = true
         def extraConfiguration = project.configurations.create('extraConfiguration')
 

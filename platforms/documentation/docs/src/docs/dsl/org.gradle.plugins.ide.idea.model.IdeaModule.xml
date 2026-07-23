@@ -103,11 +103,6 @@
                 <td><literal>project.targetCompatibility</literal></td>
             </tr>
             <tr>
-                <td>iml</td>
-                <td/>
-                <td/>
-            </tr>
-            <tr>
                 <td>outputFile</td>
                 <td>#name + <literal>'.iml'</literal></td>
                 <td/>
@@ -122,9 +117,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>iml</td>
-            </tr>
         </table>
     </section>
 </section>

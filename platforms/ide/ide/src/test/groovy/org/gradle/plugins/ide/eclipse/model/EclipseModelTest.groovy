@@ -18,14 +18,10 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
-import org.gradle.api.XmlProvider
-import org.gradle.api.internal.PropertiesTransformer
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
-import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -72,7 +68,7 @@ class EclipseModelTest extends Specification {
     def "enables setting path variables"() {
         given:
         model.wtp = TestUtil.newInstance(EclipseWtp)
-        model.wtp.component = TestUtil.newInstance(EclipseWtpComponent, project, Mock(XmlFileContentMerger))
+        model.wtp.component = TestUtil.newInstance(EclipseWtpComponent, project)
 
         when:
         model.pathVariables(one: new File('.'))
@@ -82,12 +78,10 @@ class EclipseModelTest extends Specification {
         model.wtp.component.pathVariables == [one: new File('.')]
     }
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.api.XmlFileContentMerger.withXml). This behavior has been deprecated.")
     def "can configure project with Actions"() {
         given:
-        def xmlTransformer = Mock(XmlTransformer)
-        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
-        def xmlAction = {} as Action<XmlProvider>
+        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [new XmlTransformer()])
+        def mergeAction = {} as Action<Project>
         model.project = TestUtil.newInstance(EclipseProject, xmlMerger)
 
         when: "configure project"
@@ -97,24 +91,22 @@ class EclipseModelTest extends Specification {
         model.project.comment == 'something'
 
         when: "configure project file"
-        model.project.file({ fcm -> fcm.xmlTransformer } as Action<XmlFileContentMerger>)
+        model.project.file({ fcm -> fcm.whenMerged } as Action<XmlFileContentMerger>)
 
         then:
-        1 * xmlMerger.getXmlTransformer()
+        1 * xmlMerger.getWhenMerged()
 
-        when: "configure project XML"
-        model.project.file.withXml(xmlAction)
+        when: "register a merge hook"
+        model.project.file.whenMerged(mergeAction)
 
         then:
-        1 * xmlTransformer.addAction(xmlAction)
+        !model.project.file.whenMerged.empty
     }
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.api.XmlFileContentMerger.withXml). This behavior has been deprecated.")
     def "can configure classpath with Actions"() {
         given:
-        def xmlTransformer = Mock(XmlTransformer)
-        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
-        def xmlAction = {} as Action<XmlProvider>
+        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [new XmlTransformer()])
+        def mergeAction = {} as Action<Classpath>
         model.classpath.file = xmlMerger
 
         when: "configure classpath"
@@ -124,86 +116,46 @@ class EclipseModelTest extends Specification {
         model.classpath.downloadJavadoc
 
         when: "configure classpath file"
-        model.classpath.file({ fcm -> fcm.xmlTransformer } as Action<XmlFileContentMerger>)
+        model.classpath.file({ fcm -> fcm.whenMerged } as Action<XmlFileContentMerger>)
 
         then:
-        1 * xmlMerger.getXmlTransformer()
+        1 * xmlMerger.getWhenMerged()
 
-        when: "configure classpath XML"
-        model.classpath.file.withXml(xmlAction)
+        when: "register a merge hook"
+        model.classpath.file.whenMerged(mergeAction)
 
         then:
-        1 * xmlTransformer.addAction(xmlAction)
+        !model.classpath.file.whenMerged.empty
     }
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseJdt.file). This behavior has been deprecated.")
     def "can configure jdt with Actions"() {
         given:
-        def propertiesTransformer = Mock(PropertiesTransformer)
-        def propertiesMerger = Spy(PropertiesFileContentMerger, constructorArgs: [propertiesTransformer])
-        def propertiesAction = {} as Action<Properties>
-        model.jdt = TestUtil.newInstance(EclipseJdt, propertiesMerger)
+        model.jdt = TestUtil.newInstance(EclipseJdt)
 
         when: "configure jdt"
         model.jdt({ jdt -> jdt.sourceCompatibility = JavaVersion.VERSION_1_9 } as Action<EclipseJdt>)
 
         then:
         model.jdt.sourceCompatibility == JavaVersion.VERSION_1_9
-
-        when: "configure jdt file"
-        model.jdt.file({ fcm -> fcm.transformer } as Action<PropertiesFileContentMerger>)
-
-        then:
-        1 * propertiesMerger.getTransformer()
-
-        when: "configure jdt properties"
-        model.jdt.file.withProperties(propertiesAction)
-
-        then:
-        1 * propertiesTransformer.addAction(propertiesAction)
     }
 
-    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseWtp.facet). This behavior has been deprecated.")
     def "can configure wtp with Actions"() {
         given:
-        def xmlTransformer = Mock(XmlTransformer)
-        def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
-        def xmlAction = {} as Action<XmlProvider>
-        def facet = TestUtil.newInstance(EclipseWtpFacet, xmlMerger)
-        def component = TestUtil.newInstance(EclipseWtpComponent, project, xmlMerger)
+        def component = TestUtil.newInstance(EclipseWtpComponent, project)
         model.wtp = TestUtil.newInstance(EclipseWtp)
 
         when: "configure wtp"
         model.wtp({ wtp ->
             wtp.component = component
-            wtp.facet = facet
         } as Action<EclipseWtp>)
 
         then:
         model.wtp.component == component
-        model.wtp.facet == facet
-        model.wtp.facet.facets.empty
 
-        when: "configure wtp component and facet"
+        when: "configure wtp component"
         model.wtp.component({ comp -> comp.deployName = 'name' } as Action<EclipseWtpComponent>)
-        model.wtp.facet({ fac -> fac.facets.add(new Facet()) } as Action<EclipseWtpFacet>)
 
         then:
         model.wtp.component.deployName == 'name'
-        model.wtp.facet.facets.size() == 1
-
-        when: "configure wtp component and facet file"
-        model.wtp.component.file({ fcm -> fcm.xmlTransformer } as Action<XmlFileContentMerger>)
-        model.wtp.facet.file({ fcm -> fcm.xmlTransformer } as Action<XmlFileContentMerger>)
-
-        then:
-        2 * xmlMerger.getXmlTransformer()
-
-        when: "configure wtp component and facet xml"
-        model.wtp.component.file.withXml(xmlAction)
-        model.wtp.facet.file.withXml(xmlAction)
-
-        then:
-        2 * xmlTransformer.addAction(xmlAction)
     }
 }

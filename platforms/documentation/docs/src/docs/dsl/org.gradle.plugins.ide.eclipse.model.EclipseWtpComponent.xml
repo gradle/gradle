@@ -59,11 +59,6 @@
                 <td><literal>/WEB-INF/lib</literal></td>
                 <td><literal>/lib</literal></td>
             </tr>
-            <tr>
-                <td>file</td>
-                <td/>
-                <td/>
-            </tr>
         </table>
     </section>
     <section>
@@ -79,9 +74,6 @@
             </tr>
             <tr>
                 <td>resource</td>
-            </tr>
-            <tr>
-                <td>file</td>
             </tr>
         </table>
     </section>

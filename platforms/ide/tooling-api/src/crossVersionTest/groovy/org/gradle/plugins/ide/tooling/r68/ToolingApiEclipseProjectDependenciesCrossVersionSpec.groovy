@@ -74,4 +74,71 @@ class ToolingApiEclipseProjectDependenciesCrossVersionSpec extends ToolingApiSpe
         project.projectDependencies.size() == 1
         project.projectDependencies[0].classpathAttributes.find { it.name == 'without_test_code' }.value == "false"
     }
+
+    def "project dependency exposes test sources when the target declares eclipse.classpath.containsTestFixtures"() {
+        setup:
+        includeProjects("a", "b")
+        file('a/build.gradle') << """
+            plugins {
+                id 'java-library'
+                id 'eclipse'
+            }
+
+            eclipse {
+                classpath {
+                    containsTestFixtures = true
+                }
+            }
+        """
+        file('b/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation project(':a')
+            }
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject).children.find { it.gradleProject.path == ':b' }
+
+        then:
+        project.projectDependencies.size() == 1
+        project.projectDependencies[0].classpathAttributes.find { it.name == 'without_test_code' }.value == "false"
+    }
+
+    def "eclipse.classpath.containsTestFixtures takes precedence over the java-test-fixtures plugin"() {
+        setup:
+        includeProjects("a", "b")
+        file('a/build.gradle') << """
+            plugins {
+                id 'java-library'
+                id 'java-test-fixtures'
+                id 'eclipse'
+            }
+
+            eclipse {
+                classpath {
+                    containsTestFixtures = false
+                }
+            }
+        """
+        file('b/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation project(':a')
+            }
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject).children.find { it.gradleProject.path == ':b' }
+
+        then:
+        project.projectDependencies.size() == 1
+        project.projectDependencies[0].classpathAttributes.find { it.name == 'without_test_code' }.value == "true"
+    }
 }

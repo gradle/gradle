@@ -15,23 +15,11 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.IdeWorkspace;
-import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
-import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -39,17 +27,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.util.internal.ConfigureUtil.configure;
-
 /**
- * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
+ * Enables fine-tuning project details of the IDEA plugin.
  * <p>
  * Example of use with a blend of all possible properties.
  * Typically you don't have to configure IDEA module directly because Gradle configures it for you.
  *
- * <pre class='autoTestedWithDeprecations'>
- * import org.gradle.plugins.ide.idea.model.*
- *
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -72,48 +56,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  *     //you can change the output file
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
- *
- *     //you can add project-level libraries
- *     projectLibraries &lt;&lt; new ProjectLibrary(name: "my-library", classes: [new File("path/to/library")])
- *   }
- * }
- * </pre>
- *
- * For tackling edge cases users can perform advanced configuration on resulting XML file.
- * It is also possible to affect the way IDEA plugin merges the existing configuration
- * via beforeMerged and whenMerged closures.
- * <p>
- * beforeMerged and whenMerged closures receive {@link Project} object
- * <p>
- * Examples of advanced configuration:
- *
- * <pre class='autoTestedWithDeprecations'>
- * plugins {
- *     id 'java'
- *     id 'idea'
- * }
- *
- * idea {
- *   project {
- *     ipr {
- *       //you can tinker with the output *.ipr file before it's written out
- *       withXml {
- *         def node = it.asNode()
- *         node.appendNode('iLove', 'tinkering with the output *.ipr file!')
- *       }
- *
- *       //closure executed after *.ipr content is loaded from existing file
- *       //but before gradle build information is merged
- *       beforeMerged { project -&gt;
- *         //you can tinker with {@link Project}
- *       }
- *
- *       //closure executed after *.ipr content is loaded from existing file
- *       //and after gradle build information is merged
- *       whenMerged { project -&gt;
- *         //you can tinker with {@link Project}
- *       }
- *     }
  *   }
  * }
  * </pre>
@@ -121,9 +63,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class IdeaProject implements IdeWorkspace {
 
     private final org.gradle.api.Project project;
-    private final XmlFileContentMerger ipr;
-    private final ProjectStateRegistry projectPathRegistry;
-    private final IdeArtifactRegistry artifactRegistry;
 
     private List<IdeaModule> modules;
     private String jdkName;
@@ -132,18 +71,10 @@ public abstract class IdeaProject implements IdeWorkspace {
     private String vcs;
     private Set<String> wildcards = new LinkedHashSet<>();
     private RegularFileProperty outputFile;
-    @SuppressWarnings("deprecation")
-    private Set<ProjectLibrary> projectLibraries = new LinkedHashSet<>();
-    private PathFactory pathFactory;
 
     @Inject
-    public IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
+    public IdeaProject(org.gradle.api.Project project) {
         this.project = project;
-        this.ipr = ipr;
-
-        ServiceRegistry services = ((ProjectInternal) project).getServices();
-        this.projectPathRegistry = services.get(ProjectStateRegistry.class);
-        this.artifactRegistry = services.get(IdeArtifactRegistry.class);
         this.outputFile = project.getObjects().fileProperty();
     }
 
@@ -167,50 +98,9 @@ public abstract class IdeaProject implements IdeWorkspace {
     }
 
     /**
-     * See {@link #ipr(Action) }
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public XmlFileContentMerger getIpr() {
-        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "ipr");
-        return ipr;
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing *.ipr content is merged with Gradle build information.
-     * <p>
-     * See the examples in the docs for {@link IdeaProject}
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void ipr(@SuppressWarnings("rawtypes") @DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "ipr");
-        configure(closure, ipr);
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing *.ipr content is merged with Gradle build information.
-     * <p>
-     * See the examples in the docs for {@link IdeaProject}
-     *
-     * @since 3.5
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void ipr(Action<? super XmlFileContentMerger> action) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "ipr");
-        action.execute(ipr);
-    }
-
-    /**
      * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
      * In IDEA, the project name is driven by the name of the 'ipr' file.
      */
-    @SuppressWarnings("deprecation")
     public String getName() {
         return getOutputFile().getName().replaceFirst("\\.ipr$", "");
     }
@@ -337,75 +227,4 @@ public abstract class IdeaProject implements IdeWorkspace {
         this.outputFile.set(outputFile);
     }
 
-    /**
-     * The project-level libraries to be added to the IDEA project.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public Set<ProjectLibrary> getProjectLibraries() {
-        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "projectLibraries");
-        return projectLibraries;
-    }
-
-    /**
-     * Sets the project-level libraries.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "projectLibraries");
-        this.projectLibraries = projectLibraries;
-    }
-
-    /**
-     * Returns the path factory used to construct paths in the generated *.ipr file.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public PathFactory getPathFactory() {
-        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "pathFactory");
-        return pathFactory;
-    }
-
-    /**
-     * Sets the path factory used to construct paths in the generated *.ipr file.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setPathFactory(PathFactory pathFactory) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "pathFactory");
-        this.pathFactory = pathFactory;
-    }
-
-    /**
-     * Merges the existing *.ipr content with the configuration from this model.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public void mergeXmlProject(Project xmlProject) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "ipr");
-        ipr.getBeforeMerged().execute(xmlProject);
-        xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());
-        configureModulePaths(xmlProject);
-        ipr.getWhenMerged().execute(xmlProject);
-    }
-
-    @SuppressWarnings("deprecation")
-    private void configureModulePaths(Project xmlProject) {
-        ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
-        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
-            BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
-            if (thisProjectId.getBuild().equals(otherBuildId)) {
-                // IDEA Module for project in current build: handled via `modules` model elements.
-                continue;
-            }
-            xmlProject.addModulePath(reference.get().getFile());
-        }
-    }
 }

@@ -15,20 +15,13 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 
 import javax.inject.Inject;
@@ -38,9 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning module details (*.iml file) of the IDEA plugin.
@@ -48,7 +38,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre class='autoTestedWithDeprecations'>
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -65,10 +55,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  *
  * idea {
- *
- *   //if you want parts of paths in resulting files (*.iml, etc.) to be replaced by variables (Files)
- *   pathVariables GRADLE_HOME: file('~/cool-software/gradle')
- *
  *   module {
  *     //if for some reason you want to add an extra sourceDirs
  *     sourceDirs += file('some-extra-source-folder')
@@ -113,51 +99,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *   }
  * }
  * </pre>
- *
- * For tackling edge cases, users can perform advanced configuration on the resulting XML file.
- * It is also possible to affect the way the IDEA plugin merges the existing configuration
- * via beforeMerged and whenMerged closures.
- * <p>
- * beforeMerged and whenMerged closures receive a {@link Module} parameter
- * <p>
- * Examples of advanced configuration:
- *
- * <pre class='autoTestedWithDeprecations'>
- * plugins {
- *     id 'java'
- *     id 'idea'
- * }
- *
- * idea {
- *   module {
- *     iml {
- *       //if you like to keep *.iml in a secret folder
- *       generateTo = file('secret-modules-folder')
- *
- *       //if you want to mess with the resulting XML in whatever way you fancy
- *       withXml {
- *         def node = it.asNode()
- *         node.appendNode('iLoveGradle', 'true')
- *         node.appendNode('butAlso', 'I find increasing pleasure tinkering with output *.iml contents. Yeah!!!')
- *       }
- *
- *       //closure executed after *.iml content is loaded from existing file
- *       //but before gradle build information is merged
- *       beforeMerged { module -&gt;
- *         //if you want skip merging exclude dirs
- *         module.excludeFolders.clear()
- *       }
- *
- *       //closure executed after *.iml content is loaded from existing file
- *       //and after gradle build information is merged
- *       whenMerged { module -&gt;
- *         //you can tinker with {@link Module}
- *       }
- *     }
- *   }
- * }
- *
- * </pre>
  */
 public abstract class IdeaModule {
 
@@ -175,28 +116,24 @@ public abstract class IdeaModule {
     private Boolean inheritOutputDirs;
     private File outputDir;
     private File testOutputDir;
-    private Map<String, File> pathVariables = new LinkedHashMap<>();
     private String jdkName;
     protected IdeaLanguageLevel languageLevel;
     protected JavaVersion targetBytecodeVersion;
-    @SuppressWarnings("deprecation")
-    private final IdeaModuleIml iml;
     private final Project project;
-    private PathFactory pathFactory;
+    private File outputFileDir;
     private boolean offline;
     private Map<String, Iterable<File>> singleEntryLibraries;
 
     @Inject
-    @SuppressWarnings("deprecation")
-    public IdeaModule(Project project, IdeaModuleIml iml) {
+    public IdeaModule(Project project) {
         this.project = project;
-        this.iml = iml;
+        this.outputFileDir = project.getProjectDir();
     }
 
     /**
      * Configures module name, that is the name of the *.iml file.
      * <p>
-     * It's <b>optional</b> because the task should configure it correctly for you.
+     * It's <b>optional</b> because the plugin configures it correctly for you.
      * By default it will try to use the <b>project.name</b> or prefix it with a part of a <b>project.path</b> to make
      * sure the module name is unique in the scope of a multi-module build.
      * The 'uniqueness' of a module name is required for correct import into IDEA and the task will make sure the name
@@ -258,7 +195,7 @@ public abstract class IdeaModule {
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
-     * <pre class='autoTestedWithDeprecations'>
+     * <pre class='autoTested'>
      * plugins {
      *     id 'java'
      *     id 'idea'
@@ -409,31 +346,6 @@ public abstract class IdeaModule {
     }
 
     /**
-     * The variables to be used for replacing absolute paths in the iml entries.
-     * For example, you might add a {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
-     * <p>
-     * For example see docs for {@link IdeaModule}
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public Map<String, File> getPathVariables() {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathVariables");
-        return pathVariables;
-    }
-
-    /**
-     * Sets the path variables.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setPathVariables(Map<String, File> pathVariables) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathVariables");
-        this.pathVariables = pathVariables;
-    }
-
-    /**
      * The JDK to use for this module.
      * If {@code null}, the value of the existing or default ipr XML (inherited) is used.
      * If it is set to <code>inherited</code>, the project SDK is used.
@@ -478,17 +390,6 @@ public abstract class IdeaModule {
     }
 
     /**
-     * See {@link #iml(Action)}
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public IdeaModuleIml getIml() {
-        IdeDeprecations.nagDeprecatedType(IdeaModuleIml.class);
-        return iml;
-    }
-
-    /**
      * An owner of this IDEA module.
      * <p>
      * If IdeaModule requires some information from gradle this field should not be used for this purpose.
@@ -496,28 +397,6 @@ public abstract class IdeaModule {
      */
     public Project getProject() {
         return project;
-    }
-
-    /**
-     * Returns the path factory used to construct paths in the generated *.iml file.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public PathFactory getPathFactory() {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathFactory");
-        return pathFactory;
-    }
-
-    /**
-     * Sets the path factory used to construct paths in the generated *.iml file.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setPathFactory(PathFactory pathFactory) {
-        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathFactory");
-        this.pathFactory = pathFactory;
     }
 
     /**
@@ -540,46 +419,20 @@ public abstract class IdeaModule {
     }
 
     /**
-     * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
-     * <p>
-     * For example see docs for {@link IdeaModule}.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void iml(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaModuleIml.class) Closure closure) {
-        configure(closure, getIml());
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
-     * <p>
-     * For example see docs for {@link IdeaModule}.
-     *
-     * @since 3.5
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    public void iml(Action<? super IdeaModuleIml> action) {
-        IdeDeprecations.nagDeprecatedType(IdeaModuleIml.class);
-        action.execute(iml);
-    }
-
-    /**
      * Configures output *.iml file.
-     * It's <b>optional</b> because the task should configure it correctly for you (including making sure it is unique in the multi-module build).
+     * It's <b>optional</b> because the plugin configures it correctly for you (including making sure it is unique in the multi-module build).
      * If you really need to change the output file name (or the module name) it is much easier to do it via the <b>moduleName</b> property!
      * <p>
      * Please refer to documentation on <b>moduleName</b> property.
      * In IntelliJ IDEA the module name is the same as the name of the *.iml file.
      */
     public File getOutputFile() {
-        return new File(iml.getGenerateTo(), getName() + ".iml");
+        return new File(outputFileDir, getName() + ".iml");
     }
 
     public void setOutputFile(File newOutputFile) {
         setName(newOutputFile.getName().replaceFirst("\\.iml$", ""));
-        getIml().setGenerateTo(newOutputFile.getParentFile());
+        this.outputFileDir = newOutputFile.getParentFile();
     }
 
     /**
@@ -592,57 +445,6 @@ public abstract class IdeaModule {
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()));
         return ideaDependenciesProvider.provide(this);
-    }
-
-    /**
-     * Merges the existing *.iml content with the configuration from this model.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public void mergeXmlModule(Module xmlModule) {
-        DeprecationLogger.whileDisabled(() -> {
-            iml.getBeforeMerged().execute(xmlModule);
-
-            Path contentRoot = getPathFactory().path(getContentRoot());
-            Set<Path> sourceFolders = pathsOf(existing(getSourceDirs()));
-            Set<Path> generatedSourceFolders = pathsOf(existing(getGeneratedSourceDirs()));
-            Set<Path> testSourceFolders = pathsOf(existing(getTestSources().getFiles()));
-            Set<Path> resourceFolders = pathsOf(existing(getResourceDirs()));
-            Set<Path> testResourceFolders = pathsOf(existing(getTestResources().getFiles()));
-            Set<Path> excludeFolders = pathsOf(getExcludeDirs());
-            Path outputDir = getOutputDir() != null ? getPathFactory().path(getOutputDir()) : null;
-            Path testOutputDir = getTestOutputDir() != null ? getPathFactory().path(getTestOutputDir()) : null;
-            Set<Dependency> dependencies = resolveDependencies();
-            String level = getLanguageLevel() != null ? getLanguageLevel().getLevel() : null;
-
-            xmlModule.configure(
-                contentRoot,
-                sourceFolders, testSourceFolders,
-                resourceFolders, testResourceFolders,
-                generatedSourceFolders,
-                excludeFolders,
-                getInheritOutputDirs(), outputDir, testOutputDir,
-                dependencies,
-                getJdkName(), level
-            );
-
-            iml.getWhenMerged().execute(xmlModule);
-        });
-    }
-
-    private Set<File> existing(Set<File> files) {
-        return Sets.filter(files, new Predicate<File>() {
-            @Override
-            public boolean apply(File file) {
-                return file.exists();
-            }
-        });
-    }
-
-    private Set<Path> pathsOf(Set<File> files) {
-        return files.stream().map(file -> getPathFactory().path(file)).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
 }
