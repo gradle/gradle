@@ -35,12 +35,22 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     private SmokeTestGradleRunner.SmokeTestBuildResult result
 
     def setup() {
+        probe("setup-enter")
         new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir)
 
         and:
         // Forward all known JDK installations so the inner gradle/gradle build can locate the daemon toolchain it requires (gradle-daemon-jvm.properties).
         def installationPaths = AvailableJavaHomes.availableJvms.collect { it.javaHome.absolutePath.replace("\\", "/") }.join(",")
         file("gradle.properties") << "\norg.gradle.java.installations.paths=${installationPaths}\n"
+        probe("setup-exit")
+    }
+
+    // TEMPORARY probe (do not merge): emit wall-clock + test-worker id so the CI log reveals whether
+    // parallel gradleBuildSmokeTest classes start together (=> 3rd class blocked on the shared home lock)
+    // or the 3rd worker starts late (=> fork/resource cap). Grep the build log for '>>>PROBE<<<'.
+    private void probe(String event) {
+        def sharedHome = IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.absolutePath
+        System.err.println(">>>PROBE<<< event=${event} class=${getClass().simpleName} worker=${System.getProperty('org.gradle.test.worker', '?')} pid=${ProcessHandle.current().pid()} ts=${System.currentTimeMillis()} sharedHome=${sharedHome}")
     }
 
     SmokeTestGradleRunner.SmokeTestBuildResult getResult() {
@@ -56,7 +66,9 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     protected void run(SmokeTestGradleRunner runner) {
         result = null
+        probe("inner-build-start")
         result = runner.build()
+        probe("inner-build-end")
     }
 
     protected void fails(List<String> tasks, File testKitDir = null) {
