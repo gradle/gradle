@@ -176,7 +176,7 @@ public class S3Client {
             HttpProxySettings.HttpProxy proxy = proxyOptional.get();
             URI uri = URI.create(String.format("http://%s:%s", proxy.host, proxy.port));
             proxyConfigurationBuilder.endpoint(uri);
-            PasswordCredentials credentials = proxy.credentials;
+            HttpProxySettings.HttpProxyCredentials credentials = proxy.credentials;
             if (credentials != null) {
                 proxyConfigurationBuilder
                     .username(credentials.getUsername())

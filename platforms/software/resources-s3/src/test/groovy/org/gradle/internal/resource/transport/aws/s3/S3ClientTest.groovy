@@ -33,7 +33,6 @@ import com.google.common.base.Optional
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import org.gradle.util.TestCredentialUtil
-import spock.lang.Ignore
 import spock.lang.Specification
 
 

@@ -33,13 +33,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.Instant
 
-import javax.servlet.ServletException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import java.security.MessageDigest
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 class S3Server extends HttpServer implements RepositoryServer {
 

@@ -11,16 +11,22 @@ dependencies {
     api(projects.resources)
     api(projects.resourcesHttp)
 
-    api(libs.awsS3Core)
     api(libs.awsS3S3)
     api(libs.awsS3Kms) {
         because("Loaded by the AWS libraries with reflection when present")
     }
+    api(libs.awsSdkCore)
+    api(libs.awsSdkRegions)
     api(libs.guava)
 
     implementation(projects.baseServices)
     implementation(projects.hashing)
 
+    implementation(libs.awsApacheHttpClient)
+    implementation(libs.awsSdkAuth)
+    implementation(libs.awsSdkAwsCore)
+    implementation(libs.awsSdkHttpClientSpi)
+    implementation(libs.awsSdkUtils)
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
 
@@ -35,6 +41,7 @@ dependencies {
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.ivy))
     testImplementation(testFixtures(projects.maven))
+    testImplementation(libs.awsS3Control)
 
     integTestImplementation(projects.logging)
     integTestImplementation(libs.commonsIo)
