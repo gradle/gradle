@@ -213,22 +213,23 @@ class PublicServiceLookupIntegrationTest extends AbstractIntegrationSpec {
         outputContains("resolved services: 4")
     }
 
-    def "each project's task resolves its own project-scoped service when registered from an allprojects block"() {
-        createDirs("a")
+    def "each project's task resolves its own project-scoped service"() {
         settingsFile """
             include("a")
         """
-        buildFile """
-            allprojects { proj ->
-                tasks.register("ping") {
-                    def projectPath = proj.path
-                    def captured = service(ProjectLayout)
-                    doLast {
-                        println("layout for " + projectPath + ": " + captured.projectDirectory.asFile.name)
-                    }
+        // Register the task in each project's own build script rather than via an allprojects block,
+        // which would cross the project boundary and be rejected under Isolated Projects.
+        def pingTask = """
+            tasks.register("ping") {
+                def projectPath = project.path
+                def captured = service(ProjectLayout)
+                doLast {
+                    println("layout for " + projectPath + ": " + captured.projectDirectory.asFile.name)
                 }
             }
         """
+        buildFile pingTask
+        buildFile("a/build.gradle", pingTask)
 
         when:
         succeeds("ping")
