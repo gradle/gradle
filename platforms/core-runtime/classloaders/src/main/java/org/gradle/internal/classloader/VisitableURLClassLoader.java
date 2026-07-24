@@ -19,8 +19,8 @@ package org.gradle.internal.classloader;
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.ClassLoadTimeTransform;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.jspecify.annotations.Nullable;
 
@@ -184,6 +184,14 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
             }
             // No third-party agent to compose with; substitute the bytes Gradle rewrote during artifact transform.
             return replacer.getInstrumentedClass(className, protectionDomain);
+        }
+
+        @Override
+        public boolean canReinstrumentClasses() {
+            // The compose path re-instruments whatever bytecode the JVM supplies, so redefined (hot-swapped)
+            // bytes are picked up. The substitution path serves bytecode captured during the artifact transform
+            // and ignores the supplied buffer, so redefinition has no effect.
+            return classLoadTimeTransform != null;
         }
 
         @Override

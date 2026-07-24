@@ -17,10 +17,10 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions.ApplyInstrumentationAgentOption
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
-
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import org.gradle.testkit.runner.ConfigurationCacheOutcome
 import org.gradle.testkit.runner.GradleRunner
@@ -107,9 +107,9 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
     }
 
     def "JDWP debug agent does not cause a configuration-cache problem [#mode]"() {
-        // JDWP attaches via `-agentlib:`, which the detection flags conservatively as a third-party agent
-        // (any JVMTI agent can subscribe to ClassFileLoadHook and transform bytecode). JDWP itself does
-        // not register a transformer, so the build proceeds cleanly via the compose path.
+        // JDWP attaches via `-agentlib:jdwp`. Unlike an arbitrary JVMTI agent, it never rewrites bytecode
+        // during normal class loading, so the detection exempts it and the build proceeds via the same
+        // (substitution) path as a regular build - debugging exercises the production instrumentation.
         when:
         def result = testRunner(mode)
             .withJvmArguments("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:0")
@@ -125,7 +125,9 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
 
     def "native JVMTI agent attached via -agentpath: does not cause a configuration-cache problem [#mode]"() {
         // Use the JDK-shipped JDWP shared library so we exercise the -agentpath: codepath without
-        // requiring a custom native artifact in the test fixtures.
+        // requiring a custom native artifact in the test fixtures. Note the JDWP library is itself exempt
+        // from third-party detection (see the -agentlib:jdwp test above); this test only checks that the
+        // -agentpath: form is parsed and does not break the configuration cache.
         given:
         def jdwpLibrary = jdwpAgentLibraryPath()
 
@@ -208,13 +210,29 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         when:
         def result = testRunner(PluginResolutionMode.INJECTED_CLASSPATH)
             .withJvmArguments("-javaagent:${agentJar}")
-            .withArguments("--configuration-cache", "-Dorg.gradle.internal.instrumentation.agent=false")
+            .withArguments("--configuration-cache", "-D${ApplyInstrumentationAgentOption.GRADLE_PROPERTY}=false")
             .buildAndFail()
 
         then:
         def output = result.output
         output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
         result.configurationCacheOutcome == ConfigurationCacheOutcome.DISCARDED
+    }
+
+    // The counterpart of the test above: because JDWP is exempt from third-party agent detection, the
+    // unsafe condition is not met and no problem is reported. This is the one assertion that flips with
+    // the exemption, so it is what keeps the exemption from being silently reverted.
+    def "JDWP debug agent with Gradle's instrumentation agent disabled is not a CC problem [INJECTED_CLASSPATH]"() {
+        when:
+        def result = testRunner(PluginResolutionMode.INJECTED_CLASSPATH)
+            .withJvmArguments("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:0")
+            .withArguments("--configuration-cache", "-D${ApplyInstrumentationAgentOption.GRADLE_PROPERTY}=false")
+            .build()
+
+        then:
+        def output = result.output
+        !output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
     }
 
     def "third-party Java agent with Gradle's instrumentation agent disabled without CC succeeds [#mode]"() {
@@ -224,7 +242,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         when:
         def result = testRunner(mode)
             .withJvmArguments("-javaagent:${agentJar}")
-            .withArguments("-Dorg.gradle.internal.instrumentation.agent=false")
+            .withArguments("-D${ApplyInstrumentationAgentOption.GRADLE_PROPERTY}=false")
             .build()
 
         then:
