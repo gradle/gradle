@@ -18,8 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.FailsWith
 import spock.lang.Issue
 
@@ -213,7 +211,6 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("inside: output is produced by thing")
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/37421; Fails with Configuration Cache")
     def "reports failure to query non-abstract Property<T> with non-final getter"() {
         given:
         javaFile("buildSrc/src/main/java/MyTask.java", """
@@ -248,14 +245,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("property = task ':thing' property 'count'")
-        if (!GradleContextualExecuter.configCache) {
-            // This is the correct failure message.
-            failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
-        } else {
-            // TODO(https://github.com/gradle/gradle/issues/37421): There shouldn't be any difference in behavior with CC enabled.
-            //  This assert encodes current behavior, not desired one.
-            failure.assertHasCause("Cannot query the value of this property because it has no value available.")
-        }
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
     @FailsWith(reason = "non-final getters do not trigger attachOwner/attachProducer logic", value = AssertionError)

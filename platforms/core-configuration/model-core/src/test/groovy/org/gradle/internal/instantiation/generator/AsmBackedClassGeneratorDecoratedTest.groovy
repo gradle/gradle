@@ -27,6 +27,7 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
+import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Issue
 
@@ -117,6 +118,25 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
 
         // Does not assign display name to mutable property
         mutableBean.someValue.toString() == "property(java.lang.String, undefined)"
+    }
+
+    def "reattaches owner to read only non-final Property when reading from the configuration cache"() {
+        given:
+        def bean = create(HasReadOnlyProperty, Describables.of("<display name>"))
+        // When the object is restored from the configuration cache, the value is read back through the field and
+        // the lazily-attaching getter is never invoked, so the owner is not attached at this point.
+        def field = HasReadOnlyProperty.getDeclaredField("prop")
+        field.accessible = true
+        def property = field.get(bean)
+
+        expect:
+        property.toString() == "property(java.lang.String, undefined)"
+
+        when:
+        (bean as ModelObject).attachModelProperties()
+
+        then:
+        property.toString() == "<display name> property 'someValue'"
     }
 
     def "assigns display name to read only non-final nested property that is not managed"() {

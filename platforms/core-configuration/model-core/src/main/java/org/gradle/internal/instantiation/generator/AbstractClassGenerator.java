@@ -426,6 +426,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return isAttachableType(metadata.getReturnType(), metadata.method::isAnnotationPresent);
     }
 
+    private static boolean hasAttachableOverridableGetter(PropertyMetadata property) {
+        for (MethodMetadata getter : property.getOverridableGetters()) {
+            if (isAttachableMethod(getter)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean isAttachableType(Class<?> type, Predicate<Class<? extends Annotation>> propertyHasAnnotation) {
         // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and @Nested value current implement OwnerAware
         return Provider.class.isAssignableFrom(type) || isConfigurableFileCollectionType(type) || hasNestedAnnotation(propertyHasAnnotation);
@@ -1039,9 +1048,16 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetadata property : conventionProperties) {
-                boolean applyRole = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property) && isRoleType(property);
+                boolean attachProperty = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property);
+                boolean applyRole = attachProperty && isRoleType(property);
                 if (applyRole) {
                     visitor.instantiatesNestedObjects();
+                }
+                if (attachProperty && isReattachProperty(property) && hasAttachableOverridableGetter(property)) {
+                    // The owner is attached lazily by the overriding getter, which is not invoked when the
+                    // object is restored from the configuration cache. Reattach it on demand so the property
+                    // keeps its display name after a cached run. See https://github.com/gradle/gradle/issues/37421.
+                    visitor.attachOnDemand(property, applyRole);
                 }
             }
         }
