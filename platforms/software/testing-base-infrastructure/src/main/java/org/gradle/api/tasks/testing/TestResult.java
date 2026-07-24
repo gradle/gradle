@@ -78,6 +78,17 @@ public interface TestResult {
     TestFailure getAssumptionFailure();
 
     /**
+     * If the test was skipped, this may contain the reason provided by the test framework
+     * (for example the reason from {@code @Disabled("...")}).
+     *
+     * @return the skip reason, or {@code null} if none was reported
+     * @since 9.8.0
+     */
+    @Incubating
+    @Nullable
+    String getSkipReason();
+
+    /**
      * Returns the time when this test started execution.
      *
      * @return The start time, in milliseconds since the epoch.
