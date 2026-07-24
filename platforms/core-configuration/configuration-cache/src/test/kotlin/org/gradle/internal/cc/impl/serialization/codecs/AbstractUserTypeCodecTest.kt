@@ -181,7 +181,7 @@ abstract class AbstractUserTypeCodecTest {
             isIntegrityCheckEnabled = integrityCheck,
             logger = mock(),
             problemsListener = problemsListener,
-            classDecoder = DefaultClassDecoder(mock(), mock())
+            classDecoder = DefaultClassDecoder(mock(), mock(), mock())
         )
 
     private fun loggingProblemsListener() = object : AbstractProblemsListener() {

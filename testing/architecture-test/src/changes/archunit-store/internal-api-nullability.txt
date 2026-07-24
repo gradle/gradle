@@ -1283,8 +1283,6 @@ Class <org.gradle.internal.classpath.Instrumented$SystemSetPropertiesInterceptor
 Class <org.gradle.internal.classpath.Instrumented$SystemSetPropertyInterceptor> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Instrumented.java:0)
 Class <org.gradle.internal.classpath.Instrumented> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Instrumented.java:0)
 Class <org.gradle.internal.classpath.MethodHandleUtils> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (MethodHandleUtils.java:0)
-Class <org.gradle.internal.classpath.TransformedClassPath$Builder> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (TransformedClassPath.java:0)
-Class <org.gradle.internal.classpath.TransformedClassPath> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (TransformedClassPath.java:0)
 Class <org.gradle.internal.collections.ImmutableFilteredList> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ImmutableFilteredList.java:0)
 Class <org.gradle.internal.compiler.java.IncrementalCompileTask> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IncrementalCompileTask.java:0)
 Class <org.gradle.internal.compiler.java.listeners.classnames.ClassNameCollector> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ClassNameCollector.java:0)
