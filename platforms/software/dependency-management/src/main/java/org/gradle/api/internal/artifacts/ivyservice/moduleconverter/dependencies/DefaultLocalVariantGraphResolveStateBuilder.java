@@ -380,7 +380,10 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
 
         @Override @Nullable
         public ComponentIdentifier getComponentId() {
-            return ((SelfResolvingDependencyInternal) fileDependency).getTargetComponentId();
+            if (fileDependency instanceof SelfResolvingDependencyInternal) {
+                return ((SelfResolvingDependencyInternal) fileDependency).getTargetComponentId();
+            }
+            return null;
         }
 
         @Override
