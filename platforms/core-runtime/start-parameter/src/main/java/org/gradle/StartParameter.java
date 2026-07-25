@@ -1022,6 +1022,28 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Returns true if dependency verification is active for this build. Dependency verification
+     * is considered active when the verification mode is not {@link DependencyVerificationMode#OFF}
+     * and a {@code verification-metadata.xml} file exists in the {@code gradle} directory of the project.
+     *
+     * <p>This method provides a convenient way to check if dependency verification is actually
+     * enabled, rather than just checking the verification mode which defaults to {@code STRICT}
+     * even when no verification metadata file is present.</p>
+     *
+     * @return true if dependency verification is active, false otherwise
+     * @since 9.8
+     */
+    @Incubating
+    public boolean isDependencyVerificationActive() {
+        if (verificationMode == DependencyVerificationMode.OFF) {
+            return false;
+        }
+        File gradleDir = new File(currentDir, "gradle");
+        File verificationsFile = new File(gradleDir, "verification-metadata.xml");
+        return verificationsFile.exists();
+    }
+
+    /**
      * Sets the key refresh flag.
      *
      * @param refresh If set to true, missing keys will be checked again. By default missing keys are cached for 24 hours.

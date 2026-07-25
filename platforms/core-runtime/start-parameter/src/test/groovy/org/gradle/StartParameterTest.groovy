@@ -16,6 +16,7 @@
 
 package org.gradle
 
+import org.gradle.api.artifacts.verification.DependencyVerificationMode
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
@@ -379,5 +380,48 @@ class StartParameterTest extends Specification {
         for (fieldName in fieldNames) {
             parameter.toString().matches("${Pattern.quote(fieldName)}=.*(, |\$)")
         }
+    }
+
+    void "dependency verification is not active when mode is OFF"() {
+        given:
+        def parameter = newStartParameter()
+        parameter.dependencyVerificationMode = DependencyVerificationMode.OFF
+
+        expect:
+        !parameter.dependencyVerificationActive
+    }
+
+    void "dependency verification is not active when mode is STRICT but no metadata file"() {
+        given:
+        def parameter = newStartParameter()
+        parameter.currentDir = tmpDir.testDirectory
+        parameter.dependencyVerificationMode = DependencyVerificationMode.STRICT
+
+        expect:
+        !parameter.dependencyVerificationActive
+    }
+
+    void "dependency verification is active when mode is STRICT and metadata file exists"() {
+        given:
+        def parameter = newStartParameter()
+        def gradleDir = tmpDir.testDirectory.createDir("gradle")
+        gradleDir.file("verification-metadata.xml").createFile()
+        parameter.currentDir = tmpDir.testDirectory
+        parameter.dependencyVerificationMode = DependencyVerificationMode.STRICT
+
+        expect:
+        parameter.dependencyVerificationActive
+    }
+
+    void "dependency verification is active when mode is LENIENT and metadata file exists"() {
+        given:
+        def parameter = newStartParameter()
+        def gradleDir = tmpDir.testDirectory.createDir("gradle")
+        gradleDir.file("verification-metadata.xml").createFile()
+        parameter.currentDir = tmpDir.testDirectory
+        parameter.dependencyVerificationMode = DependencyVerificationMode.LENIENT
+
+        expect:
+        parameter.dependencyVerificationActive
     }
 }
