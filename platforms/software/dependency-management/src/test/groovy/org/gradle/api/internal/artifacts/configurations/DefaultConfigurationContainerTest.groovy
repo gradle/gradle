@@ -85,13 +85,7 @@ class DefaultConfigurationContainerTest extends Specification {
         new ResolveExceptionMapper(DomainObjectContext.NONE, new DocumentationRegistry()),
         TestUtil.providerFactory(),
         new TestWorkerLeaseService(),
-        new DependencyManagementInstanceIdentity(Describables.of("unknown"))
-    )
-
-    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
-        configurationServices,
-        listenerManager,
-        DomainObjectContext.NONE,
+        new DependencyManagementInstanceIdentity(Describables.of("unknown")),
         new PublishArtifactNotationParserFactory(
                 objectFactory,
                 metaDataProvider,
@@ -99,6 +93,12 @@ class DefaultConfigurationContainerTest extends Specification {
                 TestFiles.taskDependencyFactory(),
         ).create(),
         userCodeApplicationContext
+    )
+
+    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
+        configurationServices,
+        listenerManager,
+        DomainObjectContext.NONE
     )
 
     private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,
