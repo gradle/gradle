@@ -101,7 +101,9 @@ build/
     def "generated .gitignore preserves source and documentation directories named build"() {
         given:
         run('init', '--project-name', 'someApp', '--overwrite')
-        assertGitSucceeds('init')
+        def emptyGitTemplate = targetDir.file('empty-git-template').createDir()
+        assertGitSucceeds('-c', "init.templateDir=${emptyGitTemplate.absolutePath}", 'init')
+        assertGitSucceeds('config', 'core.excludesFile', targetDir.file('empty-global-excludes').createFile().absolutePath)
 
         def ignoredPaths = [
             'build/output.txt',

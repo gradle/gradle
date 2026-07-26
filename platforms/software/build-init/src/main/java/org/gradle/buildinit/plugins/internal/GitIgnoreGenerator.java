@@ -40,7 +40,7 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
     private static final List<String> GRADLE_CACHE_IGNORE_BLOCK = Arrays.asList(".gradle");
     private static final List<String> BUILD_OUTPUT_IGNORE_BLOCK = Arrays.asList("build/", "!**/docs/**/build/", "!**/src/**/build/");
     private static final List<String> KOTLIN_PLUGIN_IGNORE_BLOCK = Arrays.asList(".kotlin");
-    private static final Pattern BUILD_PATH_COMPONENT = Pattern.compile("(^|/)build(/|$)");
+    private static final Pattern BUILD_PATH_COMPONENT = Pattern.compile("(^|/)build(/|$)", Pattern.CASE_INSENSITIVE);
 
     @Override
     public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {

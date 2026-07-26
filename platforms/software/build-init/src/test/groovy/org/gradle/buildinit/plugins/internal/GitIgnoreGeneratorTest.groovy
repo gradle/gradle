@@ -118,6 +118,7 @@ ${getGeneratedGitignoreContent('build')}""")
         existingRules << [
             'build',
             'build/',
+            'Build/',
             '''build
 !vendor/build/''',
             '''build
