@@ -10,10 +10,10 @@ dependencies {
 
 // tag::use_classifier_sources[]
 dependencies {
-    // Add the library's source code for IDE integration
+    // Depend on the sources JAR as an artifact
     implementation(variantOf(libs.my.lib) { classifier("sources") })
-    
-    // Add the library's Javadoc for IDE integration
+
+    // Depend on the Javadoc JAR as an artifact
     implementation(variantOf(libs.my.lib) { classifier("javadoc") })
 }
 // end::use_classifier_sources[]

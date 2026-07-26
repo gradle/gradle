@@ -145,25 +145,20 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_classifier]"]
 ====
 
-For example, to include source JARs and Javadoc JARs for IDE integration:
+For example, if a code-analysis or documentation-generation task needs the sources JAR as an artifact input:
 
 ====
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/kotlin",files="build.gradle.kts[tags=use_classifier_sources]"]
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_classifier_sources]"]
 ====
 
-This keeps the catalog focused on coordinates while letting each consumer choose the appropriate classifier.
-
 **Common use cases for classifiers:**
 
-* **Sources and Javadoc JARs**: Many libraries publish separate JARs containing source code (`sources` classifier) or API documentation (`javadoc` classifier). IDEs and documentation tools can consume these artifacts.
+* **Sources and Javadoc JARs**: Projects that explicitly depend on Java sources (e.g., for code analysis or documentation generation) can use the `sources` or `javadoc` classifiers.
 
-* **Test Fixtures**: Libraries that publish reusable test utilities often use a `test-fixtures` classifier.
+* **Test Fixtures**: For test fixtures specifically, prefer the dedicated `testFixtures(libs.my.lib)` API rather than declaring the `test-fixtures` classifier explicitly.
 
 * **Platform-specific artifacts**: Native libraries may publish separate artifacts for different operating systems or architectures (e.g., `linux-x86_64`, `windows-x86_64`).
-
-The `variantOf()` function creates a dependency variant based on the catalog entry but with the specified classifier applied.
-Each project can independently decide which classifier variant it needs without duplicating the base coordinates in the catalog.
 
 For artifact types (common in Android projects needing `@aar`), use the `artifact` block:
 
