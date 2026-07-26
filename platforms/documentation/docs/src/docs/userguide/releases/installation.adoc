@@ -390,12 +390,12 @@ The `init` task generates a new Gradle project with the following:
 
 - A `build.gradle` or `build.gradle.kts` build script
 - A `settings.gradle` or `settings.gradle.kts` settings file
-- The <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>> files (`gradlew`, `gradlew.bat`, and wrapper JAR)
+- The <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> files (`gradlew`, `gradlew.bat`, and the `gradle/wrapper/` directory)
 - Sample source code (optional, based on project type selection)
 
 The command runs interactively, allowing you to:
 
-- Select a project type (basic, application, library, Gradle plugin, etc.)
+- Select a project type (Application, Library, Gradle plugin, or Basic)
 - Choose a build script DSL (Groovy or Kotlin)
 - Select a test framework
 - Set project and source package names
