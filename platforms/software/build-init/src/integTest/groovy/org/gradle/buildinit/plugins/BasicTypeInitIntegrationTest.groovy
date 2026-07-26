@@ -85,8 +85,10 @@ existingIgnores
 # Ignore Gradle project-specific cache directory
 .gradle
 
-# Ignore Gradle build output directory
-build
+# Ignore Gradle build output directories, except when used as part of source or documentation paths
+build/
+!**/docs/**/build/
+!**/src/**/build/
 
 # Ignore Kotlin plugin data
 .kotlin

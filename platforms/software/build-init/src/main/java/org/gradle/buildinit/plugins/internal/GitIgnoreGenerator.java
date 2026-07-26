@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedReader;
@@ -28,7 +27,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -42,14 +40,14 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
     @Override
     public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         File file = settings.getTarget().file(".gitignore").getAsFile();
-        Set<String> gitignoresToAppend = getGitignoresToAppend(file);
+        List<List<String>> gitignoresToAppend = getGitignoresToAppend(file);
         if (!gitignoresToAppend.isEmpty()) {
             boolean shouldAppendNewLine = file.exists();
             try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file.toPath(), UTF_8, CREATE, APPEND))) {
                 if (shouldAppendNewLine) {
                     writer.println();
                 }
-                Spliterator<String> it = gitignoresToAppend.spliterator();
+                Spliterator<List<String>> it = gitignoresToAppend.spliterator();
                 if (it.tryAdvance(e -> withComment(e).forEach(writer::println))) {
                     StreamSupport.stream(it, false).forEach(e -> withSeparator(withComment(e)).forEach(writer::println));
                 }
@@ -60,14 +58,19 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
     }
 
     @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private static Set<String> getGitignoresToAppend(File gitignoreFile) {
+    private static List<List<String>> getGitignoresToAppend(File gitignoreFile) {
         // .gradle - project cache directory, see https://docs.gradle.org/current/userguide/directory_layout.html#dir:project_root
-        //  build  - build output directory
+        //  build  - build output directory, except when used as part of source or documentation paths
         // .kotlin - Kotlin Gradle Plugin caches/metadata
-        Set<String> result = Sets.newLinkedHashSet(Arrays.asList(".gradle", "build", ".kotlin"));
+        List<List<String>> result = new ArrayList<>(Arrays.asList(
+            Arrays.asList(".gradle"),
+            Arrays.asList("build/", "!**/docs/**/build/", "!**/src/**/build/"),
+            Arrays.asList(".kotlin")
+        ));
         if (gitignoreFile.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))){
-                result.removeAll(reader.lines().filter(it -> result.contains(it)).collect(Collectors.toSet()));
+                List<String> existingLines = reader.lines().collect(Collectors.toList());
+                result.removeIf(entry -> containsSequence(existingLines, entry));
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -75,16 +78,26 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
         return result;
     }
 
-    private static List<String> withComment(String entry) {
+    private static boolean containsSequence(List<String> lines, List<String> sequence) {
+        for (int i = 0; i <= lines.size() - sequence.size(); i++) {
+            if (lines.subList(i, i + sequence.size()).equals(sequence)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static List<String> withComment(List<String> entry) {
         List<String> result = new ArrayList<>();
-        if (entry.startsWith(".gradle")) {
+        String firstEntry = entry.get(0);
+        if (firstEntry.startsWith(".gradle")) {
             result.add("# Ignore Gradle project-specific cache directory");
-        } else if (entry.startsWith("build")) {
-            result.add("# Ignore Gradle build output directory");
-        } else if (entry.startsWith(".kotlin")) {
+        } else if (firstEntry.startsWith("build")) {
+            result.add("# Ignore Gradle build output directories, except when used as part of source or documentation paths");
+        } else if (firstEntry.startsWith(".kotlin")) {
             result.add("# Ignore Kotlin plugin data");
         }
-        result.add(entry);
+        result.addAll(entry);
 
         return result;
     }

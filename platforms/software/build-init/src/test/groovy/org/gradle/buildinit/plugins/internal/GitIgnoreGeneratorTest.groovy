@@ -82,7 +82,37 @@ ${getGeneratedGitignoreContent()}""")
 ${getGeneratedGitignoreContent(entry)}""")
 
         where:
-        entry << ['.gradle', '.kotlin', 'build']
+        entry << ['.gradle', '.kotlin']
+    }
+
+    def "avoids adding duplicated build ignore block when .gitignore file already exists"() {
+        setup:
+        def generator = new GitIgnoreGenerator()
+        gitignoreFile << '''build/
+!**/docs/**/build/
+!**/src/**/build/'''
+
+        when:
+        generator.generate(settings, null)
+
+        then:
+        gitignoreFile.text == toPlatformLineSeparators("""build/
+!**/docs/**/build/
+!**/src/**/build/
+${getGeneratedGitignoreContent('build')}""")
+    }
+
+    def "adds complete build ignore block when only legacy build entry exists"() {
+        setup:
+        def generator = new GitIgnoreGenerator()
+        gitignoreFile << 'build'
+
+        when:
+        generator.generate(settings, null)
+
+        then:
+        gitignoreFile.text == toPlatformLineSeparators("""build
+${getGeneratedGitignoreContent()}""")
     }
 
     private static String getGeneratedGitignoreContent(String excludingEntry = null) {
@@ -98,8 +128,10 @@ ${getGeneratedGitignoreContent(entry)}""")
             if (builder.length() > 0) {
                 builder << '\n'
             }
-            builder << '''# Ignore Gradle build output directory
-build
+            builder << '''# Ignore Gradle build output directories, except when used as part of source or documentation paths
+build/
+!**/docs/**/build/
+!**/src/**/build/
 '''
         }
 
