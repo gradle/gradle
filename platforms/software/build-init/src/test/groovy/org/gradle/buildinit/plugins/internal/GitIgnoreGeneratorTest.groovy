@@ -37,9 +37,9 @@ class GitIgnoreGeneratorTest extends Specification {
     def setup() {
         Directory target = Mock()
         RegularFile ignoreFile = Mock()
-        1 * settings.target >> target
-        1 * target.file('.gitignore') >> ignoreFile
-        1 * ignoreFile.asFile >> gitignoreFile
+        settings.target >> target
+        target.file('.gitignore') >> ignoreFile
+        ignoreFile.asFile >> gitignoreFile
     }
 
     def "generates .gitignore file"() {
@@ -102,17 +102,41 @@ ${getGeneratedGitignoreContent(entry)}""")
 ${getGeneratedGitignoreContent('build')}""")
     }
 
-    def "adds complete build ignore block when only legacy build entry exists"() {
+    def "does not change existing build ignore rules [#existingRules]"() {
         setup:
         def generator = new GitIgnoreGenerator()
-        gitignoreFile << 'build'
+        gitignoreFile << existingRules
 
         when:
         generator.generate(settings, null)
 
         then:
-        gitignoreFile.text == toPlatformLineSeparators("""build
-${getGeneratedGitignoreContent()}""")
+        gitignoreFile.text == toPlatformLineSeparators("""$existingRules
+${getGeneratedGitignoreContent('build')}""")
+
+        where:
+        existingRules << [
+            'build',
+            'build/',
+            '''build
+!vendor/build/''',
+            '''build
+src/generated/build/''',
+            'src/generated/build/'
+        ]
+    }
+
+    def "does not append entries when generated twice"() {
+        setup:
+        def generator = new GitIgnoreGenerator()
+
+        when:
+        generator.generate(settings, null)
+        def contentAfterFirstGeneration = gitignoreFile.text
+        generator.generate(settings, null)
+
+        then:
+        gitignoreFile.text == contentAfterFirstGeneration
     }
 
     private static String getGeneratedGitignoreContent(String excludingEntry = null) {

@@ -97,4 +97,41 @@ build/
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
+
+    def "generated .gitignore preserves source and documentation directories named build"() {
+        given:
+        run('init', '--project-name', 'someApp', '--overwrite')
+        assertGitSucceeds('init')
+
+        def ignoredPaths = [
+            'build/output.txt',
+            'module/build/output.txt',
+            'nested/module/build/output.txt',
+            'build/src/build/output.txt'
+        ]
+        def visiblePaths = [
+            'src/build/source.txt',
+            'src/main/resources/build/fixture.txt',
+            'module/src/test/resources/build/fixture.txt',
+            'docs/build/page.md',
+            'docs/guide/assets/build/page.md',
+            'module/docs/reference/build/page.md',
+            'mybuild/output.txt'
+        ]
+        (ignoredPaths + visiblePaths).each { targetDir.file(it).createFile() }
+
+        expect:
+        ignoredPaths.every { gitExitValue('check-ignore', '--no-index', it) == 0 }
+        visiblePaths.every { gitExitValue('check-ignore', '--no-index', it) == 1 }
+    }
+
+    private void assertGitSucceeds(String... arguments) {
+        assert gitExitValue(arguments) == 0
+    }
+
+    private int gitExitValue(String... arguments) {
+        def process = ['git', *arguments].execute(null, targetDir)
+        process.consumeProcessOutput()
+        return process.waitFor()
+    }
 }
