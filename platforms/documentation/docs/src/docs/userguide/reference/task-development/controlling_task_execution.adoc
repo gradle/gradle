@@ -311,6 +311,20 @@ $ ./gradlew hello -PskipHello --info
 include::{snippetsPath}/reference/task-development/taskOnlyIf/tests/taskOnlyIf-info.out[]
 ----
 
+[[sec:lazy_onlyif_reason]]
+==== Computing the skip reason lazily
+
+When the reason is expensive to compute — for example when it requires reading a file, running an external process, or consulting a network service — pass a `Provider<String>` instead of a plain string.
+The provider is queried only when the task is actually skipped, so the cost is paid only when the reason is needed:
+
+====
+include::sample[dir="snippets/reference/task-development/taskOnlyIfLazy/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/taskOnlyIfLazy/groovy",files="build.gradle[]"]
+====
+
+Under the <<configuration_cache.adoc#config_cache,Configuration Cache>>, only a provider backed by a <<configuration_cache_requirements.adoc#config_cache:requirements:value_source, `ValueSource`>> stays fully lazy, including any `ValueSource.map { ... }` chain built on top of one.
+A provider created via `providers.provider { ... }` is resolved eagerly at cache store time, so use a `ValueSource` when the reason involves I/O or external process invocation.
+
 [[sec:using_stopexecutionexception]]
 === 2. Using `StopExecutionException`
 

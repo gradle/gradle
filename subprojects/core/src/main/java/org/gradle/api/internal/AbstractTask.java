@@ -364,6 +364,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public void onlyIf(final Provider<String> onlyIfReason, final Spec<? super Task> spec) {
+        taskMutator.mutate("Task.onlyIf(Provider, Spec)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = onlyIfSpec.and(spec, onlyIfReason);
+            }
+        });
+    }
+
+    @Override
     public void setOnlyIf(final Spec<? super Task> spec) {
         taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
             @Override
@@ -376,6 +386,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setOnlyIf(String onlyIfReason, Spec<? super Task> spec) {
         taskMutator.mutate("Task.setOnlyIf(String, Spec)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);
+            }
+        });
+    }
+
+    @Override
+    public void setOnlyIf(final Provider<String> onlyIfReason, final Spec<? super Task> spec) {
+        taskMutator.mutate("Task.setOnlyIf(Provider, Spec)", new Runnable() {
             @Override
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);

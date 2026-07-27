@@ -1,0 +1,23 @@
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
+
+abstract class ExpensiveReason implements ValueSource<String, ValueSourceParameters.None> {
+    @Override
+    String obtain() {
+        return "there is no property skipHello"
+    }
+}
+
+def hello = tasks.register('hello') {
+    doLast {
+        println 'hello world'
+    }
+}
+
+hello.configure {
+    def skipProvider = providers.gradleProperty("skipHello")
+    def reason = providers.of(ExpensiveReason) {}
+    onlyIf(reason) {
+        !skipProvider.present
+    }
+}

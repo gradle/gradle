@@ -96,12 +96,22 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     }
 
     @Override
+    public void onlyIf(Provider<String> onlyIfReason, Spec<? super Task> spec) {
+        super.onlyIf(onlyIfReason, spec);
+    }
+
+    @Override
     public void setOnlyIf(Spec<? super Task> spec) {
         super.setOnlyIf(spec);
     }
 
     @Override
     public void setOnlyIf(String onlyIfReason, Spec<? super Task> spec) {
+        super.setOnlyIf(onlyIfReason, spec);
+    }
+
+    @Override
+    public void setOnlyIf(Provider<String> onlyIfReason, Spec<? super Task> spec) {
         super.setOnlyIf(onlyIfReason, spec);
     }
 

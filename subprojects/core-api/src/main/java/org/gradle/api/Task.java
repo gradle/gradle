@@ -332,6 +332,33 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     void onlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
 
     /**
+     * Executes the task only if the given spec is satisfied, using a lazily-evaluated reason.
+     * <p>
+     * The spec is evaluated at task execution time, not during configuration.
+     * If the spec is not satisfied, the task is skipped.
+     * <p>
+     * You may add multiple such predicates. The task is skipped if any of the predicates return false.
+     * <p>
+     * The reason {@link Provider} is only queried when the task is actually skipped, so the reason may be
+     * computed by expensive operations (such as a {@link org.gradle.api.provider.ValueSource}) without paying
+     * that cost during configuration or when the task actually runs.
+     *
+     * <h4>Configuration cache behavior</h4>
+     * Whether the reason is actually lazy under the configuration cache depends on the flavor of provider passed.
+     * A provider backed by a {@link org.gradle.api.provider.ValueSource} (via {@link org.gradle.api.provider.ProviderFactory#of})
+     * is serialized as a recipe and not obtained at store time, so the expensive computation runs only when the
+     * task is skipped. A provider created via {@link org.gradle.api.provider.ProviderFactory#provider} is eagerly
+     * resolved at configuration cache store time; prefer a {@code ValueSource} when the reason involves I/O or
+     * external process invocations.
+     *
+     * @param onlyIfReason a provider for the reason a task should run, queried lazily and only used for logging
+     * @param onlyIfSpec specifies if a task should be run
+     * @since 9.8.0
+     */
+    @Incubating
+    void onlyIf(Provider<String> onlyIfReason, Spec<? super Task> onlyIfSpec);
+
+    /**
      * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
      * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
      * false, the task will be skipped.</p>
@@ -365,6 +392,33 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      */
     @Incubating
     void setOnlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
+
+    /**
+     * Replaces existing {@code onlyIf} predicates with the given spec, using a lazily-evaluated reason.
+     * <p>
+     * The spec is evaluated at task execution time, not during configuration.
+     * If the spec is not satisfied, the task is skipped.
+     * <p>
+     * The given predicate replaces all such predicates for this task.
+     * <p>
+     * The reason {@link Provider} is only queried when the task is actually skipped, so the reason may be
+     * computed by expensive operations (such as a {@link org.gradle.api.provider.ValueSource}) without paying
+     * that cost during configuration or when the task actually runs.
+     *
+     * <h4>Configuration cache behavior</h4>
+     * Whether the reason is actually lazy under the configuration cache depends on the flavor of provider passed.
+     * A provider backed by a {@link org.gradle.api.provider.ValueSource} (via {@link org.gradle.api.provider.ProviderFactory#of})
+     * is serialized as a recipe and not obtained at store time, so the expensive computation runs only when the
+     * task is skipped. A provider created via {@link org.gradle.api.provider.ProviderFactory#provider} is eagerly
+     * resolved at configuration cache store time; prefer a {@code ValueSource} when the reason involves I/O or
+     * external process invocations.
+     *
+     * @param onlyIfReason a provider for the reason a task should run, queried lazily and only used for logging
+     * @param onlyIfSpec specifies if a task should be run
+     * @since 9.8.0
+     */
+    @Incubating
+    void setOnlyIf(Provider<String> onlyIfReason, Spec<? super Task> onlyIfSpec);
 
     /**
      * Returns the execution state of this task. This provides information about the execution of this task, such as
