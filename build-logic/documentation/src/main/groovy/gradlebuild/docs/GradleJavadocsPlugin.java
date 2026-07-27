@@ -108,6 +108,9 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
             options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
             options.addStringOption("source", "8");
+            // Gradle sources are classpath-mode (unnamed module) but the linked JDK 17 API is modularized.
+            // Downgrade the mismatch from `warn` to `info` so the link is still emitted without a warning.
+            options.addStringOption("-link-modularity-mismatch", "info");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             task.getInputs().dir(javadocs.getJavaPackageListLoc());
             var javaApiLink = javadocs.getJavaApi().map(URI::toString).map(v -> {

@@ -39,6 +39,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -332,12 +333,16 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+            return owner.getProjectState() != null;
         }
 
         @Override
-        public ProjectInternal getOwningProject() {
-            return owner.getProject();
+        public @Nullable ProjectInternal getOwningProject() {
+            ProjectState projectState = owner.getProjectState();
+            if (projectState != null) {
+                return projectState.getMutableModel();
+            }
+            return null;
         }
 
         @Nullable

@@ -18,10 +18,8 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -129,22 +127,12 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
     }
 
     @Override
-    public Path identityPath(String name) {
-        return Path.path(name);
-    }
-
-    @Override
-    public Path projectPath(String name) {
-        return Path.path(name);
-    }
-
-    @Override
-    public @Nullable ProjectIdentity getProjectIdentity() {
+    public @Nullable Path getIdentityPath() {
         return null;
     }
 
     @Override
-    public @Nullable ProjectInternal getProject() {
+    public @Nullable ProjectIdentity getProjectIdentity() {
         return null;
     }
 
@@ -203,44 +191,4 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
         return false;
     }
 
-    @Override
-    public <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue) {
-        return new CalculatedModelValueImpl<>(initialValue);
-    }
-
-    private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
-        private volatile T value;
-
-        CalculatedModelValueImpl(@Nullable T initialValue) {
-            value = initialValue;
-        }
-
-        @Override
-        public T get() throws IllegalStateException {
-            T currentValue = getOrNull();
-            if (currentValue == null) {
-                throw new IllegalStateException("No value is available.");
-            }
-            return currentValue;
-        }
-
-        @Override
-        public T getOrNull() {
-            return value;
-        }
-
-        @Override
-        public void set(T newValue) {
-            value = newValue;
-        }
-
-        @Override
-        public T update(Function<T, T> updateFunction) {
-            synchronized (this) {
-                T newValue = updateFunction.apply(value);
-                value = newValue;
-                return newValue;
-            }
-        }
-    }
 }

@@ -148,7 +148,3 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}

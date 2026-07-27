@@ -44,8 +44,7 @@ class LockFileReaderWriterTest extends Specification {
     FileResolver resolver = Mock()
     ProjectIdentity identity = ProjectIdentity.forSubproject(Path.ROOT, Path.path(":foo"))
     DomainObjectContext context = Mock() {
-        identityPath(_) >> { String value -> Path.path(value) }
-        projectPath(_) >> { String value -> Path.path(":foo:" + value) }
+        getIdentityPath() >> identity.buildTreePath
         getProjectIdentity() >> identity
         getDisplayName() >> identity.displayName
     }
@@ -323,9 +322,9 @@ empty=d
     @Issue("https://github.com/gradle/gradle/issues/37735")
     def 'writes regeneration comment for root project'() {
         given:
+        ProjectIdentity owningProject = ProjectIdentity.forRootProject(Path.ROOT, "root")
         DomainObjectContext rootContext = Mock() {
-            identityPath(_) >> { String value -> Path.path(value) }
-            projectPath(_) >> { String value -> Path.path(":" + value) }
+            getProjectIdentity() >> owningProject
             getDisplayName() >> "root project 'myProject'"
         }
         FileResolver rootResolver = Mock()

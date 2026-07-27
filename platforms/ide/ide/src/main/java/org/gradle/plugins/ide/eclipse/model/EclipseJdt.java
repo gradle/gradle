@@ -134,23 +134,15 @@ public abstract class EclipseJdt {
      * The name of the Java Runtime to use.
      * <p>
      * For example see docs for {@link EclipseJdt}
-     *
-     * @deprecated Will be removed in Gradle 10.
      */
-    @Deprecated
     public String getJavaRuntimeName() {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "javaRuntimeName");
         return javaRuntimeName;
     }
 
     /**
      * Set Java Runtime name.
-     *
-     * @deprecated Will be removed in Gradle 10.
      */
-    @Deprecated
     public void setJavaRuntimeName(String javaRuntimeName) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "javaRuntimeName");
         this.javaRuntimeName = javaRuntimeName;
     }
 

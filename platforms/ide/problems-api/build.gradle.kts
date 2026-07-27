@@ -50,6 +50,10 @@ dependencies {
     testFixturesImplementation(projects.enterpriseOperations)
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalDistributionTesting)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
+    javadocReferences(projects.configurationProblemsBase)
 }
 
 gradleModule {
@@ -68,10 +72,4 @@ jvmCompile {
             targetJvmVersion = 8
         }
     }
-}
-
-
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/problems/**") // ProblemId.create() and ProblemGroup.create() return internal types
 }

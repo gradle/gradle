@@ -38,6 +38,7 @@ import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -51,7 +52,10 @@ class DefaultConfigurationContainerSpec extends Specification {
     }
 
     private ObjectFactory objectFactory = TestUtil.objectFactory()
-    private DomainObjectContext domainObjectContext = Mock()
+    private DomainObjectContext domainObjectContext = Mock() {
+        getIdentityPath() >> Path.ROOT
+        getModel() >> StandaloneDomainObjectContext.ANONYMOUS
+    }
     private ListenerManager listenerManager = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
     private BuildOperationRunner buildOperationRunner = Mock()
@@ -79,7 +83,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         TestUtil.problemsService(),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
-        TestUtil.providerFactory()
+        TestUtil.providerFactory(),
+        new TestWorkerLeaseService()
     )
 
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
@@ -106,10 +111,6 @@ class DefaultConfigurationContainerSpec extends Specification {
     }
 
     def "adds and gets"() {
-        1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
-        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
-
         when:
         def compile = configurationContainer.create("compile")
 
@@ -135,10 +136,6 @@ class DefaultConfigurationContainerSpec extends Specification {
     }
 
     def "configures and finds"() {
-        1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
-        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
-
         when:
         def compile = configurationContainer.create("compile") {
             description = "I compile!"
@@ -152,9 +149,6 @@ class DefaultConfigurationContainerSpec extends Specification {
 
     def "creates detached"() {
         given:
-        1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
-        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
-
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")
 

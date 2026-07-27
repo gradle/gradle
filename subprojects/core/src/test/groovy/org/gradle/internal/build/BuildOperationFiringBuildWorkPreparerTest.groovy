@@ -38,7 +38,6 @@ import java.util.function.BiConsumer
 class BuildOperationFiringBuildWorkPreparerTest extends Specification {
     def "build operation provides execution plan when queries with all node types"() {
         def project = Stub(ProjectInternal) {
-            projectPath(_) >> { args -> Path.path(":" + args[0]) }
             getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
         }
         def ti1 = TestTaskIdentities.create("t1", Task, project)

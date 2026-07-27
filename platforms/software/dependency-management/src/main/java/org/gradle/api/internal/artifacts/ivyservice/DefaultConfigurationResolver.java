@@ -54,7 +54,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
@@ -65,12 +64,12 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 /**
  * Responsible for resolving a configuration. Delegates to a {@link ShortCircuitingResolutionExecutor} to perform
@@ -405,15 +404,16 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                 localResolveStateFactory
             );
 
-            ProjectState projectState = owner.getProjectState();
-            if (projectState == null) {
+            ProjectIdentity projectIdentity = owner.getProjectIdentity();
+            if (projectIdentity == null) {
                 return adhocRootComponentProvider;
             }
 
             // TODO #1629: Eventually, resolutions within a project should live within
             //  an adhoc root component, and should use an AdhocRootComponentProvider.
             return new ProjectRootComponentProvider(
-                projectState,
+                owner.getModel(),
+                projectIdentity,
                 moduleIdentity,
                 schema,
                 configurations,

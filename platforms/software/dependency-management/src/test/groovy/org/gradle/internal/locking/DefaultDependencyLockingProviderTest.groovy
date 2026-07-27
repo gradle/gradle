@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -54,7 +55,10 @@ class DefaultDependencyLockingProviderTest extends Specification {
     DisplayName owner = Mock()
     FileResolver resolver = Mock()
     StartParameter startParameter = Mock()
-    DomainObjectContext context = Mock()
+    DomainObjectContext context = Mock() {
+        getIdentityPath() >> Path.ROOT
+        getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
+    }
     DependencySubstitutionRules dependencySubstitutionRules = Mock()
     FileResourceListener listener = Mock()
     PropertyFactory propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
@@ -64,9 +68,6 @@ class DefaultDependencyLockingProviderTest extends Specification {
     DefaultDependencyLockingProvider provider
 
     def setup() {
-        context.identityPath(_) >> { String value -> Path.path(value) }
-        context.getProjectPath() >> Path.path(':')
-        context.projectPath(_) >> { String value -> Path.path(":" + value) }
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
         resolver.resolve(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) >> uniqueLockFile

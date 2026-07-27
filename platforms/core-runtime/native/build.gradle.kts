@@ -47,8 +47,3 @@ jmh {
     warmupIterations = 10
     synchronizeIterations = false
 }
-
-packageCycles {
-    // Cycle between public interface, Factory and implementation class in internal package
-    excludePatterns.add("org/gradle//platform/internal/**")
-}

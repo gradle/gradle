@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
@@ -43,9 +44,9 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
-import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -609,13 +610,17 @@ public class DefaultTransform implements Transform {
 
         @Override
         public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+            return owner.getProjectState() != null;
         }
 
         @Nullable
         @Override
         public ProjectInternal getOwningProject() {
-            return owner.getProject();
+            ProjectState projectState = owner.getProjectState();
+            if (projectState != null) {
+                return projectState.getMutableModel();
+            }
+            return null;
         }
 
         @Override

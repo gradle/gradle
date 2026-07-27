@@ -833,13 +833,6 @@
     "crossVersionTests": true
   },
   {
-    "name": "internal-architecture-testing",
-    "path": "testing/internal-architecture-testing",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "internal-build-reports",
     "path": "packaging/internal-build-reports",
     "unitTests": false,

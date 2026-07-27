@@ -21,6 +21,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.resource.local.FileResourceListener;
@@ -224,8 +225,14 @@ public class LockFileReaderWriter {
             .forEach(GFileUtils::deleteQuietly);
     }
 
-    private String buildRegenerationComment() {
-        return "# To regenerate this file, run: ./gradlew " + context.projectPath("dependencies") + " --write-locks";
+    private @Nullable String buildRegenerationComment() {
+        ProjectIdentity projectId = context.getProjectIdentity();
+        if (projectId != null) {
+            org.gradle.util.Path taskPath = projectId.getBuildTreePath().child("dependencies");
+            return "# To regenerate this file, run: ./gradlew " + taskPath + " --write-locks";
+        }
+
+        return null;
     }
 
     private void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToLockId, List<String> emptyLockIds) {
@@ -233,7 +240,10 @@ public class LockFileReaderWriter {
             Files.createDirectories(lockfilePath.getParent());
             List<String> content = new ArrayList<>(50);
             content.addAll(LOCKFILE_HEADER_LIST);
-            content.add(buildRegenerationComment());
+            String regenerationMessage = buildRegenerationComment();
+            if (regenerationMessage != null) {
+                content.add(regenerationMessage);
+            }
             for (Map.Entry<String, List<String>> entry : dependencyToLockId.entrySet()) {
                 String builder = entry.getKey() + "=" + entry.getValue().stream().sorted().collect(Collectors.joining(","));
                 content.add(builder);

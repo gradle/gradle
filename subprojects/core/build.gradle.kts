@@ -269,6 +269,9 @@ dependencies {
     annotationProcessor(projects.internalInstrumentationProcessor)
     annotationProcessor(platform(projects.distributionsDependencies))
 
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.credentials)
+    javadocReferences(projects.buildState)
 }
 
 gradleModule {
@@ -282,10 +285,6 @@ gradleModule {
 strictCompile {
     ignoreRawTypes() // raw types used in public API
     ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
 }
 
 tasks.test {

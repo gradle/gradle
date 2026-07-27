@@ -18,10 +18,6 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/internal/tools/api/impl/*")
-}
-
 // Should not be part of the public API
 // TODO Find a proper way to configure this
 configurations.remove(configurations.apiStubElements.get())

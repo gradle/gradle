@@ -470,6 +470,16 @@ val Project.isPromotionBuild: Boolean
 val Project.bundleGroovyMajor: Int
     get() = systemProperty(BUNDLE_GROOVY_MAJOR).orNull?.toInt() ?: 4
 
+
+/**
+ * The lowest JVM version the bundled Groovy can run on. Groovy 4 runs on Java 8, Groovy 5 needs Java 11.
+ *
+ * This is the JVM `groovyc` itself has to run on, which is not the same as the bytecode it emits.
+ */
+val Project.bundleGroovyMinimumJvm: Int
+    get() = if (bundleGroovyMajor >= 5) 11 else 8
+
+
 val Project.daemonDebuggingIsEnabled: Boolean
     get() = propertyFromAnySource(DEBUG_DAEMON).isPresent
 

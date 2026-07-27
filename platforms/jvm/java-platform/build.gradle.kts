@@ -58,7 +58,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/internal/java/**")
-}

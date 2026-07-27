@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Describable;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
@@ -27,32 +26,30 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Models and controls access to an abstract set of related mutable objects.
+ * <p>
+ * A context may have an identity, meaning objects within that context are
+ * identifiable and addressable within a build tree. Or, they may be anonymous,
+ * meaning the domain has no unique identity and therefore the objects within
+ * it have no absolute identity within the build tree.
  */
 @ServiceScope(Scope.Project.class)
 public interface DomainObjectContext extends Describable {
 
     /**
-     * Creates a path from the root of the build tree to the current context + name.
+     * Return the identity of this context within a build tree. Null for
+     * contexts that have no unique identity.
      */
-    Path identityPath(String name);
+    @Nullable Path getIdentityPath();
 
     /**
-     * Creates a path from the root of the project tree to the current context + name.
+     * The identity of the build that this context belongs to.
      */
-    Path projectPath(String name);
+    Path getBuildPath();
 
     /**
      * If this context represents a project, its identity.
      */
     @Nullable ProjectIdentity getProjectIdentity();
-
-    /**
-     * If this context represents a project, the project.
-     *
-     * NOTE: This method should be avoided if at all possible. Instead, rely on
-     * {@link #getProjectIdentity()}, or if not possible, prefer {@link #getProjectState()}.
-     */
-    @Nullable ProjectInternal getProject();
 
     /**
      * If this context represents a project, the project state.
@@ -63,11 +60,6 @@ public interface DomainObjectContext extends Describable {
      * The container that holds the model for this context, to allow synchronized access to the model.
      */
     ModelContainer<?> getModel();
-
-    /**
-     * The path to the build that is associated with this object.
-     */
-    Path getBuildPath();
 
     /**
      * Whether the context is a script.

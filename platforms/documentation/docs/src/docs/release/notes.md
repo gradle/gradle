@@ -82,6 +82,39 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engine
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
+#### Groovydoc supports modern Java sources and Groovy 6 output options
+
+The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes configuration options that had previously only been available through the Groovy CLI, Ant task, or Maven plugin, closing a long-standing gap in Gradle's Groovydoc support.
+
+**Java source parsing level:** Groovydoc uses JavaParser to read Java sources mixed into Groovy projects. When the parser's assumed language level is older than the sources, modern constructs — switch expressions, sealed classes, records, and similar — fail to parse, and the affected classes are silently omitted from the generated documentation. The new `javaVersion` property forwards the language level to Groovydoc so those sources parse cleanly:
+
+```kotlin
+tasks.groovydoc {
+    javaVersion = JavaLanguageVersion.of(21)
+}
+```
+
+This option requires Groovy 4.0.27 or later and is silently ignored on earlier Groovy versions.
+
+**Groovy 6.0.0 documentation options:** For projects using Groovy 6.0.0 or later, several new properties are now available on the `Groovydoc` task to control the generated output:
+
+| Property | Purpose |
+| --- | --- |
+| `showInternal` | Include members annotated with `groovy.transform.Internal` (GEP-17). |
+| `noIndex` | Suppress the alphabetical index page. |
+| `noDeprecatedList` | Suppress the deprecated-list page. |
+| `noHelp` | Suppress the help page. |
+| `syntaxHighlighter` | Select the client-side syntax highlighter (`"prism"` or `"none"`). |
+| `theme` | Lock the palette (`"auto"`, `"light"`, or `"dark"`). |
+| `preLanguage` | Default language id applied to unclassified `<pre>` code blocks. |
+| `additionalStylesheets` | Extra stylesheets copied alongside the default. |
+
+All of these are silently ignored on earlier Groovy versions, so they are safe to configure in builds that may be run against multiple Groovy releases.
+
+All new properties are [incubating](userguide/feature_lifecycle.html#feature_preview).
+
+See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in the DSL Reference for the full list of configuration options.
+
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 

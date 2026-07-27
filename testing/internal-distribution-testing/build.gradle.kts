@@ -79,6 +79,10 @@ dependencies {
     compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    // Javadoc-only: for {@link} references to types in internal-integ-testing and tooling-api test fixtures
+    javadocReferences(projects.internalIntegTesting)
+    javadocReferences(testFixtures(projects.toolingApi))
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
@@ -133,9 +137,3 @@ abstract class PrepareVersionsInfo : DefaultTask() {
         gradlebuild.basics.util.ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
-

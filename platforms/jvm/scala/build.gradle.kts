@@ -78,12 +78,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/internal/tasks/scala/**")
-    excludePatterns.add("org/gradle/api/tasks/*")
-    excludePatterns.add("org/gradle/api/tasks/scala/internal/*")
-    excludePatterns.add("org/gradle/language/scala/tasks/*")
-}
-
-

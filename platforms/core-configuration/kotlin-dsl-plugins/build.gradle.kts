@@ -66,11 +66,6 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/kotlin/dsl/plugins/base/**")
-    excludePatterns.add("org/gradle/kotlin/dsl/plugins/precompiled/**")
-}
-
 testFilesCleanup.reportOnly = true
 
 val appliedKgpVersion = libs.versions.kotlin.get()

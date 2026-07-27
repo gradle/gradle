@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The domain object context modeling a {@link org.gradle.api.Project}.
@@ -37,23 +38,13 @@ public class ProjectDomainObjectContext implements DomainObjectContext {
     }
 
     @Override
-    public Path identityPath(String name) {
-        return getProjectIdentity().getBuildTreePath().child(name);
-    }
-
-    @Override
-    public Path projectPath(String name) {
-        return getProjectIdentity().getProjectPath().child(name);
+    public @Nullable Path getIdentityPath() {
+        return projectState.getIdentity().getBuildTreePath();
     }
 
     @Override
     public ProjectIdentity getProjectIdentity() {
         return projectState.getIdentity();
-    }
-
-    @Override
-    public ProjectInternal getProject() {
-        return projectState.getMutableModel();
     }
 
     @Override
@@ -68,7 +59,7 @@ public class ProjectDomainObjectContext implements DomainObjectContext {
 
     @Override
     public Path getBuildPath() {
-        return getProjectIdentity().getBuildPath();
+        return projectState.getIdentity().getBuildPath();
     }
 
     @Override
@@ -88,7 +79,7 @@ public class ProjectDomainObjectContext implements DomainObjectContext {
 
     @Override
     public String getDisplayName() {
-        return getProjectIdentity().getDisplayName();
+        return projectState.getIdentity().getDisplayName();
     }
 
 }
