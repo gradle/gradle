@@ -25,10 +25,14 @@ import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.BuildOperationIdRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
 public class DefaultProblemReporter implements ProblemReporterInternal {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultProblemReporter.class);
 
     private final ProblemSummarizer problemSummarizer;
     private final ProblemsInfrastructure infrastructure;
@@ -145,6 +149,9 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
         OperationIdentifier id = operationIdRef.getId();
         if (id != null) {
             report(problem, id);
+        } else {
+            ProblemId problemId = ((ProblemInternal) problem).getDefinition().getId();
+            LOGGER.info("Discarding problem '{}:{}': no build operation is available to attribute it to on this thread", problemId.getGroup().getName(), problemId.getName());
         }
     }
 
