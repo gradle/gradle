@@ -235,6 +235,7 @@ tasks.withType<CodeNarc>().configureEach {
     if (name.contains("IntegTest")) {
         config = configFile("codenarc-integtests.xml")
     }
+    logging.captureStandardOutput(LogLevel.INFO)
 }
 
 val SourceSet.allGroovy: SourceDirectorySet
