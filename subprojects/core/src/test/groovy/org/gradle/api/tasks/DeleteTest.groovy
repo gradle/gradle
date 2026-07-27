@@ -115,7 +115,7 @@ class DeleteTest extends AbstractConventionTaskTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15073")
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "can delete broken symlinks"() {
         given:
         def link = new File(temporaryFolder.getTestDirectory(), "link")
