@@ -33,6 +33,10 @@ import org.jspecify.annotations.Nullable;
  * The identifier is captured when the root build operation starts and is overwritten by each
  * subsequent root build operation within the same cross-build-session state. It is never
  * cleared, and it is {@code null} until the first build operation starts.
+ * <p>
+ * In worker processes, where no root build operation exists, an instance is created per work
+ * request and holds the work request's build operation instead — the root of everything the
+ * worker process is doing for that request.
  */
 @ServiceScope(Scope.CrossBuildSession.class)
 public class RootBuildOperationRef implements BuildOperationIdRef {

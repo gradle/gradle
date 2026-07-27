@@ -227,6 +227,7 @@ class KnownProblemIds {
         'deprecation:typed-task': ['Typed task has been deprecated.'],
         'deprecation:type-invalidtask-property-inputfile-test-problem-.*' : ['.*'],
         'generic:deprecation:plugin': ['DisplayName'],
+        'generic:spawned': ['problem from spawned thread'],
         'generic:type': ['label'],
         'issues:finished': ['task finished'],
         'generic:type0': ['This is the heading problem text0'],

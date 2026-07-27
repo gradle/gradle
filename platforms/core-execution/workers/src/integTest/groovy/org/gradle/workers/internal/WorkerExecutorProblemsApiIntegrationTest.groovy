@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.operations.problems.ProblemUsageProgressDetails
 import org.gradle.workers.fixtures.WorkerExecutorFixture
+import spock.lang.Issue
 
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
@@ -32,7 +33,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
     def buildOperationIdFile = file('build-operation-id.txt')
 
     def setupBuild() {
-        file('buildSrc/build.gradle') << """
+        buildFile('buildSrc/build.gradle', """
             plugins {
                 id 'java'
             }
@@ -40,7 +41,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation(gradleApi())
             }
-        """
+        """)
         file('buildSrc/src/main/java/org/someorg/test/ProblemsWorkerTaskParameter.java') << """
             package org.someorg.test;
 
@@ -137,7 +138,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         enableProblemsApiCheck()
 
         given:
-        buildFile << """
+        buildFile """
             import javax.inject.Inject
             import org.someorg.test.ProblemWorkerTask
 
@@ -218,6 +219,102 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
                 failure != null
+            }
+        }
+
+        where:
+        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35885")
+    def "problem reported from a user-spawned thread in a worker is not lost with #isolationMode"() {
+        enableProblemsApiCheck()
+
+        given:
+        buildFile('buildSrc/build.gradle', """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                implementation(gradleApi())
+            }
+        """)
+        file('buildSrc/src/main/java/org/someorg/test/ProblemsWorkerTaskParameter.java') << """
+            package org.someorg.test;
+
+            import org.gradle.workers.WorkParameters;
+
+            public interface ProblemsWorkerTaskParameter extends WorkParameters { }
+        """
+        file('buildSrc/src/main/java/org/someorg/test/ThreadProblemWorkerTask.java') << """
+            package org.someorg.test;
+
+            import java.io.File;
+            import java.io.FileWriter;
+            import org.gradle.api.problems.Problems;
+            import org.gradle.api.problems.ProblemId;
+            import org.gradle.api.problems.ProblemGroup;
+            import org.gradle.internal.operations.CurrentBuildOperationRef;
+
+            import org.gradle.workers.WorkAction;
+
+            import javax.inject.Inject;
+
+            public abstract class ThreadProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
+
+                @Inject
+                public abstract Problems getProblems();
+
+                @Override
+                public void execute() {
+                    ProblemId problemId = ProblemId.create("spawned", "problem from spawned thread", ProblemGroup.create("generic", "Generic"));
+                    Thread thread = new Thread(() -> getProblems().getReporter().report(problemId, problem -> {}));
+                    thread.start();
+                    try {
+                        thread.join();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    // Write the work thread's build operation id to a file, to compare attribution
+                    // Backslashes need to be escaped, so test works on Windows
+                    File buildOperationIdFile = new File("${buildOperationIdFile.absolutePath.replace('\\', '\\\\')}");
+                    try(FileWriter writer = new FileWriter(buildOperationIdFile)) {
+                        writer.write(CurrentBuildOperationRef.instance().get().getId().toString());
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        """
+        buildFile """
+            import javax.inject.Inject
+            import org.someorg.test.ThreadProblemWorkerTask
+
+            abstract class ProblemTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor();
+
+                @TaskAction
+                void executeTask() {
+                    getWorkerExecutor().${isolationMode}().submit(ThreadProblemWorkerTask.class) {}
+                }
+            }
+
+            tasks.register("reportProblem", ProblemTask)
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'generic:spawned'
+            definition.id.displayName == 'problem from spawned thread'
+            if (isolationMode == "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
+                // In a worker process the problem is attributed to the work request's build operation
+                operationId == Long.parseLong(buildOperationIdFile.text)
             }
         }
 
