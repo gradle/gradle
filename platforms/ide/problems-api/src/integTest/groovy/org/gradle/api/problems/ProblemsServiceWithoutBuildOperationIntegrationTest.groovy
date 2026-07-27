@@ -66,5 +66,10 @@ class ProblemsServiceWithoutBuildOperationIntegrationTest extends AbstractIntegr
             definition.id.fqid == 'issues:finished'
             definition.id.displayName == 'task finished'
         }
+
+        and: "the problem also lands in the problems report file"
+        def report = testDirectory.file("build/reports/problems/problems-report.html")
+        report.exists()
+        report.text.contains("task finished")
     }
 }

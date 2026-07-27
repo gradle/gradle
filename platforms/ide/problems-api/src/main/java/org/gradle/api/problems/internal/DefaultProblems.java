@@ -19,14 +19,14 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.BuildOperationIdRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class DefaultProblems implements ProblemsInternal {
 
-    private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final BuildOperationIdRef operationIdRef;
     private final ProblemSummarizer problemSummarizer;
     private final ProblemReporterInternal reporterInternal;
     private final ExceptionProblemRegistry exceptionProblemRegistry;
@@ -36,7 +36,7 @@ public class DefaultProblems implements ProblemsInternal {
     public DefaultProblems(
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
-        CurrentBuildOperationRef currentBuildOperationRef,
+        BuildOperationIdRef operationIdRef,
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
@@ -45,7 +45,7 @@ public class DefaultProblems implements ProblemsInternal {
         IsolatableToBytesSerializer isolatableSerializer
     ) {
         this.problemSummarizer = problemSummarizer;
-        this.currentBuildOperationRef = currentBuildOperationRef;
+        this.operationIdRef = operationIdRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
         this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
@@ -60,7 +60,7 @@ public class DefaultProblems implements ProblemsInternal {
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
             problemSummarizer,
-            currentBuildOperationRef,
+            operationIdRef,
             exceptionProblemRegistry,
             exceptionAnalyser,
             infrastructure);

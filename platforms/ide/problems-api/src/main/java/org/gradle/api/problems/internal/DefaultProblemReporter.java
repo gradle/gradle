@@ -22,7 +22,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.exception.ExceptionAnalyser;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.BuildOperationIdRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.NonNull;
 
@@ -32,20 +32,20 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
 
     private final ProblemSummarizer problemSummarizer;
     private final ProblemsInfrastructure infrastructure;
-    private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final BuildOperationIdRef operationIdRef;
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultProblemReporter(
         ProblemSummarizer problemSummarizer,
-        CurrentBuildOperationRef currentBuildOperationRef,
+        BuildOperationIdRef operationIdRef,
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         ProblemsInfrastructure infrastructure
     ) {
         this.problemSummarizer = problemSummarizer;
         this.infrastructure = infrastructure;
-        this.currentBuildOperationRef = currentBuildOperationRef;
+        this.operationIdRef = operationIdRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
     }
@@ -132,14 +132,17 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
     /**
      * Reports a problem.
      * <p>
-     * The current build operation is used as the operation identifier.
-     * If there is no current build operation, the problem is not reported.
+     * The problem is attributed to the build operation provided by this reporter's
+     * {@link BuildOperationIdRef} — typically the current build operation of the reporting
+     * thread, falling back to the root build operation for threads that have no current
+     * operation (for example, a thread dispatching build events to user-provided listeners).
+     * Only when no operation is available at all is the problem discarded.
      *
      * @param problem The problem to report.
      */
     @Override
     public void report(Problem problem) {
-        OperationIdentifier id = currentBuildOperationRef.getId();
+        OperationIdentifier id = operationIdRef.getId();
         if (id != null) {
             report(problem, id);
         }
