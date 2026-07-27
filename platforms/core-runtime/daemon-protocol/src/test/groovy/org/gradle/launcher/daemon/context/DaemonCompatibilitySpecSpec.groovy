@@ -15,20 +15,18 @@
  */
 package org.gradle.launcher.daemon.context
 
-
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.launcher.daemon.configuration.DaemonPriority
+import org.gradle.launcher.daemon.startup.DaemonPriority
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.FileSystemTestPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
-
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification

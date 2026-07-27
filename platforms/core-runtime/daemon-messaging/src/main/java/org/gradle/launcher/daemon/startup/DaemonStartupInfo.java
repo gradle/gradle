@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.diagnostics;
+package org.gradle.launcher.daemon.startup;
 
 import org.gradle.internal.remote.Address;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.jspecify.annotations.Nullable;
 
 public class DaemonStartupInfo {
+
     private final String uid;
     private final Address address;
     private final DaemonDiagnostics diagnostics;
@@ -58,4 +60,5 @@ public class DaemonStartupInfo {
         return "Daemon uid: " + uid + " with diagnostics:\n"
             + diagnostics.describe();
     }
+
 }
