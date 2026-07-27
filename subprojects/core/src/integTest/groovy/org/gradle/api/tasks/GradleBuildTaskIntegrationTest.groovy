@@ -19,8 +19,8 @@ package org.gradle.api.tasks
 import org.gradle.initialization.RunNestedBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -261,13 +261,14 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
             ${barrier.callFromBuild("child-build-started")}
             ${barrier.callFromBuild("child-build-finished")}
         """
+        def assertRootIsNamedRoot = "assert gradle.parent.owner.rootProject.name == 'root'"
         file('main/build.gradle') << """
-            assert gradle.parent.rootProject.name == 'root'
+            ${assertRootIsNamedRoot}
             task log { }
         """
         file('subprojects/settings.gradle') << ""
         file('subprojects/build.gradle') << """
-            assert gradle.parent.rootProject.name == 'root'
+            ${assertRootIsNamedRoot}
             task log { }
         """
 

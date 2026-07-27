@@ -36,7 +36,7 @@ class LazyConfigurationResolveIntegrationTest extends AbstractIntegrationSpec {
             }
             configurations {
                 create("trigger") {
-                    dependencies.add(dependencyFactory.create(project))
+                    dependencies.add(dependencyFactory.createProjectDependency())
                 }
                 resolvable("zzz")
                 consumable("bbb")

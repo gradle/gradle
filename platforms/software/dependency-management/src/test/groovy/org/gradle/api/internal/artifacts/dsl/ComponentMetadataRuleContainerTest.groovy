@@ -26,10 +26,9 @@ class ComponentMetadataRuleContainerTest extends Specification {
     @Subject
     def container = new ComponentMetadataRuleContainer()
 
-    def 'is empty and class based by default'() {
+    def 'is empty by default'() {
         expect:
-        container.isEmpty()
-        container.isClassBasedRulesOnly()
+        container.asImmutable().rules.isEmpty()
     }
 
     def 'records added rules in order'() {
@@ -42,15 +41,12 @@ class ComponentMetadataRuleContainerTest extends Specification {
         container.addClassRule(rule2)
 
         then:
-        !container.isEmpty()
-        !container.isClassBasedRulesOnly()
-        def iterator = container.iterator()
-        def ruleWrapper = iterator.next()
-        !ruleWrapper.isClassBased()
-        ruleWrapper.rule == rule1
-        def ruleWrapper2 = iterator.next()
-        ruleWrapper2.isClassBased()
-        ruleWrapper2.classRules.contains(rule2)
+        def rules = container.asImmutable().rules
+        rules.size() == 2
+        rules[0] instanceof ImmutableComponentMetadataRules.ImmutableRule.ActionBased
+        rules[0].rule() == rule1
+        rules[1] instanceof ImmutableComponentMetadataRules.ImmutableRule.ClassBased
+        rules[1].classRules().contains(rule2)
     }
 
     def 'records subsequent class based rule in a single wrapper'() {
@@ -63,12 +59,10 @@ class ComponentMetadataRuleContainerTest extends Specification {
         container.addClassRule(rule2)
 
         then:
-        !container.isEmpty()
-        container.isClassBasedRulesOnly()
-        def iterator = container.iterator()
-        def ruleWrapper = iterator.next()
-        ruleWrapper.isClassBased()
-        ruleWrapper.classRules.containsAll([rule1, rule2])
+        def rules = container.asImmutable().rules
+        rules.size() == 1
+        rules[0] instanceof ImmutableComponentMetadataRules.ImmutableRule.ClassBased
+        rules[0].classRules().containsAll([rule1, rule2])
     }
 
     private SpecConfigurableRule configurableRule() {

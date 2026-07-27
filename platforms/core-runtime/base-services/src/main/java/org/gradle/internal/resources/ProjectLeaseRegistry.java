@@ -17,15 +17,18 @@
 package org.gradle.internal.resources;
 
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
 @ServiceScope(Scope.BuildSession.class)
-public interface ProjectLeaseRegistry {
+@NullMarked
+public interface ProjectLeaseRegistry extends BlockingNotifier {
     /**
      * Get the lock for the state of all projects of the given build. This lock provides exclusive access to the state of all projects in the build.While this lock is held, no project state locks can be held.
      */
@@ -90,6 +93,7 @@ public interface ProjectLeaseRegistry {
     /**
      * {@link #blocking(Factory)}, but returns no result.
      */
+    @Override
     void blocking(Runnable action);
 
     /**
@@ -99,6 +103,7 @@ public interface ProjectLeaseRegistry {
      * then it is safe to run the action without releasing the project locks. The worker lease is, however, released prior to running the
      * action and reacquired at the end.
      */
+    @Override
     <T extends @Nullable Object> T blocking(Factory<T> action);
 
     /**

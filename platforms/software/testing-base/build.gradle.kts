@@ -71,6 +71,9 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.testingJvm)
 }
 
 gradleModule {
@@ -82,12 +85,4 @@ gradleModule {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.AbstractTestTask)
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

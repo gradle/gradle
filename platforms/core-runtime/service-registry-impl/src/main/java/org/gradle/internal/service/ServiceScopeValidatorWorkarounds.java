@@ -35,11 +35,6 @@ class ServiceScopeValidatorWorkarounds {
         // build-cache-base:
         "org.gradle.caching.internal.origin.OriginMetadataFactory",
 
-        // It's supposed to be only in the Settings scope
-        // However, ProjectBuilderImpl does not instantiate that scope at all, while still requiring the service
-        // Because of this, it artificially puts it into the Build-scope to make it available
-        "org.gradle.initialization.DefaultProjectDescriptorRegistry",
-
         // It's supposed to be both in the UserHome and Build scopes
         // However, with ProjectBuilder based tests it is not available in UserHome scope
         "org.gradle.internal.classloader.ClasspathHasher",

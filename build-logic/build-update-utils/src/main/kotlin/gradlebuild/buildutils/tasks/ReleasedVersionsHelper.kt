@@ -55,11 +55,25 @@ fun updateReleasedVersions(currentReleasedVersion: ReleasedVersion, releasedVers
             releasedVersions.latestRc
         },
         if (currentReleasedVersion.gradleVersion().finalRelease()) {
-            (releasedVersions.finalReleases + currentReleasedVersion).sortedBy { it.gradleVersion() }.reversed()
+            normalizedFinalReleases(releasedVersions.finalReleases + currentReleasedVersion)
         } else {
-            releasedVersions.finalReleases
+            normalizedFinalReleases(releasedVersions.finalReleases)
         }
     )
+
+
+/**
+ * One entry per released version string, newest buildTime first when duplicates exist.
+ * Applying this after updates makes [updateReleasedVersions] idempotent for final releases.
+ */
+private
+fun normalizedFinalReleases(finalReleases: List<ReleasedVersion>): List<ReleasedVersion> =
+    finalReleases
+        .sortedWith(
+            compareByDescending<ReleasedVersion> { it.gradleVersion() }
+                .thenByDescending { it.buildTime }
+        )
+        .distinctBy { it.version }
 
 
 private

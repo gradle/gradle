@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks
 
 import groovy.transform.CompileStatic
-import org.gradle.api.problems.Severity
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
 import org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization
 
@@ -30,20 +29,23 @@ class TaskValidationReportFixture {
         this.reportFile = reportFile
     }
 
-    void verify(Map<String, Severity> messages) {
+    void verify(Map<String, String> messages) {
         def expectedReportContents = messages
             .collect { message, severity ->
                 "$severity: $message"
             }
             .join(PROBLEM_SEPARATOR)
             .replaceAll("\n+", "\n")
-        def reportText =
-            ValidationProblemSerialization.parseMessageList(reportFile.text)
-                .collect { it.definition.severity.toString() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(it) }
-                .sort()
-                .join(PROBLEM_SEPARATOR)
-                .replaceAll("\r\n", "\n")
-                .replaceAll("\n+", "\n")
+        def problems = ValidationProblemSerialization.deserialize(reportFile.text)
+        def warnings = problems.getWarnings()
+        def errors = problems.getErrors()
+
+        def reportText = (warnings.collect { "warning: " + TypeValidationProblemRenderer.renderMinimalInformationAbout(it) } +
+                errors.collect { "error: " + TypeValidationProblemRenderer.renderMinimalInformationAbout(it) })
+                    .sort()
+                    .join(PROBLEM_SEPARATOR)
+                    .replaceAll("\r\n", "\n")
+                    .replaceAll("\n+", "\n")
 
 
         def actualText = reportText

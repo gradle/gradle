@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 class TestTaskJavaVersionIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
@@ -128,7 +128,7 @@ class TestTaskJavaVersionIntegrationTest extends AbstractIntegrationSpec impleme
         succeeds("test")
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedWorkerJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedWorkerJavaHomeAvailable)
     def "test execution fails using target Java version"() {
         given:
         buildFile << """

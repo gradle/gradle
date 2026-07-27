@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -81,6 +82,7 @@ class EclipseModelTest extends Specification {
         model.wtp.component.pathVariables == [one: new File('.')]
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.api.XmlFileContentMerger.withXml). This behavior has been deprecated.")
     def "can configure project with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)
@@ -107,6 +109,7 @@ class EclipseModelTest extends Specification {
         1 * xmlTransformer.addAction(xmlAction)
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.api.XmlFileContentMerger.withXml). This behavior has been deprecated.")
     def "can configure classpath with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)
@@ -133,6 +136,7 @@ class EclipseModelTest extends Specification {
         1 * xmlTransformer.addAction(xmlAction)
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseJdt.file). This behavior has been deprecated.")
     def "can configure jdt with Actions"() {
         given:
         def propertiesTransformer = Mock(PropertiesTransformer)
@@ -159,6 +163,7 @@ class EclipseModelTest extends Specification {
         1 * propertiesTransformer.addAction(propertiesAction)
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseWtp.facet). This behavior has been deprecated.")
     def "can configure wtp with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)

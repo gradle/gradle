@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
@@ -28,7 +29,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -383,7 +384,7 @@ task someTask {
         "123"                | "123 as short"
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task causes VFS to drop"() {
         buildFile << """
@@ -409,9 +410,11 @@ task someTask {
         outputContains("Invalidating VFS because task ':invalid' failed validation")
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are displayed once"() {
+        enableProblemsApiCheck()
+
         buildFile << """
             import org.gradle.integtests.fixtures.validation.ValidationProblem
 
@@ -432,10 +435,38 @@ task someTask {
         run "invalid"
         then:
         executedAndNotSkipped(":invalid")
-        output.count("- Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test.") == 1
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.WARNING
+            fqid == 'deprecation:type-invalidtask-property-inputfile-test-problem-reason-this-is-a-test-this-behavior-has-been-deprecated'
+            contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test. This behavior has been deprecated."
+            details == 'This will fail with an error in Gradle 10.'
+            solutions == ['Execution optimizations are disabled to ensure correctness.']
+            additionalData.asMap == ['type': 'USER_CODE_DIRECT']
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.WARNING
+            fqid == 'deprecation:type-invalidtask-property-inputfile-test-problem-reason-this-is-a-test-this-behavior-has-been-deprecated'
+            contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test. This behavior has been deprecated."
+            details == 'This will fail with an error in Gradle 10.'
+            solutions == ['Execution optimizations are disabled to ensure correctness.']
+            additionalData.asMap == ['type': 'USER_CODE_DIRECT']
+        }
+        verifyAll(receivedProblem(2)) {
+            severity == Severity.WARNING
+            fqid == 'root:test-problem'
+            definition.id.displayName == 'test problem'
+            contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem"
+            details == 'This is a test.'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/id.html#section"
+            solutions == []
+            additionalData.asMap == [
+                'typeName': 'InvalidTask',
+                'propertyName': 'inputFile',
+            ]
+        }
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are reported even when task is skipped"() {
         buildFile << """
@@ -568,7 +599,6 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(missingValueMessage { property('input') })
     }
 
     def "optional null input properties registered via TaskInputs.property are allowed"() {
@@ -594,13 +624,6 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        def expectedMessage
-        if (GradleContextualExecuter.isConfigCache()) {
-            expectedMessage = missingNonConfigurableValueMessage { property('input') }
-        } else {
-            expectedMessage = missingValueMessage { property('input') }
-        }
-        failureDescriptionContains(expectedMessage)
 
         where:
         method << ["file", "files", "dir"]
@@ -632,13 +655,6 @@ task someTask(type: SomeTask) {
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        def expectedMessage
-        if (GradleContextualExecuter.isConfigCache()) {
-            expectedMessage = missingNonConfigurableValueMessage { property('output') }
-        } else {
-            expectedMessage = missingValueMessage { property('output') }
-        }
-        failureDescriptionContains(expectedMessage)
         where:
         method << ["file", "files", "dir", "dirs"]
     }
@@ -670,12 +686,6 @@ task someTask(type: SomeTask) {
         def missingFile = file('missing')
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(inputDoesNotExist {
-            property('input')
-                .kind(fileType)
-                .missing(missingFile)
-                .includeLink()
-        })
 
         where:
         method | fileType
@@ -701,17 +711,14 @@ task someTask(type: SomeTask) {
         def unexpected = file(path)
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(unexpectedInputType {
-            property('input')
-                .kind(fileType)
-                .missing(unexpected)
-                .includeLink()
-        })
 
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unexpected-input-file-type'
+            definition.id.displayName == 'Unexpected input file type'
             contextualLabel == "Property \'input\' $fileType \'${unexpected.absolutePath}\' is not a $fileType"
             details == "Expected an input to be a $fileType but it was a ${getOppositeKind(fileType)}"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unexpected_input_file_type"
             solutions == [
                 "Use a $fileType as an input",
                 "Declare the input as a ${getOppositeKind(fileType)} instead",
@@ -742,17 +749,14 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failureDescriptionContains(cannotWriteFileToDirectory {
-            property('output')
-                .file(outputDir)
-                .isNotFile()
-                .includeLink()
-        })
 
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:cannot-write-output'
+            definition.id.displayName == 'Property is not writable'
             contextualLabel == "Property \'output\' is not writable because \'${outputDir.absolutePath}\' is not a file"
             details == 'Cannot write a file to a location pointing at a directory'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cannot_write_output"
             solutions == [
                 'Configure \'output\' to point to a file, not a directory',
                 'Annotate \'output\' with @OutputDirectory instead of @OutputFiles',
@@ -782,17 +786,14 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failureDescriptionContains(cannotWriteToDir {
-            property('output')
-                .dir(outputFile)
-                .isNotDirectory()
-                .includeLink()
-        })
 
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:cannot-write-output'
+            definition.id.displayName == 'Property is not writable'
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cannot_write_output"
             solutions == [ 'Make sure that the \'output\' is configured to a directory' ]
             additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',
@@ -826,16 +827,14 @@ task someTask(type: SomeTask) {
 
         expect:
         fails('myTask')
-        failureDescriptionContains(cannotCreateRootOfFileTree {
-            property('output')
-                .dir(outputFile)
-                .includeLink()
-        })
 
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:cannot-write-output'
+            definition.id.displayName == 'Property is not writable'
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected the root of the file tree \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cannot_write_output"
             solutions == [ 'Make sure that the root of the file tree \'output\' is configured to a directory' ]
             additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',

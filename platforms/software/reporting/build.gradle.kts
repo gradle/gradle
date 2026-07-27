@@ -8,6 +8,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.modelCore)
     api(projects.reportRendering)
     api(projects.serviceLookup)
@@ -45,12 +46,4 @@ gradleModule {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/reporting/internal/**")
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

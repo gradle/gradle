@@ -56,6 +56,7 @@ class TestProjectGeneratorConfiguration {
     int testForkEvery
     boolean useTestNG
     Map<String, String> fileToChangeByScenario
+    int deprecationsPerProject
 }
 
 @Builder(prefix = "with",
@@ -151,6 +152,7 @@ class TestProjectGeneratorConfigurationBuilder {
         config.testForkEvery = 1000
         config.useTestNG = this.useTestNG
         config.fileToChangeByScenario = this.fileToChangeByScenario
+        config.deprecationsPerProject = this.deprecationsPerProject
         return config
     }
 }

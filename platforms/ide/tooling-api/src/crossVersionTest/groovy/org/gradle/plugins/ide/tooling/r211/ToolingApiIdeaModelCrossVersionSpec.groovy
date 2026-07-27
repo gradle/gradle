@@ -21,7 +21,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Assume
 
@@ -90,7 +91,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == null // inherited
     }
 
-    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires(value = [InstalledJdkTestPreconditions.Java17HomeAvailable, InstalledJdkTestPreconditions.Java21HomeAvailable, TestExecutionPreconditions.NotEmbeddedExecutor])
     def "can query java sdk for idea project"() {
         Assume.assumeTrue("Target Gradle version supports running with Java " + jvm.javaVersionMajor, targetDist.daemonWorksWith(jvm.javaVersionMajor))
 
@@ -113,7 +114,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         jvm << [AvailableJavaHomes.jdk17, AvailableJavaHomes.jdk21]
     }
 
-    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires(value = [InstalledJdkTestPreconditions.Java17HomeAvailable, InstalledJdkTestPreconditions.Java21HomeAvailable, TestExecutionPreconditions.NotEmbeddedExecutor])
     def "module java sdk overwrite always null"() {
         Assume.assumeTrue("Target Gradle version supports running with Java " + jvm.javaVersionMajor, targetDist.daemonWorksWith(jvm.javaVersionMajor))
 

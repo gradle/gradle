@@ -17,7 +17,6 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.TestPathRootExecutionResult
 import org.gradle.api.tasks.testing.TestResult
@@ -48,8 +47,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     private final GenericHtmlTestExecutionResult delegate
 
-    HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test", TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        this.delegate = new GenericHtmlTestExecutionResult(projectDirectory, testReportDirectory, testFramework)
+    HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
+        this.delegate = new GenericHtmlTestExecutionResult(projectDirectory, testReportDirectory)
     }
 
     private Set<String> getExecutedTestClasses() {
@@ -79,7 +78,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     boolean testClassExists(String testClass) {
-        return delegate.testPathExists(testClass)
+        return delegate.testPathExists(":" + testClass)
     }
 
     boolean testClassDoesNotExist(String testClass) {
@@ -87,7 +86,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        return new HtmlTestClassExecutionResult(delegate, testClass, delegate.testPath(testClass))
+        return new HtmlTestClassExecutionResult(delegate, ":" + testClass, delegate.testPath(":" + testClass))
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {

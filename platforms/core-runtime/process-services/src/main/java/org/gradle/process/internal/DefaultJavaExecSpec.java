@@ -53,6 +53,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     private ConfigurableFileCollection classpath;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultJavaExecSpec(
         ObjectFactory objectFactory,
         PathToFileResolver resolver,

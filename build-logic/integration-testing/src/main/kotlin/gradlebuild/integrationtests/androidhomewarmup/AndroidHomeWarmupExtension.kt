@@ -33,7 +33,7 @@ abstract class AndroidHomeWarmupExtension {
 data class SdkVersion(
     val compileSdk: Int,
     val buildTools: String,
-    val agpVersion: String = "8.11.2",
+    val agpVersion: String = "9.0.1",
     val minSdk: Int = 23,
     val targetSdk: Int? = null
 ):Serializable {

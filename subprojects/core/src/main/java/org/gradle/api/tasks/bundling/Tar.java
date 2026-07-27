@@ -33,13 +33,14 @@ import org.gradle.work.DisableCachingByDefault;
 public abstract class Tar extends AbstractArchiveTask {
     private Compression compression = Compression.NONE;
 
+    @SuppressWarnings("this-escape")
     public Tar() {
         getArchiveExtension().set(getProject().provider(() -> getCompression().getDefaultExtension()));
     }
 
     @Override
     protected CopyAction createCopyAction() {
-        return new TarCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), isPreserveFileTimestamps());
+        return new TarCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), isPreserveFileTimestamps(), getReproducibleFileTimestamp());
     }
 
     private ArchiveOutputStreamFactory getCompressor() {

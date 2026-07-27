@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Gradle!
 This guide explains how to contribute to the core Gradle components, 
 extensions and documentation located in this repository.
 For other extensions and components, see the 
-[Gradle Community Resources](https://gradle.org/resources/).
+[Gradle Community Resources](https://community.gradle.org/#resources).
 
 This guide will help you to...
 
@@ -36,6 +36,10 @@ Do not report security vulnerabilities to the public issue tracker. Follow our [
 
 Contributors must follow the Code of Conduct outlined at [https://gradle.org/conduct/](https://gradle.org/conduct/).
 
+### AI-assisted contributions
+
+If you use AI tools when contributing to Gradle, please review our [AI Policy](AI_POLICY.md).
+
 ### Additional help
 
 If you run into any trouble, please reach out to us on the issue you are working on.
@@ -58,7 +62,7 @@ There is no need to ask for an assignment or for permission to work on those iss
 
 In order to make changes to Gradle, you'll need:
 
-* [Adoptium JDK](https://adoptium.net/temurin/archive/?version=17) (Java Development Kit) **version 17**. Fixed version is required to use [remote cache](#remote-build-cache).
+* [Adoptium JDK](https://adoptium.net/temurin/archive/?version=25) (Java Development Kit) **version 25**. Fixed version is required to use [remote cache](#remote-build-cache).
 * A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/). IntelliJ Ultimate will also work. You'll need IntelliJ 2021.2.2 or newer.
 * [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
 
@@ -73,14 +77,14 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 
 To import Gradle into IntelliJ:
 - Open the `build.gradle.kts` file in root of the project with IntelliJ and choose "Open as Project"
-- Select a Adoptium Java 17 VM as "Gradle JVM"
+- Select an Adoptium Java 25 VM as "Gradle JVM"
 - Revert the Git changes to files in the `.idea` folder
 
 NOTE: Due to the project size, the very first import can take a while and IntelliJ might become unresponsive for several seconds during this period.
 
 IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult. You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
 
-If you did not have a Adoptium Java 17 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 17 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
+If you did not have an Adoptium Java 25 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 25 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
 
 #### Install Develocity IntelliJ plugin
 
@@ -301,7 +305,7 @@ You can set the 'bin.cmp.report.severity.filter' property in your `gradle.proper
 #### Accepting multiple changes
 
 If you have multiple changes to accept (and you're sure they ought to be accepted instead of corrected), you can use the `Accept Changes for all Errors` button to speed the process.
-This button will cause a Javascript alert dialog to appear asking you to type a reason for accepting the changes, e.g. "Added new API for Gradle 8.x".
+This button will cause a JavaScript alert dialog to appear asking you to type a reason for accepting the changes, e.g. "Added new API for Gradle 8.x".
 
 Clicking okay on the dialog will cause a copy of the `accepted-public-api-changes.json` containing your (properly sorted) addition to be downloaded.
 You can then replace the existing file with this new downloaded version. 
@@ -332,11 +336,11 @@ For more information on the configuration cache, see the [user manual](https://d
 
 ### Remote build cache
 
-Gradle Technologies runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
+Gradle Technologies runs a set of remote build cache nodes to speed up local builds when developing Gradle. 
 
-The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can use a different build cache node by specifying `-Ddevelocity.edge.discovery=false -DcacheNode=us` for a build cache node in the US or `-Ddevelocity.edge.discovery=false -DcacheNode=au` for a build cache node in Australia.
+The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can select a different edge node by following the instructions in [this doc](https://github.com/gradle/gradle-org-conventions-plugin#change-edge-node-location).
 
-If you are not getting cache hits from the build cache, you may be using the wrong version of Java. A fixed version (Java 11) is required to get remote cache hits.
+If you are not getting cache hits from the build cache, you may be using the wrong version of Java. A fixed version (Java 25) is required to get remote cache hits.
 
 ### Building a distribution from source
 
@@ -348,7 +352,7 @@ This will create a minimal distribution at `packaging/distributions-full/build/d
 
 You can then use it as a Gradle Wrapper local distribution in a Gradle based project by using a `file:/` URL pointing to the built distribution:
 
-    ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-bin.zip
+    ./gradlew :wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-bin.zip
 
 To create a full distribution (includes sources and docs):
 
@@ -356,7 +360,7 @@ To create a full distribution (includes sources and docs):
 
 The full distribution will be created at `packaging/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
 
-    ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
+    ./gradlew :wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
 
 ## Our thanks
 

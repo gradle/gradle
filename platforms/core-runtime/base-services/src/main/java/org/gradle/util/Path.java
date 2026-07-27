@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Represents a path in Gradle.
@@ -153,7 +152,14 @@ public class Path implements Comparable<Path> {
         if (absolute) {
             path.append(SEPARATOR);
         }
-        return path.append(join(segments, SEPARATOR)).toString();
+        for (int i = 0; i < segments.length; i++) {
+            String segment = segments[i];
+            if (i > 0) {
+                path.append(SEPARATOR);
+            }
+            path.append(segment);
+        }
+        return path.toString();
     }
 
     /**

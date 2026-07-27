@@ -76,7 +76,7 @@ public class CustomManifestInternalWrapper implements ManifestInternal {
     }
 
     @Override
-    public @Nullable Provider<String> getContentCharset() {
+    public @Nullable Provider<String> getContentCharsetProvider() {
         return contentCharset;
     }
 

@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
+
     private final List<ResolvedArtifactSet> sets;
 
     private CompositeResolvedArtifactSet(List<ResolvedArtifactSet> sets) {
@@ -33,16 +34,21 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     public static ResolvedArtifactSet of(Collection<? extends ResolvedArtifactSet> sets) {
         List<ResolvedArtifactSet> filtered = new ArrayList<>(sets.size());
         for (ResolvedArtifactSet set : sets) {
-            if (set != ResolvedArtifactSet.EMPTY) {
+            if (set instanceof CompositeResolvedArtifactSet composite) {
+                filtered.addAll(composite.sets);
+            } else if (set != ResolvedArtifactSet.EMPTY) {
                 filtered.add(set);
             }
         }
+
         if (filtered.isEmpty()) {
             return EMPTY;
         }
+
         if (filtered.size() == 1) {
             return filtered.get(0);
         }
+
         return new CompositeResolvedArtifactSet(filtered);
     }
 
@@ -73,4 +79,5 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
             set.visitDependencies(context);
         }
     }
+
 }

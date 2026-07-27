@@ -27,11 +27,21 @@ dependencies {
         because("For manually defined KotlinSourceSet accessor - sourceSets.main.get().kotlin")
     }
 
-    testImplementation(testLibs.junit5JupiterEngine)
-
-    testRuntimeOnly(testLibs.junitPlatform)
+    testImplementation(buildLibs.kotlinCompilerEmbeddable) {
+        because("KotlinSourceParserTest parses Kotlin sources with the embeddable compiler")
+    }
 }
 
-tasks.test {
-    useJUnitPlatform()
+configurations.testRuntimeClasspath {
+    // https://youtrack.jetbrains.com/issue/KT-87492/KGP-jar-bundles-a-partial-and-unshaded-copy-of-org.jetbrains.kotlin.com.intellij.-classes-that-collide-with-kotlin-compiler
+    exclude(group = "org.jetbrains.kotlin", module = "kotlin-gradle-plugin")
+}
+
+@Suppress("UnstableApiUsage")
+testing {
+    suites {
+        named<JvmTestSuite>("test") {
+            useJUnitJupiter(buildLibs.versions.junit)
+        }
+    }
 }

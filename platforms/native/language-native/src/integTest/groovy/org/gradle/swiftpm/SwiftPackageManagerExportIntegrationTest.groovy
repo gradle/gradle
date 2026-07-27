@@ -17,9 +17,11 @@
 package org.gradle.swiftpm
 
 import org.gradle.util.internal.VersionNumber
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class SwiftPackageManagerExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "produces manifest for build with no native components"() {
         given:
         createDirs("lib1", "lib2")
@@ -75,6 +77,7 @@ let package = Package(
         file("Package.swift").assertDoesNotExist()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Swift Package Manager export uses allprojects")
     def "can exclude certain products from the generated file"() {
         given:
         createDirs("lib1", "lib2", "app")

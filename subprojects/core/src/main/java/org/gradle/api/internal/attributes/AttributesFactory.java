@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.service.scopes.Scope;
@@ -35,6 +36,11 @@ public interface AttributesFactory {
      * Returns an empty mutable attribute container with the given fallback.
      */
     AttributeContainerInternal mutable(AttributeContainerInternal fallback);
+
+    /**
+     * Create a {@link FreezableAttributeContainer} from the given {@link AttributeContainerInternal}.
+     */
+    FreezableAttributeContainer freezable(AttributeContainerInternal container, Describable owner);
 
     /**
      * Returns a new attribute container which attaches a primary container and a fallback container. Changes

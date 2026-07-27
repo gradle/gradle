@@ -13,8 +13,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.modelCore)
-    api(projects.platformBase)
 
     implementation(libs.commonsLang)
 

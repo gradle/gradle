@@ -97,7 +97,7 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
         ]
     }
 
-    def "does not forward progress or finished if started was not delivered to listener"() {
+    def "does not forward progress for operations whose started was not delivered to listener"() {
         given:
         def op1 = nextOp("1")
 
@@ -117,11 +117,12 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
         broadcaster.finished(op2, finishEvent)
 
         then:
-        // Listener correctly sees only op2 — it missed started for op1,
-        // so progress and finished for op1 are filtered out
+        // Listener sees finished for op1 even though it missed started,
+        // but progress for op1 is correctly filtered out
         events == [
             start("1", op2.id),
             progress("1", op2.id),
+            finished("1", op1.id),
             finished("1", op2.id),
         ]
     }

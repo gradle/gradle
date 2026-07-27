@@ -19,6 +19,8 @@ package org.gradle.internal.cc.impl.serialize
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme
@@ -37,7 +39,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
@@ -82,6 +84,7 @@ import org.gradle.internal.serialize.codecs.core.ListPropertyCodec
 import org.gradle.internal.serialize.codecs.core.LoggerCodec
 import org.gradle.internal.serialize.codecs.core.MapEntrySnapshotCodec
 import org.gradle.internal.serialize.codecs.core.MapPropertyCodec
+import org.gradle.internal.serialize.codecs.core.NamedCodec
 import org.gradle.internal.serialize.codecs.core.NullValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.OrdinalNodeCodec
 import org.gradle.internal.serialize.codecs.core.PathToFileResolverCodec
@@ -99,6 +102,7 @@ import org.gradle.internal.serialize.codecs.core.TaskNodeCodec
 import org.gradle.internal.serialize.codecs.core.TaskReferenceCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintBuildServiceProviderCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintFlowProviders
+import org.gradle.internal.serialize.codecs.core.UserCodeSourceCodec
 import org.gradle.internal.serialize.codecs.core.ValueSourceProviderCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeActionCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeCodec
@@ -107,19 +111,24 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultComponentArtifactsResultCodec
+import org.gradle.internal.serialize.codecs.dm.DefaultGraphStructureCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvedArtifactResultCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultUnresolvedComponentResultCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesSchemaCodec
+import org.gradle.internal.serialize.codecs.dm.ImmutableCapabilitiesCodec
 import org.gradle.internal.serialize.codecs.dm.LocalFileDependencyBackedArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.PublishArtifactLocalArtifactMetadataCodec
 import org.gradle.internal.serialize.codecs.dm.ResolveArtifactNodeCodec
+import org.gradle.internal.serialize.codecs.dm.ResolvedComponentResultCodec
+import org.gradle.internal.serialize.codecs.dm.ResolvedGraphResultCodec
 import org.gradle.internal.serialize.codecs.dm.transform.CalculateArtifactsCodec
 import org.gradle.internal.serialize.codecs.dm.transform.ChainedTransformStepNodeCodec
 import org.gradle.internal.serialize.codecs.dm.transform.ComponentVariantIdentifierCodec
@@ -133,6 +142,7 @@ import org.gradle.internal.serialize.codecs.dm.transform.TransformStepSpecCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedExternalArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedProjectArtifactSetCodec
+import org.gradle.internal.serialize.codecs.stdlib.KotlinObjectCodec
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
@@ -195,10 +205,17 @@ class DefaultConfigurationCacheCodecs(
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
+    moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
-    problems: InternalProblems
+    problems: ProblemsInternal,
+    private val objectOpener: ObjectOpener,
+    startParameter: StartParameterInternal
 ) : ConfigurationCacheCodecs {
+
+    private
+    val serializeTaskLoggingListeners = !startParameter.isConfigurationCacheSkipTaskLoggingListenersSerialization
+
 
     private
     val parallelStore: Boolean = modelParameters.isConfigurationCacheParallelStore
@@ -216,7 +233,7 @@ class DefaultConfigurationCacheCodecs(
         fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
             unsupportedTypes()
 
-            baseTypes()
+            baseTypes(objectOpener)
 
             bind(HASHCODE_SERIALIZER)
 
@@ -232,11 +249,14 @@ class DefaultConfigurationCacheCodecs(
             bind(org.gradle.internal.serialize.codecs.core.ApiTextResourceAdapterCodec)
 
             groovyCodecs()
-            bind(SerializedLambdaParametersCheckingCodec)
+            bind(SerializedLambdaParametersCheckingCodec(objectOpener))
 
             // Dependency management types
+            val immutableAttributesCodec = ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry)
+            val immutableCapabilitiesCodec = ImmutableCapabilitiesCodec()
+            bind(immutableAttributesCodec)
+            bind(immutableCapabilitiesCodec)
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, attributeDesugaring, taskDependencyFactory))
-            bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ImmutableAttributesSchemaCodec(instantiatorFactory, attributeSchemaFactory))
             bind(ComponentVariantIdentifierCodec)
@@ -260,13 +280,25 @@ class DefaultConfigurationCacheCodecs(
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
             bind(DefaultComponentArtifactsResultCodec())
-            bind(DefaultResolvedArtifactResultCodec())
+            bind(DefaultResolvedArtifactResultCodec(immutableAttributesCodec, immutableCapabilitiesCodec))
             bind(DefaultUnresolvedComponentResultCodec())
+
+            val graphStructureCodec = DefaultGraphStructureCodec(
+                immutableAttributesCodec,
+                immutableCapabilitiesCodec,
+                moduleIdentifierFactory,
+            )
+            val resolvedGraphResultCodec = ResolvedGraphResultCodec(
+                graphStructureCodec
+            )
+            val resolvedComponentResultCodec = ResolvedComponentResultCodec(resolvedGraphResultCodec)
+            bind(resolvedComponentResultCodec)
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)
+            bind(UserCodeSourceCodec)
 
             bind(IsolatedManagedValueCodec(managedFactoryRegistry))
             bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
@@ -291,6 +323,8 @@ class DefaultConfigurationCacheCodecs(
             bind(BeanSpecCodec)
 
             bind(RegisteredFlowActionCodec)
+
+            bind(NamedCodec(managedFactoryRegistry))
         }
 
         userTypesBindings = makeUserTypeBindings {
@@ -304,6 +338,8 @@ class DefaultConfigurationCacheCodecs(
         }
 
         fingerprintUserTypesBindings = makeUserTypeBindings {
+            bind(ValueSourceFingerprintCodec)
+            bind(SystemPropertyChangedFingerprintCodec)
             providerTypes(
                 propertyFactory,
                 filePropertyFactory,
@@ -314,8 +350,9 @@ class DefaultConfigurationCacheCodecs(
 
     private
     fun Bindings.completeWithStatefulCodecs() = append {
+        bind(KotlinObjectCodec)
         bind(ExternalizableCodec)
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))
         bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
@@ -331,7 +368,7 @@ class DefaultConfigurationCacheCodecs(
 
     private
     val internalTypesBindings = Bindings.of {
-        baseTypes()
+        baseTypes(objectOpener)
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
@@ -344,7 +381,7 @@ class DefaultConfigurationCacheCodecs(
     override fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {
         val userTypesCodec = userTypesCodec()
 
-        bind(TaskNodeCodec(userTypesCodec))
+        bind(TaskNodeCodec(userTypesCodec, serializeTaskLoggingListeners))
         bind(DelegatingCodec<TransformStepNode>(userTypesCodec))
         bind(org.gradle.internal.serialize.codecs.core.ActionNodeCodec(userTypesCodec))
         bind(OrdinalNodeCodec)
@@ -375,7 +412,7 @@ class DefaultConfigurationCacheCodecs(
         buildStateRegistry: BuildStateRegistry
     ) = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec,
+            ValueSourceProviderCodec(::userTypesCodec),
             BuildServiceProviderCodec(buildStateRegistry),
             FlowProvidersCodec
         )
@@ -387,7 +424,7 @@ class DefaultConfigurationCacheCodecs(
     private
     fun nestedProviderCodecForFingerprint() = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec,
+            ValueSourceProviderCodec(::fingerprintTypesCodec),
             UnsupportedFingerprintBuildServiceProviderCodec,
             UnsupportedFingerprintFlowProviders
         )

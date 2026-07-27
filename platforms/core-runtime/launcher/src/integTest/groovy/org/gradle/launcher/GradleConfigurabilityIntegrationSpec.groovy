@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
@@ -56,7 +57,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         failure.assertHasDescription("Value '${dummyJdk.absolutePath}' given for org.gradle.java.home Gradle property is invalid (Java home supplied seems to be invalid)")
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "handles java home that is a symlink"() {
         given:
         def javaHome = Jvm.current().javaHome
@@ -88,7 +89,7 @@ assert providers.systemProperty('some-prop').get() == 'i have space'
         """
     }
 
-    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
+    @Requires(InstalledJdkTestPreconditions.DifferentJdkAvailable)
     def "honours jvm option that contain a space in gradle.properties"() {
         given:
         file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..."'
@@ -106,7 +107,7 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
         return javaHome.canonicalPath
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "honours java home specified in gradle.properties"() {
         given:
         String javaPath = useAlternativeJavaPath()
@@ -115,7 +116,7 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
         buildSucceeds "assert System.getProperty('java.home').startsWith('${TextUtil.escapeString(javaPath)}')"
     }
 
-    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.JavaRuntimeVersionSystemPropertyAvailable])
+    @Requires([InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable, InstalledJdkTestPreconditions.JavaRuntimeVersionSystemPropertyAvailable])
     def "does not alter java.runtime.version"() {
         given:
         useAlternativeJavaPath(AvailableJavaHomes.differentVersion)

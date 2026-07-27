@@ -36,9 +36,9 @@ import org.gradle.api.Incubating;
  * <li>{@link Finalize}</li>
  * <li>{@link Validate}</li>
  * <li>{@link Rules}</li>
- * <li>{@link org.gradle.platform.base.ComponentType}</li>
- * <li>{@link org.gradle.platform.base.ComponentBinaries}</li>
- * <li>{@link org.gradle.platform.base.BinaryTasks}</li>
+ * <li>{@code org.gradle.platform.base.ComponentType}</li>
+ * <li>{@code org.gradle.platform.base.ComponentBinaries}</li>
+ * <li>{@code org.gradle.platform.base.BinaryTasks}</li>
  * </ul>
  * <p>
  * Each annotation specifies the type of the rule, which affects when it will be executed.
@@ -76,7 +76,10 @@ import org.gradle.api.Incubating;
  * <li>Methods cannot be overloaded.</li>
  * <li>Implementations cannot be generic (i.e. cannot use type parameters).</li>
  * </ul>
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public class RuleSource {
 }

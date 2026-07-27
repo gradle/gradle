@@ -17,9 +17,13 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.StartParameter
+import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
@@ -37,9 +41,11 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.FailureFactory
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.lang.reflect.Field
+import java.lang.reflect.InvocationTargetException
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -262,6 +268,55 @@ $GET_HELP
 """
     }
 
+    def "unpacks InvocationTargetException so the real cause is shown"() {
+        Throwable exception = new LocationAwareException(
+            new GradleException(MESSAGE, new InvocationTargetException(new RuntimeException(FAILURE))),
+            LOCATION, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* Where:
+$LOCATION line: 42
+
+* What went wrong:
+$MESSAGE
+{info}> {normal}$FAILURE
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$TRY_SCAN
+$GET_HELP
+"""
+    }
+
+    def "keeps InvocationTargetException with no target in the output"() {
+        Throwable exception = new LocationAwareException(
+            new GradleException(MESSAGE, new InvocationTargetException(null)), LOCATION, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* Where:
+$LOCATION line: 42
+
+* What went wrong:
+$MESSAGE
+{info}> {normal}java.lang.reflect.InvocationTargetException (no error message)
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$TRY_SCAN
+$GET_HELP
+"""
+    }
+
     def reportsLocationAwareExceptionWhenCauseHasNoMessage() {
         Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE, new RuntimeException()), LOCATION, 42)
 
@@ -316,8 +371,17 @@ Caused by: org.gradle.api.GradleException: $FAILURE
     }
 
     def "report multiple failures and skip help link for NonGradleCauseException"() {
-        def task1 = Mock(TaskInternal) { toString() >> "task ':testTask1'" }
-        def task2 = Mock(TaskInternal) { toString() >> "task ':testTask2'" }
+        def project = Mock(ProjectInternal) {
+            getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "name")
+        }
+        def task1 = Mock(TaskInternal) {
+            toString() >> "task ':testTask1'"
+            getTaskIdentity() >> TestTaskIdentities.create("testTask1", DefaultTask.class, project, )
+        }
+        def task2 = Mock(TaskInternal) {
+            toString() >> "task ':testTask2'"
+            getTaskIdentity() >> TestTaskIdentities.create("testTask2", DefaultTask.class, project, )
+        }
         def failure1 = new LocationAwareException(new TaskExecutionException(task1, new TestNonGradleCauseException()), LOCATION, 42)
         def failure2 = new LocationAwareException(new TaskExecutionException(task2, new TestCompilationFailureException()), LOCATION, 42)
         def failure3 = new RuntimeException("<error>")

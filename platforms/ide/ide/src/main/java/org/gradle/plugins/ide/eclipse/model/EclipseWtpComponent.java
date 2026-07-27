@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
@@ -103,7 +104,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'war'
  *     id 'eclipse-wtp'
@@ -164,9 +165,15 @@ public abstract class EclipseWtpComponent {
         return project;
     }
 
+    // The getter does not nag: Groovy's dynamic dispatch probes the `file` property for any
+    // unresolved `file(...)` call inside a `component { }` block (e.g. `sourceDirs += file(...)`),
+    // which would produce false-positive warnings. The file(Closure)/file(Action) hooks nag instead.
     /**
      * See {@link #file(Action) }
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public XmlFileContentMerger getFile() {
         return file;
     }
@@ -178,8 +185,12 @@ public abstract class EclipseWtpComponent {
      * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpComponent}
      * <p>
      * For example see docs for {@link EclipseWtpComponent}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
+        IdeDeprecations.nagDeprecatedProperty(EclipseWtpComponent.class, "file");
         configure(closure, file);
     }
 
@@ -190,8 +201,11 @@ public abstract class EclipseWtpComponent {
      * For example see docs for {@link EclipseWtpComponent}
      *
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void file(Action<? super XmlFileContentMerger> action) {
+        IdeDeprecations.nagDeprecatedProperty(EclipseWtpComponent.class, "file");
         action.execute(file);
     }
 
@@ -390,6 +404,12 @@ public abstract class EclipseWtpComponent {
         return referenceFactory;
     }
 
+    /**
+     * Merges the existing component file content with the configuration from this model.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public void mergeXmlComponent(WtpComponent xmlComponent) {
         file.getBeforeMerged().execute(xmlComponent);

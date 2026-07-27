@@ -34,7 +34,7 @@ class EmptyBlocksTest {
             """.trimIndent()
         )
 
-        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+        val result = runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
         assertTrue { result.configuredLazy.isInitialized() }
     }
@@ -47,7 +47,7 @@ class EmptyBlocksTest {
             """.trimIndent()
         )
 
-        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+        val result = runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
         assertTrue { result.configuredLazy.isInitialized() }
     }
@@ -64,7 +64,7 @@ class EmptyBlocksTest {
             """.trimIndent()
         )
 
-        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+        val result = runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
         assertEquals(listOf(0, 0, 2, 3, 4), result.added.map { it.x })
     }

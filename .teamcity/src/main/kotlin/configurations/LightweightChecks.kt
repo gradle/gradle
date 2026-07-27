@@ -1,12 +1,7 @@
 package configurations
 
-import common.BuildToolBuildJvm
-import common.DefaultJvm
-import common.JvmVendor
-import common.JvmVersion
 import common.Os
 import common.applyDefaultSettings
-import common.javaHome
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
@@ -22,6 +17,7 @@ private val remoteProjectRefs =
         "excludeRuleMergingBuildProjectRef",
         "springBootAppProjectRef",
         "largeNativeBuildProjectRef",
+        "isolatedProjectsTestbedRef",
     )
 
 class LightweightChecks(
@@ -35,17 +31,13 @@ class LightweightChecks(
             name = "Lightweight Checks"
             description = "Lightweight checks that don't depend on other builds"
 
-            val os = os
-            val defaultJavaBinary = "${javaHome(BuildToolBuildJvm, os)}/bin/java"
-
             applyDefaultSettings(artifactRuleOverride = "")
 
             params {
                 // Disable jdk-provider-plugin, otherwise the JAVA_HOME will be overwritten
                 // https://github.com/gradle/teamcity-jdk-provider-plugin/blob/main/teamcity-jdk-provider-plugin-agent/src/main/kotlin/org/gradle/teamcity_jdk_provider_plugin/JdkProviderAgentLifecycleListener.kt#L22
                 param("JdkProviderEnabled", "false")
-                // should be the same version we run TeamCity with
-                param("env.JAVA_HOME", javaHome(DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK), os))
+                param("env.JAVA_HOME", "%teamcity.agent.jvm.java.home%")
             }
 
             steps {
@@ -54,13 +46,42 @@ class LightweightChecks(
                     scriptContent =
                         """
                         set -eu
-                        "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
-                        "$defaultJavaBinary" .teamcity/scripts/CheckWrapper.java
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckWrapper.java
                         """.trimIndent()
 
                     conditions {
                         doesNotEqual("teamcity.build.branch", BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
                     }
+                }
+                script {
+                    name = "CHECK_AI_ATTRIBUTION"
+                    scriptContent =
+                        """
+                        set -eu
+
+                        PR_BODY_FILE="${'$'}(mktemp)"
+                        trap 'rm -f "${'$'}PR_BODY_FILE"' EXIT
+
+                        # Fetch the body of every open PR that contains the current HEAD SHA.
+                        # Silently no-op when the token is unset (master/branch builds without a PR).
+                        if [ -n "${'$'}{BOT_TEAMCITY_GITHUB_TOKEN:-}" ]; then
+                            curl --silent --show-error --fail-with-body \
+                                -H "Accept: application/vnd.github+json" \
+                                -H "X-GitHub-Api-Version: 2022-11-28" \
+                                -H "Authorization: Bearer ${'$'}BOT_TEAMCITY_GITHUB_TOKEN" \
+                                "https://api.github.com/repos/gradle/gradle/commits/%build.vcs.number%/pulls" \
+                                | jq -r '.[] | select(.state == "open") | .body // empty' \
+                                > "${'$'}PR_BODY_FILE" \
+                                || echo "Warning: failed to fetch PR body; skipping PR body scan."
+                        else
+                            echo "BOT_TEAMCITY_GITHUB_TOKEN not set; skipping PR body scan."
+                        fi
+
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckAiAttribution.java \
+                            --pr-body-file "${'$'}PR_BODY_FILE"
+                        """.trimIndent()
                 }
                 if (model.branch.isMaster) {
                     script {
@@ -69,8 +90,8 @@ class LightweightChecks(
                             """
                             set -eu
 
-                            "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
-                            "$defaultJavaBinary" .teamcity/scripts/CheckBadMerge.java
+                            "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                            "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckBadMerge.java
                             """.trimIndent()
                     }
                 }
@@ -79,7 +100,7 @@ class LightweightChecks(
                     scriptContent =
                         """
                         set -eu
-                        "$defaultJavaBinary" .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}
                         """.trimIndent()
                 }
                 script {

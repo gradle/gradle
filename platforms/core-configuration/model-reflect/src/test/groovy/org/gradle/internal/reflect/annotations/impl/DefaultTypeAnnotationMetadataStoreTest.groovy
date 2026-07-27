@@ -20,7 +20,6 @@ import groovy.transform.Generated
 import groovy.transform.Memoized
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
-import org.gradle.api.problems.Severity
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.AnnotationCategory
@@ -1031,8 +1030,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 
         def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
         metadata.visitValidationFailures(validationContext)
-        List<String> actualErrors = validationContext.problems
-            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
+        List<String> actualErrors = validationContext.warnings
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it))) })
+        actualErrors += validationContext.errors
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + " [STRICT]") })
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
@@ -1066,8 +1067,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 
         def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
         metadata.visitValidationFailures(validationContext)
-        List<String> actualErrors = validationContext.problems
-            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
+        List<String> actualErrors = validationContext.warnings
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it))) })
+        actualErrors += validationContext.errors
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + " [STRICT]") })
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors

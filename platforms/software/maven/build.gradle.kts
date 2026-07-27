@@ -11,6 +11,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.logging)
@@ -81,13 +82,4 @@ gradleModule {
 strictCompile {
     ignoreDeprecations() // old 'maven' publishing mechanism: types are deprecated
     ignoreRawTypes() // old 'maven' publishing mechanism: raw types used in public API
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/publication/maven/internal/**")
-    excludePatterns.add("org/gradle/api/artifacts/maven/**")
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

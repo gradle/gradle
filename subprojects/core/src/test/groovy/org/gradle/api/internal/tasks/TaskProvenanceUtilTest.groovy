@@ -20,7 +20,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.tasks.VerificationException
 import org.gradle.internal.Describables
-import org.gradle.internal.code.DefaultUserCodeSource
 import org.gradle.internal.code.UserCodeSource
 import spock.lang.Specification
 
@@ -30,7 +29,7 @@ class TaskProvenanceUtilTest extends Specification {
 
     def "unknown source returns empty provenance"() {
         given:
-        def task = stubTask(UserCodeSource.UNKNOWN)
+        def task = stubTask(null)
 
         expect:
         !TaskProvenanceUtil.getProvenance(task).isPresent()
@@ -44,10 +43,9 @@ class TaskProvenanceUtilTest extends Specification {
         TaskProvenanceUtil.getProvenance(task).get() == expected
 
         where:
-        source                                                                         | expected
-        UserCodeSource.BY_RULE                                                         | "registered by Rule"
-        new DefaultUserCodeSource(Describables.of("plugin ':my-plugin'"), "my-plugin") | "registered by plugin ':my-plugin'"
-        new DefaultUserCodeSource(Describables.of("build file 'build.gradle'"), null)  | "registered in build file 'build.gradle'"
+        source                                                                                       | expected
+        new UserCodeSource.Binary(Describables.of("plugin ':my-plugin'"), "org.Plugin", "my-plugin") | "registered by plugin ':my-plugin'"
+        new UserCodeSource.Script(Describables.of("build file 'build.gradle'"), null)                | "registered in build file 'build.gradle'"
     }
 
     // endregion getProvenance
@@ -56,7 +54,7 @@ class TaskProvenanceUtilTest extends Specification {
 
     def "failure message includes provenance for non-verification failures"() {
         given:
-        def task = stubTask(new DefaultUserCodeSource(Describables.of("build file 'build.gradle'"), null), "task ':myTask'")
+        def task = stubTask(new UserCodeSource.Script(Describables.of("build file 'build.gradle'"), null), "task ':myTask'")
         def cause = new RuntimeException("boom")
 
         expect:
@@ -65,7 +63,7 @@ class TaskProvenanceUtilTest extends Specification {
 
     def "failure message omits provenance for verification failures"() {
         given:
-        def task = stubTask(new DefaultUserCodeSource(Describables.of("build file 'build.gradle'"), null), "task ':myTask'")
+        def task = stubTask(new UserCodeSource.Script(Describables.of("build file 'build.gradle'"), null), "task ':myTask'")
         def cause = new VerificationException("test failed")
 
         expect:
@@ -74,7 +72,7 @@ class TaskProvenanceUtilTest extends Specification {
 
     def "failure message omits provenance when source is unknown"() {
         given:
-        def task = stubTask(UserCodeSource.UNKNOWN, "task ':myTask'")
+        def task = stubTask(null, "task ':myTask'")
         def cause = new RuntimeException("boom")
 
         expect:

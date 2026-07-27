@@ -29,9 +29,9 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.NotIsolatedProjects)
+@Requires(TestExecutionPreconditions.NotIsolatedProjects)
 class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec implements ProjectDirectoryCreator, BuildLogicGcTrigger {
 
     def 'Different equal instances of LifecycleAwareProject bear the same state'() {

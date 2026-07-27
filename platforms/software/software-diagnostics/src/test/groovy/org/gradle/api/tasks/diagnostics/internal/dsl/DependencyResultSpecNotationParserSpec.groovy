@@ -16,9 +16,15 @@
 
 package org.gradle.api.tasks.diagnostics.internal.dsl
 
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.DependencyResult
-import org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import org.gradle.api.specs.Spec
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
@@ -31,8 +37,8 @@ class DependencyResultSpecNotationParserSpec extends Specification {
 
     def "accepts closures"() {
         given:
-        def mockito = ResolutionResultDataBuilder.newDependency('org.mockito', 'mockito-core')
-        def other = ResolutionResultDataBuilder.newDependency('org.mockito', 'other')
+        def mockito = newDependency('org.mockito', 'mockito-core')
+        def other = newDependency('org.mockito', 'other')
 
         when:
         def spec = parser.parseNotation( { it.requested.module == 'mockito-core' } )
@@ -44,8 +50,8 @@ class DependencyResultSpecNotationParserSpec extends Specification {
 
     def "accepts Strings"() {
         given:
-        def mockito = ResolutionResultDataBuilder.newDependency('org.mockito', 'mockito-core')
-        def other = ResolutionResultDataBuilder.newDependency('org.mockito', 'other')
+        def mockito = newDependency('org.mockito', 'mockito-core')
+        def other = newDependency('org.mockito', 'other')
 
         when:
         def spec = parser.parseNotation('mockito-core')
@@ -57,8 +63,8 @@ class DependencyResultSpecNotationParserSpec extends Specification {
 
     def "accepts specs"() {
         given:
-        def mockito = ResolutionResultDataBuilder.newDependency('org.mockito', 'mockito-core')
-        def other = ResolutionResultDataBuilder.newDependency('org.mockito', 'other')
+        def mockito = newDependency('org.mockito', 'mockito-core')
+        def other = newDependency('org.mockito', 'other')
 
         when:
         def spec = parser.parseNotation(new Spec<DependencyResult>() {
@@ -98,4 +104,19 @@ Please check the input for the DependencyInsight.dependency element.""")
         then:
         thrown(UnsupportedNotationException)
     }
+
+    DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {
+        new DefaultResolvedDependencyResult(newSelector(group, module, version), false, newModule(), newModule(group, module, selectedVersion), Mock(ResolvedVariantResult))
+    }
+
+    private ResolvedComponentResult newModule(String group = "a", String module = "a", String version = "1") {
+        Mock(ResolvedComponentResult) {
+            getModuleVersion() >> DefaultModuleVersionIdentifier.newId(group, module, version)
+        }
+    }
+
+    static ModuleComponentSelector newSelector(String group, String module, String version) {
+        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), version)
+    }
+
 }

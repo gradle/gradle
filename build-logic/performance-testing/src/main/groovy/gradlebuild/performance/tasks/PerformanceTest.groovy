@@ -56,7 +56,6 @@ import java.nio.charset.StandardCharsets
 @CacheableTask
 @CompileStatic
 abstract class PerformanceTest extends DistributionTest {
-    public static final String TC_URL = "https://builds.gradle.org/viewLog.html?buildId="
     public static final Set<String> NON_CACHEABLE_VERSIONS = Sets.newHashSet("last", "nightly", "flakiness-detection-commit")
     private final Property<String> baselines = getProject().getObjects().property(String.class)
 
@@ -95,6 +94,9 @@ abstract class PerformanceTest extends DistributionTest {
 
     @Internal
     abstract Property<String> getChannel()
+
+    @Internal
+    abstract Property<Boolean> getBuildOperationTrace()
 
     @Internal
     String buildId
@@ -305,8 +307,6 @@ abstract class PerformanceTest extends DistributionTest {
                 scenarioName: it.name,
                 scenarioClass: it.classname,
                 testProject: testProject,
-                webUrl: TC_URL + buildId,
-                teamCityBuildId: buildId,
                 agentName: agentName,
                 status: (it.error || it.failure) ? "FAILURE" : "SUCCESS",
                 testFailure: collectFailures(it)
@@ -336,6 +336,7 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel.get())
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
             addSystemPropertyIfExist(result, "org.gradle.performance.db.profiling.output", new File(debugArtifactsDirectory, "db-profiling.txt").absolutePath)
+            addSystemPropertyIfExist(result, "org.gradle.performance.buildOperationTrace", buildOperationTrace.get())
             addSystemPropertyIfExist(result, "gradleBuildBranch", branchName)
 
             if (profiler.isPresent() && profiler.get() != "none") {

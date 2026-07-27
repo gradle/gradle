@@ -28,6 +28,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -83,7 +84,8 @@ class DefaultSharedObjectEncoder(
 }
 
 class DefaultSharedObjectDecoder(
-    private val globalContext: CloseableReadContext
+    private val globalContext: CloseableReadContext,
+    private val valueWaitTimeout: Duration = Duration.ofMinutes(1)
 ) : SharedObjectDecoder, AutoCloseable {
 
     enum class ReaderState {
@@ -94,7 +96,10 @@ class DefaultSharedObjectDecoder(
     val state = AtomicReference(ReaderState.READY)
 
     private
-    inner class FutureValue {
+    val readFailure = AtomicReference<Throwable?>(null)
+
+    private
+    inner class FutureValue(private val id: Int) {
 
         private
         val latch = CountDownLatch(1)
@@ -108,20 +113,41 @@ class DefaultSharedObjectDecoder(
             latch.countDown()
         }
 
+        fun release() {
+            latch.countDown()
+        }
+
         fun get(): Any {
+            if (Thread.currentThread() === reader) {
+                throw IllegalStateException(
+                    "Recursive shared-object decode detected for id=$id; the reader thread is waiting on itself. " +
+                        "This is a bug in a codec — most likely a `readSharedObject` invocation reachable from " +
+                        "another shared object's `decode`."
+                )
+            }
             val state = state.get()
             // Only await if the reading thread is still running.
             // This saves us a minute in case the reading code is broken and doesn't countDown() the latch properly.
             // See the null check below.
-            if (state < ReaderState.STOPPED && !latch.await(1, TimeUnit.MINUTES)) {
-                throw TimeoutException("Timeout while waiting for value, state was $state")
+            if (state < ReaderState.STOPPED && !latch.await(valueWaitTimeout.toNanos(), TimeUnit.NANOSECONDS)) {
+                reader.join(TimeUnit.SECONDS.toMillis(5))
+                throwIfReaderFailed()
+                throw TimeoutException("Timeout while waiting for value (id=$id), state was $state")
             }
+            throwIfReaderFailed()
             val result = value
             require(result != null) {
                 // Reading thread hasn't written the value before completing/calling countDown(). This can only happen if the decoder has a bug.
                 "State is: $state"
             }
             return result
+        }
+    }
+
+    private
+    fun throwIfReaderFailed() {
+        readFailure.get()?.let { cause ->
+            throw IllegalStateException("Failed to decode shared value", cause)
         }
     }
 
@@ -137,27 +163,35 @@ class DefaultSharedObjectDecoder(
         require(state.compareAndSet(ReaderState.STARTED, ReaderState.RUNNING)) {
             "Unexpected state: $state"
         }
-        globalContext.run {
-            projectRefResolver.withWaitingForProjectsAllowed {
-                while (state.get() == ReaderState.RUNNING) {
-                    val id = readSmallInt()
-                    if (id == EOF) {
-                        stopReading()
-                        break
-                    }
-                    val read = runReadOperation {
-                        read()!!
-                    }
-                    values.compute(id) { _, value ->
-                        when (value) {
-                            is FutureValue -> value.complete(read)
-                            else -> require(value == null)
+        try {
+            globalContext.run {
+                projectRefResolver.withWaitingForProjectsAllowed {
+                    while (state.get() == ReaderState.RUNNING) {
+                        val id = readSmallInt()
+                        if (id == EOF) {
+                            stopReading()
+                            break
                         }
-                        read
+                        val read = runReadOperation {
+                            read()!!
+                        }
+                        values.compute(id) { _, value ->
+                            when (value) {
+                                is FutureValue -> value.complete(read)
+                                else -> require(value == null)
+                            }
+                            read
+                        }
                     }
                 }
             }
+        } catch (t: Throwable) {
+            readFailure.set(t)
+        } finally {
             state.set(ReaderState.STOPPED)
+            for (entry in values.values) {
+                if (entry is FutureValue) entry.release()
+            }
         }
     }
 
@@ -170,8 +204,14 @@ class DefaultSharedObjectDecoder(
         require(id >= 0) {
             "id: $id - $this"
         }
-        return when (val existing = values.computeIfAbsent(id) { FutureValue() }) {
-            is FutureValue -> existing.get()
+        throwIfReaderFailed()
+        return when (val existing = values.computeIfAbsent(id) { FutureValue(id) }) {
+            is FutureValue -> {
+                if (state.get() == ReaderState.STOPPED || readFailure.get() != null) {
+                    existing.release()
+                }
+                existing.get()
+            }
             else -> existing
         }
     }

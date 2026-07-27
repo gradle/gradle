@@ -19,9 +19,9 @@ package org.gradle.plugin.devel.impldeps
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)

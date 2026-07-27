@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import org.junit.Test
 import spock.lang.Issue
@@ -137,7 +137,7 @@ class PrecompiledScriptPluginErrorsIntegrationTest : AbstractKotlinIntegrationTe
 
     @Issue("https://github.com/gradle/gradle/issues/24788")
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `fail with a reasonable message when kotlin-dsl plugin compiler arguments have been tempered with`() {
 
         withKotlinDslPlugin().appendText(

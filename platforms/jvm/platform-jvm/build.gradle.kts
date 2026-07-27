@@ -10,6 +10,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.fileCollections)
     api(projects.logging)
     api(projects.modelCore)
@@ -59,6 +60,4 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

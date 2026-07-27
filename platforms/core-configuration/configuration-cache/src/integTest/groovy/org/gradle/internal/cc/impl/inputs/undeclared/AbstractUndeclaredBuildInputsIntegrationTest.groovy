@@ -302,6 +302,14 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         "constructing a byte channel"                   | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannel(testFilePath(it)) }
         "constructing a byte channel with open options" | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannelWithOpenOptions(testFilePath(it)) }
         "reading lines from a file"                     | (TestFile it) -> { UndeclaredFileAccess.fileReadLines(testFilePath(it)) }
+        "reading path as text with default encoding"    | (TestFile it) -> { UndeclaredFileAccess.pathText(testFilePath(it)) }
+        "reading path as text with customized encoding" | (TestFile it) -> { UndeclaredFileAccess.pathTextWithEncoding(testFilePath(it)) }
+        "reading lines from a path"                     | (TestFile it) -> { UndeclaredFileAccess.pathReadLines(testFilePath(it)) }
+        "reading bytes from a path"                     | (TestFile it) -> { UndeclaredFileAccess.pathReadBytes(testFilePath(it)) }
+        "opening a path reader"                         | (TestFile it) -> { UndeclaredFileAccess.pathReader(testFilePath(it)) }
+        "opening a path buffered reader"                | (TestFile it) -> { UndeclaredFileAccess.pathBufferedReader(testFilePath(it)) }
+        "opening a path input stream"                   | (TestFile it) -> { UndeclaredFileAccess.pathInputStream(testFilePath(it)) }
+        "using lines from a path"                       | (TestFile it) -> { UndeclaredFileAccess.pathUseLines(testFilePath(it)) }
     }
 }
 

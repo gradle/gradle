@@ -29,9 +29,9 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         then:
         id.projectPath == ':subproject'
         id.projectName == 'subproject'
-        id.displayName == 'project :build:subproject'
+        id.displayName == "project ':build:subproject'"
         id.buildTreePath == ':build:subproject'
-        id.toString() == 'project :build:subproject'
+        id.toString() == "project ':build:subproject'"
     }
 
     def "can compare with other instance (#projectPath)"() {

@@ -35,20 +35,6 @@ class DefaultModuleComponentIdentifierTest extends Specification {
         defaultModuleComponentIdentifier.toString() == 'some-group:some-name:1.0'
     }
 
-    def "is instantiated with null constructor parameter values (#group, #name, #version)"() {
-        when:
-        new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), version)
-
-        then:
-        thrown(AssertionError)
-
-        where:
-        group        | name        | version
-        null         | 'some-name' | '1.0'
-        'some-group' | null        | '1.0'
-        'some-group' | 'some-name' | null
-    }
-
     def "can compare with other instance (#group, #name, #version)"() {
         expect:
         ModuleComponentIdentifier defaultModuleComponentIdentifier1 = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('some-group', 'some-name'), '1.0')

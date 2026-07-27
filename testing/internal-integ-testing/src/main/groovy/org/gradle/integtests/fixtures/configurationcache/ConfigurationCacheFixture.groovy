@@ -287,9 +287,7 @@ class ConfigurationCacheFixture {
     private void applyProblemsTo(HasProblems details, HasConfigurationCacheProblemsSpec spec) {
         spec.totalProblemsCount = details.totalProblems
         spec.problemsWithStackTraceCount = details.problemsWithStackTrace
-        spec.withUniqueProblems(details.problems.collect {
-            it.message.replace('/', File.separator)
-        })
+        spec.withUniqueProblems(details.normalizedProblemMessages)
         details.incompatibleTasks.each {
             spec.withIncompatibleTask(it.task, it.reason)
         }
@@ -448,6 +446,13 @@ class ConfigurationCacheFixture {
         String getProblemsString() {
             def count = totalProblems
             return count == 1 ? "1 problem" : "$count problems"
+        }
+
+        /**
+         * Problem messages with path separators normalized to the host platform, as they appear in build output.
+         */
+        List<String> getNormalizedProblemMessages() {
+            return problems.collect { it.message.replace('/', File.separator) }
         }
     }
 

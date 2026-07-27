@@ -32,24 +32,25 @@ class IdeaDependencyLockingIntegrationTest extends AbstractIdeIntegrationTest {
         file('gradle/dependency-locks/compileClasspath.lockfile') << 'groupOne:artifactTwo:1.1'
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${mvnRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mvnRepo.uri}" }
+            }
 
-configurations {
-    compileClasspath {
-        resolutionStrategy.activateDependencyLocking()
-    }
-}
+            configurations {
+                compileClasspath {
+                    resolutionStrategy.activateDependencyLocking()
+                }
+            }
 
-dependencies {
-    implementation 'groupOne:artifactTwo:[2.0,3.0)'
-}
-"""
+            dependencies {
+                implementation 'groupOne:artifactTwo:[2.0,3.0)'
+            }
+        """
         def content = getFile([print : true], 'root.iml').text
 
         //then
@@ -68,25 +69,26 @@ dependencies {
         file('gradle/dependency-locks/compileClasspath.lockfile') << 'groupOne:artifactOne:1.1'
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${mvnRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mvnRepo.uri}" }
+            }
 
-configurations {
-    compileClasspath {
-        resolutionStrategy.activateDependencyLocking()
-    }
-}
+            configurations {
+                compileClasspath {
+                    resolutionStrategy.activateDependencyLocking()
+                }
+            }
 
-dependencies {
-    implementation 'groupOne:artifactOne:[1.0,2.0)'
-    implementation 'groupOne:artifactTwo:[2.0,3.0)'
-}
-"""
+            dependencies {
+                implementation 'groupOne:artifactOne:[1.0,2.0)'
+                implementation 'groupOne:artifactTwo:[2.0,3.0)'
+            }
+        """
         def content = getFile([print : true], 'root.iml').text
 
         //then

@@ -58,7 +58,7 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
     @TaskAction
     fun warmup() {
         if (!androidHome.isPresent && !androidSdkRoot.isPresent) {
-            logger.lifecycle("Skip warmning up Android home because ANDROID_HOME/ANDROID_SDK_ROOT env vars are not set.")
+            logger.lifecycle("Skip warming up Android home because ANDROID_HOME/ANDROID_SDK_ROOT env vars are not set.")
             return
         }
         sdkVersions.orNull.orEmpty().forEach { version ->

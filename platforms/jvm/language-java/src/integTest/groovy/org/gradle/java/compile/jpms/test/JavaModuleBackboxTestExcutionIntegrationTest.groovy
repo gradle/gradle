@@ -18,7 +18,7 @@ package org.gradle.java.compile.jpms.test
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTestingIntegrationTest {
@@ -109,7 +109,7 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
     // In all places where we support Java Modules, we do not check if we actually run on Java 9 or later.
     // Instead, we just let javac/java/javadoc fail. We could improve by checking ourselves and throwing a different error.
     // But we should do that in all places then.
-    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
     def "fails testing a Java module on Java 8"() {
         given:
         buildFile << """

@@ -112,6 +112,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-cache-core",
+    "path": "platforms/core-execution/build-cache-core",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache-example-client",
     "path": "platforms/core-execution/build-cache-example-client",
     "unitTests": true,
@@ -242,6 +249,13 @@
     "path": "platforms/core-runtime/classloaders",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "classpath",
+    "path": "platforms/core-runtime/classpath",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -380,13 +394,6 @@
   {
     "name": "daemon-logging",
     "path": "platforms/core-runtime/daemon-logging",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "daemon-main",
-    "path": "platforms/core-runtime/daemon-main",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -557,6 +564,13 @@
     "path": "platforms/documentation/docs-asciidoctor-extensions-base",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "domain-object-collections",
+    "path": "platforms/core-configuration/domain-object-collections",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -735,6 +749,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "hashing-services",
+    "path": "platforms/core-execution/hashing-services",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "ide",
     "path": "platforms/ide/ide",
     "unitTests": true,
@@ -812,13 +833,6 @@
     "crossVersionTests": true
   },
   {
-    "name": "internal-architecture-testing",
-    "path": "testing/internal-architecture-testing",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "internal-build-reports",
     "path": "packaging/internal-build-reports",
     "unitTests": false,
@@ -879,6 +893,13 @@
     "path": "platforms/core-configuration/isolated-action-services",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "isolated-ant-builder",
+    "path": "platforms/software/isolated-ant-builder",
+    "unitTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -1092,8 +1113,22 @@
     "crossVersionTests": false
   },
   {
+    "name": "normalization",
+    "path": "platforms/core-execution/normalization",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "normalization-api",
+    "path": "platforms/core-execution/normalization-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "normalization-java",
-    "path": "platforms/jvm/normalization-java",
+    "path": "platforms/core-execution/normalization-java",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1204,6 +1239,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-model-native",
+    "path": "platforms/native/plugins-model-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "plugins-test-report-aggregation",
     "path": "platforms/jvm/plugins-test-report-aggregation",
     "unitTests": false,
@@ -1236,6 +1278,13 @@
     "path": "platforms/ide/problems-api",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "problems-impl",
+    "path": "platforms/ide/problems-impl",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -1312,6 +1361,13 @@
     "name": "publish",
     "path": "platforms/software/publish",
     "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "reflection-services",
+    "path": "platforms/core-runtime/reflection-services",
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
@@ -1528,7 +1584,7 @@
   {
     "name": "test-suites-base",
     "path": "platforms/software/test-suites-base",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -1663,6 +1719,13 @@
     "path": "platforms/core-execution/worker-process-services",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "worker-shared",
+    "path": "platforms/core-execution/worker-shared",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

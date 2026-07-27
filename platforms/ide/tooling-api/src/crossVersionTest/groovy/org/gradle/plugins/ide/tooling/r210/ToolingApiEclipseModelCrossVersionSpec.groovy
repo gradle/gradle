@@ -20,7 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Assume
 
@@ -40,7 +41,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         rootProject.javaSourceSettings == null
     }
 
-    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires(value = [InstalledJdkTestPreconditions.Java17HomeAvailable, InstalledJdkTestPreconditions.Java21HomeAvailable, TestExecutionPreconditions.NotEmbeddedExecutor])
     def "Java project returns default source compatibility"() {
         Assume.assumeTrue("Target Gradle version supports running with Java " + jvm.javaVersionMajor, targetDist.daemonWorksWith(jvm.javaVersionMajor))
 

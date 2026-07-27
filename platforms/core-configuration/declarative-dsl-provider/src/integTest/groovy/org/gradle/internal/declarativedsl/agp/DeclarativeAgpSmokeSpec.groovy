@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.agp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.dsl.GradleDsl

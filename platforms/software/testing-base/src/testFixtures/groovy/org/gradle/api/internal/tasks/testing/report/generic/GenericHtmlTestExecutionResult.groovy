@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic
 
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Strings
+import com.google.common.collect.HashBasedTable
+import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.collect.ListMultimap
@@ -24,8 +24,8 @@ import com.google.common.collect.Maps
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
 import com.google.common.collect.Multisets
-import com.google.common.collect.Sets
 import com.google.common.collect.Streams
+import com.google.common.collect.Table
 import org.gradle.api.Action
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.lazy.Lazy
@@ -42,9 +42,10 @@ import java.time.Duration
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
+import static org.gradle.api.internal.tasks.testing.report.generic.TestPathSelector.literal
+
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.hasItems
-import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.greaterThanOrEqualTo
 import static org.hamcrest.Matchers.notNullValue
@@ -76,11 +77,9 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         }
     })
     private final File htmlReportDirectory
-    private final TestFramework testFramework
 
-    GenericHtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test", TestFramework testFramework) {
+    GenericHtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
         this.htmlReportDirectory = new File(projectDirectory, testReportDirectory)
-        this.testFramework = testFramework
         // For debugging purposes, always log the location of the report
         println "HTML test report directory: ${htmlReportDirectory}"
     }
@@ -103,13 +102,18 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         return this
     }
 
-    @SuppressWarnings('GroovyAssignabilityCheck')
-    @Override
-    GenericTestExecutionResult assertTestPathsExecuted(String... testPaths) {
-        // We always will detect ancestors of the executed test paths as well, so add them to the set
-        Set<Path> extendedTestPaths = Stream.of(testPaths)
-            .map { frameworkTestPath(it) }
-            .map { Path.path(it) }
+    private static TestPathSelector parseLiteralPath(String path) {
+        if (!path.startsWith(":")) {
+            path = ":" + path
+        }
+        def parsed = Path.path(path)
+        def segments = parsed.segments().collect { literal(it) }
+        return TestPathSelector.of(*segments)
+    }
+
+    private static Set<TestPathSelector> parseSelectorsWithAncestors(String... testPathSelectors) {
+        Stream.of(testPathSelectors)
+            .map { parseLiteralPath(it) }
             .flatMap {
                 Stream.concat(
                     Stream.of(it),
@@ -117,52 +121,141 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                 )
             }
             .collect(Collectors.toSet())
-        def missingPaths = Sets.difference(extendedTestPaths, executedTestPaths)
-        def unexpectedPaths = Sets.difference(executedTestPaths, extendedTestPaths)
-        if (!missingPaths.isEmpty() && !unexpectedPaths.isEmpty()) {
-            fail("""Expected paths (${extendedTestPaths.size()}) do not match actual executed paths (${executedTestPaths.size()}).
-Missing paths: ${missingPaths}
-Unexpected paths: ${unexpectedPaths}""")
-        } else if (!missingPaths.isEmpty()) {
-            fail("""Expected paths (${extendedTestPaths.size()}) do not match actual executed paths (${executedTestPaths.size()}).
-Missing paths: ${missingPaths}""")
-        } else if (!unexpectedPaths.isEmpty()) {
-            fail("""Expected paths (${extendedTestPaths.size()}) do not match actual executed paths (${executedTestPaths.size()}).
-Unexpected paths: ${unexpectedPaths}""")
+    }
+
+    private static void addUnmatchedPathMessages(Set<Path> unmatchedPaths, ArrayList<String> failureMessages) {
+        if (!unmatchedPaths.isEmpty()) {
+            failureMessages.add("Some executed test paths did not match any selector:")
+            unmatchedPaths.toSorted().each { path ->
+                failureMessages.add("  " + path)
+            }
+        }
+    }
+
+    private void addUnmatchedSelectorMessages(Set<TestPathSelector> unmatchedSelectors, ArrayList<String> failureMessages) {
+        if (!unmatchedSelectors.isEmpty()) {
+            failureMessages.add("Some selectors did not match any executed test path:")
+            unmatchedSelectors
+                .collect {
+                    it.toString()
+                }
+                .toSorted()
+                .each { selector ->
+                    failureMessages.add("  " + selector)
+                }
+            failureMessages.add("Executed test paths were:")
+            executedTestPaths.toSorted().each { path ->
+                failureMessages.add("  " + path)
+            }
+        }
+    }
+
+    private static void addMatchedSelectorMessages(
+        ListMultimap<TestPathSelector, Path> matchedSelectorsToPaths,
+        ArrayList<String> failureMessages
+    ) {
+        if (!matchedSelectorsToPaths.isEmpty()) {
+            failureMessages.add("Some selectors matched an executed test path:")
+            Multimaps.asMap(matchedSelectorsToPaths)
+                .toSorted(Comparator.comparing(Map.Entry::getKey, Comparator.comparing(TestPathSelector::toString)))
+                .forEach { selector, paths ->
+                    failureMessages.add("  " + selector + " matched:")
+                    paths.toSorted().each { path ->
+                        failureMessages.add("    " + path)
+                    }
+                }
+        }
+    }
+
+    private static void printAllNonMatches(HashBasedTable<TestPathSelector, Path, String> allNonMatches) {
+        System.err.println "All non-matches:"
+        allNonMatches.rowKeySet().toSorted().each { selector ->
+            System.err.println "  Selector: " + selector
+            allNonMatches.row(selector).toSorted(Comparator.comparing(Map.Entry::getKey)).forEach { path, message ->
+                System.err.println "    Path: " + path + " - " + message
+            }
+        }
+    }
+
+    @Override
+    GenericTestExecutionResult assertTestPathsExecuted(String... testPathSelectors) {
+        Set<TestPathSelector> extendedTestPathSelectors = parseSelectorsWithAncestors(testPathSelectors)
+
+        Table<TestPathSelector, Path, String> allNonMatchMessages = HashBasedTable.create()
+        Set<TestPathSelector> unmatchedSelectors = new HashSet<>(extendedTestPathSelectors)
+        Set<Path> unmatchedPaths = new HashSet<>(executedTestPaths)
+
+        for (def selector in extendedTestPathSelectors) {
+            for (def iter = unmatchedPaths.iterator(); iter.hasNext(); ) {
+                def executedPath = iter.next()
+                def matchResult = selector.matches(executedPath)
+                if (matchResult.isMatch()) {
+                    // Don't show non-matches for this selector anymore
+                    allNonMatchMessages.rowMap().remove(selector)
+                    unmatchedSelectors.remove(selector)
+                    iter.remove()
+                    break
+                } else {
+                    allNonMatchMessages.put(selector, executedPath, matchResult.getDisplayName())
+                }
+            }
+        }
+
+        List<String> failureMessages = []
+        addUnmatchedSelectorMessages(unmatchedSelectors, failureMessages)
+        addUnmatchedPathMessages(unmatchedPaths, failureMessages)
+        if (!failureMessages.isEmpty()) {
+            printAllNonMatches(allNonMatchMessages)
+            fail(failureMessages.join("\n"))
         }
         return this
     }
 
-    // Differs from `assertTestPathsExecuted` in that it only checks that at least the given paths were executed, not that they were the only ones.
     @Override
-    GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPaths) {
-        def frameworkTestPaths = testPaths.collect { frameworkTestPath(it) }
-        return assertAtLeastTestPathsExecutedPreNormalized(frameworkTestPaths.toArray([] as String[]))
+    GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPathSelectors) {
+        Set<TestPathSelector> selectors = parseSelectorsWithAncestors(testPathSelectors)
+
+        Set<TestPathSelector> unmatchedSelectors = selectors.findAll {
+            !executedTestPaths.any { executedPath ->
+                it.matches(executedPath)
+            }
+        }
+
+        List<String> failureMessages = []
+        addUnmatchedSelectorMessages(unmatchedSelectors, failureMessages)
+        if (!failureMessages.isEmpty()) {
+            fail(failureMessages.join("\n"))
+        }
+
+        return this
     }
 
-    /**
-     * Like {@link #assertAtLeastTestPathsExecuted(String...)}, but the paths must be in the test framework specific format already.
-     */
-    GenericTestExecutionResult assertAtLeastTestPathsExecutedPreNormalized(String... testPaths) {
-        // We always will detect ancestors of the executed test paths as well, so add them to the set
-        Path[] extendedTestPaths = Stream.of(testPaths)
-            .map {it == "" ? ":" : it }
-            .map { Path.path(it) }
-            .flatMap {
-                Stream.concat(
-                    Stream.of(it),
-                    Streams.stream(it.ancestors()),
-                )
-            }
-            .distinct()
-            .toArray(Path[]::new)
-        assertThat("at least the expected paths must exist", executedTestPaths, hasItems(extendedTestPaths))
-        return this
+    private static Set<TestPathSelector> parseSelectors(String... testPathSelectors) {
+        Stream.of(testPathSelectors)
+            .map { parseLiteralPath(it) }
+            .collect(Collectors.toSet())
     }
 
     @Override
     GenericTestExecutionResult assertTestPathsNotExecuted(String... testPaths) {
-        assertThat(executedTestPaths, not(hasItems(testPaths.collect {frameworkTestPath(it) }.collect { Path.path(it) }.toArray(Path[]::new))))
+        Set<TestPathSelector> selectors = parseSelectors(testPaths)
+
+        ImmutableListMultimap.Builder<TestPathSelector, Path> matchedSelectorsToPaths = ImmutableListMultimap.builder()
+
+        for (def selector in selectors) {
+            for (def executedPath in executedTestPaths) {
+                if (selector.matches(executedPath).isMatch()) {
+                    matchedSelectorsToPaths.put(selector, executedPath)
+                }
+            }
+        }
+
+        List<String> failureMessages = []
+        addMatchedSelectorMessages(matchedSelectorsToPaths.build(), failureMessages)
+        if (!failureMessages.isEmpty()) {
+            fail(failureMessages.join("\n"))
+        }
+
         return this
     }
 
@@ -170,9 +263,9 @@ Unexpected paths: ${unexpectedPaths}""")
     TestPathExecutionResult testPath(String rootTestPath) {
         assertAtLeastTestPathsExecuted(rootTestPath)
 
-        def reportPath = diskPathForTestPath(frameworkTestPath(rootTestPath))
+        def reportPath = diskPathForTestPath(rootTestPath)
         if (Files.exists(reportPath)) {
-            return new HtmlTestPathExecutionResult(testFramework, reportPath.toFile())
+            return new HtmlTestPathExecutionResult(reportPath.toFile())
         } else {
             return new TestPathExecutionResult() {
                 private final TestPathRootExecutionResult doesNotExist = new TestPathRootExecutionResult() {
@@ -318,21 +411,15 @@ Unexpected paths: ${unexpectedPaths}""")
         }
     }
 
-    TestPathExecutionResult testPathPreNormalized(String rootTestPath) {
-        assertAtLeastTestPathsExecutedPreNormalized(rootTestPath)
-        return new HtmlTestPathExecutionResult(testFramework, diskPathForTestPath(rootTestPath).toFile())
-    }
-
     @Override
     TestPathExecutionResult testPath(String... testPathElements) {
         String joined = Stream.of(testPathElements).collect(Collectors.joining(":", ":", ""))
-        return testPath(joined)
+        return this.testPath(joined)
     }
 
     @Override
     boolean testPathExists(String testPath) {
-        String frameworkPathToTest = frameworkTestPath(testPath)
-        return Files.exists(diskPathForTestPath(frameworkPathToTest))
+        return Files.exists(diskPathForTestPath(testPath))
     }
 
     @Override
@@ -342,54 +429,22 @@ Unexpected paths: ${unexpectedPaths}""")
         return this
     }
 
-    @VisibleForTesting
-    String frameworkTestPath(String testPath) {
-        if (testFramework == TestFramework.CUSTOM) {
-            return testPath
+    private java.nio.file.Path diskPathForTestPath(String testPath) {
+        if (!testPath.startsWith(":")) {
+            testPath = ":" + testPath
         }
-
-        String basePrefix, baseSuffix
-        if (Strings.isNullOrEmpty(testPath)) {
-            basePrefix = ""
-            baseSuffix = ""
-        } else if (testPath == ":") {
-            basePrefix = ""
-            baseSuffix = ""
-        } else {
-            int lastColon = testPath.lastIndexOf(':')
-            if (lastColon == -1) {
-                basePrefix = testPath
-                baseSuffix = ""
-            } else if (lastColon == 0) { // path is :ClassName
-                basePrefix = testPath.substring(1)
-                baseSuffix = ""
-            } else {
-                if (testPath.startsWith(":")) {
-                    basePrefix = testPath.substring(1, lastColon)
-                } else {
-                    basePrefix = testPath.substring(0, lastColon)
-                }
-                baseSuffix = testPath.substring(lastColon + 1)
-            }
-        }
-
-        def prefix = Strings.isNullOrEmpty(basePrefix) ? ":" : ":" + basePrefix
-        def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + testFramework.getTestCaseName(baseSuffix)
-        return prefix + suffix
-    }
-
-    private java.nio.file.Path diskPathForTestPath(String frameworkTestPath) {
-        if (Strings.isNullOrEmpty(frameworkTestPath)) {
-            return htmlReportDirectory.toPath().resolve("index.html")
-        }
+        // If shrinking is done, then it is up to the test to know that and provide the correct path.
+        // In the event that our tests may or may not shrink, we should consider adding a flag to ensure that tests which check
+        // explicitly for shrinking or not do not give incorrect results due to adjusted paths here.
+        def path = Path.path(testPath)
         java.nio.file.Path nonLeafPath = htmlReportDirectory.toPath().resolve(
-            GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), false)
+            HtmlTestReportPathBuilder.buildFilePath(false, path, false)
         )
         if (Files.exists(nonLeafPath)) {
             return nonLeafPath
         } else {
             return htmlReportDirectory.toPath().resolve(
-                GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), true)
+                HtmlTestReportPathBuilder.buildFilePath(false, path, true)
             )
         }
     }
@@ -414,13 +469,11 @@ Unexpected paths: ${unexpectedPaths}""")
     }
 
     private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
-        private final TestFramework testFramework
         private final List<String> rootNames = []
         private final List<String> rootDisplayNames = []
         private final ListMultimap<String, Element> rootAndRunElements = LinkedListMultimap.create()
 
-        HtmlTestPathExecutionResult(TestFramework testFramework, File htmlFile) {
-            this.testFramework = testFramework
+        HtmlTestPathExecutionResult(File htmlFile) {
             Document html = Jsoup.parse(htmlFile, null)
             Map<String, Element> rootElements = getTabs(html)
             rootElements.forEach { name, content ->
@@ -454,13 +507,13 @@ Unexpected paths: ${unexpectedPaths}""")
                 singleRoot.size(),
                 equalTo(1)
             )
-            return new HtmlTestPathRootExecutionResult(testFramework, singleRoot.first(), rootDisplayNames.first())
+            return new HtmlTestPathRootExecutionResult(singleRoot.first(), rootDisplayNames.first())
         }
 
         @Override
         TestPathRootExecutionResult singleRootWithRun(int runNumber) {
             List<Element> singleRoot = getSingleRoot()
-            return new HtmlTestPathRootExecutionResult(testFramework, singleRoot.get(runNumber - 1), rootDisplayNames.first())
+            return new HtmlTestPathRootExecutionResult(singleRoot.get(runNumber - 1), rootDisplayNames.first())
         }
 
         @Override
@@ -473,7 +526,7 @@ Unexpected paths: ${unexpectedPaths}""")
                 equalTo(1)
             )
             def index = rootNames.indexOf(rootName)
-            return new HtmlTestPathRootExecutionResult(testFramework, runs.first(), rootDisplayNames[index])
+            return new HtmlTestPathRootExecutionResult(runs.first(), rootDisplayNames[index])
         }
 
         @Override
@@ -487,7 +540,7 @@ Unexpected paths: ${unexpectedPaths}""")
                 greaterThanOrEqualTo(runNumber)
             )
             def index = rootNames.indexOf(rootName)
-            return new HtmlTestPathRootExecutionResult(testFramework, runs.get(runNumber - 1), rootDisplayNames[index])
+            return new HtmlTestPathRootExecutionResult(runs.get(runNumber - 1), rootDisplayNames[index])
         }
 
         @Override
@@ -502,7 +555,6 @@ Unexpected paths: ${unexpectedPaths}""")
     }
 
     private static class HtmlTestPathRootExecutionResult implements TestPathRootExecutionResult {
-        private final TestFramework testFramework
         private final Element html
         private final String displayName
         private Multimap<String, TestInfo> testsExecuted = LinkedListMultimap.create()
@@ -510,8 +562,7 @@ Unexpected paths: ${unexpectedPaths}""")
         private Multimap<String, TestInfo> testsFailures = LinkedListMultimap.create()
         private Multimap<String, TestInfo> testsSkipped = LinkedListMultimap.create()
 
-        HtmlTestPathRootExecutionResult(TestFramework testFramework, Element html, String displayName) {
-            this.testFramework = testFramework
+        HtmlTestPathRootExecutionResult(Element html, String displayName) {
             this.html = html
             this.displayName = displayName
             extractCases()
@@ -542,23 +593,17 @@ Unexpected paths: ${unexpectedPaths}""")
             return element.select('tr > th').size() == 7
         }
 
-        private ImmutableMultiset<String> frameworkTestNames(String... testNames) {
-            return Stream.of(testNames)
-                .map { testFramework.getTestCaseName(it) }
-                .collect(ImmutableMultiset.toImmutableMultiset())
-        }
-
         @Override
         TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
             def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
-            assertThat("in " + displayName, executedAndNotSkipped, equalTo(frameworkTestNames(testNames)))
+            assertThat("in " + displayName, executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
             return this
         }
 
         @Override
         TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
             def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
-            assertThat("in " + displayName, executedAndNotSkipped, hasItems(frameworkTestNames(testNames).toArray(String[]::new)))
+            assertThat("in " + displayName, executedAndNotSkipped, hasItems(testNames))
             return this
         }
 
@@ -576,7 +621,7 @@ Unexpected paths: ${unexpectedPaths}""")
 
         @Override
         TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
-            assertThat("in " + displayName, testsSkipped.keys(), equalTo(frameworkTestNames(testNames)))
+            assertThat("in " + displayName, testsSkipped.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
             return this
         }
 
@@ -587,7 +632,7 @@ Unexpected paths: ${unexpectedPaths}""")
 
         @Override
         TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
-            assertThat("in " + displayName, testsFailures.keys(), equalTo(frameworkTestNames(testNames)))
+            assertThat("in " + displayName, testsFailures.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
             return this
         }
 

@@ -18,7 +18,7 @@ package org.gradle.api.internal.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -59,7 +59,7 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("foo='bar'")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "internal option can be defined in Gradle Home gradle.properties"() {
         requireIsolatedGradleDistribution()
 
@@ -109,7 +109,7 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("foo='bar'")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "internal option from build root gradle.properties takes precedence over Gradle Home gradle.properties"() {
         requireIsolatedGradleDistribution()
 

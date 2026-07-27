@@ -17,23 +17,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results
 
 import org.gradle.api.artifacts.UnresolvedDependency
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import spock.lang.Specification
-
-import java.util.function.Supplier
 
 /**
  * Tests {@link DefaultVisitedGraphResults}
  */
 class DefaultVisitedGraphResultsTest extends Specification {
 
-    MinimalResolutionResult resolutionResult = new MinimalResolutionResult(Mock(Supplier), ImmutableAttributes.EMPTY)
+    ResolvedDependencyGraph resolvedDependencyGraph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, () -> Mock(GraphStructure), null)
 
     def "hasResolutionFailure returns true if there is a failure"() {
         given:
-        def results1 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet())
-        def results2 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(Mock(UnresolvedDependency)))
+        def results1 = new DefaultVisitedGraphResults(resolvedDependencyGraph, Collections.emptySet())
+        def results2 = new DefaultVisitedGraphResults(resolvedDependencyGraph, Collections.singleton(Mock(UnresolvedDependency)))
 
         expect:
         !results1.hasAnyFailure()
@@ -47,22 +46,12 @@ class DefaultVisitedGraphResultsTest extends Specification {
             getProblem() >> throwable
         }
 
-        def results1 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet())
-        def results2 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved))
+        def results1 = new DefaultVisitedGraphResults(resolvedDependencyGraph, Collections.emptySet())
+        def results2 = new DefaultVisitedGraphResults(resolvedDependencyGraph, Collections.singleton(unresolved))
 
         expect:
         visitFailures(results1) == []
         visitFailures(results2) == [throwable]
-    }
-
-    def "getters return the values passed to the constructor"() {
-        given:
-        def unresolved = Mock(UnresolvedDependency)
-        def results = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved))
-
-        expect:
-        results.resolutionResult == resolutionResult
-        results.unresolvedDependencies == ([unresolved] as Set)
     }
 
     private List<Throwable> visitFailures(VisitedGraphResults results) {
@@ -70,4 +59,5 @@ class DefaultVisitedGraphResultsTest extends Specification {
         results.visitFailures { result.add(it) }
         return result
     }
+
 }

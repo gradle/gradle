@@ -17,6 +17,7 @@
 
 This section covers the different use cases for Gradle’s build cache, from local-only development to caching task outputs across large teams.
 
+[[sec:speed_up_developer_builds_with_the_local_cache]]
 == Speed up developer builds with the local cache
 
 Even when used by a single developer only, the build cache can be very useful.
@@ -45,6 +46,7 @@ It allows you to easily find out which build produced an artifact coming from th
 [.screenshot]
 image::build-cache/from-cache-origin.png[]
 
+[[sec:accelerate_developer_builds_by_reusing_ci_results]]
 == Accelerate developer builds by reusing CI results
 
 When multiple developers work on the same project, they don't just need to build their own changes: whenever they pull from version control, they end up having to build each other's changes as well.
@@ -55,12 +57,14 @@ A typical use case for this is when developers start their day, pull all changes
 
 The changes don't need to be completely independent, either; we'll take a look at the strategies to reuse results when dependencies are involved in the section about the <<build_cache_concepts.adoc#normalization,different forms of normalization>>.
 
+[[sec:combine_remote_results_with_local_caching]]
 == Combine remote results with local caching
 
 You can utilize both a local and a remote cache for a compound effect.
 While loading results from a CI-filled remote cache helps to avoid work needed because of changes by other developers, the local cache can speed up switching branches and doing `git bisect`.
 On CI machines the local cache can act as a mirror of the remote cache, significantly reducing network usage.
 
+[[sec:share_results_between_developers]]
 == Share results between developers
 
 Allowing developers to upload their results to a shared cache is possible, but not recommended.

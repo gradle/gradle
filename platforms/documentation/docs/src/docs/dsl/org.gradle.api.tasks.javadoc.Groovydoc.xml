@@ -13,6 +13,10 @@
                 <td><literal><replaceable>${project.docsDir}</replaceable>/groovydoc</literal></td>
             </tr>
             <tr>
+                <td>destinationDirectory</td>
+                <td><literal><replaceable>${project.docsDir}</replaceable>/groovydoc</literal></td>
+            </tr>
+            <tr>
                 <td>groovyClasspath</td>
                 <td><literal>project.configurations.groovy</literal></td>
             </tr>

@@ -75,10 +75,10 @@ class BuildScanPluginResourceCapturingPerformanceTest extends AbstractBuildScanP
         !withoutResults.significantlyFasterThan(withResults)
 
         where:
-        scenario                     | tasks                              | withFailure | scenarioArgs                                      | manageCacheState
-        "clean build - 20 projects"  | ['clean', 'project20:buildNeeded'] | true        | ['--build-cache', '-DreducedOutput=true']         | true
-        "help - configuration cache" | ['help']                           | false       | ['--configuration-cache', '-DreducedOutput=true'] | false
-        "help - no console output"   | ['help']                           | false       | ['-DreducedOutput=true']                          | false
+        scenario                     | tasks              | withFailure | scenarioArgs                                      | manageCacheState
+        "clean build - 20 projects"  | ['clean', 'build'] | true        | ['--build-cache', '-DreducedOutput=true']         | true
+        "help - configuration cache" | ['help']           | false       | ['--configuration-cache', '-DreducedOutput=true'] | false
+        "help - no console output"   | ['help']           | false       | ['-DreducedOutput=true']                          | false
     }
 
     @Override

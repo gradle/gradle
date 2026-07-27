@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -43,6 +45,7 @@ class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependenc
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "disambiguates A -> B -> C and B -> C by selecting the latter"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -135,6 +138,7 @@ ${artifactTransform("FileSizer")}
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "can not disambiguate A -> C and B -> C as both are valid chains"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -234,7 +238,7 @@ ${artifactTransform("TestTransform")}
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':app:compileClasspath'.")
-        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:""")
+        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:""")
         failure.assertHasResolution("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
     }
 
@@ -409,6 +413,7 @@ task resolve(type: Copy) {
         output.count('Sizing') == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
     def "disambiguation leverages schema rules before doing it size based"() {
         given:
         createDirs("child")
@@ -526,5 +531,118 @@ task resolve(type: Copy) {
 
         where:
         apiFirst << [true, false]
+    }
+
+    def "multiple possible artifact transforms cause an error [#configCacheFlag]"() {
+        given:
+        // This class does not enable the Problems API check at the class level (unlike
+        // ResolutionFailureHandlerIntegrationTest's setup()), so opt in for this test only.
+        enableProblemsApiCheck()
+
+        settingsFile.text = """
+            rootProject.name = "producer"
+        """
+        buildFile.text = """
+            plugins {
+                id("base")
+            }
+
+            def artifactType = Attribute.of('artifactType', String)
+            def color = Attribute.of("color", String)
+
+            abstract class VariantArtifactTransform1 implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def output = outputs.file("transformed1-" + inputArtifact.get().asFile.name)
+                    output << "transformed1"
+                }
+            }
+
+            abstract class VariantArtifactTransform2 implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def output = outputs.file("transformed2-" + inputArtifact.get().asFile.name)
+                    output << "transformed2"
+                }
+            }
+
+            file("foo").text = "hello"
+            task doZip(type: Zip) {
+                from(file("foo"))
+            }
+
+            configurations {
+                dependencyScope("deps")
+                resolvable("res") {
+                    extendsFrom(deps)
+                    attributes {
+                        attribute(artifactType, "jar")
+                    }
+                }
+            }
+
+            dependencies {
+                deps files(file("foo.zip")) {
+                    builtBy doZip
+                }
+
+                registerTransform(VariantArtifactTransform1) {
+                    from.attribute(artifactType, 'zip')
+                    from.attribute(color, 'yellow')
+                    to.attribute(artifactType, 'jar')
+                    to.attribute(color, 'red')
+                }
+
+                registerTransform(VariantArtifactTransform2) {
+                    from.attribute(artifactType, 'zip')
+                    from.attribute(color, 'yellow')
+                    to.attribute(artifactType, 'jar')
+                    to.attribute(color, 'blue')
+                }
+            }
+
+            task resolve {
+                def files = configurations.res.incoming.files
+                doLast {
+                    println files.files*.name
+                }
+            }
+        """
+
+        expect:
+        fails("resolve", configCacheFlag)
+
+        and: "the ambiguous transform chains are reported"
+        failure.assertHasCause("Could not resolve all files for configuration ':res'.")
+        failure.assertHasCause("Found multiple transformation chains that produce a variant of '${variantName}' with requested attributes:")
+        failure.assertHasErrorOutput("Transformation chain: 'VariantArtifactTransform1'")
+        failure.assertHasErrorOutput("Transformation chain: 'VariantArtifactTransform2'")
+
+        and: "Problems are reported"
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+            additionalData.asMap['requestTarget'] == variantName
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
+        }
+        if (configCache) {
+            // With CC the failure surfaces twice: once at CC store time when the codec pre-runs selection,
+            // and again at execution time when the cached BrokenResolvedArtifactSet is visited.
+            verifyAll(receivedProblem(1)) {
+                fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+                additionalData.asMap['requestTarget'] == variantName
+                additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
+                additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
+            }
+        }
+
+        where:
+        configCacheFlag             | configCache | variantName
+        '--configuration-cache'     | true        | 'file collection'
+        '--no-configuration-cache'  | false       | 'foo.zip'
     }
 }

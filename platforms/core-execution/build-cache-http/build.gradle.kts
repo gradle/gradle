@@ -17,7 +17,7 @@ dependencies {
     api(projects.credentialsApi)
     api(projects.resourcesHttp)
 
-    implementation(projects.core)
+    implementation(projects.buildCacheCore)
     implementation(projects.logging)
     implementation(projects.resources)
 
@@ -27,11 +27,9 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
-    testImplementation(testLibs.servletApi)
 
     integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(testFixtures(projects.buildCache))
-    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
@@ -48,6 +46,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

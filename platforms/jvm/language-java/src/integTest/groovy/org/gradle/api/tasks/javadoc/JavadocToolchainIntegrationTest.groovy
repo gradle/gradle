@@ -23,7 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
@@ -46,7 +46,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "changing toolchain invalidates task"() {
         def jdk1 = Jvm.current()
         def jdk2 = AvailableJavaHomes.getDifferentVersion()
@@ -89,7 +89,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         skipped(":javadoc")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "fails on toolchain and executable mismatch (with java plugin)"() {
         def jdkCurrent = Jvm.current()
         def jdkOther = AvailableJavaHomes.differentVersion
@@ -107,7 +107,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javadocTool` property")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "fails on toolchain and executable mismatch (without java-base plugin)"() {
         def jdkCurrent = Jvm.current()
         def jdkOther = AvailableJavaHomes.differentVersion
@@ -125,7 +125,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javadocTool` property")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "uses #what toolchain #when (with java plugin)"() {
         Jvm currentJdk = Jvm.current()
         Jvm otherJdk = AvailableJavaHomes.differentVersion
@@ -178,7 +178,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         jdk << AvailableJavaHomes.allJdkVersions
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "uses #what toolchain #when (without java-base plugin)"() {
         Jvm currentJdk = Jvm.current()
         Jvm otherJdk = AvailableJavaHomes.differentVersion

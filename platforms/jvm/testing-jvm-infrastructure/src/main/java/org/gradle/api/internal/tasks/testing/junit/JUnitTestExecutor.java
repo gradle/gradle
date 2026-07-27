@@ -87,7 +87,6 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
             if (throwable instanceof Error) {
                 throw (Error) throwable;
             }
-
             if (started) {
                 listener.testExecutionFailure(testDefinition, TestFailure.fromTestFrameworkFailure(throwable));
             } else {

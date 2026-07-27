@@ -35,6 +35,16 @@ class EclipseLifecycleIntegrationTest extends AbstractIdeLifecycleIntegrationTes
     }
 
     @Override
+    protected String[] getDeprecatedTaskNames() {
+        return ["eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject"]
+    }
+
+    @Override
+    protected String[] getDeprecatedCleanTaskNames() {
+        return ["cleanEclipse", "cleanEclipseClasspath", "cleanEclipseJdt", "cleanEclipseProject"]
+    }
+
+    @Override
     String[] getGenerationTaskNames(String projectPath) {
         if (projectPath == ":") {
             projectPath = ""

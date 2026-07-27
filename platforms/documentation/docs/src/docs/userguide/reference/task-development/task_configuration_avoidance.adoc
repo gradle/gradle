@@ -117,32 +117,8 @@ Because the task configuration action can now run immediately, later, or never, 
 Consider the following code:
 
 ====
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-val check by tasks.registering
-tasks.register("verificationTask") {
-    // Configure verificationTask
-
-    // Run verificationTask when someone runs check
-    check.get().dependsOn(this)
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-def check = tasks.register("check")
-tasks.register("verificationTask") { verificationTask ->
-    // Configure verificationTask
-
-    // Run verificationTask when someone runs check
-    check.get().dependsOn verificationTask
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/taskConfigurationAvoidance-sideEffects/kotlin",files="build.gradle.kts[tags=side-effects]"]
+include::sample[dir="snippets/reference/task-development/taskConfigurationAvoidance-sideEffects/groovy",files="build.gradle[tags=side-effects]"]
 ====
 
 Executing the `check` task should execute `verificationTask`, but with this example, it won't.
@@ -156,8 +132,8 @@ Other tasks should be modified in their own configuration action:
 =====
 [source, kotlin]
 ----
-val check by tasks.registering
-val verificationTask by tasks.registering {
+val check = tasks.register("check")
+val verificationTask = tasks.register("verificationTask") {
     // Configure verificationTask
 }
 check { dependsOn(verificationTask) }
@@ -322,7 +298,7 @@ Useful when the task is referenced multiple times in the same build script.
 =====
 [source, kotlin]
 ----
-val someTask by tasks.registering
+val someTask = tasks.register("someTask")
 
 task("anEagerTask") {
     dependsOn(someTask)
@@ -407,6 +383,7 @@ For a lazy alternative, use `withType().configureEach()`.
 
 |===
 
+[[sec:eager_apis_to_avoid]]
 == Eager APIs to avoid
 
 [cols="a,a", options="header"]

@@ -23,10 +23,12 @@ import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import spock.lang.Specification
 
+import java.util.function.Consumer
 import java.util.function.Function
 
 class BuildSrcBuildListenerFactoryTest extends Specification {
@@ -34,13 +36,17 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
     def startParameter = Mock(StartParameterInternal)
     def projectState = Mock(ProjectState) {
         fromMutableState(_) >> { Function function -> function.apply(project) }
+        applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
     }
     def project = Mock(ProjectInternal) {
         getOwner() >> projectState
     }
+    def buildState = Mock(BuildState) {
+        getRootProject() >> projectState
+    }
     def gradle = Mock(GradleInternal) {
         getStartParameter() >> startParameter
-        getRootProject() >> project
+        getOwner() >> buildState
     }
 
     def "executes buildSrc configuration action after projects are loaded"() {

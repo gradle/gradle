@@ -21,9 +21,12 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
@@ -188,8 +191,9 @@ public class ExtensibleDynamicObjectTest {
         Bean bean = new Bean();
         assertFalse(bean.hasProperty("parentProperty"));
 
-        bean.setParent(parent.getAsDynamicObject());
-        assertTrue(bean.hasProperty("parentProperty"));
+        bean.setParent(parent.getInheritable());
+        // Resolving from the parent is deprecated, but remains the behavior under test here.
+        assertTrue(DeprecationLogger.whileDisabled((Factory<Boolean>) () -> bean.hasProperty("parentProperty")));
     }
 
     @Test
@@ -198,9 +202,10 @@ public class ExtensibleDynamicObjectTest {
         parent.defineProperty("parentProperty", "value");
 
         Bean bean = new Bean();
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
 
-        assertThat(bean.getProperty("parentProperty"), equalTo((Object) "value"));
+        // Resolving from the parent is deprecated, but remains the behavior under test here.
+        assertThat(DeprecationLogger.whileDisabled((Factory<Object>) () -> bean.getProperty("parentProperty")), equalTo((Object) "value"));
     }
 
     @Test
@@ -208,7 +213,7 @@ public class ExtensibleDynamicObjectTest {
         Bean parent = new Bean();
 
         Bean bean = new Bean();
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
         bean.defineProperty("parentProperty", "value");
 
         assertFalse(parent.hasProperty("parentProperty"));
@@ -282,7 +287,7 @@ public class ExtensibleDynamicObjectTest {
         bean.setGroovyProperty("groovyProperty");
         ConventionBean conventionBean = new ConventionBean();
         conventionBean.setConventionProperty("conventionProperty");
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
 
         Map<String, Object> properties = bean.getProperties();
         assertThat(properties.get("properties"), sameInstance((Object) properties));
@@ -317,7 +322,7 @@ public class ExtensibleDynamicObjectTest {
             public String toString() {
                 return "<parent>";
             }
-        }.getAsDynamicObject());
+        }.getInheritable());
 
         try {
             bean.getProperty("unknown");
@@ -410,10 +415,11 @@ public class ExtensibleDynamicObjectTest {
 
         assertFalse(bean.hasMethod("parentMethod", "a", "b"));
 
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.asHierarchicalDynamicObject());
 
-        assertTrue(bean.hasMethod("parentMethod", "a", "b"));
-        assertThat(bean.getAsDynamicObject().invokeMethod("parentMethod", "a", "b"), equalTo((Object) "parent:a.b"));
+        // Resolving from the parent is deprecated, but remains the behavior under test here.
+        assertTrue(DeprecationLogger.whileDisabled((Factory<Boolean>) () -> bean.hasMethod("parentMethod", "a", "b")));
+        assertThat(DeprecationLogger.whileDisabled((Factory<Object>) () -> bean.getAsDynamicObject().invokeMethod("parentMethod", "a", "b")), equalTo((Object) "parent:a.b"));
     }
 
     @Test
@@ -552,12 +558,17 @@ public class ExtensibleDynamicObjectTest {
         Bean parent = new Bean();
         parent.defineProperty("parentProperty", "value");
         Bean bean = new Bean();
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
 
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasProperty("parentProperty"));
-        assertThat(inherited.getProperty("parentProperty"), equalTo((Object) "value"));
-        assertThat(inherited.getProperties().get("parentProperty"), equalTo((Object) "value"));
+        // The inherited view exposes only the object's own inheritable members;
+        // ancestors are reached by walking getParent() one level at a time.
+        HierarchicalDynamicObject inherited = bean.getInheritable();
+        assertFalse(inherited.hasProperty("parentProperty"));
+
+        HierarchicalDynamicObject parentLevel = inherited.getParent();
+        assertTrue(parentLevel.hasProperty("parentProperty"));
+        assertThat(parentLevel.getProperty("parentProperty"), equalTo((Object) "value"));
+        assertThat(parentLevel.getProperties().get("parentProperty"), equalTo((Object) "value"));
     }
 
     @Test
@@ -631,13 +642,21 @@ public class ExtensibleDynamicObjectTest {
             return extensibleDynamicObject;
         }
 
+        public HierarchicalDynamicObject getInheritable() {
+            return extensibleDynamicObject.getInheritable();
+        }
+
         @Override
         public String toString() {
             return "<bean>";
         }
 
-        public void setParent(DynamicObject parent) {
+        public void setParent(HierarchicalDynamicObject parent) {
             extensibleDynamicObject.setParent(parent);
+        }
+
+        public HierarchicalDynamicObject asHierarchicalDynamicObject() {
+            return extensibleDynamicObject;
         }
 
         public String getReadOnlyProperty() {
@@ -698,10 +717,6 @@ public class ExtensibleDynamicObjectTest {
 
         public Object invokeMethod(String name, Object args) {
             return extensibleDynamicObject.invokeMethod(name, (args instanceof Object[]) ? (Object[]) args : new Object[]{args});
-        }
-
-        public DynamicObject getInheritable() {
-            return extensibleDynamicObject.getInheritable();
         }
 
         public void defineProperty(String name, Object value) {

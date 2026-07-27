@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.model.RuleSource
 
+@SuppressWarnings("deprecation")
 class WithGroovyMeta extends RuleSource {
     @Override
     Object getProperty(String property) {

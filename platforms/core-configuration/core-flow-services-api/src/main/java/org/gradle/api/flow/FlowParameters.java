@@ -17,6 +17,7 @@
 package org.gradle.api.flow;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.parameters.NoneParameters;
 
 /**
  * Marker interface for {@link FlowAction dataflow action} parameters.
@@ -40,14 +41,12 @@ public interface FlowParameters {
     /**
      * Used for {@link FlowAction dataflow actions} without parameters.
      *
-     * <p>When {@link None} is used as parameters, calling {@link FlowActionSpec#getParameters()} throws an exception.</p>
+     * <p>When {@link None} is used as parameters, calling {@link FlowActionSpec#getParameters()} returns the {@link #None singleton}.</p>
      *
      * @since 8.1
      */
-    @Incubating
-    final class None implements FlowParameters {
-        public final static None INSTANCE = new None();
-
-        private None() {}
+    final class None extends NoneParameters implements FlowParameters {
+        private None() {
+        }
     }
 }

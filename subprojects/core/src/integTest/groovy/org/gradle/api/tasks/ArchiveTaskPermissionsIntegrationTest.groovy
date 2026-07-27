@@ -20,13 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 
 import static org.junit.Assert.assertTrue
 
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "file and directory permissions from file system are replaced by unix defaults when using #taskType task"() {
         given:
         createDir('parent') {
@@ -60,7 +61,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "untarTo"
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "file and directory permissions are preserved when using #taskType task with file system permissions"() {
         given:
         createDir('parent') {
@@ -95,7 +96,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "untarTo"
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "file and directory permissions are preserved when using #taskType task with file system permissions global flag"() {
         given:
         createDir('parent') {
@@ -132,7 +133,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "untarTo"
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "file and directory permissions can be overridden in #taskType task"() {
         given:
         createDir('parent') {
@@ -169,7 +170,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "untarTo"
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "file and directory permissions are preserved for unpacked #taskType archives by default"() {
         given:
         TestFile testDir = createDir('testdir') {
@@ -201,7 +202,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "tarTo"    | "tarTree"
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "symlinked file permissions are preserved when using #taskType task with file system permissions"() {
         given:
         createDir('parent') {
@@ -234,7 +235,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "untarTo"
     }
 
-    @Requires(UnitTestPreconditions.NoFilePermissions)
+    @Requires(FileSystemTestPreconditions.NoFilePermissions)
     def "file and directory permissions are not preserved when dealing with #taskType archives on OS with no permission support"() {
         given:
         TestFile testDir = createDir('root') {
@@ -271,7 +272,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "tarTo"    | "tarTree"
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "#description configuration overrides previous file system permissions configuration for #taskType archives"() {
         given:
         createDir('parent') {
@@ -308,7 +309,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "dirPermissions"  | "Tar"    | "untarTo"    | "dirPermissions { unix('0711') }"  | 0746             | 0711
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "#description configuration overrides file system permissions global flag for #taskType archives"() {
         given:
         createDir('parent') {
@@ -348,7 +349,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "dirPermissions"  | "Tar"    | "untarTo"    | "dirPermissions { unix('0711') }"  | 0746             | 0711
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "file system permissions configuration overrides previous #description configuration for #taskType archives"() {
         given:
         createDir('parent') {
@@ -386,7 +387,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "dirPermissions"  | "Tar"    | "untarTo"    | "dirPermissions { unix('0711') }"
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "can set absent provider for #description permissions for #taskType and that will configure file system permissions"() {
         given:
         createDir('parent') {
@@ -422,7 +423,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "dirPermissions"  | "Tar"    | "untarTo"    | "dirPermissions = provider { null }"  | FileSystem.DEFAULT_FILE_MODE | 0777
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "calling unset on #description property restores the unix defaults for #taskType tasks"() {
         given:
         createDir('parent') {
@@ -459,7 +460,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "dirPermissions"  | "Tar"    | "untarTo"    | "dirPermissions.unset()"  | 0746                         | FileSystem.DEFAULT_DIR_MODE
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "eachFile takes precedence over #description permissions for files on #taskType tasks"() {
         given:
         createDir('parent') {

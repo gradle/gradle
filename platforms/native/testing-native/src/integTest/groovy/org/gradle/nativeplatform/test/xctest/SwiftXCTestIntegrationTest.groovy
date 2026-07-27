@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -40,10 +41,11 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
-@Requires(UnitTestPreconditions.HasXCTest)
+@Requires(TestEnvironmentPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult, SwiftTaskNames {
     def setup() {
@@ -162,6 +164,7 @@ apply plugin: 'xctest'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Swift build")
     def "can specify a test dependency on another library"() {
         def lib = new SwiftLib()
         def test = new SwiftLibTest(lib, lib.greeter, lib.sum, lib.multiply)
@@ -418,6 +421,7 @@ apply plugin: 'swift-library'
         test.assertTestCasesRan(testExecutionResult)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Swift build")
     def 'can build xctest bundle which transitively depends on other Swift libraries'() {
         given:
         def app = new SwiftAppWithLibraries()
@@ -458,6 +462,7 @@ apply plugin: 'swift-library'
             tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Swift build")
     def 'can run xctest in swift package manager layout'() {
         given:
         def app = new SwiftAppWithLibraries()

@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
+@SuppressWarnings("this-escape")
 public class BuildTreeDefinedKeys {
     private static final String VERIFICATION_KEYRING_GPG = "verification-keyring.gpg";
     private static final String VERIFICATION_KEYRING_ASCII = "verification-keyring.keys";

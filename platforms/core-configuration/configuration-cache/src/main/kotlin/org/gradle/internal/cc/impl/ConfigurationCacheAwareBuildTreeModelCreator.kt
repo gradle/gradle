@@ -18,23 +18,22 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
-import org.gradle.internal.cc.impl.models.BuildTreeModel
+import org.gradle.internal.buildtree.BuildTreeModelCreatorResult
 
 
 class ConfigurationCacheAwareBuildTreeModelCreator(
     private val delegate: BuildTreeModelCreator,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeModelCreator {
-    override fun <T : Any> beforeTasks(action: BuildTreeModelAction<out T>) {
-        cache.maybePrepareModel {
+    override fun beforeTasks(action: BuildTreeModelAction<*>): BuildTreeModelCreatorResult<Void> {
+        return cache.maybePrepareModel {
             delegate.beforeTasks(action)
         }
     }
 
-    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>): T? {
+    override fun <T : Any> fromBuildModel(action: BuildTreeModelAction<out T>): BuildTreeModelCreatorResult<T> {
         return cache.loadOrCreateModel {
-            val model = delegate.fromBuildModel(action)
-            if (model == null) BuildTreeModel.NullModel else BuildTreeModel.Model(model)
-        }.result()
+            delegate.fromBuildModel(action)
+        }
     }
 }

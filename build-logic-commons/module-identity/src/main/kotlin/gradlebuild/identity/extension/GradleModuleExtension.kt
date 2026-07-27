@@ -21,10 +21,18 @@ import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.util.GradleVersion
 import java.util.Optional
+import javax.inject.Inject
+
+/**
+ * The JVM version everything compiles to by default, and the minimum JVM the test
+ * tasks run on.
+ */
+const val DEFAULT_TARGET_JVM_VERSION: Int = 17
 
 /**
  * A project extension which describes a module of a Gradle distribution.
@@ -96,24 +104,43 @@ interface ModuleIdentity {
 
 }
 
-interface ModuleTargetRuntimes {
+abstract class ModuleTargetRuntimes {
+
+    @get:Inject
+    protected abstract val providers: ProviderFactory
 
     /**
      * Declare that this Gradle module runs as part of the wrapper or as part of a client process.
      * Client processes include the Tooling API client or the CLI client.
      */
-    val client: Property<Boolean>
+    abstract val client: Property<Boolean>
 
     /**
      * Declare that this Gradle module runs as part of the Gradle daemon.
      */
-    val daemon: Property<Boolean>
+    abstract val daemon: Property<Boolean>
 
 
     /**
      * Declare that this Gradle module runs as part of worker process.
      */
-    val worker: Property<Boolean>
+    abstract val worker: Property<Boolean>
+
+    fun computeProductionJvmTargetVersion(): Provider<Int> {
+        // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
+        val targetRuntimeJavaVersions = mapOf(
+            client to 8,
+            daemon to 17,
+            worker to 8
+        )
+
+        // By default, compile to 17. This ensures projects that do not declare any target runtimes
+        // can successfully resolve their classpaths. Then, `:checkTargetRuntimes` will ensure that
+        // each project declares the proper target runtimes. Note that `:checkTargetRuntimes` cannot
+        // execute unless all project classpaths can be successfully resolved.
+        return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(DEFAULT_TARGET_JVM_VERSION)
+    }
+
     /**
      * Reduces a map of boolean flag properties to a single provider by applying the given
      * combiner function to the corresponding values of the properties that are true.
@@ -123,7 +150,7 @@ interface ModuleTargetRuntimes {
      *
      * @return A provider of the reduced value. Non-present if no properties are true.
      */
-    fun <T : Any> Project.reduceBooleanFlagValues(flags: Map<Property<Boolean>, T>, combiner: (T, T) -> T): Provider<T> {
+    fun <T : Any> reduceBooleanFlagValues(flags: Map<Property<Boolean>, T>, combiner: (T, T) -> T): Provider<T> {
         return flags.entries
             .map { entry ->
                 entry.key.map {
@@ -131,7 +158,7 @@ interface ModuleTargetRuntimes {
                         true -> Optional.of(entry.value)
                         false -> Optional.empty()
                     }
-                }.orElse(provider {
+                }.orElse(providers.provider {
                     throw GradleException("Expected boolean flag to be configured")
                 })
             }

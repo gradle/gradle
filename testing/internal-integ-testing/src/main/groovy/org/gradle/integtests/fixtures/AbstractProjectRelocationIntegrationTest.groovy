@@ -20,11 +20,11 @@ package org.gradle.integtests.fixtures
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires running with specific JDK location")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "requires running with specific JDK location")
     def "project is relocatable"() {
         def originalDir = file("original-dir")
         def originalJvm = Jvm.current()

@@ -19,26 +19,30 @@ package org.gradle.execution
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.internal.RunDefaultTasksExecutionRequest
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class DefaultTasksBuildTaskSchedulerTest extends Specification {
-    final projectConfigurer = Mock(ProjectConfigurer)
     final buildInCommand = Mock(BuiltInCommand)
     final delegate = Mock(BuildTaskScheduler)
-    final action = new DefaultTasksBuildTaskScheduler(projectConfigurer, [buildInCommand], delegate)
+    final action = new DefaultTasksBuildTaskScheduler([buildInCommand], delegate)
     final startParameter = Mock(StartParameterInternal)
     final defaultProject = Mock(ProjectInternal)
+    final defaultProjectState = Mock(ProjectState)
     final gradle = Mock(GradleInternal)
     final selector = Mock(EntryTaskSelector)
     final plan = Mock(ExecutionPlan)
 
     def setup() {
         _ * gradle.startParameter >> startParameter
-        _ * gradle.defaultProject >> defaultProject
+        _ * gradle.defaultProjectState >> defaultProjectState
+        _ * defaultProjectState.fromMutableState(_) >> { Function f -> f.apply(defaultProject) }
     }
 
     def "proceeds when task request specified in StartParameter"() {
@@ -72,6 +76,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
         action.scheduleRequestedTasks(gradle, selector, plan)
 
         then:
+        1 * defaultProjectState.ensureConfigured()
         1 * startParameter.setTaskNames(['a', 'b'])
         1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
     }

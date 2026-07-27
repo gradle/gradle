@@ -13,6 +13,14 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.sync Studio after build logic ABI change",
+    "groups" : [ {
+      "testProject" : "android100Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
     "groups" : [ {
       "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
@@ -38,14 +46,6 @@
     } ]
   }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change",
-    "groups" : [ {
-      "testProject" : "nowInAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change with configuration caching",
     "groups" : [ {
       "testProject" : "nowInAndroidBuild",
       "coverage" : {
@@ -312,7 +312,35 @@
   }, {
     "testId" : "org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest.create many deprecation warnings",
     "groups" : [ {
+      "testProject" : "generateDiverseDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
       "testProject" : "generateLotsOfDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProjectDeprecations",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest.create many deprecation warnings with all warnings shown",
+    "groups" : [ {
+      "testProject" : "generateDiverseDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "generateLotsOfDeprecationWarnings",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProjectDeprecations",
       "coverage" : {
         "per_day" : [ "linux" ]
       }
@@ -846,6 +874,14 @@
       "testProject" : "largeMonolithicJavaProject",
       "coverage" : {
         "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.kotlindsl.KotlinDslAccessorsPerformanceTest.generate accessors",
+    "groups" : [ {
+      "testProject" : "kotlinDslManyAccessors",
+      "coverage" : {
+        "per_day" : [ "linux" ]
       }
     } ]
   }, {

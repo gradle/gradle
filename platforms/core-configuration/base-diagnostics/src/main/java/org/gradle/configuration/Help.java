@@ -34,6 +34,7 @@ import javax.inject.Inject;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class Help extends DefaultTask {
     private final Property<String> taskPath = getObjectFactory().property(String.class);

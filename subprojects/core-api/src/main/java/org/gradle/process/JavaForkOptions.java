@@ -124,7 +124,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Returns the extra arguments to use to launch the JVM for the process. Does not include system properties and the
-     * minimum/maximum heap size.
+     * minimum/maximum heap size settings, which are managed separately and included in {@link #getAllJvmArgs()}.
      *
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */

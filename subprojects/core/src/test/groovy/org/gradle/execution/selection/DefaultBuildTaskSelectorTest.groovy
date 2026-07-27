@@ -18,7 +18,6 @@ package org.gradle.execution.selection
 
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.plugins.internal.HelpBuiltInCommand
 import org.gradle.api.specs.Spec
@@ -276,14 +275,12 @@ class DefaultBuildTaskSelectorTest extends Specification {
         def build = Mock(RootBuildState)
         def projects = Mock(BuildProjectRegistry)
         def gradle = Mock(GradleInternal)
-        def defaultProject = Mock(ProjectInternal)
         def defaultProjectState = Mock(ProjectState)
         def rootProjectState = Mock(ProjectState)
 
         build.projectsCreated >> true
         build.mutableModel >> gradle
-        gradle.defaultProject >> defaultProject
-        defaultProject.owner >> defaultProjectState
+        gradle.defaultProjectState >> defaultProjectState
         defaultProjectState.name >> "proj"
         defaultProjectState.displayName >> Describables.of("<default project>")
         defaultProjectState.projectPath >> Path.path(":proj")

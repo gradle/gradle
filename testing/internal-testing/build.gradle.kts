@@ -11,10 +11,10 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.commonsCompress)
     api(libs.groovy)
     api(testLibs.hamcrest)
     api(libs.jspecify)
-    api(libs.jsr305)
     api(testLibs.junit)
     api(testLibs.junit5JupiterApi)
     api(testLibs.spock)
@@ -26,12 +26,11 @@ dependencies {
     implementation(projects.native)
     implementation(projects.serialization)
 
-    implementation(libs.ant)
     implementation(libs.asm)
-    implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.kotlinCompilerEmbeddable)
     implementation(libs.slf4jApi)
     implementation(testLibs.testcontainers)
@@ -41,6 +40,9 @@ dependencies {
 
     runtimeOnly(libs.groovyJson)
     runtimeOnly(testLibs.bytebuddy)
+
+    // Javadoc-only: for groovy.test.NotYetImplemented reference in ToBeImplemented
+    javadocReferences(testLibs.groovyTest)
 }
 
 jvmCompile {

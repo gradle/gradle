@@ -23,7 +23,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.buildDiscoveryImpl)
     implementation(projects.collections)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
@@ -60,6 +59,4 @@ gradleModule {
 }
 
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

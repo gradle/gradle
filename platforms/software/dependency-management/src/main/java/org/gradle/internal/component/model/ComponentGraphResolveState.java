@@ -17,11 +17,7 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
-import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * State for a component instance (e.g. version of a component) that is used to perform dependency graph resolution and that is independent of the particular
@@ -40,6 +36,7 @@ import java.util.List;
  * @see ComponentGraphSpecificResolveState for dependency graph specific state for the component.
  */
 public interface ComponentGraphResolveState {
+
     /**
      * A unique id for this component within the current build tree. Note that this id is not stable across Gradle invocations.
      */
@@ -54,19 +51,6 @@ public interface ComponentGraphResolveState {
      * The immutable metadata for this component.
      */
     ComponentGraphResolveMetadata getMetadata();
-
-    /**
-     * Returns the public view of all variants of this component that are available for variant selection, either during graph resolution or artifact resolution.
-     */
-    List<ResolvedVariantResult> getAllSelectableVariantResults();
-
-    /**
-     * Gets the public view for the given variant.
-     * <p>
-     * Only valid for variants that are owned by this component.
-     * Results are undefined if {@code variant} is not owned by this component.
-     */
-    ResolvedVariantResult getPublicViewFor(VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant);
 
     /**
      * Returns the candidates for variant selection during graph resolution.
@@ -95,4 +79,5 @@ public interface ComponentGraphResolveState {
      * @return default capability for this component.
      */
     ImmutableCapability getDefaultCapability();
+
 }

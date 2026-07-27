@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -34,6 +34,6 @@ public interface SettingsProcessor {
         GradleInternal gradle,
         SettingsLocation settingsLocation,
         ClassLoaderScope buildRootClassLoaderScope,
-        StartParameter startParameter
+        StartParameterInternal startParameter
     );
 }

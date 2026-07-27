@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
@@ -38,8 +37,8 @@ import java.util.function.Function;
  */
 public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleComponentGraphResolveState<IvyModuleResolveMetadata, IvyModuleResolveMetadata> implements IvyComponentGraphResolveState {
 
-    public DefaultIvyComponentGraphResolveState(long instanceId, IvyModuleResolveMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
-        super(instanceId, metadata, metadata, attributeDesugaring, idGenerator);
+    public DefaultIvyComponentGraphResolveState(long instanceId, IvyModuleResolveMetadata metadata, ComponentIdGenerator idGenerator) {
+        super(instanceId, metadata, metadata, idGenerator);
     }
 
     @Override

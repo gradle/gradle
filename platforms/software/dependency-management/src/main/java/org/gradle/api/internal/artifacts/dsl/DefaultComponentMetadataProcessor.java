@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
@@ -28,6 +29,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.MetadataResolutionContext;
+import org.gradle.api.internal.artifacts.dsl.ImmutableComponentMetadataRules.ImmutableRule;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserProvidedMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
@@ -35,7 +37,10 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstra
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
+import org.gradle.api.internal.notations.DependencyMetadataNotationParser;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.Actions;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRules;
@@ -55,8 +60,12 @@ import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.internal.SimpleMapInterner;
 
+import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -73,7 +82,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         return realizeMetadata(metadata);
     };
 
-    private ModuleComponentResolveMetadata maybeForceRealisation(ModuleComponentResolveMetadata metadata) {
+    private ModuleComponentResolveMetadata maybeForceRealization(ModuleComponentResolveMetadata metadata) {
         if (FORCE_REALIZE) {
             metadata = realizeMetadata(metadata);
             metadata = forceSerialization(metadata);
@@ -105,26 +114,34 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         return metadata;
     }
 
+    private final MetadataResolutionContext metadataResolutionContext;
+    private final ImmutableComponentMetadataRules metadataRuleContainer;
+    private final VariantDerivationStrategy variantDerivationStrategy;
+
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
     private final AttributesFactory attributesFactory;
     private final ComponentMetadataRuleExecutor ruleExecutor;
-    private final MetadataResolutionContext metadataResolutionContext;
-    private final ComponentMetadataRuleContainer metadataRuleContainer;
     private final PlatformSupport platformSupport;
 
-    public DefaultComponentMetadataProcessor(ComponentMetadataRuleContainer metadataRuleContainer,
-                                             Instantiator instantiator,
-                                             NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
-                                             NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
-                                             NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
-                                             AttributesFactory attributesFactory,
-                                             ComponentMetadataRuleExecutor ruleExecutor,
-                                             PlatformSupport platformSupport,
-                                             MetadataResolutionContext resolutionContext) {
+    public DefaultComponentMetadataProcessor(
+        MetadataResolutionContext resolutionContext,
+        ImmutableComponentMetadataRules metadataRuleContainer,
+        VariantDerivationStrategy variantDerivationStrategy,
+        Instantiator instantiator,
+        NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
+        NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
+        NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
+        AttributesFactory attributesFactory,
+        ComponentMetadataRuleExecutor ruleExecutor,
+        PlatformSupport platformSupport
+    ) {
+        this.metadataResolutionContext = resolutionContext;
         this.metadataRuleContainer = metadataRuleContainer;
+        this.variantDerivationStrategy = variantDerivationStrategy;
+
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
@@ -132,44 +149,52 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         this.attributesFactory = attributesFactory;
         this.ruleExecutor = ruleExecutor;
         this.platformSupport = platformSupport;
-        this.metadataResolutionContext = resolutionContext;
     }
 
     @Override
     public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata origin) {
-        VariantDerivationStrategy curStrategy = metadataRuleContainer.getVariantDerivationStrategy();
-        ModuleComponentResolveMetadata metadata = origin.withDerivationStrategy(curStrategy);
-        ModuleComponentResolveMetadata updatedMetadata;
-        if (metadataRuleContainer.isEmpty()) {
-            updatedMetadata = maybeForceRealisation(metadata);
-        } else if (metadataRuleContainer.isClassBasedRulesOnly()) {
-            Action<ComponentMetadataContext> action = collectRulesAndCreateAction(metadataRuleContainer.getOnlyClassRules(), metadata.getModuleVersionId(), metadataResolutionContext.getInjectingInstantiator());
-            if (action instanceof InstantiatingAction) {
-                InstantiatingAction<ComponentMetadataContext> ia = (InstantiatingAction<ComponentMetadataContext>) action;
-                if (shouldCacheComponentMetadataRule(ia, metadata)) {
-                    updatedMetadata = processClassRuleWithCaching(ia, metadata, metadataResolutionContext);
-                } else {
-                    MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-                    processClassRule(action, metadata, createDetails(mutableMetadata));
-                    updatedMetadata = maybeForceRealisation(mutableMetadata.asImmutable());
-                }
-            } else {
-                updatedMetadata = maybeForceRealisation(metadata);
-            }
-        } else {
-            MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-            ComponentMetadataDetails details = createDetails(mutableMetadata);
-            processAllRules(metadata, details, metadata.getModuleVersionId());
-            updatedMetadata = maybeForceRealisation(mutableMetadata.asImmutable());
-        }
-
+        ModuleComponentResolveMetadata metadata = origin.withDerivationStrategy(variantDerivationStrategy);
+        ModuleComponentResolveMetadata updatedMetadata = getUpdatedMetadata(metadata);
         if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
             throw new ModuleVersionResolveException(updatedMetadata.getModuleVersionId(), () -> String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().getDisplayName(), updatedMetadata.getStatusScheme()));
         }
         return updatedMetadata;
     }
 
-    private boolean shouldCacheComponentMetadataRule(InstantiatingAction<ComponentMetadataContext> action, ModuleComponentResolveMetadata metadata) {
+    private ModuleComponentResolveMetadata getUpdatedMetadata(ModuleComponentResolveMetadata metadata) {
+        ImmutableList<ImmutableRule> rules = metadataRuleContainer.getRules();
+
+        if (rules.isEmpty()) {
+            return maybeForceRealization(metadata);
+        }
+
+        if (rules.size() == 1 && rules.get(0) instanceof ImmutableRule.ClassBased classBased) {
+            Action<ComponentMetadataContext> action = collectRulesAndCreateAction(
+                classBased.classRules(),
+                metadata.getModuleVersionId(),
+                metadataResolutionContext.getInjectingInstantiator()
+            );
+
+            if (action instanceof InstantiatingAction<ComponentMetadataContext> ia) {
+                if (shouldCacheComponentMetadataRule(ia, metadata)) {
+                    return processClassRuleWithCaching(ia, metadata, metadataResolutionContext);
+                } else {
+                    MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
+                    processClassRule(action, metadata, createDetails(mutableMetadata));
+                    return maybeForceRealization(mutableMetadata.asImmutable());
+                }
+            } else {
+                return maybeForceRealization(metadata);
+            }
+        }
+
+        MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
+        ComponentMetadataDetails details = createDetails(mutableMetadata);
+        processAllRules(metadata, details, metadata.getModuleVersionId(), rules);
+        return maybeForceRealization(mutableMetadata.asImmutable());
+    }
+
+    private static boolean shouldCacheComponentMetadataRule(InstantiatingAction<ComponentMetadataContext> action, ModuleComponentResolveMetadata metadata) {
         return action.getRules().isCacheable() && metadata.isComponentMetadataRuleCachingEnabled();
     }
 
@@ -180,32 +205,37 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     @Override
     public ComponentMetadata processMetadata(ComponentMetadata metadata) {
         ComponentMetadata updatedMetadata;
-        if (metadataRuleContainer.isEmpty()) {
-            updatedMetadata = metadata;
-        } else {
-            ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(metadata, attributesFactory);
-            processAllRules(null, details, metadata.getId());
-            updatedMetadata = details.asImmutable();
-        }
+        updatedMetadata = getUpdatedMetadata(metadata);
         if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
             throw new ModuleVersionResolveException(updatedMetadata.getId(), () -> String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().toString(), updatedMetadata.getStatusScheme()));
         }
         return updatedMetadata;
     }
 
-    @Override
-    public int getRulesHash() {
-        return metadataRuleContainer.getRulesHash();
+    private ComponentMetadata getUpdatedMetadata(ComponentMetadata metadata) {
+        ImmutableList<ImmutableRule> rules = metadataRuleContainer.getRules();
+
+        if (rules.isEmpty()) {
+            return metadata;
+        } else {
+            ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(metadata, attributesFactory);
+            processAllRules(null, details, metadata.getId(), rules);
+            return details.asImmutable();
+        }
     }
 
-    private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details, ModuleVersionIdentifier id) {
-        for (MetadataRuleWrapper wrapper : metadataRuleContainer) {
-            if (wrapper.isClassBased()) {
-                Collection<SpecConfigurableRule> rules = wrapper.getClassRules();
-                Action<ComponentMetadataContext> action = collectRulesAndCreateAction(rules, id, metadataResolutionContext.getInjectingInstantiator());
+    @Override
+    public int getRulesHash() {
+        return 31 * variantDerivationStrategy.hashCode() + metadataRuleContainer.getRulesHash();
+    }
+
+    private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details, ModuleVersionIdentifier id, ImmutableList<ImmutableRule> rules) {
+        for (ImmutableRule rule : rules) {
+            if (rule instanceof ImmutableRule.ClassBased classBased) {
+                Action<ComponentMetadataContext> action = collectRulesAndCreateAction(classBased.classRules(), id, metadataResolutionContext.getInjectingInstantiator());
                 processClassRule(action, metadata, details);
-            } else {
-                processRule(wrapper.getRule(), metadata, details);
+            } else if (rule instanceof ImmutableRule.ActionBased actionBased) {
+                processRule(actionBased.rule(), metadata, details);
             }
         }
     }
@@ -397,4 +427,57 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             return new UserProvidedMetadata(id, statusScheme, attributes.asImmutable());
         }
     }
+
+    @ServiceScope(Scope.Build.class)
+    public static class Factory {
+
+        private final Instantiator instantiator;
+        private final AttributesFactory attributesFactory;
+        private final ComponentMetadataRuleExecutor ruleExecutor;
+        private final PlatformSupport platformSupport;
+
+        private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
+        private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
+        private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
+
+        @Inject
+        public Factory(
+            Instantiator instantiator,
+            AttributesFactory attributesFactory,
+            ComponentMetadataRuleExecutor ruleExecutor,
+            PlatformSupport platformSupport,
+            SimpleMapInterner stringInterner,
+            Problems problems
+        ) {
+            this.instantiator = instantiator;
+            this.attributesFactory = attributesFactory;
+            this.ruleExecutor = ruleExecutor;
+            this.platformSupport = platformSupport;
+
+            this.dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, stringInterner, problems);
+            this.dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, stringInterner, problems);
+            this.componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create();
+        }
+
+        public DefaultComponentMetadataProcessor create(
+            MetadataResolutionContext resolutionContext,
+            ImmutableComponentMetadataRules rules,
+            VariantDerivationStrategy variantDerivationStrategy
+        ) {
+            return new DefaultComponentMetadataProcessor(
+                resolutionContext,
+                rules,
+                variantDerivationStrategy,
+                instantiator,
+                dependencyMetadataNotationParser,
+                dependencyConstraintMetadataNotationParser,
+                componentIdentifierNotationParser,
+                attributesFactory,
+                ruleExecutor,
+                platformSupport
+            );
+        }
+
+    }
+
 }

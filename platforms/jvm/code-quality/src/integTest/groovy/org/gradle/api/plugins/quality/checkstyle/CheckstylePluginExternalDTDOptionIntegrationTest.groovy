@@ -123,7 +123,7 @@ class CheckstylePluginExternalDTDOptionIntegrationTest extends AbstractIntegrati
     }
 
     private void assertFailedWithDtdProcessingError(String taskName = 'checkstyleMain') {
-        failure.assertHasCause("A failure occurred while executing org.gradle.api.plugins.quality.internal.CheckstyleAction")
+        failure.assertHasCause("A failure occurred while executing org.gradle.api.plugins.quality.internal.CheckstyleInvoker")
         failure.assertHasCause("An unexpected error occurred configuring and executing Checkstyle.")
         failure.assertHasCause("java.lang.NullPointerException")
     }

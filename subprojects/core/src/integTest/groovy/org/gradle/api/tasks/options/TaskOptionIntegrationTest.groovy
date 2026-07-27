@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.options
 
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 
 class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {

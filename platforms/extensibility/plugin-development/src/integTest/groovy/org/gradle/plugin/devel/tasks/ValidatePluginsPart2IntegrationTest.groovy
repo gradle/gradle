@@ -21,7 +21,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -77,18 +78,11 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
-        assertValidationFailsWith([
-            error(unsupportedValueTypeConfig { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
-        ])
+        assertValidationFailsWith(7)
 
         and:
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'direct\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
@@ -97,8 +91,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'direct',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'listPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
@@ -107,8 +103,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'listPropertyInput',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(2)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'mapPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
@@ -117,8 +115,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapPropertyInput',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(3)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'nestedBean.nestedInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
@@ -128,8 +128,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'nestedInput',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(4)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'propertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
@@ -138,8 +140,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'propertyInput',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(5)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'providerInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
@@ -148,8 +152,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'providerInput',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(6)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'setPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
@@ -158,6 +164,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'setPropertyInput',
             ]
+            originLocations == []
         }
     }
 
@@ -224,18 +231,11 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
 
         then:
-        assertValidationFailsWith([
-            error(incorrectUseOfInputAnnotationConfig { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-            error(incorrectUseOfInputAnnotationConfig { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-            error(incorrectUseOfInputAnnotationConfig { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-            error(incorrectUseOfInputAnnotationConfig { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-            error(missingNormalizationStrategyConfig { type('MyTask').property('inputDirectory').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
-            error(missingNormalizationStrategyConfig { type('MyTask').property('inputFile').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
-            error(missingNormalizationStrategyConfig { type('MyTask').property('inputFiles').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
-        ])
+        assertValidationFailsWith(7)
 
         and:
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
             contextualLabel == 'Type \'MyTask\' property \'file\' has @Input annotation used on property of type \'File\''
             details == 'A property of type \'File\' annotated with @Input cannot determine how to interpret the file'
@@ -248,8 +248,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'file',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
             contextualLabel == 'Type \'MyTask\' property \'fileCollection\' has @Input annotation used on property of type \'FileCollection\''
             details == 'A property of type \'FileCollection\' annotated with @Input cannot determine how to interpret the file'
@@ -262,8 +264,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'fileCollection',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(2)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
             contextualLabel == 'Type \'MyTask\' property \'filePath\' has @Input annotation used on property of type \'Path\''
             details == 'A property of type \'Path\' annotated with @Input cannot determine how to interpret the file'
@@ -276,8 +280,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'filePath',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(3)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
             contextualLabel == 'Type \'MyTask\' property \'fileTree\' has @Input annotation used on property of type \'FileTree\''
             details == 'A property of type \'FileTree\' annotated with @Input cannot determine how to interpret the file'
@@ -290,8 +296,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'fileTree',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(4)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-normalization-annotation'
             contextualLabel == 'Type \'MyTask\' property \'inputDirectory\' is annotated with @InputDirectory but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
@@ -300,8 +308,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputDirectory',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(5)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-normalization-annotation'
             contextualLabel == 'Type \'MyTask\' property \'inputFile\' is annotated with @InputFile but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
@@ -310,8 +320,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputFile',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(6)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-normalization-annotation'
             contextualLabel == 'Type \'MyTask\' property \'inputFiles\' is annotated with @InputFiles but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
@@ -320,6 +332,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputFiles',
             ]
+            originLocations == []
         }
     }
 
@@ -426,22 +439,14 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=8")
-        assertValidationFailsWith([
-            error(missingAnnotationConfig { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-        ])
+        assertValidationFailsWith(8)
 
         and:
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'doubleIterableOptions.*.*.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -451,11 +456,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'iterableMappedOptions.*.<key>.*.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -465,11 +472,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(2)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'iterableOptions.*.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -479,11 +488,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(3)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'mappedOptions.<key>.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -493,11 +504,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(4)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'namedIterable.<name>.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -507,11 +520,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(5)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'options.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -521,11 +536,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(6)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'optionsList.*.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -535,11 +552,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
             ]
+            originLocations == []
         }
         verifyAll(receivedProblem(7)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'providedOptions.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -549,6 +568,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
             ]
+            originLocations == []
         }
     }
 
@@ -644,12 +664,11 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=1")
-        assertValidationFailsWith([
-            error(nestedMapUnsupportedKeyTypeConfig { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
-        ])
+        assertValidationFailsWith(1)
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:nested-map-unsupported-key-type'
             contextualLabel == "Type 'MyTask' property 'mapWithUnsupportedKey' where key of nested map is of type 'java.lang.Boolean'"
             details == "Key of nested map must be an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'"
@@ -658,6 +677,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapWithUnsupportedKey',
             ]
+            originLocations == []
         }
     }
 
@@ -683,14 +703,11 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         """
 
         expect:
-        def reason = "Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types."
-        assertValidationFailsWith([
-            error(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
-                'validation_problems', 'unsupported_nested_type'),
-        ])
+        assertValidationFailsWith(1)
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:nested-type-unsupported'
             contextualLabel == "Type 'MyTask' property 'my$typeName' with nested type '$className' is not supported"
             details == 'Type is in \'java.*\' or \'javax.*\' package that are reserved for standard Java API types'
@@ -702,6 +719,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : "my$typeName",
             ]
+            originLocations == []
         }
 
         where:
@@ -765,7 +783,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
-    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "nested Kotlin #typeName is validated with warning"() {
         kotlinTaskSource << """
             import org.gradle.api.*;
@@ -783,13 +801,11 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         """
 
         expect:
-        assertValidationFailsWith([
-            error(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
-                'validation_problems', 'unsupported_nested_type'),
-        ])
+        assertValidationFailsWith(1)
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:nested-type-unsupported'
             contextualLabel == "Type 'MyTask' property 'my$typeName' with nested type '$className' is not supported"
             reason == "$details."
@@ -801,6 +817,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'typeName' : 'MyTask',
                 'propertyName' : "my$typeName"
             ]
+            originLocations == []
         }
 
         where:
@@ -864,6 +881,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:missing-java-toolchain-plugin'
             contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.'
             definition.documentationLink.url.endsWith("/userguide/upgrading_major_version_9.html#validate_plugins_without_java_toolchain_90")
@@ -911,6 +929,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:invalid-java-toolchain'
             contextualLabel == "Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION} is not supported."
             definition.documentationLink.url.endsWith("/userguide/upgrading_version_9.html#validate_plugins_java_version")

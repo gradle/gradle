@@ -112,7 +112,7 @@ class DependencyGraphBuilderTest extends Specification {
                 args[0].run()
             }
         }
-        runAll(_) >> { args ->
+        runAll(_, _) >> { args ->
             args[0].execute(queue)
         }
     }
@@ -132,7 +132,6 @@ class DependencyGraphBuilderTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(
-        desugaring,
         new ComponentIdGenerator(),
         new DefaultLocalVariantGraphResolveStateBuilder(
             new ComponentIdGenerator(),
@@ -176,6 +175,7 @@ class DependencyGraphBuilderTest extends Specification {
             dependencySubstitutionApplicator,
             conflictResolver,
             ImmutableList.of(),
+            ResolutionParameters.SortOrder.BFS,
             ConflictResolution.latest,
             false,
             false,
@@ -1251,10 +1251,6 @@ class DependencyGraphBuilderTest extends Specification {
         @Override
         void visitNode(DependencyGraphNode node) {
             components.add(node.owner.moduleVersion)
-        }
-
-        @Override
-        void visitEdges(DependencyGraphNode node) {
             node.outgoingEdges.each {
                 if (it.failure) {
                     def breakage = failures.get(it.requested)

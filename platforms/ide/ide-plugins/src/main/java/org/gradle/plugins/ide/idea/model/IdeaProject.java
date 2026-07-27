@@ -31,6 +31,7 @@ import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -46,7 +47,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * Example of use with a blend of all possible properties.
  * Typically you don't have to configure IDEA module directly because Gradle configures it for you.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * import org.gradle.plugins.ide.idea.model.*
  *
  * plugins {
@@ -86,7 +87,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -118,6 +119,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * </pre>
  */
 public abstract class IdeaProject implements IdeWorkspace {
+
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
     private final ProjectStateRegistry projectPathRegistry;
@@ -130,6 +132,7 @@ public abstract class IdeaProject implements IdeWorkspace {
     private String vcs;
     private Set<String> wildcards = new LinkedHashSet<>();
     private RegularFileProperty outputFile;
+    @SuppressWarnings("deprecation")
     private Set<ProjectLibrary> projectLibraries = new LinkedHashSet<>();
     private PathFactory pathFactory;
 
@@ -165,8 +168,12 @@ public abstract class IdeaProject implements IdeWorkspace {
 
     /**
      * See {@link #ipr(Action) }
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public XmlFileContentMerger getIpr() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "ipr");
         return ipr;
     }
 
@@ -175,8 +182,12 @@ public abstract class IdeaProject implements IdeWorkspace {
      * or affecting the way existing *.ipr content is merged with Gradle build information.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void ipr(@SuppressWarnings("rawtypes") @DelegatesTo(XmlFileContentMerger.class) Closure closure) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "ipr");
         configure(closure, ipr);
     }
 
@@ -187,8 +198,11 @@ public abstract class IdeaProject implements IdeWorkspace {
      * See the examples in the docs for {@link IdeaProject}
      *
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void ipr(Action<? super XmlFileContentMerger> action) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "ipr");
         action.execute(ipr);
     }
 
@@ -196,6 +210,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
      * In IDEA, the project name is driven by the name of the 'ipr' file.
      */
+    @SuppressWarnings("deprecation")
     public String getName() {
         return getOutputFile().getName().replaceFirst("\\.ipr$", "");
     }
@@ -324,31 +339,64 @@ public abstract class IdeaProject implements IdeWorkspace {
 
     /**
      * The project-level libraries to be added to the IDEA project.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public Set<ProjectLibrary> getProjectLibraries() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "projectLibraries");
         return projectLibraries;
     }
 
+    /**
+     * Sets the project-level libraries.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "projectLibraries");
         this.projectLibraries = projectLibraries;
     }
 
+    /**
+     * Returns the path factory used to construct paths in the generated *.ipr file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public PathFactory getPathFactory() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "pathFactory");
         return pathFactory;
     }
 
+    /**
+     * Sets the path factory used to construct paths in the generated *.ipr file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setPathFactory(PathFactory pathFactory) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "pathFactory");
         this.pathFactory = pathFactory;
     }
 
+    /**
+     * Merges the existing *.ipr content with the configuration from this model.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public void mergeXmlProject(Project xmlProject) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaProject.class, "ipr");
         ipr.getBeforeMerged().execute(xmlProject);
         xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());
         configureModulePaths(xmlProject);
         ipr.getWhenMerged().execute(xmlProject);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureModulePaths(Project xmlProject) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {

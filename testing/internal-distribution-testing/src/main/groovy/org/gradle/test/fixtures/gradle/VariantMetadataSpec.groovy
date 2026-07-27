@@ -114,6 +114,9 @@ class VariantMetadataSpec {
 
     void availableAt(String url, String group, String name, String version) {
         availableAt = new AvailableAtSpec(url, group, name, version)
+        // An available-at variant cannot declare files; suppress the default artifact list
+        // that AbstractMavenModule.publishModuleMetadata() would otherwise inject.
         noArtifacts = true
+        useDefaultArtifacts = false
     }
 }

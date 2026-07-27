@@ -17,16 +17,19 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 /**
  * This class tests interesting edge case scenarios involving registering Artifact Transforms.
  * <p>
  * These tests describe <strong>current</strong> behavior, but not necessarily <strong>desired</strong> behavior.
  */
-class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
+class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
     def "multiple distinct transformation chains fails with a reasonable message"() {
         file("my-initial-file.txt") << "Contents"
+        settingsFile << "rootProject.name = 'test'"
 
         buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
@@ -110,7 +113,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue-liquid variant with liquid request, we request something red-round
                     // There should be 2 separate transformation chains of equal length that produce this
@@ -129,7 +132,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project 'test'' with requested attributes:
        - color 'red'
        - matter 'liquid'
        - shape 'round'
@@ -238,6 +241,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
     def "multiple distinct transformation chains fails with a reasonable message with different transform types and non-corresponding from-to attribute pairs"() {
         file("my-initial-file.txt") << "Contents"
+        settingsFile << "rootProject.name = 'test'"
 
         buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
@@ -313,7 +317,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue-liquid-smooth variant with liquid request, we request something red-round
                     // There should be 2 separate transformation chains of equal length that produce this
@@ -332,7 +336,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project 'test'' with requested attributes:
        - color 'red'
        - matter 'liquid'
        - shape 'round'
@@ -377,6 +381,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
     def "multiple identical attribute transformations of distinct types should fail"() {
         file("my-initial-file.txt") << "Contents"
+        settingsFile << "rootProject.name = 'test'"
 
         buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
@@ -434,7 +439,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue-smooth variant with smooth request, we request something red
                     // There should be 2 separate transformation chains of equal length that produce this
@@ -451,7 +456,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         fails "forceResolution"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project 'test'' with requested attributes:
        - color 'red'
        - texture 'smooth'
      Found the following transformation chains:
@@ -522,7 +527,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue variant with square request, we request something also red
                     // A transformation must be run to produce this, but it shouldn't be created or run because there are no artifacts
@@ -603,7 +608,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue variant with square request, we request something red-round
                     // A transformation chain must be run to produce this, but the first transformation should remove input artifacts, resulting in the color transform running on empty dir
@@ -671,7 +676,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue variant with blue request, we request something red
                     attributes.attribute(shape, "red")
@@ -700,7 +705,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':app:compileClasspath'.")
-        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:""")
+        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:""")
         failure.assertHasResolution("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
     }
 
@@ -857,4 +862,235 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         """
     }
     // endregion Demo Resolving Ambiguity
+
+    // region Multi-project undeclared resolution scenarios
+    // These tests exercise the undeclared-resolution deprecation across multiple subprojects.
+    // Each subproject configures itself in its own build.gradle (no allprojects from the root),
+    // so the tests pass under Isolated Projects.
+
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "task A's undeclared query still emits deprecation when triggered as a dependency of task B that correctly declares the same transform output"() {
+        given:
+        setupMultiProjectColorTransform()
+        buildFile << """
+            // task A queries the view WITHOUT declaring it as an input.
+            task taskA {
+                doLast {
+                    println "taskA result = " + view.files.name
+                }
+            }
+            // task B properly declares the view as an input AND dependsOn task A so that
+            // running B triggers A as well.
+            task taskB {
+                inputs.files(view)
+                dependsOn taskA
+                doLast {
+                    println "taskB result = " + view.files.name
+                }
+            }
+        """
+
+        when:
+        // Running task B triggers task A via dependsOn. The post-graph BFS in DefaultExecutionPlan
+        // walks taskB's subgraph and marks the transform nodes as declared by taskB, but stops at
+        // the task boundary into taskA's subgraph. taskA is not marked. At execution time, taskA's
+        // inline view query fires the nag.
+        expectUndeclaredArtifactTransformInputDeprecation()
+        run("taskB")
+
+        then:
+        output.contains("taskA result = [a.jar.green, b.jar.green]")
+        output.contains("taskB result = [a.jar.green, b.jar.green]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "task B's undeclared query emits deprecation when triggered as a downstream of task A that correctly declares the transform output"() {
+        given:
+        setupMultiProjectColorTransform()
+        buildFile << """
+            // task A properly declares the view as an input AND queries it from its action.
+            task taskA {
+                inputs.files(view)
+                doLast {
+                    println "taskA result = " + view.files.name
+                }
+            }
+            // task B does NOT declare the view as an input but queries it from its action.
+            task taskB {
+                dependsOn taskA
+                doLast {
+                    println "taskB result = " + view.files.name
+                }
+            }
+        """
+
+        when:
+        // taskA's declared input puts the transform nodes into A's dependency subgraph, but the
+        // post-graph BFS does not propagate that declaration across the task boundary when walking
+        // from taskB. taskB is not in any node's declaringTaskPaths set, so B's doLast query fires
+        // the nag.
+        expectUndeclaredArtifactTransformInputDeprecation()
+        run("taskB")
+
+        then:
+        output.contains("taskA result = [a.jar.green, b.jar.green]")
+        output.contains("taskB result = [a.jar.green, b.jar.green]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "task A's undeclared query emits deprecation when both A and B (which declares the transform) are invoked, with A requested first"() {
+        given:
+        setupMultiProjectColorTransform()
+        buildFile << """
+            task taskA {
+                doLast {
+                    println "taskA result = " + view.files.name
+                }
+            }
+            task taskB {
+                inputs.files(view)
+                doLast {
+                    println "taskB result = " + view.files.name
+                }
+            }
+        """
+
+        when:
+        // No dependsOn between A and B. taskB's declared input puts taskB into the transform
+        // nodes' declaringTaskPaths set, taskA's lack of declaration leaves taskA out. At
+        // execution time, taskA's inline view query fires the nag. --max-workers=1 only constrains
+        // parallelism; scheduler ordering does not influence declaration attribution.
+        expectUndeclaredArtifactTransformInputDeprecation()
+        run("taskA", "taskB", "--max-workers=1")
+
+        then:
+        output.contains("taskA result = [a.jar.green, b.jar.green]")
+        output.contains("taskB result = [a.jar.green, b.jar.green]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37219")
+    def "task A's undeclared query emits deprecation when both A and B (which declares the transform) are invoked, with B requested first"() {
+        given:
+        setupMultiProjectColorTransform()
+        buildFile << """
+            task taskA {
+                doLast {
+                    println "taskA result = " + view.files.name
+                }
+            }
+            task taskB {
+                inputs.files(view)
+                doLast {
+                    println "taskB result = " + view.files.name
+                }
+            }
+        """
+
+        when:
+        // Even with taskB listed first on the command line, the per-task declaration check is
+        // computed at execution-plan-determination time before any task runs. taskB is in the
+        // transform nodes' declaringTaskPaths set; taskA is not. At execution time, taskA's inline
+        // view query fires the nag regardless of which task the scheduler ran first.
+        expectUndeclaredArtifactTransformInputDeprecation()
+        run("taskB", "taskA", "--max-workers=1")
+
+        then:
+        output.contains("taskA result = [a.jar.green, b.jar.green]")
+        output.contains("taskB result = [a.jar.green, b.jar.green]")
+    }
+
+    /**
+     * Sets up a multi-project build with two subprojects ':a' and ':b' producing blue jars and
+     * a root project that consumes them through a 'blue' resolvable configuration and registers
+     * a MakeGreen transform. Each subproject configures itself in its own build.gradle so the
+     * setup is Isolated-Projects-compatible.
+     *
+     * <p>After calling this helper, the root build.gradle has a {@code view} variable bound to
+     * a green artifact view, ready for the test to wire into tasks.
+     */
+    private void setupMultiProjectColorTransform() {
+        createDirs("a", "b")
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'a', 'b'
+        """
+
+        // Each subproject configures itself: a 'blue' consumable configuration backed by a
+        // producer task that writes a small jar-named file.
+        ['a', 'b'].each { name ->
+            file("${name}/build.gradle") << """
+                def color = Attribute.of('color', String)
+
+                configurations {
+                    consumable('runtimeElements') {
+                        attributes.attribute(color, 'blue')
+                    }
+                }
+
+                tasks.register('producer') {
+                    def output = layout.buildDirectory.file('${name}.jar')
+                    outputs.file(output)
+                    doLast {
+                        def f = output.get().asFile
+                        f.parentFile.mkdirs()
+                        f.text = '${name}-content'
+                    }
+                }
+
+                artifacts {
+                    add('runtimeElements', tasks.producer.outputs.files.singleFile) {
+                        builtBy(tasks.producer)
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            def color = Attribute.of('color', String)
+
+            configurations {
+                dependencyScope('implementationDeps')
+                resolvable('implementation') {
+                    extendsFrom configurations.implementationDeps
+                    attributes.attribute(color, 'blue')
+                }
+            }
+
+            dependencies {
+                implementationDeps project(':a')
+                implementationDeps project(':b')
+
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'blue')
+                    to.attribute(color, 'green')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    def output = outputs.file(input.name + ".green")
+                    // Lenient: tests intentionally invoke undeclared tasks where the producer
+                    // may not have run yet. If the input file does not exist, emit a placeholder
+                    // rather than failing, so the deprecation assertion stays the focus.
+                    if (input.file) {
+                        output.text = input.text + ".green"
+                    } else {
+                        output.text = "missing.green"
+                    }
+                }
+            }
+
+            def view = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'green')
+            }.files
+        """
+    }
+    // endregion Multi-project undeclared resolution scenarios
 }

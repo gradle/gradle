@@ -68,13 +68,14 @@ val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.Sort
 val ruleStoreDir = layout.projectDirectory.dir("src/changes/archunit-store")
 
 tasks {
-    val reorderRuleStore by registering(ReorderArchUnitRulesTask::class) {
+    val reorderRuleStore = register<ReorderArchUnitRulesTask>("reorderRuleStore") {
         ruleFile = ruleStoreDir.file("stored.rules").asFile
     }
 
     test {
-        // Looks like loading all the classes requires more than the default 512M
-        maxHeapSize = "1g"
+        // Loading all the classes requires more than the default 512M,
+        // and the per-module package cycle checks need additional headroom on top of that
+        maxHeapSize = "2g"
 
         // Only use one fork, so freezing doesn't have concurrency issues
         maxParallelForks = 1

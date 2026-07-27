@@ -42,9 +42,6 @@ dependencies {
     testImplementation(testFixtures(projects.testKit)) {
         because("Test kit preconditions are coming from here")
     }
-    testImplementation(testFixtures(projects.smokeTest)) {
-        because("Smoke test preconditions are coming from here")
-    }
     testImplementation(testFixtures(projects.platformNative)) {
         because("Native test preconditions are coming from here")
     }
@@ -98,9 +95,7 @@ fun Test.setupPreconditionTesting() {
     // These tests should always run
     outputs.upToDateWhen { false }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 errorprone {
     nullawayEnabled = true

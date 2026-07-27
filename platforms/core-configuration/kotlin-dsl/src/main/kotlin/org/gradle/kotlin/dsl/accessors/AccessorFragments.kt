@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Project
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
@@ -93,6 +94,8 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
         else -> "project feature"
     }
 
+    val calledMethod = "applyProjectFeature"
+
     className to sequenceOf(
         AccessorFragment(
             source = """
@@ -101,7 +104,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
             |         */
             |        @Incubating
             |        ${annotations}fun $targetTypeKotlinString.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
-            |            applyProjectType(this, "$functionName", configure)
+            |            $calledMethod(this, "$functionName", configure)
             |        }
             """.trimMargin(),
             signature = JvmMethodSignature(
@@ -117,7 +120,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
                     CHECKCAST(DynamicObjectAware::class.internalName)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applyProjectFeature", "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime(calledMethod, "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },
@@ -407,103 +410,120 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Lorg/gradle/api/provider/ProviderConvertible;Lorg/gradle/api/Action;)V"
             )
         ),
-        AccessorFragment(
-            source = name.run {
-                """
-                    /**
-                     * Adds a dependency to the '$original' configuration.
-                     *
-                     * @param group the group of the module to be added as a dependency.
-                     * @param name the name of the module to be added as a dependency.
-                     * @param version the optional version of the module to be added as a dependency.
-                     * @param configuration the optional configuration of the module to be added as a dependency.
-                     * @param classifier the optional classifier of the module artifact to be added as a dependency.
-                     * @param ext the optional extension of the module artifact to be added as a dependency.
-                     * @param dependencyConfiguration expression to use to configure the dependency.
-                     * @return The dependency.
-                     *
-                     * @see [DependencyHandler.create]
-                     * @see [DependencyHandler.add]
-                     */
-                    @Deprecated("Use single-string notation instead")
-                    fun DependencyHandler.`$kotlinIdentifier`(
-                        group: String,
-                        name: String,
-                        version: String? = null,
-                        configuration: String? = null,
-                        classifier: String? = null,
-                        ext: String? = null,
-                        dependencyConfiguration: Action<ExternalModuleDependency>? = null
-                    ): ExternalModuleDependency = addExternalModuleDependencyTo(
-                        this, "$stringLiteral", group, name, version, configuration, classifier, ext, dependencyConfiguration
-                    )
-                """
-            },
-            bytecode = {
-
-                val methodBody: MethodVisitor.() -> Unit = {
-                    ALOAD(0)
-                    LDC(propertyName)
-                    for (i in 1..7) {
-                        ALOAD(i)
+        run {
+            val deprecation = Deprecated(
+                listOfNotNull(
+                    "Use single-string notation or DependencyFactory instead",
+                    if (config.hasDeclarationDeprecations()) config.getDeclarationDeprecationMessage() else null
+                ).joinToString(". ")
+            )
+            AccessorFragment(
+                source = name.run {
+                    """
+                        /**
+                         * Adds a dependency to the '$original' configuration.
+                         *
+                         * @param group the group of the module to be added as a dependency.
+                         * @param name the name of the module to be added as a dependency.
+                         * @param version the optional version of the module to be added as a dependency.
+                         * @param configuration the optional configuration of the module to be added as a dependency.
+                         * @param classifier the optional classifier of the module artifact to be added as a dependency.
+                         * @param ext the optional extension of the module artifact to be added as a dependency.
+                         * @param dependencyConfiguration expression to use to configure the dependency.
+                         * @return The dependency.
+                         *
+                         * @see [DependencyHandler.create]
+                         * @see [DependencyHandler.add]
+                         */
+                        @Deprecated("${deprecation.message}")
+                        fun DependencyHandler.`$kotlinIdentifier`(
+                            group: String,
+                            name: String,
+                            version: String? = null,
+                            configuration: String? = null,
+                            classifier: String? = null,
+                            ext: String? = null,
+                            dependencyConfiguration: Action<ExternalModuleDependency>? = null
+                        ): ExternalModuleDependency = addExternalModuleDependencyTo(
+                            this, "$stringLiteral", group, name, version, configuration, classifier, ext, dependencyConfiguration
+                        )
+                    """
+                },
+                bytecode = {
+                    val methodBody: MethodVisitor.() -> Unit = {
+                        ALOAD(0)
+                        LDC(propertyName)
+                        for (i in 1..7) {
+                            ALOAD(i)
+                        }
+                        @Suppress("MaxLineLength")
+                        invokeRuntime(
+                            "addExternalModuleDependencyTo",
+                            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                        )
+                        ARETURN()
                     }
-                    @Suppress("MaxLineLength")
-                    invokeRuntime(
-                        "addExternalModuleDependencyTo",
-                        "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+
+                    publicStaticMethod(signature) {
+                        maybeWithDeprecation(deprecation)
+                        methodBody()
+                    }
+
+                    // Usually, this method would compute the default argument values
+                    // and delegate to the original implementation.
+                    // Here we can simply inline the implementation in both
+                    // methods.
+                    val overload3Defaults = JvmMethodSignature(
+                        "$propertyName\$default",
+                        "(" +
+                            "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Lorg/gradle/api/Action;" +
+                            "ILjava/lang/Object;" +
+                            ")Lorg/gradle/api/artifacts/ExternalModuleDependency;"
                     )
-                    ARETURN()
-                }
-
-                publicStaticMaybeDeprecatedMethod(signature, config) {
-                    methodBody()
-                }
-
-                // Usually, this method would compute the default argument values
-                // and delegate to the original implementation.
-                // Here we can simply inline the implementation in both
-                // methods.
-                val overload3Defaults = JvmMethodSignature(
-                    "$propertyName\$default",
+                    publicStaticSyntheticMethod(overload3Defaults) {
+                        methodBody()
+                    }
+                },
+                metadata = {
+                    kmPackage.functions += newFunctionOf(
+                        functionAttributes = {
+                            functionFlags()
+                            hasAnnotationsIfDeprecated(deprecation)
+                        },
+                        receiverType = GradleType.dependencyHandler,
+                        returnType = GradleType.externalModuleDependency,
+                        name = propertyName,
+                        valueParameters = listOf(
+                            newValueParameterOf("group", KotlinType.string),
+                            newValueParameterOf("name", KotlinType.string),
+                            newOptionalValueParameterOf("version", KotlinType.string),
+                            newOptionalValueParameterOf("configuration", KotlinType.string),
+                            newOptionalValueParameterOf("classifier", KotlinType.string),
+                            newOptionalValueParameterOf("ext", KotlinType.string),
+                            newOptionalValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency)),
+                        ),
+                        signature = signature
+                    )
+                },
+                signature = JvmMethodSignature(
+                    propertyName,
                     "(" +
                         "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
+                        "Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;" +
+                        "Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;" +
                         "Lorg/gradle/api/Action;" +
-                        "ILjava/lang/Object;" +
-                        ")Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                        ")" +
+                        "Lorg/gradle/api/artifacts/ExternalModuleDependency;"
                 )
-                publicStaticSyntheticMethod(overload3Defaults) {
-                    methodBody()
-                }
-            },
-            metadata = {
-                kmPackage.functions += newFunctionOf(
-                    functionAttributes = functionFlags,
-                    receiverType = GradleType.dependencyHandler,
-                    returnType = GradleType.externalModuleDependency,
-                    name = propertyName,
-                    valueParameters = listOf(
-                        newValueParameterOf("group", KotlinType.string),
-                        newValueParameterOf("name", KotlinType.string),
-                        newOptionalValueParameterOf("version", KotlinType.string),
-                        newOptionalValueParameterOf("configuration", KotlinType.string),
-                        newOptionalValueParameterOf("classifier", KotlinType.string),
-                        newOptionalValueParameterOf("ext", KotlinType.string),
-                        newOptionalValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency)),
-                    ),
-                    signature = signature
-                )
-            },
-            signature = JvmMethodSignature(
-                propertyName,
-                "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
             )
-        ),
+        },
         AccessorFragment(
             source = name.run {
                 """
@@ -1112,10 +1132,12 @@ fun fragmentsForModelDefault(
     val className = internalNameForAccessorClassOf(accessorSpec)
     val (accessibleReceiverType, name, modelType) = accessorSpec
     val projectFeatureName = name.kotlinIdentifier
-    val receiverType = accessibleReceiverType.type.kmType
+    val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessibleReceiverType)
     val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
     val deprecation = accessor.spec.type.deprecation()
     val optIns = accessor.spec.type.requiredOptIns()
+
+    val isTopLevelReceiver = accessibleReceiverType.type.value.concreteClass == SharedModelDefaults::class.java
 
     return className to sequenceOf(
         AccessorFragment(
@@ -1124,17 +1146,29 @@ fun fragmentsForModelDefault(
                 publicStaticMethod(signature) {
                     maybeWithDeprecation(deprecation)
                     maybeWithOptInRequirement(optIns)
-                    ALOAD(0)
-                    LDC(projectFeatureName)
-                    LDC(jvmPublicType)
-                    ALOAD(1)
-                    INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
-                    RETURN()
+                    if (isTopLevelReceiver) {
+                        ALOAD(0)
+                        LDC(projectFeatureName)
+                        LDC(jvmPublicType)
+                        ALOAD(1)
+                        INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
+                        RETURN()
+                    } else {
+                        ALOAD(0)
+                        CHECKCAST(DynamicObjectAware::class.internalName)
+                        LDC(projectFeatureName)
+                        ALOAD(1)
+                        invokeRuntime(
+                            "applyProjectFeature",
+                            "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V"
+                        )
+                        RETURN()
+                    }
                 }
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    receiverType = receiverType,
+                    receiverType = kotlinReceiverType,
                     returnType = KotlinType.unit,
                     name = projectFeatureName,
                     valueParameters = listOf(
@@ -1150,7 +1184,7 @@ fun fragmentsForModelDefault(
             },
             signature = JvmMethodSignature(
                 name.kotlinIdentifier,
-                "(Lorg/gradle/api/initialization/SharedModelDefaults;Lorg/gradle/api/Action;)V"
+                "(L$jvmReceiverType;Lorg/gradle/api/Action;)V"
             )
         )
     )

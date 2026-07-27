@@ -29,7 +29,13 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jsr305)
 
-    shadedImplementation(libs.slf4jApi)
+    shadedImplementation(libs.slf4jApi) {
+        version {
+            // Re-declare as `require` here so the published Tooling API module metadata uses `requires` instead of `strictly`,
+            // leaving consumers free to upgrade to newer backwards-compatible slf4j-api versions.
+            require(libs.versions.slf4j.get())
+        }
+    }
 
     testImplementation(projects.internalDistributionTesting)
 
@@ -54,13 +60,14 @@ dependencies {
     integTestImplementation(projects.kotlinDslToolingModels)
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.launcher))
+    integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 
     crossVersionTestImplementation(projects.jvmServices)
+    crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.commonsIo)
-    crossVersionTestImplementation(testLibs.jettyWebApp)
     crossVersionTestRuntimeOnly(testLibs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
@@ -84,6 +91,10 @@ dependencies {
     crossVersionTestLocalRepository(project(path)) {
         because("ToolingApiVersionSpecification uses the Tooling API Jar")
     }
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
+    javadocReferences(projects.startParameter) // for org.gradle.StartParameter
 }
 
 gradleModule {
@@ -120,16 +131,10 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/tooling/**")
-}
-
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 // AutoTestedSamplesToolingApiTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
 integTest.generateDefaultAutoTestedSamplesTest = false

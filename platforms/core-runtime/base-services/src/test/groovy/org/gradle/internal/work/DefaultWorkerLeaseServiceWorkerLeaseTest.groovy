@@ -472,4 +472,140 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServic
         then:
         noExceptionThrown()
     }
+
+    def "try run as worker thread runs the action and returns its result when no contention"() {
+        def registry = workerLeaseService(1)
+
+        when:
+        def result = registry.tryRunAsWorkerThread({ "result" } as Factory)
+
+        then:
+        result.isPresent()
+        result.get() == "result"
+        !registry.workerThread
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "try run as worker thread is reentrant when the calling thread already holds a lease"() {
+        def registry = workerLeaseService(1)
+
+        def action = {
+            assert registry.workerThread
+            def lease = registry.currentWorkerLease
+            def nested = registry.tryRunAsWorkerThread({
+                assert registry.workerThread
+                assert registry.currentWorkerLease == lease
+                "nested"
+            } as Factory)
+            assert nested.isPresent()
+            assert nested.get() == "nested"
+            "outer"
+        } as Factory
+
+        when:
+        def result = registry.runAsWorkerThread(action)
+
+        then:
+        result == "outer"
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "try run as worker thread returns empty when no lease is available"() {
+        def registry = workerLeaseService(1)
+
+        when:
+        async {
+            start {
+                registry.runAsWorkerThread {
+                    instant.leaseHeld
+                    thread.blockUntil.tryFinished
+                }
+            }
+            start {
+                thread.blockUntil.leaseHeld
+                def result = registry.tryRunAsWorkerThread({ "should not run" } as Factory)
+                assert !result.isPresent()
+                instant.tryFinished
+            }
+        }
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "try run as worker thread releases the lease after the action completes"() {
+        def registry = workerLeaseService(1)
+
+        when:
+        async {
+            start {
+                def first = registry.tryRunAsWorkerThread({ "first" } as Factory)
+                assert first.isPresent()
+                instant.firstFinished
+            }
+            start {
+                thread.blockUntil.firstFinished
+                def second = registry.tryRunAsWorkerThread({ "second" } as Factory)
+                assert second.isPresent()
+                assert second.get() == "second"
+            }
+        }
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "try run as worker thread releases the lease when the action throws"() {
+        def registry = workerLeaseService(1)
+        def boom = new RuntimeException("boom")
+
+        when:
+        registry.tryRunAsWorkerThread({ throw boom } as Factory)
+
+        then:
+        def thrown = thrown(RuntimeException)
+        thrown.is(boom)
+
+        when:
+        // Lease must have been released — a subsequent call from the same thread should succeed.
+        def result = registry.tryRunAsWorkerThread({ "after" } as Factory)
+
+        then:
+        result.isPresent()
+        result.get() == "after"
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "try run as worker thread throws when the action returns null and releases the lease"() {
+        def registry = workerLeaseService(1)
+
+        when:
+        registry.tryRunAsWorkerThread({ null } as Factory)
+
+        then:
+        thrown(NullPointerException)
+
+        when:
+        // Lease still released — verify by running another action.
+        def result = registry.tryRunAsWorkerThread({ "after" } as Factory)
+
+        then:
+        result.isPresent()
+        result.get() == "after"
+
+        cleanup:
+        registry?.stop()
+    }
 }

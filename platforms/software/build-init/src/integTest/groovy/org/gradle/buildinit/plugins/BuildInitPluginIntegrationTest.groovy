@@ -279,9 +279,9 @@ dependencies {
 }""")))
 
         where:
-        scriptDsl   | unWantedLibExclude                                                        | dangerousLibExclude
-        GROOVY      | "exclude(group: 'org.unwanted', module: 'unwanted-lib')"                  | "exclude(group: 'org.other.bad.lib', module: 'dangerous-lib')"
-        KOTLIN      | 'exclude(mapOf("group" to "org.unwanted", "module" to "unwanted-lib"))'   | 'exclude(mapOf("group" to "org.other.bad.lib", "module" to "dangerous-lib"))'
+        scriptDsl | unWantedLibExclude                                                      | dangerousLibExclude
+        GROOVY    | "exclude(group: 'org.unwanted', module: 'unwanted-lib')"                | "exclude(group: 'org.other.bad.lib', module: 'dangerous-lib')"
+        KOTLIN    | 'exclude(mapOf("group" to "org.unwanted", "module" to "unwanted-lib"))' | 'exclude(mapOf("group" to "org.other.bad.lib", "module" to "dangerous-lib"))'
     }
 
     def "proper links"() {

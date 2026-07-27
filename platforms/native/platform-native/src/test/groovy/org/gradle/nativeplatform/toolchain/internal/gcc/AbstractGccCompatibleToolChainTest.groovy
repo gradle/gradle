@@ -45,7 +45,8 @@ import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -258,7 +259,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         assert platformActionApplied == 2
     }
 
-    @Requires(UnitTestPreconditions.NotMacOs)
+    @Requires(OsTestPreconditions.NotMacOs)
     def "supplies no additional arguments to target native binary for tool chain default"() {
         def action = Mock(Action)
 
@@ -288,7 +289,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         ["-m64"]  | ["-m64"]
     }
 
-    @Requires(UnitTestPreconditions.NotMacOs)
+    @Requires(OsTestPreconditions.NotMacOs)
     def "supplies args for supported architecture for non-macOS platforms"() {
         def action = Mock(Action)
 
@@ -319,7 +320,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         "x86_64" | ["-m64"]  | ["-m64"]
     }
 
-    @Requires(UnitTestPreconditions.MacOs)
+    @Requires(OsTestPreconditions.MacOs)
     def "supplies args for supported architecture for macOS platforms"() {
         def action = Mock(Action)
 

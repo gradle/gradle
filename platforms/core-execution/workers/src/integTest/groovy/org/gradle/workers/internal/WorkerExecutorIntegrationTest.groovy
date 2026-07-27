@@ -17,11 +17,12 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.Issue
@@ -142,6 +143,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12636")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "can use work actions from multiple projects when running with --parallel"() {
         createDirs("project1", "project2", "project3", "project4", "project5")
         settingsFile << """
@@ -387,7 +389,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Issue("https://github.com/gradle/gradle/issues/10411")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "This test requires isolated daemons")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "This test requires isolated daemons")
     def "does not leak project state across multiple builds"() {
         fixture.withWorkActionClassInBuildSrc()
         executer.withBuildJvmOpts('-Xms256m', '-Xmx512m').requireIsolatedDaemons().requireDaemon()
@@ -908,7 +910,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 public void apply(Project project) {
                     ConfigurationContainer configurations = project.getConfigurations();
                     NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope = configurations.dependencyScope("deps", config -> {
-                        config.getDependencies().add(project.getDependencies().create(project));
+                        config.getDependencies().add(project.getDependencyFactory().createProjectDependency());
                     });
 
                     NamedDomainObjectProvider<Configuration> resolvable = configurations.register("resolvable", config -> {

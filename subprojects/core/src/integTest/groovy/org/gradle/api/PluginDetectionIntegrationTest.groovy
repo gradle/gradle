@@ -68,7 +68,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
-        pluginBuilder.addRuleSource("test-rule-source")
         pluginBuilder.publishTo(executer, file("plugin.jar"))
 
         buildFile << """
@@ -102,7 +101,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
                 getParameters().pluginJar.set(file("plugin.jar"))
             }.get()
             def pluginClass = loaderService.getLoader().loadClass("${pluginBuilder.packageName}.TestPlugin")
-            def ruleSourceClass = loaderService.getLoader().loadClass("${pluginBuilder.packageName}.TestRuleSource")
 
             plugins.withType(pluginClass) {
                 operations << 'withType'
@@ -112,18 +110,11 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
                 operations << 'withId'
             }
 
-            pluginManager.withPlugin("test-rule-source") {
-                // assert we are using our closure decoration and not closure coercion
-                assert delegate instanceof $AppliedPlugin.name
-                operations << 'withPlugin'
-            }
-
             operations << "applying"
             apply plugin: pluginClass
-            apply type: ruleSourceClass
             operations << "applied"
 
-            task verify { doLast { assert operations == ['applying', 'withType', 'withId', 'withPlugin', 'applied'] } }
+            task verify { doLast { assert operations == ['applying', 'withType', 'withId', 'applied'] } }
         """
 
         expect:
@@ -138,73 +129,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             apply plugin: "java"
-        """
-
-        then:
-        succeeds "help"
-    }
-
-    def "plugin manager with id is fired after the plugin is applied for hybrid plugins"() {
-        when:
-        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
-            import org.gradle.api.Plugin
-            import org.gradle.api.Task
-            import org.gradle.model.*
-
-            class MyPlugin implements Plugin {
-                void apply(project) {
-                  project.tasks.create("imperative-sentinel")
-                }
-
-                static class Rules extends RuleSource {
-                    @Model String thing() {
-                        "foo"
-                    }
-                }
-            }
-        """
-
-        file("buildSrc/src/main/resources/META-INF/gradle-plugins/my.properties") << "implementation-class=MyPlugin"
-
-        buildFile """
-            import org.gradle.model.internal.core.ModelPath
-
-            pluginManager.withPlugin("my") {
-              assert tasks."imperative-sentinel"
-              // note: modelRegistry property is internal on project
-              assert modelRegistry.node(ModelPath.path("thing")) != null
-            }
-
-            pluginManager.apply(MyPlugin)
-        """
-
-        then:
-        succeeds "help"
-    }
-
-    def "plugin manager with id is fired after the plugin is applied for rule plugins"() {
-        when:
-        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
-            import org.gradle.model.*
-
-            class Rules extends RuleSource {
-                @Model String thing() {
-                    "foo"
-                }
-            }
-        """
-
-        file("buildSrc/src/main/resources/META-INF/gradle-plugins/my.properties") << "implementation-class=Rules"
-
-        buildFile """
-            import org.gradle.model.internal.core.ModelPath
-
-            pluginManager.withPlugin("my") {
-              // note: modelRegistry property is internal on project
-              assert modelRegistry.node(ModelPath.path("thing")) != null
-            }
-
-            pluginManager.apply("my")
         """
 
         then:

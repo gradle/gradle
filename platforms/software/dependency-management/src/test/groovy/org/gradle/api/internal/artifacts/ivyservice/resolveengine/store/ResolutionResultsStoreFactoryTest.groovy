@@ -88,12 +88,8 @@ class ResolutionResultsStoreFactoryTest extends Specification {
         def set2 = f.createStoreSet()
 
         expect:
-        set1.oldModelCache().load(() -> "1") == "1"
-        set1.oldModelCache().load(() -> "2") == "1"
-        set2.oldModelCache().load(() -> "3") == "3"
-
-        set1.newModelCache().load(() -> "1") == "1"
-        set1.newModelCache().load(() -> "2") == "1"
-        set2.newModelCache().load(() -> "3") == "3"
+        set1.graphStructureCache().load(() -> "1") == "1"
+        set1.graphStructureCache().load(() -> "2") == "1"
+        set2.graphStructureCache().load(() -> "3") == "3"
     }
 }

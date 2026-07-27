@@ -19,7 +19,7 @@ package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
@@ -203,7 +203,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13770")
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "missing credentials error messages can be assembled in parallel execution (#credentialsType)"() {
         def buildScript = """
             tasks.register('executionCredentials') {
@@ -240,7 +240,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         'HttpHeaderCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testAuthHeaderName\n  - testAuthHeaderValue"
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "controls configuration cache status")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "controls configuration cache status")
     def "credential values are not cached between executions"() {
         given:
         buildFile << """
@@ -267,7 +267,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Credentials required for this build could not be resolved.")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "controls configuration cache status")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "controls configuration cache status")
     def "credential values are not stored in configuration cache`"() {
         given:
         buildFile << """

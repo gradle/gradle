@@ -20,14 +20,14 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.integtests.WrapperChecksumVerificationTest.getDistributionHash
 
 @Issue('https://github.com/gradle/gradle-private/issues/1537')
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
 
     private static final String GRADLE_BIN_ZIP = "/gradle-bin.zip"

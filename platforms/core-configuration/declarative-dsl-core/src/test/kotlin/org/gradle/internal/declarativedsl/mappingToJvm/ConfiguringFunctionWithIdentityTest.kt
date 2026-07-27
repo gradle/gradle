@@ -46,7 +46,7 @@ class ConfiguringFunctionWithIdentityTest {
     }
 
     private fun objectFrom(resolution: ResolutionResult) =
-        runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+        runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
     val schema = schemaFromTypes(
         TopLevel::class,

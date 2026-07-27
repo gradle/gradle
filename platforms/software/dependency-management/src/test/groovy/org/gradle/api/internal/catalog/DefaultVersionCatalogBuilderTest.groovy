@@ -17,14 +17,14 @@
 package org.gradle.api.internal.catalog
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.logging.StandardOutputListener
+import org.gradle.api.problems.Severity
 import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 
-class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implements VersionCatalogErrorMessages {
+class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
 
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
@@ -34,13 +34,19 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
         builder.library("foo", notation)
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify(ex.message, invalidDependencyNotation {
-            inCatalog('libs')
-            usingSettingsApi()
-            invalidNotation(notation)
-            alias('foo')
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Invalid dependency notation'
+            it.definition.severity == Severity.ERROR
+            it.contextualLabel == "In version catalog libs, on alias 'foo' notation '' is not a valid dependency notation"
+            it.details == "The 'to(String)' method only supports 'group:artifact:version' coordinates"
+            it.solutions == [
+                "Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2",
+                "Use the to(group, name) method instead"
+            ]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_dependency_notation')
         })
+
         where:
         notation << ["", "a", "a:", "a:b", ":b", "a:b:", ":::", "a:b:c:d"]
     }
@@ -53,10 +59,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
         builder.library(notation, "org:foo:1.0")
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify(ex.message, invalidAliasNotation {
-            inCatalog('libs')
-            invalidNotation(notation)
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Invalid alias notation'
+            it.definition.severity == Severity.ERROR
+            it.contextualLabel == "In version catalog libs, invalid library alias '${notation}'"
+            it.details == "Library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
+            it.solutions == ["Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_alias_notation')
         })
 
         where:
@@ -71,11 +81,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
         builder.library(name, "org:foo:1.0")
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify(ex.message, reservedAlias {
-            inCatalog('libs')
-            alias(name).shouldNotBeEqualTo(prefix)
-            reservedAliasPrefix('bundles', 'plugins', 'versions')
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Reserved alias name'
+            it.definition.severity == Severity.ERROR
+            it.contextualLabel == "In version catalog libs, alias '${name}' is a reserved alias"
+            it.details == "Prefix for dependency shouldn't be equal to '${prefix}'"
+            it.solutions == ["Use a different alias which prefix is not equal to 'bundles', 'plugins', or 'versions'"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#reserved_alias_name')
         })
 
         where:
@@ -148,11 +161,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
         builder.bundle(notation, [])
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify(ex.message, invalidAliasNotation {
-            inCatalog('libs')
-            kind('bundle')
-            invalidNotation(notation)
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Invalid alias notation'
+            it.definition.severity == Severity.ERROR
+            it.contextualLabel == "In version catalog libs, invalid bundle alias '${notation}'"
+            it.details == "Bundle aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
+            it.solutions == ["Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_alias_notation')
         })
 
         where:
@@ -210,11 +226,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
         builder.build()
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify(ex.message, undefinedAliasRef {
-            inCatalog('libs')
-            aliasRef('foo')
-            bundle('toto')
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Bundle declares dependency on non-existent alias'
+            it.definition.severity == Severity.ERROR
+            it.contextualLabel == "In version catalog libs, a bundle with name 'toto' declares a dependency on 'foo' which doesn't exist"
+            it.details == "Bundles can only contain references to existing library aliases."
+            it.solutions == ["Make sure that the library alias 'foo' is declared", "Remove 'foo' from bundle 'toto'."]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#undefined_alias_reference')
         })
     }
 
@@ -371,12 +390,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
         builder.build()
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify(ex.message, undefinedVersionRef {
-            inCatalog('libs')
-            forDependency('org', 'foo')
-            versionRef('nope')
-            existing('v1', 'v2')
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Undefined version reference'
+            it.definition.severity == Severity.ERROR
+            it.contextualLabel == "In version catalog libs, version reference 'nope' doesn't exist"
+            it.details == "Dependency 'org:foo' references version 'nope' which doesn't exist"
+            it.solutions == ["Declare 'nope' in the catalog", "Use one of the following existing versions: 'v1' or 'v2'"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#undefined_version_reference')
         })
     }
 

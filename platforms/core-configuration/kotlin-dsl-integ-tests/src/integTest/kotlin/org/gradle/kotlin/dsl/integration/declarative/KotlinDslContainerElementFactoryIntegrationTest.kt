@@ -23,6 +23,8 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.internal.reflect.Instantiator
@@ -113,25 +115,28 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractDeclarativeKotli
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
                 import org.gradle.features.dsl.bindProjectType
+                import ${ProjectTypeApplyAction::class.java.name}
+                import ${ProjectFeatureApplicationContext::class.java.name}
 
                 @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
                     class Binding : ${ProjectTypeBinding::class.java.simpleName} {
                         override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
-                            builder.bindProjectType("mySoftwareType") { definition: MyExtension, model ->
-                                val services = objectFactory.newInstance(Services::class.java)
-                                services.taskRegistrar.register("printNames") {
-                                    val names = definition.myElements.names + definition.myElementsConcreteContainer.names
-                                    doFirst {
-                                        println(names)
-                                    }
-                                }
-                            }.withUnsafeDefinition()
+                            builder.bindProjectType("mySoftwareType", ApplyAction::class).withUnsafeDefinition()
                         }
+                    }
 
-                        interface Services {
-                            @get:Inject
-                            val taskRegistrar: ${TaskRegistrar::class.java.name}
+                    abstract class ApplyAction @Inject constructor() : ${ProjectTypeApplyAction::class.java.simpleName}<MyExtension, Model> {
+                        @get:Inject
+                        abstract val taskRegistrar: ${TaskRegistrar::class.java.name}
+
+                        override fun apply(context: ${ProjectFeatureApplicationContext::class.java.simpleName}, definition: MyExtension, buildModel: Model) {
+                            taskRegistrar.register("printNames") {
+                                val names = definition.myElements.names + definition.myElementsConcreteContainer.names
+                                doFirst {
+                                    println(names)
+                                }
+                            }
                         }
                     }
 

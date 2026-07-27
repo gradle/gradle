@@ -25,7 +25,8 @@ import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.TestUtil
 import org.junit.Rule
 
@@ -38,6 +39,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
     def factory = DefaultExecActionFactory.of(
         resolver,
         fileCollectionFactory,
+        TestFiles.filePropertyFactory(tmpDir.testDirectory),
         instantiator.decorateLenient(),
         executorFactory,
         TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")),
@@ -47,7 +49,16 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
 
     def javaexec() {
         File testFile = tmpDir.file("someFile")
-        List files = ClasspathUtil.getClasspath(getClass().classLoader).asFiles
+        // Only put on the classpath what SomeMain actually needs to run: its own compiled
+        // classes, commons-io (FileUtils.touch), and the Groovy runtime (SomeMain is a Groovy
+        // class and dispatches the FileUtils call through Groovy's call site machinery).
+        // Passing the entire test classloader classpath (hundreds of jars) overflows the
+        // Windows command-line length limit and fails with CreateProcess error=206.
+        List files = [
+            ClasspathUtil.getClasspathForClass(SomeMain),
+            ClasspathUtil.getClasspathForClass(FileUtils),
+            ClasspathUtil.getClasspathForClass(GroovyObject)
+        ]
 
         when:
         ExecResult result = factory.javaexec { spec ->
@@ -82,7 +93,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         result.exitValue != 0
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def exec() {
         File testFile = tmpDir.file("someFile")
 
@@ -98,7 +109,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         result.exitValue == 0
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def execWithNonZeroExitValueShouldThrowException() {
         when:
         factory.exec { spec ->
@@ -111,7 +122,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         thrown(ProcessExecutionException)
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def execWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
         when:
         ExecResult result = factory.exec { spec ->

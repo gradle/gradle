@@ -21,8 +21,10 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Issue
 
 class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
@@ -59,7 +61,7 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         assertGeneratedWindowsStartScript()
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "can generate start scripts with module path"() {
         given:
         configureMainModule()
@@ -148,7 +150,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         windowsStartScript.text == 'myApp start up script for Windows'
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "can execute generated Unix start script"() {
         when:
         succeeds('installDist')
@@ -163,7 +165,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         outputContains('Hello World!')
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "can execute generated Unix start script using JAVA_HOME with spaces"() {
         given:
         def testJavaHome = file("javahome/java home with spaces")
@@ -185,7 +187,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         testJavaHome.usingNativeTools().deleteDir() //remove symlink
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "java PID equals script PID"() {
         given:
         succeeds('installDist')
@@ -205,7 +207,7 @@ $binFile.text
         assert pids[0] == pids[1]
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "can execute generated Windows start script"() {
         when:
         succeeds('installDist')
@@ -220,7 +222,7 @@ $binFile.text
         outputContains('Hello World!')
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "start script does not leak CLASSPATH on Windows"() {
         given:
         generateMainClass("""
@@ -537,7 +539,7 @@ startScripts {
         OperatingSystem.current().isWindows() ? runViaWindowsStartScript(startScriptDir) : runViaUnixStartScript(startScriptDir)
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     // This test already fails silently on Windows, but adding an explicit check for the existence of xargs made it fail explicitly.
     def "can run under posix sh environment"() {
         buildFile << """
@@ -553,7 +555,7 @@ task execStartScript(type: Exec) {
     }
 
     // Paths to cygpath are only available when running under the embedded executor
-    @Requires([UnitTestPreconditions.Windows, IntegTestPreconditions.IsEmbeddedExecutor])
+    @Requires([OsTestPreconditions.Windows, TestExecutionPreconditions.IsEmbeddedExecutor])
     def "can pass absolute Unix-like paths to script on Windows"() {
         file("run.sh") << '''#!/bin/sh
 # convert paths into absolute Unix-like paths
@@ -684,7 +686,7 @@ rootProject.name = 'sample'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4627")
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "distribution not in root directory has correct permissions set"() {
         given:
         buildFile << """
@@ -713,7 +715,7 @@ rootProject.name = 'sample'
         executed(':compileJava', ':processResources', ':classes', ':run')
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "runs the jar for modular applications"() {
         given:
         configureMainModule()
@@ -726,7 +728,7 @@ rootProject.name = 'sample'
     }
 
     @Issue("https://github.com/gradle/gradle-private/issues/3386")
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "does not execute code in user-set environment variable"() {
         when:
         succeeds('installDist')
@@ -755,7 +757,7 @@ rootProject.name = 'sample'
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "environment variables can have spaces in their values"() {
         when:
         succeeds('installDist')
@@ -780,7 +782,7 @@ rootProject.name = 'sample'
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "environment variables can have spaces in their values that should be treated as separate tokens"() {
         when:
         succeeds('installDist')
@@ -805,7 +807,7 @@ rootProject.name = 'sample'
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "environment variables that do not have spaces in their values that should be treated as separate tokens"() {
         when:
         succeeds('installDist')
@@ -830,7 +832,7 @@ rootProject.name = 'sample'
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "environment variables that do not have spaces in their values that should be treated as one token"() {
         when:
         succeeds('installDist')

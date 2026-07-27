@@ -22,6 +22,12 @@ import org.gradle.test.precondition.TestPrecondition
 // permitted subtypes to use the parent type's methods without importing them
 import static org.gradle.test.precondition.TestPrecondition.satisfied;
 
+/**
+ * Preconditions for shell availability.
+ * Checks whether specific Unix shells (bash, dash, static-sh, shellcheck) are installed.
+ *
+ * @see org.gradle.test.precondition
+ */
 class PluginTestPreconditions {
     static File locate(String shellCommand) {
         return [
@@ -35,28 +41,28 @@ class PluginTestPreconditions {
     static class BashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return satisfied(UnitTestPreconditions.Unix) && locate("bash") != null
+            return satisfied(OsTestPreconditions.Unix) && locate("bash") != null
         }
     }
 
     static class DashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return satisfied(UnitTestPreconditions.Unix) && locate("dash") != null
+            return satisfied(OsTestPreconditions.Unix) && locate("dash") != null
         }
     }
 
     static class StaticShAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return satisfied(UnitTestPreconditions.Unix) && locate("static-sh") != null
+            return satisfied(OsTestPreconditions.Unix) && locate("static-sh") != null
         }
     }
 
     static class ShellcheckAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return satisfied(UnitTestPreconditions.Unix) && locate("shellcheck") != null
+            return satisfied(OsTestPreconditions.Unix) && locate("shellcheck") != null
         }
     }
 }

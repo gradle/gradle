@@ -18,9 +18,9 @@ package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
 class AntlrProjectFeaturePluginIntegrationTest extends AbstractIntegrationSpec {
     def "can apply the AntlrProjectFeaturePlugin"() {
         given:

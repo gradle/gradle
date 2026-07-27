@@ -17,16 +17,14 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
@@ -42,7 +40,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
         // The test applies the in-development version of the kotlin-dsl
         // which, by convention, it is always ahead of the version expected by
         // the in-development version of Gradle
-        // (see publishedKotlinDslPluginsVersion in the project's build logic)
+        // (see publishedKotlinDslPluginVersion in the project's build logic)
         withKotlinDslPlugin()
 
         withDefaultSettings().appendText(
@@ -83,7 +81,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution"
     )
     fun `gradle kotlin dsl api is available for test implementation`() {
@@ -144,7 +142,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         build("test")
 
-        val results = GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/test", GenericTestExecutionResult.TestFramework.JUNIT4)
+        val results = GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/test")
         results.testPath("MyTest", "my test").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(containsString("Plugin Using Embedded Kotlin "))
@@ -152,7 +150,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "requires a full distribution to run tests with test kit"
     )
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
@@ -252,7 +250,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         build("test")
 
-        val results = GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/test", GenericTestExecutionResult.TestFramework.JUNIT4)
+        val results = GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/test")
         results.testPath("MyTest", "my test").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(containsString("Plugin Using Embedded Kotlin "))

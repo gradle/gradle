@@ -1,0 +1,12 @@
+plugins {
+    id('groovy-gradle-plugin')
+}
+
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation('com.gradle:develocity-gradle-plugin:4.1')
+}

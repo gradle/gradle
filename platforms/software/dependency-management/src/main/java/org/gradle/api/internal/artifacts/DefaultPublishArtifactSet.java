@@ -32,6 +32,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@SuppressWarnings("this-escape")
 public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
     private final TaskDependencyInternal builtBy;
     private final FileCollection files;

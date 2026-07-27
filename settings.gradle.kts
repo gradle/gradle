@@ -51,12 +51,12 @@ val core = platform("core") {
         subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
+        subproject("classpath")
         subproject("classloaders")
         subproject("cli")
         subproject("client-services")
         subproject("collections")
         subproject("concurrent")
-        subproject("daemon-main")
         subproject("daemon-messaging")
         subproject("daemon-protocol")
         subproject("daemon-services")
@@ -86,6 +86,7 @@ val core = platform("core") {
         subproject("process-services")
         subproject("process-services-base")
         subproject("process-services-api")
+        subproject("reflection-services")
         subproject("report-rendering")
         subproject("serialization")
         subproject("service-lookup")
@@ -119,6 +120,7 @@ val core = platform("core") {
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
         subproject("dependency-management-serialization-codecs")
+        subproject("domain-object-collections")
         subproject("encryption-services")
         subproject("file-collections")
         subproject("file-operations")
@@ -150,6 +152,7 @@ val core = platform("core") {
     module("core-execution") {
         subproject("build-cache")
         subproject("build-cache-base")
+        subproject("build-cache-core")
         subproject("build-cache-example-client")
         subproject("build-cache-http")
         subproject("build-cache-local")
@@ -160,12 +163,17 @@ val core = platform("core") {
         subproject("execution-e2e-tests")
         subproject("file-watching")
         subproject("hashing")
+        subproject("hashing-services")
+        subproject("normalization")
+        subproject("normalization-api")
+        subproject("normalization-java")
         subproject("persistent-cache")
-        subproject("worker-process-services")
         subproject("request-handler-worker")
         subproject("scoped-persistent-cache")
         subproject("snapshots")
         subproject("worker-main")
+        subproject("worker-process-services")
+        subproject("worker-shared")
         subproject("workers")
     }
 }
@@ -187,6 +195,7 @@ module("ide") {
     subproject("ide-plugins")
     subproject("problems")
     subproject("problems-api")
+    subproject("problems-impl")
     subproject("problems-rendering")
     subproject("tooling-api")
     subproject("tooling-api-builders")
@@ -209,6 +218,7 @@ val software = platform("software") {
     subproject("dependency-management")
     subproject("plugins-distribution")
     subproject("distributions-publishing")
+    subproject("isolated-ant-builder")
     subproject("ivy")
     subproject("maven")
     subproject("platform-base")
@@ -251,7 +261,6 @@ val jvm = platform("jvm") {
     subproject("language-groovy")
     subproject("language-java")
     subproject("language-jvm")
-    subproject("normalization-java")
     subproject("platform-jvm")
     subproject("plugins-application")
     subproject("plugins-groovy")
@@ -291,6 +300,7 @@ platform("native") {
     subproject("tooling-native")
     subproject("tooling-native-model-impls")
     subproject("testing-native")
+    subproject("plugins-model-native")
 }
 
 
@@ -317,7 +327,6 @@ testing {
     subproject("distributions-core")
     subproject("distributions-integ-tests")
     subproject("integ-test")
-    subproject("internal-architecture-testing")
     subproject("internal-distribution-testing")
     subproject("internal-integ-testing")
     subproject("internal-performance-testing")
@@ -335,17 +344,5 @@ rootProject.name = "gradle"
 FeaturePreviews.Feature.entries.forEach { feature ->
     if (feature.isActive) {
         enableFeaturePreview(feature.name)
-    }
-}
-
-fun getBuildJavaHome() = System.getProperty("java.home")
-
-gradle.settingsEvaluated {
-    if ("true" == System.getProperty("org.gradle.ignoreBuildJavaVersionCheck")) {
-        return@settingsEvaluated
-    }
-
-    if (JavaVersion.current() != JavaVersion.VERSION_17) {
-        throw GradleException("This build requires JDK 17. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }

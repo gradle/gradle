@@ -6,11 +6,14 @@ description = "Version control integration (with git) for source dependencies"
 
 dependencies {
     api(projects.baseServices)
+    api(projects.buildProcessServices)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileWatching)
+    api(projects.persistentCache)
     api(projects.scopedPersistentCache)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
@@ -23,7 +26,6 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
-    implementation(projects.persistentCache)
     implementation(projects.serialization)
     implementation(projects.startParameter)
 
@@ -59,6 +61,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

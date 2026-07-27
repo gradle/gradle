@@ -459,7 +459,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
-                edge("project :api", "org.utils:api:1.5") {
+                edge("project ':api'", "org.utils:api:1.5") {
                     selectedByRule()
                 }
             }
@@ -749,7 +749,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
                 module("org.utils:api:2.0")
-                edge("project :api", "org.utils:api:2.0").byConflictResolution("between versions 2.0 and 1.6").selectedByRule()
+                edge("project ':api'", "org.utils:api:2.0").byConflictResolution("between versions 2.0 and 1.6").selectedByRule()
             }
         }
     }
@@ -1681,7 +1681,7 @@ Required by:
         fails(":checkDeps")
 
         then:
-        failure.assertHasCause("Could not find libC.type (project :libC)")
+        failure.assertHasCause("Could not find libC.type (project ':libC')")
 
         when:
         succeeds(":checkDeps", "-DwithoutArtifacts=true")

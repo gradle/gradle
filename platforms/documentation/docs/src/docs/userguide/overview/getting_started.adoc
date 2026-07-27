@@ -15,6 +15,7 @@
 [[introduction]]
 = Getting Started
 
+[[gradle_for_software_engineers]]
 == Gradle for Software Engineers
 
 Everyone has to start somewhere, and if you're new to Gradle, this is where to begin.
@@ -62,6 +63,7 @@ The tutorial covers:
 <<part5_gradle_inc_builds.adoc#part5_begin,Part 5.>> Exploring Incremental Builds +
 <<part6_gradle_caching.adoc#part6_begin,Part 6.>> Enabling the Cache
 
+[[gradle_for_build_engineers]]
 == Gradle for Build Engineers
 
 Build engineers that are ready to configure and organize custom build logic should start here.
@@ -105,6 +107,7 @@ The tutorial covers:
 <<part6_writing_tasks.adoc#part6_begin,Part 6.>> Writing Tasks +
 <<part7_writing_plugins.adoc#part7_begin,Part 7.>> Writing Plugins
 
+[[gradle_for_plugin_developers]]
 == Gradle for Plugin Developers
 
 Plugin authors that are ready to write their own plugins and publish it should start here.

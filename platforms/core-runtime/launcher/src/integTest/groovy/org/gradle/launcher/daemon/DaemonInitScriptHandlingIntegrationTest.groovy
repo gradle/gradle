@@ -24,7 +24,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 /**
@@ -33,7 +33,7 @@ import spock.lang.Issue
 @Issue("https://issues.gradle.org/browse/GRADLE-2408")
 @LeaksFileHandles("isolated daemons are not always stopped in time")
 //may fail with 'Unable to delete file: daemon.out.log'
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "tests a real Gradle distribution")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "tests a real Gradle distribution")
 class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
 
     def "init scripts from client distribution are used, not the one the daemon was started with"() {

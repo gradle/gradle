@@ -17,8 +17,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.GroovyBasePlugin;
@@ -34,7 +33,6 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
-import java.io.File;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -45,7 +43,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
-    public static final String DEFAULT_CODENARC_VERSION = "3.6.0-groovy-4.0";
+    public static final String DEFAULT_CODENARC_VERSION = "3.7.0-groovy-4.0";
     private static final String DEFAULT_CONFIG_FILE_PATH = "config/codenarc/codenarc.xml";
 
     private CodeNarcExtension extension;
@@ -116,16 +114,15 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     }
 
     private void configureReportsConventionMapping(CodeNarc task, final String baseName) {
-        ProjectLayout layout = project.getLayout();
         ProviderFactory providers = project.getProviders();
         Provider<String> reportFormat = providers.provider(() -> extension.getReportFormat());
-        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        Provider<Directory> reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
             report.getRequired().convention(providers.provider(() -> report.getName().equals(reportFormat.get())));
-            report.getOutputLocation().convention(layout.getProjectDirectory().file(providers.provider(() -> {
+            report.getOutputLocation().convention(reportsDir.map(dir -> {
                 String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
-                return new File(reportsDir.get().getAsFile(), baseName + "." + fileSuffix).getAbsolutePath();
-            })));
+                return dir.file(baseName + "." + fileSuffix);
+            }));
         }));
     }
 

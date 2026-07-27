@@ -17,12 +17,12 @@
 package org.gradle.integtests
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import java.util.function.Consumer
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def 'uses gradle user home set by -Dgradle.user.home'() {

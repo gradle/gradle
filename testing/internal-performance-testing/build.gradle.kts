@@ -13,8 +13,8 @@ sourceSets {
     }
 }
 
-val reports by configurations.creating
-val flamegraph by configurations.creating
+val reports = configurations.create("reports")
+val flamegraph = configurations.create("flamegraph")
 configurations.compileOnly { extendsFrom(flamegraph) }
 
 repositories {
@@ -42,8 +42,6 @@ dependencies {
     api(libs.groovy)
     api(libs.jacksonAnnotations)
     api(libs.jatl)
-    api(testLibs.jettyServer)
-    api(testLibs.jettyWebApp)
     api(libs.jspecify)
     api(testLibs.junit)
     api(testLibs.spock)
@@ -52,7 +50,9 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.core)
     implementation(projects.internalIntegTesting)
+    implementation(projects.languageNative)
     implementation(projects.projectFeaturesApi)
+    implementation(testFixtures(projects.platformNative))
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -62,15 +62,15 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(testLibs.commonsMath)
     implementation(testLibs.hikariCP)
-    implementation(testLibs.jettyUtil)
     implementation(testLibs.joptSimple)
     implementation(testLibs.junit5JupiterApi)
 
     runtimeOnly(libs.jclToSlf4j)
-    runtimeOnly(testLibs.jetty)
     runtimeOnly(testLibs.mySqlConnector)
 
-    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("Generated Java test projects apply java/eclipse/idea, which require the full distribution to run.")
+    }
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {
@@ -89,6 +89,4 @@ tasks.jar {
 
     from(files(provider{ flamegraph.map { zipTree(it) } }))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

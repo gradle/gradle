@@ -50,13 +50,16 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         fails 'myTask'
-        result.assertHasErrorOutput("A problem was found with the configuration of task ':myTask' (type 'MyTask').")
-        result.assertHasErrorOutput("- Type 'MyTask' property '$elementName' has @Input annotation used on property of type '$elementType'.")
-        result.assertHasErrorOutput("Reason: A property of type '$elementType' annotated with @Input cannot determine how to interpret the file.")
-        result.assertHasErrorOutput("Possible solutions:")
-        result.assertHasErrorOutput("1. Annotate with @InputFile for regular files.")
-        result.assertHasErrorOutput("2. Annotate with @InputFiles for collections of files.")
-        result.assertHasErrorOutput(". If you want to track the path, return File.absolutePath as a String and keep @Input.")
+        failure.assertHasErrorOutput("""* What went wrong:
+A problem was found with the configuration of task ':myTask' (type 'MyTask').
+Incorrect use of @Input annotation
+  Type 'MyTask' property '$elementName' has @Input annotation used on property of type '$elementType'
+    A property of type '$elementType' annotated with @Input cannot determine how to interpret the file
+    For more information, please refer to https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incorrect_use_of_input_annotation in the Gradle documentation.
+    Possible solutions:
+      1. Annotate with @InputFile for regular files.
+      2. Annotate with @InputFiles for collections of files.
+      3. If you want to track the path, return File.absolutePath as a String and keep @Input.""")
         result.assertTasksNotScheduled('myTask')
 
         where:
@@ -92,10 +95,13 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         fails 'myTask'
-        result.assertHasErrorOutput("A problem was found with the configuration of task ':myTask' (type 'MyTask').")
-        result.assertHasErrorOutput("- Type 'MyTask' property '$elementName' has @Input annotation used on property of type '$elementType'.")
-        result.assertHasErrorOutput("Reason: A property of type '$elementType' annotated with @Input cannot determine how to interpret the file.")
-        result.assertHasErrorOutput("Possible solution: Annotate with @InputDirectory for directories.")
+        failure.assertHasErrorOutput("""* What went wrong:
+A problem was found with the configuration of task ':myTask' (type 'MyTask').
+Incorrect use of @Input annotation
+  Type 'MyTask' property '$elementName' has @Input annotation used on property of type '$elementType'
+    A property of type '$elementType' annotated with @Input cannot determine how to interpret the file
+    For more information, please refer to https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incorrect_use_of_input_annotation in the Gradle documentation.
+    Possible solution: Annotate with @InputDirectory for directories.""")
         result.assertTasksNotScheduled('myTask')
 
         where:

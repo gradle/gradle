@@ -36,15 +36,11 @@ import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioSolutionInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary;
-import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
-import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
-import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
 import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
@@ -104,9 +100,6 @@ public abstract class VisualStudioPlugin extends IdePlugin {
 
         // Current Model
         applyVisualStudioCurrentModelRules(extension);
-
-        // SoftwareModel
-        applyVisualStudioSoftwareModelRules();
     }
 
     private void applyVisualStudioCurrentModelRules(final VisualStudioExtensionInternal extension) {
@@ -137,16 +130,6 @@ public abstract class VisualStudioPlugin extends IdePlugin {
                 });
             });
         });
-    }
-
-    private void applyVisualStudioSoftwareModelRules() {
-        project.getPluginManager().apply(VisualStudioExtensionRules.class);
-
-        if (isRoot()) {
-            project.getPluginManager().apply(VisualStudioPluginRootRules.class);
-        }
-
-        project.getPlugins().withType(ComponentModelBasePlugin.class).all(it -> project.getPluginManager().apply(VisualStudioPluginProjectRules.class));
     }
 
     private void includeBuildFileInProject(VisualStudioExtensionInternal extension) {

@@ -116,8 +116,8 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
         failureDescriptionStartsWith('Configuration cache state could not be cached: ' +
             'field `value` of `org.gradle.internal.Try$Success` bean found in ' +
             'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` bean found in ' +
-            'field `obtainedValue` of `org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint$ValueSource` bean found in ' +
-            "Gradle runtime: The value cannot be decoded properly with 'JavaObjectSerializationCodec'. " +
+            'class `MyValueSource`' +
+            ": The value cannot be decoded properly with 'JavaObjectSerializationCodec'. " +
             "It may have been written incorrectly or its data is corrupted.")
         failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
 

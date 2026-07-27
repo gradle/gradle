@@ -18,10 +18,10 @@ package org.gradle.integtests
 
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperSystemPropertyPrecedenceIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/36189')

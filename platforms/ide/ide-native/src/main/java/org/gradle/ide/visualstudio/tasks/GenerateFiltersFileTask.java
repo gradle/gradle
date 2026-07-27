@@ -44,6 +44,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 /**
  * Task for generating a Visual Studio filters file (e.g. {@code foo.vcxproj.filters}).
  */
+@SuppressWarnings("this-escape")
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> {
@@ -51,6 +52,7 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
     private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getFiltersFile().getLocation()));
     private final Cached<FiltersSpec> spec = Cached.of(this::calculateSpec);
 
+    @SuppressWarnings("this-escape")
     @Inject
     public GenerateFiltersFileTask(DefaultVisualStudioProject visualStudioProject) {
         setVisualStudioProject(visualStudioProject);

@@ -8,7 +8,10 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.fileCollections)
+    api(projects.logging)
+    api(projects.problemsApi)
     api(projects.publish)
     api(projects.stdlibJavaExtensions)
 
@@ -45,8 +48,6 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.core))
 
     testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(testLibs.jetty)
-    testFixturesImplementation(testLibs.jettyWebApp)
 }
 
 gradleModule {
@@ -63,13 +64,7 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/plugins/signing/**")
-}
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
 
 tasks.withType<Test>().configureEach {
     // increase the amount of memory available as the sample key from https://www.rfc-editor.org/rfc/rfc9580.html#name-sample-locked-version-6-sec

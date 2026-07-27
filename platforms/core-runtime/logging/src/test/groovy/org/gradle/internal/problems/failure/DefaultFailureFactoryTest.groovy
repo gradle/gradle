@@ -20,6 +20,8 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.failure.SimulatedJavaException
 import spock.lang.Specification
 
+import java.lang.reflect.InvocationTargetException
+
 class DefaultFailureFactoryTest extends Specification {
 
     def "creates failure from a throwable with circular references"() {
@@ -60,6 +62,56 @@ class DefaultFailureFactoryTest extends Specification {
 
         secondCause.header == "java.lang.RuntimeException: Simulated exception"
         secondCause.causes.empty
+    }
+
+    def "unwraps InvocationTargetException when it appears as a cause"() {
+        def factory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE)
+        def real = new IllegalStateException("real failure")
+        def outer = new RuntimeException("outer", new InvocationTargetException(real))
+
+        when:
+        def failure = factory.create(outer)
+
+        then:
+        failure.exceptionType == RuntimeException
+        failure.causes.size() == 1
+        failure.causes[0].original.is(real)
+        failure.causes[0].causes.empty
+    }
+
+    def "unwraps InvocationTargetException when it is the top-level throwable"() {
+        def factory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE)
+        def real = new IllegalStateException("real failure")
+
+        when:
+        def failure = factory.create(new InvocationTargetException(real))
+
+        then:
+        failure.original.is(real)
+    }
+
+    def "collapses chained InvocationTargetExceptions"() {
+        def factory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE)
+        def real = new IllegalStateException("real failure")
+        def doubleWrapped = new InvocationTargetException(new InvocationTargetException(real))
+
+        when:
+        def failure = factory.create(doubleWrapped)
+
+        then:
+        failure.original.is(real)
+    }
+
+    def "keeps InvocationTargetException with no target as-is"() {
+        def factory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE)
+        def ite = new InvocationTargetException(null)
+
+        when:
+        def failure = factory.create(ite)
+
+        then:
+        failure.exceptionType == InvocationTargetException
+        failure.causes.empty
     }
 
 }

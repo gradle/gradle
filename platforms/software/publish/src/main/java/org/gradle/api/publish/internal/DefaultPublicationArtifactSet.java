@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@SuppressWarnings("this-escape")
 public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extends DefaultDomainObjectSet<T> implements PublicationArtifactSet<T> {
 
     private final String name;

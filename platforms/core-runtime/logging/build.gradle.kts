@@ -61,6 +61,9 @@ dependencies {
     testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.daemonServices)
 }
 
 gradleModule {
@@ -70,12 +73,4 @@ gradleModule {
         daemon = true
         worker = true
     }
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/internal/featurelifecycle/**")
-    excludePatterns.add("org/gradle/util/**")
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

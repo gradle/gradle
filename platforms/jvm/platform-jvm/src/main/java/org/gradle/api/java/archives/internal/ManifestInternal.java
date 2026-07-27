@@ -39,8 +39,20 @@ public interface ManifestInternal extends Manifest {
 
     /**
      * Returns the character set used to decode the manifest content, if known.
+     *
+     * @since 9.5.0
      */
-    @Nullable Provider<String> getContentCharset();
+    @Nullable Provider<String> getContentCharsetProvider();
+
+    /**
+     * Returns the character set used to decode the manifest content, if known.
+     *
+     * This method is deprecated and will be removed in Gradle 10.0.0. Use {@link #getContentCharsetProvider()} instead.
+     */
+    @Deprecated
+    @Nullable default String getContentCharset() {
+        return getContentCharsetProvider().get();
+    }
 
     /**
      * Writes the manifest into a stream.

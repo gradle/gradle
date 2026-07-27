@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
@@ -23,6 +24,7 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
 
     def setup() {
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
     }
 
     def "fails when @IgnoreEmptyDirectories is applied to an #nonDirectoryInput.annotation annotation"() {
@@ -40,14 +42,12 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         fails("taskWithInputs")
 
         then:
-        failureDescriptionContains(
-            incompatibleAnnotations {
-                type('TaskWithInputs').property('input')
-                annotatedWith('IgnoreEmptyDirectories')
-                incompatibleWith(nonDirectoryInput.annotation - '@')
-                includeLink()
-            }
-        )
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:incompatible-annotations'
+            definition.id.displayName == 'Incompatible annotations'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incompatible_annotations"
+        }
 
         where:
         nonDirectoryInput << NonDirectoryInput.values()
@@ -68,14 +68,12 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         fails("taskWithOutputs")
 
         then:
-        failureDescriptionContains(
-            incompatibleAnnotations {
-                type('TaskWithOutputs').property('output')
-                annotatedWith('IgnoreEmptyDirectories')
-                incompatibleWith(output.annotation - '@')
-                includeLink()
-            }
-        )
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:incompatible-annotations'
+            definition.id.displayName == 'Incompatible annotations'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incompatible_annotations"
+        }
 
         where:
         output << Output.values()

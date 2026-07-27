@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntStack;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
@@ -32,12 +32,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -55,10 +57,8 @@ import org.gradle.internal.model.ValueCalculator;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -101,7 +101,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private final ResolutionHost resolutionHost;
     private final ConfigurationIdentity configurationIdentity;
     private final ImmutableAttributes requestAttributes;
-    private final ResolutionStrategy.SortOrder artifactDependencySortOrder;
 
     private final VisitedGraphResults initialVisitedGraph;
     private final VisitedArtifactSet initialVisitedArtifacts;
@@ -121,14 +120,13 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
      * with dependencies, as the incomplete graph used to initially determine upstream transforms does
      * not represent the final dependency graph.
      * <p>
-     * See {@link org.gradle.integtests.resolve.transform.ArtifactTransformWithDependenciesParallelIntegrationTest}
-     * for the test that exercises the scenario that necessitates this behavior.
+     * See {@code ArtifactTransformWithDependenciesParallelIntegrationTest} in {@code :dependency-management}'s
+     * integration tests for the test that exercises the scenario that necessitates this behavior.
      */
     public DefaultTransformUpstreamDependenciesResolver(
         ResolutionHost resolutionHost,
         @Nullable ConfigurationIdentity configurationIdentity,
         ImmutableAttributes requestAttributes,
-        ResolutionStrategy.SortOrder artifactDependencySortOrder,
 
         VisitedGraphResults partialVisitedGraph,
         VisitedArtifactSet partialVisitedArtifacts,
@@ -143,7 +141,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.resolutionHost = resolutionHost;
         this.configurationIdentity = configurationIdentity;
         this.requestAttributes = requestAttributes;
-        this.artifactDependencySortOrder = artifactDependencySortOrder;
 
         this.initialVisitedArtifacts = partialVisitedArtifacts;
         this.initialVisitedGraph = partialVisitedGraph;
@@ -171,7 +168,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         ResolutionHost resolutionHost,
         @Nullable ConfigurationIdentity configurationIdentity,
         ImmutableAttributes requestAttributes,
-        ResolutionStrategy.SortOrder artifactDependencySortOrder,
 
         VisitedGraphResults visitedGraph,
         VisitedArtifactSet visitedArtifacts,
@@ -185,7 +181,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.resolutionHost = resolutionHost;
         this.configurationIdentity = configurationIdentity;
         this.requestAttributes = requestAttributes;
-        this.artifactDependencySortOrder = artifactDependencySortOrder;
 
         this.initialVisitedGraph = visitedGraph;
         this.initialVisitedArtifacts = visitedArtifacts;
@@ -236,67 +231,59 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         ImmutableAttributes fullAttributes = attributesFactory.concat(requestAttributes, fromAttributes);
         return visitedArtifacts.select(new ArtifactSelectionSpec(
-            fullAttributes, filter, false, false, artifactDependencySortOrder
+            fullAttributes, filter, false, false
         ));
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, VisitedGraphResults visitedGraph) {
-        ResolvedComponentResult root = visitedGraph.getResolutionResult().getGraphSource().get().getRootComponent();
-        ResolvedComponentResult targetComponent = findComponent(root, componentId);
+        GraphStructure graph = visitedGraph.getGraphStructureSource().get();
+        GraphStructure.Edges edges = graph.edges();
+        GraphStructure.Components components = graph.components();
+        GraphStructure.Nodes nodes = graph.nodes();
 
-        if (targetComponent == null) {
+        IntSet seen = new IntOpenHashSet();
+        IntStack queue = new IntArrayList();
+
+        // Search through all components to find the target component.
+        int targetComponent = -1;
+        for (int i = 0; i < components.count(); i++) {
+            if (components.id(i).equals(componentId)) {
+                targetComponent = i;
+                break;
+            }
+        }
+
+        if (targetComponent == -1) {
             throw new AssertionError("Could not find component " + componentId + " in provided results.");
         }
 
+        // TODO: This is not quite desired behavior. The purpose of this class is to resolve all
+        //  dependencies of an artifact transform. An artifact transform is derived from the artifacts
+        //  of a _node_ of the graph. We are only given `componentId`, the owning component of the node
+        //  we're interested in. So, we traverse starting from all nodes of that component since we do
+        //  not have enough information to find the node of interest.
+        for (int i = 0; i < nodes.count(); i++) {
+            if (nodes.owner(i) == targetComponent) {
+                queue.push(i);
+                seen.add(i);
+            }
+        }
+
         Set<ComponentIdentifier> buildDependencies = new HashSet<>();
-        collectReachableComponents(buildDependencies, new HashSet<>(), targetComponent.getDependencies());
+        while (!queue.isEmpty()) {
+            int node = queue.popInt();
+            for (int i = edges.start(node); i < edges.end(node); i++) {
+                boolean constraint = edges.constraint(i);
+                int targetNodeIndex = edges.targetNode(i);
+                // Only visit hard, non-failing edges
+                if (!constraint && targetNodeIndex != -1 && seen.add(targetNodeIndex)) {
+                    int owner = nodes.owner(targetNodeIndex);
+                    buildDependencies.add(components.id(owner));
+                    queue.push(targetNodeIndex);
+                }
+            }
+        }
         return buildDependencies;
-    }
-
-    /**
-     * Search the graph for a component with the given identifier, starting from the given root component.
-     *
-     * @return null if the component is not found.
-     */
-    @Nullable
-    public static ResolvedComponentResult findComponent(ResolvedComponentResult rootComponent, ComponentIdentifier componentIdentifier) {
-        Set<ResolvedComponentResult> seen = new HashSet<>();
-        Deque<ResolvedComponentResult> pending = new ArrayDeque<>();
-        pending.push(rootComponent);
-
-        while (!pending.isEmpty()) {
-            ResolvedComponentResult component = pending.pop();
-
-            if (component.getId().equals(componentIdentifier)) {
-                return component;
-            }
-
-            for (DependencyResult d : component.getDependencies()) {
-                if (d instanceof ResolvedDependencyResult) {
-                    ResolvedDependencyResult resolved = (ResolvedDependencyResult) d;
-                    ResolvedComponentResult selected = resolved.getSelected();
-                    if (seen.add(selected)) {
-                        pending.push(selected);
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static void collectReachableComponents(Set<ComponentIdentifier> dependenciesIdentifiers, Set<ComponentIdentifier> visited, Set<? extends DependencyResult> dependencies) {
-        for (DependencyResult dependency : dependencies) {
-            if (dependency instanceof ResolvedDependencyResult && !dependency.isConstraint()) {
-                ResolvedDependencyResult resolvedDependency = (ResolvedDependencyResult) dependency;
-                ResolvedComponentResult selected = resolvedDependency.getSelected();
-                dependenciesIdentifiers.add(selected.getId());
-                if (visited.add(selected.getId())) {
-                    // Do not traverse if seen already
-                    collectReachableComponents(dependenciesIdentifiers, visited, selected.getDependencies());
-                }
-            }
-        }
     }
 
     /**
@@ -346,12 +333,16 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+            return owner.getProjectState() != null;
         }
 
         @Override
-        public ProjectInternal getOwningProject() {
-            return owner.getProject();
+        public @Nullable ProjectInternal getOwningProject() {
+            ProjectState projectState = owner.getProjectState();
+            if (projectState != null) {
+                return projectState.getMutableModel();
+            }
+            return null;
         }
 
         @Nullable

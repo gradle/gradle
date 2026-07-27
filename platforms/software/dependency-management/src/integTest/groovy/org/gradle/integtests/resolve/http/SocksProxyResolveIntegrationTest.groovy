@@ -21,11 +21,11 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.SocksProxyServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Socks proxy for localhost breaks unrelated connections")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Socks proxy for localhost breaks unrelated connections")
 class SocksProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
     SocksProxyServer proxyServer = new SocksProxyServer()

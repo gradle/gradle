@@ -99,19 +99,8 @@ class ResolveTestFixture {
                 def configuration = configurations.${configurationName}
 
                 it.outputFile = file("\${buildDir}/last-graph.txt")
-                it.rootComponent = configuration.incoming.resolutionResult.rootComponent
-                it.files.from(configuration)
 
-                it.incomingFiles = configuration.incoming.files
-                it.incomingArtifacts = configuration.incoming.artifacts
-
-                it.artifactViewFiles = configuration.incoming.artifactView { }.files
-                it.artifactViewArtifacts = configuration.incoming.artifactView { }.artifacts
-
-                it.lenientArtifactViewFiles = configuration.incoming.artifactView { it.lenient = true }.files
-                it.lenientArtifactViewArtifacts = configuration.incoming.artifactView { it.lenient = true }.artifacts
-
-                it.inputs.files configuration
+                configureFrom(configuration)
             }
         """
     }
@@ -147,8 +136,63 @@ class ResolveTestFixture {
                 @Internal
                 ArtifactCollection lenientArtifactViewArtifacts
 
+                @Internal
+                abstract Property<String> getConfigurationCacheUnsafeLines()
+
                 GenerateGraphTask() {
                     outputs.upToDateWhen { false }
+                }
+
+                def configureFrom(Configuration configuration) {
+                    rootComponent = configuration.incoming.resolutionResult.rootComponent
+                    files.from(configuration)
+
+                    incomingFiles = configuration.incoming.files
+                    incomingArtifacts = configuration.incoming.artifacts
+
+                    artifactViewFiles = configuration.incoming.artifactView { }.files
+                    artifactViewArtifacts = configuration.incoming.artifactView { }.artifacts
+
+                    lenientArtifactViewFiles = configuration.incoming.artifactView { it.lenient = true }.files
+                    lenientArtifactViewArtifacts = configuration.incoming.artifactView { it.lenient = true }.artifacts
+
+                    inputs.files configuration
+
+                    configurationCacheUnsafeLines.set(project.provider {
+                        def stringWriter = new StringWriter()
+                        def pw = new PrintWriter(stringWriter)
+
+                        try {
+                            // ResolvedConfiguration
+                            configuration.resolvedConfiguration.firstLevelModuleDependencies.each {
+                                pw.println("first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}]")
+                            }
+                            visitNodes("resolved", configuration.resolvedConfiguration.firstLevelModuleDependencies, pw, new HashSet<>())
+                            configuration.resolvedConfiguration.resolvedArtifacts.each {
+                                pw.println("artifact:[${it.moduleVersion.id}][${it.name}:${it.classifier}:${it.extension}:${it.type}] (${it.id.componentIdentifier.displayName})")
+                            }
+                            configuration.resolvedConfiguration.resolvedArtifacts.each {
+                                writeFile("file-artifact-resolved-config", pw, it.file)
+                            }
+
+                            // LenientConfiguration
+                            configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies.each {
+                                pw.println("lenient-first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}]")
+                            }
+                            visitNodes("lenient", configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies, pw, new HashSet<>())
+                            configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
+                                pw.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}:${it.classifier}:${it.extension}:${it.type}] (${it.id.componentIdentifier.displayName})")
+                            }
+                            configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
+                                writeFile("file-artifact-lenient-config", pw, it.file)
+                            }
+                        } catch (Exception ignored) {
+                            // We will emit the failure later when the the fields on the task are read.
+                        }
+
+                        pw.flush()
+                        stringWriter.toString()
+                    })
                 }
 
                 @TaskAction
@@ -226,6 +270,22 @@ class ResolveTestFixture {
                         lenientArtifactViewArtifacts.artifactFiles.each {
                             writeFile("lenient-artifact-view-artifact-file", writer, it)
                         }
+
+                        // ResolvedConfiguration and LenientConfiguration (captured during configuration)
+                        writer.print(configurationCacheUnsafeLines.get())
+                    }
+                }
+
+                protected void visitNodes(String prefix, Collection<ResolvedDependency> nodes, PrintWriter writer, Set<ResolvedDependency> visited) {
+                    for (ResolvedDependency node : nodes) {
+                        if (!visited.add(node)) {
+                            continue
+                        }
+                        writer.println(prefix + "-resolved-dependency:[${node.moduleGroup}:${node.moduleName}:${node.moduleVersion}]")
+                        for (ResolvedDependency child : node.children) {
+                            writer.println(prefix + "-resolved-dependency-edge:[${node.moduleGroup}:${node.moduleName}:${node.moduleVersion}]->[${child.moduleGroup}:${child.moduleName}:${child.moduleVersion}]")
+                        }
+                        visitNodes(prefix, node.children, writer, visited)
                     }
                 }
 
@@ -419,6 +479,53 @@ class ResolveTestFixture {
 
         actualFiles = findLines(configDetails, 'lenient-artifact-view-artifact-file')
         compare("artifactView.artifacts.artifactFiles (lenient)", actualFiles, expectedFiles)
+
+        // ResolvedConfiguration and LenientConfiguration checks
+        def expectedFirstLevel = root.deps.findAll { !it.constraint }.collect { d ->
+            "[${d.selected.moduleVersionId}]"
+        } as Set
+
+        def actualFirstLevel = findLines(configDetails, 'first-level') as Set
+        compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
+
+        actualFirstLevel = findLines(configDetails, 'lenient-first-level') as Set
+        compare("lenient first level dependencies", actualFirstLevel, expectedFirstLevel)
+
+        def expectedResolvedDependencies = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } - graph.virtualConfigurations.collect { "[${it}]".toString() } as Set
+
+        def actualResolvedDeps = findLines(configDetails, 'resolved-resolved-dependency') as Set
+        compare("resolved dependencies in graph", actualResolvedDeps, expectedResolvedDependencies)
+
+        def expectedResolvedEdges = graph.edges
+            .findAll { !it.constraint && it.from != root }
+            .collect { "[${it.from.moduleVersionId}]->[${it.selected.moduleVersionId}]" } as Set
+
+        def actualResolvedEdges = findLines(configDetails, 'resolved-resolved-dependency-edge')
+            .findAll() { !it.contains("[${root.moduleVersionId}]->[") } as Set
+        compare("resolved dependency edges", actualResolvedEdges, expectedResolvedEdges)
+
+        def actualLenientResolvedDeps = findLines(configDetails, 'lenient-resolved-dependency') as Set
+        compare("lenient resolved dependencies in graph", actualLenientResolvedDeps, expectedResolvedDependencies)
+
+        def actualLenientResolvedEdges = findLines(configDetails, 'lenient-resolved-dependency-edge')
+            .findAll() { !it.contains("[${root.moduleVersionId}]->[") } as Set
+        compare("lenient resolved dependency edges", actualLenientResolvedEdges, expectedResolvedEdges)
+
+        def expectedLegacyArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.legacyArtifactName}] (${it.componentId})" }
+
+        actualArtifacts = findLines(configDetails, 'artifact')
+        compare("artifacts", actualArtifacts, expectedLegacyArtifacts)
+
+        actualArtifacts = findLines(configDetails, 'lenient-artifact')
+        compare("lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
+
+        def expectedArtifactOnlyFiles = graph.artifactNodes.collect { it.fileName }
+
+        actualFiles = findLines(configDetails, 'file-artifact-resolved-config')
+        compare("resolved configuration artifact files", actualFiles, expectedArtifactOnlyFiles)
+
+        actualFiles = findLines(configDetails, 'file-artifact-lenient-config')
+        compare("lenient configuration artifact files", actualFiles, expectedArtifactOnlyFiles)
     }
 
     List<String> findLines(List<String> lines, String prefix) {
@@ -516,7 +623,7 @@ class ResolveTestFixture {
                 if (!actualVariant) {
                     errors << "Expected variant name $variant, but wasn't found in: $actual.variants.name"
                 } else {
-                    if (variant.attributes != actualVariant.attributes) {
+                    if (variant.attributes != null && variant.attributes != actualVariant.attributes) {
                         errors << "On variant $variant.name, expected attributes $variant.attributes, but was: $actualVariant.attributes"
                     }
                 }
@@ -672,9 +779,10 @@ class ResolveTestFixture {
 
         private NodeBuilder projectNode(String projectIdentityPath, String moduleVersion) {
             if (Objects.equals(Path.path(projectIdentityPath), Path.ROOT)) {
-                return node("project:$projectIdentityPath", "root project $projectIdentityPath", moduleVersion)
+                def projectName = moduleVersion.split(':')[1]
+                return node("project:$projectIdentityPath", "root project '$projectName'", moduleVersion)
             } else {
-                return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
+                return node("project:$projectIdentityPath", "project '$projectIdentityPath'", moduleVersion)
             }
         }
 
@@ -1138,13 +1246,13 @@ class ResolveTestFixture {
             this
         }
 
-        NodeBuilder variant(String name, Map<String, ?> attributes = [:]) {
+        NodeBuilder variant(String name, Map<String, ?> attributes = null) {
             configuration(name)
             checkVariant = true
             String variantName = name
-            Map<String, String> stringAttributes = attributes.collectEntries { entry ->
+            Map<String, String> stringAttributes = attributes != null ? attributes.collectEntries { entry ->
                 [entry.key, entry.value instanceof Closure ? entry.value.call() : entry.value.toString()]
-            }
+            } : null
             this.variants << new Variant(name: variantName, attributes: stringAttributes)
             this
         }

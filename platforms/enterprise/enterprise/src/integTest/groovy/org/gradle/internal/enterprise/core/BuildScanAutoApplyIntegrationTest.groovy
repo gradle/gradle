@@ -114,6 +114,9 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
         fixture.runtimeVersion = version
         fixture.artifactVersion = version
         settingsFile() << fixture.plugins()
+        if (deprecated) {
+            fixture.expectParentPropertyLookupDeprecation(executer, version)
+        }
 
         and:
         runBuildWithScanRequest()
@@ -122,10 +125,10 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
         pluginAppliedOnce()
 
         where:
-        sequence | version
-        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
-        "same"   | PLUGIN_AUTO_APPLY_VERSION
-        "newer"  | PLUGIN_NEWER_VERSION
+        sequence | version                          | deprecated
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION | true
+        "same"   | PLUGIN_AUTO_APPLY_VERSION        | false
+        "newer"  | PLUGIN_NEWER_VERSION             | false
     }
 
     @SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "Declarative DSL does not support buildscript block")
@@ -144,6 +147,9 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
             }
             ${applyPluginId(fixture.id)}
         """
+        if (deprecated) {
+            fixture.expectParentPropertyLookupDeprecation(executer, version)
+        }
 
         and:
         runBuildWithScanRequest()
@@ -152,10 +158,10 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
         pluginAppliedOnce()
 
         where:
-        sequence | version
-        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
-        "same"   | PLUGIN_AUTO_APPLY_VERSION
-        "newer"  | PLUGIN_NEWER_VERSION
+        sequence | version                          | deprecated
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION | true
+        "same"   | PLUGIN_AUTO_APPLY_VERSION        | false
+        "newer"  | PLUGIN_NEWER_VERSION             | false
     }
 
     def applyPluginId(String pluginId) {
@@ -185,6 +191,9 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
                 it.apply plugin: $fixture.className
             }
         """
+        if (deprecated) {
+            fixture.expectParentPropertyLookupDeprecation(executer, version)
+        }
 
         and:
         runBuildWithScanRequest('-I', 'init.gradle')
@@ -193,10 +202,10 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
         pluginAppliedOnce()
 
         where:
-        sequence | version
-        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
-        "same"   | PLUGIN_AUTO_APPLY_VERSION
-        "newer"  | PLUGIN_NEWER_VERSION
+        sequence | version                          | deprecated
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION | true
+        "same"   | PLUGIN_AUTO_APPLY_VERSION        | false
+        "newer"  | PLUGIN_NEWER_VERSION             | false
     }
 
     def "does not auto-apply plugin when explicitly requested and not applied"() {

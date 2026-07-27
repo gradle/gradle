@@ -29,6 +29,7 @@ image::gradle-basic-10.png[]
 </p>
 ++++
 
+[[sec:build_phases]]
 == Build Phases
 
 A Gradle build has three distinct phases.
@@ -60,8 +61,8 @@ image::build-lifecycle-example.png[]
 The following example shows which parts of settings and build files correspond to various build phases:
 
 ====
-include::sample[dir="snippets/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
-include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/basic/groovy",files="settings.gradle[];build.gradle[]"]
 ====
 
 The following command executes the `test` task and `testBoth` task specified above.
@@ -76,7 +77,7 @@ $ ./gradlew test testBoth
 ----
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/basic/tests/buildlifecycle.out[]
 ----
 =====
 [.multi-language-text.lang-groovy]
@@ -87,7 +88,7 @@ $ ./gradlew test testBoth
 ----
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/basic/tests/buildlifecycle.out[]
 ----
 =====
 ====
@@ -139,3 +140,9 @@ image::task-dag-examples.png[]
 
 [.text-right]
 **Next Step:** <<writing_build_scripts_intermediate.adoc#writing_build_scripts,Learn how to write Build Scripts>> >>
+
+== Hooking into the Build Lifecycle
+
+As your build logic becomes more advanced, you might need to execute custom actions during specific build phases. Gradle exposes several APIs that let you listen to or react to key events in the lifecycle.
+
+For a detailed guide on available callbacks and listeners, refer to <<build_lifecycle.adoc#sec:lifecycle_api, Lifecycle API>>.

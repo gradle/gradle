@@ -56,9 +56,9 @@ dependencies {
     implementation(projects.toolingApi)
 
     implementation(libs.commonsLang)
-    implementation(libs.ant)
     implementation(libs.commonsCompress)
     implementation(libs.guava)
+    implementation(libs.plexusUtils)
 
     runtimeOnly(projects.javaCompilerPlugin)
 
@@ -112,13 +112,4 @@ gradleModule {
 
 strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
-}
-
-packageCycles {
-    // These public packages have classes that are tangled with the corresponding internal package.
-    excludePatterns.add("org/gradle/api/tasks/**")
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

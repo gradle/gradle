@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -32,6 +33,7 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
@@ -80,9 +82,13 @@ abstract class AbstractUserTypeCodecTest {
         }
 
     protected
-    fun <T : Any> configurationCacheRoundtripOf(graph: T, codec: Codec<Any?> = userTypesCodec()): T =
-        writeToByteArray(graph, codec)
-            .let { readFromByteArray(it, codec)!! }
+    fun <T : Any> configurationCacheRoundtripOf(
+        graph: T,
+        codec: Codec<Any?> = userTypesCodec(),
+        integrityCheck: Boolean = false
+    ): T =
+        writeToByteArray(graph, codec, integrityCheck)
+            .let { readFromByteArray(it, codec, integrityCheck)!! }
             .uncheckedCast()
 
     internal
@@ -92,11 +98,12 @@ abstract class AbstractUserTypeCodecTest {
     }
 
     internal
-    fun writeToByteArray(graph: Any, codec: Codec<Any?>): ByteArray {
+    fun writeToByteArray(graph: Any, codec: Codec<Any?>, integrityCheck: Boolean = false): ByteArray {
         val outputStream = ByteArrayOutputStream()
         writeTo(
             outputStream, graph, codec,
-            loggingProblemsListener()
+            loggingProblemsListener(),
+            integrityCheck
         )
         return outputStream.toByteArray()
     }
@@ -106,9 +113,10 @@ abstract class AbstractUserTypeCodecTest {
         outputStream: OutputStream,
         graph: Any,
         codec: Codec<Any?>,
-        problemsListener: ProblemsListener = mock()
+        problemsListener: ProblemsListener = mock(),
+        integrityCheck: Boolean = false
     ) {
-        writeContextFor(KryoBackedEncoder(outputStream), codec, problemsListener).useToRun {
+        writeContextFor(KryoBackedEncoder(outputStream), codec, problemsListener, integrityCheck).useToRun {
             withIsolateMock(codec) {
                 runWriteOperation {
                     write(graph)
@@ -118,12 +126,17 @@ abstract class AbstractUserTypeCodecTest {
     }
 
     internal
-    fun readFromByteArray(bytes: ByteArray, codec: Codec<Any?>) =
-        readFrom(ByteArrayInputStream(bytes), codec, loggingProblemsListener())
+    fun readFromByteArray(bytes: ByteArray, codec: Codec<Any?>, integrityCheck: Boolean = false) =
+        readFrom(ByteArrayInputStream(bytes), codec, loggingProblemsListener(), integrityCheck)
 
     private
-    fun readFrom(inputStream: ByteArrayInputStream, codec: Codec<Any?>, problemsListener: ProblemsListener) =
-        readContextFor(inputStream, codec, problemsListener).run {
+    fun readFrom(
+        inputStream: ByteArrayInputStream,
+        codec: Codec<Any?>,
+        problemsListener: ProblemsListener,
+        integrityCheck: Boolean = false
+    ) =
+        readContextFor(inputStream, codec, problemsListener, integrityCheck).run {
             withIsolateMock(codec) {
                 runReadOperation {
                     read()
@@ -138,25 +151,35 @@ abstract class AbstractUserTypeCodecTest {
         }
 
     private
-    fun writeContextFor(encoder: FlushableEncoder, codec: Codec<Any?>, problemHandler: ProblemsListener) =
+    fun writeContextFor(
+        encoder: FlushableEncoder,
+        codec: Codec<Any?>,
+        problemHandler: ProblemsListener,
+        integrityCheck: Boolean = false
+    ) =
         DefaultWriteContext(
             codec = codec,
             encoder = encoder,
             classEncoder = DefaultClassEncoder(mock()),
-            beanStateWriterLookup = DefaultBeanStateWriterLookup(),
-            isIntegrityCheckEnabled = false,
+            beanStateWriterLookup = DefaultBeanStateWriterLookup(ObjectOpener.agentless()),
+            isIntegrityCheckEnabled = integrityCheck,
             logger = mock(),
             tracer = null,
             problemsListener = problemHandler
         )
 
     private
-    fun readContextFor(inputStream: ByteArrayInputStream, codec: Codec<Any?>, problemsListener: ProblemsListener) =
+    fun readContextFor(
+        inputStream: ByteArrayInputStream,
+        codec: Codec<Any?>,
+        problemsListener: ProblemsListener,
+        integrityCheck: Boolean = false
+    ) =
         DefaultReadContext(
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
             beanStateReaderLookup = beanStateReaderLookupForTesting(),
-            isIntegrityCheckEnabled = false,
+            isIntegrityCheckEnabled = integrityCheck,
             logger = mock(),
             problemsListener = problemsListener,
             classDecoder = DefaultClassDecoder(mock(), mock())
@@ -209,10 +232,13 @@ abstract class AbstractUserTypeCodecTest {
         includedTaskGraph = mock(),
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
-        javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
+        javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ObjectOpener.agentless()),
         transformStepNodeFactory = mock(),
         problems = mock(),
-        taskDependencyFactory = mock()
+        taskDependencyFactory = mock(),
+        moduleIdentifierFactory = mock(),
+        objectOpener = ObjectOpener.agentless(),
+        startParameter = StartParameterInternal()
     )
 
     private

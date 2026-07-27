@@ -34,7 +34,6 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.UnresolvedDependency
-import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
@@ -42,6 +41,8 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
@@ -55,9 +56,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructureBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
@@ -71,6 +73,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Describables
 import org.gradle.internal.Factories
 import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.dispatch.Dispatch
@@ -78,6 +81,7 @@ import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.ExpectDeprecation
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -85,6 +89,8 @@ import org.gradle.util.TestUtil
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
@@ -536,6 +542,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.incoming.files.buildDependencies.getDependencies(targetTask) == requiredTasks
     }
 
+    @ExpectDeprecation("The Configuration.getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated.")
     def "task dependency from project dependency without common configuration"() {
         // This test exists because a NullPointerException was thrown by getTaskDependencyFromProjectDependency()
         // if the rootProject defined a task as the same name as a subproject task, but did not define the same configuration.
@@ -769,24 +776,22 @@ class DefaultConfigurationSpec extends Specification {
         baseRole << [
             ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED - deprecatedRoles
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
+        ]
     }
 
     @ExpectDeprecation("The conf configuration has been deprecated for dependency declaration")
-    void "deprecations are passed to copies when corresponding role is #baseRole (deprecated)"() {
+    void "deprecations are passed to copies when role deprecates declaration"() {
         expect:
-        deprecationsArePassedToCopies(baseRole)
-
-        where:
-        baseRole << deprecatedRoles
+        deprecationsArePassedToCopies(ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
     }
 
-    private static deprecatedRoles = [
-        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
-        ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
-        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE
-    ]
+    @ExpectDeprecation("Calling copy() on configuration ':conf' has been deprecated")
+    void "deprecations are passed to copies when role deprecates resolution"() {
+        expect:
+        deprecationsArePassedToCopies(ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)
+    }
 
     private void deprecationsArePassedToCopies(ConfigurationRole baseRole) {
         // given:
@@ -1143,19 +1148,17 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def graph = Mock(ResolvedDependencyGraph) {
-            getRootComponent() >> Mock(ResolvedComponentResult)
-        }
-        def result = new MinimalResolutionResult(() -> graph, ImmutableAttributes.EMPTY)
-        def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
+        Supplier<GraphStructure> source = Mock()
+        def graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, source, null)
+        def graphResults = new DefaultVisitedGraphResults(graph, [] as Set)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
         when:
-        def out = config.incoming.resolutionResult
+        config.incoming.resolutionResult.root
 
         then:
-        out.root == result.graphSource.get().rootComponent
+        1 * source.get() >> emptyGraph()
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -1341,6 +1344,7 @@ This method is only meant to be called on configurations which allow the (non-de
         1 * resolver.resolveGraph(copy) >> graphResolved()
     }
 
+    @ExpectDeprecation("The Configuration.getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated.")
     def "provides task dependency from project dependency using 'dependents'"() {
         def conf = conf("conf")
         when:
@@ -1775,18 +1779,18 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private ResolverResults buildDependenciesResolved() {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
+        def graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, () -> emptyGraph(), null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(graph, [] as Set)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
+        def graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, () -> emptyGraph(), null)
         def unresolved = Mock(UnresolvedDependency) {
             getProblem() >> failure
         }
 
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [unresolved] as Set)
+        def visitedGraphResults = new DefaultVisitedGraphResults(graph, [unresolved] as Set)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
@@ -1802,8 +1806,8 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
+        def graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, () -> emptyGraph(), null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(graph, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
             Mock(ResolvedConfiguration)
@@ -1855,6 +1859,17 @@ This method is only meant to be called on configurations which allow the (non-de
         }
     }
 
+    private GraphStructure emptyGraph() {
+        return GraphStructureBuilder.empty(
+            DefaultModuleVersionIdentifier.newId("a", "b", "c"),
+            DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("a", "b"), "c"),
+            ImmutableAttributes.EMPTY,
+            ImmutableCapabilities.EMPTY,
+            "foo",
+            Stub(AttributeDesugaring)
+        )
+    }
+
     private dependency(String group, String name, String version) {
         new DefaultExternalModuleDependency(group, name, version)
     }
@@ -1870,23 +1885,24 @@ This method is only meant to be called on configurations which allow the (non-de
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
         def build = Path.path(buildPath)
         def project = Path.path(projectPath)
-        def buildTreePath = build.append(Path.path(projectPath))
-        def identity = project.name != null ? ProjectIdentity.forSubproject(build, project) : ProjectIdentity.forRootProject(build, "foo")
+        def identity = project.name != null
+            ? ProjectIdentity.forSubproject(build, project)
+            : ProjectIdentity.forRootProject(build, "foo")
 
-        def domainObjectContext = Stub(DomainObjectContext)
-        _ * domainObjectContext.identityPath(_) >> { String p -> buildTreePath.child(p) }
-        _ * domainObjectContext.projectPath(_) >> { String p -> project.child(p) }
-        _ * domainObjectContext.buildPath >> build
-        _ * domainObjectContext.projectIdentity >> identity
-        _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
-        _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
+        def domainObjectContext = Stub(DomainObjectContext) {
+            getBuildPath() >> identity.buildPath
+            getIdentityPath() >> identity.buildTreePath
+            getProjectIdentity() >> identity
+            getModel() >> StandaloneDomainObjectContext.ANONYMOUS
+            equals(_) >> true // In these tests, we assume we're in the same context
+        }
 
-        def publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(
+        def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
-        )
+        ).create()
 
         ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
             new TestBuildOperationRunner(),
@@ -1901,14 +1917,15 @@ This method is only meant to be called on configurations which allow the (non-de
             TestUtil.problemsService(),
             new AttributeDesugaring(attributesFactory),
             new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
-            TestUtil.providerFactory()
+            TestUtil.providerFactory(),
+            new TestWorkerLeaseService()
         )
 
         new DefaultConfigurationFactory(
             configurationServices,
             listenerManager,
             domainObjectContext,
-            publishArtifactNotationParserFactory,
+            publishArtifactNotationParser,
             userCodeApplicationContext
         )
     }

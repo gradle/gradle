@@ -21,13 +21,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 
 import java.util.concurrent.CountDownLatch
 
-@Requires(IntegTestPreconditions.IsParallelExecutor)
+@Requires(TestExecutionPreconditions.IsParallelExecutor)
 class ParallelTestTaskIntegrationTest extends AbstractIntegrationSpec {
     String getVersion() {
         return "1.8"

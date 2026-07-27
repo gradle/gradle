@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
 class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart/groovy')
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'integration-tests/webApplication/quickstart/groovy')
 
     def setup() {
         executer.withRepositoryMirrors()

@@ -17,14 +17,25 @@
 package org.gradle.smoketests
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
-@Requires(UnitTestPreconditions.Jdk11OrLater)
+
+@Requires(JdkVersionTestPreconditions.Jdk11OrLater)
 class GradleGitPropertiesSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
             'com.gorylenko.gradle-git-properties': TestedVersions.gradleGitProperties
         ]
+    }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "gitProperties {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('gitProperties')]
     }
 }

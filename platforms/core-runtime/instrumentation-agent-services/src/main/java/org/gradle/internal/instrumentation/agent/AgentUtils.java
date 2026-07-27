@@ -36,11 +36,26 @@ public final class AgentUtils {
         return isJavaAgentSwitch(jvmArg) && jvmArg.contains(AGENT_MODULE_NAME);
     }
 
-    public static boolean isJavaAgentSwitch(String jvmArg) {
+    /**
+     * Matches any third-party agent switch (Java or native JVMTI) that could install a bytecode transformer.
+     * Gradle's own instrumentation agent is excluded.
+     */
+    static boolean isThirdPartyAgentSwitch(String jvmArg) {
+        if (isJavaAgentSwitch(jvmArg)) {
+            return !jvmArg.contains(AGENT_MODULE_NAME);
+        }
+        return isJvmtiAgentSwitch(jvmArg);
+    }
+
+    private static boolean isJavaAgentSwitch(String jvmArg) {
         return jvmArg.startsWith("-javaagent:");
     }
 
-    public static boolean isThirdPartyJavaAgentSwitch(String jvmArg) {
-        return isJavaAgentSwitch(jvmArg) && !jvmArg.contains(AGENT_MODULE_NAME);
+    /**
+     * Native JVMTI agents attached via {@code -agentlib:} or {@code -agentpath:} can subscribe to
+     * {@code ClassFileLoadHook} and transform bytecode at class load, the same way a Java agent can.
+     */
+    private static boolean isJvmtiAgentSwitch(String jvmArg) {
+        return jvmArg.startsWith("-agentlib:") || jvmArg.startsWith("-agentpath:");
     }
 }

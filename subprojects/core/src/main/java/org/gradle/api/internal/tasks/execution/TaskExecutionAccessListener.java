@@ -36,8 +36,8 @@ public interface TaskExecutionAccessListener {
     void onTaskDependenciesAccess(String invocationDescription, TaskInternal task, @Nullable TaskInternal runningTask);
 
     /**
-     * Called when accessing the convention object during task execution.
+     * Called when accessing task extensions during task execution.
      */
-    void onConventionAccess(String invocationDescription, TaskInternal task, @Nullable TaskInternal runningTask);
+    void onTaskExtensionAccess(String invocationDescription, TaskInternal task, @Nullable TaskInternal runningTask);
 
 }

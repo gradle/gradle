@@ -17,8 +17,9 @@
 package org.gradle.internal.logging.console.taskgrouping
 
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerboseBasicFunctionalTest {
 
@@ -44,7 +45,8 @@ abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractCon
         result.groupedOutput.task(':upToDate').outcome == 'UP-TO-DATE'
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
+    @ToBeFixedForIsolatedProjects(because = "console output depends on cross-project execution ordering")
     def "task headers for long running tasks are printed only once when there is no output"() {
         given:
         12.times { i ->

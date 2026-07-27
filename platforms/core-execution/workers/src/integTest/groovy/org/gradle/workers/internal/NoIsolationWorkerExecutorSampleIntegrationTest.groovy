@@ -21,6 +21,6 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 @IntegrationTestTimeout(60)
 class NoIsolationWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {
     String getSampleName() {
-        "workerApi/noIsolation"
+        "integration-tests/workerApi/noIsolation"
     }
 }

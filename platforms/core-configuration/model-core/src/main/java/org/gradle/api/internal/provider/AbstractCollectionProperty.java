@@ -31,7 +31,9 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -244,11 +246,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     public void setFromAnyValue(Object object) {
         if (object instanceof Provider) {
             set(Cast.<Provider<C>>uncheckedCast(object));
-        } else {
-            if (object != null && !(object instanceof Iterable)) {
-                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", getCollectionType().getName(), object.getClass().getName()));
-            }
+        } else if (object == null || object instanceof Iterable) {
             set(Cast.<Iterable<? extends T>>uncheckedCast(object));
+        } else if (object instanceof Object[] && elementType.isAssignableFrom(object.getClass().getComponentType())) {
+            set(Arrays.asList(Cast.<T[]>uncheckedCast(object)));
+        } else if (elementType.isInstance(object)) {
+            set(Collections.singletonList(Cast.<T>uncheckedCast(object)));
+        } else {
+            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", getCollectionType().getName(), object.getClass().getName()));
         }
     }
 

@@ -26,7 +26,10 @@ import java.util.Set;
 
 /**
  * A project-level IDEA library.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public class ProjectLibrary {
 
     private String name;

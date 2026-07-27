@@ -36,6 +36,7 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.OffsetInFileLocation;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
@@ -50,12 +51,10 @@ import org.gradle.api.problems.internal.DefaultPropertyTraceData;
 import org.gradle.api.problems.internal.DefaultTaskLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
+import org.gradle.api.problems.internal.DocLinkInternal;
 import org.gradle.api.problems.internal.GeneralData;
-import org.gradle.api.problems.internal.InternalDocLink;
-import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -63,23 +62,48 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 @NullMarked
 public class ValidationProblemSerialization {
-    private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends InternalProblem> parseMessageList(String lines) {
-        Gson gson = GSON_BUILDER.create();
-        Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
-        return gson.<List<DefaultProblem>>fromJson(lines, type);
+    public static class SerializationResult {
+        private final List<DefaultProblem> warnings;
+        private final List<DefaultProblem> errors;
+
+        public SerializationResult(List<DefaultProblem> warnings, List<DefaultProblem> errors) {
+            this.warnings = warnings;
+            this.errors = errors;
+        }
+
+        public List<DefaultProblem> getWarnings() {
+            return warnings;
+        }
+
+        public List<DefaultProblem> getErrors() {
+            return errors;
+        }
     }
 
-    public static GsonBuilder createGsonBuilder() {
+    private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
+
+    public static SerializationResult deserialize(String lines) {
+        Gson gson = GSON_BUILDER.create();
+        Type type = new TypeToken<List<List<DefaultProblem>>>() {}.getType();
+        List<List<DefaultProblem>> lists = gson.fromJson(lines, type);
+        return new SerializationResult(lists.get(0), lists.get(1));
+    }
+
+    public static String serialize(List<Problem> warnings, List<Problem> errors) {
+        Gson gson = createGsonBuilder().create();
+        return gson.toJson(Arrays.asList(warnings, errors));
+    }
+
+    private static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapterFactory(new ProblemReportAdapterFactory());
         gsonBuilder.registerTypeAdapter(ProblemId.class, new ProblemIdInstanceCreator());
@@ -89,12 +113,6 @@ public class ValidationProblemSerialization {
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
-    }
-
-
-    public static Stream<String> toPlainMessage(List<? extends InternalProblem> problems) {
-        return problems.stream()
-            .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
 
     /**
@@ -399,7 +417,7 @@ public class ValidationProblemSerialization {
 
             out.beginObject();
             out.name("url").value(value.getUrl());
-            out.name("consultDocumentationMessage").value(((InternalDocLink) value).getConsultDocumentationMessage());
+            out.name("consultDocumentationMessage").value(((DocLinkInternal) value).getConsultDocumentationMessage());
             out.endObject();
         }
 
@@ -427,7 +445,7 @@ public class ValidationProblemSerialization {
 
             final String finalUrl = url;
             final String finalConsultDocumentationMessage = consultDocumentationMessage;
-            return new InternalDocLink() {
+            return new DocLinkInternal() {
                 @Override
                 public String getUrl() {
                     return finalUrl;
@@ -677,8 +695,7 @@ public class ValidationProblemSerialization {
                         propertyName,
                         methodName,
                         parentPropertyName,
-                        typeName
-                    );
+                        typeName);
                 case GENERAL_DATA:
                     return new DefaultGeneralData(generalData);
                 case PROPERTY_TRACE_DATA:

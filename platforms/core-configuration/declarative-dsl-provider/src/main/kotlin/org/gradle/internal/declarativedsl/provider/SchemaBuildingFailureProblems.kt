@@ -21,21 +21,26 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemId.create
 import org.gradle.api.problems.ProblemSpec
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup.scripts
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.evaluation.SchemaIssue
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasHiddenMembers
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasNonPublicMembers
+import org.gradle.declarative.dsl.schema.UnsafeNonPureFunction
+import org.gradle.declarative.dsl.schema.UnsafeInjectProperty
+import org.gradle.declarative.dsl.schema.UnsafeNonAbstractMember
+import org.gradle.declarative.dsl.schema.UnsafeNonInterfaceType
+import org.gradle.declarative.dsl.schema.UnsafeJavaBeanProperty
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaFailureMessageFormatter
 
 internal fun schemaBuildingFailuresAsProblems(
     stageFailure: NotEvaluated.StageFailure.SchemaBuildingFailures,
-    problems: InternalProblems
+    problems: ProblemsInternal
 ): List<Problem> = stageFailure.failures.map { failure ->
     problems.reporter.create(schemaBuildingFailureProblemId(failure)) { problem ->
-        problem.severity(Severity.ERROR)
         problem.details(SchemaFailureMessageFormatter.failureMessage(failure))
         problem.solutionFor(failure)
     }
@@ -62,8 +67,16 @@ private object ProblemIds {
     val SCHEMA_UNSUPPORTED_TYPE_PARAMETER_AS_CONTAINER_TYPE =
         create("unsupported-type-parameter-as-container-type", "Unsupported type parameter as container type", group)
     val SCHEMA_UNSUPPORTED_VARARG_TYPE = create("unsupported-vararg-type", "Unsupported vararg type", group)
+    val SCHEMA_UNSAFE_NON_INTERFACE_TYPE = create("unsafe-non-interface-type", "Unsafe non-interface type in safe feature API", group)
+    val SCHEMA_UNSAFE_NON_ABSTRACT_MEMBER = create("unsafe-non-abstract-member", "Unsafe non-abstract member in safe feature API", group)
+    val SCHEMA_UNSAFE_INJECT_PROPERTY = create("unsafe-inject-property", "Unsafe injected service property in safe feature API", group)
+    val SCHEMA_UNSAFE_JAVA_BEAN_PROPERTY = create("unsafe-java-bean-property", "Unsafe Java bean property in safe feature API", group)
+    val SCHEMA_UNSAFE_NON_PURE_FUNCTION = create("unsafe-non-pure-function", "Unsafe non-pure function in safe feature API", group)
+    val SCHEMA_UNSAFE_BECAUSE_HAS_HIDDEN_MEMBERS = create("unsafe-because-has-hidden-members", "Unsafe hidden members in safe feature API", group)
+    val SCHEMA_UNSAFE_BECAUSE_HAS_NON_PUBLIC_MEMBERS = create("unsafe-because-has-non-public-members", "Non-public members in safe feature API", group)
 }
 
+@Suppress("CyclomaticComplexMethod")
 internal fun schemaBuildingFailureProblemId(failure: SchemaBuildingFailure): ProblemId = when (failure.issue) {
     is SchemaIssue.DeclarationBothHiddenAndVisible -> ProblemIds.SCHEMA_DECLARATION_BOTH_VISIBLE_AND_HIDDEN
     is SchemaIssue.HiddenTypeUsedInDeclaration -> ProblemIds.SCHEMA_HIDDEN_DECLARATION_USED_IN_DEFINITION
@@ -79,11 +92,21 @@ internal fun schemaBuildingFailureProblemId(failure: SchemaBuildingFailure): Pro
     is SchemaIssue.UnsupportedPairFactory -> ProblemIds.SCHEMA_UNSUPPORTED_PAIR_FACTORY
     is SchemaIssue.UnsupportedTypeParameterAsContainerType -> ProblemIds.SCHEMA_UNSUPPORTED_TYPE_PARAMETER_AS_CONTAINER_TYPE
     is SchemaIssue.UnsupportedVarargType -> ProblemIds.SCHEMA_UNSUPPORTED_VARARG_TYPE
+    is SchemaIssue.UnsafeDeclarationInSafeFeatureApi -> when ((failure.issue as SchemaIssue.UnsafeDeclarationInSafeFeatureApi).unsafeApiCause) {
+        is UnsafeNonInterfaceType -> ProblemIds.SCHEMA_UNSAFE_NON_INTERFACE_TYPE
+        is UnsafeNonAbstractMember -> ProblemIds.SCHEMA_UNSAFE_NON_ABSTRACT_MEMBER
+        is UnsafeInjectProperty -> ProblemIds.SCHEMA_UNSAFE_INJECT_PROPERTY
+        is UnsafeJavaBeanProperty -> ProblemIds.SCHEMA_UNSAFE_JAVA_BEAN_PROPERTY
+        is UnsafeNonPureFunction -> ProblemIds.SCHEMA_UNSAFE_NON_PURE_FUNCTION
+        is UnsafeBecauseHasHiddenMembers -> ProblemIds.SCHEMA_UNSAFE_BECAUSE_HAS_HIDDEN_MEMBERS
+        is UnsafeBecauseHasNonPublicMembers -> ProblemIds.SCHEMA_UNSAFE_BECAUSE_HAS_NON_PUBLIC_MEMBERS
+        else -> ProblemIds.SCHEMA_BUILDING_FAILURE
+    }
     else -> ProblemIds.SCHEMA_BUILDING_FAILURE
 }
 
 internal fun ProblemSpec.solutionFor(failure: SchemaBuildingFailure) {
-    when (failure.issue) {
+    when (val issue = failure.issue) {
         is SchemaIssue.DeclarationBothHiddenAndVisible -> {
             solution("Make the declaration either visible or hidden.")
         }
@@ -134,11 +157,32 @@ internal fun ProblemSpec.solutionFor(failure: SchemaBuildingFailure) {
             solution("Use a list instead of vararg.")
         }
 
+        is SchemaIssue.UnsafeDeclarationInSafeFeatureApi -> {
+            when (issue.unsafeApiCause) {
+                is UnsafeBecauseHasHiddenMembers -> solution("Remove the hidden members.")
+                is UnsafeBecauseHasNonPublicMembers -> {
+                    solution("Remove the non-public members from the safe definition.")
+                    solution("Make the members public.")
+                }
+                is UnsafeNonPureFunction -> {
+                    solution("Use read-only properties to expose nested models.")
+                    solution("Use NamedDomainObjectContainer or collection properties to model multi-element containers.")
+                }
+                is UnsafeNonAbstractMember -> solution("Make the member safe by removing the implementation (making it abstract).")
+                is UnsafeInjectProperty -> solution("Remove the @Inject annotation.")
+                is UnsafeNonInterfaceType -> solution("Make the type safe by making it an interface.")
+                is UnsafeJavaBeanProperty -> solution("Make the property safe by using Gradle Property API.")
+                else -> Unit
+            }
+            solution("Declare the corresponding features as having unsafe definitions.")
+        }
+
         is SchemaIssue.NonClassifiableType,
         is SchemaIssue.HiddenTypeUsedInDeclaration,
         is SchemaIssue.IllegalUsageOfTypeParameterBoundByClass -> Unit // no specific solutions
+
     }
 
-    solution("Remove the violating declaration or make it non-public.")
-    solution("If the definition is unsafe, annotate the violating declaration as @${HiddenInDefinition::class.simpleName} to exclude it from the Declarative schema.")
+    solution("Remove the violating declaration or make it non-public in an unsafe definition.")
+    solution("In an unsafe definition, annotate the violating declaration as @${HiddenInDefinition::class.simpleName} to exclude it from the Declarative schema.")
 }

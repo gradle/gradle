@@ -42,6 +42,8 @@ import kotlin.reflect.jvm.javaField
 
 data class ClassMembersForSchema(
     val membersBySupertype: Map<KClass<*>, List<ExtractionResult<SupportedCallable, KCallable<*>>>>,
+    val hiddenMemberNames: Set<String>,
+    val nonPublicMemberNames: Set<String>
 ) {
     val declarativeMembers: Iterable<SupportedCallable> by lazy {
         membersBySupertype.values.flatten()
@@ -54,12 +56,15 @@ typealias SupportedCallableResult = ExtractionResult<SupportedCallable, KCallabl
 internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>): ClassMembersForSchema {
     // Members in enum types are not supported
     if (kClass.isSubclassOf(Enum::class)) {
-        return ClassMembersForSchema(emptyMap())
+        return ClassMembersForSchema(emptyMap(), emptySet(), emptySet())
     }
 
     val supertypesWithMapping = host.declarativeSupertypesHierarchy(kClass)
 
     val results: MutableMap<KClass<*>, List<SupportedCallableResult>> = mutableMapOf()
+
+    val hiddenMemberNames = mutableSetOf<String>()
+    val nonPublicMemberNames = mutableSetOf<String>()
 
     supertypesWithMapping.forEach { supertype ->
         if (!isValidMemberHolderType(supertype.superClass)) {
@@ -70,6 +75,12 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
             when (supertype) {
                 is SuperclassWithMapping -> {
                     results[supertype.superClass] = supertype.superClass.declaredMembers.mapNotNull { member ->
+                        if (!ignoreSafeUsageOfUnsafeClass(supertype.superClass.qualifiedName.orEmpty()) && isHiddenMember(supertype, member)) {
+                            hiddenMemberNames.add(member.name)
+                        }
+                        if (member.visibility != KVisibility.PUBLIC) {
+                            nonPublicMemberNames.add(member.name)
+                        }
                         maybeSupportedCallable(host, member, supertype)
                     }
                 }
@@ -79,7 +90,7 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
         }
     }
 
-    return ClassMembersForSchema(mergeMembersBySignature(results))
+    return ClassMembersForSchema(mergeMembersBySignature(results), hiddenMemberNames, nonPublicMemberNames)
 }
 
 private fun isValidMemberHolderType(kClass: KClass<*>): Boolean = when {
@@ -127,12 +138,7 @@ private fun maybeSupportedCallable(
             )
         }
 
-        val isInHiddenType = supertype is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
-        val isExposedByAnnotation = member.annotations.any { it is VisibleInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is VisibleInDefinition })
-        val isHiddenByAnnotation = member.annotations.any { it is HiddenInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is HiddenInDefinition })
-        if (isHiddenByAnnotation || isInHiddenType && !isExposedByAnnotation) {
-            return null
-        }
+        if (isHiddenMember(supertype, member)) return null
 
         val parameters = memberParameters(member, host, supertype)
             .getAllOrFailWith { return ExtractionResult.Failure(it.first(), member) }
@@ -160,6 +166,16 @@ private fun maybeSupportedCallable(
             member
         )
     }
+}
+
+private fun isHiddenMember(supertype: SuperclassWithMapping, member: KCallable<*>): Boolean {
+    val isInHiddenType = supertype is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
+    val isExposedByAnnotation = member.annotations.any { it is VisibleInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is VisibleInDefinition })
+    val isHiddenByAnnotation = member.annotations.any { it is HiddenInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is HiddenInDefinition })
+    if (isHiddenByAnnotation || isInHiddenType && !isExposedByAnnotation) {
+        return true
+    }
+    return false
 }
 
 private fun memberParameters(

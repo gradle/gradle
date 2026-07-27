@@ -30,7 +30,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         executer.withRepositoryMirrors()
     }
 
-    @UsesSample("dependencyManagement/declaringRepositories-multipleRepositories")
+    @UsesSample("integration-tests/dependencyManagement/declaringRepositories-multipleRepositories")
     def "can declare multiple repositories and resolve binary dependency"() {
         executer.inDirectory(sample.dir.file(dsl))
 

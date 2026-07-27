@@ -1,9 +1,0 @@
-plugins {
-    id('groovy-gradle-plugin')
-}
-
-dependencies {
-    implementation(platform('com.example.platform:plugins-platform'))
-
-    implementation(project(':commons'))
-}

@@ -91,13 +91,10 @@ class IntegrationTestSamplesRunner extends SamplesRunner {
         try {
             runChild(sample, new RunNotifierAdapter());
         } catch (Throwable e) {
-            String extraParameter = "configCache".equals(System.getProperty("org.gradle.integtest.executer")) ?
-                "-PenableConfigurationCacheForDocsTests=true" : "";
-            throw new GradleException(
-                "Sample test run failed.\nTo understand how docsTest works, See:\n" +
-                    "  https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/README.md#testing-docs\n" +
-                    "To reproduce this failure, run:\n" +
-                    "  ./gradlew docs:docsTest --tests '*" + getNormalizedSampleId(sample) + "*' " + extraParameter, e);
+            String sampleId = getNormalizedSampleId(sample);
+            boolean configCacheExecuter = "configCache".equals(System.getProperty("org.gradle.integtest.executer"));
+            String message = SampleFailureMessageFormatter.format(sampleId, configCacheExecuter);
+            throw new GradleException(message, e);
         }
     }
 }

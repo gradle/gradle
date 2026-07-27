@@ -53,7 +53,7 @@ public interface FileSystem extends Chmod, Stat {
      *
      * @param link the link to be created
      * @param target the file to link to
-     * @exception FileException if the operation fails
+     * @throws FileException if the operation fails
      */
     void createSymbolicLink(File link, File target) throws FileException;
 

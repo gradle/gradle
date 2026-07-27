@@ -16,23 +16,18 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
-import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
+@SuppressWarnings("deprecation")
 public class ModelMapModelProjection<I> implements ModelProjection {
     private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
 
@@ -60,32 +55,9 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         this.creatorStrategyAccessor = creatorStrategyAccessor;
     }
 
-    private Collection<? extends Class<?>> getCreatableTypes() {
-        return Collections.singleton(baseItemModelType.getConcreteClass());
-    }
-
-    private String getContainerTypeDescription(Class<?> containerType, Collection<? extends Class<?>> creatableTypes) {
-        StringBuilder sb = new StringBuilder(containerType.getName());
-        if (creatableTypes.size() == 1) {
-            @SuppressWarnings("ConstantConditions")
-            String onlyType = Iterables.getFirst(creatableTypes, null).getName();
-            sb.append("<").append(onlyType).append(">");
-        } else {
-            sb.append("<T>; where T is one of [");
-            Joiner.on(", ").appendTo(sb, CollectionUtils.sort(Iterables.transform(creatableTypes, new Function<Class<?>, String>() {
-                @Override
-                public String apply(Class<?> input) {
-                    return input.getName();
-                }
-            })));
-            sb.append("]");
-        }
-        return sb.toString();
-    }
-
     private ModelType<? extends I> itemType(ModelType<?> targetType) {
         Class<?> targetClass = targetType.getRawClass();
-        if (targetClass.equals(ModelMap.class)) {
+        if (targetClass.equals(org.gradle.model.ModelMap.class)) {
             ModelType<?> targetItemClass = targetType.getTypeVariables().get(0);
             if (targetItemClass.isAssignableFrom(baseItemModelType)) {
                 return baseItemModelType;
@@ -95,7 +67,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
             }
             return null;
         }
-        if (targetClass.isAssignableFrom(ModelMap.class)) {
+        if (targetClass.isAssignableFrom(org.gradle.model.ModelMap.class)) {
             return baseItemModelType;
         }
         return null;
@@ -125,7 +97,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return null;
     }
 
-    private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, ModelType<S> itemType, boolean mutable, boolean canReadChildren) {
+    private <T, S extends I> ModelView<org.gradle.model.ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, ModelType<S> itemType, boolean mutable, boolean canReadChildren) {
         ChildNodeInitializerStrategy<? super I> creatorStrategy = creatorStrategyAccessor.getStrategy(node);
         DefaultModelViewState state = new DefaultModelViewState(node.getPath(), targetType, sourceDescriptor, mutable, canReadChildren);
         NodeBackedModelMap<I> builder = new NodeBackedModelMap<I>(publicType, baseItemModelType, sourceDescriptor, node, state, creatorStrategy);
@@ -140,8 +112,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     @Override
     public Iterable<String> getTypeDescriptions(MutableModelNode node) {
-        final Collection<? extends Class<?>> creatableTypes = getCreatableTypes();
-        return Collections.singleton(getContainerTypeDescription(ModelMap.class, creatableTypes));
+        return Collections.singleton(org.gradle.model.ModelMap.class.getName() + "<" + baseItemModelType.getConcreteClass().getName() + ">");
     }
 
     @Override

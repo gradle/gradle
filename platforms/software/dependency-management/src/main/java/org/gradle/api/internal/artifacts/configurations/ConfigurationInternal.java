@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
+import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
@@ -118,6 +119,11 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      */
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
+
+    /**
+     * A handle to the internal view of the results of resolution of this configuration.
+     */
+    ResolutionAccess getResolutionAccess();
 
     /**
      * Test if this configuration can either be declared against or extends another

@@ -203,7 +203,7 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
 
         then:
         def results = resultsFor()
-        results.testPath(":EncodingTest:encodesCdata").onlyRoot()
+        results.testPath(":EncodingTest:${maybeParentheses('encodesCdata')}").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(containsString(
                 "< html allowed, cdata closing token ]]> encoded!\n" +
@@ -211,7 +211,7 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
                     "xml entity: &amp;"
             ))
             .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
-        results.testPath(":EncodingTest:encodesAttributeValues").onlyRoot()
+        results.testPath(":EncodingTest:${maybeParentheses('encodesAttributeValues')}").onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(startsWith('java.lang.RuntimeException: html: <> cdata: ]]>'))
     }

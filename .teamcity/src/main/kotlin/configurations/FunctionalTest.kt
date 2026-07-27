@@ -53,16 +53,31 @@ sealed class ParallelizationMethod {
                     ?: return None
 
             return when (methodJsonNode.get("name")?.asText()) {
-                null -> None
-                None::class.simpleName -> None
-                TestDistribution::class.simpleName -> TestDistribution
-                TestDistributionAlpine::class.simpleName -> TestDistributionAlpine
-                TeamCityParallelTests::class.simpleName ->
+                null -> {
+                    None
+                }
+
+                None::class.simpleName -> {
+                    None
+                }
+
+                TestDistribution::class.simpleName -> {
+                    TestDistribution
+                }
+
+                TestDistributionAlpine::class.simpleName -> {
+                    TestDistributionAlpine
+                }
+
+                TeamCityParallelTests::class.simpleName -> {
                     TeamCityParallelTests(
                         methodJsonNode.get("numberOfBatches").asInt(),
                     )
+                }
 
-                else -> throw IllegalArgumentException("Unknown parallelization method")
+                else -> {
+                    throw IllegalArgumentException("Unknown parallelization method")
+                }
             }
         }
     }

@@ -19,7 +19,7 @@ package org.gradle.language.java.internal;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -48,7 +48,7 @@ public class JavaToolchainServices extends AbstractGradleModuleServices {
             AnnotationProcessorDetector processorDetector,
             ClassPathRegistry classPathRegistry,
             ActionExecutionSpecFactory actionExecutionSpecFactory,
-            InternalProblems problems,
+            ProblemsInternal problems,
             ProjectCacheDir projectCacheDir
         ) {
             return new DefaultJavaCompilerFactory(

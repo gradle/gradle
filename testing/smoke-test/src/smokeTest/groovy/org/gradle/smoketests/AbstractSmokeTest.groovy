@@ -18,6 +18,8 @@ package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
@@ -41,6 +43,9 @@ import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
 abstract class AbstractSmokeTest extends Specification {
+
+    protected static final DocumentationRegistry DOCS = new DocumentationRegistry()
+    protected static final String DEPRECATED_PARENT_PROPERTY_ACCESS_URL = DOCS.getDocumentationFor("upgrading_version_9", "deprecated_implicit_lookup_in_parent_projects")
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
 
@@ -84,7 +89,7 @@ abstract class AbstractSmokeTest extends Specification {
         static micronaut = SMOKE_TESTED_PLUGINS.get("io.micronaut.application")
         static gradleGitProperties = SMOKE_TESTED_PLUGINS.get("com.gorylenko.gradle-git-properties")
         static flyway = SMOKE_TESTED_PLUGINS.get("org.flywaydb.flyway")
-        static detekt = SMOKE_TESTED_PLUGINS.get("io.gitlab.arturbosch.detekt")
+        static detekt = SMOKE_TESTED_PLUGINS.get("dev.detekt")
         static spotless = SMOKE_TESTED_PLUGINS.get("com.diffplug.spotless")
         static jib = SMOKE_TESTED_PLUGINS.get("com.google.cloud.tools.jib")
         static lombok = SMOKE_TESTED_PLUGINS.get("io.freefair.lombok")
@@ -157,6 +162,7 @@ abstract class AbstractSmokeTest extends Specification {
             outputParameters() +
             repoMirrorParameters() +
             configurationCacheParameters() +
+            isolatedProjectsParameters() +
             toolchainParameters()
 
         def jvmArgs = ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
@@ -193,6 +199,13 @@ abstract class AbstractSmokeTest extends Specification {
             }
         }
         return parameters
+    }
+
+    private List<String> isolatedProjectsParameters() {
+        if (GradleContextualExecuter.isIsolatedProjects()) {
+            return [ "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true".toString() ]
+        }
+        return  []
     }
 
     private static List<String> outputParameters() {

@@ -22,10 +22,10 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractIntegrationSpec {
 
     def configurationCache = new ConfigurationCacheFixture(this)
@@ -155,30 +155,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractIntegrati
         outputContains 'custom task...'
         outputContains 'After!'
         configurationCache.assertStateLoaded()
-    }
-
-    def "gracefully degrades to vintage when source dependencies are present"() {
-        given:
-        settingsFile << """
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:buildB") {
-                        from(GitVersionControlSpec) {
-                            url = "some-repo"
-                        }
-                    }
-                }
-            }
-        """
-
-        when:
-        run("help")
-
-        then:
-        configurationCache.configurationCacheBuildOperations.assertNoConfigurationCache()
-
-        and:
-        postBuildOutputContains("Configuration cache disabled because incompatible feature usage (source dependencies) was found.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20945")

@@ -17,14 +17,25 @@
 package org.gradle.smoketests
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
-@Requires(UnitTestPreconditions.Jdk17OrLater)
+
+@Requires(JdkVersionTestPreconditions.Jdk17OrLater)
 class FlywayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
             'org.flywaydb.flyway': TestedVersions.flyway
         ]
+    }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "flyway {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('flyway')]
     }
 }

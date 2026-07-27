@@ -78,6 +78,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheOption(),
         new ConfigurationCacheIgnoreInputsDuringStore(),
         new ConfigurationCacheIgnoreUnsupportedBuildEventsListeners(),
+        new ConfigurationCacheSkipTaskLoggingListenersSerialization(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
@@ -90,6 +91,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheHeapDumpDir(),
         new ConfigurationCacheFineGrainedPropertyTracking(),
         new IsolatedProjectsOption(),
+        new IsolatedProjectsDiagnosticsOption(),
+        new IsolatedProjectsDangerouslyIgnoreProblemsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
         new TaskGraphOption(),
@@ -678,15 +681,58 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
+        public static final String PROPERTY_NAME = "org.gradle.isolated-projects";
+        public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
+        public static final String LONG_OPTION = "isolated-projects";
 
         public IsolatedProjectsOption() {
-            super(PROPERTY_NAME);
+            super(
+                PROPERTY_NAME,
+                DEPRECATED_PROPERTY_NAME,
+                BooleanCommandLineOptionConfiguration.create(
+                    LONG_OPTION,
+                    "Enables Isolated Projects. Projects are configured in parallel. Implies `--configuration-cache`.",
+                    "Disables Isolated Projects."
+                ).incubating()
+            );
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setIsolatedProjects(Option.Value.value(value));
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
+        }
+    }
+
+    public static class IsolatedProjectsDiagnosticsOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.isolated-projects.diagnostics";
+        public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.diagnostics";
+
+        public IsolatedProjectsDiagnosticsOption() {
+            super(PROPERTY_NAME, DEPRECATED_PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjectsDiagnostics(value);
+        }
+    }
+
+    public static class IsolatedProjectsDangerouslyIgnoreProblemsOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.isolated-projects.dangerously-ignore-problems";
+        public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.dangerously-ignore-problems";
+
+        public IsolatedProjectsDangerouslyIgnoreProblemsOption() {
+            super(PROPERTY_NAME, DEPRECATED_PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjectsDangerouslyIgnoreProblems(value);
         }
     }
 
@@ -754,6 +800,27 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(value);
+        }
+    }
+
+    /**
+     * Skips serialization of the standard output/error listeners registered on a task's logging manager during
+     * configuration. When enabled, these listeners are not stored in the Configuration Cache, restoring the previous
+     * behavior where they were silently dropped on a cache hit, so unsupported listeners no longer cause problems.
+     *
+     * @since 9.8.0
+     */
+    public static class ConfigurationCacheSkipTaskLoggingListenersSerialization extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization";
+
+        public ConfigurationCacheSkipTaskLoggingListenersSerialization() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheSkipTaskLoggingListenersSerialization(value);
         }
     }
 

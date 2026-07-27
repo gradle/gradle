@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.GroovyDependencyUtil
 import org.gradle.util.internal.TextUtil
@@ -154,7 +154,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         skipped(":compileGroovy")
     }
 
-    @Requires(IntegTestPreconditions.Java21HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java21HomeAvailable)
     def 'source and target compatibility override toolchain (source #source, target #target) for Groovy '() {
         def jdk21 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_21)
 

@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.archive.compression.GzipArchiver
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -111,7 +112,7 @@ class TarCopyActionSpec extends Specification {
     }
 
     private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor) {
-        action = new TarCopyAction(tarFile, compressor, false)
+        action = new TarCopyAction(tarFile, compressor, false, Providers.notDefined())
         return tarFile
     }
 

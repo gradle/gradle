@@ -38,12 +38,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
     api(testLibs.hamcrest)
-    api(testLibs.jettySecurity)
-    api(testLibs.jettyServer)
-    api(testLibs.jettyUtil)
     api(testLibs.junit)
     api(testLibs.samplesCheck)
-    api(testLibs.servletApi)
     api(testLibs.spock)
 
     implementation(projects.baseServicesGroovy)
@@ -68,6 +64,7 @@ dependencies {
     implementation(projects.time)
     implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
+    implementation(projects.workerShared)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -77,16 +74,15 @@ dependencies {
     implementation(libs.jcifs)
     implementation(libs.nativePlatform)
     implementation(testLibs.ansiControlSequenceUtil)
-    implementation(testLibs.jetty)
 
     compileOnly(libs.jetbrainsAnnotations)
     compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
-    constraints {
-        implementation(testLibs.jettyWebsocket)
-    }
+    // Javadoc-only: for {@link} references to types in internal-integ-testing and tooling-api test fixtures
+    javadocReferences(projects.internalIntegTesting)
+    javadocReferences(testFixtures(projects.toolingApi))
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
@@ -98,14 +94,14 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
     mostRecentSnapshot = gradleModule.identity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
-val copyTestedVersionsInfo by tasks.registering(Copy::class) {
+val copyTestedVersionsInfo = tasks.register<Copy>("copyTestedVersionsInfo") {
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/smoke-tested-plugins.properties"))
     into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }
 
-val generateLanguageAnnotations by tasks.registering(GenerateLanguageAnnotations::class) {
+val generateLanguageAnnotations = tasks.register<GenerateLanguageAnnotations>("generateLanguageAnnotations") {
     classpath.from(configurations.integTestDistributionRuntimeClasspath)
     packageName = "org.gradle.integtests.fixtures"
     destDir = layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main")
@@ -140,12 +136,4 @@ abstract class PrepareVersionsInfo : DefaultTask() {
         properties["versions"] = versions.get()
         gradlebuild.basics.util.ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

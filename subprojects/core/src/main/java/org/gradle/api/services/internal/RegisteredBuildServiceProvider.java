@@ -61,7 +61,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         BuildIdentifier buildIdentifier,
         String name,
         Class<T> implementationType,
-        @Nullable P parameters,
+        P parameters,
         IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme,
         InstantiationScheme instantiationScheme,
         IsolatableFactory isolatableFactory,
@@ -96,7 +96,6 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return serviceDetails.getImplementationType();
     }
 
-    @Nullable
     public P getParameters() {
         return serviceDetails.getParameters();
     }
@@ -169,7 +168,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return instantiationScheme.withServices(instantiationServices).instantiator().newInstance(getImplementationType());
     }
 
-    private ServiceLookup instantiationServicesFor(@Nullable P isolatedParameters) {
+    private ServiceLookup instantiationServicesFor(P isolatedParameters) {
         return isolationScheme.servicesForImplementation(
             isolatedParameters,
             internalServices,

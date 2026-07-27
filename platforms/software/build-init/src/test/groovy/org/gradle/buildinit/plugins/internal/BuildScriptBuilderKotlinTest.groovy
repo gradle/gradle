@@ -361,7 +361,7 @@ other {
  */
 
 // Add some thing
-val e1 by foo.bar.creating {
+val e1 = foo.bar.create("e1") {
 }
 
 val someElement = foo.bar.create("e2") {
@@ -397,15 +397,15 @@ prop2 = someElement.outputDir
 // Add some thing
 foo {
     // Element 1
-    val one by bar.creating {
+    val one = bar.create("one") {
         value = "bazar"
 
-        val oneNested by nested.creating {
+        val oneNested = nested.create("oneNested") {
         }
     }
 
     // Element 2
-    val two by bar.creating {
+    val two = bar.create("two") {
     }
 
     // Use value

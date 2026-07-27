@@ -60,7 +60,7 @@ You can find documentation link:https://projects.eclipse.org/projects/tools.buil
 
 == NetBeans
 
-The Apache Software Foundation maintains NetBeans, an open-source IDE for Java, PHP, Javascript and other languages.
+The Apache Software Foundation maintains NetBeans, an open-source IDE for Java, PHP, JavaScript and other languages.
 
 image::netbeans.png[]
 

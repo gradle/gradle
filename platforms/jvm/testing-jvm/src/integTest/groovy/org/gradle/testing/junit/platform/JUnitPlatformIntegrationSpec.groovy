@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 abstract class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
@@ -31,11 +30,6 @@ abstract class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec impl
     }
 
     abstract String getJupiterVersion()
-
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT_JUPITER
-    }
 
     def buildScriptWithJupiterDependencies(script, String version) {
         buildFile.clear()

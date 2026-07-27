@@ -19,10 +19,10 @@ package org.gradle.cache.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.versionedcache.UsedGradleVersions
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // tests a real Gradle distribution
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // tests a real Gradle distribution
 class WrapperDistributionCleanupActionIntegrationTest extends AbstractIntegrationSpec {
 
     def "reads Gradle version from actual distribution"() {

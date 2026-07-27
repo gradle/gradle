@@ -26,7 +26,6 @@ fun EvaluationAndConversionSchema.interpretWithConversion(target: Any, code: Str
     val conversionComponents = conversionSchemaForScriptTarget(target)
     val resolution = analysisSchema.resolve(code)
     runtimeInstanceFromResult(
-        analysisSchema,
         resolution,
         gradleConfigureLambdas,
         CompositeCustomAccessors(conversionComponents.runtimeCustomAccessors),

@@ -20,12 +20,12 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
 
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "source distribution resolved from fallback when custom repo does not have it"() {
         given:
         def buildContext = IntegrationTestBuildContext.INSTANCE
@@ -40,12 +40,9 @@ class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
         fallbackServer.start()
 
         withWrapperDistributionUrl("${primaryServer.uri}/$repositoryName/gradle-${gradleVersion.version}-bin.zip")
-        primaryServer.expectGetMissing("/$repositoryName/")
+        primaryServer.expectHeadMissing("/$repositoryName/$artifactFileName")
 
-        def fallbackDir = file("fallback-repo/$repositoryName")
-        fallbackDir.mkdirs()
         buildContext.srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
-        fallbackServer.expectGetDirectoryListing("/$repositoryName/", fallbackDir)
         fallbackServer.expectHead("/$repositoryName/$artifactFileName", buildContext.srcDistribution)
         fallbackServer.expectGet("/$repositoryName/$artifactFileName", buildContext.srcDistribution)
         withSourceResolutionAssertionBuildScript("fallback repository")
@@ -64,7 +61,7 @@ class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
     }
 
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "source distribution resolved from local file when src zip is next to bin zip"() {
         given:
         def buildContext = IntegrationTestBuildContext.INSTANCE
@@ -86,7 +83,7 @@ class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
     }
 
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "source distribution resolved from fallback when wrapper uses a local file distribution without src zip"() {
         given:
         def buildContext = IntegrationTestBuildContext.INSTANCE
@@ -103,10 +100,7 @@ class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
         def fallbackServer = new HttpServer()
         fallbackServer.start()
 
-        def fallbackDir = file("fallback-repo/$repositoryName")
-        fallbackDir.mkdirs()
         buildContext.srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
-        fallbackServer.expectGetDirectoryListing("/$repositoryName/", fallbackDir)
         fallbackServer.expectHead("/$repositoryName/$artifactFileName", buildContext.srcDistribution)
         fallbackServer.expectGet("/$repositoryName/$artifactFileName", buildContext.srcDistribution)
         withSourceResolutionAssertionBuildScript("fallback repository")

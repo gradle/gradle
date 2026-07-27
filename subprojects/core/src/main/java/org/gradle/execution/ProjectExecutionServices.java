@@ -40,6 +40,7 @@ import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
@@ -103,12 +104,16 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         TaskCacheabilityResolver taskCacheabilityResolver,
-        TaskExecutionGraphInternal taskExecutionGraph,
+        BuildState build,
         TaskExecutionModeResolver repository,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
         MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
+        // The task graph is deliberately resolved via the build rather than injected: the project-scope
+        // registry (our parent) shadows TaskExecutionGraphInternal with the cross-project-access-reporting
+        // view for user code, whereas the execution engine must use the raw build-scoped graph.
+        TaskExecutionGraphInternal taskExecutionGraph = build.getMutableModel().getTaskGraph();
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             executionHistoryStore,
             buildOperationRunner,

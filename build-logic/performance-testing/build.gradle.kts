@@ -23,10 +23,6 @@ dependencies {
     // https://eclipse-ee4j.github.io/jaxb-ri/
     runtimeOnly(buildLibs.jaxb)
 
-    testImplementation(testLibs.junitJupiter)
-    testImplementation(testLibs.junit)
-
-    testRuntimeOnly(testLibs.junitPlatform)
 }
 
 gradlePlugin {

@@ -20,10 +20,10 @@ import org.gradle.api.Describable
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.reporting.Report
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.internal.Describables
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import javax.inject.Inject
 
@@ -110,7 +110,7 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "task up to date when no reporting configuration change"() {
         expect:
         succeeds(task)
@@ -121,7 +121,7 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
         skipped(task)
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "task not up to date when enabled set changes"() {
         expect:
         succeeds(task)
@@ -137,8 +137,11 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(task)
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/6619") // file1.outputLocation doesn't carry task dependency and cannot be serialized by CC when used as value
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
+    @ToBeFixedForConfigurationCache(
+        issue = "https://github.com/gradle/gradle/issues/6619",
+        because = "file1.outputLocation doesn't carry task dependency and cannot be serialized by CC when used as value"
+    )
     def "task not up to date when enabled set changes but output files stays the same"() {
         given:
         buildFile << """

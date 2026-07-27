@@ -26,7 +26,7 @@ import java.util.List;
 
 // does not override equals() but hashCode() in order to cache the latter's
 // pre-computed value to improve performance when used in HashMaps
-@SuppressWarnings("checkstyle:EqualsHashCode")
+@SuppressWarnings({"this-escape", "checkstyle:EqualsHashCode"})
 public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint, Serializable {
     private static final DefaultImmutableVersionConstraint EMPTY = new DefaultImmutableVersionConstraint("");
     private final String requiredVersion;
@@ -68,6 +68,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.hashCode = super.hashCode();
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultImmutableVersionConstraint(String requiredVersion) {
         if (requiredVersion == null) {
             throw new IllegalArgumentException("Required version must not be null");

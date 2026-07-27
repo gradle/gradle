@@ -1,0 +1,35 @@
+package reporters
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
+
+interface Injected {
+    @get:Inject val problems: Problems
+}
+
+val problems = project.objects.newInstance<Injected>().problems
+val problemGroup = ProblemGroup.create("root", "Root Group")
+
+problems.getReporter().report(ProblemId.create("adhoc-script-deprecation", "Deprecated script plugin", problemGroup)) {
+    contextualLabel("Deprecated script plugin 'demo-script-plugin'")
+        .solution("Please use 'standard-plugin-2' instead of this plugin")
+}
+
+tasks {
+    register("warningTask") {
+        doLast {
+            problems.getReporter().report(ProblemId.create("adhoc-task-deprecation", "Deprecated task", problemGroup)) {
+                contextualLabel("Task 'warningTask' is deprecated")
+                    .solution("Please use 'warningTask2' instead of this task")
+            }
+        }
+    }
+
+    register("failingTask") {
+        doLast {
+            problems.getReporter().throwing(RuntimeException("The 'failingTask' should not be called"), ProblemId.create("broken-task", "Task should not be called", problemGroup)) {
+                    contextualLabel("Task 'failingTask' should not be called")
+                    .solution("Please use 'successfulTask' instead of this task")
+            }
+        }
+    }
+}

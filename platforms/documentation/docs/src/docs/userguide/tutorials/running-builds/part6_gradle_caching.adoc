@@ -34,6 +34,7 @@ Learn the basics of Gradle's caching system.
 4. You applied a plugin to your app in <<part4_gradle_plugins#part4_begin,part 4>>.
 5. You learned about incremental builds in <<part5_gradle_inc_builds#part5_begin,part 5>>.
 
+[[rb_part6_step1]]
 == Step 1. Understanding Caching
 
 Incremental Builds are a great optimization that helps avoid work that is already done.
@@ -47,6 +48,7 @@ The cache stores previous build results, and greatly reduces the need to rebuild
 
 Let's start by turning on the local Build Cache for your app.
 
+[[rb_part6_step2]]
 == Step 2. Enabling the Local Build Cache
 
 Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
@@ -86,6 +88,7 @@ org.gradle.console=verbose
 org.gradle.caching=true
 ----
 
+[[rb_part6_step3]]
 == Step 3. Using the Local Build Cache
 
 Run the build task to populate the local Build Cache:
@@ -169,6 +172,7 @@ The local Gradle Build Cache is located at:
 
 Gradle will periodically clean up the local build cache directory by removing entries that have not been used recently to conserve disk space.
 
+[[rb_part6_step4]]
 == Step 4. Understanding Remote Caching
 
 In addition to the local build cache present on a developer's machine, Gradle can make use of remote build caches which can be used by multiple developers.
@@ -181,6 +185,7 @@ If the output isn't present in the local cache, it'll be downloaded from the rem
 To try out the remote Build Cache, Gradle provides a free link:https://hub.docker.com/r/gradle/build-cache-node[Docker image] for a single remote Build Cache node.
 For production grade deployments, link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Develocity] is recommended.
 
+[[rb_part6_step5]]
 == Step 5. Next steps
 
 If you haven’t read the <<gradle_basics.adoc#gradle,Learning the Basics>> section yet, we recommend starting there to build a solid foundation.

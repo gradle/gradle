@@ -18,7 +18,7 @@ package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -53,7 +53,7 @@ class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegration
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "accessing `tasks` from subprojects is in violation of Isolated Projects"
     )
     def "lifecycle applied build logic runs before subprojects configuration logic"() {

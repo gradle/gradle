@@ -337,7 +337,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private void reportFailure(Object descriptorId, Throwable throwable) {
-        TestFailure failure = FAILURE_MAPPER.createFailure(throwable);
+        TestFailure failure = FAILURE_MAPPER.createFailure(throwable, testsStarted);
         resultProcessor.failure(descriptorId, failure);
     }
 
@@ -527,9 +527,46 @@ public class JUnitTestEventAdapter extends RunListener {
     private void addDescriptorAndChildren(Description parent, TestNode parentNode) {
         descriptionsToDescriptors.put(parent, parentNode);
         for (Description child : parent.getChildren()) {
-            TestNode node = createNode(parentNode, child, RegistrationMode.DETECTED);
+            // A JUnit 4 Description is mutable — children may be added after creation. Some
+            // runners (notably Specs2's JUnitRunner) report a spec-class description whose
+            // children are populated lazily as the runner discovers examples, so at this
+            // tree-walk time isSuite() can return false even though the description WILL
+            // acquire children before the test run finishes. Registering such a description
+            // as a non-composite leaf via the DETECTED branch corrupts the tree: a later
+            // synthetic child (e.g. a BeforeAfterAll/@BeforeClass failure) ends up under a
+            // leaf parent, and the unguarded cast in TestEventReporterAsListener.started
+            // throws ClassCastException. Pre-promote class-level descriptions to SUITE so
+            // they register as composite from the start. This restriction is scoped to the
+            // testRunStarted tree walk; processIgnoredClass and testIgnored continue to
+            // use RegistrationMode.DETECTED.
+            RegistrationMode mode = isClassLevelDescription(child) ? RegistrationMode.SUITE : RegistrationMode.DETECTED;
+            TestNode node = createNode(parentNode, child, mode);
             addDescriptorAndChildren(child, node);
         }
+    }
+
+    /**
+     * Tests whether the given JUnit 4 description names a test class rather than a single test method.
+     * <p>
+     * Class-level descriptions are recognized in two ways: by their backing {@link Class} (JUnit
+     * 4.6+ exposes {@code Description.getTestClass()}), or — for JUnit ≤ 4.5 and custom-runner-produced
+     * synthetic suites — by checking that the stringified form equals the parsed class name. The
+     * fallback also accepts pure string suite descriptions ({@code Description.createSuiteDescription(String)});
+     * the consequence is benign because the composite branch in {@link #createNode} already routes
+     * descriptions without a backing class to {@link DefaultTestSuiteDescriptor} rather than
+     * {@link DefaultTestClassDescriptor}.
+     *
+     * @param description the JUnit description to classify
+     * @return {@code true} if the description names a class (or class-like suite), {@code false} for method-level descriptions
+     */
+    static boolean isClassLevelDescription(Description description) {
+        if (methodName(description) != null) {
+            return false;
+        }
+        if (supportsTestClassMethod() && getTestClassIfPossible(description) != null) {
+            return true;
+        }
+        return description.toString().equals(className(description));
     }
 
     @Nullable

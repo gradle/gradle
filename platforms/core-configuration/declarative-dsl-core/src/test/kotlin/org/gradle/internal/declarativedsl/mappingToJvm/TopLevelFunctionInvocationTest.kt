@@ -63,7 +63,7 @@ class TopLevelFunctionInvocationTest {
     }
 
     private fun evaluateRuntimeInstance(resolution: ResolutionResult): TopLevel = runtimeInstanceFromResult(
-        schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, { TopLevel() }, runtimeFunctionResolver =
+        resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, { TopLevel() }, runtimeFunctionResolver =
             CompositeFunctionResolver(
                 listOf(
                     DefaultRuntimeFunctionResolver(kotlinFunctionAsConfigureLambda, IntrinsicRuntimeFunctionCandidatesProvider(listOf(gradleRuntimeIntrinsicsKClass))),

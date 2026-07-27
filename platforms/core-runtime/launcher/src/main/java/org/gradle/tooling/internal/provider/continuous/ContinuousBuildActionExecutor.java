@@ -30,6 +30,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkInputListener;
@@ -50,7 +51,7 @@ import org.gradle.util.internal.DisconnectableInputStream;
 import java.util.function.Supplier;
 
 public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor {
-    private final BuildSessionActionExecutor delegate;
+    private final BuildTreeActionExecutor delegate;
     private final WorkInputListeners inputsListeners;
     private final FileChangeListeners fileChangeListeners;
     private final BuildRequestMetaData requestMetaData;
@@ -80,7 +81,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         Stat stat,
         CaseSensitivity caseSensitivity,
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-        BuildSessionActionExecutor delegate
+        BuildTreeActionExecutor delegate
     ) {
         this.inputsListeners = inputListeners;
         this.fileChangeListeners = fileChangeListeners;
@@ -107,7 +108,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
             return executeMultipleBuilds(action, requestMetaData, buildSession, cancellationToken, cancellableOperationManager, alwaysOpenExecutionGate);
         } else {
             try {
-                return delegate.execute(action, buildSession);
+                return delegate.runBuildTreeAction(action, buildSession.getServices());
             } finally {
                 final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestMetaData, cancellationToken);
                 waitForDeployments(action, requestMetaData, buildSession, cancellationToken, cancellableOperationManager);
@@ -233,7 +234,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     ) {
         return withInputListener(
             inputListener,
-            () -> delegate.execute(action, buildSession)
+            () -> delegate.runBuildTreeAction(action, buildSession.getServices())
         );
     }
 

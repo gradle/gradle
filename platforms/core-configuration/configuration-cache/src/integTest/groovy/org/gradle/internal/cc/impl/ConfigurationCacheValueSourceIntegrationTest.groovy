@@ -18,11 +18,91 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.process.ShellScript
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue("https://github.com/gradle/gradle/issues/28588")
+    def "value source whose value cannot be deserialized invalidates the cache with the value source attributed"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            import org.gradle.api.provider.*
+            import java.io.*
+
+            class Poison implements Serializable {
+                private void readObject(ObjectInputStream ois) throws IOException {
+                    throw new RuntimeException("cannot deserialize Poison")
+                }
+            }
+
+            abstract class PoisonValueSource implements ValueSource<Poison, ValueSourceParameters.None> {
+                @Override Poison obtain() { return new Poison() }
+            }
+
+            // Only obtained as a configuration-time build-logic input, so it lands
+            // in the fingerprint and is NOT captured in any task state.
+            providers.of(PoisonValueSource) {}.get()
+
+            tasks.register("ok") { doLast { println "ok" } }
+        """)
+
+        when:
+        configurationCacheRun("ok")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: "the cached value source result cannot be read back"
+        executer.withStackTraceChecksDisabled()
+        configurationCacheRun("ok", "--info")
+
+        then: "the entry is discarded gracefully and the build reconfigures, exposing the underlying failure"
+        configurationCache.assertStateStored()
+        outputContains("configuration cache cannot be reused because the value of a build logic input of type 'PoisonValueSource' could not be loaded: cannot deserialize Poison")
+
+        and: "the full stack trace of the underlying failure is available at the info level"
+        outputContains("Configuration cache entry discarded because a fingerprint value could not be loaded")
+        outputContains("java.lang.RuntimeException: cannot deserialize Poison")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30182")
+    def "value source without parameters can access None parameters"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                String obtain() {
+                    println("Parameters: " + getParameters())
+                    return "Hello!"
+                }
+            }
+
+            def greetValueSource = providers.of(GreetValueSource) { spec ->
+                println("Spec parameters: " + spec.parameters)
+                spec.parameters {
+                    println("Configure closure parameters: " + it)
+                }
+            }
+            tasks.register("greet") {
+                doLast { println greetValueSource.get() }
+            }
+        """)
+
+        when:
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateStored()
+        output.contains("Spec parameters: ValueSourceParameters.None")
+        output.contains("Configure closure parameters: ValueSourceParameters.None")
+        output.contains("Parameters: ValueSourceParameters.None")
+        output.contains("Hello!")
+    }
 
     def "value source without parameters can be used as task input"() {
         given:
@@ -432,36 +512,6 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             withInput("Build file 'build.gradle': system property 'some.property'")
             withInput("Build file 'build.gradle': value from custom source 'MySource'")
         }
-    }
-
-    def "value source can use standard process API"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        ShellScript testScript = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
-
-        buildFile.text = """
-            import ${ByteArrayOutputStream.name}
-            import org.gradle.api.provider.*
-
-            abstract class ProcessSource implements ValueSource<String, ValueSourceParameters.None> {
-                @Override String obtain() {
-                    def baos = new ByteArrayOutputStream()
-                    def process = ${ShellScript.cmdToStringLiteral(testScript.getRelativeCommandLine(testDirectory))}.execute()
-                    process.waitForProcessOutput(baos, System.err)
-                    return baos.toString().trim()
-                }
-            }
-
-            def vsResult = providers.of(ProcessSource) {}
-            println("ValueSource result = \${vsResult.get()}")
-        """
-
-        when:
-        configurationCacheRun()
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("ValueSource result = Hello, world")
     }
 
     def "value source can read mutated system property inputs at configuration time"() {
@@ -889,5 +939,111 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
         and:
         configurationCache.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38255")
+    def "chained value source providers work with configuration cache"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildKotlinFile """
+            import org.gradle.api.provider.ValueSource
+            import org.gradle.api.provider.ValueSourceParameters
+
+            abstract class MyValueSource : ValueSource<String, MyValueSource.Params> {
+                interface Params : ValueSourceParameters {
+                    val value: Property<String>
+                    val defaultValue: Property<String>
+                }
+                override fun obtain(): String {
+                    return parameters.value.orElse(parameters.defaultValue).get()
+                }
+            }
+
+            tasks.register("myTask") {
+                var defaultValue = providers.of(MyValueSource::class) {
+                    parameters.value.set("hello world")
+                }
+                var value = providers.of(MyValueSource::class) {
+                    parameters.defaultValue.set(defaultValue)
+                }
+                doLast {
+                    println(value.get())
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("hello world")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("hello world")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32828")
+    def "value source whose parameters reference an extension's nested bean does not deadlock on store/load"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            import javax.inject.Inject
+
+            abstract class B {
+                abstract Property<String> getName()
+            }
+
+            abstract class A {
+                @Nested abstract B getB()
+
+                final Provider<String> calculated
+
+                @Inject
+                A(ProviderFactory providers) {
+                    getB().name.convention("hi")
+                    calculated = providers.of(MySrc) { spec ->
+                        spec.parameters.b.set(getB())
+                    }
+                }
+            }
+
+            abstract class MySrc implements ValueSource<String, Params> {
+                interface Params extends ValueSourceParameters {
+                    @Nested Property<B> getB()
+                }
+                String obtain() {
+                    parameters.b.get().name.get() + "!"
+                }
+            }
+
+            abstract class ShowTask extends DefaultTask {
+                @Input abstract Property<String> getValue()
+                @TaskAction void run() { println("v=" + value.get()) }
+            }
+
+            def aInstance = objects.newInstance(A)
+            tasks.register("show", ShowTask) {
+                value = aInstance.calculated
+            }
+        """
+
+        when:
+        configurationCacheRun "show"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("v=hi!")
+
+        when:
+        configurationCacheRun "show"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("v=hi!")
     }
 }

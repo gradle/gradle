@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+}
+
+// tag::modify-behavior[]
+tasks.compileJava {
+    // Modify the task behavior
+    doLast {
+        def outputDir = file("$buildDir/compiledClasses")
+        outputDir.mkdirs()
+
+        def compiledFiles = sourceSets["main"].output.files
+        compiledFiles.each { compiledFile ->
+            def destinationFile = new File(outputDir, compiledFile.name)
+            compiledFile.copyTo(destinationFile)
+        }
+
+        println("Java compilation completed. Compiled classes copied to: ${outputDir.absolutePath}")
+    }
+}
+// end::modify-behavior[]

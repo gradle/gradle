@@ -16,12 +16,15 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can use property as task input"() {
@@ -408,6 +411,67 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
+    def "can set String property value using a number"() {
+        given:
+        buildFile """
+            interface SomeExtension {
+                Property<String> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = 1
+            assert custom.prop.get() == "1"
+
+            custom.prop = 2L
+            assert custom.prop.get() == "2"
+
+            custom.prop = providers.provider { 3 }
+            assert custom.prop.get() == "3"
+
+            custom.prop = providers.provider { 4L }
+            assert custom.prop.get() == "4"
+
+            custom.prop = null
+            custom.prop.convention(5)
+            assert custom.prop.get() == "5"
+
+            custom.prop.convention(providers.provider { 6L })
+            assert custom.prop.get() == "6"
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can set String property value using a File"() {
+        given:
+        buildFile """
+            interface SomeExtension {
+                Property<String> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = file('a.txt')
+            assert custom.prop.get() == file('a.txt').toString()
+
+            custom.prop = providers.provider { file('b.txt') }
+            assert custom.prop.get() == file('b.txt').toString()
+
+            custom.prop = null
+            custom.prop.convention(file('c.txt'))
+            assert custom.prop.get() == file('c.txt').toString()
+
+            custom.prop.convention(providers.provider { file('d.txt') })
+            assert custom.prop.get() == file('d.txt').toString()
+
+            custom.prop = file('e.txt').absoluteFile
+            assert custom.prop.get() == file('e.txt').absoluteFile.toString()
+        """
+
+        expect:
+        succeeds()
+    }
+
     def "can set Enum property value using an string"() {
         given:
         buildFile """
@@ -475,15 +539,15 @@ assert custom.prop.get() == "value 4"
         failure.assertHasCause(expectedCause)
 
         where:
-        errorType                             | setter                                                          | typeDescription
-        "wrong type, dsl"                     | "prop = 123"                                                    | "using an instance of type java.lang.Integer."
-        "wrong type, api"                     | "prop.set(123)"                                                 | "using an instance of type java.lang.Integer."
-        "wrong Property type, dsl"            | "prop = objectFactory.property(Integer)"                        | "using a provider of type java.lang.Integer."
-        "wrong Property type, api"            | "prop.set(objectFactory.property(Integer))"                     | "using a provider of type java.lang.Integer."
-        "wrong runtime type"                  | "prop = providerFactory.provider { 123 }; prop.get()"           | "as the provider associated with this property returned a value of type java.lang.Integer."
-        "wrong convention value type"         | "prop.convention(123)"                                          | "using an instance of type java.lang.Integer."
-        "wrong convention Property type"      | "prop.convention(objectFactory.property(Integer))"              | "using a provider of type java.lang.Integer."
-        "wrong convention runtime value type" | "prop.convention(providerFactory.provider { 123 }); prop.get()" | "as the provider associated with this property returned a value of type java.lang.Integer."
+        errorType                             | setter                                                           | typeDescription
+        "wrong type, dsl"                     | "prop = true"                                                    | "using an instance of type java.lang.Boolean."
+        "wrong type, api"                     | "prop.set(true)"                                                 | "using an instance of type java.lang.Boolean."
+        "wrong Property type, dsl"            | "prop = objectFactory.property(Integer)"                         | "using a provider of type java.lang.Integer."
+        "wrong Property type, api"            | "prop.set(objectFactory.property(Integer))"                      | "using a provider of type java.lang.Integer."
+        "wrong runtime type"                  | "prop = providerFactory.provider { true }; prop.get()"           | "as the provider associated with this property returned a value of type java.lang.Boolean."
+        "wrong convention value type"         | "prop.convention(true)"                                          | "using an instance of type java.lang.Boolean."
+        "wrong convention Property type"      | "prop.convention(objectFactory.property(Integer))"               | "using a provider of type java.lang.Integer."
+        "wrong convention runtime value type" | "prop.convention(providerFactory.provider { true }); prop.get()" | "as the provider associated with this property returned a value of type java.lang.Boolean."
     }
 
     def "fails when specialized factory method is not used"() {
@@ -531,10 +595,11 @@ assert custom.prop.get() == "value 4"
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotParallelExecutor,
+        value = TestExecutionPreconditions.NotParallelExecutor,
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12811")
+    @ToBeFixedForIsolatedProjects(because = "cross-project property access")
     def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
         createDirs("producer", "consumer")
         settingsFile << """
@@ -568,7 +633,7 @@ assert custom.prop.get() == "value 4"
                 def m = extensions.create('model', Model)
                 m.prop.finalizeValueOnRead()
                 def c = configurations.create("incoming")
-                dependencies.incoming(project(":producer"))
+                dependencies.incoming(dependencies.project(":producer"))
                 m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
                 task consumer1(type: SomeTask) {
                     prop = m.prop
@@ -590,10 +655,11 @@ assert custom.prop.get() == "value 4"
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotParallelExecutor,
+        value = TestExecutionPreconditions.NotParallelExecutor,
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12969")
+    @ToBeFixedForIsolatedProjects(because = "cross-project property access")
     def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {
         createDirs("producer", "consumer")
         settingsFile << """
@@ -627,7 +693,7 @@ assert custom.prop.get() == "value 4"
                 def m = extensions.create('model', Model)
                 m.prop.finalizeValueOnRead()
                 def c = configurations.create("incoming")
-                dependencies.incoming(project(":producer"))
+                dependencies.incoming(dependencies.project(":producer"))
                 m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
                 task consumer1 {
                     inputs.files(c)
@@ -938,20 +1004,23 @@ assert custom.prop.get() == "value 4"
         when:
         fails('myTask', "-Pmy=trash")
         then:
-        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+        failure.assertHasErrorOutput("Type 'MyTask' property 'strings' doesn't have a configured value")
 
         when:
         fails('myTask')
         then:
-        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+        failure.assertHasErrorOutput("Type 'MyTask' property 'strings' doesn't have a configured value")
 
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:value-not-set'
-            contextualLabel == 'Type \'MyTask\' property \'strings\' doesn\'t have a configured value'
-            details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Type 'MyTask' property 'strings' doesn't have a configured value"
+            details == "This property isn't marked as optional and no value has been configured"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
             solutions == [
-                'Assign a value to \'strings\'',
-                'Mark property \'strings\' as optional',
+                "Assign a value to 'strings'",
+                "Mark property 'strings' as optional",
             ]
             additionalData.asMap == [
                 'typeName' : 'MyTask',
@@ -1024,5 +1093,91 @@ assert custom.prop.get() == "value 4"
 
         then:
         failureCauseContains("Circular evaluation detected")
+    }
+
+    def "property follows Groovy truth when used as a boolean (#description)"() {
+        given:
+        buildFile """
+            def prop = $factory
+            $setup
+            assert (prop ? 'truthy' : 'falsy') == '${expected ? 'truthy' : 'falsy'}'
+            assert prop.asBoolean() == $expected
+        """
+        expectProviderTruthyDeprecation("property", 2)
+
+        expect:
+        succeeds()
+
+        where:
+        description        | factory                                | setup              | expected
+        "no value"         | "objects.property(Boolean)"            | ""                 | false
+        "Boolean true"     | "objects.property(Boolean)"            | "prop.set(true)"   | true
+        "Boolean false"    | "objects.property(Boolean)"            | "prop.set(false)"  | false
+        "empty String"     | "objects.property(String)"             | "prop.set('')"     | false
+        "non-empty String" | "objects.property(String)"             | "prop.set('x')"    | true
+        "zero Integer"     | "objects.property(Integer)"            | "prop.set(0)"      | false
+        "non-zero Integer" | "objects.property(Integer)"            | "prop.set(1)"      | true
+        "empty List"       | "objects.listProperty(Integer)"        | "prop.set([])"     | false
+        "non-empty List"   | "objects.listProperty(Integer)"        | "prop.set([1])"    | true
+        "empty Map"        | "objects.mapProperty(String, Integer)" | "prop.set([:])"    | false
+        "non-empty Map"    | "objects.mapProperty(String, Integer)" | "prop.set([a: 1])" | true
+    }
+
+    def "property follows custom Groovy truth even from a @CompileStatic caller (#description)"() {
+        given:
+        buildFile """
+            import groovy.transform.CompileStatic
+
+            @CompileStatic
+            class StaticTruth {
+                static boolean coerce(Provider<?> prop) {
+                    return prop ? true : false
+                }
+            }
+
+            def prop = $factory
+            $setup
+            assert StaticTruth.coerce(prop) == $expected
+        """
+        expectProviderTruthyDeprecation("property")
+
+        expect:
+        succeeds()
+
+        where:
+        description        | factory                                | setup              | expected
+        "no value"         | "objects.property(Boolean)"            | ""                 | false
+        "Boolean true"     | "objects.property(Boolean)"            | "prop.set(true)"   | true
+        "Boolean false"    | "objects.property(Boolean)"            | "prop.set(false)"  | false
+        "empty String"     | "objects.property(String)"             | "prop.set('')"     | false
+        "non-empty String" | "objects.property(String)"             | "prop.set('x')"    | true
+        "empty List"       | "objects.listProperty(Integer)"        | "prop.set([])"     | false
+        "non-empty List"   | "objects.listProperty(Integer)"        | "prop.set([1])"    | true
+    }
+
+    def "logs deprecation message when #providerOrProperty used as boolean"() {
+        given:
+        buildFile """
+            assert $expression : ${expression}.getOrNull()
+        """
+        expectProviderTruthyDeprecation(providerOrProperty)
+
+        expect:
+        succeeds()
+
+        where:
+        providerOrProperty  | expression
+        "provider"          | "providers.provider { true }"
+        "property"          | "objects.property(Boolean).value(true)"
+    }
+
+    private void expectProviderTruthyDeprecation(String providerOrProperty, int times = 1) {
+        def message = "Using a `${providerOrProperty.capitalize()}` where a `boolean` is expected should be avoided. " +
+            "This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 11. " +
+            "If evaluating this $providerOrProperty is intentional, do so explicitly via `get()` or `getOrNull()`."
+        times.times {
+            executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(message))
+        }
     }
 }

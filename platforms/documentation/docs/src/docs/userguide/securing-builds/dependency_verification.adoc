@@ -34,6 +34,7 @@ Finding the right balance between security and convenience is hard, but Gradle p
 
 NOTE: Dependency verification is meant to protect yourself from compromised dependencies, not to prevent you from including _vulnerable_ dependencies.
 
+[[understanding_verification_methods]]
 == Understanding Verification Methods
 
 Gradle provides two complementary mechanisms for dependency verification:
@@ -145,7 +146,7 @@ A minimal configuration consists of the following:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -194,7 +195,7 @@ To disable metadata verification, set the `<verify-metadata>` flag to `false`:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>false</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -218,32 +219,8 @@ WARNING: Disabling dependency verification reduces security. This API exists for
 To disable verification for a configuration, use the `ResolutionStrategy#disableDependencyVerification` method:
 
 ====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-configurations {
-    myConfiguration {
-        resolutionStrategy {
-            disableDependencyVerification()
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-configurations {
-    myConfiguration {
-        resolutionStrategy {
-            disableDependencyVerification()
-        }
-    }
-}
-----
-=====
+include::sample[dir="snippets/securing-builds/dependencyVerification-disableVerification/kotlin",files="build.gradle.kts[tags=disable-verification]"]
+include::sample[dir="snippets/securing-builds/dependencyVerification-disableVerification/groovy",files="build.gradle[tags=disable-verification]"]
 ====
 
 You can also disable verification on detached configurations:
@@ -280,7 +257,7 @@ To avoid this, you can configure Gradle to automatically trust all javadocs and 
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <trusted-artifacts>
          <trust file=".*-javadoc[.]jar" regex="true"/>
@@ -364,6 +341,7 @@ If a malicious dependency has already been introduced into your build (or into a
 This is why you must **review the generated verification file**.
 Bootstrapping is convenient for getting started or updating your verification file, but it's not a substitute for manual verification of critical dependencies.
 
+[[generating_checksums_only]]
 === Generating Checksums Only
 
 To enable checksum verification, you need to generate a configuration file based on your current, trusted dependencies.
@@ -385,6 +363,7 @@ Gradle supports `MD5`, `SHA1`, `SHA-256`, and `SHA-512` checksums.
 However, only `SHA-256` and `SHA-512` are considered secure for modern use.
 `SHA-1` has known collisions and `MD5` should not be used.
 
+[[generating_checksums_and_signatures]]
 === Generating Checksums and Signatures
 
 To generate both checksums and signatures (recommended when signatures are available), run:
@@ -417,6 +396,7 @@ Executing this command will cause Gradle to:
 Gradle only supports verification of signatures published as ASCII-armored PGP files (`.asc`) on remote repositories.
 Not all artifacts are published with signatures, and signature verification doesn't guarantee the signatory was legitimate—only that the artifact was signed by a specific key.
 
+[[example_verification_metadata_file]]
 === Example Verification Metadata File
 
 A snippet of the resulting `verification-metadata.xml` looks like this:
@@ -427,7 +407,7 @@ A snippet of the resulting `verification-metadata.xml` looks like this:
 <verification-metadata
     xmlns="https://schema.gradle.org/dependency-verification"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
 
     <components>
 
@@ -481,6 +461,7 @@ Instead of generating the `verification-metadata.xml` file, Gradle will create a
 
 NOTE: Because `--dry-run` doesn't execute tasks, it runs much faster but will miss any dependency resolution that happens at task execution time.
 
+[[updating_verification_metadata]]
 == Updating Verification Metadata
 
 Once the `verification-metadata.xml` file is generated, every time a developer or CI server runs the build, Gradle will compare the downloaded file's checksum against the one in the XML file.
@@ -512,7 +493,7 @@ Manually added entries and header comments are preserved, making it easy to upda
 <verification-metadata
     xmlns="https://schema.gradle.org/dependency-verification"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
 
     <components>
       <component group="aopalliance" name="aopalliance" version="1.0">
@@ -548,6 +529,7 @@ WARNING: There are dependencies that Gradle _cannot_ discover automatically. In 
 
 You can add a new `<component>` entry for a checksum or signature to the XML file manually.
 
+[[adding_checksums_for_an_artifact]]
 ==== Adding Checksums for an Artifact
 
 External components are identified by GAV coordinates (`group`, artifact `name`, `version`), and each artifact by its file name.
@@ -570,7 +552,7 @@ You need to declare checksums for both (unless you <<sec:disabling-metadata-veri
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -588,6 +570,7 @@ You need to declare checksums for both (unless you <<sec:disabling-metadata-veri
 </verification-metadata>
 ----
 
+[[where_to_get_checksums]]
 ===== Where to Get Checksums
 
 Checksums are generally published alongside artifacts on public repositories.
@@ -599,6 +582,7 @@ It's much harder to compromise both the repository and the official website simu
 In the example above, the checksum for the JAR was found on the official PDFBox website, while the POM checksum was verified manually.
 The `origin` attribute documents where the checksum came from, helping others understand how trustworthy the verification is.
 
+[[using_multiple_checksums]]
 ===== Using Multiple Checksums
 
 You can declare multiple checksums for the same artifact.
@@ -620,6 +604,7 @@ Use multiple checksums when:
 * You want to add generated checksums alongside manually verified ones for extra validation.
 * You're upgrading to more secure checksums but don't want to remove existing ones yet.
 
+[[handling_transitive_dependencies]]
 ===== Handling Transitive Dependencies
 
 Using a dependency like `pdfbox` will bring in transitive dependencies.
@@ -662,6 +647,7 @@ In general, you should verify the artifact is correct, then declare the addition
 
 You can have as many `also-trust` entries as needed, though typically you shouldn't need more than two.
 
+[[adding_keys_for_an_artifact]]
 ==== Adding Keys for an Artifact
 
 To trust a key for signature verification, add a `pgp` entry to your verification metadata:
@@ -677,6 +663,21 @@ To trust a key for signature verification, add a `pgp` entry to your verificatio
 
 This means you trust `com.github.javaparser:javaparser-core:3.6.11` if it's signed with key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
 
+A `pgp` entry also accepts optional `origin` and `reason` attributes to document where the key was obtained or verified and why it is trusted:
+
+[source,xml]
+----
+<component group="com.github.javaparser" name="javaparser-core" version="3.6.11">
+   <artifact name="javaparser-core-3.6.11.jar">
+      <pgp value="8756c4f765c9ac3cb6b85d62379ce192d401ab61"
+           origin="https://keyserver.ubuntu.com"
+           reason="Verified against the maintainer's website"/>
+   </artifact>
+</component>
+----
+
+As with checksums, these attributes are informational only: Gradle preserves them across read/write cycles but doesn't use them during verification.
+
 Without trusted keys configured, the build will fail:
 
 [source,text]
@@ -684,6 +685,17 @@ Without trusted keys configured, the build will fail:
 > Dependency verification failed for configuration ':compileClasspath':
     - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '8756c4f765c9ac3cb6b85d62379ce192d401ab61' (Bintray (by JFrog) <****>) and passed verification but the key isn't in your trusted keys list.
 ----
+
+A different failure occurs when the signing key cannot be located on any key server at all:
+
+[source,text]
+----
+> Dependency verification failed for configuration ':compileClasspath':
+    - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified (1 other key is already trusted for module 'org:foo'; 3 other keys are already trusted for group 'org')
+----
+
+The trailing parenthetical reports how many other keys you already trust for the failing artifact, distinguishing keys trusted for the specific `group:module` from keys trusted for the whole `group`.
+A non-zero count is a strong signal that the signing key has been rotated, rather than this being a brand-new module or group you are trusting for the first time.
 
 WARNING: Gradle requires full fingerprint IDs (40 characters, e.g., `b801e2f8ef035068ec1139cc29579f18fa8fd93b`) for `pgp` and `trusted-key` elements, not short or long IDs. This minimizes the risk of collision attacks. For `ignored-key` elements, you can use either fingerprints or long (64-bit) IDs.
 
@@ -702,7 +714,7 @@ You can add trusted keys to a global configuration block:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -723,7 +735,42 @@ The `trusted-key` element supports these attributes:
 * `version` - the version of the artifact to trust
 * `file` - the name of the artifact file to trust
 * `regex` - whether to interpret the other attributes as regular expressions (defaults to `false`)
+* `origin` - an optional, free-form note documenting where the key was obtained or verified (for example, the URL it was downloaded from)
+* `reason` - an optional note explaining why the key is trusted
 
+For example:
+
+[source,xml]
+----
+<trusted-keys>
+   <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61"
+                group="com.github.javaparser"
+                origin="https://keyserver.ubuntu.com"
+                reason="Verified against the maintainer's website"/>
+</trusted-keys>
+----
+
+The `origin` and `reason` attributes are purely informational: Gradle preserves them across read/write cycles but never uses them during verification.
+
+When a single key is trusted for several different groups or artifacts, Gradle groups the entries under one `trusted-key` element with nested `trusting` elements.
+In that case the key-level `origin` and `reason` act as defaults, and each `trusting` entry may override them with its own values.
+This is useful when the same key signs very different artifacts whose provenance you want to document separately:
+
+[source,xml]
+----
+<trusted-keys>
+   <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61"
+                origin="https://keyserver.ubuntu.com"
+                reason="Verified against the maintainer's website">
+      <trusting group="com.github.javaparser"/>
+      <trusting group="com.example" reason="Trusted internally after manual review"/>
+   </trusted-key>
+</trusted-keys>
+----
+
+Here the `com.github.javaparser` entry inherits the key-level `origin`/`reason`, while the `com.example` entry overrides the `reason`.
+
+[[security_considerations]]
 ===== Security Considerations
 
 Be careful when trusting keys globally:
@@ -750,7 +797,7 @@ You can automatically trust all artifacts in a group by adding this to your conf
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <trusted-artifacts>
          <trust group="com.mycompany" reason="We trust mycompany artifacts"/>
@@ -779,7 +826,7 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <trusted-artifacts>
          <trust group="^com[.]mycompany($|([.].*))" regex="true" reason="We trust all mycompany artifacts"/>
@@ -791,6 +838,7 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
 [[sec:ignoring-keys]]
 === Configuring Key Servers, Keyrings, and Keys
 
+[[specifying_key_servers]]
 ==== Specifying Key Servers
 
 Gradle automatically downloads public keys from well-known key servers.
@@ -801,7 +849,7 @@ You can configure custom key servers by adding them to your verification metadat
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -831,7 +879,7 @@ To enable this mode, disable key servers in the configuration file:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <key-servers enabled="false"/>
    </configuration>
@@ -840,6 +888,7 @@ To enable this mode, disable key servers in the configuration file:
 
 NOTE: If you are asking Gradle to generate verification metadata and an existing file sets `enabled` to `false`, this flag will be ignored so that potentially missing keys can be downloaded.
 
+[[ignoring_unavailable_keys]]
 ==== Ignoring Unavailable Keys
 
 Sometimes a key is not available because it wasn't published to a public key server or was lost.
@@ -850,7 +899,7 @@ In these cases, you can ignore the key:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -872,6 +921,7 @@ NOTE: If Gradle cannot download a key while bootstrapping, it will automatically
 Once you've set up dependency verification, you'll need to maintain the verification metadata file and keyring files over time.
 This includes cleaning up old entries, refreshing keys, and managing your local keyring for better performance.
 
+[[cleaning_up_verification_file]]
 === Cleaning up the Verification File
 
 If you do nothing, the dependency verification metadata will grow over time as you add new dependencies or change versions: Gradle will not automatically remove _unused_ entries from this file.
@@ -945,6 +995,7 @@ NOTE: Remember to use full 40-character fingerprint IDs when working with keys, 
 Gradle automatically downloads public keys from key servers, but this can be slow and requires everyone to download the same keys repeatedly.
 To avoid this, you can export keys to a local keyring file that can be committed to version control.
 
+[[keyring_file_formats]]
 ==== Keyring File Formats
 
 Gradle supports two keyring formats:
@@ -959,7 +1010,7 @@ You can configure which format to use:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.4.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -972,6 +1023,7 @@ Available options are `armored` and `binary`.
 
 Without `keyring-format` specified, if `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` exists, Gradle will use it. The binary version (`.gpg`) takes precedence if both exist.
 
+[[exporting_keys]]
 ==== Exporting Keys
 
 To export all keys used during verification to the keyring file, run:
@@ -993,6 +1045,7 @@ $ ./gradlew --export-keys
 
 NOTE: This command will not report verification errors, only export keys.
 
+[[committing_keyring_files]]
 ==== Committing Keyring Files
 
 It's a good idea to commit the keyring file to version control (as long as you trust your VCS).
@@ -1050,6 +1103,7 @@ This commonly happens when POM files differ between repositories in non-meaningf
 
 Dependency verification can fail in different ways. This section explains how to deal with various cases.
 
+[[missing_verification_metadata]]
 === Missing Verification Metadata
 
 The simplest failure occurs when verification metadata is missing from the dependency verification file.
@@ -1079,6 +1133,7 @@ You need to add an entry to the verification file:
 Alternatively, ask Gradle to generate the missing information using <<#sec:bootstrapping-verification,bootstrapping>>.
 Existing information will be preserved—Gradle only adds missing verification metadata.
 
+[[incorrect_checksums]]
 === Incorrect Checksums
 
 A more serious issue is when checksum verification fails:
@@ -1106,6 +1161,7 @@ Several scenarios:
 
 Note: A variation is _name squatting_ (GAV coordinates that look legit but differ by one character) or _repository shadowing_ (official GAV coordinates published in a malicious repository that comes first in your build).
 
+[[untrusted_signatures]]
 === Untrusted Signatures
 
 With signature verification enabled, Gradle verifies signatures but doesn't automatically trust them:
@@ -1118,6 +1174,7 @@ With signature verification enabled, Gradle verifies signatures but doesn't auto
 
 You need to verify if the key can be trusted, then refer to <<#sec:understanding-signature-verification,Understanding Signature Verification>> to declare trusted keys.
 
+[[failed_signature_verification]]
 === Failed Signature Verification
 
 If Gradle fails to verify a signature, you must take action because **this may indicate a compromised dependency**.
@@ -1140,6 +1197,7 @@ If they do, verify that Gradle's downloaded signature matches the published one.
 
 If you've verified the dependency is not compromised and only the signature is wrong, declare an artifact-level key exclusion and provide a checksum.
 
+[[handling_wrong_signatures]]
 === Handling Wrong Signatures
 
 There are several options when you encounter a signature verification failure:

@@ -22,6 +22,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
  * Instances are retained during the lifetime of a build, so should avoid retaining unnecessary state.
  */
 public interface ArtifactSet {
+
+    ArtifactSet EMPTY = (consumerServices, spec) -> ResolvedArtifactSet.EMPTY;
+
     /**
      * Selects the artifacts of this set that meet the given criteria.
      * Implementation should be eager where possible, so that selection happens
@@ -31,4 +34,5 @@ public interface ArtifactSet {
         ArtifactSelectionServices consumerServices,
         ArtifactSelectionSpec spec
     );
+
 }

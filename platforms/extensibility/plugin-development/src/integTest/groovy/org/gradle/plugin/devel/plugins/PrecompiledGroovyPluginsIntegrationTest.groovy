@@ -17,11 +17,12 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
@@ -80,6 +81,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("foo script plugin applied")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "can apply a precompiled script plugin by id to a multi-project build from root"() {
         given:
         enablePrecompiledPluginsInBuildSrc()
@@ -919,7 +921,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("from custom task")
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution")
     def "can write tests for precompiled script plugins"() {
         given:
         pluginWithSampleTask("src/main/groovy/test-plugin.gradle")
@@ -1100,6 +1102,27 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             .assertHasResolution(getDocLinkMessage())
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37135")
+    def "precompiled script plugin tasks depend on the task generating the script sources"() {
+        given:
+        file("templates/foo.gradle") << REGISTER_SAMPLE_TASK
+        buildFile << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+            def expandTemplates = tasks.register("expandTemplates", Copy) {
+                from("templates")
+                into(layout.buildDirectory.dir("generated/sources/templates"))
+                include("*.gradle")
+            }
+            sourceSets.main.groovy.srcDir(expandTemplates)
+        """
+
+        expect: "the second run does not fail with a missing task-dependency validation error on the generated sources"
+        succeeds("compileGroovyPlugins")
+        succeeds("compileGroovyPlugins")
+    }
+
     private getDocLinkMessage() {
         documentationRegistry.getDocumentationRecommendationFor("information", "custom_plugins", "sec:precompiled_plugins")
     }
@@ -1118,7 +1141,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         pluginName << ["org.gradle.my-plugin", "org.gradle"]
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     @Issue("https://github.com/gradle/gradle/issues/23267")
     def "hits configuration cache when no changes are present"() {
         given:

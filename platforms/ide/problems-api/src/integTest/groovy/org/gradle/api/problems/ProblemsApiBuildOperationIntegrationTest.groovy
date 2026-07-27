@@ -139,7 +139,6 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                   .details("problem details")
                   .solution("solution 1")
                   .solution("solution 2")
-                  .severity(Severity.ERROR)
                   .withException(new IllegalArgumentException("problem exception"))
             }
         """
@@ -166,7 +165,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                     url == 'https://example.org/doc'
                 }
             }
-            severity == Severity.ERROR.name()
+            severity == Severity.WARNING.name()
             contextualLabel == 'contextual label'
             solutions == ['solution 1', 'solution 2']
             details == 'problem details'

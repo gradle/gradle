@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.detection.TestDetector;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -58,15 +58,10 @@ public class TestMainAction implements Runnable {
                 detector.detect();
             } finally {
                 // Release worker lease while waiting for tests to complete
-                workerLeaseService.blocking(new Runnable() {
-                    @Override
-                    public void run() {
-                        processor.stop();
-                    }
-                });
+                workerLeaseService.blocking(processor::stop);
             }
         } catch (Throwable ex) {
-            resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(ex));
+            resultProcessor.failure(suite.getId(), TestFailure.fromTestFrameworkFailure(ex));
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }

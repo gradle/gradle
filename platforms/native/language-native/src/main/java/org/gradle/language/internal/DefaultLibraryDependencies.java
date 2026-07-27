@@ -28,6 +28,7 @@ import javax.inject.Inject;
 public class DefaultLibraryDependencies extends DefaultComponentDependencies implements LibraryDependencies {
     private final Configuration apiDependencies;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultLibraryDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName, String apiName, DependencyHandler dependencyHandler) {
         super(configurations, implementationName, dependencyHandler);

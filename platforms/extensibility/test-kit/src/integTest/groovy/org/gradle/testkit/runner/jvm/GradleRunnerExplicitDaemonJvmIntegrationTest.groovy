@@ -21,7 +21,7 @@ import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.NoDebug
@@ -51,7 +51,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
 
     // region Unsupported JVM
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails to build on unsupported jvms"() {
         given:
         configureBuild(jdk)
@@ -69,7 +69,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails to build and fail on unsupported jvms"() {
         given:
         configureBuild(jdk)
@@ -87,7 +87,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails to run on unsupported jvms"() {
         given:
         configureBuild(jdk)
@@ -109,7 +109,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
 
     // region Deprecated JVM
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "expecting passing builds on deprecated jvm is deprecated"() {
         given:
         def jdk = AvailableJavaHomes.deprecatedDaemonJdk
@@ -125,7 +125,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         result.output.contains(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(gradleVersion))
     }
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "expecting failing builds on deprecated jvm is deprecated"() {
         given:
         def jdk = AvailableJavaHomes.deprecatedDaemonJdk
@@ -144,7 +144,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         result.output.contains("> Boom")
     }
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "running passing builds on deprecated jvm is deprecated"() {
         given:
         def jdk = AvailableJavaHomes.deprecatedDaemonJdk
@@ -160,7 +160,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         result.output.contains(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(gradleVersion))
     }
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "running failing builds on deprecated jvm is deprecated"() {
         given:
         def jdk = AvailableJavaHomes.deprecatedDaemonJdk
@@ -183,7 +183,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
 
     // region Supported JVM
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "supports expecting passing builds on non deprecated jvms"() {
         given:
         def jdk = AvailableJavaHomes.nonDeprecatedDaemonJdk
@@ -200,7 +200,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13957")
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "supports expecting failing builds on non deprecated jvms"() {
         given:
         def jdk = AvailableJavaHomes.nonDeprecatedDaemonJdk
@@ -219,7 +219,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         assertDaemonUsedJvm(jdk)
     }
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "supports running passing builds on non deprecated jvms"() {
         given:
         def jdk = AvailableJavaHomes.nonDeprecatedDaemonJdk
@@ -235,7 +235,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         assertDaemonUsedJvm(jdk)
     }
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "supports running failing builds on non deprecated jvms"() {
         given:
         def jdk = AvailableJavaHomes.nonDeprecatedDaemonJdk

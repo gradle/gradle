@@ -99,6 +99,138 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
+    def "reproducible #taskName for directory with timestamps - #files"() {
+        given:
+        files.each {
+            file("src/${it}").text = it
+        }
+        buildFile << """
+            task ${taskName}(type: ${taskType}) {
+                reproducibleFileOrder = true
+                reproducibleFileTimestamp = java.time.Instant.ofEpochSecond(1248072216).toEpochMilli()
+                from 'src'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${fileExtension}'
+                filePermissions {}
+                dirPermissions {}
+            }
+            """
+
+        when:
+        succeeds taskName
+
+        then:
+        file("build/test.${fileExtension}").md5Hash == expectedHash
+
+        where:
+        input << [
+            ['DIR1/FILE11.txt', 'dir2/file22.txt', 'DIR3/file33.txt'].permutations(),
+            ['zip', 'tar']
+        ].combinations()
+        files = input[0]
+        taskName = input[1]
+        taskType = taskName.capitalize()
+        fileExtension = taskName
+        expectedHash = taskName == 'tar' ? 'df5074300ec3fe8403071e64cfe3cb1a' : '477313f3ced595c7c75dffde90c54aba'
+    }
+
+    def "reproducible #taskName with reproducibleFileTimestamp #timestampEpochSeconds is independent of the build timezone - #otherTimeZone"() {
+        given:
+        files.each {
+            file("src/${it}").text = it
+        }
+        buildFile << """
+            task ${taskName}(type: ${taskType}) {
+                reproducibleFileTimestamp = java.time.Instant.ofEpochSecond(${timestampEpochSeconds}).toEpochMilli()
+                from 'src'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${fileExtension}'
+                def layout = project.layout
+                doFirst {
+                    java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone(System.getProperty("archiveBuildTimeZone")))
+                }
+                doLast {
+                    layout.buildDirectory.file("effective-tz.txt").get().asFile.text = java.util.TimeZone.getDefault().getID()
+                }
+            }
+            """
+
+        when: "the archive is built on machines in different timezones"
+        def utc = runArchiveInTimeZone(taskName, fileExtension, "UTC")
+        def other = runArchiveInTimeZone(taskName, fileExtension, otherTimeZone)
+
+        then: "the timezone actually changed in the build JVM and the produced archives are identical"
+        other.tz == otherTimeZone
+        utc.tz == "UTC"
+        utc.hash == other.hash
+
+        where:
+        taskName | timestampEpochSeconds | otherTimeZone
+        'zip'    | 1248072216            | 'Asia/Kolkata'
+        'tar'    | 1248072216            | 'Asia/Kolkata'
+        // 2009-03-29T01:30:00Z is 30 minutes after the Europe/Paris DST transition at 2009-03-29T01:00:00Z,
+        // so the zone offset at the timestamp (+02:00) differs from the offset at the instant stored in the zip
+        'zip'    | 1238290200            | 'Europe/Paris'
+
+        taskType = taskName.capitalize() as String
+        fileExtension = taskName as String
+        files = ['DIR1/FILE11.txt', 'dir2/file22.txt', 'DIR3/file33.txt']
+    }
+
+    private Map<String, String> runArchiveInTimeZone(String taskName, String fileExtension, String timeZoneId) {
+        executer.requireDaemon().requireIsolatedDaemons()
+        executer.withArgument("-DarchiveBuildTimeZone=${timeZoneId}")
+        succeeds(taskName, "--rerun")
+        return [hash: file("build/test.${fileExtension}").md5Hash, tz: file("build/effective-tz.txt").text.trim()]
+    }
+
+    def "reproducible zip fails when reproducibleFileTimestamp is greater than the maximum supported timestamp"() {
+        given:
+        createTestFiles()
+        buildFile << """
+            task zip(type: Zip) {
+                reproducibleFileTimestamp = java.time.Instant.parse("2100-01-01T00:00:00Z").toEpochMilli()
+                from 'dir1'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
+            }
+            """
+
+        when:
+        fails 'zip'
+
+        then:
+        failure.assertHasCause("The reproducible file timestamp 2100-01-01T00:00:00Z is greater than the maximum supported timestamp 2097-11-01T00:00:00Z.")
+    }
+
+    def "reproducible #taskName fails when preserveFileTimestamps = true and reproducibleFileTimestamp is specified"() {
+        given:
+        createTestFiles()
+        buildFile << """
+            task ${taskName}(type: ${taskType}) {
+                reproducibleFileOrder = true
+                reproducibleFileTimestamp = java.time.Instant.ofEpochSecond(1208789700).toEpochMilli()
+                preserveFileTimestamps = true
+                from 'dir1'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${fileExtension}'
+                filePermissions {}
+                dirPermissions {}
+            }
+            """
+
+        when:
+        fails taskName
+
+        then:
+        failure.assertHasCause("The reproducible file timestamp property cannot be used when the preserve file timestamps property is set to true")
+
+        where:
+        taskName << ['zip', 'tar']
+        taskType = taskName.capitalize()
+        fileExtension = taskName
+    }
+
     def "#compression compressed tar files are reproducible"() {
         given:
         createTestFiles()

@@ -27,6 +27,9 @@ dependencies {
     compileOnly(libs.jspecify)
 
     implementation(projects.internalInstrumentationApi)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
 }
 
 gradleModule {

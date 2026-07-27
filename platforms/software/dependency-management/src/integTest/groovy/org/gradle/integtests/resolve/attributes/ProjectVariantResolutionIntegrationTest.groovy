@@ -22,56 +22,75 @@ import org.gradle.integtests.resolve.VariantAwareDependencyResolutionTestFixture
 
 class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec implements VariantAwareDependencyResolutionTestFixture, TasksWithInputsAndOutputs {
     def "does not realize tasks that produce outgoing artifacts that are not required"() {
-        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithColorVariants()
-        taskTypeWithOutputFileProperty()
-        buildFile << """
-            allprojects {
-                def p = tasks.register("producer", FileProducer) {
-                    output = file(project.name + ".txt")
-                }
-                def b = tasks.register("broken", FileProducer) {
-                    throw new RuntimeException("broken task")
-                }
-                tasks.register("resolve", ShowFileCollection) {
-                    def view = configurations.resolver.incoming.artifactView {
-                        attributes.attribute(color, 'green')
-                    }.files
-                    files.from(view)
-                }
 
-                configurations {
-                    broken {
-                        assert canBeConsumed
-                        canBeResolved = false
-                        attributes.attribute(color, 'orange')
-                        outgoing {
-                            artifact(b.flatMap { it.output })
-                            artifact(b.flatMap { throw new RuntimeException("broken outgoing artifact") })
-                            variants {
-                                create("broken") {
-                                    artifact(b.flatMap { it.output })
-                                    artifact(b.flatMap { throw new RuntimeException("broken variant artifact") })
-                                }
+        file("b/build.gradle") << """
+            def color = Attribute.of('color', String)
+            configurations {
+                dependencyScope("implementation")
+                consumable("outgoing") {
+                    attributes.attribute(color, 'blue')
+                    extendsFrom(implementation)
+                }
+            }
+
+            ${fileProducerTask()}
+
+            def p = tasks.register("producer", FileProducer) {
+                output = file(project.name + ".txt")
+            }
+            def b = tasks.register("broken", FileProducer) {
+                throw new RuntimeException("broken task")
+            }
+
+            configurations {
+                broken {
+                    assert canBeConsumed
+                    canBeResolved = false
+                    attributes.attribute(color, 'orange')
+                    outgoing {
+                        artifact(b.flatMap { it.output })
+                        artifact(b.flatMap { throw new RuntimeException("broken outgoing artifact") })
+                        variants {
+                            create("broken") {
+                                artifact(b.flatMap { it.output })
+                                artifact(b.flatMap { throw new RuntimeException("broken variant artifact") })
                             }
                         }
                     }
                 }
+            }
 
-                artifacts {
-                    implementation p.flatMap { it.output }
-                    broken b.flatMap { it.output }
-                    broken b.flatMap { throw new RuntimeException("broken artifact") }
+            artifacts {
+                implementation p.flatMap { it.output }
+                broken b.flatMap { it.output }
+                broken b.flatMap { throw new RuntimeException("broken artifact") }
+            }
+        """
+
+        file("a/build.gradle") << """
+            def color = Attribute.of('color', String)
+            configurations {
+                dependencyScope("implementation")
+                resolvable("resolver") {
+                    attributes.attribute(color, 'blue')
+                    extendsFrom(implementation)
                 }
             }
 
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
+            dependencies {
+                implementation project(':b')
+            }
+
+            ${showFileCollectionTask()}
+
+            tasks.register("resolve", ShowFileCollection) {
+                def view = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(color, 'green')
+                }.files
+                files.from(view)
             }
         """
 
@@ -83,34 +102,55 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "reports failure to realize tasks that produce outgoing artifacts"() {
-        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithColorVariants()
-        taskTypeWithOutputFileProperty()
-        buildFile << """
-            allprojects {
-                def p = tasks.register("producer", FileProducer) {
-                    throw new RuntimeException("broken")
+
+        file("b/build.gradle") << """
+            def color = Attribute.of('color', String)
+            configurations {
+                dependencyScope("implementation")
+                consumable("outgoing") {
+                    attributes.attribute(color, 'blue')
+                    extendsFrom(implementation)
                 }
-                tasks.register("resolve", ShowFileCollection) {
-                    def view = configurations.resolver.incoming.artifactView {
-                        attributes.attribute(color, 'green')
-                    }.files
-                    files.from(view)
-                }
-                configurations {
-                    parent { }
-                    implementation { extendsFrom parent }
-                }
-                $registerExpression
             }
 
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
+            configurations {
+                parent { }
+                implementation { extendsFrom parent }
+            }
+
+            ${fileProducerTask()}
+
+            def p = tasks.register("producer", FileProducer) {
+                throw new RuntimeException("broken")
+            }
+
+            $registerExpression
+        """
+
+        file("a/build.gradle") << """
+            def color = Attribute.of('color', String)
+            configurations {
+                dependencyScope("implementation")
+                resolvable("resolver") {
+                    attributes.attribute(color, 'blue')
+                    extendsFrom(implementation)
                 }
+            }
+
+            dependencies {
+                implementation project(':b')
+            }
+
+            ${showFileCollectionTask()}
+
+            tasks.register("resolve", ShowFileCollection) {
+                def view = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(color, 'green')
+                }.files
+                files.from(view)
             }
         """
 
@@ -124,9 +164,9 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
         failure.assertHasCause("broken")
 
         where:
-        registerExpression                                                         | _
-        "artifacts.implementation(p.flatMap { it.output })"                        | _
-        "configurations.outgoing.outgoing.artifact(p.flatMap { it.output })" | _
-        "artifacts.parent(p.flatMap { it.output })"                                | _
+        registerExpression                                                          | _
+        "artifacts.implementation(p.flatMap { it.output })"                         | _
+        "configurations.outgoing.outgoing.artifact(p.flatMap { it.output })"        | _
+        "artifacts.parent(p.flatMap { it.output })"                                 | _
     }
 }

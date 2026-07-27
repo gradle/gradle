@@ -80,7 +80,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     }
 
     private static HttpErrorStatusCodeException status(int statusCode) {
-        new HttpErrorStatusCodeException("GET", "DUMMY", statusCode, "test") {
+        new HttpErrorStatusCodeException(statusCode, "test") {
             @Override
             String toString() {
                 "status $statusCode"

@@ -33,6 +33,17 @@ public abstract class Javadocs {
     public abstract Property<URI> getJavaApi();
 
     /**
+     * Minimum JDK version that the documented Gradle distribution targets.
+     * Surfaced as the {@code minJdkVersion} Asciidoctor attribute.
+     */
+    public abstract Property<Integer> getMinJdkVersion();
+
+    /**
+     * Link to the documentation for the {@code javadoc} tool, referenced from the user manual.
+     */
+    public abstract Property<URI> getJavadocReferenceUrl();
+
+    /**
      * Package list of the Java API used to generate Javadoc offline
      */
     public abstract DirectoryProperty getJavaPackageListLoc();

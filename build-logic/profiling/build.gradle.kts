@@ -11,6 +11,7 @@ dependencies {
     implementation("gradlebuild:module-identity")
 
     implementation(projects.documentation)
+    implementation(projects.integrationTesting)
     implementation(projects.jvm)
 
     implementation(buildLibs.jmhPlugin)

@@ -22,4 +22,11 @@ class IdeaPluginGoodBehaviourTest extends WellBehavedPluginTest {
     String getMainTask() {
         return "idea"
     }
+
+    @Override
+    void expectMainTaskDeprecations() {
+        for (String taskName : ["idea", "ideaModule", "ideaProject", "ideaWorkspace"]) {
+            executer.expectDocumentedDeprecationWarning("The $taskName task has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#ide_task_deprecation")
+        }
+    }
 }

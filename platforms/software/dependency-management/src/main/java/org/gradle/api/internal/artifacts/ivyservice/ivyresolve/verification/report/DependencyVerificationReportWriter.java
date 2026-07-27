@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Repo
 import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
 import org.gradle.api.internal.artifacts.verification.verifier.InvalidSignature;
+import org.gradle.api.internal.artifacts.verification.verifier.InvalidSignatureFile;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
 import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
@@ -41,8 +42,8 @@ import java.util.Map;
 public class DependencyVerificationReportWriter {
     private static final Logger LOGGER = Logging.getLogger(DependencyVerificationReportWriter.class);
 
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> DELETED_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof DeletedArtifact) ? 1 : 0);
-    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> MISSING_LAST = Comparator.comparing(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof MissingChecksums) ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> DELETED_LAST = Comparator.comparingInt(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof DeletedArtifact) ? 1 : 0);
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> MISSING_LAST = Comparator.comparingInt(e -> e.getValue().stream().anyMatch(f -> f.getFailure() instanceof MissingChecksums) ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
     public static final String VERBOSE_CONSOLE = "org.gradle.dependency.verification.console";
     public static final String VERBOSE_VALUE = "verbose";
@@ -190,6 +191,9 @@ public class DependencyVerificationReportWriter {
                 state.hasUntrustedKeys();
             }
         } else if (failure instanceof InvalidSignature) {
+            state.failedSignatures();
+            state.maybeCompromised();
+        } else if (failure instanceof InvalidSignatureFile) {
             state.failedSignatures();
             state.maybeCompromised();
         } else if (failure instanceof DeletedArtifact || failure instanceof ChecksumVerificationFailure || failure instanceof OnlyIgnoredKeys || failure instanceof MissingSignature) {

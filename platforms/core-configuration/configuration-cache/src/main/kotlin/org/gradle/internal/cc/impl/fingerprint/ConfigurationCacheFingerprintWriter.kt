@@ -444,15 +444,6 @@ class ConfigurationCacheFingerprintWriter(
         buildScopedSink.write(ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy(prefix, snapshot))
     }
 
-    fun beforeValueObtained() {
-        // Do not track additional inputs while computing a value of the value source.
-        inputTrackingState.disableForCurrentThread()
-    }
-
-    fun afterValueObtained() {
-        inputTrackingState.restoreForCurrentThread()
-    }
-
     fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>
@@ -609,12 +600,12 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    fun onProjectReference(referrer: ProjectState, target: ProjectState) {
-        if (referrer.identityPath == target.identityPath)
+    fun onProjectReference(referrer: ProjectIdentity, target: ProjectIdentity) {
+        if (referrer == target)
             return
 
         if (host.cacheIntermediateModels) {
-            val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.identityPath, target.identityPath)
+            val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.buildTreePath, target.buildTreePath)
             if (projectDependencies.add(dependency)) {
                 projectScopedWriter.write(dependency)
             }

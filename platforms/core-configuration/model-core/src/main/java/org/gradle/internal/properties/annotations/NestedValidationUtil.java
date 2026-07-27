@@ -24,7 +24,6 @@ import org.jspecify.annotations.NullMarked;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
@@ -55,13 +54,12 @@ public class NestedValidationUtil {
         Class<?> beanType
     ) {
         getUnsupportedReason(beanType).ifPresent(reason ->
-            validationContext.visitPropertyProblem(problem ->
+            validationContext.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
                     .id("nested-type-unsupported", "Nested type unsupported", GradleCoreProblemGroup.validation().property())
                     .contextualLabel("with nested type '" + beanType.getName() + "' is not supported")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
-                    .severity(ERROR)
                     .details(reason)
                     .solution("Use a different input annotation if type is not a bean")
                     .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types")
@@ -96,13 +94,12 @@ public class NestedValidationUtil {
         Class<?> keyType
     ) {
         if (!SUPPORTED_KEY_TYPES.contains(keyType) && !Enum.class.isAssignableFrom(keyType)) {
-            validationContext.visitPropertyProblem(problem ->
+            validationContext.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
                     .id("nested-map-unsupported-key-type", "Unsupported nested map key", GradleCoreProblemGroup.validation().property())
                     .contextualLabel("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
-                    .severity(ERROR)
                     .details("Key of nested map must be an enum or one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to an enum or one of the following types: " + getSupportedKeyTypes())
             );

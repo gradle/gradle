@@ -17,6 +17,7 @@
 package org.gradle.testing.testsuites.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
     // region basic functionality
@@ -211,6 +212,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def 'can add dependencies to other projects to #suiteDesc'() {
         given:
         multiProjectBuild('root', ['consumer', 'util']) {
@@ -349,7 +351,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testRuntimeOnly 'mysql:mysql-connector-java:8.0.26'
 
             // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
-            integTestImplementation project
+            integTestImplementation project()
             integTestImplementation 'com.google.guava:guava:29.0-jre'
             integTestCompileOnly 'javax.servlet:servlet-api:2.5'
             integTestRuntimeOnly 'mysql:mysql-connector-java:6.0.6'
@@ -414,7 +416,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testRuntimeOnly("mysql:mysql-connector-java:8.0.26")
 
             // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
-            integTestImplementation project
+            integTestImplementation project()
             integTestImplementation("com.google.guava:guava:29.0-jre")
             integTestCompileOnly("javax.servlet:servlet-api:2.5")
             integTestRuntimeOnly("mysql:mysql-connector-java:6.0.6")
@@ -478,7 +480,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             testCompileOnly("javax.servlet:servlet-api:3.0-alpha-1")
             testRuntimeOnly("mysql:mysql-connector-java:8.0.26")
             // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
-            integTestImplementation project
+            integTestImplementation project()
             integTestImplementation("com.google.guava:guava:29.0-jre")
             integTestCompileOnly("javax.servlet:servlet-api:2.5")
             integTestRuntimeOnly("mysql:mysql-connector-java:6.0.6")

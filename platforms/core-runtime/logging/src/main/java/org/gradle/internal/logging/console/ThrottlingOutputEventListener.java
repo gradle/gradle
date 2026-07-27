@@ -47,10 +47,12 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
 
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
+    @SuppressWarnings("this-escape")
     public ThrottlingOutputEventListener(OutputEventListener listener, Clock clock) {
         this(listener, Integer.getInteger("org.gradle.internal.console.throttle", 100), Executors.newSingleThreadScheduledExecutor(), clock);
     }
 
+    @SuppressWarnings("this-escape")
     ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, Clock clock) {
         this.throttleMs = throttleMs;
         this.listener = listener;

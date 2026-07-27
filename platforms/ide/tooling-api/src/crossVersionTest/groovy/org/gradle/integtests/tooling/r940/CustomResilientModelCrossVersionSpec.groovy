@@ -21,8 +21,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 
-import static org.gradle.integtests.tooling.r940.ModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
-import static org.gradle.integtests.tooling.r940.ModelAction.QueryStrategy.ROOT_BUILD_FIRST
+import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
+import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryStrategy.ROOT_BUILD_FIRST
 
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.4.0')
@@ -78,6 +78,7 @@ class CustomPlugin implements Plugin<Project> {
 """
     }
 
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "can query custom model for included build without build configuration errors, even if main project configuration fails#description #queryStrategy"() {
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -120,10 +121,9 @@ class CustomPlugin implements Plugin<Project> {
 
         when:
         def result = succeeds {
-            action(new ModelAction(queryStrategy))
+            action(new TestResilientModelAction(CustomModel, queryStrategy))
                 .withArguments(
                     "--init-script=${file('init.gradle').absolutePath}",
-                    "-Dorg.gradle.internal.resilient-model-building=true",
                     *extraGradleProperties
                 )
                 .run()
@@ -141,6 +141,7 @@ class CustomPlugin implements Plugin<Project> {
         " with configure-on-demand" | EDITABLE_BUILDS_FIRST | IP_CONFIGURE_ON_DEMAND_FLAGS | ['build-logic', 'root', 'a', 'c'] | ['b']
     }
 
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "can query custom model for included build without build configuration errors, even if main settings fail#description #queryStrategy"() {
         settingsKotlinFile << """
             pluginManagement {
@@ -181,10 +182,9 @@ class CustomPlugin implements Plugin<Project> {
 
         when:
         def result = succeeds {
-            action(new ModelAction(queryStrategy))
+            action(new TestResilientModelAction(CustomModel, queryStrategy))
                 .withArguments(
                     "--init-script=${file('init.gradle').absolutePath}",
-                    "-Dorg.gradle.internal.resilient-model-building=true",
                     *extraGradleProperties
                 )
                 .run()

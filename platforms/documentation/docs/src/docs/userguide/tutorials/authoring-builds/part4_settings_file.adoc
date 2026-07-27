@@ -32,6 +32,7 @@ Learn the basics of authoring Gradle by developing the Settings File.
 2. You understand the Gradle Build Lifecycle from <<part2_build_lifecycle.adoc#part2_begin,part 2>>.
 3. You added a subproject and a separate Build in <<part3_multi_project_builds#part3_begin, part3>>.
 
+[[ab_part4_step1]]
 == Step 1. Gradle scripts
 
 Build scripts and setting files are code.
@@ -45,6 +46,7 @@ The methods that can be used within a Gradle script primarily include:
 - Blocks defined in the DSL - such as the `plugins{}` block from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript]
 - Extensions defined by Plugins - such as `implementation()` and `api()` provided by the `java` plugin when applied
 
+[[ab_part4_step2]]
 == Step 2. The `Settings` object
 
 The settings file is the entry point of every Gradle build.
@@ -76,54 +78,20 @@ reportsDir = findProject('/myInternalProject')     // Delegates to Settings.find
 ----
 =====
 
+[[ab_part4_step3]]
 == Step 3. The Settings file
 
 Let's break down the settings file in our project root directory:
 
-[.multi-language-sample]
-=====
-.settings.gradle.kts
-[source,kotlin]
-----
-plugins {                                                                   // <1>
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"  // <2>
-}
-
-rootProject.name = "authoring-tutorial"                                     // <3>
-
-include("app")                                                              // <4>
-include("lib")
-
-includeBuild("gradle/license-plugin")                                       // <5>
-----
+====
+include::sample[dir="snippets/tutorials/authoring-builds/settingsFile-breakdown/kotlin",files="settings.gradle.kts[tags=settings-breakdown]"]
+include::sample[dir="snippets/tutorials/authoring-builds/settingsFile-breakdown/groovy",files="settings.gradle[tags=settings-breakdown]"]
+====
 <1> `plugins({})` from the link:{groovyDslPath}/org.gradle.plugin.use.PluginDependenciesSpec.html[PluginDependenciesSpec API]
 <2> `id()` method from the link:{groovyDslPath}/org.gradle.plugin.use.PluginDependenciesSpec.html[PluginDependenciesSpec API]
 <3> `getRootProject()` method from the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings API]
 <4> `include()` method from the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings API]
 <5> `includeBuild()` method from the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings API]
-=====
-[.multi-language-sample]
-=====
-.settings.gradle
-[source, groovy]
-----
-plugins {                                                                   // <1>
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'   // <2>
-}
-
-rootProject.name = 'running-tutorial-groovy'                                // <3>
-
-include('app')                                                              // <4>
-include('lib')
-
-includeBuild('gradle/license-plugin')                                       // <5>
-----
-<1> `plugins({})` method from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript] in the Kotlin DSL
-<2> `id()` method from the link:{kotlinDslPath}/gradle/org.gradle.plugin.use/-plugin-dependencies-spec/index.html[PluginDependenciesSpec API]
-<3> `getRootProject()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
-<4> `include()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
-<5> `includeBuild()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
-=====
 
 [.text-right]
 **Next Step:** <<part5_build_scripts#part5_build_scripts,Writing a Build Script>> >>

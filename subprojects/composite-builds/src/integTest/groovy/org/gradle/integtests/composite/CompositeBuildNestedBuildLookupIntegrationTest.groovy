@@ -41,7 +41,7 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
         fails(buildA, "buildB:broken")
 
         then:
-        failure.assertHasCause("Included build 'unknown' not found in build 'buildB'.")
+        failure.assertHasCause("Included build 'unknown' not found in build ':buildB'.")
     }
 
     def "other builds are not visible from included build"() {
@@ -76,12 +76,12 @@ class CompositeBuildNestedBuildLookupIntegrationTest extends AbstractCompositeBu
         fails(buildA, "buildC:broken1")
 
         then:
-        failure.assertHasCause("Included build 'buildA' not found in build 'buildC'.")
+        failure.assertHasCause("Included build 'buildA' not found in build ':buildC'.")
 
         when:
         fails(buildA, "buildC:broken2")
 
         then:
-        failure.assertHasCause("Included build 'buildB' not found in build 'buildC'.")
+        failure.assertHasCause("Included build 'buildB' not found in build ':buildC'.")
     }
 }

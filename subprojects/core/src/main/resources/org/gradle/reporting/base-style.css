@@ -175,3 +175,23 @@ span.wrapped pre {
 label.hidden {
     display: none;
 }
+
+th.sortable-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+th.sortable-header::after {
+    content: " \2195";
+    color: #b0b0b0;
+}
+
+th.sortable-header[data-sort-dir="asc"]::after {
+    content: " \25B2";
+    color: inherit;
+}
+
+th.sortable-header[data-sort-dir="desc"]::after {
+    content: " \25BC";
+    color: inherit;
+}

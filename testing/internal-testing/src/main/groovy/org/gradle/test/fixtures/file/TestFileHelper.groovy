@@ -16,19 +16,20 @@
 package org.gradle.test.fixtures.file
 
 import com.google.common.io.ByteStreams
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.tools.ant.Project
-import org.apache.tools.ant.taskdefs.Expand
-import org.apache.tools.ant.taskdefs.Tar
-import org.apache.tools.ant.taskdefs.Untar
-import org.apache.tools.ant.taskdefs.Zip
-import org.apache.tools.ant.types.ArchiveFileSet
-import org.apache.tools.ant.types.EnumeratedAttribute
-import org.apache.tools.ant.types.ZipFileSet
-import org.apache.tools.bzip2.CBZip2OutputStream
 
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermissions
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipInputStream
@@ -71,12 +72,21 @@ class TestFileHelper {
             return
         }
 
-        def unzip = new Expand()
-        unzip.src = file
-        unzip.dest = target
-
-        unzip.project = new Project()
-        unzip.execute()
+        target.mkdirs()
+        file.withInputStream { InputStream instr ->
+            new ZipInputStream(instr).withCloseable { ZipInputStream zipStr ->
+                def entry
+                while (entry = zipStr.nextEntry) {
+                    def outFile = safeChild(target, entry.name)
+                    if (entry.directory) {
+                        outFile.mkdirs()
+                    } else {
+                        outFile.parentFile.mkdirs()
+                        outFile.withOutputStream { os -> os << zipStr }
+                    }
+                }
+            }
+        }
     }
 
     void untarTo(File target, boolean nativeTools) {
@@ -90,22 +100,45 @@ class TestFileHelper {
             return
         }
 
-        def untar = new Untar()
-        untar.setSrc(file)
-        untar.setDest(target)
-
-        if (file.name.endsWith(".tgz")) {
-            def method = new Untar.UntarCompressionMethod()
-            method.value = "gzip"
-            untar.compression = method
-        } else if (file.name.endsWith(".tbz2")) {
-            def method = new Untar.UntarCompressionMethod()
-            method.value = "bzip2"
-            untar.compression = method
+        target.mkdirs()
+        file.withInputStream { InputStream instr ->
+            InputStream stream = getInputStreamForFile(instr)
+            new TarArchiveInputStream(stream).withCloseable { TarArchiveInputStream tarIn ->
+                TarArchiveEntry entry
+                while ((entry = tarIn.nextEntry) != null) {
+                    def outFile = safeChild(target, entry.name)
+                    if (entry.directory) {
+                        outFile.mkdirs()
+                    } else {
+                        outFile.parentFile.mkdirs()
+                        outFile.withOutputStream { os -> os << tarIn }
+                    }
+                }
+            }
         }
+    }
 
-        untar.project = new Project()
-        untar.execute()
+    /**
+     * Resolves an archive entry name against the target directory and verifies the result stays
+     * within it. Defends against zip/tar slip when extracting maliciously crafted archives.
+     */
+    private static File safeChild(File target, String entryName) {
+        Path targetPath = target.toPath().toAbsolutePath().normalize()
+        Path resolved = targetPath.resolve(entryName).normalize()
+        if (!resolved.startsWith(targetPath)) {
+            throw new IOException("Archive entry '${entryName}' resolves outside of the target directory: ${target.absolutePath}")
+        }
+        return resolved.toFile()
+    }
+
+    private InputStream getInputStreamForFile(InputStream instr) {
+        if (file.name.endsWith(".tgz")) {
+            return new GzipCompressorInputStream(instr)
+        }
+        if (file.name.endsWith(".tbz2")) {
+            return new BZip2CompressorInputStream(instr)
+        }
+        return instr
     }
 
     String getPermissions() {
@@ -202,77 +235,66 @@ class TestFileHelper {
     }
 
     void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {
+        ensureParentDir(zipFile)
         if (nativeTools && !isWindows()) {
             def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
-            Zip zip = new Zip()
-            zip.setProject(new Project())
-            setSourceDirectory(zip, readOnly)
-            zip.setDestFile(zipFile)
-            def whenEmpty = new Zip.WhenEmpty()
-            whenEmpty.setValue("create")
-            zip.setWhenempty(whenEmpty)
-            zip.execute()
-        }
-    }
-
-    private void setSourceDirectory(archiveTask, boolean readOnly) {
-        if (readOnly) {
-            ArchiveFileSet archiveFileSet = archiveTask instanceof Zip ? new ZipFileSet() : archiveTask.createTarFileSet()
-            archiveFileSet.setDir(file)
-            archiveFileSet.setFileMode("0444")
-            archiveFileSet.setDirMode("0555")
-            archiveTask.add(archiveFileSet)
-        } else {
-            archiveTask.setBasedir(file)
+            zipFile.withOutputStream { os ->
+                new ZipArchiveOutputStream(os).withCloseable { zos ->
+                    addDirContentsToZip(zos, file, "", readOnly)
+                }
+            }
         }
     }
 
     void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
         //TODO: there is an inconsistency here; when using native tools the root folder is put into the TAR, but only its content is packaged by the other branch
         // for example if we put an empty folder into the TAR, then native tools will insert an entry with an empty directory, while the other branch will insert no entries
+        ensureParentDir(tarFile)
         if (nativeTools && !isWindows()) {
             def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
-            Tar tar = new Tar()
-            tar.setProject(new Project())
-            setSourceDirectory(tar, readOnly)
-            tar.setDestFile(tarFile)
-            tar.execute()
+            tarFile.withOutputStream { os ->
+                writeTar(os, readOnly)
+            }
         }
     }
 
     void tgzTo(TestFile tarFile, boolean readOnly) {
-        Tar tar = new Tar()
-        tar.setProject(new Project())
-        setSourceDirectory(tar, readOnly)
-        tar.setDestFile(tarFile)
-        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"))
-        tar.execute()
+        ensureParentDir(tarFile)
+        tarFile.withOutputStream { os ->
+            new GzipCompressorOutputStream(os).withCloseable { gz ->
+                writeTar(gz, readOnly)
+            }
+        }
     }
 
     void tbzTo(TestFile tarFile, boolean readOnly) {
-        Tar tar = new Tar()
-        tar.setProject(new Project())
-        setSourceDirectory(tar, readOnly)
-        tar.setDestFile(tarFile)
-        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"))
-        tar.execute()
+        ensureParentDir(tarFile)
+        tarFile.withOutputStream { os ->
+            new BZip2CompressorOutputStream(os).withCloseable { bz ->
+                writeTar(bz, readOnly)
+            }
+        }
     }
 
     void bzip2To(TestFile compressedFile) {
-        def outStr = new FileOutputStream(compressedFile)
-        try {
-            outStr.write('BZ'.getBytes("us-ascii"))
-            def zipStream = new CBZip2OutputStream(outStr)
-            zipStream.bytes = file.bytes
-            zipStream.close()
-        } finally {
-            outStr.close()
+        ensureParentDir(compressedFile)
+        compressedFile.withOutputStream { os ->
+            new BZip2CompressorOutputStream(os).withCloseable { bz ->
+                file.withInputStream { is -> bz << is }
+            }
+        }
+    }
+
+    private static void ensureParentDir(File output) {
+        File parent = output.parentFile
+        if (parent != null) {
+            parent.mkdirs()
         }
     }
 
@@ -282,6 +304,71 @@ class TestFileHelper {
             outStr.bytes = file.bytes
         } finally {
             outStr.close()
+        }
+    }
+
+    private void writeTar(OutputStream out, boolean readOnly) {
+        new TarArchiveOutputStream(out).withCloseable { TarArchiveOutputStream tos ->
+            tos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU)
+            addDirContentsToTar(tos, file, "", readOnly)
+        }
+    }
+
+    private static void addDirContentsToZip(ZipArchiveOutputStream zos, File dir, String prefix, boolean readOnly) {
+        File[] children = dir.listFiles()
+        if (children == null) {
+            return
+        }
+        Arrays.sort(children)
+        for (File child : children) {
+            String name = prefix + child.name
+            if (child.isDirectory()) {
+                String dirName = name + "/"
+                ZipArchiveEntry entry = new ZipArchiveEntry(child, dirName)
+                if (readOnly) {
+                    entry.setUnixMode(0555)
+                }
+                zos.putArchiveEntry(entry)
+                zos.closeArchiveEntry()
+                addDirContentsToZip(zos, child, dirName, readOnly)
+            } else {
+                ZipArchiveEntry entry = new ZipArchiveEntry(child, name)
+                if (readOnly) {
+                    entry.setUnixMode(0444)
+                }
+                zos.putArchiveEntry(entry)
+                child.withInputStream { is -> zos << is }
+                zos.closeArchiveEntry()
+            }
+        }
+    }
+
+    private static void addDirContentsToTar(TarArchiveOutputStream tos, File dir, String prefix, boolean readOnly) {
+        File[] children = dir.listFiles()
+        if (children == null) {
+            return
+        }
+        Arrays.sort(children)
+        for (File child : children) {
+            String name = prefix + child.name
+            if (child.isDirectory()) {
+                String dirName = name + "/"
+                TarArchiveEntry entry = new TarArchiveEntry(child, dirName)
+                if (readOnly) {
+                    entry.setMode(0555)
+                }
+                tos.putArchiveEntry(entry)
+                tos.closeArchiveEntry()
+                addDirContentsToTar(tos, child, dirName, readOnly)
+            } else {
+                TarArchiveEntry entry = new TarArchiveEntry(child, name)
+                if (readOnly) {
+                    entry.setMode(0444)
+                }
+                tos.putArchiveEntry(entry)
+                child.withInputStream { is -> tos << is }
+                tos.closeArchiveEntry()
+            }
         }
     }
 

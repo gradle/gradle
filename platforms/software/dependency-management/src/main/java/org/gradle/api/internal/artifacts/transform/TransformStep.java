@@ -21,6 +21,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -42,14 +43,14 @@ import java.io.File;
 public class TransformStep implements TaskDependencyContainer, Describable {
     private final Transform transform;
     private final TransformInvocationFactory transformInvocationFactory;
-    private final ProjectInternal owningProject;
+    private final @Nullable ProjectState owningProject;
     private final InputFingerprinter globalInputFingerprinter;
 
     public TransformStep(Transform transform, TransformInvocationFactory transformInvocationFactory, DomainObjectContext owner, InputFingerprinter globalInputFingerprinter) {
         this.transform = transform;
         this.transformInvocationFactory = transformInvocationFactory;
         this.globalInputFingerprinter = globalInputFingerprinter;
-        this.owningProject = owner.getProject();
+        this.owningProject = owner.getProjectState();
     }
 
     public Transform getTransform() {
@@ -58,7 +59,10 @@ public class TransformStep implements TaskDependencyContainer, Describable {
 
     @Nullable
     public ProjectInternal getOwningProject() {
-        return owningProject;
+        if (owningProject != null) {
+            return owningProject.getMutableModel();
+        }
+        return null;
     }
 
     public Deferrable<Try<TransformStepSubject>> createInvocation(TransformStepSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {

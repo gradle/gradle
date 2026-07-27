@@ -13,8 +13,8 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.core)
     implementation(projects.daemonServerWorker)
+    implementation(projects.fileCollections)
     implementation(projects.logging)
     implementation(libs.guava)
     implementation(libs.commonsIo)

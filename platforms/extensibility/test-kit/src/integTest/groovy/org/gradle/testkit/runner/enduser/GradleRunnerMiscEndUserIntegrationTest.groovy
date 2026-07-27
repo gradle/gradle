@@ -18,7 +18,7 @@ package org.gradle.testkit.runner.enduser
 
 import groovy.io.FileType
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.internal.GFileUtils
@@ -27,7 +27,7 @@ import org.intellij.lang.annotations.Language
 /**
  * Miscellaneous usage scenarios that don't have more specific homes.
  */
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest implements TestKitDependencyBlock {
 
     def setup() {

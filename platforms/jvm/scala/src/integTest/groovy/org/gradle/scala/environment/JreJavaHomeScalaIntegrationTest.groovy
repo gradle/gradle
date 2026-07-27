@@ -22,15 +22,17 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 @TargetCoverage({ScalaCoverage.SUPPORTED_BY_JDK})
 class JreJavaHomeScalaIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Requires(value = [
-        IntegTestPreconditions.BestJreAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
+        InstalledJdkTestPreconditions.BestJreAvailable,
+        TestExecutionPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with a JRE")
     def "scala java cross compilation works when JAVA_HOME is set to JRE"() {
         given:
@@ -62,7 +64,7 @@ class JreJavaHomeScalaIntegrationTest extends MultiVersionIntegrationSpec {
         scalaClassFile("org/test/ScalaClazz.class").exists()
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "scala compilation works when gradle is started with no java_home defined"() {
         given:
         writeScalaTestSource("src/main/scala");

@@ -1,0 +1,20 @@
+// tag::incremental-task[]
+class IncrementalReverseTask extends DefaultTask {
+
+    @Incremental
+    @InputDirectory
+    def File inputDir
+
+    @OutputDirectory
+    def File outputDir
+
+    @Input
+    def inputProperty // File input property
+
+    @TaskAction
+    void execute(InputChanges inputs) { // InputChanges parameter
+        println inputs.incremental ? "CHANGED inputs are out of date"
+                                   : "ALL inputs are out of date"
+    }
+}
+// end::incremental-task[]

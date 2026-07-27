@@ -36,6 +36,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.security.internal.EmptyPublicKeyService;
 import org.gradle.security.internal.Fingerprint;
+import org.gradle.security.internal.InvalidSignatureFileException;
 import org.gradle.security.internal.PublicKeyDownloadService;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
@@ -132,7 +133,14 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
 
         @Override
         public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder result) {
-            PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
+            PGPSignatureList pgpSignatures;
+            try {
+                pgpSignatures = SecuritySupport.readSignatures(signature);
+            } catch (InvalidSignatureFileException e) {
+                Throwable cause = e.getCause() != null ? e.getCause() : e;
+                result.failedToReadSignatureFile(cause.getClass().getSimpleName() + ": " + cause.getMessage());
+                return;
+            }
             if (pgpSignatures == null) {
                 result.noSignatures();
                 return;

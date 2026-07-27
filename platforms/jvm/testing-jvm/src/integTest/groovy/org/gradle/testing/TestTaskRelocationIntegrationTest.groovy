@@ -60,6 +60,7 @@ class TestTaskRelocationIntegrationTest extends AbstractProjectRelocationIntegra
         def contents = normaliseLineSeparators(projectDir.file("build/reports/tests/test/index.html").text)
         contents = contents.replaceAll(/(<a href=".*">Gradle .*?<\/a>) at [^<]+/, '$1 at [DATE]' )
         contents = contents.replaceAll(/\b\d+(\.\d+)?s\b/, "[TIME]")
+        contents = contents.replaceAll(/data-sort-value="\d+"/, 'data-sort-value="[NUM]"')
         return contents
     }
 }

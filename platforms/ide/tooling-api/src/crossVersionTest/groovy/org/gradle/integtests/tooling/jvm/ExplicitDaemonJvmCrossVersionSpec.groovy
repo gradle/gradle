@@ -23,7 +23,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.tooling.ConfigurableLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.GradleProject
@@ -53,7 +53,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
     // region Unsupported JVM
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails to run a build with unsupported java version"() {
         given:
         configureBuild(jdk.majorVersion, jdk.javaHome)
@@ -74,7 +74,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         jdk << getUnsupportedJdks()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails to fetch model with unsupported java version"() {
         given:
         configureBuild(jdk.majorVersion, jdk.javaHome)
@@ -95,7 +95,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         jdk << getUnsupportedJdks()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails to run action with unsupported java version"() {
         given:
         configureBuild(jdk.majorVersion, jdk.javaHome)
@@ -116,7 +116,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         jdk << getUnsupportedJdks()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "fails to run tests with unsupported java version"() {
         given:
         configureBuild(jdk.majorVersion, jdk.javaHome)
@@ -141,7 +141,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
     // region Deprecated JVM
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "running a build with deprecated Java versions is deprecated"() {
         given:
         def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
@@ -161,7 +161,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         assertDaemonUsedJvm(jdk.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "fetching a model with deprecated Java versions is deprecated"() {
         given:
         def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
@@ -181,7 +181,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         assertDaemonUsedJvm(jdk.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "running an action with deprecated Java versions is deprecated"() {
         given:
         def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
@@ -201,7 +201,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         javaHome.absoluteFile.getPath().startsWith(jdk.javaHome.absoluteFile.getPath())
     }
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "running tests with deprecated Java versions is deprecated"() {
         given:
         def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
@@ -226,7 +226,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
     // region Supported JVM
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "can run build with non deprecated Java versions without warning"() {
         given:
         def jdk = asJavaInfo(AvailableJavaHomes.nonDeprecatedDaemonJdk)
@@ -245,7 +245,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         assertDaemonUsedJvm(jdk.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "can fetch model with non deprecated Java versions without warning"() {
         given:
         def jdk = asJavaInfo(AvailableJavaHomes.nonDeprecatedDaemonJdk)
@@ -264,7 +264,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         assertDaemonUsedJvm(jdk.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "can run action with non deprecated Java versions without warning"() {
         given:
         def jdk = asJavaInfo(AvailableJavaHomes.nonDeprecatedDaemonJdk)
@@ -283,7 +283,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         javaHome.absoluteFile.getPath().startsWith(jdk.javaHome.absoluteFile.getPath())
     }
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "can run tests with non deprecated Java versions without warning"() {
         given:
         def jdk = asJavaInfo(AvailableJavaHomes.nonDeprecatedDaemonJdk)

@@ -50,10 +50,6 @@ public class LenientPlatformResolveMetadata implements ComponentGraphResolveMeta
         return ImmutableAttributesSchema.EMPTY;
     }
 
-    LenientPlatformResolveMetadata copyWithIds(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier);
-    }
-
     @Override
     public boolean isChanging() {
         return false;

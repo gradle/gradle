@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.junit.Rule
 
 class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
@@ -87,7 +87,7 @@ task block {
         build.waitForFailure()
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "can stop a daemon that is using a different java home"() {
         given:
         succeeds()

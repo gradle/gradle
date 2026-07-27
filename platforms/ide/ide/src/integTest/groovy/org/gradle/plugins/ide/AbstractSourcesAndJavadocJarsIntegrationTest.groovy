@@ -21,8 +21,9 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.testing.fixture.GroovyCoverage
 import org.junit.Rule
 
@@ -66,13 +67,14 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         module.allowAll()
 
         buildFile << """
-dependencies {
-    implementation 'some:module:1.0:api'
-}
-"""
+            dependencies {
+                implementation 'some:module:1.0:api'
+            }
+        """
 
         when:
         useMavenRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -81,6 +83,7 @@ dependencies {
 
         when:
         server.resetExpectations()
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -94,6 +97,7 @@ dependencies {
 
         when:
         useMavenRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -122,6 +126,7 @@ dependencies {
 
 
         then:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
     }
@@ -152,6 +157,7 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -159,6 +165,7 @@ dependencies {
 
         when:
         server.resetExpectations()
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -183,11 +190,12 @@ dependencies {
         when:
         useIvyRepo(repo)
         buildFile << """
-dependencies {
-    implementation 'some:module:1.0:api'
-    testImplementation 'some:module:1.0:tests'
-}"""
-
+            dependencies {
+                    implementation 'some:module:1.0:api'
+                    testImplementation 'some:module:1.0:tests'
+                }
+        """
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -218,6 +226,7 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -238,6 +247,7 @@ dependencies {
         module.allowAll()
 
         then:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
     }
@@ -260,6 +270,7 @@ dependencies {
         javadocArtifact.expectGetBroken()
 
         then:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
     }
@@ -276,6 +287,7 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -289,13 +301,14 @@ dependencies {
 
         when:
         buildFile << """repositories { flatDir { dir "repo" } }"""
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
-    @Requires(IntegTestPreconditions.IsDaemonExecutor)
+    @Requires(TestExecutionPreconditions.IsDaemonExecutor)
     def "does not download gradleApi() sources when sources download is disabled"() {
         given:
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
@@ -311,8 +324,9 @@ dependencies {
 
             idea.module.downloadSources = false
             eclipse.classpath.downloadSources = false
-            """
+        """
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -320,7 +334,7 @@ dependencies {
         ideFileContainsGradleApi("gradle-api")
     }
 
-    @Requires(IntegTestPreconditions.IsDaemonExecutor)
+    @Requires(TestExecutionPreconditions.IsDaemonExecutor)
     def "does not download gradleApi() sources when offline"() {
         given:
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
@@ -333,9 +347,10 @@ dependencies {
             dependencies {
                 implementation gradleApi()
             }
-            """
+        """
         when:
         args("--offline")
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -343,7 +358,7 @@ dependencies {
         ideFileContainsGradleApi("gradle-api")
     }
 
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(TestEnvironmentPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -357,9 +372,10 @@ dependencies {
             dependencies {
                 implementation localGroovy()
             }
-            """
+        """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -375,7 +391,7 @@ dependencies {
         ideFileContainsEntry("groovy-xml-${groovyVersion}.jar", ["groovy-xml-${groovyVersion}-sources.jar"], [])
     }
 
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(TestEnvironmentPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -389,9 +405,10 @@ dependencies {
             dependencies {
                 implementation gradleApi()
             }
-            """
+        """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -399,7 +416,7 @@ dependencies {
     }
 
     @Requires(
-        value = [UnitTestPreconditions.StableGroovy, IntegTestPreconditions.NotEmbeddedExecutor],
+        value = [TestEnvironmentPreconditions.StableGroovy, TestExecutionPreconditions.NotEmbeddedExecutor],
         reason = "localGroovy() version cannot be swapped-out when a snapshot Groovy build is used"
     )
     def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
@@ -415,9 +432,10 @@ dependencies {
             dependencies {
                 implementation gradleTestKit()
             }
-            """
+        """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -439,9 +457,10 @@ dependencies {
 
             idea.module.downloadSources = false
             eclipse.classpath.downloadSources = false
-            """
+        """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -460,17 +479,18 @@ dependencies {
             dependencies {
                 implementation localGroovy()
             }
-            """
+        """
 
         when:
         args("--offline")
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(TestEnvironmentPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "does not add project repository to download localGroovy() sources"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -490,6 +510,7 @@ dependencies {
         """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -558,33 +579,33 @@ dependencies {
 
     String getBaseBuildScript() {
         """
-apply plugin: "java"
-apply plugin: "idea"
-apply plugin: "eclipse"
-
-dependencies {
-    implementation("some:module:1.0")
-}
-
-idea {
-    module {
-        downloadJavadoc = true
-    }
-}
-
-eclipse {
-    classpath {
-        downloadJavadoc = true
-    }
-}
-
-task resolve {
-    def runtimeClasspath = configurations.runtimeClasspath
-    doLast {
-        runtimeClasspath.each { println it }
-    }
-}
-"""
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+            
+            dependencies {
+                implementation("some:module:1.0")
+            }
+            
+            idea {
+                module {
+                    downloadJavadoc = true
+                }
+            }
+            
+            eclipse {
+                classpath {
+                    downloadJavadoc = true
+                }
+            }
+            
+            task resolve {
+                def runtimeClasspath = configurations.runtimeClasspath
+                doLast {
+                    runtimeClasspath.each { println it }
+                }
+            }
+        """
     }
 
     abstract String getIdeTask()

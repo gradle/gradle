@@ -16,30 +16,24 @@
 
 package org.gradle.internal.operations
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Matchers
 import spock.lang.Issue
 
 class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
 
     def "produces sensible error when there are failures both enqueuing and running operations" () {
-        if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {
-            // For java.util.concurrent.CountDownLatch being serialized reflectively by configuration cache
-            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
-        }
-
-        buildFile << """
+        buildFile """
             import org.gradle.internal.operations.BuildOperationExecutor
             import org.gradle.internal.operations.RunnableBuildOperation
             import org.gradle.internal.operations.BuildOperationContext
             import org.gradle.internal.operations.BuildOperationDescriptor
             import java.util.concurrent.CountDownLatch
 
-            def startedLatch = new CountDownLatch(2)
             task causeErrors {
                 doLast {
+                    def startedLatch = new CountDownLatch(2)
                     def buildOperationExecutor = services.get(BuildOperationExecutor)
                     buildOperationExecutor.runAll { queue ->
                         queue.add(new TestOperation(startedLatch))
@@ -58,12 +52,12 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("test operation");
+                BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("test operation")
                 }
 
                 @Override
-                public void run(BuildOperationContext context) {
+                void run(BuildOperationContext context) {
                     startedLatch.countDown()
                     throw new Exception("operation failure")
                 }

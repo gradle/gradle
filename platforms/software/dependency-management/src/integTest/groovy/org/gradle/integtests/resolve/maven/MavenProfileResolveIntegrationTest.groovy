@@ -142,9 +142,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
             dependencies { compile 'groupA:artifactA:1.2' }
             task libs {
                 inputs.files(configurations.compile)
-                doLast {
-                    assert inputs.files*.name == ['artifactA-1.2.jar', 'artifactB-1.4.jar']
-                }
+                doLast { println inputs.files*.name }
             }
         """
 
@@ -158,7 +156,9 @@ dependencies { compile 'groupA:artifactA:1.2' }
         then:
         // have to run twice to trigger the failure, to parse the descriptor from the cache
         succeeds ":libs"
+        outputContains("[artifactA-1.2.jar, artifactB-1.4.jar]")
         succeeds ":libs"
+        outputContains("[artifactA-1.2.jar, artifactB-1.4.jar]")
 
         when:
         run "checkDeps"

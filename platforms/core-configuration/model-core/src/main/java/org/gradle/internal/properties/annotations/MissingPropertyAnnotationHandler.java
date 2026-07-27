@@ -17,13 +17,13 @@
 package org.gradle.internal.properties.annotations;
 
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 
 import java.util.Locale;
 
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
@@ -35,16 +35,23 @@ public interface MissingPropertyAnnotationHandler {
     MissingPropertyAnnotationHandler DO_NOTHING = (context, annotationMetadata, displayName) -> {};
 
 
-    MissingPropertyAnnotationHandler MISSING_INPUT_OUTPUT_HANDLER = (context, annotationMetadata, displayName) -> context.visitPropertyProblem(problem -> {
+    MissingPropertyAnnotationHandler MISSING_INPUT_OUTPUT_HANDLER = (context, annotationMetadata, displayName) -> context.visitPropertyError(problem -> {
         final String missingAnnotation = "MISSING_ANNOTATION";
         problem
             .forProperty(annotationMetadata.getPropertyName())
             .id(TextUtil.screamingSnakeToKebabCase(missingAnnotation), "Missing annotation", GradleCoreProblemGroup.validation().property())
             .contextualLabel("is missing " + displayName)
-            .documentedAt(userManual("validation_problems", missingAnnotation.toLowerCase(Locale.ROOT)))
-            .severity(ERROR)
-            .details("A property without annotation isn't considered during up-to-date checking")
-            .solution("Add " + displayName)
-            .solution("Mark it as @Internal");
+            .documentedAt(userManual("validation_problems", missingAnnotation.toLowerCase(Locale.ROOT)));
+        if (annotationMetadata.isAnnotationPresent(Optional.class)) {
+            problem
+                .details("@Optional is a modifier annotation and has no effect without an input or output annotation")
+                .solution("Add an input or output annotation")
+                .solution("Replace @Optional with @Internal for ignoring this property");
+        } else {
+            problem
+                .details("Properties must be annotated so that Gradle knows how to handle them during up-to-date checking")
+                .solution("Add " + displayName)
+                .solution("Mark it as @Internal");
+        }
     });
 }

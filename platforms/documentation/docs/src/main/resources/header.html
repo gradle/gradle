@@ -324,6 +324,47 @@
                 </li>
             </ul>
 
+            <h3 id="gradle-best-practices">Gradle Best Practices</h3>
+            <ul>
+                <li><a href="../userguide/best_practices.html">Introduction</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#gradle-core" aria-expanded="false" aria-controls="gradle-core">Best Practices</a>
+                    <ul id="best-practices">
+                        <li><a href="../userguide/best_practices_index.html">Best Practices Index</a></li>
+                        <li><a href="../userguide/best_practices_general.html">General Best Practices</a></li>
+                        <li><a href="../userguide/best_practices_structuring_builds.html">Best Practices for Structuring Builds</a></li>
+                        <li><a href="../userguide/best_practices_dependencies.html">Best Practices for Dependencies</a></li>
+                        <li><a href="../userguide/best_practices_tasks.html">Best Practices for Tasks</a></li>
+                        <li><a href="../userguide/best_practices_performance.html">Best Practices for Performance</a></li>
+                        <li><a href="../userguide/best_practices_security.html">Best Practices for Security</a></li>
+                        <li><a href="../userguide/best_practices_testing.html">Best Practices for Testing</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 id="gradle-dsls">Gradle DSLs and APIs</h3>
+            <ul>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#groovy-dsl" aria-expanded="false" aria-controls="groovy-dsl">Groovy</a>
+                    <ul id="groovy-dsl">
+                        <li><a href="../userguide/groovy_build_script_primer.html">Groovy DSL Primer</a></li>
+                        <li><a href="../dsl/index.html">Groovy DSL Reference</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#kotlin-dsl" aria-expanded="false" aria-controls="kotlin-dsl">Kotlin</a>
+                    <ul id="kotlin-dsl">
+                        <li><a href="../userguide/kotlin_dsl.html">Kotlin DSL Primer</a></li>
+                        <li><a href="../kotlin-dsl/index.html" target="_blank">Kotlin DSL Reference</a></li>
+                        <li><a href="../userguide/migrating_from_groovy_to_kotlin_dsl.html">Migration from Groovy</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#general-api" aria-expanded="false" aria-controls="general-api">General</a>
+                    <ul id="general-api">
+                        <li><a href="../javadoc/index.html?overview-summary.html">Java API</a></li>
+                        <li><a href="../userguide/public_apis.html">Public APIs</a></li>
+                        <li><a href="../userguide/default_script_imports.html">Default Script Imports</a></li>
+                    </ul>
+                </li>
+            </ul>
+
             <h3 id="gradle-reference">Gradle Reference</h3>
             <ul>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#gradle-core" aria-expanded="false" aria-controls="gradle-core">Runtime and Configuration</a>
@@ -338,18 +379,6 @@
                         <li><a href="../userguide/inspect.html">Build Scan</a></li>
                         <li><a href="../userguide/continuous_builds.html">Continuous Builds</a></li>
                         <li><a href="../userguide/file_system_watching.html">File System Watching</a></li>
-                    </ul>
-                </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#dsl-and-apis" aria-expanded="false" aria-controls="dsl-and-apis">DSLs and APIs</a>
-                    <ul id="dsl-topics">
-                        <li><a href="../javadoc/index.html?overview-summary.html">Java API</a></li>
-                        <li><a href="../userguide/groovy_build_script_primer.html">Groovy DSL Primer</a></li>
-                        <li><a href="../dsl/index.html">Groovy DSL</a></li>
-                        <li><a href="../userguide/kotlin_dsl.html">Kotlin DSL Primer</a></li>
-                        <li><a href="../kotlin-dsl/index.html" target="_blank">Kotlin DSL</a></li>
-                        <li><a href="../userguide/public_apis.html">Public APIs</a></li>
-                        <li><a href="../userguide/default_script_imports.html">Default Script Imports</a></li>
-                        <li><a href="../userguide/migrating_from_groovy_to_kotlin_dsl.html">Groovy to Kotlin DSL Migration</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#core-plugins-list" aria-expanded="false" aria-controls="core-plugins-list">Core Plugins</a>
@@ -478,8 +507,8 @@
                         </li>
                         <li><a class="nav-dropdown" data-toggle="collapse" href="#centralizing-dependencies" aria-expanded="false" aria-controls="centralizing-dependencies">Centralizing Dependencies</a>
                             <ul id="centralizing-dependencies">
-                                <li><a href="../userguide/platforms.html">Creating Platforms</a></li>
-                                <li><a href="../userguide/version_catalogs.html">Creating Version Catalogs</a></li>
+                                <li><a href="../userguide/platforms.html">Platforms (BOMs)</a></li>
+                                <li><a href="../userguide/version_catalogs.html">Version Catalogs</a></li>
                                 <li><a href="../userguide/centralizing_catalog_platform.html">Using Catalogs with Platforms</a></li>
                             </ul>
                         </li>
@@ -559,22 +588,23 @@
                         </li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#best-practices" aria-expanded="false" aria-controls="best-practices">Best Practices</a>
-                    <ul id="best-practices-topics">
-                        <li><a href="../userguide/best_practices.html">Introduction</a></li>
-                        <li><a href="../userguide/best_practices_index.html">Best Practices Index</a></li>
-                        <li><a href="../userguide/best_practices_general.html">General Best Practices</a></li>
-                        <li><a href="../userguide/best_practices_structuring_builds.html">Best Practices for Structuring Builds</a></li>
-                        <li><a href="../userguide/best_practices_dependencies.html">Best Practices for Dependencies</a></li>
-                        <li><a href="../userguide/best_practices_tasks.html">Best Practices for Tasks</a></li>
-                        <li><a href="../userguide/best_practices_performance.html">Best Practices for Performance</a></li>
-                        <li><a href="../userguide/best_practices_security.html">Best Practices for Security</a></li>
-                        <li><a href="../userguide/best_practices_testing.html">Best Practices for Testing</a></li>
-                    </ul>
-                </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#advanced-topics" aria-expanded="false" aria-controls="advanced-topics">Other Topics</a>
                     <ul id="advanced-topics-topics">
                         <li><a href="../userguide/ant.html">Using Ant from Gradle</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 id="gradle-on-ci">Gradle on CI</h3>
+            <ul>
+                <li><a href="../userguide/gradle_on_ci.html">Introduction</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#ci-systems" aria-expanded="false" aria-controls="ci-systems">CI/CD Systems</a>
+                    <ul id="ci-systems">
+                        <li><a href="../userguide/github-actions.html">GitHub Actions</a></li>
+                        <li><a href="../userguide/gitlab-ci.html">GitLab CI</a></li>
+                        <li><a href="../userguide/jenkins.html">Jenkins</a></li>
+                        <li><a href="../userguide/teamcity.html">TeamCity</a></li>
+                        <li><a href="../userguide/travis-ci.html">Travis CI</a></li>
                     </ul>
                 </li>
             </ul>
@@ -586,7 +616,6 @@
                 <li><a href="../userguide/sharing_build_logic_between_subprojects.html">Sharing Build Logic</a></li>
                 <li><a href="../userguide/composite_builds.html">Composite Builds</a></li>
                 <li><a href="../userguide/configuration_on_demand.html">Configuration on Demand</a></li>
-                <li><a href="../userguide/isolated_projects.html">Isolated Projects</a></li>
             </ul>
 
             <h3 id="optimizing-build-performance">Optimizing Gradle Builds</h3>
@@ -613,6 +642,7 @@
                         <li><a href="../userguide/configuration_cache_status.html">Status</a></li>
                     </ul>
                 </li>
+                <li><a href="../userguide/isolated_projects.html">Isolated Projects</a></li>
             </ul>
 
             <h3 id="securing-builds">Securing Gradle Builds</h3>
@@ -657,7 +687,6 @@
 
             <h3 id="reference">More Resources</h3>
             <ul>
-                <li><a href="../userguide/glossary.html">Glossary</a></li>
                 <li><a href="../userguide/licenses.html">Licenses</a></li>
                 <li><a href="../userguide/userguide_single.html">Single Page Version</a></li>
             </ul>

@@ -145,22 +145,19 @@ open class BuildFlowScope @Inject internal constructor(
     fun <P : FlowParameters> configureParametersFor(
         action: Class<out FlowAction<P>>,
         configure: Action<in FlowActionSpec<P>>
-    ): P? = parametersTypeOf(action)?.let { parametersType ->
-        flowParametersInstantiator.newInstance(parametersType) { parameters ->
+    ): P {
+        val parametersType: Class<P> = isolationScheme.parameterTypeFor(action)
+        return flowParametersInstantiator.newInstance(parametersType) { parameters ->
             val spec = specInstantiator.newInstance(DefaultFlowActionSpec::class.java, parameters)
             configure.execute(spec.uncheckedCast())
         }
     }
-
-    private
-    fun <P : FlowParameters, T : FlowAction<P>> parametersTypeOf(action: Class<T>): Class<P>? =
-        isolationScheme.parameterTypeForOrNull(action)
 }
 
 
 data class RegisteredFlowAction(
     val type: Class<out FlowAction<FlowParameters>>,
-    val parameters: FlowParameters?
+    val parameters: FlowParameters
 )
 
 

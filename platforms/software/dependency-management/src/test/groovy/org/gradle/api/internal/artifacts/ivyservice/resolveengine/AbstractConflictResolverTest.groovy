@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -98,6 +99,11 @@ abstract class AbstractConflictResolverTest extends Specification {
         TestComponent rejectAll() {
             constraint.rejectAll()
             this
+        }
+
+        @Override
+        CandidateModule getModule() {
+            return null
         }
 
         @Override

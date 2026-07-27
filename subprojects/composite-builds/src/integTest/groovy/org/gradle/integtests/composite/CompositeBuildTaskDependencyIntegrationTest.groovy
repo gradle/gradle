@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 /**
@@ -41,6 +42,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         includedBuilds << buildB
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "can depend on task in root project of included build"() {
         when:
         buildA.buildFile << """
@@ -56,6 +58,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can depend on task in subproject of included build"() {
         when:
         buildA.buildFile << """
@@ -71,6 +74,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can depend on multiple tasks of included build"() {
         when:
         buildA.buildFile << """
@@ -97,6 +101,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "executes tasks only once for included build"() {
         when:
         buildA.buildFile << """
@@ -120,6 +125,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can depend on task from subproject of composing build"() {
         given:
         createDirs("buildA", "buildA/a1")
@@ -153,6 +159,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "can depend on task with name in all included builds"() {
         when:
         BuildTestFile buildC = singleProjectBuild("buildC") {
@@ -174,6 +181,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildC' project ':' task ':logProject'")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "substitutes dependency of included build when executed via task dependency"() {
         given:
         buildA.buildFile << """
@@ -198,6 +206,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         executed ":buildB:b1:jar", ":buildB:jar"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "reports failure when included build does not exist for composite"() {
         when:
         buildA.buildFile << """
@@ -211,9 +220,10 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildA'.")
-        failure.assertHasCause("Included build 'does-not-exist' not found in build 'buildA'.")
+        failure.assertHasCause("Included build 'does-not-exist' not found in build ':'.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project / cross-build configuration")
     def "reports failure when task does not exist for included build"() {
         when:
         buildA.buildFile << """
@@ -230,6 +240,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         failure.assertHasCause("Task with name 'does-not-exist' not found in project ':buildB'.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "reports failure when task path is not qualified for included build"() {
         when:
         buildA.buildFile << """
@@ -246,6 +257,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         failure.assertHasCause("Task path 'logProject' is not a qualified task path (e.g. ':task' or ':project:task')")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "reports failure when task path is substring of task in included build"() {
         given:
         buildA.buildFile << """
@@ -272,6 +284,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         failure.assertHasCause("Task with name 'logP' not found in project ':buildB:b1'.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "reports failure when attempting to access included build when build is not a composite"() {
         when:
         buildB.buildFile << """
@@ -285,9 +298,10 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildB'.")
-        failure.assertHasCause("Included build 'does-not-exist' not found in build 'buildB'.")
+        failure.assertHasCause("Included build 'does-not-exist' not found in build ':'.")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
     def "included build cannot reference tasks in #scenario"() {
         when:
         BuildTestFile buildC = singleProjectBuild("buildC") {
@@ -311,7 +325,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         and:
         failure.assertHasDescription("A problem occurred evaluating project ':buildC'.")
-        failure.assertHasCause("Included build '${buildName}' not found in build 'buildC'.")
+        failure.assertHasCause("Included build '${buildName}' not found in build ':buildC'.")
 
         where:
         scenario  | buildName

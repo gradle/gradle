@@ -22,8 +22,9 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -67,7 +68,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = IntegTestPreconditions.IsConfigCached,
+        value = TestExecutionPreconditions.IsConfigCached,
         reason = "Tests the configuration cache behavior"
     )
     def "keeping agent status does not invalidate the configuration cache"() {
@@ -95,7 +96,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = IntegTestPreconditions.IsConfigCached,
+        value = TestExecutionPreconditions.IsConfigCached,
         reason = "Tests the configuration cache behavior"
     )
     def "changing agent status invalidates the configuration cache"() {
@@ -126,7 +127,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = IntegTestPreconditions.IsDaemonExecutor,
+        value = TestExecutionPreconditions.IsDaemonExecutor,
         reason = "Testing the daemons"
     )
     def "daemon with the same agent status is reused"() {
@@ -159,7 +160,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = IntegTestPreconditions.IsEmbeddedExecutor,
+        value = TestExecutionPreconditions.IsEmbeddedExecutor,
         reason = "Tests the embedded distribution"
     )
     def "daemon spawned from embedded runner has agent enabled"() {
@@ -180,7 +181,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = UnitTestPreconditions.Jdk8OrEarlier,
+        value = JdkVersionTestPreconditions.Jdk8OrEarlier,
         reason = "Java 9 and above needs --add-opens to make environment variable mutation work"
     )
     def "foreground daemon respects the feature flag"() {

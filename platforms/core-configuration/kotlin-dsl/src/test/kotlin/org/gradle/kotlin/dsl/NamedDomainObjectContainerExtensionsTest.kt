@@ -9,6 +9,7 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.support.uncheckedCast
+import org.gradle.test.fixtures.ExpectDeprecationExtension
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -263,30 +264,36 @@ class NamedDomainObjectContainerExtensionsTest {
     @Suppress("DEPRECATION")
     @Test
     fun `can create element within configuration block via delegated property`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by creating' property delegate syntax has been deprecated."
+        ) {
+            val tasks = mock<TaskContainer> {
+                on { create("hello") } doReturn mock<Task>()
+            }
 
-        val tasks = mock<TaskContainer> {
-            on { create("hello") } doReturn mock<Task>()
+            tasks {
+                @Suppress("DEPRECATION", "UnusedVariable", "unused")
+                val hello by creating
+            }
+            verify(tasks).create("hello")
         }
-
-        tasks {
-            @Suppress("UnusedPrivateProperty")
-            val hello by creating
-        }
-        verify(tasks).create("hello")
     }
 
     @Test
     fun `can get element of specific type within configuration block via delegated property`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by getting(Type::class)' property delegate syntax has been deprecated."
+        ) {
+            val task = mock<Exec>()
+            val tasks = mock<TaskContainer> {
+                on { getByName("hello") } doReturn task
+            }
 
-        val task = mock<Exec>()
-        val tasks = mock<TaskContainer> {
-            on { getByName("hello") } doReturn task
+            tasks {
+                @Suppress("DEPRECATION", "UnusedVariable", "unused")
+                val hello by getting(Exec::class)
+            }
+            verify(tasks).getByName("hello")
         }
-
-        @Suppress("UnusedPrivateProperty")
-        tasks {
-            val hello by getting(Exec::class)
-        }
-        verify(tasks).getByName("hello")
     }
 }

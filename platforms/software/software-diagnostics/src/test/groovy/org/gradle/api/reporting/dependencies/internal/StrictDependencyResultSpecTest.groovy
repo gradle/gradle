@@ -15,11 +15,19 @@
  */
 package org.gradle.api.reporting.dependencies.internal
 
+
+import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
+import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
+import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
-import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newUnresolvedDependency
 /**
  * Unit tests for <code>StrictDependencyResultSpec</code>
  */
@@ -62,4 +70,25 @@ class StrictDependencyResultSpecTest extends Specification {
     private DefaultModuleIdentifier id(String group, String name) {
         DefaultModuleIdentifier.newId(group, name)
     }
+
+    DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {
+        new DefaultResolvedDependencyResult(newSelector(group, module, version), false, newModule(), newModule(group, module, selectedVersion), Mock(ResolvedVariantResult))
+    }
+
+    DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
+        def requested = newSelector(group, module, version)
+        org.gradle.internal.Factory<String> broken = { "broken" }
+        new DefaultUnresolvedDependencyResult(requested, newModule(group, module, selectedVersion), false, new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), version), broken), ComponentSelectionReasons.requested())
+    }
+
+    private ResolvedComponentResult newModule(String group = "a", String module = "a", String version = "1") {
+        Mock(ResolvedComponentResult) {
+            getModuleVersion() >> DefaultModuleVersionIdentifier.newId(group, module, version)
+        }
+    }
+
+    static ModuleComponentSelector newSelector(String group, String module, String version) {
+        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), version)
+    }
+
 }

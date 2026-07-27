@@ -25,6 +25,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.WorkOutput
+import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.IO
@@ -103,9 +104,9 @@ class GeneratePluginSpecBuilderAccessors(
     fileCollectionFactory: FileCollectionFactory,
     inputFingerprinter: InputFingerprinter,
     workspaceProvider: KotlinDslWorkspaceProvider,
-    cachingDisabled: Boolean,
+    cachingDisabledReason: CachingDisabledReason?
 ) : AbstractStage1BlockAccessorsUnitOfWork(
-    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider, cachingDisabled
+    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider, cachingDisabledReason
 ) {
 
     override fun getDisplayName(): String = "Kotlin DSL plugin specs accessors for classpath '$classLoaderHash'"

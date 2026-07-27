@@ -33,7 +33,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         using m2
     }
 
-    @UsesSample('signing/conditional')
+    @UsesSample('integration-tests/signing/conditional')
     def "conditional signing with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -52,7 +52,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample('signing/gnupg-signatory')
+    @UsesSample('integration-tests/signing/gnupg-signatory')
     @Requires(SigningTestPreconditions.GpgAvailable)
     def "use gnupg signatory with dsl #dsl"() {
         setup:
@@ -75,7 +75,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample('signing/maven-publish')
+    @UsesSample('integration-tests/signing/maven-publish')
     def "publish attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -111,7 +111,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample('signing/in-memory')
+    @UsesSample('integration-tests/signing/in-memory')
     def "uses in-memory PGP keys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)
@@ -131,7 +131,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample('signing/in-memory-subkey')
+    @UsesSample('integration-tests/signing/in-memory-subkey')
     def "uses in-memory PGP subkeys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)

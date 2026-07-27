@@ -166,7 +166,12 @@ dependencies {
             root(':', ':testproject:') {
                 module('org.test:maven:1.0:runtime') {
                     module('org.test:ivy:1.0') {
-                        module('org.test:in-default:1.0')
+                        module('org.test:in-default:1.0') {
+                            variant("compile")
+                        }
+                        module('org.test:in-default:1.0') {
+                            variant("default")
+                        }
                         artifact(name: 'in-default')
                     }
                 }
@@ -253,7 +258,15 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
                     edge('org.test:ivy:1.0', 'org.test:ivy:1.2') {
                         forced()
                         artifact(name: 'default')
-                        module('org.test:m3:1.0')
+                        module('org.test:m3:1.0') {
+                            variant("compile")
+                        }
+                        module('org.test:m3:1.0') {
+                            variant("default")
+                        }
+                        module('org.test:m3:1.0') {
+                            variant("master")
+                        }
                     }
                 }
             }
@@ -298,7 +311,12 @@ dependencies {
                     configuration = 'compile'
                     edge('org.test:ivy:1.+', 'org.test:ivy:1.2') {
                         artifact(name: 'in-default')
-                        module('org.test:in-default:1.0')
+                        module('org.test:in-default:1.0') {
+                            variant("compile")
+                        }
+                        module('org.test:in-default:1.0') {
+                            variant("default")
+                        }
                     }
                 }
             }

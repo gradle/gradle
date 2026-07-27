@@ -27,7 +27,6 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
@@ -156,12 +155,11 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * propertyAnnotationHandler.propertyRelevant >> true
         _ * propertyAnnotationHandler.annotationType >> SearchPath
         _ * propertyAnnotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitPropertyProblem {
+            context.visitPropertyWarning {
                 it
                     .forProperty(metadata.propertyName)
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -169,12 +167,11 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
         _ * methodAnnotationHandler.annotationType >> SearchMethod
         _ * methodAnnotationHandler.validateFunctionMetadata(_, _) >> { FunctionMetadata metadata, TypeValidationContext context ->
-            context.visitTypeProblem {
+            context.visitTypeWarning {
                 it
                     .forFunction(metadata.getMethodName())
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -208,24 +205,22 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * propertyAnnotationHandler.propertyRelevant >> false
         _ * propertyAnnotationHandler.annotationType >> SearchPath
         _ * propertyAnnotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitPropertyProblem {
+            context.visitPropertyWarning {
                 it
                     .forProperty(metadata.propertyName)
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
         def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
         _ * methodAnnotationHandler.annotationType >> SearchMethod
         _ * methodAnnotationHandler.validateFunctionMetadata(_, _) >> { FunctionMetadata metadata, TypeValidationContext context ->
-            context.visitTypeProblem {
+            context.visitTypeWarning {
                 it
                     .forFunction(metadata.getMethodName())
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -248,12 +243,11 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitTypeProblem {
+            context.visitTypeWarning {
                 it
                     .withAnnotationType(type)
                     .id("test-problem", "type is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -541,7 +535,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     private List<String> collectProblems(TypeMetadata metadata) {
         def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
         metadata.visitValidationFailures(null, validationContext)
-        return validationContext.problems.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
+        return validationContext.warnings.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) } + validationContext.errors.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {

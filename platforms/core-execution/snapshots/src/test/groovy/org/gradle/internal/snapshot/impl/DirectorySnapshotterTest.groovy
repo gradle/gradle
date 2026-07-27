@@ -35,7 +35,9 @@ import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue
@@ -246,7 +248,7 @@ class DirectorySnapshotterTest extends Specification {
         ] as Set
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "symlinked directories in tree are marked as accessed via symlink"() {
         def rootDir = tmpDir.createDir("root")
         def linkTarget = tmpDir.createDir("linkTarget")
@@ -266,7 +268,7 @@ class DirectorySnapshotterTest extends Specification {
         unfilteredSubsnapshots == [snapshot]
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "symlinked directories are snapshot correctly"() {
         def rootDir = tmpDir.file("root")
         def linkTarget = tmpDir.createDir("linkTarget")
@@ -284,7 +286,7 @@ class DirectorySnapshotterTest extends Specification {
         unfilteredSubsnapshots == [snapshot]
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "symlinked directories and files can be filtered correctly"() {
         def rootDir = tmpDir.file("root")
         def linkTarget1 = tmpDir.createDir("linkTarget1")
@@ -334,7 +336,7 @@ class DirectorySnapshotterTest extends Specification {
             "included")
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "parent directories of filtered symlinked directories are marked as filtered"() {
         def rootDir = tmpDir.createDir("root")
         rootDir.createFile("included/text.txt")
@@ -368,7 +370,7 @@ class DirectorySnapshotterTest extends Specification {
         return relativePaths.collect { new File(rootDir, it).absolutePath }
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "can snapshot symlinked directories and files within another"() {
         def rootDir = tmpDir.file("root")
         def linkTarget1 = tmpDir.createDir("linkTarget1")
@@ -414,7 +416,7 @@ class DirectorySnapshotterTest extends Specification {
         unfilteredSubsnapshots == [snapshot]
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "broken symlinks are snapshotted as missing"() {
         def rootDir = tmpDir.createDir("root")
         rootDir.file('brokenSymlink').createLink("linkTarget")
@@ -445,7 +447,7 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "can snapshot a directory with cycles introduced via symlinks"() {
         def rootDir = tmpDir.createDir("root")
         def dir = rootDir.file("dir").createDir()
@@ -464,7 +466,7 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "can snapshot a directory with symlink cycle inside"() {
         def rootDir = tmpDir.createDir("root")
         def first = rootDir.file("first")
@@ -484,7 +486,7 @@ class DirectorySnapshotterTest extends Specification {
         0 * _
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "snapshotting unreadable #type fails"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -512,7 +514,7 @@ class DirectorySnapshotterTest extends Specification {
     }
 
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     @Issue("https://github.com/gradle/gradle/issues/2552")
     def "snapshotting named pipe fails"() {
         def rootDir = tmpDir.createDir("root")

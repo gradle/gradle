@@ -21,9 +21,9 @@ dependencies {
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.logging)
     integTestImplementation(projects.persistentCache)
+    integTestImplementation(testFixtures(projects.workers))
     integTestImplementation(libs.commonsCompress)
     integTestImplementation(libs.slf4jApi)
-    integTestImplementation(testLibs.jetty)
     integTestImplementation(testLibs.assertj) {
         because("Kotlin soak tests use AssertJ")
     }
@@ -36,9 +36,7 @@ tasks.register("soakTest") {
     group = "CI Lifecycle"
     dependsOn(":soak:forkingIntegTest")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
 
 errorprone {
     nullawayEnabled = true

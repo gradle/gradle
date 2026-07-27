@@ -20,21 +20,20 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.ProblemsInternal;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.features.annotations.BindsProjectFeature;
 import org.gradle.features.annotations.BindsProjectType;
-import org.gradle.api.initialization.Settings;
 import org.gradle.features.annotations.RegistersProjectFeatures;
-import org.gradle.api.internal.tasks.properties.InspectionScheme;
-import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -51,9 +50,9 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
     private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final InspectionScheme inspectionScheme;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
-    public ProjectFeatureDeclarationPluginTarget(PluginTarget delegate, ProjectFeatureDeclarations projectFeatureDeclarations, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public ProjectFeatureDeclarationPluginTarget(PluginTarget delegate, ProjectFeatureDeclarations projectFeatureDeclarations, InspectionScheme inspectionScheme, ProblemsInternal problems) {
         this.delegate = delegate;
         this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.inspectionScheme = inspectionScheme;
@@ -113,23 +112,22 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
             projectTypePluginImplMetadata.getTypeAnnotationMetadata().getAnnotation(BindsProjectFeature.class).isPresent();
 
         if (!isBinding) {
-            typeValidationContext.visitTypeProblem(problem ->
+            typeValidationContext.visitTypeError(problem ->
                 problem.withAnnotationType(projectTypePluginImplClass)
                     .id("missing-software-type", "Missing project feature annotation", GradleCoreProblemGroup.validation().type())
                     .contextualLabel("is registered as a project feature plugin but does not expose a project feature")
-                    .severity(Severity.ERROR)
                     .details("This class was registered as a project feature plugin, but it does not expose a project feature. Project feature plugins must expose at least one project feature via either a @BindsProjectType or @BindsProjectFeature annotation on the plugin class.")
                     .solution("Remove " + projectTypePluginImplClass.getSimpleName() + " from the @RegistersSoftwareTypes or @RegistersProjectFeatures annotation on " + registeringPlugin.getSimpleName())
             );
         }
 
-        if (!typeValidationContext.getProblems().isEmpty()) {
+        if (!typeValidationContext.getErrors().isEmpty()) {
             throw new DefaultMultiCauseException(
-                String.format(typeValidationContext.getProblems().size() == 1
+                String.format(typeValidationContext.getErrors().size() == 1
                         ? "A problem was found with the %s plugin."
                         : "Some problems were found with the %s plugin.",
                     projectTypePluginImplClass.getSimpleName()),
-                typeValidationContext.getProblems().stream()
+                typeValidationContext.getErrors().stream()
                     .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                     .sorted()
                     .map(InvalidUserDataException::new)

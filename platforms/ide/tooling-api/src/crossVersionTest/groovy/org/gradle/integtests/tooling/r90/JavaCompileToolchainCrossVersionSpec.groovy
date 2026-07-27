@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.JavaToolchainFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=9.0")
@@ -32,7 +32,7 @@ class JavaCompileToolchainCrossVersionSpec extends ToolingApiSpecification imple
         requireDaemons()
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given custom toolchain location using environment variable When executing compileJava task Then build used expected toolchain"() {
         given:
         file("src/main/java/Foo.java") << """class Foo { }"""

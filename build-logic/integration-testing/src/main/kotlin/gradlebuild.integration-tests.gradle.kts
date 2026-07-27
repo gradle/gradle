@@ -17,7 +17,7 @@
 import gradlebuild.basics.testing.TestType
 import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.configureIde
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.createTasks
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
@@ -53,12 +53,12 @@ configurations.named("integTestImplementation") {
 
     dependencies.apply {
         // Use a provider so we don't lookup the project when we generate accessors
-        addLater(provider { dependencyFactory.create(project.project(":internal-integ-testing")) })
+        addLater(provider { dependencyFactory.createProjectDependency(":internal-integ-testing") })
     }
 }
 
 createTasks(sourceSet, TestType.INTEGRATION)
-configureIde(sourceSet)
+configureTestSourceSetInIde(sourceSet)
 
 createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATION) {
     // This test task runs only multi-version tests and is intended to be used in the late pipeline to sweep up versions not previously tested

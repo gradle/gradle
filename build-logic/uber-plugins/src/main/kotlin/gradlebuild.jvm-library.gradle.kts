@@ -28,10 +28,11 @@ plugins {
     id("gradlebuild.test-fixtures")
     id("gradlebuild.distribution-testing")
     id("gradlebuild.incubation-report")
+    id("gradlebuild.removal-report")
     id("gradlebuild.strict-compile")
     id("gradlebuild.code-quality")
-    id("gradlebuild.arch-test")
     id("gradlebuild.integration-tests")
+    id("gradlebuild.refactoring")
     id("gradlebuild.ci-lifecycle")
     id("gradlebuild.ci-reporting") // CI: Prepare reports to be uploaded to TeamCity
     id("gradlebuild.configure-ci-artifacts") // CI: Prepare reports to be uploaded to TeamCity
@@ -57,7 +58,7 @@ configure<DependencyAnalysisSubExtension> {
             severity("fail")
         }
 
-        ignoreSourceSet("archTest", "crossVersionTest", "integTest", "jmh", "testFixtures")
+        ignoreSourceSet("crossVersionTest", "integTest", "jmh", "testFixtures")
 
     }
 }

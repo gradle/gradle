@@ -141,7 +141,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         module.offline = true
 
         when:
-        project.dependencies.add('implementation', childProject)
+        project.dependencies.add('implementation', project.getDependencyFactory().createProjectDependency(childProject.path))
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -158,7 +158,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         module.offline = true
 
         when:
-        project.dependencies.add('testImplementation', project)
+        project.dependencies.add('testImplementation', project.getDependencyFactory().createProjectDependency())
         def result = dependenciesProvider.provide(module)
 
         then:

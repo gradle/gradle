@@ -26,10 +26,13 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
+
+import javax.inject.Inject;
 
 /**
  * Default implementation of services bundle used by {@link DefaultConfiguration}.
@@ -40,6 +43,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
  * Every service, factory, or other type in this bundle <strong>must</strong> be effectively immutable.
  */
 public final class DefaultConfigurationServicesBundle implements ConfigurationServicesBundle {
+
     private final BuildOperationRunner buildOperationRunner;
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -49,24 +53,29 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final AttributesFactory attributesFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
     private final AttributeDesugaring attributeDesugaring;
     private final ResolveExceptionMapper exceptionMapper;
     private final ProviderFactory providerFactory;
+    private final ProjectLeaseRegistry projectLeaseRegistry;
 
-    public DefaultConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
-                                              ProjectStateRegistry projectStateRegistry,
-                                              CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                              ObjectFactory objectFactory,
-                                              FileCollectionFactory fileCollectionFactory,
-                                              TaskDependencyFactory taskDependencyFactory,
-                                              AttributesFactory attributesFactory,
-                                              DomainObjectCollectionFactory domainObjectCollectionFactory,
-                                              CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                              InternalProblems problems,
-                                              AttributeDesugaring attributeDesugaring,
-                                              ResolveExceptionMapper exceptionMapper,
-                                              ProviderFactory providerFactory) {
+    @Inject
+    public DefaultConfigurationServicesBundle(
+        BuildOperationRunner buildOperationRunner,
+        ProjectStateRegistry projectStateRegistry,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ObjectFactory objectFactory,
+        FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory,
+        AttributesFactory attributesFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        ProblemsInternal problems,
+        AttributeDesugaring attributeDesugaring,
+        ResolveExceptionMapper exceptionMapper,
+        ProviderFactory providerFactory,
+        ProjectLeaseRegistry projectLeaseRegistry
+    ) {
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -80,6 +89,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.attributeDesugaring = attributeDesugaring;
         this.exceptionMapper = exceptionMapper;
         this.providerFactory = providerFactory;
+        this.projectLeaseRegistry = projectLeaseRegistry;
     }
 
     @Override
@@ -128,7 +138,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     }
 
     @Override
-    public InternalProblems getProblems() {
+    public ProblemsInternal getProblems() {
         return problems;
     }
 
@@ -146,4 +156,10 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     public ProviderFactory getProviderFactory() {
         return providerFactory;
     }
+
+    @Override
+    public ProjectLeaseRegistry getProjectLeaseRegistry() {
+        return projectLeaseRegistry;
+    }
+
 }

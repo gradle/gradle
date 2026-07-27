@@ -137,7 +137,8 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         installationSuppliers.add(new WindowsInstallationSupplier(windowsRegistry, os));
 
         // Caveat: when adding new manually created services ensure to close them if required, since the service registry does not manage them
-        File rootDirectory = buildLayoutFactory.getLayoutFor(buildLayoutConfiguration).getRootDirectory();
+        // Ensure rootDirectory is absolute, as it may be relative when the Tooling API is invoked with a relative project directory
+        File rootDirectory = buildLayoutFactory.getLayoutFor(buildLayoutConfiguration).getRootDirectory().getAbsoluteFile();
         FileResolver fileResolver = new BaseDirFileResolver(rootDirectory);
         CurrentBuildPlatform currentBuildPlatform = new CurrentBuildPlatform(systemInfo, os);
         DefaultFilePropertyFactory filePropertyFactory = new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);

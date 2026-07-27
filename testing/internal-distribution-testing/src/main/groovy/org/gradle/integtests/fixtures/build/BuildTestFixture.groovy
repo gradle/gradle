@@ -49,7 +49,7 @@ class BuildTestFixture {
         this
     }
 
-    def populate(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl) {
+    def populate(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def project = buildInRootDir ? new BuildTestFile(getRootDir(), projectName) : new BuildTestFile(getRootDir().file(projectName), projectName)
         project.settingsFile << """
                     rootProject.name = '${projectName}'

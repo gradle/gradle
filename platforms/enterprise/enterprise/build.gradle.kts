@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.dependencyManagement)
     implementation(projects.files)
     implementation(projects.hashing)
+    implementation(projects.logging)
     implementation(projects.serialization)
     implementation(projects.testingBase)
 

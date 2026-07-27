@@ -213,6 +213,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         private List<PGPPublicKey> failedKeys = null;
         private List<String> ignoredKeys = null;
         private boolean hasNoSignatures = false;
+        private String corruptionError = null;
 
         private CacheEntryBuilder(long timestamp, HashCode originHash, HashCode signatureHash) {
             this.timestamp = timestamp;
@@ -264,8 +265,13 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             hasNoSignatures = true;
         }
 
+        @Override
+        public void failedToReadSignatureFile(String causeDescription) {
+            corruptionError = causeDescription;
+        }
+
         CacheEntry build() {
-            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys, hasNoSignatures);
+            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys, hasNoSignatures, corruptionError);
         }
     }
 
@@ -279,8 +285,9 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         private final List<PGPPublicKey> failedKeys;
         private final List<String> ignoredKeys;
         private final boolean hasNoSignatures;
+        private final String corruptionError;
 
-        public CacheEntry(long timestamp, HashCode originHash, HashCode signatureHash, List<String> missingKeys, List<PGPPublicKey> trustedKeys, List<PGPPublicKey> validKeys, List<PGPPublicKey> failedKeys, List<String> ignoredKeys, boolean hasNoSignatures) {
+        public CacheEntry(long timestamp, HashCode originHash, HashCode signatureHash, List<String> missingKeys, List<PGPPublicKey> trustedKeys, List<PGPPublicKey> validKeys, List<PGPPublicKey> failedKeys, List<String> ignoredKeys, boolean hasNoSignatures, String corruptionError) {
             this.timestamp = timestamp;
             this.originHash = originHash;
             this.signatureHash = signatureHash;
@@ -290,6 +297,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             this.failedKeys = failedKeys;
             this.ignoredKeys = ignoredKeys;
             this.hasNoSignatures = hasNoSignatures;
+            this.corruptionError = corruptionError;
         }
 
         void applyTo(SignatureVerificationResultBuilder builder) {
@@ -321,6 +329,9 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             if (hasNoSignatures) {
                 builder.noSignatures();
             }
+            if (corruptionError != null) {
+                builder.failedToReadSignatureFile(corruptionError);
+            }
         }
 
         public boolean updated(HashCode originHash, HashCode signatureHash) {
@@ -348,7 +359,8 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             List<PGPPublicKey> failedKeys = readKeys(decoder);
             List<String> ignoredKeys = readStringKeys(decoder);
             boolean hasNoSignatures = decoder.readBoolean();
-            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys, hasNoSignatures);
+            String corruptionError = decoder.readNullableString();
+            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys, hasNoSignatures, corruptionError);
         }
 
         private List<String> readStringKeys(Decoder decoder) throws Exception {
@@ -386,6 +398,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             writeKeys(encoder, value.failedKeys);
             writeStringKeys(encoder, value.ignoredKeys);
             encoder.writeBoolean(value.hasNoSignatures);
+            encoder.writeNullableString(value.corruptionError);
         }
 
         private void writeStringKeys(Encoder encoder, List<String> keys) throws Exception {

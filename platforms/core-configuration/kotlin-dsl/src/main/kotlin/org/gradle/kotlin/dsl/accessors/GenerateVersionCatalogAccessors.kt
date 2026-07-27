@@ -26,6 +26,7 @@ import org.gradle.initialization.DependenciesAccessors.IN_PLUGINS_BLOCK_FACTORIE
 import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.WorkOutput
+import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -70,9 +71,9 @@ class GenerateVersionCatalogAccessors(
     fileCollectionFactory: FileCollectionFactory,
     inputFingerprinter: InputFingerprinter,
     workspaceProvider: KotlinDslWorkspaceProvider,
-    cachingDisabled: Boolean,
+    cachingDisabledReason: CachingDisabledReason?,
 ) : AbstractStage1BlockAccessorsUnitOfWork(
-    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider, cachingDisabled
+    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider, cachingDisabledReason
 ) {
 
     override fun getDisplayName(): String = "Kotlin DSL version catalog plugin accessors for classpath '$classLoaderHash'"

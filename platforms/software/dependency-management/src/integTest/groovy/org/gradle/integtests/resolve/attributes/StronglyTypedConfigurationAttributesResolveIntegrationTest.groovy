@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.attributes
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -133,14 +135,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Could not resolve project ':b'.")
         failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.Integer.")
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Could not resolve project ':b'.")
         failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.Integer.")
     }
 
@@ -386,7 +388,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project :b:
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project ':b':
   - foo2
   - foo3
 All of them match the consumer attributes:
@@ -586,6 +588,7 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply additional compatibility rules when consumer does not have an opinion for attribute known to both"() {
         given:
         createDirs("a", "b")
@@ -662,6 +665,7 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "consumer can veto producers view of compatibility"() {
         given:
         createDirs("a", "b")
@@ -737,6 +741,7 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply disambiguation for attribute known to both"() {
         given:
         createDirs("a", "b")
@@ -796,6 +801,7 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply disambiguation for attribute not known to consumer"() {
         given:
         createDirs("a", "b")
@@ -1158,7 +1164,7 @@ All of them match the consumer attributes:
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
-        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Could not resolve project ':b'.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
         failure.assertHasCause("The constructor for type FlavorCompatibilityRule should be annotated with @Inject (javax.inject.Inject) for dependency injection.")
@@ -1220,7 +1226,7 @@ All of them match the consumer attributes:
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
-        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Could not resolve project ':b'.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("broken!")
     }
@@ -1294,7 +1300,7 @@ All of them match the consumer attributes:
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
-        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Could not resolve project ':b'.")
         failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
         failure.assertHasCause("The constructor for type FlavorSelectionRule should be annotated with @Inject (javax.inject.Inject) for dependency injection.")
@@ -1367,7 +1373,7 @@ All of them match the consumer attributes:
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
-        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Could not resolve project ':b'.")
         failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")
     }

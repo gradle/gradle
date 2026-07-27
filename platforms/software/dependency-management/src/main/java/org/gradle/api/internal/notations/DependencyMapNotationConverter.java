@@ -64,7 +64,7 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
             }
 
             deprecation = deprecation
-                .withAdvice("Please use single-string notation instead: \"" + suggestedNotation + "\".");
+                .withAdvice("Please use single-string notation (\"" + suggestedNotation + "\") or DependencyFactory instead.");
         }
 
         deprecation.willBecomeAnErrorInGradle10()

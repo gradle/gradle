@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -35,7 +35,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7")
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("7a9ce74cff467ca1bf60a4fcd9f05185acceda4d0f382434d393e17864262c5d")
 
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -53,6 +53,21 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradlew.bat").text.split(TextUtil.windowsLineSeparator).length > 1
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/35905')
+    def "generated wrapper script contains correct application name"() {
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+            }
+        """
+
+        when:
+        run "wrapper", "--no-validate-url"
+
+        then:
+        file("gradlew").text.contains("ksh gradlew")
+    }
+
     def "wrapper jar is small"() {
         buildFile << """
             wrapper {
@@ -65,7 +80,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 49 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 52 * 1024
     }
 
     def "wrapper jar has LICENSE file"() {
@@ -211,7 +226,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     HttpServer httpServer = new HttpServer()
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "wrapper task fails if http distribution url from command-line is invalid"() {
         given:
         def path = "/distributions/8.0-RC-5"
@@ -243,7 +258,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "wrapper task fails if file distribution url from command-line is invalid"() {
         given:
         def target = file("/distributions/8.0-rc-5")

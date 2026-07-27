@@ -30,6 +30,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.ear)
     implementation(projects.javaCompilerWorker)
+    implementation(projects.logging)
     implementation(projects.languageJava)
     implementation(projects.launcher)
     implementation(projects.loggingApi)
@@ -70,6 +71,9 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.idePlugins)
 }
 
 gradleModule {
@@ -83,15 +87,4 @@ strictCompile {
     ignoreRawTypes()
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/plugins/ide/internal/*")
-    excludePatterns.add("org/gradle/plugins/ide/eclipse/internal/*")
-    excludePatterns.add("org/gradle/plugins/ide/idea/internal/*")
-    excludePatterns.add("org/gradle/plugins/ide/eclipse/model/internal/*")
-    excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/*")
-}
-
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

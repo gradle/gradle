@@ -36,4 +36,6 @@ public interface CandidateModule {
     Collection<ComponentState> getVersions();
 
     void changeSelection(ComponentState selected);
+
+    boolean isVirtualPlatform();
 }

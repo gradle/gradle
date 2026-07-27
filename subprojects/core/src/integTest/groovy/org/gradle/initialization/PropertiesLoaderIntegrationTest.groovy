@@ -18,7 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
@@ -82,7 +82,7 @@ task printSystemProp {
         outputContains('mySystemProp=commandline')
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // needs to run Gradle from command line
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // needs to run Gradle from command line
     def "build property set on command line takes precedence over jvm args"() {
         when:
         executer.withEnvironmentVars 'GRADLE_OPTS': '-Dorg.gradle.configureondemand=true'
@@ -112,7 +112,7 @@ task printSystemProp {
         succeeds ':assertCodDisabled'
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // needs to run Gradle from command line
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // needs to run Gradle from command line
     def "system property set on command line takes precedence over jvm args"() {
         given:
         executer.withEnvironmentVars 'GRADLE_OPTS': '-DmySystemProp=jvmarg'
@@ -177,7 +177,7 @@ task printSystemProp {
         outputContains("myProp=fromEnv2")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "properties can be distributed as part of a custom Gradle installation"() {
         given:
         requireIsolatedGradleDistribution()

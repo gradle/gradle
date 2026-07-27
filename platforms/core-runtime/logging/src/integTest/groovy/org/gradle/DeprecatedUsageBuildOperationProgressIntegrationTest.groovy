@@ -19,6 +19,7 @@ package org.gradle
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 
 import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
@@ -89,7 +90,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         succeeds 't', 't2', '-I', 'init.gradle'
 
         then:
-        def initDeprecation = operations.only("Apply initialization script 'init.gradle' to build").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }.each {}
+        def initDeprecation = operations.only("Apply initialization script 'init.gradle' to build ':'").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }.each {}
         Map<String, Object> initDeprecationDetails = initDeprecation.details['deprecation'] as Map<String, Object>
         initDeprecationDetails.summary == 'Init script has been deprecated.'
         initDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')
@@ -305,6 +306,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         }
     }
 
+    @ToBeFixedForIsolatedProjects(skipBecause = "tests the default 50-capture cap, which Isolated Projects raises to 5000 so the past-cap path is never reached; IP also emits extra deprecation events that make the count unstable")
     def "collects stack traces for deprecation usages at certain limit, regardless of whether the deprecation has been encountered before for warning mode #mode"() {
         file('settings.gradle') << "rootProject.name = 'root'"
 
@@ -325,8 +327,10 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         then:
         def events = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         events.size() == 51
+        // Within the cap, the full stack is captured.
         events[0].details['deprecation'].stackTrace.length() > 0
-        events[50].details['deprecation'].stackTrace.length() == 0
+        // Past the cap, a cheaper reduced stack is captured that still resolves to the build script.
+        events[50].details['deprecation'].stackTrace.contains('build.gradle')
 
         and:
         THRESHOLD_DEFAULT_VALUE.times {
@@ -345,7 +349,8 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         mode << [WarningMode.None, WarningMode.Summary]
     }
 
-    def "collects stack traces for deprecation usages without limit for warning mode #mode"() {
+    @ToBeFixedForIsolatedProjects(skipBecause = "Isolated Projects raises the cap to 5000, so all 100 stay full and never reach the bounded path; IP also emits extra deprecation events that make the count unstable")
+    def "collects full stack traces up to the cap then bounded captures past it for warning mode #mode"() {
         file('settings.gradle') << "rootProject.name = 'root'"
 
         100.times {
@@ -369,7 +374,14 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         then:
         def events = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         events.size() == 100
-        events.every { it.details['deprecation'].stackTrace.length() > 0 }
+        // Every problem, within the cap or past it, resolves to the build script.
+        events.every { (it.details['deprecation'].stackTrace as String).contains('build.gradle') }
+
+        and:
+        // Within the cap the full stack descends past the script into the Gradle runtime; past the 50 cap the
+        // bounded capture is cut at the script, so its trace is strictly shorter.
+        def lineCount = { int i -> (events[i].details['deprecation'].stackTrace as String).readLines().count { !it.trim().isEmpty() } }
+        lineCount(99) < lineCount(0)
 
         and:
         THRESHOLD_DEFAULT_VALUE.times {

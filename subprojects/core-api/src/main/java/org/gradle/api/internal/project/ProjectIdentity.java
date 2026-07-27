@@ -119,11 +119,7 @@ public final class ProjectIdentity implements DisplayName {
         this.projectName = projectName;
 
         this.buildTreePath = computeProjectIdentityPath(buildPath, projectPath);
-
-        // TODO: This is inconsistent with DefaultProject.getDisplayName.
-        // We should change this to match that of DefaultProject.
-        String prefix = Path.ROOT.equals(buildTreePath) ? "root project" : "project";
-        this.displayName = Describables.memoize(Describables.of(prefix, buildTreePath.asString()));
+        this.displayName = computeDisplayName(buildTreePath, projectName);
     }
 
     /**
@@ -156,6 +152,33 @@ public final class ProjectIdentity implements DisplayName {
         return projectName;
     }
 
+    /**
+     * {@return the nesting level of a project in a multi-project hierarchy}
+     * Does not include the build path, so it is 0 for the root project of each build, 1 for its direct children, etc.
+     */
+    public int getProjectDepth() {
+        return projectPath.segmentCount();
+    }
+
+    /**
+     * Given a potentially relative path to a project, resolve it to an absolute path within the build,
+     * using this project as the base for resolving relative paths. This is purely a project path operation,
+     * and does not use the build path in any way.
+     *
+     * @param path a path to a project, either absolute or relative to this project
+     * @return the absolute path to the project within the build, i.e. not including the build path
+     */
+    public Path resolveProjectPath(String path) {
+        return projectPath.absolutePath(Path.path(path));
+    }
+
+    /**
+     * Returns the display name of this project in a human-readable format.
+     * <ul>
+     *     <li>For the root project: {@code root project 'projectName'}</li>
+     *     <li>For subprojects: {@code project ':identity:path:of:project'}</li>
+     * </ul>
+     */
     @Override
     public String getDisplayName() {
         return displayName.getDisplayName();
@@ -188,4 +211,11 @@ public final class ProjectIdentity implements DisplayName {
         return buildTreePath.hashCode();
     }
 
+    private static DisplayName computeDisplayName(Path buildTreePath, String projectName) {
+        return Describables.memoize(
+            Path.ROOT.equals(buildTreePath)
+                ? Describables.withTypeAndName("root project", projectName)
+                : Describables.withTypeAndName("project", buildTreePath.asString())
+        );
+    }
 }

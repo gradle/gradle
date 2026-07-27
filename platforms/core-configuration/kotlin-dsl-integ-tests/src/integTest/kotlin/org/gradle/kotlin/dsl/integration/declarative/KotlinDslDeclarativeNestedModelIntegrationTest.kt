@@ -20,6 +20,8 @@ import org.gradle.features.registration.TaskRegistrar
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.api.provider.Property
@@ -52,26 +54,29 @@ class KotlinDslDeclarativeNestedModelIntegrationTest : AbstractDeclarativeKotlin
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
                 import org.gradle.features.dsl.bindProjectType
+                import ${ProjectTypeApplyAction::class.java.name}
+                import ${ProjectFeatureApplicationContext::class.java.name}
 
                 @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
                     class Binding : ${ProjectTypeBinding::class.java.simpleName} {
                         override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
-                            builder.bindProjectType("mySoftwareType") { definition: MyExtension, model ->
-                                val services = objectFactory.newInstance(Services::class.java)
-                                services.taskRegistrar.register("printFoo") {
-                                    val nestedFoo = definition.myNested.foo
-                                    val moreNestedFoo = definition.myNested.moreNested.foo
-                                    doFirst {
-                                        println(nestedFoo.get() + ", " + moreNestedFoo.get())
-                                    }
+                            builder.bindProjectType("mySoftwareType", ApplyAction::class)
+                        }
+                    }
+
+                    abstract class ApplyAction @Inject constructor() : ${ProjectTypeApplyAction::class.java.simpleName}<MyExtension, Model> {
+                        @get:Inject
+                        abstract val taskRegistrar: ${TaskRegistrar::class.java.name}
+
+                        override fun apply(context: ${ProjectFeatureApplicationContext::class.java.simpleName}, definition: MyExtension, buildModel: Model) {
+                            taskRegistrar.register("printFoo") {
+                                val nestedFoo = definition.myNested.foo
+                                val moreNestedFoo = definition.myNested.moreNested.foo
+                                doFirst {
+                                    println(nestedFoo.get() + ", " + moreNestedFoo.get())
                                 }
                             }
-                        }
-
-                        interface Services {
-                            @get:Inject
-                            val taskRegistrar: ${TaskRegistrar::class.java.name}
                         }
                     }
 

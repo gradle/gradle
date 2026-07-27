@@ -218,6 +218,18 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "6000"
     }
 
+    def "execute without networkTimeout does not write it to properties file"() {
+        given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        !properties.containsKey(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY)
+    }
+
     def "execute with validateDistributionUrl set"() {
         given:
         wrapper.setValidateDistributionUrl(false)

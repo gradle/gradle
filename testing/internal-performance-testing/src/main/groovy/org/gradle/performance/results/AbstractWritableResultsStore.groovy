@@ -71,7 +71,7 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
      * - The old single-query form used one large OR predicate:
      *   {@code (... channel like ? ... OR teamcitybuildid in (...))}.
      * - On MySQL, that shape can trigger unstable plans (e.g. broad startTime scans).
-     * - Splitting into selective branches and joining with {@code UNION DISTINCT}
+     * - Splitting into selective branches and joining with {@code UNION ALL}
      *   gives the optimizer a more predictable path.
      *
      * Query shape produced:
@@ -82,7 +82,12 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
      *   on a single-column index when confronted with OR.
      * - Build ID branch (only when {@code teamcityBuildIds} is non-empty):
      *   {@code select <columns> from testExecution ... and teamcitybuildid in (?, ...)}
-     * - Branches are combined using {@code union distinct}.
+     * - Branches are combined using {@code union all} to avoid the temp-table
+     *   materialisation that {@code union distinct} requires before applying
+     *   {@code ORDER BY / LIMIT}. Duplicate rows (e.g. a build whose channel
+     *   also matches a pattern) are handled by callers: {@code executionsForName}
+     *   callers skip already-seen IDs in Java; {@code operationsForExecution}
+     *   callers deduplicate IDs via {@code GROUP BY} before joining testOperation.
      *
      * Parameter binding contract:
      * - This method only generates SQL text.
@@ -129,7 +134,7 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
                 where 1 = 0
                 """
         }
-        return String.join(" union distinct ", branches)
+        return String.join(" union all ", branches)
     }
 
     protected static void bindHistoryQueryParams(

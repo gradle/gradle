@@ -16,9 +16,9 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
@@ -62,17 +62,19 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createKotlinScriptClassPathProvider(
+        gradleProperties: GradleProperties,
         moduleRegistry: ModuleRegistry,
         classPathRegistry: ClassPathRegistry,
         classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-        dependencyFactory: DependencyFactoryInternal,
+        dependencyFactory: DependencyFactory,
     ) =
 
         KotlinScriptClassPathProvider(
+            gradleProperties,
             moduleRegistry,
+            dependencyFactory,
             classPathRegistry,
             classLoaderScopeRegistry.coreAndPluginsScope,
-            gradleApiJarsProviderFor(dependencyFactory),
         )
 
     @Provides

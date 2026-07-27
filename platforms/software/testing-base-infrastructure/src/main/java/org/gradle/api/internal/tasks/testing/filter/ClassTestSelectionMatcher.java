@@ -29,17 +29,32 @@ import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 /**
- * This class has two responsibilities:
+ * Class-and-method pattern matcher used by {@link TestSelectionMatcher}.
  *
+ * <p>Separates three kinds of queries:
  * <ul>
- * <li>Judge whether a test class might be included. For example, class 'org.gradle.Test' can't
- * be included by pattern 'org.apache.Test'
- * <li>Judge whether a test method is matched exactly.
+ *   <li><strong>Permissive scan-time check</strong> ({@link #mayIncludeClass(String)}) — may this
+ *       class possibly contribute tests that match the includes? Used to prune scanning; false
+ *       positives are acceptable, false negatives are not.</li>
+ *   <li><strong>Combined test-level check</strong> ({@link #matchesTest(String, String)}) — the
+ *       result of {@link #matchesIncludeTest(String, String)} ANDed with the negation of
+ *       {@link #matchesExcludeTest(String, String)}. What most callers want for a leaf test.</li>
+ *   <li><strong>Separated include / exclude queries</strong>
+ *       ({@link #matchesIncludeTest(String, String)} / {@link #matchesExcludeTest(String, String)}
+ *       / {@link #matchesExcludeClassExactly(String)}) — lets callers reason about include and exclude
+ *       semantics independently.</li>
  * </ul>
  *
- * In both cases, if the pattern starts with an upper-case letter, it will be used to match
- * the simple class name;
- * otherwise, it will be used to match the fully qualified class name.
+ * <p>Pattern interpretation:
+ * <ul>
+ *   <li>A pattern that starts with an upper-case letter matches the simple class name.</li>
+ *   <li>Otherwise, it matches the fully qualified class name.</li>
+ *   <li>{@link #matchesExcludeTest(String, String)} applies a heuristic at the class level when
+ *       method name is null, so callers that have multiple ways to match against method names
+ *       don't prematurly "accept" the test when one of the ways does not match any excludes.</li>
+ *   <li>{@link #matchesExcludeClassExactly(String)} does <em>not</em> apply the fuzzy heuristic —
+ *       pattern {@code Parent} matches {@code Parent} but not {@code Parent$Nested}.</li>
+ * </ul>
  */
 @NullMarked
 class ClassTestSelectionMatcher {
@@ -59,17 +74,43 @@ class ClassTestSelectionMatcher {
             .collect(Collectors.toList());
     }
 
-
+    /**
+     * {@return true if the given (className, methodName) pair matches the include patterns and is not excluded by the
+     * exclude patterns}
+     */
     public boolean matchesTest(String className, @Nullable String methodName) {
+        return matchesIncludeTest(className, methodName) && !matchesExcludeTest(className, methodName);
+    }
+
+    /**
+     * Returns true if the given (className, methodName) pair matches the include patterns.
+     *
+     * <p>The result is the conjunction of the build-script include patterns and the command-line
+     * include patterns. An empty include set is treated as "everything matches" (vacuously true).
+     * Exclude patterns are <strong>not</strong> consulted.</p>
+     */
+    public boolean matchesIncludeTest(String className, @Nullable String methodName) {
         return matchesPattern(buildScriptIncludePatterns, className, methodName)
-            && matchesPattern(commandLineIncludePatterns, className, methodName)
-            && !matchesExcludePattern(className, methodName);
+            && matchesPattern(commandLineIncludePatterns, className, methodName);
+    }
+
+    /**
+     * Returns true if the given (className, methodName) pair matches any exclude pattern.
+     *
+     * When methodName is null, this may still return true, even if the className matches any
+     * exclude patterns that include a method name.  This is to allow callers that have multiple
+     * ways to match method names to avoid "accepting" the test when one of the ways does not
+     * match any excludes.
+     *
+     * <p>An empty exclude set returns false. Include patterns are not consulted.</p>
+     */
+    public boolean matchesExcludeTest(String className, @Nullable String methodName) {
+        return matchesExcludePattern(className, methodName);
     }
 
     public boolean mayIncludeClass(String fullQualifiedClassName) {
         return mayIncludeClass(buildScriptIncludePatterns, fullQualifiedClassName)
-            && mayIncludeClass(commandLineIncludePatterns, fullQualifiedClassName)
-            && !mayExcludeClass(fullQualifiedClassName);
+            && mayIncludeClass(commandLineIncludePatterns, fullQualifiedClassName);
     }
 
     private boolean mayIncludeClass(List<ClassTestPattern> includePatterns, String fullQualifiedName) {
@@ -77,22 +118,6 @@ class ClassTestSelectionMatcher {
             return true;
         }
         return mayMatchClass(includePatterns, fullQualifiedName);
-    }
-
-    public boolean mayExcludeClass(String fullQualifiedName) {
-        if (buildScriptExcludePatterns.isEmpty()) {
-            return false;
-        }
-        return matchesClass(buildScriptExcludePatterns, fullQualifiedName);
-    }
-
-    private boolean matchesClass(List<ClassTestPattern> patterns, String fullQualifiedName) {
-        for (ClassTestPattern pattern : patterns) {
-            if (pattern.matchesClass(fullQualifiedName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean mayMatchClass(List<ClassTestPattern> patterns, String fullQualifiedName) {
@@ -123,6 +148,22 @@ class ClassTestSelectionMatcher {
             return true;
         }
         return matchesClassAndMethod(buildScriptExcludePatterns, className, methodName);
+    }
+
+    /**
+     * Returns true if the class name exactly matches an exclude pattern's class component.
+     *
+     * <p>Unlike {@link #matchesExcludeTest(String, String)}, this does <em>not</em> consult
+     * the fuzzy {@code mayMatchClass} heuristic: pattern {@code Parent} does not match
+     * class {@code Parent$Nested} here.</p>
+     */
+    public boolean matchesExcludeClassExactly(String className) {
+        for (ClassTestPattern pattern : buildScriptExcludePatterns) {
+            if (pattern.matchesClass(className)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean matchesClassAndMethod(List<ClassTestPattern> patterns, String className, @Nullable String methodName) {

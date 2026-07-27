@@ -33,10 +33,10 @@ data class PropertyReferenceResolution(
 data class AssignmentRecord(
     val lhs: PropertyReferenceResolution,
     val rhs: ObjectOrigin,
-    val operationId: OperationId,
+    override val operationId: OperationId,
     val assignmentMethod: AssignmentMethod,
     val originElement: LanguageTreeElement
-)
+) : IdentifiedOperation
 
 
 sealed interface AssignmentMethod {

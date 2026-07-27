@@ -55,6 +55,7 @@ import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NA
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
+@SuppressWarnings("this-escape")
 public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> implements TransformAction<T> {
 
     public interface Parameters extends TransformParameters {

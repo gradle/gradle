@@ -31,7 +31,8 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Rule
 
 import java.util.function.Consumer
@@ -151,7 +152,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     }
 
     // On Windows we can't delete a file that is open
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "#description protect against a deletion of a lock file #lockOptionsDescription"() {
         given:
         def file = tmpDir.file("lock-file.bin")
@@ -200,7 +201,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     }
 
     // On Windows we can't delete a file that is open
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "#description protect against recreating a lock file #lockOptionsDescription"() {
         given:
         def file = tmpDir.file("lock-file.bin")
@@ -256,7 +257,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         "does"      | 1                            | false           | "WITH ensure file system check flag"    | DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "lock file cannot be deleted while lock is held on Windows"() {
         given:
         def file = tmpDir.file("held.bin")

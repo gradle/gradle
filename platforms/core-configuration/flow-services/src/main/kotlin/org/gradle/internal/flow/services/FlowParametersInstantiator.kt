@@ -18,20 +18,20 @@ package org.gradle.internal.flow.services
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.flow.FlowParameters
+import org.gradle.api.internal.parameters.NoneParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblem
-import org.gradle.api.problems.internal.InternalProblemReporter
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemReporterInternal
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
-import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
@@ -47,22 +47,29 @@ class FlowParametersInstantiator(
     services: ServiceRegistry
 ) {
     fun <P : FlowParameters> newInstance(parametersType: Class<P>, configure: (P) -> Unit): P {
-        return instantiator.newInstance(parametersType).also {
-            configure(it)
-            // TODO(mlopatkin) this doesn't prevent late binding to a task output (e.g. there can be a Property in the chain that is set later).
-            validate(parametersType, it)
+        val parameters: P = if (parametersType == FlowParameters.None::class.java) {
+            @Suppress("UNCHECKED_CAST")
+            NoneParameters.singletonOf(FlowParameters.None::class.java) as P
+        } else {
+            instantiator.newInstance(parametersType)
         }
+        configure(parameters)
+        // TODO(mlopatkin) this doesn't prevent late binding to a task output (e.g. there can be a Property in the chain that is set later).
+        validate(parametersType, parameters)
+        return parameters
     }
 
     private
     fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
-        val problems = ImmutableList.builder<InternalProblem>()
+        val errors = ImmutableList.builder<ProblemInternal>()
         inspection.propertyWalker.visitProperties(
             parameters,
             object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }, problemsService) {
-                override fun recordProblem(problem: InternalProblem) {
-                    problems.add(problem)
+                override fun recordError(problem: ProblemInternal) {
+                    errors.add(problem)
                 }
+
+                override fun recordWarning(problem: ProblemInternal) = Unit
             },
             object : PropertyVisitor {
                 override fun visitServiceReference(propertyName: String, optional: Boolean, value: PropertyValue, serviceName: String?, buildServiceType: Class<out BuildService<*>>) {
@@ -73,11 +80,10 @@ class FlowParametersInstantiator(
                     value.taskDependencies.visitDependencies(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
-                                problems.add(
-                                    internalProblemReporter.internalCreate {
+                                errors.add(
+                                    problemReporterInternal.internalCreate {
                                         id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
                                         contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
-                                        severity(Severity.ERROR)
                                     }
                                 )
                             }
@@ -86,11 +92,15 @@ class FlowParametersInstantiator(
                 }
             }
         )
-        DefaultTypeValidationContext.throwOnProblemsOf(type, problems.build())
+        val builtErrors = errors.build()
+        if (builtErrors.isNotEmpty()) {
+            val exception = WorkValidationException.withSummaryForType(type, builtErrors.size)
+            throw problemReporterInternal.throwing(exception, builtErrors)
+        }
     }
 
     private
-    val internalProblemReporter: InternalProblemReporter
+    val problemReporterInternal: ProblemReporterInternal
         get() = problemsService.internalReporter
 
     private
@@ -99,7 +109,7 @@ class FlowParametersInstantiator(
     }
 
     private
-    val problemsService = services.get(InternalProblems::class.java)
+    val problemsService = services.get(ProblemsInternal::class.java)
 
     private
     val inspection by lazy {

@@ -29,7 +29,6 @@ dependencies {
     testImplementation(testFixtures(projects.maven))
 
     integTestImplementation(projects.logging)
-    integTestImplementation(testLibs.jetty)
     integTestImplementation(libs.sshdCore)
     integTestImplementation(libs.sshdScp)
     integTestImplementation(libs.sshdSftp)
@@ -47,6 +46,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

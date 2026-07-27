@@ -29,24 +29,25 @@ import org.gradle.internal.serialize.graph.readNonNull
 
 
 class InitialTransformStepNodeCodec(
-    private val transformStepNodeFactory: TransformStepNodeFactory,
-    private val buildOperationRunner: BuildOperationRunner,
-    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
-) : AbstractTransformStepNodeCodec<TransformStepNode.InitialTransformStepNode>() {
+    transformStepNodeFactory: TransformStepNodeFactory,
+    buildOperationRunner: BuildOperationRunner,
+    calculatedValueContainerFactory: CalculatedValueContainerFactory
+) : AbstractTransformStepNodeCodec<TransformStepNode.InitialTransformStepNode>(
+    transformStepNodeFactory,
+    buildOperationRunner,
+    calculatedValueContainerFactory
+) {
 
-    override suspend fun WriteContext.doEncode(value: TransformStepNode.InitialTransformStepNode) {
-        writeLong(value.transformStepNodeId)
-        write(value.targetComponentVariant)
-        write(value.sourceAttributes)
-        write(unpackTransformStep(value))
+    override suspend fun WriteContext.encodeSourceArtifact(value: TransformStepNode.InitialTransformStepNode) {
         write(value.inputArtifact)
     }
 
-    override suspend fun ReadContext.doDecode(): TransformStepNode.InitialTransformStepNode {
-        val transformStepNodeId = readLong()
-        val targetComponentVariant = readNonNull<ComponentVariantIdentifier>()
-        val sourceAttributes = readNonNull<AttributeContainer>()
-        val transformStepSpec = readNonNull<TransformStepSpec>()
+    override suspend fun ReadContext.recreate(
+        transformStepNodeId: Long,
+        targetComponentVariant: ComponentVariantIdentifier,
+        sourceAttributes: AttributeContainer,
+        transformStepSpec: TransformStepSpec
+    ): TransformStepNode.InitialTransformStepNode {
         val artifacts = readNonNull<ResolvableArtifact>()
         return transformStepNodeFactory.recreateInitial(
             transformStepNodeId,

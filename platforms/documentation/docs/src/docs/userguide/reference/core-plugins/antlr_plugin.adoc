@@ -25,8 +25,8 @@ NOTE: The ANTLR plugin supports ANTLR version 2, 3 and 4.
 To use the ANTLR plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/antlr/useAntlrPlugin/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/antlr/useAntlrPlugin/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/useAntlrPlugin/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/useAntlrPlugin/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:antlr_tasks]]
@@ -80,8 +80,8 @@ ANTLR grammar files for the given source set.
 The ANTLR plugin adds an `antlr` dependency configuration which provides the ANTLR implementation to use. The following example shows how to use ANTLR version 3.
 
 ====
-include::sample[dir="snippets/antlr/useAntlrPlugin/kotlin",files="build.gradle.kts[tags=declare-dependency]"]
-include::sample[dir="snippets/antlr/useAntlrPlugin/groovy",files="build.gradle[tags=declare-dependency]"]
+include::sample[dir="snippets/reference/core-plugins/useAntlrPlugin/kotlin",files="build.gradle.kts[tags=declare-dependency]"]
+include::sample[dir="snippets/reference/core-plugins/useAntlrPlugin/groovy",files="build.gradle[tags=declare-dependency]"]
 ====
 
 If no dependency is declared, `antlr:antlr:2.7.7` will be used as the default. To use a different ANTLR version add the appropriate dependency to the `antlr` dependency configuration as above.
@@ -120,7 +120,7 @@ The ANTLR tool is executed in a forked process. This allows fine grained control
 Setting the custom max heap size and extra arguments for ANTLR:
 
 ====
-include::sample[dir="snippets/antlr/useAntlrPlugin/kotlin",files="build.gradle.kts[tags=generate-grammar-settings]"]
-include::sample[dir="snippets/antlr/useAntlrPlugin/groovy",files="build.gradle[tags=generate-grammar-settings]"]
+include::sample[dir="snippets/reference/core-plugins/useAntlrPlugin/kotlin",files="build.gradle.kts[tags=generate-grammar-settings]"]
+include::sample[dir="snippets/reference/core-plugins/useAntlrPlugin/groovy",files="build.gradle[tags=generate-grammar-settings]"]
 ====
 

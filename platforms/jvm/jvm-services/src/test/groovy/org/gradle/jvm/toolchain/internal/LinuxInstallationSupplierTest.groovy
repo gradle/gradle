@@ -21,7 +21,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -116,7 +117,7 @@ class LinuxInstallationSupplierTest extends Specification {
         directories*.source.unique() == ["Common Linux Locations"]
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "supplies installations with symlinked candidate"() {
         given:
         def otherLocation = temporaryFolder.createDir("other")

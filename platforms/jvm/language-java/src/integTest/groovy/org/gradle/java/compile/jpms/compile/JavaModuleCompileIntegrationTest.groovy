@@ -18,7 +18,8 @@ package org.gradle.java.compile.jpms.compile
 
 import org.gradle.java.compile.jpms.AbstractJavaModuleCompileIntegrationTest
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrationTest {
 
@@ -191,7 +192,7 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
     }
 
     private static String unnamedModuleReadError(String packageName, String producer, String consumer) {
-        if (TestPrecondition.satisfied(UnitTestPreconditions.Jdk13OrEarlier)) {
+        if (TestPrecondition.satisfied(JdkVersionTestPreconditions.Jdk13OrEarlier)) {
             // bug in JDK < 14 that prints the producer (instead of the consumer) name in the error message
             "(package $packageName is declared in the unnamed module, but module $producer does not read it)"
         } else {

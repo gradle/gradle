@@ -18,9 +18,9 @@ package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.NotIsolatedProjects)
+@Requires(TestExecutionPreconditions.NotIsolatedProjects)
 class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def 'lifecycle.beforeProject is executed eagerly when getProperty accessed in Groovy DSL'() {
@@ -136,7 +136,6 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
             "group",
             "hasProperty('foo')",
             "layout",
-            "model",
             "modelRegistry",
             "normalization",
             "normalization{}",

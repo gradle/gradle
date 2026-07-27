@@ -30,6 +30,14 @@ import java.util.Map;
  * <p>
  * An important feature of extra properties extensions is that all of its properties are exposed for reading and writing via the {@link ExtensionAware}
  * object that owns the extension.
+ * <p>
+ * A project's extra properties also contain Gradle properties loaded for that project that are not mapped directly to a
+ * {@code Project} property. A value added explicitly with {@link #set(String, Object)} takes precedence over a Gradle
+ * property with the same name. Accessing the extra properties extension only searches this map; unlike
+ * {@link org.gradle.api.Project#findProperty(String)}, it does not search the project's own properties, extensions,
+ * tasks, or ancestor projects.
+ * See the <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:project_properties">
+ * project properties documentation</a> for the precedence of Gradle property sources.
  *
  * <pre class='autoTested'>
  * project.ext.set("myProp", "myValue")
@@ -160,7 +168,7 @@ public interface ExtraPropertiesExtension {
      * assert project.ext.properties.containsKey("foo")
      * assert project.ext.properties.foo == project.ext.foo
      *
-     * assert project.ext.properties.every { key, value -&gt; project.properties[key] == value }
+     * assert project.ext.properties.every { key, value -&gt; project.findProperty(key) == value }
      * </pre>
      *
      * @return All of the registered properties and their current values as a map.

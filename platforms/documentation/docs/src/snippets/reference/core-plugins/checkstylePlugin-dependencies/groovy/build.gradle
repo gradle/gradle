@@ -1,0 +1,25 @@
+plugins {
+    id 'java'
+    id 'checkstyle'
+}
+
+// tag::replace-dependency[]
+checkstyle {
+    toolVersion = '10.12.4'
+}
+
+dependencies {
+    checkstyle 'group:artifact:version'
+}
+// end::replace-dependency[]
+
+// tag::add-dependency[]
+checkstyle {
+    toolVersion = '10.12.4'
+}
+
+dependencies {
+    checkstyle "com.puppycrawl.tools:checkstyle:${checkstyle.toolVersion}"
+    checkstyle 'group:artifact:version'
+}
+// end::add-dependency[]

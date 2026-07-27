@@ -28,7 +28,7 @@ class SamplesAntlrIntegrationSpec extends AbstractSampleIntegrationTest {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("antlr/useAntlrPlugin")
+    @UsesSample("integration-tests/antlr/useAntlrPlugin")
     def "can build with dsl #dsl"() {
         given:
         TestFile projectDir = sample.dir.file(dsl)

@@ -25,11 +25,12 @@ import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 import java.nio.charset.Charset
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
     private static final EXPECTED_CAN_USE_CURRENT_PROCESS_MESSAGE  = "The current JVM process isn't compatible with build requirement"
     def tmpdir = buildContext.getTmpDir().createDir()
@@ -104,7 +105,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements 
         daemons.daemon.stops()
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "forks build with default daemon JVM args when java home from gradle properties does not match current process"() {
         def javaHome = AvailableJavaHomes.differentVersion.javaHome.canonicalFile
 
@@ -125,7 +126,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         daemons.daemon.stops()
     }
 
-    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    @Requires([InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable])
     def "forks build with default daemon JVM args when daemon jvm criteria from build properties does not match current process"() {
         def otherJdk = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJdk)
@@ -140,7 +141,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         daemons.daemon.stops()
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not fork build when java home from gradle properties matches current process"() {
         def differentVersionJdk = AvailableJavaHomes.differentVersion
         file('gradle.properties').mergeProperties("org.gradle.java.home": differentVersionJdk.javaHome.canonicalPath)
@@ -155,7 +156,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         wasNotForked()
     }
 
-    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    @Requires([InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable])
     def "does not fork build when daemon jvm criteria from build properties matches current process"() {
         def otherJdk = AvailableJavaHomes.differentVersion
 

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -55,6 +56,11 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     @Override
     public ModuleVersionIdentifier getId() {
         return id;
+    }
+
+    @Override
+    public CandidateModule getModule() {
+        return null;
     }
 
     @Nullable

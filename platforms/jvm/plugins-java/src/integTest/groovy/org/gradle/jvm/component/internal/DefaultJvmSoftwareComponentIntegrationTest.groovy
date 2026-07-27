@@ -173,7 +173,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${factoryRegistrationKotlin()}
 
             sourceSets {
-                val custom by registering
+                register("custom")
             }
 
             components {

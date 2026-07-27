@@ -56,13 +56,12 @@ trait ArtifactTransformTestFixture extends VariantAwareDependencyResolutionTestF
     }
 
     void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), Builder builder) {
-        setupBuildWithColorVariants(buildFile)
-
         buildFile << """
 import ${javax.inject.Inject.name}
 // TODO: Default imports should work for of inner classes
 import ${org.gradle.api.artifacts.transform.TransformParameters.name}
 
+${colorVariants()}
 allprojects {
     task producer(type: ${builder.producerTaskClassName}) {
         ${builder.producerConfig}
@@ -117,6 +116,8 @@ class JarProducer extends DefaultTask {
         }
     }
 }
+
+${showFileCollectionTask()}
 """
         taskTypeWithOutputFileProperty(buildFile)
         taskTypeWithOutputDirectoryProperty(buildFile)

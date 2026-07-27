@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts.transform;
 
+import org.gradle.api.internal.parameters.NoneParameters;
+
 /**
  * Marker interface for parameter objects to {@link TransformAction}s.
  *
@@ -41,11 +43,12 @@ public interface TransformParameters {
     /**
      * Used for {@link TransformAction}s without parameters.
      *
-     * <p>When {@link None} is used as parameters, calling {@link TransformAction#getParameters()} throws an exception.</p>
+     * <p>When {@link None} is used as parameters, calling {@link TransformAction#getParameters()} returns the {@link #None singleton}.</p>
      *
      * @since 5.3
      */
-    final class None implements TransformParameters {
-        private None() {}
+    final class None extends NoneParameters implements TransformParameters {
+        private None() {
+        }
     }
 }

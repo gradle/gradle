@@ -16,7 +16,7 @@
 
 package org.gradle.initialization
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -32,7 +32,7 @@ class BuildOperationSettingsProcessorTest extends Specification {
     def settingsLocation = Mock(SettingsLocation)
     def buildOperationScriptPlugin = new BuildOperationSettingsProcessor(settingsProcessor, buildOperationRunner)
     def classLoaderScope = Mock(ClassLoaderScope)
-    def startParameter = Mock(StartParameter)
+    def startParameter = Mock(StartParameterInternal)
     def state = Mock(SettingsState)
     def settingsInternal = Mock(SettingsInternal)
     def rootDir = new File("root")

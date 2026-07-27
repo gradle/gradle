@@ -48,6 +48,7 @@ import javax.inject.Inject;
  *
  * @since 7.5
  */
+@SuppressWarnings("this-escape")
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class AbstractConfigurationReportTask extends DefaultTask implements Reporting<ConfigurationReports> {
@@ -60,6 +61,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
 
     protected abstract AbstractConfigurationReportSpec buildReportSpec();
 
+    @SuppressWarnings("this-escape")
     public AbstractConfigurationReportTask() {
         reports = getObjectFactory().newInstance(ConfigurationReportsImpl.class);
     }

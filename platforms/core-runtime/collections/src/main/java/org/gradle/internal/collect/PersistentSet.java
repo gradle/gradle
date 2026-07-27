@@ -168,9 +168,9 @@ public interface PersistentSet<K> extends Iterable<K> {
     /// Returns whether `predicate(key) == true` for no keys in this set.
     boolean noneMatch(Predicate<? super K> predicate);
 
-    @SuppressWarnings("unchecked")
     /// Copies the keys of this set into an array of the same runtime type as `a`,
     /// returning the new array when `a` is too small and filling `a` otherwise.
+    @SuppressWarnings("unchecked")
     default <T> T[] toArray(T[] a) {
         int size = size();
         if (a.length < size) {

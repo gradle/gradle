@@ -111,7 +111,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         def expectedUsagesMsg
         if (role == 'canBeResolved = false') {
             expectedUsagesMsg = """\tConsumable - this configuration can be selected by another project as a dependency
-    \tDeclarable - this configuration can have dependencies added to it"""
+\tDeclarable - this configuration can have dependencies added to it"""
         } else {
             expectedUsagesMsg = "\tDeclarable - this configuration can have dependencies added to it"
         }
@@ -120,14 +120,12 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         fails 'checkState'
 
         if (!GradleContextualExecuter.isConfigCache()) {
-            failure.assertHasDescription("Execution failed for task ':checkState' (registered in build file 'build.gradle').")
+            failureDescriptionContains("Execution failed for task ':checkState' (registered in build file 'build.gradle').")
         }
         if ((method as String) in ['getResolvedConfiguration()']) {
-            failure.assertHasCause("""Method call not allowed
-  Calling configuration method '$method' is not allowed for configuration 'internal'
-    'internal' has the following permitted usage(s):
-    $expectedUsagesMsg
-    This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
+            failureCauseContains("""Calling configuration method '$method' is not allowed for configuration 'internal', which has permitted usage(s):
+$expectedUsagesMsg
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
         } else {
             failure.assertHasCause("""Resolving dependency configuration 'internal' is not allowed as it is defined as 'canBeResolved=false'.
 Instead, a resolvable ('canBeResolved=true') dependency configuration that extends 'internal' should be resolved.""")
@@ -170,7 +168,7 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
         fails 'a:check'
 
         then:
-        failure.assertHasCause "A dependency was declared on configuration 'internal' of 'project :b' but no variant with that configuration name exists."
+        failure.assertHasCause "A dependency was declared on configuration 'internal' of 'project ':b'' but no variant with that configuration name exists."
 
         where:
         role                    | code
@@ -208,7 +206,7 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
         fails 'a:check'
 
         then:
-        failure.assertHasCause """Unable to find a matching variant of project :b:
+        failure.assertHasCause """Unable to find a matching variant of project ':b':
   - No variants exist."""
 
         where:
@@ -234,7 +232,7 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
             }
 
             dependencies {
-                res project
+                res project()
             }
 
             task resolve {

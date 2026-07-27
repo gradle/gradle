@@ -39,7 +39,10 @@ enum class ProblemSeverity {
     Interrupting,
 
     /**
-     * A problem produced by a task marked as [notCompatibleWithConfigurationCache][org.gradle.api.Task.notCompatibleWithConfigurationCache].
+     * Problems that are reported to the user sometime after they are discovered,
+     * but which will not fail the build and only prevent the configuration cache from being stored.
+     *
+     * Typically produced by a task marked as [notCompatibleWithConfigurationCache][org.gradle.api.Task.notCompatibleWithConfigurationCache].
      */
     Suppressed,
 

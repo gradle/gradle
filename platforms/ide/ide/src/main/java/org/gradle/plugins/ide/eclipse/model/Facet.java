@@ -25,7 +25,10 @@ import java.util.Map;
 
 /**
  * A project facet.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public class Facet {
 
     /**

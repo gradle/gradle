@@ -26,7 +26,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("files/copy")
+    @UsesSample("integration-tests/files/copy")
     def "can archive a directory with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -54,7 +54,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("files/archivesWithBasePlugin")
+    @UsesSample("integration-tests/files/archivesWithBasePlugin")
     def "can create an archive with a convention-based name with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -82,7 +82,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("files/archives")
+    @UsesSample("integration-tests/files/archives")
     def "can unpack a ZIP file with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -101,7 +101,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("files/archives")
+    @UsesSample("integration-tests/files/archives")
     def "can unpack a part of a ZIP file with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -122,7 +122,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("files/archivesWithJavaPlugin")
+    @UsesSample("integration-tests/files/archivesWithJavaPlugin")
     def "can create an uber JAR with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -144,7 +144,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("files/sampleJavaProject")
+    @UsesSample("integration-tests/files/sampleJavaProject")
     def "can link tasks via their properties with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)

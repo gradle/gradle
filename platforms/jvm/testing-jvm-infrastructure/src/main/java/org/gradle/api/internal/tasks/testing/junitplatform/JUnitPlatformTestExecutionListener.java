@@ -255,6 +255,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             if (testIdentifier.isTest()) {
                 reportTestFailure(testIdentifier, failure);
             } else {
+                // Container-level failure (e.g. @BeforeAll threw, class init blew up, no test method
+                // ever got to run) — classify as a framework failure so the granularity bypass in
+                // TestEventLogger surfaces it even under non-default testLogging configurations
+                // that would otherwise filter the synthesized leaf. Symmetric with how
+                // JUnitTestExecutor.accept emits the analogous JUnit 4 failure.
                 TestDescriptorInternal syntheticTestDescriptor = createSyntheticTestDescriptorForContainer(testIdentifier);
                 resultProcessor.started(syntheticTestDescriptor, startEvent(getId(testIdentifier)));
                 resultProcessor.failure(syntheticTestDescriptor.getId(), TestFailure.fromTestFrameworkFailure(failure));
@@ -267,7 +272,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportTestFailure(TestIdentifier testIdentifier, Throwable failure) {
-        TestFailure testFailure = FAILURE_MAPPER.createFailure(failure);
+        TestFailure testFailure = FAILURE_MAPPER.createFailure(failure, testIdentifier.isTest());
         resultProcessor.failure(getId(testIdentifier), testFailure);
     }
 
@@ -456,6 +461,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             // If the parent is a Class, it should be safe to use its name here.
             String result = nameGetter.apply(parentDescriptor);
             return result != null ? result : JUnitPlatformSupport.UNKNOWN;
+        } else if (parentDescriptor != null) {
+            // Non-class-based test (e.g. Cucumber FileSource). Use the parent container's name
+            // (typically the relative path to the source file produced by extractClassOrResourceName)
+            // so that Build Scans and the test-retry filter receive a stable, non-empty identifier.
+            String result = nameGetter.apply(parentDescriptor);
+            return result != null && !result.isEmpty() ? result : JUnitPlatformSupport.NON_CLASS;
         } else {
             return JUnitPlatformSupport.NON_CLASS;
         }

@@ -19,14 +19,15 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.Copy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.util.internal.Resources
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
@@ -320,7 +321,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'myTar'
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31858")
+    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/31858")
     def "can choose compression method for tarTree"() {
         given:
         TestFile tar = file('tar-contents')
@@ -431,7 +432,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('build/test.zip').assertDoesNotExist()
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "does not create empty #type array on exception"() {
         given:
         def output = "test.${type.toLowerCase()}"

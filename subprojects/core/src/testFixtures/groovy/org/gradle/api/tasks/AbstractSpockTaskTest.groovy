@@ -32,6 +32,7 @@ import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
@@ -84,7 +85,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def <T extends DefaultTask> T createTask(Class<T> type, ProjectInternal project, String name) {
-        Task task = new TaskInstantiator(taskIdentityFactory, taskFactory.createChild(project, TestUtil.instantiatorFactory().decoratingLenientScheme), project).create(name, type)
+        Task task = new TaskInstantiator(taskIdentityFactory, taskFactory.createChild(project, TestUtil.instantiatorFactory().decoratingLenientScheme), project, Mock(UserCodeApplicationContext)).create(name, type)
         assert type.isAssignableFrom(task.getClass())
         return type.cast(task)
     }

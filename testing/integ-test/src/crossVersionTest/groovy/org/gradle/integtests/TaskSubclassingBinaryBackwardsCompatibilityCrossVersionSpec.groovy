@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.util.GradleVersion
 
 /**
  * Tests that task classes compiled with the current version of Gradle are compatible with previous versions.
@@ -37,6 +38,15 @@ class TaskSubclassingBinaryBackwardsCompatibilityCrossVersionSpec extends Abstra
 
         expect:
         version current withTasks 'assemble' inDirectory(file("producer")) run()
-        version previous requireDaemon() requireIsolatedDaemons() withTasks 't' run()
+        version previous requireDaemon() requireIsolatedDaemons() withTasks 't' tap {
+            if (previous.version > GradleVersion.version("9.6.0-milestone-1")) {
+                expectDocumentedDeprecationWarning(
+                    "Invocation of Task.taskDependencies at execution time has been deprecated. " +
+                    "This will fail with an error in Gradle 10. " +
+                    "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies"
+                )
+            }
+        } run()
     }
 }

@@ -20,14 +20,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 @Requires([
     // We compile and execute build-logic with Java 17
-    UnitTestPreconditions.Jdk17OrLater,
+    JdkVersionTestPreconditions.Jdk17OrLater,
     // Because of TestKit
-    IntegTestPreconditions.NotEmbeddedExecutor
+    TestExecutionPreconditions.NotEmbeddedExecutor
 ])
 class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     // Need to pin this to a specific JVM version to avoid Kotlin complaining about using a different version to Java
@@ -161,16 +162,15 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             import org.gradle.api.Project
             import org.gradle.api.plugins.BasePlugin
             import org.gradle.api.plugins.BasePluginExtension
-            import org.gradle.kotlin.dsl.*
 
             class PublishedApiTestPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
-                    val customTask by project.tasks.registering(CustomTask::class) {
-                        mapValues.set(mapOf("alma" to 1, "bela" to 2))
+                    val customTask = project.tasks.register("customTask", CustomTask::class.java) {
+                        it.mapValues.set(mapOf("alma" to 1, "bela" to 2))
                         println("Hello from plugin")
                     }
                     project.pluginManager.apply(BasePlugin::class.java)
-                    val baseExtension: BasePluginExtension = project.the()
+                    val baseExtension = project.extensions.getByType(BasePluginExtension::class.java)
                 }
             }
         """

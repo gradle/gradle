@@ -7,6 +7,7 @@ import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.test.fixtures.ExpectDeprecationExtension
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -51,228 +52,260 @@ class TaskContainerExtensionsTest {
 
     @Test
     fun `val task by registering`() {
-
-        val taskProvider = mock<TaskProvider<Task>>()
-        val tasks = mock<TaskContainer> {
-            on { register("clean") } doReturn taskProvider
-        }
-
-        tasks {
-
-            val clean by registering
-
-            inOrder(tasks, taskProvider) {
-                verify(tasks).register("clean")
-                verifyNoMoreInteractions()
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by registering' property delegate syntax has been deprecated."
+        ) {
+            val taskProvider = mock<TaskProvider<Task>>()
+            val tasks = mock<TaskContainer> {
+                on { register("clean") } doReturn taskProvider
             }
 
-            assertInferredTypeOf(
-                clean,
-                typeOf<TaskProvider<Task>>()
-            )
+            tasks {
+
+                @Suppress("DEPRECATION")
+                val clean by registering
+
+                inOrder(tasks, taskProvider) {
+                    verify(tasks).register("clean")
+                    verifyNoMoreInteractions()
+                }
+
+                assertInferredTypeOf(
+                    clean,
+                    typeOf<TaskProvider<Task>>()
+                )
+            }
         }
     }
 
     @Test
     fun `val task by registering { }`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by registering { }' property delegate syntax has been deprecated."
+        ) {
+            val taskProvider = mock<TaskProvider<Task>>()
+            val tasks = mock<TaskContainer> {
+                on { register(eq("clean"), any<Action<Task>>()) } doReturn taskProvider
+            }
 
-        val taskProvider = mock<TaskProvider<Task>>()
-        val tasks = mock<TaskContainer> {
-            on { register(eq("clean"), any<Action<Task>>()) } doReturn taskProvider
-        }
+            tasks {
 
-        tasks {
+                @Suppress("DEPRECATION")
+                val clean by registering {
+                    assertInferredTypeOf(
+                        this,
+                        typeOf<Task>()
+                    )
+                }
 
-            val clean by registering {
+                inOrder(tasks, taskProvider) {
+                    verify(tasks).register(eq("clean"), any<Action<Task>>())
+                    verifyNoMoreInteractions()
+                }
+
                 assertInferredTypeOf(
-                    this,
-                    typeOf<Task>()
+                    clean,
+                    typeOf<TaskProvider<Task>>()
                 )
             }
-
-            inOrder(tasks, taskProvider) {
-                verify(tasks).register(eq("clean"), any<Action<Task>>())
-                verifyNoMoreInteractions()
-            }
-
-            assertInferredTypeOf(
-                clean,
-                typeOf<TaskProvider<Task>>()
-            )
         }
     }
 
     @Test
     fun `val task by registering(type)`() {
-
-        val taskProvider = mockTaskProviderFor(mock<Delete>())
-        val tasks = mock<TaskContainer> {
-            on { register("clean", Delete::class.java) } doReturn taskProvider
-        }
-
-        tasks {
-
-            val clean by registering(Delete::class)
-
-            inOrder(tasks, taskProvider) {
-                verify(tasks).register("clean", Delete::class.java)
-                verifyNoMoreInteractions()
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by registering(Type::class)' property delegate syntax has been deprecated."
+        ) {
+            val taskProvider = mockTaskProviderFor(mock<Delete>())
+            val tasks = mock<TaskContainer> {
+                on { register("clean", Delete::class.java) } doReturn taskProvider
             }
 
-            assertInferredTypeOf(
-                clean,
-                typeOf<TaskProvider<Delete>>()
-            )
+            tasks {
+
+                @Suppress("DEPRECATION")
+                val clean by registering(Delete::class)
+
+                inOrder(tasks, taskProvider) {
+                    verify(tasks).register("clean", Delete::class.java)
+                    verifyNoMoreInteractions()
+                }
+
+                assertInferredTypeOf(
+                    clean,
+                    typeOf<TaskProvider<Delete>>()
+                )
+            }
         }
     }
 
     @Test
     fun `val task by registering(type) { }`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by registering(Type::class) { }' property delegate syntax has been deprecated."
+        ) {
+            val taskProvider = mockTaskProviderFor(mock<Delete>())
+            val tasks = mock<TaskContainer> {
+                onRegisterWithAction("clean", Delete::class, taskProvider)
+            }
 
-        val taskProvider = mockTaskProviderFor(mock<Delete>())
-        val tasks = mock<TaskContainer> {
-            onRegisterWithAction("clean", Delete::class, taskProvider)
-        }
+            tasks {
 
-        tasks {
+                @Suppress("DEPRECATION")
+                val clean by registering(Delete::class) {
+                    assertInferredTypeOf(
+                        this,
+                        typeOf<Delete>()
+                    )
+                }
 
-            val clean by registering(Delete::class) {
+                inOrder(tasks) {
+                    verify(tasks).register(eq("clean"), eq(Delete::class.java), any<Action<Delete>>())
+                    verifyNoMoreInteractions()
+                }
+
                 assertInferredTypeOf(
-                    this,
-                    typeOf<Delete>()
+                    clean,
+                    typeOf<TaskProvider<Delete>>()
                 )
             }
-
-            inOrder(tasks) {
-                verify(tasks).register(eq("clean"), eq(Delete::class.java), any<Action<Delete>>())
-                verifyNoMoreInteractions()
-            }
-
-            assertInferredTypeOf(
-                clean,
-                typeOf<TaskProvider<Delete>>()
-            )
         }
     }
 
     @Test
     fun `val task by existing { }`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by existing { }' property delegate syntax has been deprecated."
+        ) {
+            // given:
+            val taskProvider = mockTaskProviderFor(mock<Task>())
+            val tasks = mock<TaskContainer> {
+                on { named("clean") } doReturn taskProvider
+            }
 
-        // given:
-        val taskProvider = mockTaskProviderFor(mock<Task>())
-        val tasks = mock<TaskContainer> {
-            on { named("clean") } doReturn taskProvider
-        }
+            // then:
+            tasks {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val clean by existing {
+                    assertInferredTypeOf(
+                        this,
+                        typeOf<Task>()
+                    )
+                }
 
-        // then:
-        tasks {
-            // invoke syntax
-            val clean by existing {
+                inOrder(container, taskProvider) {
+                    verify(container).named("clean")
+                    verify(taskProvider).configure(any<Action<Task>>())
+                    verifyNoMoreInteractions()
+                }
+
                 assertInferredTypeOf(
-                    this,
-                    typeOf<Task>()
+                    clean,
+                    typeOf<TaskProvider<Task>>()
                 )
             }
 
-            inOrder(container, taskProvider) {
-                verify(container).named("clean")
-                verify(taskProvider).configure(any<Action<Task>>())
-                verifyNoMoreInteractions()
+            tasks.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val clean by existing {
+                }
+                assertInferredTypeOf(
+                    clean,
+                    typeOf<TaskProvider<Task>>()
+                )
             }
-
-            assertInferredTypeOf(
-                clean,
-                typeOf<TaskProvider<Task>>()
-            )
-        }
-
-        tasks.apply {
-            // regular syntax
-            val clean by existing {
-            }
-            assertInferredTypeOf(
-                clean,
-                typeOf<TaskProvider<Task>>()
-            )
         }
     }
 
     @Test
     fun `val task by existing(type)`() {
-
-        // given:
-        val task = mock<Delete>()
-        val taskProvider = mockTaskProviderFor(task)
-        val tasks = mock<TaskContainer> {
-            on { named("clean", Delete::class.java) } doReturn taskProvider
-        }
-
-        // then:
-        tasks {
-            // invoke syntax
-            val clean by existing(Delete::class)
-
-            inOrder(container, taskProvider) {
-                verify(container).named("clean", Delete::class.java)
-                verifyNoMoreInteractions()
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by existing(Type::class)' property delegate syntax has been deprecated."
+        ) {
+            // given:
+            val task = mock<Delete>()
+            val taskProvider = mockTaskProviderFor(task)
+            val tasks = mock<TaskContainer> {
+                on { named("clean", Delete::class.java) } doReturn taskProvider
             }
 
-            assertInferredTypeOf(
-                clean,
-                typeOf<TaskProvider<Delete>>()
-            )
-        }
+            // then:
+            tasks {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val clean by existing(Delete::class)
 
-        tasks.apply {
-            // regular syntax
-            val clean by existing(Delete::class)
-            assertInferredTypeOf(
-                clean,
-                typeOf<TaskProvider<Delete>>()
-            )
+                inOrder(container, taskProvider) {
+                    verify(container).named("clean", Delete::class.java)
+                    verifyNoMoreInteractions()
+                }
+
+                assertInferredTypeOf(
+                    clean,
+                    typeOf<TaskProvider<Delete>>()
+                )
+            }
+
+            tasks.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val clean by existing(Delete::class)
+                assertInferredTypeOf(
+                    clean,
+                    typeOf<TaskProvider<Delete>>()
+                )
+            }
         }
     }
 
     @Test
     fun `task accessors can be made available via existing delegate provider`() {
-
-        // given:
-        val task = mock<Delete>()
-        val taskProvider = mockTaskProviderFor(task)
-        val tasks = mock<TaskContainer> {
-            @Suppress("unchecked_cast")
-            on { named("clean") }.thenReturn(taskProvider as TaskProvider<Task>)
-            on { named("clean", Delete::class.java) }.thenReturn(taskProvider)
-        }
-
-        // when:
-        tasks {
-
-            assertInferredTypeOf(this, typeOf<TaskContainerScope>())
-
-            val clean by existing
-            assertInferredTypeOf(clean, typeOf<TaskProvider<Task>>())
-
-            clean { // configure
-                assertInferredTypeOf(this, typeOf<Task>())
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by existing' property delegate syntax has been deprecated."
+        ) {
+            // given:
+            val task = mock<Delete>()
+            val taskProvider = mockTaskProviderFor(task)
+            val tasks = mock<TaskContainer> {
+                @Suppress("unchecked_cast")
+                on { named("clean") }.thenReturn(taskProvider as TaskProvider<Task>)
+                on { named("clean", Delete::class.java) }.thenReturn(taskProvider)
             }
 
-            existing.clean { // configure
-                assertInferredTypeOf(this, typeOf<Delete>())
-            }
-        }
+            // when:
+            tasks {
 
-        // then:
-        inOrder(tasks, taskProvider, task) {
-            verify(tasks, times(1)).named("clean")
-            verify(taskProvider, times(1)).configure(any())
-            verify(tasks, times(1)).named("clean", Delete::class.java)
-            verify(taskProvider, times(1)).configure(any())
-            verifyNoMoreInteractions()
+                assertInferredTypeOf(this, typeOf<TaskContainerScope>())
+
+                @Suppress("DEPRECATION")
+                val clean by existing
+                assertInferredTypeOf(clean, typeOf<TaskProvider<Task>>())
+
+                clean { // configure
+                    assertInferredTypeOf(this, typeOf<Task>())
+                }
+
+                @Suppress("DEPRECATION")
+                existing.clean { // configure
+                    assertInferredTypeOf(this, typeOf<Delete>())
+                }
+            }
+
+            // then:
+            inOrder(tasks, taskProvider, task) {
+                verify(tasks, times(1)).named("clean")
+                verify(taskProvider, times(1)).configure(any())
+                verify(tasks, times(1)).named("clean", Delete::class.java)
+                verify(taskProvider, times(1)).configure(any())
+                verifyNoMoreInteractions()
+            }
         }
     }
 
     // Hypothetical task accessor
+    @Suppress("DEPRECATION")
     private
     val ExistingDomainObjectDelegateProvider<out TaskContainer>.clean: TaskProvider<Delete>
         get() = delegateProvider.named<Delete>("clean")

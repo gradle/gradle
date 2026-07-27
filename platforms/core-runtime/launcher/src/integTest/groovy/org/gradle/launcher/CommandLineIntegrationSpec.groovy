@@ -23,20 +23,21 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Timeout
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "reasonable failure message when --max-workers=#value"() {
         when:
         executer.withArgument("--max-workers=$value")
@@ -66,7 +67,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21695")
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "can debug with org.gradle.debug=true"() {
         given:
         Assume.assumeTrue(debugPortIsFree())
@@ -87,7 +88,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
@@ -115,7 +116,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()
 
-        def jdwpHost = nonLoopbackAddress()
+        def jdwpHost = JDWPUtil.nonLoopbackAddress()
         Assume.assumeNotNull(jdwpHost)
         jdwpClient.host = jdwpHost
 
@@ -146,12 +147,12 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "can debug on explicitly any host"() {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()
 
-        def address = nonLoopbackAddress()
+        def address = JDWPUtil.nonLoopbackAddress()
         Assume.assumeNotNull(address)
         jdwpClient.host = address
 
@@ -167,16 +168,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         cleanup:
         jdwpClient.close()
-    }
-
-    private static String nonLoopbackAddress() {
-        println("Looking at network interfaces")
-        def address = Collections.list(NetworkInterface.getNetworkInterfaces())
-            .collectMany { it.isLoopback() ? [] : Collections.list(it.inetAddresses) }
-            .find { it instanceof Inet4Address && !it.isLoopbackAddress() }
-            .hostAddress
-        println("using address=$address")
-        return address
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
@@ -197,7 +188,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @Flaky(because = "Sometimes it hangs for hours")
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Timeout(30)
     def "can debug with org.gradle.debug.server=false"() {
         given:
@@ -220,7 +211,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Timeout(30)
     def "can debug with org.gradle.debug.suspend=false"() {
         given:

@@ -48,6 +48,9 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
 }
 
 gradleModule {
@@ -64,24 +67,15 @@ gradleModule {
 // TODO Find a way to not register this and the task instead
 configurations.remove(configurations.apiStubElements.get())
 
-val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath.from(sourceSets.main.map { it.runtimeClasspath })
-    outputFile = layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt")
+val runtimeApiInfoDir = layout.buildDirectory.dir("generated-resources/runtime-api-info")
+val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
+    classpath.from(configurations.runtimeClasspath.get())
+    outputFile = runtimeApiInfoDir.map { it.file("org/gradle/api/internal/runtimeshaded/test-kit-relocated.txt") }
 }
-tasks.jar {
-    into("org/gradle/api/internal/runtimeshaded") {
-        from(generateTestKitPackageList)
-    }
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/testkit/runner/internal/**")
+sourceSets.main {
+    resources.srcDir(files(runtimeApiInfoDir) { builtBy(generateTestKitPackageList) })
 }
 
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -22,12 +22,12 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
-@Requires(IntegTestPreconditions.MoreThanOneJava8HomeAvailable)
+@Requires(InstalledJdkTestPreconditions.MoreThanOneJava8HomeAvailable)
 class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest implements JavaToolchainFixture {
 
     def setup() {

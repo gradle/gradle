@@ -18,7 +18,8 @@ package org.gradle.internal.hash
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
@@ -40,7 +41,7 @@ final class DefaultFileHasherTest extends Specification {
         TextUtil.normaliseFileSeparators(e.message) == "Failed to create MD5 hash for file: ${TextUtil.normaliseFileSeparators(file.absolutePath)} ($explanation)"
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "can't hash unreadable file"() {
         given:
         def file = new File(tempDir, "unreadable.txt")

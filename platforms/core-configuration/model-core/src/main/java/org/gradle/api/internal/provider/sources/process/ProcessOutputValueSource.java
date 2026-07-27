@@ -97,6 +97,7 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
     private final ExecOperations execOperations;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public ProcessOutputValueSource(ExecOperations execOperations) {
         this.execOperations = execOperations;
 

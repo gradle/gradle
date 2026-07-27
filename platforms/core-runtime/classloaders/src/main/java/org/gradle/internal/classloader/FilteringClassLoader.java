@@ -89,22 +89,24 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        if (classAllowed(name)) {
+            // Class is in our allowed set — super.loadClass() handles parent delegation
+            // (which includes the platform classloader), so no need to try EXT_CLASS_LOADER separately
+            Class<?> cl = super.loadClass(name, false);
+            if (resolve) {
+                resolveClass(cl);
+            }
+            return cl;
+        }
+
+        // Not in allowed set — check if it's a system/platform class
         try {
             return EXT_CLASS_LOADER.loadClass(name);
         } catch (ClassNotFoundException ignore) {
             // ignore
         }
 
-        if (!classAllowed(name)) {
-            throw new ClassNotFoundException(name + " not found.");
-        }
-
-        Class<?> cl = super.loadClass(name, false);
-        if (resolve) {
-            resolveClass(cl);
-        }
-
-        return cl;
+        throw new ClassNotFoundExceptionNoStackTrace(name + " not found.");
     }
 
     @Nullable

@@ -19,8 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.plugins.quality.internal.CodeNarcAction;
 import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
+import org.gradle.api.plugins.quality.internal.CodeNarcInvoker;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
@@ -60,6 +60,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
 
     private final CodeNarcReports reports;
 
+    @SuppressWarnings("this-escape")
     public CodeNarc() {
         super();
         reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
@@ -97,7 +98,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     @TaskAction
     public void run() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> configureForkOptions(spec.getForkOptions()));
-        workQueue.submit(CodeNarcAction.class, this::setupParameters);
+        workQueue.submit(CodeNarcInvoker.class, this::setupParameters);
     }
 
     private void setupParameters(CodeNarcActionParameters parameters) {

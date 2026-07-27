@@ -20,7 +20,25 @@ class DetektPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'io.gitlab.arturbosch.detekt': TestedVersions.detekt
+            'dev.detekt': TestedVersions.detekt
+        ]
+    }
+
+    @Override
+    Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
+        // detekt 2.x requires the Kotlin Gradle plugin to be applied by the project under test.
+        ['org.jetbrains.kotlin.jvm': KOTLIN_VERSIONS.latestStable]
+    }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "detekt {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [
+            parentMethodInvocationDeprecation('detekt'),
         ]
     }
 }

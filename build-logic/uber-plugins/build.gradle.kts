@@ -9,9 +9,11 @@ dependencies {
     implementation("gradlebuild:module-identity")
     implementation("gradlebuild:publishing")
 
+    implementation(projects.buildUpdateUtils)
     implementation(projects.buildquality)
     implementation(projects.cleanup)
     implementation(projects.dependencyModules)
+    implementation(projects.integrationTesting)
     implementation(projects.jvm)
     implementation(projects.packaging)
     implementation(projects.profiling)

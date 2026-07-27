@@ -15,7 +15,6 @@
  */
 package org.gradle.test.fixtures.server.http
 
-import javax.servlet.http.HttpServletResponse
 
 interface HttpPluginRepository {
 
@@ -24,7 +23,7 @@ interface HttpPluginRepository {
     void expectPluginMarkerBroken(String pluginId, String pluginVersion)
 
     void expectPluginMarkerQuery(String pluginId, String pluginVersion,
-                                 @DelegatesTo(value = HttpServletResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> markerQueryConfigurer)
+                                 @DelegatesTo(value = HttpResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> markerQueryConfigurer)
 
     void expectPluginResolution(String pluginId, String pluginVersion, String group, String artifactId, String version)
 

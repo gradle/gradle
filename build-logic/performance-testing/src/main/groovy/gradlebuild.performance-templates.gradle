@@ -56,7 +56,7 @@ performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", Java
 
 
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectDeprecations', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
     performanceTest.registerTestProject(template, JavaExecProjectGeneratorTask) {
@@ -107,6 +107,11 @@ performanceTest.registerTestProject("generateLotsOfDeprecationWarnings", Copy) {
     from "src/templates/$name"
 }
 
+performanceTest.registerTestProject("generateDiverseDeprecationWarnings", Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
 
 // === Gradle Kotlin DSL ===
 performanceTest.registerTestProject("ktsManyProjects", KtsProjectGeneratorTask) {
@@ -117,6 +122,23 @@ performanceTest.registerTestProject("ktsManyProjects", KtsProjectGeneratorTask) 
 
 performanceTest.registerTestProject("ktsSmall", KtsProjectGeneratorTask) {
     daemonMemory = '512m'
+}
+
+// A single Kotlin DSL project whose build script applies a plugin that creates a large number of
+// Java source sets. Each source set contributes several configurations, and each configuration
+// becomes its own generated type-safe accessor class, so a great number of accessor classes are
+// generated for this single project. The number of source sets is the size parameter.
+performanceTest.registerTestProject("kotlinDslManyAccessors", KtsProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 0
+    createTestComponent = false
+    subProjectTemplates = ['kts-many-accessors']
+    additionalProjectFiles = [
+        'buildSrc/src/main/java/org/gradle/performance/kotlindsl/ManySourceSetsPlugin.java',
+        'buildSrc/src/main/resources/META-INF/gradle-plugins/many-source-sets.properties',
+    ]
+    templateArgs = [sourceSetCount: 500]
+    daemonMemory = '1536m'
 }
 
 // === Native Software Model ===
@@ -407,16 +429,33 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 }
 
 // === Android ===
-performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
+performanceTest.registerAndroidTestProject("largeAndroidBuild", ["-Xms8g", "-Xmx8g"], RemoteProject) {
     setRemoteUriAndRefFromGradleProperty("largeAndroidBuildProjectRef")
 }
 
-performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
+performanceTest.registerAndroidTestProject("largeAndroidBuild2", ["-Xms8g", "-Xmx8g"], RemoteProject) {
     setRemoteUriAndRefFromGradleProperty("largeAndroidBuild2ProjectRef")
 }
 
-performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
+performanceTest.registerAndroidTestProject("nowInAndroidBuild", ["-Xms4g", "-Xmx4g"], RemoteProject) {
     setRemoteUriAndRefFromGradleProperty("nowInAndroidBuildProjectRef")
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
+}
+
+performanceTest.registerAndroidTestProject("android100Kts", ["-Xms4g", "-Xmx4g"], RemoteProject) {
+    setRemoteUriAndRefFromGradleProperty("isolatedProjectsTestbedRef")
+    subdirectory = 'android-100-kts'
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
+}
+
+// When manually opening the project in Android Studio 2025.3, it recommends this max memory based on the project size
+performanceTest.registerAndroidTestProject("android500Kts", ["-Xms8g", "-Xmx8g"], RemoteProject) {
+    setRemoteUriAndRefFromGradleProperty("isolatedProjectsTestbedRef")
+    subdirectory = 'android-500-kts'
     doLast {
         setMaxWorkers(outputDirectory, 8)
     }

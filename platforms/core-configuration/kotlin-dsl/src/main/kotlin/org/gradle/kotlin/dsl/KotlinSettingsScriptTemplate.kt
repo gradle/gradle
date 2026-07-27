@@ -23,6 +23,7 @@ import org.gradle.api.plugins.PluginAware
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
+import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.baseClass
@@ -62,7 +63,17 @@ abstract class KotlinSettingsScriptTemplate(
         host.scriptHandler
 
     /**
-     * Configures the plugin dependencies for the project's settings.
+     * Configures the build script classpath for settings.
+     *
+     * @see [Settings.buildscript]
+     * @since 9.8.0
+     */
+    @Suppress("unused")
+    open fun buildscript(block: ScriptHandlerScope.() -> Unit): Unit =
+        internalError()
+
+    /**
+     * Configures the plugin dependencies for settings.
      *
      * @see [PluginDependenciesSpec]
      * @since 6.0

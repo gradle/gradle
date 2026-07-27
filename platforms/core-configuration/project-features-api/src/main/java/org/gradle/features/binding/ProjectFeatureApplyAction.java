@@ -40,4 +40,35 @@ public interface ProjectFeatureApplyAction<OwnDefinition extends Definition<OwnB
      * @since 9.5.0
      */
     void apply(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel, ParentDefinition parentDefinition);
+
+    /**
+     * A no-op {@link ProjectFeatureApplyAction} that performs no build logic and makes
+     * no mutations to the build model. Use this when a project feature binding needs an
+     * apply action class but does not have any work to perform, for example when the
+     * binding exists purely to introduce a DSL name.
+     *
+     * <p>Pass {@code ProjectFeatureApplyAction.None.class} to
+     * {@link ProjectFeatureBindingBuilder#bindProjectFeature} or one of its overloads.
+     *
+     * @param <OwnDefinition> the type of the project feature definition
+     * @param <OwnBuildModel> the type of the project feature's own build model
+     * @param <ParentDefinition> the type of the parent project feature definition
+     *
+     * @since 9.6.0
+     */
+    @Incubating
+    interface None<
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        ParentDefinition
+    > extends ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ParentDefinition> {
+        @Override
+        default void apply(
+            ProjectFeatureApplicationContext context,
+            OwnDefinition definition,
+            OwnBuildModel buildModel,
+            ParentDefinition parentDefinition
+        ) {
+        }
+    }
 }

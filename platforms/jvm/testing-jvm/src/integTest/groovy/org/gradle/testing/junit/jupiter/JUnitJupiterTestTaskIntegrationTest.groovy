@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
+
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestTaskIntegrationTest
 import org.gradle.testing.fixture.JUnitCoverage
@@ -112,7 +113,53 @@ class JUnitJupiterTestTaskIntegrationTest extends AbstractTestTaskIntegrationTes
             segments.add(classes.subList(0, i + 1).join('$'))
         }
         results.assertTestPathsExecuted(
-            ':' + segments.join(':') + ":thisIsAlsoARatherLongMethodName"
+            ':' + segments.join(':') + ":thisIsAlsoARatherLongMethodName()"
         )
+    }
+
+    def "test task cannot write report for extremely deeply nested tests"() {
+        given:
+        def packageName = "org.gradle.testing.junit.jupiter.deeply.nested"
+        def className = packageName + ".DeepDynamicTest"
+        file("src/test/java/${className.replace('.', '/')}.java") << """
+            package ${packageName};
+
+            import org.junit.jupiter.api.DynamicNode;
+            import org.junit.jupiter.api.DynamicContainer;
+            import org.junit.jupiter.api.DynamicTest;
+            import org.junit.jupiter.api.TestFactory;
+
+            import java.util.stream.Stream;
+
+            import static org.junit.jupiter.api.Assertions.assertEquals;
+
+            public class DeepDynamicTest {
+                @TestFactory
+                Stream<DynamicNode> deeplyNestedDynamicTests() {
+                    DynamicNode innermost = DynamicTest.dynamicTest("thisIsTheInnermostTest", () -> assertEquals(1, 1));
+                    DynamicNode current = innermost;
+                    for (int i = 149; i >= 0; i--) {
+                        final DynamicNode child = current;
+                        current = DynamicContainer.dynamicContainer("Test container " + i, Stream.of(child));
+                    }
+                    return Stream.of(current);
+                }
+            }
+        """
+
+        when:
+        fails 'test'
+
+        then:
+        def baseReportPath = file("build/reports/tests/test").absolutePath
+        failureHasCause("Could not generate test report to '${baseReportPath}'.")
+        failureCauseContains(
+            "Cannot shrink report path below required limit. Path that could not be shrunk (relative to the report directory): "
+                // Validate a small sample of the tests, but not the full error.
+                + className + "/deeplyNestedDynamicTests()/deeplyNestedDynamicTests()[1]/"
+        )
+        failure.assertHasResolution("Use a shorter report directory path.")
+        failure.assertHasResolution("Reduce nesting in your tests.")
+        failure.assertHasResolution("Disable the HTML report for this task.")
     }
 }

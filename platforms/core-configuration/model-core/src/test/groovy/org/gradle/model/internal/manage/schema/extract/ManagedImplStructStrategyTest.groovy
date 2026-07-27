@@ -25,6 +25,7 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class ManagedImplStructStrategyTest extends Specification {
     def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
 

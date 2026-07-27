@@ -29,7 +29,8 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -88,7 +89,7 @@ class NativeServicesTest extends Specification {
         services.get(TemporaryFileProvider) != null
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "try using a WindowsRegistry on a non-Windows OS"() {
         def service = services.get(WindowsRegistry)
         when:

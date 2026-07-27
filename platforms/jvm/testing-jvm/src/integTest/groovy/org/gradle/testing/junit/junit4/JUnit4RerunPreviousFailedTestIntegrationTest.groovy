@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -166,10 +165,5 @@ class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSp
         testClasses.remove(failedTest)
 
         resultsFor(testDirectory).assertAtLeastTestPathsExecuted(testClasses as String[])
-    }
-
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT4
     }
 }

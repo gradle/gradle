@@ -31,6 +31,16 @@ class IdeaLifecycleIntegrationTest extends AbstractIdeLifecycleIntegrationTest {
     }
 
     @Override
+    protected String[] getDeprecatedTaskNames() {
+        return ["idea", "ideaModule", "ideaProject", "ideaWorkspace"]
+    }
+
+    @Override
+    protected String[] getDeprecatedCleanTaskNames() {
+        return ["cleanIdea", "cleanIdeaModule", "cleanIdeaProject"]
+    }
+
+    @Override
     protected String projectName(String path) {
         File iml = file(path).listFiles().find { it.name.endsWith("iml") }
         assert iml != null

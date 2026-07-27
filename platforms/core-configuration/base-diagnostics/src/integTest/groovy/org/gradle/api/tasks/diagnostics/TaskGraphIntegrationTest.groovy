@@ -41,9 +41,6 @@ Tasks graph for: root
 (*) - details omitted (listed previously)
 """)
         outputDoesNotContain("I'm a task called")
-
-        and:
-        outputContains("Task graph printing is an incubating feature.")
     }
 
     def "shows simple graph of tasks with multiple roots"() {

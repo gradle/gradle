@@ -49,6 +49,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
     private DaemonState state;
     private long lastBusy;
 
+    @SuppressWarnings("this-escape")
     public DaemonInfo(Address address, DaemonContext context, byte[] token, DaemonState state) {
         this(address, context, token, state, Time.clock());
     }

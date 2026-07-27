@@ -29,6 +29,7 @@ import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerConnection {
     private final ActionRunner actionRunner;
 
+    @SuppressWarnings("this-escape")
     public ParameterAcceptingConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
         InternalParameterAcceptingConnection connection = (InternalParameterAcceptingConnection) delegate;

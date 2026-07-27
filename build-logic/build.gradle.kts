@@ -14,7 +14,7 @@ tasks.register("test") {
     dependsOn(subprojects.map { "${it.name}:test" })
 }
 
-val clean by tasks.registering {
+tasks.register("clean") {
     val buildLogicPropertiesFile = layout.projectDirectory.file("gradle.properties")
     val rootPropertiesFile = layout.projectDirectory.file("../gradle.properties")
     doLast {

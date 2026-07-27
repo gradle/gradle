@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -160,6 +161,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish an executable and library to a Maven repository"() {
         def app = new CppAppWithLibrary()
 
@@ -178,8 +180,10 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             }
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':greeter')
+                application {
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                 }
             }
             project(':greeter') {
@@ -241,6 +245,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "C++ uses allprojects/subprojects (software model)")
     def "can publish an executable and a binary-specific dependency to a Maven repository"() {
         def app = new CppAppWithLibrary()
         def logger = new CppLogger().asLib()
@@ -260,10 +265,10 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             }
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
                 application {
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                     binaries.configureEach {
                         dependencies {
                             if (!optimized) {
@@ -335,6 +340,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root in multi-project Cpp/Swift build")
     def "uses the basename to calculate the coordinates"() {
         def app = new CppAppWithLibrary()
 
@@ -353,9 +359,11 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             }
             project(':app') {
                 apply plugin: 'cpp-application'
-                application.baseName = 'testApp'
-                dependencies {
-                    implementation project(':greeter')
+                application {
+                    baseName = 'testApp'
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                 }
             }
             project(':greeter') {

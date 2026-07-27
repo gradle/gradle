@@ -18,17 +18,14 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
-import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.classpath.RuntimeApiInfo;
-import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -122,7 +119,7 @@ import java.util.List;
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
  * only needs these services if it is running in --no-daemon mode.
  *
- * <p>Do not use this type directly, but instead use it via {@link BuildProcessState}.</p>
+ * <p>Do not use this type directly, but instead use it via {@link org.gradle.internal.buildprocess.BuildProcessState}.</p>
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
@@ -279,11 +276,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             taskDependencyFactory,
             fileCollectionFactory,
             domainObjectCollectionFactory);
-    }
-
-    @Provides
-    DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
-        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
     }
 
     @Provides

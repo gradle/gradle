@@ -29,6 +29,7 @@ import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal.EntryRetention
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildServiceRegistry
@@ -60,7 +61,6 @@ import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.configuration.problems.DocumentationSection
-import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -77,7 +77,6 @@ import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.logNotImplemented
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readList
@@ -92,7 +91,6 @@ import org.gradle.internal.serialize.graph.writeEnum
 import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
-import org.gradle.vcs.internal.VcsMappingsStore
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -404,6 +402,7 @@ class ConfigurationCacheState(
             write(gradle.settings.settingsScript.resource.file)
             writeBuildDefinition(state.buildDefinition)
             write(state.identityPath)
+            writeBoolean(state.isImplicitBuild)
         }
         // Encode the build state using the contextualized IO service for the nested build
         gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
@@ -421,7 +420,12 @@ class ConfigurationCacheState(
             val settingsFile = read() as File?
             val definition = readIncludedBuildDefinition(rootBuild)
             val buildPath = read() as Path
-            rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
+            val isImplicit = readBoolean()
+            if (isImplicit) {
+                rootBuild.addImplicitIncludedBuild(definition, settingsFile, buildPath)
+            } else {
+                rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
+            }
         }
         return readNestedBuildState(build)
     }
@@ -543,7 +547,7 @@ class ConfigurationCacheState(
             build.createProjects()
             gradle.serviceOf<ProjectRefResolver>().projectsReady()
 
-            applyProjectStates(projects, gradle)
+            applyProjectStates(projects, gradle, build.state.projects)
             readRequiredBuildServicesOf(gradle)
 
             val workGraph = if (readBoolean()) readWorkGraph(gradle) else null
@@ -551,9 +555,9 @@ class ConfigurationCacheState(
             readBuildOutputCleanupRegistrations(gradle)
 
             return if (workGraph == null) {
-                BuildWithNoWork(build.state.identityPath, gradle.rootProject.name, projects)
+                BuildWithNoWork(build.state.identityPath, build.state.rootProject.name, projects)
             } else {
-                BuildWithWork(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
+                BuildWithWork(build.state.identityPath, build, build.state.rootProject.name, projects, workGraph)
             }
         } else {
             return BuildWithNoProjects(build.state.identityPath)
@@ -645,11 +649,13 @@ class ConfigurationCacheState(
     }
 
     private
-    fun applyProjectStates(projects: List<CachedProjectState>, gradle: GradleInternal) {
-        for (project in projects) {
-            if (project is ProjectWithWork && project.normalizationState != null) {
-                val projectState = gradle.owner.projects.getProject(project.path)
-                projectState.mutableModel.normalization.configureFromCachedState(project.normalizationState)
+    fun applyProjectStates(projects: List<CachedProjectState>, gradle: GradleInternal, projectRegistry: BuildProjectRegistry) {
+        projectRegistry.applyToMutableStateOfAllProjects { access ->
+            for (project in projects) {
+                if (project is ProjectWithWork && project.normalizationState != null) {
+                    val projectState = gradle.owner.projects.getProject(project.path)
+                    access.getMutableModel(projectState).normalization.configureFromCachedState(project.normalizationState)
+                }
             }
         }
     }
@@ -691,7 +697,6 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
             writeStartParameterOf(gradle)
-            writeChildBuilds(gradle)
         }
     }
 
@@ -703,45 +708,22 @@ class ConfigurationCacheState(
         return withGradleIsolate(gradle, userTypesCodec) {
             // per build
             readStartParameterOf(gradle)
-            readChildBuilds()
         }
     }
 
     private
     fun WriteContext.writeStartParameterOf(gradle: GradleInternal) {
-        val startParameterTaskNames = gradle.startParameter.taskNames
-        writeStrings(startParameterTaskNames)
+        writeStrings(gradle.startParameter.taskNames)
     }
 
     private
     fun ReadContext.readStartParameterOf(gradle: GradleInternal) {
-        // Restore startParameter.taskNames to enable `gradle.startParameter.setTaskNames(...)` idiom in included build scripts
-        // See org/gradle/caching/configuration/internal/BuildCacheCompositeConfigurationIntegrationTest.groovy:134
-        val startParameterTaskNames = readStrings()
-        gradle.startParameter.setTaskNames(startParameterTaskNames)
-    }
-
-    private
-    fun WriteContext.writeChildBuilds(gradle: GradleInternal) {
-        if (gradle.serviceOf<VcsMappingsStore>().asResolver().hasRules()) {
-            logNotImplemented(
-                feature = "source dependencies",
-                documentationSection = NotYetImplementedSourceDependencies
-            )
-            writeBoolean(true)
-        } else {
-            writeBoolean(false)
-        }
-    }
-
-    private
-    fun ReadContext.readChildBuilds() {
-        if (readBoolean()) {
-            logNotImplemented(
-                feature = "source dependencies",
-                documentationSection = NotYetImplementedSourceDependencies
-            )
-        }
+        // Restore the requested task names captured during configuration. The cached work graph already
+        // drives what executes on a cache hit, so this is not needed to run the build. It keeps
+        // gradle.startParameter.taskNames consistent on a hit for internal consumers that read it (build
+        // operations, problem reports, build scans), since scheduling -- which resolves and populates the
+        // names on a store run -- does not run on a hit.
+        gradle.startParameter.setTaskNames(readStrings())
     }
 
     private
@@ -901,34 +883,44 @@ class ConfigurationCacheState(
         transformInputProjects: Set<Path>
     ): List<CachedProjectState> {
         val relevantProjects = relevantProjectsRegistry.relevantProjects(nodes)
-        return projects.allProjects
-            .filter(shouldStoreProject)
-            .map { project ->
-                val mutableModel = project.mutableModel
-                // Relevant projects are those observed during dependency resolution or owning scheduled nodes.
-                // A build-logic build may have no scheduled nodes since it has already been executed by this point.
-                // However, if one of its projects is used as a transform input in another build, we still need
-                // to store it as ProjectWithWork. Such a project is not captured by this build's RelevantProjectsRegistry
-                // because the dependency resolution that observed it happened in a different build's context.
-                // So we explicitly include it (along with its parent hierarchy) via transformInputProjects.
-                if (relevantProjects.contains(project) || project.projectPath in transformInputProjects) {
-                    mutableModel.layout.buildDirectory.finalizeValue()
-                    ProjectWithWork(
-                        project.projectPath,
-                        mutableModel.projectDir,
-                        mutableModel.buildFile,
-                        mutableModel.layout.buildDirectory.asFile.get(),
-                        mutableModel.normalization.computeCachedState()
-                    )
-                } else {
-                    ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile)
+        return projects.fromMutableStateOfAllProjects { access ->
+            projects.allProjects
+                .filter(shouldStoreProject)
+                .map { project ->
+                    collectCachedProjectState(relevantProjects, transformInputProjects, project, access.getMutableModel(project))
                 }
-            }
+        }
+    }
+
+    private fun collectCachedProjectState(
+        relevantProjects: Set<ProjectState>,
+        transformInputProjects: Set<Path>,
+        project: ProjectState,
+        mutableModel: ProjectInternal,
+    ): CachedProjectState {
+        // Relevant projects are those observed during dependency resolution or owning scheduled nodes.
+        // A build-logic build may have no scheduled nodes since it has already been executed by this point.
+        // However, if one of its projects is used as a transform input in another build, we still need
+        // to store it as ProjectWithWork. Such a project is not captured by this build's RelevantProjectsRegistry
+        // because the dependency resolution that observed it happened in a different build's context.
+        // So we explicitly include it (along with its parent hierarchy) via transformInputProjects.
+        if (relevantProjects.contains(project) || project.projectPath in transformInputProjects) {
+            mutableModel.layout.buildDirectory.finalizeValue()
+            return ProjectWithWork(
+                project.projectPath,
+                project.projectDir,
+                mutableModel.buildFile,
+                mutableModel.layout.buildDirectory.asFile.get(),
+                mutableModel.normalization.computeCachedState()
+            )
+        } else {
+            return ProjectWithNoWork(project.projectPath, project.projectDir, mutableModel.buildFile)
+        }
     }
 
     private
     suspend fun WriteContext.writeProjects(gradle: GradleInternal, projects: List<CachedProjectState>) {
-        writeString(gradle.rootProject.name)
+        writeString(gradle.owner.rootProject.name)
         withGradleIsolate(gradle, userTypesCodec) {
             writeCollection(projects)
         }

@@ -17,14 +17,25 @@
 package org.gradle.smoketests
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
-@Requires(UnitTestPreconditions.Jdk11OrLater)
+
+@Requires(JdkVersionTestPreconditions.Jdk11OrLater)
 class JenkinsJpiPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
             'org.jenkins-ci.jpi': TestedVersions.jenkinsJpi,
         ]
+    }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "jenkinsPlugin {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('jenkinsPlugin')]
     }
 }

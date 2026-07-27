@@ -411,8 +411,7 @@ class StandardKotlinScriptEvaluator(
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
         }
 
-        private val cachingDisabledByProperty: Boolean =
-            internalOptions.getBoolean(KotlinDslInternalOptions.CACHING_DISABLED_PROPERTY)
+        private val cachingDisabledReason = KotlinDslInternalOptions.cachingDisabledReason(internalOptions)
 
         override fun getDisplayName(): String =
             "Kotlin DSL script compilation (${programId.templateId})"
@@ -422,8 +421,8 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
-            if (cachingDisabledByProperty) {
-                return Optional.of(KotlinDslInternalOptions.CACHING_DISABLED_REASON)
+            if (cachingDisabledReason != null) {
+                return Optional.of(cachingDisabledReason)
             }
 
             return super.shouldDisableCaching(detectedOverlappingOutputs)

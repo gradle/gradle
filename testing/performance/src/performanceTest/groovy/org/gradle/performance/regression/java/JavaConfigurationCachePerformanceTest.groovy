@@ -23,6 +23,7 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
+import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
 import java.util.regex.Pattern
@@ -33,10 +34,10 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.junit.Assert.assertTrue
 
 class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerformanceTest {
-    private File stateDirectory
+
+    private static String configurationCacheStateDir = ".gradle/configuration-cache"
 
     def setup() {
-        stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
         runner.minimumBaseVersion = "6.6"
     }
 
@@ -50,12 +51,20 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
     def "assemble #action configuration cache state with #daemon daemon"() {
         given:
         runner.tasksToRun = ["assemble"]
-        // use the deprecated property so it works with previous versions
-        runner.args = ["-D${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=true"]
+        // Pass the current property name too: it takes precedence over the deprecated one, so it cannot be
+        // shadowed by a value in the test project's gradle.properties. The deprecated property is kept for
+        // baseline versions older than 8.1.
+        runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true", "-D${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=true"]
+
+        runner.addInterceptor { builder ->
+            builder.invocation {
+                buildLog(new File(workingDirectory, "build.log"))
+            }
+        }
 
         and:
         runner.useDaemon = daemon == hot
-        runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action, stateDirectory) }
+        runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action) }
         runner.warmUpRuns = daemon == hot ? 20 : 1
         runner.runs = daemon == hot ? 60 : 25
 
@@ -78,12 +87,12 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
     static String hot = "hot"
     static String cold = "cold"
 
-    static BuildMutator configurationCacheInvocationListenerFor(InvocationSettings invocationSettings, String action, File stateDirectory) {
+    static BuildMutator configurationCacheInvocationListenerFor(InvocationSettings invocationSettings, String action) {
         return new BuildMutator() {
             @Override
             void beforeBuild(BuildContext context) {
                 if (action == storing) {
-                    stateDirectory.deleteDir()
+                    new TestFile(invocationSettings.projectDir).file(configurationCacheStateDir).deleteDir()
                 }
             }
 
@@ -93,8 +102,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
                     def tag = action == storing
                         ? "Calculating task graph as no (cached configuration|configuration cache) is available"
                         : "Reusing configuration cache"
-                    File buildLog = new File(invocationSettings.projectDir, "profile.log")
-
+                    File buildLog = invocationSettings.buildLog
                     def found = Files.lines(buildLog.toPath()).withCloseable { lines ->
                         def pattern = Pattern.compile(tag)
                         lines.anyMatch { line -> pattern.matcher(line).find() }

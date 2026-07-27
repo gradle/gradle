@@ -35,8 +35,8 @@ The link:https://developers.google.com/speed/libraries/[Google Hosted Libraries]
 To download the `.js` artifact directly, use the `@js` syntax:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnly/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnly/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/declaringDependencies-artifactOnly/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/declaringDependencies-artifactOnly/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
 ====
 
 Some modules publish multiple "flavors" of the same artifact—for example, compiled classes, source code, or Javadocs.
@@ -47,8 +47,8 @@ To request an artifact with a specific classifier, include it in the dependency 
 The following example resolves the minified version of a JQuery library using the classifier `min`:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnlyWithClassifier/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/declaringDependencies-artifactOnlyWithClassifier/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/declaringDependencies-artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
 ====
 
 Using `@extension` bypasses metadata-based resolution.

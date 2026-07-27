@@ -36,7 +36,6 @@ dependencies {
     integTestImplementation(projects.modelCore)
 
     integTestImplementation(libs.commonsIo)
-    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
@@ -54,6 +53,4 @@ gradleModule {
 strictCompile {
     ignoreDeprecations()
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

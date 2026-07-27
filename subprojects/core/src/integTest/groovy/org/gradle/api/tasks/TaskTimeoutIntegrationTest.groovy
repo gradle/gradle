@@ -24,11 +24,11 @@ import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgr
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import java.time.Duration
 
-@Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = "https://github.com/gradle/gradle-private/issues/3433")
+@Requires(value = TestExecutionPreconditions.NotNoDaemonExecutor, reason = "https://github.com/gradle/gradle-private/issues/3433")
 @IntegrationTestTimeout(60)
 class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 

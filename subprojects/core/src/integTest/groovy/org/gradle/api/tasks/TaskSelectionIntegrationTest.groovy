@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class TaskSelectionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -104,22 +104,6 @@ allprojects { task thing }
 
         then:
         result.assertTasksScheduled(":child:child:thing")
-    }
-
-    def "can use camel case to match software model tasks"() {
-        buildFile << """
-            model {
-                tasks {
-                    "sayHelloToUser"(DefaultTask) {
-                    }
-                }
-            }
-        """
-        when:
-        run "sHTU"
-
-        then:
-        result.assertTasksScheduled(":sayHelloToUser")
     }
 
     @ToBeFixedForIsolatedProjects(because = "allprojects")

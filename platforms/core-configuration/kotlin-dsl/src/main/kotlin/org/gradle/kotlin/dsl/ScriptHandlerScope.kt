@@ -124,7 +124,7 @@ open class ScriptHandlerScope(
      * @see [DependencyHandler.add]
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     fun DependencyHandler.classpath(
         group: String,
         name: String,
@@ -152,7 +152,7 @@ open class ScriptHandlerScope(
      * @see [DependencyHandler.add]
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     inline fun DependencyHandler.classpath(
         group: String,
         name: String,

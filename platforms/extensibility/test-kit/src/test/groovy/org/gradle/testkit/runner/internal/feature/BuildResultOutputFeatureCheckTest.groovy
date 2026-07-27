@@ -16,17 +16,41 @@
 
 package org.gradle.testkit.runner.internal.feature
 
-import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.testkit.runner.UnsupportedFeatureException
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
+
+import java.util.logging.Handler
+import java.util.logging.LogRecord
+import java.util.logging.Logger
 
 class BuildResultOutputFeatureCheckTest extends Specification {
 
     public static final GradleVersion UNSUPPORTED_GRADLE_VERSION = GradleVersion.version('2.8')
 
-    @ExpectDeprecation(
-        "Capturing build output in debug mode with the GradleRunner for the version of Gradle you are using (2.9) is deprecated with TestKit. TestKit will only support the last 5 major versions in future. has been deprecated.")
+    List<LogRecord> logRecords = []
+    def handler = new Handler() {
+        @Override
+        void publish(LogRecord record) {
+            logRecords << record
+        }
+
+        @Override
+        void flush() {}
+
+        @Override
+        void close() {}
+    }
+    def logger = Logger.getLogger(BuildResultOutputFeatureCheck.name)
+
+    def setup() {
+        logger.addHandler(handler)
+    }
+
+    def cleanup() {
+        logger.removeHandler(handler)
+    }
+
     def "supported Gradle version passes check [version = #gradleVersion, embedded = #embedded]"() {
         given:
         BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since, embedded)
@@ -55,5 +79,20 @@ class BuildResultOutputFeatureCheckTest extends Specification {
         then:
         Throwable t = thrown(UnsupportedFeatureException)
         t.message == "The version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) does not capture build output in debug mode with the GradleRunner. Support for this is available in Gradle $TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since.version and all later versions."
+    }
+
+    def "warns when running with deprecated Gradle version"() {
+        given:
+        BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(UNSUPPORTED_GRADLE_VERSION, false)
+
+        when:
+        featureCheck.verify()
+
+        then:
+        logRecords.size() == 1
+        logRecords[0].message == "Capturing build output in debug mode with the GradleRunner for the version of Gradle you are using ($UNSUPPORTED_GRADLE_VERSION.version) " +
+            "is deprecated with TestKit. TestKit will only support the last 5 major versions in future. " +
+            "This will fail with an error starting with Gradle 10. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/tooling_api.html#sec:embedding_compatibility"
     }
 }

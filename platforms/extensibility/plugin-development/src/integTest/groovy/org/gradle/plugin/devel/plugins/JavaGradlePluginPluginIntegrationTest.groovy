@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
@@ -324,7 +324,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("assemble")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // ProjectBuilder needs full distribution
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // ProjectBuilder needs full distribution
     @Issue("https://github.com/gradle/gradle/issues/18647")
     def "can test plugin with ProjectBuilder without warnings or errors"() {
         given:
@@ -381,7 +381,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotEmbeddedExecutor,
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
         reason = "InProcessGradleExecuter assumes all tests use the same gradle distribution"
     )
     def "current distribution is a test task input"() {

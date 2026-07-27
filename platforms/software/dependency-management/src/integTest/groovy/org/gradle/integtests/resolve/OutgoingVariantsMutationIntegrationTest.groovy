@@ -38,7 +38,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                deps(project)
+                deps(project())
             }
         """
     }
@@ -79,7 +79,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         fails("resolve")
 
         then:
-        failure.assertHasCause "Cannot change attributes of configuration ':elements' variant classes after it has been locked for mutation"
+        failure.assertHasCause "Cannot change attributes of configuration ':elements' variant 'classes' after it has been locked for mutation"
     }
 
     def "cannot declare capabilities after configuration is observed"() {
@@ -188,12 +188,13 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
                 }.files
                 inputs.files(files)
                 doFirst {
-                    assert files*.name == ["file2.txt"]
+                    println files*.name
                 }
             }
         """
 
         expect:
         succeeds("resolve")
+        outputContains("[file2.txt]")
     }
 }

@@ -36,6 +36,7 @@ public abstract class AntTarget extends ConventionTask {
     private Target target;
     private File baseDir;
 
+    @SuppressWarnings("this-escape")
     public AntTarget() {
         requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }

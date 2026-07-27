@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.vcs.git.GitVersionControlSpec
 
 class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceDependencyMultiprojectIntegrationTest {
@@ -35,6 +36,7 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "included build uses allprojects { apply plugin: 'java' }")
     def "can map all modules in group to repo using all {}"() {
         settingsFile << """
             sourceControl {

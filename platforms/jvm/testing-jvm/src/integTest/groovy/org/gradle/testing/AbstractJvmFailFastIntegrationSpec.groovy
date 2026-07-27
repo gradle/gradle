@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.JvmBlockingTestClassGenerator
 import org.junit.Rule
@@ -36,8 +36,6 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     JvmBlockingTestClassGenerator generator
-
-    abstract GenericTestExecutionResult.TestFramework getTestFramework()
 
     def setup() {
         server.start()
@@ -63,7 +61,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
 
         and:
         GenericTestExecutionResult testResults = resultsFor()
-        testResults.assertTestPathsExecuted(":pkg.FailedTest:failTest", ":pkg.OtherTest:passingTest")
+        testResults.assertTestPathsExecuted(":pkg.FailedTest:${maybeParentheses('failTest')}", ":pkg.OtherTest:${maybeParentheses('passingTest')}")
 
         TestPathExecutionResult gradleTest = testResults.testPath("")
         gradleTest.rootNames == ['Gradle Test Run :test']
@@ -98,7 +96,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         gradleHandle.waitForFailure()
 
         and:
-        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResults = resultsFor()
         TestPathExecutionResult failedTest = testResults.testPath("pkg.FailedTest")
         failedTest.onlyRoot().getFailedChildCount() == 1
         TestPathExecutionResult otherTest = testResults.testPath("pkg.OtherTest")
@@ -125,7 +123,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         gradleHandle.waitForFailure()
 
         and:
-        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResults = resultsFor()
         assert 1 == resourceForTest.keySet().sum {path ->
             if (testResults.testPathExists(path)) {
                 TestPathExecutionResult test = testResults.testPath(path)
@@ -134,7 +132,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
                 0
             }
         }
-        resourceForTest.keySet().with {
+        verifyAll(resourceForTest.keySet()) {
             def doesntExist = count { path ->
                 !testResults.testPathExists(path)
             }
@@ -149,13 +147,12 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         }
 
         where:
-        forkEvery | maxWorkers | testOmitted
-        0         | 1          | 1
-        1         | 1          | 1
-        2         | 1          | 1
-        0         | 2          | 5
-        1         | 2          | 5
-        2         | 2          | 5
+        forkEvery << [0, 1, 2]
+
+        combined:
+        maxWorkers | testOmitted
+        1          | 1
+        2          | 5
     }
 
     def "fail fast console output shows failure"() {
@@ -176,7 +173,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         assert !gradleHandle.standardOutput.contains('pkg.OtherTest')
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "fail fast console output shows test class in work-in-progress"() {
         given:
         executer.withConsole(ConsoleOutput.Rich).withArguments('--parallel', "--max-workers=$DEFAULT_MAX_WORKERS")

@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Action
+import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
@@ -47,8 +48,8 @@ import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
-import org.gradle.nativeplatform.BuildType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyMap
 import org.mockito.kotlin.any
@@ -129,6 +130,81 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     }
 
     @Test
+    fun `#buildAccessorsToJars produces valid JARs with classes, sources and module metadata`() {
+
+        // given:
+        val schema =
+            TypedProjectSchema(
+                extensions = listOf(
+                    entry<Project, SourceSetContainer>("sourceSets"),
+                ),
+                containerElements = listOf(),
+                tasks = listOf(
+                    entry<TaskContainer, Delete>("clean")
+                ),
+                configurations = listOf(ConfigurationEntry("api")),
+                modelDefaults = listOf(),
+                projectFeatureEntries = emptyList(),
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
+            )
+
+        val classesJar = newFile("classes.jar")
+        val sourcesJar = newFile("sources.jar")
+
+        // when:
+        buildAccessorsToJars(schema, testRuntimeClassPath, classesJar, sourcesJar)
+
+        // then: classes JAR contains loadable .class entries
+        val classEntries = java.util.zip.ZipFile(classesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".class") }.toList()
+        }
+        assert(classEntries.isNotEmpty()) {
+            "Expected .class entries in classes JAR"
+        }
+        withClassLoaderFor(classesJar) {
+            classEntries.forEach { entry ->
+                val className = entry.removeSuffix(".class").replace('/', '.')
+                val clazz = loadClass(className)
+                assert(clazz.declaredMethods.isNotEmpty()) {
+                    "Expected accessor methods in $className"
+                }
+            }
+        }
+
+        // and: classes JAR contains Kotlin module metadata
+        val metadataEntries = java.util.zip.ZipFile(classesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".kotlin_module") }.toList()
+        }
+        assertEquals(listOf("META-INF/classes.kotlin_module"), metadataEntries)
+
+        // and: sources JAR contains .kt files under the correct package path
+        val sourceEntries = java.util.zip.ZipFile(sourcesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".kt") }.toList()
+        }
+        assert(sourceEntries.isNotEmpty()) {
+            "Expected .kt source entries in sources JAR"
+        }
+        assert(sourceEntries.all { it.startsWith("org/gradle/kotlin/dsl/") }) {
+            "Expected all sources under org/gradle/kotlin/dsl/, found: $sourceEntries"
+        }
+    }
+
+    @Test
+    fun `#buildAccessorsToJars accessor classes work at runtime`() {
+
+        testAccessorsBuiltBy(::buildAccessorsToJarsDirect)
+    }
+
+    private
+    fun buildAccessorsToJarsDirect(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File): AccessorsRoots {
+        val classesJar = File(binDir, "classes.jar")
+        val sourcesJar = File(srcDir, "sources.jar")
+        buildAccessorsToJars(schema, classPath, classesJar, sourcesJar)
+        return AccessorsRoots(DefaultClassPath.of(classesJar), DefaultClassPath.of(sourcesJar))
+    }
+
+    @Test
     fun `#buildAccessorsFor (deprecated configurations)`() {
         val schema =
             TypedProjectSchema(
@@ -147,37 +223,56 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             )
 
         val srcDir = newFolder("src")
-        val binDir = newFolder("bin")
 
-        withClassLoaderFor(binDir) {
-            // when:
-            buildAccessorsFromSourceFor(
-                schema,
-                testRuntimeClassPath,
-                srcDir,
-                binDir
-            )
+        val compiledBinDir = newFolder("compiledBin")
+        buildAccessorsFromSourceFor(schema, testRuntimeClassPath, srcDir, compiledBinDir)
 
-            val binaryAccessorsDir = File(binDir, "org/gradle/kotlin/dsl")
+        val generatedBinDir = newFolder("generatedBin")
+        buildAccessorsFor(schema, testRuntimeClassPath, srcDir = newFolder("ignored"), generatedBinDir)
 
-            // then:
-            schema.configurations.forEach { config ->
-                val name = config.target
-                val className = "${name.uppercaseFirstChar()}ConfigurationAccessorsKt"
-                val classFile = File(binaryAccessorsDir, "$className.class")
+        fun checkConfigurationAccessors(classesDir: File) {
+            val accessorsDir = File(classesDir, "org/gradle/kotlin/dsl")
 
-                require(classFile.exists())
+            withClassLoaderFor(classesDir) {
+                schema.configurations.forEach { config ->
+                    val name = config.target
+                    val className = "${name.uppercaseFirstChar()}ConfigurationAccessorsKt"
 
-                loadClass("org.gradle.kotlin.dsl.$className").run {
-                    dependencyHandlerExtensionMethods(name).forEach {
-                        assertEquals(
-                            isDeprecated(it),
-                            config.hasDeclarationDeprecations() || isDeprecatedAccessor(it)
-                        )
+                    require(File(accessorsDir, "$className.class").exists())
+
+                    loadClass("org.gradle.kotlin.dsl.$className").run {
+                        dependencyHandlerExtensionMethods(name).forEach {
+                            val shouldBeDeprecated = config.hasDeclarationDeprecations() || isDeprecatedAccessor(it)
+                            assertEquals(
+                                "The accessor for '${config.target}' should be ${if (shouldBeDeprecated) "" else "not "} deprecated in $classesDir",
+                                shouldBeDeprecated,
+                                isDeprecated(it),
+                            )
+
+                            // The multi-string accessor is always deprecated, advising single-string notation,
+                            // and for a configuration deprecated for declaration it also appends that configuration's
+                            // own declaration-deprecation message.
+                            if (isDeprecatedAccessor(it)) {
+                                val message = deprecationMessageOf(it)!!
+                                assertTrue(
+                                    "The multi-string accessor for '${config.target}' should advise single-string notation in $classesDir, but was: $message",
+                                    message.startsWith("Use single-string notation or DependencyFactory instead")
+                                )
+                                if (config.hasDeclarationDeprecations()) {
+                                    assertTrue(
+                                        "The multi-string accessor for the deprecated configuration '${config.target}' should append its declaration-deprecation message in $classesDir, but was: $message",
+                                        message.contains(". The ${config.target} configuration has been deprecated for dependency declaration.")
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+
+        checkConfigurationAccessors(compiledBinDir)
+        checkConfigurationAccessors(generatedBinDir)
     }
 
     /**
@@ -190,6 +285,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             DependencyHandler::class.java, String::class.java, String::class.java, String::class.java,
             String::class.java, String::class.java, String::class.java, Action::class.java
         )
+
+    private fun deprecationMessageOf(method: Method): String? =
+        method.getAnnotation(Deprecated::class.java)?.message
 
     @Test
     fun `#buildAccessorsFor (default package types)`() {
@@ -256,7 +354,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         classPath: ClassPath,
         srcDir: File,
         binDir: File
-    ) {
+    ): AccessorsRoots {
         buildAccessorsFor(
             schema,
             classPath,
@@ -271,6 +369,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 classPath.asFiles
             )
         )
+        return AccessorsRoots(DefaultClassPath.of(binDir), DefaultClassPath.of(srcDir))
     }
 
     private
@@ -278,14 +377,14 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         srcDir.walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
 
     private
-    fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> Unit) {
+    fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> AccessorsRoots) {
 
         // given:
         val schema =
             TypedProjectSchema(
                 extensions = listOf(
                     entry<Project, SourceSetContainer>("sourceSets"),
-                    entry<Project, NamedDomainObjectContainer<BuildType>>("buildTypes")
+                    entry<Project, NamedDomainObjectContainer<Named>>("buildTypes")
                 ),
                 containerElements = listOf(
                     entry<SourceSetContainer, SourceSet>("main")
@@ -358,7 +457,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 }
 
                 val h: Unit = buildTypes {
-                    val container: NamedDomainObjectContainer<BuildType> = this
+                    val container: NamedDomainObjectContainer<Named> = this
                 }
 
                 val k: DependencyConstraint = dependencies.constraints.api("direct:accessor:1.0")
@@ -475,13 +574,13 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         target: Project,
         script: String,
         classPath: ClassPath = testRuntimeClassPath,
-        buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> Unit = ::buildAccessorsFor
+        buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> AccessorsRoots = ::buildAccessorsFor
     ) {
 
         val srcDir = newFolder("src")
         val binDir = newFolder("bin")
 
-        buildAccessorsFor(schema, classPath, srcDir, binDir)
+        val roots = buildAccessorsFor(schema, classPath, srcDir, binDir)
 
         eval(
             script = script,
@@ -489,18 +588,23 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             buildTreeRootDir = root,
             baseCacheDir = kotlinDslEvalBaseCacheDir,
             baseTempDir = kotlinDslEvalBaseTempDir,
-            scriptCompilationClassPath = DefaultClassPath.of(binDir) + classPath,
-            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
+            scriptCompilationClassPath = roots.bin + classPath,
+            scriptRuntimeClassPath = roots.bin
         )
     }
 
     private
-    fun buildAccessorsFor(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File) {
+    fun buildAccessorsFor(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File): AccessorsRoots {
         withSynchronousIO {
             buildAccessorsFor(schema, classPath, srcDir, binDir)
         }
+        return AccessorsRoots(DefaultClassPath.of(binDir), DefaultClassPath.of(srcDir))
     }
 }
+
+
+private
+data class AccessorsRoots(val bin: ClassPath, val src: ClassPath)
 
 
 internal

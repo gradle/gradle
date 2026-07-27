@@ -253,12 +253,12 @@ Searched in the following locations:
   - ${moduleA.ivy.uri}
 Required by:
     root project 'root' > group:projectC:0.99
-    root project 'root' > project :child1 > group:projectD:1.0GA""")
+    root project 'root' > project ':child1' > group:projectD:1.0GA""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
 Required by:
-    root project 'root' > project :child1 > group:projectD:1.0GA""")
+    root project 'root' > project ':child1' > group:projectD:1.0GA""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
@@ -479,7 +479,8 @@ task showBroken {
         }
         failure.assertResolutionFailure(':broken')
             .assertHasCause('Could not resolve group:projectA:1.3.')
-            .assertHasCause("Could not GET '${module.ivy.uri}'. Received status code 500 from server: broken")
+            .assertHasCause("Could not GET '${module.ivy.uri}'.")
+        failure.assertHasCause("Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()
@@ -567,7 +568,8 @@ task retrieve(type: Sync) {
         then:
         fails "retrieve"
         failure.assertHasCause("Could not download projectA-1.2.jar (group:projectA:1.2)")
-        failure.assertHasCause("Could not GET '${module.jar.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${module.jar.uri}'.")
+        failure.assertHasCause("Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()

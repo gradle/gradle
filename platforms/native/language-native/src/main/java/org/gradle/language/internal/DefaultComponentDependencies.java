@@ -19,6 +19,7 @@ package org.gradle.language.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.language.ComponentDependencies;
@@ -41,6 +42,11 @@ public class DefaultComponentDependencies implements ComponentDependencies {
 
     public Configuration getImplementationDependencies() {
         return implementation;
+    }
+
+    @Override
+    public ProjectDependency project(String projectPath) {
+        return dependencyHandler.project(projectPath);
     }
 
     @Override

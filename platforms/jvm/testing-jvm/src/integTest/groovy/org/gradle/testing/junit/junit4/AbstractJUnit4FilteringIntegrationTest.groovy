@@ -23,11 +23,6 @@ import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
-
     void theParameterizedFiles() {
         file("src/test/java/ParameterizedFoo.java") << """
             ${testFrameworkImports}
@@ -127,7 +122,7 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
     }
 
     void verifyParameterizedTestResults() {
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResult = resultsFor()
         def fooResults = testResult.testPath("ParameterizedFoo", "").onlyRoot()
         if (passedTestOutcome == TestResult.ResultType.SUCCESS) {
             fooResults.assertOnlyChildrenExecuted("[0]", "[1]", "[2]", "[3]", "[4]")
@@ -150,7 +145,7 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test", "--tests", "*AllFooTests")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResult = resultsFor()
         testResult.assertTestPathsExecuted(":AllFooTests:FooTest:testFoo", ":AllFooTests:FooServerTest:testFooServer")
         testResult.testPath(":AllFooTests:FooTest:testFoo").onlyRoot().assertHasResult(passedTestOutcome)
         testResult.testPath(":AllFooTests:FooServerTest:testFooServer").onlyRoot().assertHasResult(passedTestOutcome)
@@ -174,7 +169,7 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResult = resultsFor()
         testResult.assertTestPathsExecuted(":AllFooTests:FooTest:testFoo", ":AllFooTests:FooServerTest:testFooServer")
         testResult.testPath(":AllFooTests:FooTest:testFoo").onlyRoot().assertHasResult(passedTestOutcome)
         testResult.testPath(":AllFooTests:FooServerTest:testFooServer").onlyRoot().assertHasResult(passedTestOutcome)

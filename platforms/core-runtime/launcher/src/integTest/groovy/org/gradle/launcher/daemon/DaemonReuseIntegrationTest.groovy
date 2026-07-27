@@ -22,7 +22,8 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -211,7 +212,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     }
 
     // GradleHandle.abort() does not work reliably on windows and creates flakiness
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "prefers an idle daemon when daemons with canceled builds are available"() {
         given:
         expectEvent("started1")

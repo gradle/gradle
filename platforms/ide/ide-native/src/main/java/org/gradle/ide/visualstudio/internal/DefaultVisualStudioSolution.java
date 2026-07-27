@@ -45,6 +45,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     private final IdeArtifactRegistry ideArtifactRegistry;
     private final Provider<RegularFile> location;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultVisualStudioSolution(String name, ObjectFactory objectFactory, IdeArtifactRegistry ideArtifactRegistry, ProviderFactory providers, ProjectLayout projectLayout) {
         this.name = name;

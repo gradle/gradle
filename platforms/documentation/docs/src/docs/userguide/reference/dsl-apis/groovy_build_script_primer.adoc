@@ -77,6 +77,7 @@ Note that plugins can add their own properties to the `Project` object. The link
 
 TIP: When referencing a project property in your build script that is added by a non-core plugin, consider prefixing it with `project.` — it's clear then that the property belongs to the project object.
 
+[[properties_in_the_api_documentation]]
 === Properties in the API documentation
 
 The link:{groovyDslPath}/[Groovy DSL reference] shows properties as they are used in your build scripts, but the Javadocs only display methods. That's because properties are implemented as methods behind the scenes:
@@ -169,6 +170,7 @@ There are two important aspects of blocks that you should understand:
 
 Both are based on Groovy language features and we explain them in the following sections.
 
+[[block_method_signatures]]
 === Block method signatures
 
 You can easily identify a method as the implementation behind a block by its signature, or more specifically, its argument types. If a method corresponds to a block:
@@ -186,6 +188,7 @@ copy {
 
 That leads to the question of how `into()` and `from()` work. They're clearly methods, but where would you find them in the API documentation? The answer comes from understanding object _delegation_.
 
+[[delegation]]
 === Delegation
 
 The <<#groovy:properties,section on properties>> lists where unqualified properties might be found. One common place is on the `Project` object. But there is an alternative source for those unqualified properties and methods inside a block: the block's _delegate object_.

@@ -17,247 +17,293 @@
 package org.gradle.api.internal.tasks.testing.filter
 
 
+import spock.lang.Issue
 import spock.lang.Specification
 
 class TestSelectionMatcherTest extends Specification {
 
     def "knows if test matches class"() {
         expect:
-        matcher(input, [], []).matchesTest(className, methodName) == match
-        matcher([], [], input).matchesTest(className, methodName) == match
+        assertMatchesTest(pattern, patternMatches, patternDoesNotMatch)
 
         where:
-        input                    | className                 | methodName            | match
-        ["FooTest"]              | "FooTest"                 | "whatever"            | true
-        ["FooTest"]              | "fooTest"                 | "whatever"            | false
-
-        ["com.foo.FooTest"]      | "com.foo.FooTest"         | "x"                   | true
-        ["com.foo.FooTest"]      | "FooTest"                 | "x"                   | false
-        ["com.foo.FooTest"]      | "com_foo_FooTest"         | "x"                   | false
-
-        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "aaa"                 | true
-        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "bbb"                 | true
-        ["com.foo.FooTest.*"]    | "com.foo.FooTestx"        | "bbb"                 | false
-
-        ["*.FooTest.*"]          | "com.foo.FooTest"         | "aaa"                 | true
-        ["*.FooTest.*"]          | "com.bar.FooTest"         | "aaa"                 | true
-        ["*.FooTest.*"]          | "FooTest"                 | "aaa"                 | false
-
-        ["com*FooTest"]          | "com.foo.FooTest"         | "aaa"                 | true
-        ["com*FooTest"]          | "com.FooTest"             | "bbb"                 | true
-        ["com*FooTest"]          | "FooTest"                 | "bbb"                 | false
-
-        ["*.foo.*"]              | "com.foo.FooTest"         | "aaaa"                | true
-        ["*.foo.*"]              | "com.foo.bar.BarTest"     | "aaaa"                | true
-        ["*.foo.*"]              | "foo.Test"                | "aaaa"                | false
-        ["*.foo.*"]              | "fooTest"                 | "aaaa"                | false
-        ["*.foo.*"]              | "foo"                     | "aaaa"                | false
+        // patternMatches and patternDoesNotMatch entries are [className, methodName] tuples
+        pattern               | patternMatches                                                 | patternDoesNotMatch
+        ["FooTest"]           | [["FooTest", "whatever"]]                                      | [["fooTest", "whatever"]]
+        ["com.foo.FooTest"]   | [["com.foo.FooTest", "x"]]                                     | [["FooTest", "x"], ["com_foo_FooTest", "x"]]
+        ["com.foo.FooTest.*"] | [["com.foo.FooTest", "aaa"], ["com.foo.FooTest", "bbb"]]       | [["com.foo.FooTestx", "bbb"]]
+        ["*.FooTest.*"]       | [["com.foo.FooTest", "aaa"], ["com.bar.FooTest", "aaa"]]       | [["FooTest", "aaa"]]
+        ["com*FooTest"]       | [["com.foo.FooTest", "aaa"], ["com.FooTest", "bbb"]]           | [["FooTest", "bbb"]]
+        ["*.foo.*"]           | [["com.foo.FooTest", "aaaa"], ["com.foo.bar.BarTest", "aaaa"]] | [["foo.Test", "aaaa"], ["fooTest", "aaaa"], ["foo", "aaaa"]]
     }
 
     def "knows if excluded test matches class"() {
         expect:
-        matcher([], input, []).matchesTest(className, methodName) == match
+        for (pair in patternMatches) {
+            def (className, methodName) = pair
+            assert !matcher([], pattern, []).matchesTest(className, methodName) : "excludedTests=$pattern expected to match [$className, $methodName]"
+        }
+        for (pair in patternDoesNotMatch) {
+            def (className, methodName) = pair
+            assert matcher([], pattern, []).matchesTest(className, methodName) : "excludedTests=$pattern expected NOT to match [$className, $methodName]"
+        }
 
         where:
-        input                    | className                 | methodName            | match
-        ["FooTest"]              | "FooTest"                 | "whatever"            | false
-        ["FooTest"]              | "fooTest"                 | "whatever"            | true
-
-        ["com.foo.FooTest"]      | "com.foo.FooTest"         | "x"                   | false
-        ["com.foo.FooTest"]      | "FooTest"                 | "x"                   | true
-        ["com.foo.FooTest"]      | "com_foo_FooTest"         | "x"                   | true
-
-        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "aaa"                 | false
-        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "bbb"                 | false
-        ["com.foo.FooTest.*"]    | "com.foo.FooTestx"        | "bbb"                 | true
-
-        ["*.FooTest.*"]          | "com.foo.FooTest"         | "aaa"                 | false
-        ["*.FooTest.*"]          | "com.bar.FooTest"         | "aaa"                 | false
-        ["*.FooTest.*"]          | "FooTest"                 | "aaa"                 | true
-
-        ["com*FooTest"]          | "com.foo.FooTest"         | "aaa"                 | false
-        ["com*FooTest"]          | "com.FooTest"             | "bbb"                 | false
-        ["com*FooTest"]          | "FooTest"                 | "bbb"                 | true
-
-        ["*.foo.*"]              | "com.foo.FooTest"         | "aaaa"                | false
-        ["*.foo.*"]              | "com.foo.bar.BarTest"     | "aaaa"                | false
-        ["*.foo.*"]              | "foo.Test"                | "aaaa"                | true
-        ["*.foo.*"]              | "fooTest"                 | "aaaa"                | true
-        ["*.foo.*"]              | "foo"                     | "aaaa"                | true
+        // patternMatches and patternDoesNotMatch entries are [className, methodName] tuples
+        pattern               | patternMatches                                                 | patternDoesNotMatch
+        ["FooTest"]           | [["FooTest", "whatever"]]                                      | [["fooTest", "whatever"]]
+        ["com.foo.FooTest"]   | [["com.foo.FooTest", "x"]]                                     | [["FooTest", "x"], ["com_foo_FooTest", "x"]]
+        ["com.foo.FooTest.*"] | [["com.foo.FooTest", "aaa"], ["com.foo.FooTest", "bbb"]]       | [["com.foo.FooTestx", "bbb"]]
+        ["*.FooTest.*"]       | [["com.foo.FooTest", "aaa"], ["com.bar.FooTest", "aaa"]]       | [["FooTest", "aaa"]]
+        ["com*FooTest"]       | [["com.foo.FooTest", "aaa"], ["com.FooTest", "bbb"]]           | [["FooTest", "bbb"]]
+        ["*.foo.*"]           | [["com.foo.FooTest", "aaaa"], ["com.foo.bar.BarTest", "aaaa"]] | [["foo.Test", "aaaa"], ["fooTest", "aaaa"], ["foo", "aaaa"]]
     }
 
     def "knows if test matches"() {
         expect:
-        matcher(input, [], []).matchesTest(className, methodName) == match
-        matcher([], [], input).matchesTest(className, methodName) == match
+        assertMatchesTest(pattern, patternMatches, patternDoesNotMatch)
 
         where:
-        input                    | className                 | methodName            | match
-        ["FooTest.test"]         | "FooTest"                 | "test"                | true
-        ["FooTest.test"]         | "Footest"                 | "test"                | false
-        ["FooTest.test"]         | "FooTest"                 | "TEST"                | false
-        ["FooTest.test"]         | "com.foo.FooTest"         | "test"                | true
-        ["FooTest.test"]         | "Foo.test"                | ""                    | false
-
-        ["FooTest.*slow*"]       | "FooTest"                 | "slowUiTest"          | true
-        ["FooTest.*slow*"]       | "FooTest"                 | "veryslowtest"        | true
-        ["FooTest.*slow*"]       | "FooTest.SubTest"         | "slow"                | false
-        ["FooTest.*slow*"]       | "FooTest"                 | "a slow test"         | true
-        ["FooTest.*slow*"]       | "FooTest"                 | "aslow"               | true
-        ["FooTest.*slow*"]       | "com.foo.FooTest"         | "slowUiTest"          | true
-        ["FooTest.*slow*"]       | "FooTest"                 | "verySlowTest"        | false
-
-        ["com.FooTest***slow*"]  | "com.FooTest"             | "slowMethod"          | true
-        ["com.FooTest***slow*"]  | "com.FooTest2"            | "aslow"               | true
-        ["com.FooTest***slow*"]  | "com.FooTest.OtherTest"   | "slow"                | true
-        ["com.FooTest***slow*"]  | "FooTest"                 | "slowMethod"          | false
+        // patternMatches and patternDoesNotMatch entries are [className, methodName] tuples
+        pattern                 | patternMatches                                                                                                                                                              | patternDoesNotMatch
+        ["FooTest.test"]        | [["FooTest", "test"], ["com.foo.FooTest", "test"]]                                                                                                                          | [["Footest", "test"], ["FooTest", "TEST"], ["Foo.test", ""]]
+        ["FooTest.*slow*"]      | [["FooTest", "slowUiTest"], ["FooTest", "veryslowtest"], ["FooTest", "a slow test"], ["FooTest", "aslow"], ["com.foo.FooTest", "slowUiTest"]]                               | [["FooTest.SubTest", "slow"], ["FooTest", "verySlowTest"]]
+        ["com.FooTest***slow*"] | [["com.FooTest", "slowMethod"], ["com.FooTest2", "aslow"], ["com.FooTest.OtherTest", "slow"]]                                                                               | [["FooTest", "slowMethod"]]
     }
 
     def "matches any of input"() {
         expect:
-        matcher(input, [], []).matchesTest(className, methodName) == match
-        matcher([], [], input).matchesTest(className, methodName) == match
+        assertMatchesTest(pattern, patternMatches, patternDoesNotMatch)
 
         where:
-        input                               | className                 | methodName            | match
-        ["FooTest.test", "FooTest.bar"]     | "FooTest"                 | "test"                | true
-        ["FooTest.test", "FooTest.bar"]     | "FooTest"                 | "bar"                 | true
-        ["FooTest.test", "FooTest.bar"]     | "FooTest"                 | "baz"                 | false
-        ["FooTest.test", "FooTest.bar"]     | "Footest"                 | "test"                | false
-
-        ["FooTest.test", "BarTest.*"]       | "FooTest"                 | "test"                | true
-        ["FooTest.test", "BarTest.*"]       | "BarTest"                 | "xxxx"                | true
-        ["FooTest.test", "BarTest.*"]       | "FooTest"                 | "xxxx"                | false
-
-        ["FooTest.test", "FooTest.*fast*"]  | "FooTest"                 | "test"                | true
-        ["FooTest.test", "FooTest.*fast*"]  | "FooTest"                 | "fast"                | true
-        ["FooTest.test", "FooTest.*fast*"]  | "FooTest"                 | "a fast test"         | true
-        ["FooTest.test", "FooTest.*fast*"]  | "FooTest"                 | "xxxx"                | false
-
-        ["FooTest", "*BarTest"]             | "FooTest"                 | "test"                | true
-        ["FooTest", "*BarTest"]             | "FooTest"                 | "xxxx"                | true
-        ["FooTest", "*BarTest"]             | "BarTest"                 | "xxxx"                | true
-        ["FooTest", "*BarTest"]             | "com.foo.BarTest"         | "xxxx"                | true
-        ["FooTest", "*BarTest"]             | "com.foo.FooTest"         | "xxxx"                | true
+        // patternMatches and patternDoesNotMatch entries are [className, methodName] tuples
+        pattern                            | patternMatches                                                                                                                    | patternDoesNotMatch
+        ["FooTest.test", "FooTest.bar"]    | [["FooTest", "test"], ["FooTest", "bar"]]                                                                                         | [["FooTest", "baz"], ["Footest", "test"]]
+        ["FooTest.test", "BarTest.*"]      | [["FooTest", "test"], ["BarTest", "xxxx"]]                                                                                        | [["FooTest", "xxxx"]]
+        ["FooTest.test", "FooTest.*fast*"] | [["FooTest", "test"], ["FooTest", "fast"], ["FooTest", "a fast test"]]                                                            | [["FooTest", "xxxx"]]
+        ["FooTest", "*BarTest"]            | [["FooTest", "test"], ["FooTest", "xxxx"], ["BarTest", "xxxx"], ["com.foo.BarTest", "xxxx"], ["com.foo.FooTest", "xxxx"]]         | [["BazTest", "xxxx"]]
     }
 
-    def "regexp chars are handled"() {
+    def "globbing is handled"() {
         expect:
-        matcher(input, [], []).matchesTest(className, methodName) == match
-        matcher([], [], input).matchesTest(className, methodName) == match
+        assertMatchesTest(pattern, patternMatches, patternDoesNotMatch)
 
         where:
-        input                               | className                 | methodName            | match
-        ["*Foo+Bar*"]                       | "Foo+Bar"                 | "test"                | true
-        ["*Foo+Bar*"]                       | "Foo+Bar"                 | "xxxx"                | true
-        ["*Foo+Bar*"]                       | "com.Foo+Bar"             | "xxxx"                | true
-        ["*Foo+Bar*"]                       | "FooBar"                  | "xxxx"                | false
+        // patternMatches and patternDoesNotMatch entries are [className, methodName] tuples
+        pattern        | patternMatches                                                                                    | patternDoesNotMatch
+        ["*Foo+Bar*"]  | [["Foo+Bar", "test"], ["Foo+Bar", "xxxx"], ["com.Foo+Bar", "xxxx"], ["com.Foo+BarBaz", "xxxx"]]   | [["FooBar", "xxxx"], ["Foo+bar", "xxxx"]]
+        ["*Foo*Bar"]   | [["FooSomethingBar", "test"], ["Foo---Bar", "test"], ["com.Foo-Bar", "xxxx"], ["FooBar", "xxxx"]] | [["Foobar", "xxxx"], ["FooBaar", "xxxx"]]
     }
 
     def "handles null test method"() {
         expect:
-        matcher(input, [], []).matchesTest(className, methodName) == match
-        matcher([], [], input).matchesTest(className, methodName) == match
+        assertMatchesTest(pattern, patternMatches, patternDoesNotMatch)
 
         where:
-        input                               | className                 | methodName            | match
-        ["FooTest"]                         | "FooTest"                 | null                  | true
-        ["FooTest*"]                        | "FooTest"                 | null                  | true
-
-        ["FooTest.*"]                       | "FooTest"                 | null                  | false
-        ["FooTest"]                         | "OtherTest"               | null                  | false
-        ["FooTest.test"]                    | "FooTest"                 | null                  | false
-        ["FooTest.null"]                    | "FooTest"                 | null                  | false
+        // patternMatches and patternDoesNotMatch entries are [className, methodName] tuples
+        pattern           | patternMatches          | patternDoesNotMatch
+        ["FooTest"]       | [["FooTest", null]]     | [["OtherTest", null]]
+        ["FooTest*"]      | [["FooTest", null]]     | [["OtherTest", null]]
+        ["FooTest.*"]     | [["FooTest", "test"]]   | [["FooTest", null]]
+        ["FooTest.test"]  | [["FooTest", "test"]]   | [["FooTest", null]]
+        ["FooTest.null"]  | []                      | [["FooTest", null]]
     }
 
     def "script includes and command line includes both have to match"() {
         expect:
-        matcher(input, [], inputCommandLine).matchesTest(className, methodName) == match
+        for (pair in matches) {
+            def (className, methodName) = pair
+            assert matcher(buildScript, [], inputCommandLine).matchesTest(className, methodName) : "input=$buildScript, inputCommandLine=$inputCommandLine expected to match [$className, $methodName]"
+        }
+        for (pair in doesNotMatch) {
+            def (className, methodName) = pair
+            assert !matcher(buildScript, [], inputCommandLine).matchesTest(className, methodName) : "input=$buildScript, inputCommandLine=$inputCommandLine expected NOT to match [$className, $methodName]"
+        }
 
         where:
-        input               | inputCommandLine | className  | methodName | match
-        ["FooTest", "Bar" ] | []               | "FooTest"  | "whatever" | true
-        ["FooTest"]         | ["Bar"]          | "FooTest"  | "whatever" | false
+        // matches and doesNotMatch entries are [className, methodName] tuples
+        buildScript         | inputCommandLine | matches                                        | doesNotMatch
+        ["FooTest", "Bar"]  | []               | [["FooTest", "whatever"], ["Bar", "whatever"]] | [["Baz", "whatever"]]
+        ["FooTest"]         | ["Bar"]          | []                                             | [["FooTest", "whatever"], ["Bar", "whatever"]]
+        ["FooTest"]         | ["FooTest"]      | [["FooTest", "whatever"]]                      | [["Bar", "whatever"]]
     }
 
-    def 'can exclude as many classes as possible'() {
+    def 'can exclude as many classes as possible with mayIncludeClass'() {
         expect:
-        matcher(input, [], []).mayIncludeClass(fullQualifiedName) == maybeMatch
-        matcher([], [], input).mayIncludeClass(fullQualifiedName) == maybeMatch
+        for (fqn in patternMatches) {
+            assert matcher(pattern, [], []).mayIncludeClass(fqn) : "includedTests=$pattern expected to possibly include $fqn"
+            assert matcher([], [], pattern).mayIncludeClass(fqn) : "includedTestsCommandLine=$pattern expected to possibly include $fqn"
+        }
+        for (fqn in patternDoesNotMatch) {
+            assert !matcher(pattern, [], []).mayIncludeClass(fqn) : "includedTests=$pattern expected NOT to possibly include $fqn"
+            assert !matcher([], [], pattern).mayIncludeClass(fqn) : "includedTestsCommandLine=$pattern expected NOT to possibly include $fqn"
+        }
 
         where:
-        input                             | fullQualifiedName    | maybeMatch
-        ['.']                             | 'FooTest'            | false
-        ['.FooTest.']                     | 'FooTest'            | false
-        ['FooTest']                       | 'FooTest'            | true
-        ['FooTest']                       | 'org.gradle.FooTest' | true
-        ['FooTest']                       | 'org.foo.FooTest'    | true
-        ['FooTest']                       | 'BarTest'            | false
-        ['FooTest']                       | 'org.gradle.BarTest' | false
-        ['FooTest.testMethod']            | 'FooTest'            | true
-        ['FooTest.testMethod']            | 'BarTest'            | false
-        ['FooTest.testMethod']            | 'org.gradle.FooTest' | true
-        ['FooTest.testMethod']            | 'org.gradle.BarTest' | false
-        ['org.gradle.FooTest.testMethod'] | 'FooTest'            | false
-        ['org.gradle.FooTest.testMethod'] | 'org.gradle.FooTest' | true
-        ['org.gradle.FooTest.testMethod'] | 'org.gradle.BarTest' | false
-        ['org.foo.FooTest.testMethod']    | 'org.gradle.FooTest' | false
-        ['org.foo.FooTest']               | 'org.gradle.FooTest' | false
+        pattern                           | patternMatches                                                             | patternDoesNotMatch
+        ['.']                             | []                                                                         | ['FooTest']
+        ['.FooTest.']                     | []                                                                         | ['FooTest']
+        ['FooTest']                       | ['FooTest', 'org.gradle.FooTest', 'org.foo.FooTest']                       | ['BarTest', 'org.gradle.BarTest']
+        ['FooTest.testMethod']            | ['FooTest', 'org.gradle.FooTest']                                          | ['BarTest', 'org.gradle.BarTest']
+        ['org.gradle.FooTest.testMethod'] | ['org.gradle.FooTest']                                                     | ['FooTest', 'org.gradle.BarTest']
+        ['org.foo.FooTest.testMethod']    | []                                                                         | ['org.gradle.FooTest']
+        ['org.foo.FooTest']               | []                                                                         | ['org.gradle.FooTest']
 
-        ['*FooTest*']                     | 'org.gradle.FooTest' | true
-        ['*FooTest*']                     | 'aaa'                | true
-        ['*FooTest']                      | 'org.gradle.FooTest' | true
-        ['*FooTest']                      | 'FooTest'            | true
-        ['*FooTest']                      | 'org.gradle.BarTest' | true // org.gradle.BarTest.testFooTest
+        ['*FooTest*']                     | ['org.gradle.FooTest', 'aaa']                                              | []
+        ['*FooTest']                      | ['org.gradle.FooTest', 'FooTest', 'org.gradle.BarTest' /* .testFooTest */] | []
 
-        ['or*']                           | 'org.gradle.FooTest' | true
-        ['org*']                          | 'org.gradle.FooTest' | true
-        ['org.*']                         | 'org.gradle.FooTest' | true
-        ['org.g*']                        | 'org.gradle.FooTest' | true
-        ['org*']                          | 'FooTest'            | false
-        ['org.*']                         | 'com.gradle.FooTest' | false
-        ['org*']                          | 'com.gradle.FooTest' | false
-        ['org.*']                         | 'com.gradle.FooTest' | false
-        ['org.g*']                        | 'com.gradle.FooTest' | false
-        ['FooTest*']                      | 'FooTest'            | true
-        ['FooTest*']                      | 'org.gradle.FooTest' | true
-        ['FooTest*']                      | 'BarTest'            | false
-        ['FooTest*']                      | 'org.gradle.BarTest' | false
-        ['org.gradle.FooTest*']           | 'org.gradle.BarTest' | false
-        ['FooTest.testMethod*']           | 'FooTest'            | true
-        ['FooTest.testMethod*']           | 'org.gradle.FooTest' | true
-        ['org.foo.FooTest*']              | 'FooTest'            | false
-        ['org.foo.FooTest*']              | 'org.gradle.FooTest' | false
-        ['org.foo.*FooTest*']             | 'org.gradle.FooTest' | false
-        ['org.foo.*FooTest*']             | 'org.foo.BarTest'    | true // org.foo.BarTest.testFooTest
+        ['or*']                           | ['org.gradle.FooTest']                                                     | []
+        ['org*']                          | ['org.gradle.FooTest']                                                     | ['FooTest', 'com.gradle.FooTest']
+        ['org.*']                         | ['org.gradle.FooTest']                                                     | ['com.gradle.FooTest']
+        ['org.g*']                        | ['org.gradle.FooTest']                                                     | ['com.gradle.FooTest']
+        ['FooTest*']                      | ['FooTest', 'org.gradle.FooTest']                                          | ['BarTest', 'org.gradle.BarTest']
+        ['org.gradle.FooTest*']           | []                                                                         | ['org.gradle.BarTest']
+        ['FooTest.testMethod*']           | ['FooTest', 'org.gradle.FooTest']                                          | []
+        ['org.foo.FooTest*']              | []                                                                         | ['FooTest', 'org.gradle.FooTest']
+        ['org.foo.*FooTest*']             | ['org.foo.BarTest' /* .testFooTest */]                                     | ['org.gradle.FooTest']
 
-        ['Foo']                           | 'FooTest'            | false
-        ['org.gradle.Foo']                | 'org.gradle.FooTest' | false
-        ['org.gradle.Foo.*']              | 'org.gradle.FooTest' | false
+        ['Foo']                           | []                                                                         | ['FooTest']
+        ['org.gradle.Foo']                | []                                                                         | ['org.gradle.FooTest']
+        ['org.gradle.Foo.*']              | []                                                                         | ['org.gradle.FooTest']
 
-        ['org.gradle.Foo$Bar.*test']      | 'Foo'                | false
-        ['org.gradle.Foo$Bar.*test']      | 'org.Foo'            | false
-        ['org.gradle.Foo$Bar.*test']      | 'org.gradle.Foo'     | true
-        ['Enclosing$Nested.test']         | "Enclosing"          | true
-        ['org.gradle.Foo$1$2.test']       | "org.gradle.Foo"     | true
+        ['org.gradle.Foo$Bar.*test']      | ['org.gradle.Foo']                                                         | ['Foo', 'org.Foo']
+        ['Enclosing$Nested.test']         | ['Enclosing']                                                              | []
+        ['org.gradle.Foo$1$2.test']       | ['org.gradle.Foo']                                                         | []
     }
 
-    def 'can use multiple patterns'() {
+    def 'can use multiple patterns with mayIncludeClass'() {
         expect:
-        matcher(pattern1, [], pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
+        for (fqn in matches) {
+            assert matcher(pattern1, [], pattern2).mayIncludeClass(fqn) : "pattern1=$pattern1, pattern2=$pattern2 expected to possibly include $fqn"
+        }
+        for (fqn in doesNotMatch) {
+            assert !matcher(pattern1, [], pattern2).mayIncludeClass(fqn) : "pattern1=$pattern1, pattern2=$pattern2 expected NOT to possibly include $fqn"
+        }
 
         where:
-        pattern1                | pattern2                        | fullQualifiedName     | maybeMatch
-        ['']                    | ['com.my.Test.test[first.com]'] | 'com.my.Test'         | true
-        ['FooTest*']            | ['FooTest']                     | 'FooTest'             | true
-        ['FooTest*']            | ['BarTest*']                    | 'FooTest'             | false
-        ['FooTest*']            | ['BarTest*']                    | 'FooBarTest'          | false
-        []                      | []                              | 'anything'            | true
-        ['org.gradle.FooTest*'] | ['org.gradle.BarTest*']         | 'org.gradle.FooTest'  | false
-        ['org.gradle.FooTest*'] | ['*org.gradle.BarTest*']        | 'org.gradle.FooTest'  | true
+        pattern1                | pattern2                        | matches                | doesNotMatch
+        []                      | []                              | ['anything']           | []
+        ['']                    | ['com.my.Test.test[first.com]'] | ['com.my.Test']        | []
+        ['FooTest*']            | ['FooTest']                     | ['FooTest']            | []
+        ['FooTest*']            | ['BarTest*']                    | []                     | ['FooTest', 'FooBarTest']
+        ['org.gradle.FooTest*'] | ['org.gradle.BarTest*']         | []                     | ['org.gradle.FooTest']
+        ['org.gradle.FooTest*'] | ['*org.gradle.BarTest*']        | ['org.gradle.FooTest'] | []
+    }
+
+    def "matchesIncludeTest ignores exclude patterns"() {
+        expect:
+        for (pair in matches) {
+            def (className, methodName) = pair
+            assert matcher(includes, excludes, []).matchesIncludeTest(className, methodName) : "includes=$includes, excludes=$excludes expected to match [$className, $methodName]"
+        }
+        for (pair in doesNotMatch) {
+            def (className, methodName) = pair
+            assert !matcher(includes, excludes, []).matchesIncludeTest(className, methodName) : "includes=$includes, excludes=$excludes expected NOT to match [$className, $methodName]"
+        }
+
+        where:
+        // matches and doesNotMatch entries are [className, methodName] tuples
+        includes         | excludes        | matches                                                     | doesNotMatch
+        []               | ["FooTest"]     | [["FooTest", "aaa"]]                                        | []
+        ["FooTest"]      | ["FooTest"]     | [["FooTest", null], ["FooTest", "aaa"], ["FooTest", "bbb"]] | [["BarTest", "aaa"]]
+        ["FooTest.aaa"]  | ["FooTest"]     | [["FooTest", "aaa"]]                                        | [["FooTest", null], ["FooTest", "bbb"], ["BarTest", "aaa"]]
+        ["FooTest"]      | ["FooTest.aaa"] | [["FooTest", null], ["FooTest", "aaa"], ["FooTest", "bbb"]] | [["BarTest", "aaa"]]
+    }
+
+    def "matchesIncludeTest returns the AND of build-script and command-line includes"() {
+        expect:
+        for (className in matches) {
+            assert matcher(buildScript, [], commandLine).matchesIncludeTest(className, null) : "buildScript=$buildScript, commandLine=$commandLine expected to match $className"
+        }
+        for (className in doesNotMatch) {
+            assert !matcher(buildScript, [], commandLine).matchesIncludeTest(className, null) : "buildScript=$buildScript, commandLine=$commandLine expected NOT to match $className"
+        }
+
+        where:
+        buildScript  | commandLine  | matches      | doesNotMatch
+        []           | []           | ["FooTest"]  | []
+        ["FooTest"]  | []           | ["FooTest"]  | ["BarTest"]
+        []           | ["FooTest"]  | ["FooTest"]  | ["BarTest"]
+        ["FooTest"]  | ["FooTest"]  | ["FooTest"]  | ["BarTest"]
+        ["FooTest"]  | ["BarTest"]  | []           | ["FooTest", "BarTest"]
+    }
+
+    def "matchesExcludeTest correctly matches on exclude patterns"() {
+        expect:
+        for (pair in patternMatches) {
+            def (className, methodName) = pair
+            assert matcher([], pattern, []).matchesExcludeTest(className, methodName) : "excludedTests=$pattern expected to match [$className, $methodName]"
+        }
+        for (pair in patternDoesNotMatch) {
+            def (className, methodName) = pair
+            assert !matcher([], pattern, []).matchesExcludeTest(className, methodName) : "excludedTests=$pattern expected NOT to match [$className, $methodName]"
+        }
+
+        where:
+        // patternMatches and patternDoesNotMatch entries are [className, methodName] tuples
+        pattern             | patternMatches                              | patternDoesNotMatch
+        []                  | []                                          | [["FooTest", null], ["FooTest", "doThing"], ["BarTest", null], ["BarTest", "doThing"]]
+        ["FooTest"]         | [["FooTest", null], ["FooTest", "doThing"]] | [["BarTest", null], ["BarTest", "doThing"]]
+        // Note that ["FooTest", null] matches because of multiple ways to match on method patterns - see ClassTestSelectionMatcher.matchesExcludeTest()
+        ["FooTest.doThing"] | [["FooTest", null], ["FooTest", "doThing"]] | [["FooTest", "doOther"], ["BarTest", null], ["BarTest", "doThing"]]
+    }
+
+    def "matchesExcludeTest ignores include patterns"() {
+        expect:
+        for (pair in matches) {
+            def (className, methodName) = pair
+            assert matcher(includes, excludes, []).matchesExcludeTest(className, methodName) : "includes=$includes, excludes=$excludes expected to match [$className, $methodName]"
+        }
+        for (pair in doesNotMatch) {
+            def (className, methodName) = pair
+            assert !matcher(includes, excludes, []).matchesExcludeTest(className, methodName) : "includes=$includes, excludes=$excludes expected NOT to match [$className, $methodName]"
+        }
+
+        where:
+        // matches and doesNotMatch entries are [className, methodName] tuples
+        includes            | excludes            | matches                                     | doesNotMatch
+        ["BarTest"]         | ["FooTest"]         | [["FooTest", null], ["FooTest", "doThing"]] | [["BarTest", null], ["BarTest", "doThing"]]
+        ["FooTest"]         | ["FooTest"]         | [["FooTest", null], ["FooTest", "doThing"]] | [["BarTest", null], ["BarTest", "doThing"]]
+        // Note that ["FooTest", null] matches because of multiple ways to match on method patterns - see ClassTestSelectionMatcher.matchesExcludeTest()
+        ["BarTest"]         | ["FooTest.doThing"] | [["FooTest", null], ["FooTest", "doThing"]] | [["FooTest", "doOther"], ["BarTest", null], ["BarTest", "doThing"]]
+        ["FooTest"]         | ["FooTest.doThing"] | [["FooTest", null], ["FooTest", "doThing"]] | [["FooTest", "doOther"], ["BarTest", null], ["BarTest", "doThing"]]
+        ["FooTest.doThing"] | ["FooTest.doThing"] | [["FooTest", null], ["FooTest", "doThing"]] | [["FooTest", "doOther"], ["BarTest", null], ["BarTest", "doThing"]]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37539")
+    def "matchesExcludeClass is exact and does not treat parent pattern as matching nested class"() {
+        expect:
+        for (className in patternMatches) {
+            assert matcher([], [pattern], []).matchesExcludeClassExactly(className) : "excludedTests=[$pattern] expected to match exactly $className"
+        }
+        for (className in patternDoesNotMatch) {
+            assert !matcher([], [pattern], []).matchesExcludeClassExactly(className) : "excludedTests=[$pattern] expected NOT to match exactly $className"
+        }
+
+        where:
+        pattern                                           | patternMatches                                                                                   | patternDoesNotMatch
+        "SampleTest"                                      | ["SampleTest"]                                                                                   | ["SampleTest\$NestedTestClass", "SampleTest\$NestedTestClass\$SubNestedTestClass"]
+        "SampleTest\$NestedTestClass"                     | ["SampleTest\$NestedTestClass"]                                                                  | ["SampleTest", "SampleTest\$NestedTestClass\$SubNestedTestClass"]
+        "SampleTest\$NestedTestClass\$SubNestedTestClass" | ["SampleTest\$NestedTestClass\$SubNestedTestClass"]                                              | ["SampleTest", "SampleTest\$NestedTestClass"]
+        "SampleTest*"                                     | ["SampleTest", "SampleTest\$NestedTestClass", "SampleTest\$NestedTestClass\$SubNestedTestClass"] | ["NotSampleTest", "NotSampleTest\$NestedTestClass"]
     }
 
     def matcher(Collection<String> includedTests, Collection<String> excludedTests, Collection<String> includedTestsCommandLine) {
         return new TestSelectionMatcher(new TestFilterSpec(includedTests as Set, excludedTests as Set, includedTestsCommandLine as Set))
+    }
+
+    private void assertMatchesTest(List<String> pattern,
+                                   List<List<String>> patternMatches,
+                                   List<List<String>> patternDoesNotMatch) {
+        for (pair in patternMatches) {
+            def (className, methodName) = pair
+            assert matcher(pattern, [], []).matchesTest(className, methodName) : "includedTests=$pattern expected to match [$className, $methodName]"
+            assert matcher([], [], pattern).matchesTest(className, methodName) : "includedTestsCommandLine=$pattern expected to match [$className, $methodName]"
+        }
+        for (pair in patternDoesNotMatch) {
+            def (className, methodName) = pair
+            assert !matcher(pattern, [], []).matchesTest(className, methodName) : "includedTests=$pattern expected NOT to match [$className, $methodName]"
+            assert !matcher([], [], pattern).matchesTest(className, methodName) : "includedTestsCommandLine=$pattern expected NOT to match [$className, $methodName]"
+        }
     }
 }

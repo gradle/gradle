@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -112,7 +113,18 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 ((TaskDependencyContainer) dependency).visitDependencies(context);
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
-                Object closureResult = closure.call(context.getTask());
+                Object closureResult;
+                try {
+                    closureResult = closure.call(new Object[]{null});
+                } catch (NullPointerException e) {
+                    DeprecationLogger.deprecateAction("Accessing tasks provided to task dependency closures")
+                        .willBecomeAnErrorInGradle10()
+                        .withUpgradeGuideSection(9, "task_in_task_dependency_closure")
+                        .nagUser();
+                    Task task = context.getTask();
+                    closureResult = closure.call(task);
+                }
+
                 if (closureResult != null) {
                     queue.addFirst(closureResult);
                 }

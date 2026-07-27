@@ -16,13 +16,10 @@
 package org.gradle.internal.management;
 
 import com.google.common.collect.ImmutableList;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.ActionConfiguration;
+import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectList;
-import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -34,7 +31,9 @@ import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
+import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
@@ -44,22 +43,21 @@ import org.gradle.api.provider.Property;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.List;
 
 @NullMarked
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
     private static final Logger LOGGER = Logging.getLogger(DependencyResolutionManagement.class);
-    private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = new ArrayList<>();
 
     private final Lazy<DependencyResolutionServices> dependencyResolutionServices;
     private final UserCodeApplicationContext context;
-    private final ComponentMetadataHandler registar = new ComponentMetadataRulesRegistar();
+    private final ComponentMetadataHandlerInternal components;
     private final Property<RepositoriesMode> repositoryMode;
     private final Property<RulesMode> rulesMode;
     private final Property<String> librariesExtensionName;
@@ -73,7 +71,9 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         UserCodeApplicationContext context,
         DependencyManagementServices dependencyManagementServices,
         ObjectFactory objects,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        IsolatableFactory isolatableFactory
     ) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
@@ -82,6 +82,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
         this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, context, dependencyResolutionServices);
+        this.components = objects.newInstance(DefaultComponentMetadataHandler.class, isolatableFactory, moduleIdentifierFactory);
+        this.components.onAddRule(name -> assertMutable());
     }
 
     @Override
@@ -92,12 +94,12 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     @Override
     public void components(Action<? super ComponentMetadataHandler> registration) {
         assertMutable();
-        componentMetadataRulesActions.add(registration);
+        registration.execute(components);
     }
 
     @Override
     public ComponentMetadataHandler getComponents() {
-        return registar;
+        return components;
     }
 
     @Override
@@ -183,7 +185,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void repoMutationDisallowedOnProject(ArtifactRepository artifactRepository) {
         UserCodeApplicationContext.Application current = context.current();
-        DisplayName displayName = current == null ? null : current.getSource().getDisplayName();
+        Describable displayName = current == null ? null : current.getSource().getDisplayName();
         if (displayName == null) {
             displayName = UNKNOWN_CODE;
         }
@@ -201,7 +203,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void ruleMutationDisallowedOnProject(DisplayName ruleName) {
         UserCodeApplicationContext.Application current = context.current();
-        DisplayName displayName = current == null ? null : current.getSource().getDisplayName();
+        Describable displayName = current == null ? null : current.getSource().getDisplayName();
         if (displayName == null) {
             displayName = UNKNOWN_CODE;
         }
@@ -217,74 +219,4 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
     }
 
-    @Override
-    public void applyRules(ComponentMetadataHandler target) {
-        for (Action<? super ComponentMetadataHandler> rule : componentMetadataRulesActions) {
-            rule.execute(target);
-        }
-    }
-
-    private class ComponentMetadataRulesRegistar implements ComponentMetadataHandler {
-        @Override
-        public ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule) {
-            components(h -> h.all(rule));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler all(Closure<?> rule) {
-            components(h -> h.all(rule));
-            return this;
-        }
-
-        @Override
-        @Deprecated
-        public ComponentMetadataHandler all(Object ruleSource) {
-            components(h -> h.all(ruleSource));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule) {
-            components(h -> h.all(rule));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
-            components(h -> h.all(rule, configureAction));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
-            components(h -> h.withModule(id, rule));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
-            components(h -> h.withModule(id, rule));
-            return this;
-        }
-
-        @Override
-        @Deprecated
-        public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
-            components(h -> h.withModule(id, ruleSource));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule) {
-            components(h -> h.withModule(id, rule));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
-            components(h -> h.withModule(id, rule, configureAction));
-            return this;
-        }
-    }
 }

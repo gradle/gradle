@@ -52,6 +52,7 @@ import java.nio.charset.Charset;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InstallXCTestBundle extends DefaultTask {
+    @SuppressWarnings("this-escape")
     public InstallXCTestBundle() {
         // A work around for not being able to skip the task when an input _file_ does not exist
         dependsOn(getBundleBinaryFile());
@@ -99,7 +100,7 @@ public abstract class InstallXCTestBundle extends DefaultTask {
             + "</plist>");
 
         getExecOperations().exec(SerializableLambdas.action(execSpec -> {
-            execSpec.setWorkingDir(bundleDir);
+            execSpec.getWorkingDirectory().set(bundleDir);
             execSpec.executable(getSwiftStdlibToolLocator().find());
             execSpec.args(
                 "--copy",

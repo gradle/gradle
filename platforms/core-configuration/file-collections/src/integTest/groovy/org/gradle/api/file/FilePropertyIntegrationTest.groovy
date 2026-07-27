@@ -16,6 +16,7 @@
 
 package org.gradle.api.file
 
+import org.gradle.api.problems.Severity
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -763,6 +764,7 @@ class SomeTask extends DefaultTask {
 
     def "optional output consumed as non-optional input yields a reasonable error message"() {
         given:
+        enableProblemsApiCheck()
         buildFile """
             class ProducerTask extends DefaultTask {
                 @Optional @OutputFile
@@ -805,7 +807,17 @@ class SomeTask extends DefaultTask {
 
         then:
         failure.assertHasDescription("A problem was found with the configuration of task ':consumer' (type 'ConsumerTask').")
-        failureDescriptionContains(missingValueMessage { type('ConsumerTask').property('bean.inputFile') })
         failure.assertTasksScheduled(':producer', ':consumer')
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+            additionalData.asMap == [
+                'typeName': 'ConsumerTask',
+                'propertyName': 'bean.inputFile',
+            ]
+        }
     }
 }

@@ -22,9 +22,17 @@ import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
 import org.gradle.internal.xml.XmlTransformer
-import org.gradle.platform.base.PlatformBaseSpecification
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.junit.Rule
+import spock.lang.Specification
 
-class IvyPublishPluginTest extends PlatformBaseSpecification {
+class IvyPublishPluginTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
+
+    final def project = TestUtil.create(testDir).rootProject()
+
     PublishingExtension publishing
 
     def setup() {
@@ -50,7 +58,6 @@ class IvyPublishPluginTest extends PlatformBaseSpecification {
         when:
         publishing.publications.create("test", IvyPublication)
         publishing.repositories { ivy { url = "http://foo.com" } }
-        realizeTasks()
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
         then:

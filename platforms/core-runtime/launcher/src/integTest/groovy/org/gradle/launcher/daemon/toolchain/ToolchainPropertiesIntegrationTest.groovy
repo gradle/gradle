@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration
 import org.gradle.launcher.daemon.ToolchainPropertiesDeprecationsFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements ToolchainPropertiesDeprecationsFixture {
@@ -78,7 +78,7 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @Issue('https://github.com/gradle/gradle/issues/35998')
-    @Requires(IntegTestPreconditions.IsConfigCached)
+    @Requires(TestExecutionPreconditions.IsConfigCached)
     def "does not invalidate CC when when toolchain property is specified as a Gradle property on the command line and unrelated property changes"() {
         given:
         def configCache = newConfigurationCacheFixture()

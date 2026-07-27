@@ -54,6 +54,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 /**
  * Task for generating a Visual Studio project file (e.g. {@code foo.vcxproj}).
  */
+@SuppressWarnings("this-escape")
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
@@ -64,6 +65,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     private String gradleExe;
     private String gradleArgs;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public GenerateProjectFileTask(DefaultVisualStudioProject visualStudioProject) {
         setVisualStudioProject(visualStudioProject);

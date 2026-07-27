@@ -32,6 +32,9 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
     integTestImplementation(testFixtures(projects.testingBase))
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.toolingApiBuilders)
 }
 
 gradleModule {
@@ -43,12 +46,4 @@ gradleModule {
         daemon = true
         worker = true
     }
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

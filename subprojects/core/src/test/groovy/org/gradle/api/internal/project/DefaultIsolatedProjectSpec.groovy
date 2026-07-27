@@ -16,24 +16,28 @@
 
 package org.gradle.api.internal.project
 
-
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultIsolatedProjectSpec extends Specification {
 
-    def "delegates equals and hashCode to project"() {
+    def "equals and hashCode are based on project identity"() {
         given:
-        def project = Mock(ProjectInternal)
-        def subject = new DefaultIsolatedProject(project, project)
+        def identity = ProjectIdentity.forSubproject(Path.ROOT, Path.path(":sub"))
+        def sameIdentity = ProjectIdentity.forSubproject(Path.ROOT, Path.path(":sub"))
+        def otherIdentity = ProjectIdentity.forSubproject(Path.ROOT, Path.path(":other"))
 
-        when:
-        def hashCode = subject.hashCode()
-        def equality = subject.equals(new DefaultIsolatedProject(project, project))
+        def subject = new DefaultIsolatedProject(stateWithIdentity(identity))
 
-        then:
-        hashCode == 42
-        equality
-        1 * project.hashCode() >> 42
-        1 * project.equals(project) >> true
+        expect:
+        subject.hashCode() == identity.hashCode()
+        subject == new DefaultIsolatedProject(stateWithIdentity(sameIdentity))
+        subject != new DefaultIsolatedProject(stateWithIdentity(otherIdentity))
+    }
+
+    private ProjectState stateWithIdentity(ProjectIdentity identity) {
+        Mock(ProjectState) {
+            getIdentity() >> identity
+        }
     }
 }

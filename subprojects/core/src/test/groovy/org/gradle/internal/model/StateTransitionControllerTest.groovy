@@ -433,7 +433,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         }
 
         expect:
-        controller.assertInStateOrLater(TestState.B)
+        controller.assertHasSeenState(TestState.B)
     }
 
     def "can assert is in expected state or later state when in later state"() {
@@ -444,7 +444,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         }
 
         expect:
-        controller.assertInStateOrLater(TestState.B)
+        controller.assertHasSeenState(TestState.B)
     }
 
     def "fails when not in expected state or later"() {
@@ -454,7 +454,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         }
 
         when:
-        controller.assertInStateOrLater(TestState.C)
+        controller.assertHasSeenState(TestState.C)
 
         then:
         def e = thrown(IllegalStateException)

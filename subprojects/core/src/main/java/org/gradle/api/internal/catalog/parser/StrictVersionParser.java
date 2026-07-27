@@ -16,14 +16,26 @@
 package org.gradle.api.internal.catalog.parser;
 
 import com.google.common.collect.Interner;
-import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Locale;
+
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_VERSION_NOTATION;
+import static org.gradle.internal.deprecation.Documentation.userManual;
+import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class StrictVersionParser {
     private final Interner<String> stringInterner;
+    private final Problems problems;
 
-    public StrictVersionParser(Interner<String> stringInterner) {
+    public StrictVersionParser(Interner<String> stringInterner, Problems problems) {
         this.stringInterner = stringInterner;
+        this.problems = problems;
     }
 
     public RichVersion parse(@Nullable String version) {
@@ -32,7 +44,15 @@ public class StrictVersionParser {
         }
         int idx = version.indexOf("!!");
         if (idx == 0) {
-            throw new InvalidUserCodeException("The strict version modifier (!!) must be appended to a valid version number");
+            ProblemId problemId = ProblemId.create(
+                screamingSnakeToKebabCase(INVALID_VERSION_NOTATION.name()),
+                INVALID_VERSION_NOTATION.getDisplayName(),
+                GradleCoreProblemGroup.versionCatalog());
+            throw problems.getReporter().throwing(new InvalidUserDataException(), problemId, spec -> spec
+                .contextualLabel("The strict version modifier (!!) must be appended to a valid version number")
+                .details("The strict version modifier syntax expects a base version before '!!'")
+                .solution("Place a valid version number before '!!', e.g. '1.0!!'")
+                .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, INVALID_VERSION_NOTATION.name().toLowerCase(Locale.ROOT)).getUrl()));
         }
         if (idx > 0) {
             String strictly = stringInterner.intern(version.substring(0, idx));

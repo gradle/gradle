@@ -38,6 +38,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
     private final Map<String, Class<? extends NativeToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends NativeToolChain>>();
     private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultNativeToolChainRegistry(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(NativeToolChain.class, instantiator, instantiator, collectionCallbackActionDecorator);

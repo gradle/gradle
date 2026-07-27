@@ -21,10 +21,13 @@ import org.gradle.testkit.runner.UnsupportedFeatureException;
 import org.gradle.util.GradleVersion;
 
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION;
 
 public class BuildResultOutputFeatureCheck implements FeatureCheck {
+
+    private static final Logger LOGGER = Logger.getLogger(BuildResultOutputFeatureCheck.class.getName());
 
     private final GradleVersion targetGradleVersion;
     private final boolean embedded;
@@ -49,11 +52,19 @@ public class BuildResultOutputFeatureCheck implements FeatureCheck {
 
     public static void warnIfUnsupportedVersion(GradleVersion targetGradleVersion, Function<String, String> messageSupplier) {
         if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
-            DeprecationLogger.deprecate(messageSupplier.apply(targetGradleVersion.getVersion()) + " TestKit will only support the last 5 major versions in future.")
-                .willBecomeAnErrorInGradle10()
-                .withUserManual("tooling_api", "sec:embedding_compatibility")
-                .nagUser();
+            LOGGER.warning(messageSupplier.apply(targetGradleVersion.getVersion())
+                + " TestKit will only support the last 5 major versions in future."
+                + " This will fail with an error starting with Gradle 10."
+                + " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/tooling_api.html#sec:embedding_compatibility");
         }
+
+        // DeprecationLogger is not normally available in this context, which is outside Gradle runtime.
+        // Keep the call to DeprecationLogger in unreachable code so this deprecation can still be found by usage of DeprecationLogger and is addressed later.
+        @SuppressWarnings("unused")
+        Runnable keepTheDeprecationLoggerCall = () -> DeprecationLogger.deprecate("Running TestKit with unsupported old Gradle versions.")
+            .willBecomeAnErrorInGradle10()
+            .withUserManual("tooling_api", "sec:embedding_compatibility")
+            .nagUser();
     }
 
     private boolean supportsVersion() {

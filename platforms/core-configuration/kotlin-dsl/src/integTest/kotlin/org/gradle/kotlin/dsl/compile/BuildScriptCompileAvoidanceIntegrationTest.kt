@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.compile
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.provider.KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY
 import org.junit.Assert.assertTrue
 import org.junit.Test

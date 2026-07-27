@@ -24,6 +24,7 @@ This might be compiling some classes, creating a JAR, generating Javadoc, or pub
 
 When a user runs `./gradlew build` in the command line, Gradle will execute the `build` *task* along with any other tasks it depends on.
 
+[[sec:task_types]]
 == Task Types
 
 A *task type* defines what kind of work a *task* can do.
@@ -45,8 +46,8 @@ By default, a *task* is of *type* link:{javadocPath}/org/gradle/api/DefaultTask.
 Let’s start with a simple custom task that prints a message:
 
 ====
-include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/hello/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/hello/groovy", files="build.gradle[]"]
 ====
 
 You just registered a *task* called `hello` of *type* `DefaultTask` and gave it an action using `doLast{}`.
@@ -61,7 +62,7 @@ $ ./gradlew hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/hello/tests/hello.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/hello/tests/hello.out[]
 ----
 
 When you *register* (i.e. create) a *task* in your build script, you can:
@@ -73,10 +74,11 @@ When you *register* (i.e. create) a *task* in your build script, you can:
 This example registers a *task* called `copyTask` which copies `\*.war` files from the `source` directory to the `target` directory using the `Copy` **built-in task type**:
 
 ====
-include::sample[dir="snippets/tasks/taskTutorial/kotlin", files="build.gradle.kts[tags=copy]"]
-include::sample[dir="snippets/tasks/taskTutorial/groovy", files="build.gradle[tags=copy]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/taskTutorial/kotlin", files="build.gradle.kts[tags=copy]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/taskTutorial/groovy", files="build.gradle[tags=copy]"]
 ====
 
+[[sec:built_in_task_types]]
 == Built-in Task Types
 
 ++++
@@ -94,11 +96,11 @@ This registers a Gradle *task* named `removeOutput` of *type* `Delete`.
 When the *task* runs, it will delete the file `build/outputs/1.txt` relative to the project directory.
 
 ====
-include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
 ====
 
-There are many *task types* developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are detailed in the link:link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[DSL].
+There are many *task types* developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are detailed in the link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[DSL].
 
 [[sec:sample_task]]
 == Custom Task Types
@@ -117,8 +119,8 @@ Gradle *tasks* are a subclass of link:{javadocPath}/org/gradle/api/Task.html[`Ta
 In the example below, the `HelloTask` class, a *custom task type*, is created by extending link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] (our default task type):
 
 ====
-include::sample[dir="snippets/tasks/tutorialTask/kotlin", files="build.gradle.kts[tags=hello]"]
-include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[tags=hello]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/tutorialTask/kotlin", files="build.gradle.kts[tags=hello]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/tutorialTask/groovy", files="build.gradle[tags=hello]"]
 ====
 
 The `hello` *task* is registered with the new *type* `HelloTask`.
@@ -181,8 +183,8 @@ Ideally, these inputs and outputs leverage Gradle managed types.
 This helps Gradle skip work when nothing has changed:
 
 ====
-include::sample[dir="snippets/tasks/tutorialTask/kotlin", files="build.gradle.kts[tags=default]"]
-include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[tags=default]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/tutorialTask/kotlin", files="build.gradle.kts[tags=default]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/tutorialTask/groovy", files="build.gradle[tags=default]"]
 ====
 
 Now Gradle knows what the *task* needs and what it produces.
@@ -197,6 +199,7 @@ If nothing changes, the *task* is skipped.
 </p>
 ++++
 
+[[sec:task_action]]
 == Task Action
 
 *Task actions* are the blocks of code that define what the *custom task* does when it runs.
@@ -216,20 +219,21 @@ In the example below, a *custom task type* is created called `GreetingTask`.
 The `@TaskAction` annotation marks a method that Gradle should call when the *task* of this *type* is executed:
 
 ====
-include::sample[dir="snippets/tasks/customTask/kotlin", files="build.gradle.kts[tags=add-action]"]
-include::sample[dir="snippets/tasks/customTask/groovy", files="build.gradle[tags=add-action]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/customTask/kotlin", files="build.gradle.kts[tags=add-action]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/customTask/groovy", files="build.gradle[tags=add-action]"]
 ====
 
 A *task action* can also be added using `doLast {}` or `doFirst {}`:
 
 ====
-include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/hello/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/hello/groovy", files="build.gradle[]"]
 ====
 
 In this example, the *action* is `println("Hello world!")`.
 It will run when the *task* is executed.
 
+[[sec:task_group_and_description]]
 == Task Group and Description
 
 **Group** and **description** are metadata properties used to organize and document tasks.
@@ -254,8 +258,8 @@ When you run `./gradlew tasks`, Gradle clusters all tasks with the same group na
 You can declare *tasks* that depend on other *tasks*:
 
 ====
-include::sample[dir="snippets/tutorial/intro/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/intro/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/intro/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/intro/groovy", files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -264,7 +268,7 @@ $ gradle -q intro
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/intro/tests/intro.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/intro/tests/intro.out[]
 ----
 
 ++++
@@ -279,8 +283,8 @@ include::{snippetsPath}/tutorial/intro/tests/intro.out[]
 The dependency of `taskX` to `taskY` may be declared before `taskY` is defined:
 
 ====
-include::sample[dir="snippets/tutorial/lazyDependsOn/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/lazyDependsOn/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/lazyDependsOn/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/lazyDependsOn/groovy", files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -289,14 +293,14 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/lazyDependsOn/tests/lazyDependsOn.out[]
 ----
 
 The `hello` *task* from the previous example is updated to include a dependency:
 
 ====
-include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[tags=hello]"]
-include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[tags=hello]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/dynamicDepends/kotlin", files="build.gradle.kts[tags=hello]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/dynamicDepends/groovy", files="build.gradle[tags=hello]"]
 ====
 
 The `hello` *task* now depends on the `assemble` *task*, which means that Gradle must execute the `assemble` *task* *before* it can execute the `hello` *task*:
@@ -329,8 +333,8 @@ For instance, you can add behavior to an existing *task*:
 
 [[sec:hello_world]]
 ====
-include::sample[dir="snippets/tutorial/helloEnhanced/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/helloEnhanced/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/helloEnhanced/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/helloEnhanced/groovy", files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -339,7 +343,7 @@ $ ./gradlew -q hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/helloEnhanced/tests/helloEnhanced.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/helloEnhanced/tests/helloEnhanced.out[]
 ----
 
 TIP: The calls `doFirst` and `doLast` can be executed multiple times.
@@ -348,6 +352,7 @@ When the task executes, the actions in the action list are executed in order.
 
 A task is optionally *configured* in a build script using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TaskCollection.named()`] method.
 
+[[sec:task_classification]]
 == Task Classification
 
 There are two classes of tasks that can be executed:
@@ -357,6 +362,7 @@ There are two classes of tasks that can be executed:
 
 Typically, a *lifecycle* tasks depends on many *actionable* tasks, and is used to execute many tasks at once.
 
+[[sec:task_performance]]
 == Task Performance
 
 To write "good" Gradle tasks, you should focus on three things: **speed**, **clarity**, and **intelligence**.

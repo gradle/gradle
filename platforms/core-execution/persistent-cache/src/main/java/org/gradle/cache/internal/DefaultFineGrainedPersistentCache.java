@@ -59,6 +59,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
     private final AtomicBoolean alreadyCleaned = new AtomicBoolean();
     private final FileLockManager fileLockManager;
 
+    @SuppressWarnings("this-escape")
     public DefaultFineGrainedPersistentCache(
         File baseDir,
         String displayName,

@@ -27,7 +27,7 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("organizingGradleProjects/customGradleDistribution")
+    @UsesSample("integration-tests/organizingGradleProjects/customGradleDistribution")
     def "can build custom gradle distribution"() {
         executer.inDirectory(sample.dir.file('groovy'))
 

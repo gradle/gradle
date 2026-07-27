@@ -18,7 +18,6 @@ package org.gradle.java
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -91,7 +90,6 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         true                      | "myFeatureImplementation"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Property dynamic lookup")
     def "Java Library can depend on feature of component [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
@@ -147,8 +145,8 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                     } as Set
                 }
                 doLast {
-                    assert incomingCompileClasspath.get() == ['project :b', 'project :c', 'project :e'] as Set // only API dependencies
-                    assert incomingRuntimeClasspath.get() == ['project :b', 'project :c', 'project :d', 'project :g'] as Set // all dependencies (except compile only)
+                    assert incomingCompileClasspath.get() == ['project \\':b\\'', 'project \\':c\\'', 'project \\':e\\''] as Set // only API dependencies
+                    assert incomingRuntimeClasspath.get() == ['project \\':b\\'', 'project \\':c\\'', 'project \\':d\\'', 'project \\':g\\''] as Set // all dependencies (except compile only)
                 }
             }
         """
@@ -207,7 +205,6 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Property dynamic lookup")
     def "main component doesn't expose dependencies from feature [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
@@ -415,8 +412,8 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                     } as Set
                 }
                 doLast {
-                    assert incomingCompileClasspath.get() == ['project :b', 'project :c'] as Set // only API dependencies
-                    assert incomingRuntimeClasspath.get() == ['project :b', 'project :c', 'project :d'] as Set // all dependencies
+                    assert incomingCompileClasspath.get() == ['project \\':b\\'', 'project \\':c\\''] as Set // only API dependencies
+                    assert incomingRuntimeClasspath.get() == ['project \\':b\\'', 'project \\':c\\'', 'project \\':d\\''] as Set // all dependencies
                     assert runtimeClasspath.files.name as Set == ['b-my-feature.jar', 'c.jar', 'd.jar'] as Set
                 }
             }

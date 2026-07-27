@@ -20,12 +20,12 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.internal.InternalDocLink;
+import org.gradle.api.problems.internal.DocLinkInternal;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
 
-public abstract class Documentation implements InternalDocLink {
+public abstract class Documentation implements DocLinkInternal {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 

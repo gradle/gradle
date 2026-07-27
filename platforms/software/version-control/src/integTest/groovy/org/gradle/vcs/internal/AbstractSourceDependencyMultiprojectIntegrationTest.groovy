@@ -17,11 +17,13 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
 
+@ToBeFixedForIsolatedProjects(because = "included build uses allprojects { apply plugin: 'java' }")
 abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
     BlockingHttpServer httpServer = new BlockingHttpServer()
@@ -66,10 +68,11 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
             }
 
             task resolve {
-                dependsOn configurations.conf
+                def confFiles = configurations.conf
+                def expectedResult = providers.gradleProperty("result")
+                dependsOn confFiles
                 doLast {
-                    def expectedResult = result.split(",")
-                    assert configurations.conf.files.collect { it.name } == expectedResult
+                    assert confFiles.files.collect { it.name } == (expectedResult.get().split(",") as List)
                 }
             }
         """

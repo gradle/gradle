@@ -29,9 +29,8 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -57,13 +56,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final Context context;
-    private final InternalProblemReporter problemReporter;
+    private final ProblemReporterInternal problemReporter;
     private final List<Problem> problemsReported = new ArrayList<>();
 
     private int errorCount = 0;
     private int warningCount = 0;
 
-    public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
+    public DiagnosticToProblemListener(ProblemReporterInternal problemReporter, Context context) {
         this.problemReporter = problemReporter;
         this.context = context;
     }
@@ -164,7 +163,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        addSeverity(diagnostic, spec);
+        maybeAddSolution(diagnostic, spec);
         addLocations(diagnostic, spec);
 
         String label = toFormattedLabel(diagnostic);
@@ -198,10 +197,8 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         spec.details(formattedMessage);
     }
 
-    private static void addSeverity(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        Severity severity = mapKindToSeverity(diagnostic.getKind());
-        spec.severity(severity);
-        if (severity == Severity.ERROR) {
+    private static void maybeAddSolution(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
+        if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
             spec.solution(CompilationFailedException.RESOLUTION_MESSAGE);
         }
     }
@@ -312,20 +309,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static String getPath(JavaFileObject fileObject) {
         return fileObject.getName();
-    }
-
-    private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return Severity.ERROR;
-            case WARNING:
-            case MANDATORY_WARNING:
-                return Severity.WARNING;
-            case NOTE:
-            case OTHER:
-            default:
-                return Severity.ADVICE;
-        }
     }
 
     public List<Problem> getReportedProblems() {

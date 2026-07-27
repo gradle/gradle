@@ -16,8 +16,9 @@
 
 package org.gradle.test.precondition
 
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
-@Requires(UnitTestPreconditions.OnRemoteTestDistributionExecutor)
+
+@Requires(TestEnvironmentPreconditions.OnRemoteTestDistributionExecutor)
 class RemotePreconditionProbingTest extends PreconditionProbingTest {
 }

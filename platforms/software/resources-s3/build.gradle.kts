@@ -40,7 +40,6 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.groovyXml)
     integTestImplementation(testLibs.littleproxy)
-    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
@@ -64,6 +63,4 @@ dependencyAnalysis {
         }
     }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

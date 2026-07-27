@@ -20,12 +20,15 @@ import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.project.DynamicLookupRoutine;
+import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,17 +36,19 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.function.Supplier;
 
+@SuppressWarnings("this-escape")
 public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private final ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
-    private DynamicLookupRoutine dynamicLookupRoutine;
+    private IsolatedProjectsProblemsReporter reporter;
 
     @Override
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
-        dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
+        reporter = services.get(IsolatedProjectsProblemsReporter.class);
         setScriptTarget(target);
     }
 
@@ -67,25 +72,66 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     @Override
     public Object getProperty(String property) {
-        return dynamicLookupRoutine.property(dynamicObject, property);
+        return withCallerContext(() -> dynamicObject.getProperty(property));
     }
 
     @Override
     public void setProperty(String property, Object newValue) {
-        dynamicLookupRoutine.setProperty(dynamicObject, property, newValue);
+        dynamicObject.setProperty(property, newValue);
     }
 
+    @Deprecated
     public Map<String, ? extends @Nullable Object> getProperties() {
-        return dynamicLookupRoutine.getProperties(dynamicObject);
+        DeprecationLogger.deprecateAction("Dynamically calling getProperties() on a script")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_get_properties")
+            .nagUser();
+
+        DefaultProject.reportGetPropertiesProblem(reporter);
+        return reporter.runIgnoringProblemsOnCurrentThread(dynamicObject::getProperties);
     }
 
     public boolean hasProperty(String property) {
-        return dynamicLookupRoutine.hasProperty(dynamicObject, property);
+        return withCallerContext(() -> dynamicObject.hasProperty(property));
     }
 
     @Override
     public Object invokeMethod(String name, Object args) {
-        return dynamicLookupRoutine.invokeMethod(dynamicObject, name, (Object[]) args);
+        return withCallerContext(() -> dynamicObject.invokeMethod(name, (Object[]) args));
+    }
+
+    /**
+     * Wraps a dynamic-object lookup with the {@link ExtensibleDynamicObject.CallerContext.Instances#BUILD_SCRIPT}
+     * caller context on the underlying project's {@link ExtensibleDynamicObject}, so that any
+     * parent-walk deprecation or Isolated Projects violation can be annotated as originating
+     * from a Groovy build script's implicit lookup rather than an explicit API call.
+     *
+     * <p>Settings and init scripts have no project-level dynamic object; their lookups go
+     * through here unchanged.
+     */
+    private <T> T withCallerContext(Supplier<T> action) {
+        ExtensibleDynamicObject targetDynamicObject = targetExtensibleDynamicObject();
+        if (targetDynamicObject == null) {
+            return action.get();
+        }
+        ExtensibleDynamicObject.CallerContext previous = targetDynamicObject.getCallerContext();
+        targetDynamicObject.setCallerContext(ExtensibleDynamicObject.CallerContext.Instances.BUILD_SCRIPT);
+        try {
+            return action.get();
+        } finally {
+            targetDynamicObject.setCallerContext(previous);
+        }
+    }
+
+    @Nullable
+    private ExtensibleDynamicObject targetExtensibleDynamicObject() {
+        if (target instanceof DynamicObjectAware) {
+            DynamicObject dyn = ((DynamicObjectAware) target).getAsDynamicObject();
+            if (dyn instanceof ExtensibleDynamicObject) {
+                return (ExtensibleDynamicObject) dyn;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -115,6 +161,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
             dynamicTarget = DynamicObjectUtil.asDynamicObject(target);
         }
 
+        @Deprecated
         @Override
         public Map<String, ? extends @Nullable Object> getProperties() {
             return dynamicTarget.getProperties();

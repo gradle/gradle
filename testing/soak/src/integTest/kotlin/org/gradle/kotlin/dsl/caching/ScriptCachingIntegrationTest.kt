@@ -300,7 +300,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     settings = sameContent, root = sameContent,
                     left = sameContent, right = sameContent,
                 ).apply {
-                    buildForCacheInspection("help", "--build-cache").apply {
+                    buildForCacheInspection("help", "--build-cache", "-Dorg.gradle.internal.kotlin-script-accessors-caching-disabled=false").apply {
                         compilationCache {
                             misses(rootBuildFile, leftBuildFile, rightBuildFile)
                         }
@@ -332,7 +332,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     settings = sameContent, root = sameContent,
                     left = sameContent, right = sameContent,
                 ).apply {
-                    buildForCacheInspection("help", "--build-cache").apply {
+                    buildForCacheInspection("help", "--build-cache", "-Dorg.gradle.internal.kotlin-script-accessors-caching-disabled=false").apply {
                         compilationCache {
                             hits(rootBuildFile, leftBuildFile, rightBuildFile)
                         }
@@ -385,7 +385,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 }
             }
 
-            val result = buildForCacheInspection("help", "--build-cache", "--info", "-Dorg.gradle.internal.kotlin-script-caching-disabled=$scriptCachingDisabled")
+            val result = buildForCacheInspection("help", "--build-cache", "--info", "-Dorg.gradle.internal.kotlin-script-caching-disabled=$scriptCachingDisabled", "-Dorg.gradle.internal.kotlin-script-accessors-caching-disabled=false")
 
             if (scriptCachingDisabled) {
                 result.assertNotOutput("Stored cache entry for Kotlin DSL script compilation")

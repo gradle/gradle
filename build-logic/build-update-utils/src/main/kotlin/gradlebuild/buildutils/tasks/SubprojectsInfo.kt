@@ -81,12 +81,15 @@ abstract class SubprojectsInfo : DefaultTask() {
         return GradleSubproject(
             subprojectDir.name,
             rootPath.relativize(subprojectDir.toPath()).invariantSeparatorsPathString,
-            subprojectDir.hasDescendantDir("src/test"),
-            subprojectDir.hasDescendantDir("src/integTest"),
-            subprojectDir.hasDescendantDir("src/crossVersionTest")
+            subprojectDir.hasDescendantDirWithFiles("src/test"),
+            subprojectDir.hasDescendantDirWithFiles("src/integTest"),
+            subprojectDir.hasDescendantDirWithFiles("src/crossVersionTest")
         )
     }
 
     private
-    fun File.hasDescendantDir(descendant: String) = resolve(descendant).isDirectory
+    fun File.hasDescendantDirWithFiles(descendant: String): Boolean {
+        val dir = resolve(descendant)
+        return dir.isDirectory && dir.walk().any { it.isFile }
+    }
 }

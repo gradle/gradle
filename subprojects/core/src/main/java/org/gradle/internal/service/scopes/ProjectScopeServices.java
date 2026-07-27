@@ -19,7 +19,8 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
@@ -69,11 +70,12 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -98,12 +100,7 @@ import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
-import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
-import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.internal.PluginScheme;
-
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrant;
 import org.jspecify.annotations.Nullable;
@@ -146,7 +143,11 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices
     ) {
         registration.add(ProjectInternal.class, project);
-        dependencyManagementServices.addDslServices(registration, project);
+
+        ProjectDomainObjectContext domainObjectContext = new ProjectDomainObjectContext(project.getOwner());
+        registration.add(DomainObjectContext.class, domainObjectContext);
+
+        dependencyManagementServices.addDslServices(registration, domainObjectContext);
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerProjectServices(registration);
         }
@@ -221,7 +222,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -251,8 +252,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected TaskInstantiator createTaskInstantiator(TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory) {
-        return new TaskInstantiator(taskIdentityFactory, taskFactory, project);
+    protected TaskInstantiator createTaskInstantiator(TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory, UserCodeApplicationContext userCodeApplicationContext) {
+        return new TaskInstantiator(taskIdentityFactory, taskFactory, project, userCodeApplicationContext);
     }
 
     @Provides
@@ -314,7 +315,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             project.getClassLoaderScope(),
             fileResolver,
             fileCollectionFactory,
-            StandaloneDomainObjectContext.forProjectBuildscript(project)
+            StandaloneDomainObjectContext.forProjectBuildscript(project.getOwner())
         );
     }
 
@@ -329,18 +330,18 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected RuntimeClasspathNormalizationInternal createRuntimeClasspathNormalizationStrategy(Instantiator instantiator) {
-        return instantiator.newInstance(DefaultRuntimeClasspathNormalization.class);
+    protected GradleInternal decorateGradle(GradleInternal gradle, CrossProjectModelAccess crossProjectModelAccess) {
+        return crossProjectModelAccess.gradleInstanceForProject(project.getProjectIdentity(), gradle);
     }
 
     @Provides
-    protected InputNormalizationHandlerInternal createInputNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
-        return instantiator.newInstance(DefaultInputNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
+    protected TaskExecutionGraphInternal decorateTaskExecutionGraph(TaskExecutionGraphInternal taskGraph, CrossProjectModelAccess crossProjectModelAccess) {
+        return crossProjectModelAccess.taskGraphForProject(project.getProjectIdentity(), taskGraph);
     }
 
     @Provides
     protected TaskDependencyFactory createTaskDependencyFactory(BuildState build, CrossProjectModelAccess crossProjectModelAccess) {
-        @Nullable TaskDependencyUsageTracker tracker = crossProjectModelAccess.taskDependencyUsageTracker(project);
+        @Nullable TaskDependencyUsageTracker tracker = crossProjectModelAccess.taskDependencyUsageTracker(project.getProjectIdentity());
         TaskResolver taskResolver = new ProjectScopedTaskResolver(
             new BuildScopedTaskResolver(build),
             project.getProjectIdentity(),

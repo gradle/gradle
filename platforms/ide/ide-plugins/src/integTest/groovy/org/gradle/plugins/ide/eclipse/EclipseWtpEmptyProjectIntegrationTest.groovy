@@ -23,6 +23,7 @@ class EclipseWtpEmptyProjectIntegrationTest extends AbstractEclipseIntegrationSp
         buildFile << "apply plugin: 'eclipse-wtp'"
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         run "eclipse"
 
         then:

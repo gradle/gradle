@@ -29,6 +29,7 @@ public class GrammarFileMetadata {
     private final String packageName;
     private List<GrammarMetadata> grammarMetadatas = new ArrayList<GrammarMetadata>();
 
+    @SuppressWarnings("this-escape")
     public GrammarFileMetadata(File filePath, antlr.preprocessor.GrammarFile antlrGrammarFile, String packageName) {
         this.filePath = filePath;
         this.antlrGrammarFile = antlrGrammarFile;

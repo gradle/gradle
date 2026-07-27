@@ -16,8 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -37,6 +35,7 @@ import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
+import org.gradle.internal.operations.trace.BuildOperationJfrEmitter;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -104,11 +103,6 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
-        return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
-    }
-
-    @Provides
     LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
         return new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationProgressEventEmitter);
     }
@@ -116,6 +110,11 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     @Provides
     BuildOperationTrace createBuildOperationTrace(InternalOptions internalOptions, CrossBuildSessionParameters parameters, BuildOperationListenerManager buildOperationListenerManager) {
         return new BuildOperationTrace(parameters.getUserActionRootDirectory(), internalOptions, buildOperationListenerManager);
+    }
+
+    @Provides
+    BuildOperationJfrEmitter createBuildOperationJfrEmitter(InternalOptions internalOptions, BuildOperationListenerManager buildOperationListenerManager) {
+        return new BuildOperationJfrEmitter(internalOptions, buildOperationListenerManager);
     }
 
     @Provides

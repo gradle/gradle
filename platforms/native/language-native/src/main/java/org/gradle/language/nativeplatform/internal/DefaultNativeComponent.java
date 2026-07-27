@@ -32,6 +32,7 @@ import java.util.concurrent.Callable;
 public abstract class DefaultNativeComponent {
     private final ConfigurableFileCollection source;
 
+    @SuppressWarnings("this-escape")
     public DefaultNativeComponent() {
         // TODO - introduce a new 'var' data structure that allows these conventions to be configured explicitly
         source = getObjectFactory().fileCollection();

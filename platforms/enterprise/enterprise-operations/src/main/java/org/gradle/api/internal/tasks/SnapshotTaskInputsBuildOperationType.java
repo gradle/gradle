@@ -129,7 +129,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
             /**
              * Called when visiting a non-directory file.
              * <p>
-             * {@link VisitState#getName()}, {@link VisitState#getPath()} and {@link VisitState#getHashBytes()} may be called during.
+             * {@link VisitState#getName()}, {@link VisitState#getPath()}, {@link VisitState#getHashBytes()} and {@link VisitState#getLength()} may be called during.
              */
             void file(VisitState state);
 

@@ -19,6 +19,7 @@ package org.gradle.performance.regression.nativeplatform
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import org.gradle.performance.fixture.SwiftToolchainFixture
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -29,7 +30,8 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.minimumBaseVersion = '4.6'
+        runner.minimumBaseVersion = '4.9'
+        SwiftToolchainFixture.configureSwift6Toolchain(runner, temporaryFolder.testDirectory)
     }
 
     def "clean assemble (swift)"() {

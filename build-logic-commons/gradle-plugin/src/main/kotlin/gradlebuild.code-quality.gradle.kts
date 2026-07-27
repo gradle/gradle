@@ -55,6 +55,7 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
         "EnumOrdinal", // This violation is ubiquitous, though most are benign.
         "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
         "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
+        "ReferenceEquality", // evaluate again in future EP versions https://github.com/gradle/gradle/pull/38269#pullrequestreview-4568989259
 
         // NEVER
         "AssignmentExpression", // Not using it is more a matter of taste.
@@ -134,7 +135,7 @@ project.plugins.withType<JavaBasePlugin> {
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
-                isEnabled = extension.enabled
+                enabled = extension.enabled
                 checks = errorproneExtension.disabledChecks.map {
                     it.associateWith { CheckSeverity.OFF }
                 }
@@ -169,7 +170,7 @@ tasks.check {
     dependsOn(codeQuality)
 }
 
-val rules by configurations.creating {
+val rules = configurations.create("rules") {
     isCanBeConsumed = false
 
     attributes {
@@ -193,6 +194,11 @@ dependencies {
     buildLibs?.let {
         codenarc(buildLibs.findLibrary("codenarc").get())
         codenarc(buildLibs.findLibrary("kotlinCompilerEmbeddable").get())
+        constraints {
+            checkstyle(buildLibs.findLibrary("plexusUtils").get()) {
+                because("Checkstyle transitively pulls plexus-utils 3.3.0 which is vulnerable to CVE-2025-67030")
+            }
+        }
     }
 }
 

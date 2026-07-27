@@ -25,7 +25,8 @@ import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType
 
 class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
@@ -46,7 +47,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         return new TestJavaComponent()
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "compiler daemon is not reused on Windows with Java agent"() {
         withSingleProjectSources()
         def javaAgent = new JavaAgentFixture()

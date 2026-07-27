@@ -128,6 +128,29 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
         jar.assertContainsFile("TestGrammarTokenTypes.java")
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/33710')
+    def "antlr respects buildDirectory even when task is realized before reassignment"() {
+        given:
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "antlr"
+
+            // Force eager realization of the antlr task BEFORE buildDirectory is reassigned.
+            // The task's outputDirectory must still reflect the later buildDirectory value.
+            tasks.getByName('generateGrammarSource')
+
+            layout.buildDirectory = layout.projectDirectory.dir('custom-build')
+        """
+        file("src/main/antlr/TestGrammar.g") << testGrammarSource
+
+        when:
+        succeeds("generateGrammarSource")
+
+        then:
+        file("custom-build/generated-src/antlr/main/TestGrammar.java").exists()
+        !file("build/generated-src/antlr/main/TestGrammar.java").exists()
+    }
+
     private static String getTestGrammarSource() {
         return """ class TestGrammar extends Parser;
         options {

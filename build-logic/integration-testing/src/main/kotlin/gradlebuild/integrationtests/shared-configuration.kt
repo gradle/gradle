@@ -32,11 +32,14 @@ import gradlebuild.testing.services.BuildBucketProvider
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.GroovySourceDirectorySet
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
@@ -46,9 +49,16 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.withType
+import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
+import kotlin.apply
 
+val CROSSVERSION_TEST_MODELS = "${TestType.CROSSVERSION.prefix}TestModels"
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
     configurations {
@@ -109,7 +119,7 @@ internal
 fun Project.createGenerateAutoTestedSamplesTestTask(sourceSet: SourceSet, testType: TestType) {
     val prefix = testType.prefix
     val sourceSets = the<SourceSetContainer>()
-    val main by sourceSets.getting
+    val main = sourceSets.getByName("main")
     val sourceSet = sourceSets.getByName("${prefix}Test")
 
     val groovySourceDir = sourceSet.extensions.findByType<GroovySourceDirectorySet>()
@@ -230,14 +240,29 @@ fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
     }
 }
 
+fun Project.configureTestSourceSetInIde(sourceSet: SourceSet) {
+    plugins.withType<EclipsePlugin> {
+        configure<EclipseModel> {
+            classpath {
+                plusConfigurations.apply {
+                    add(configurations.getByName(sourceSet.compileClasspathConfigurationName))
+                    add(configurations.getByName(sourceSet.runtimeClasspathConfigurationName))
+                }
+            }
+        }
+    }
 
-internal
-fun Project.configureIde(sourceSet: SourceSet) {
-    // We apply lazy as we don't want to depend on the order
     plugins.withType<IdeaPlugin> {
-        with(model) {
+        configure<IdeaModel> {
             module {
-                testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
+                val testKotlinSourceSet = sourceSet.extensions.findByName("kotlin") as SourceDirectorySet?
+                // workaround for https://github.com/gradle/gradle/issues/34646
+                if (testKotlinSourceSet != null) {
+                    testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs, testKotlinSourceSet.srcDirs)
+                }
+                else {
+                    testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
+                }
                 testResources.from(sourceSet.resources.srcDirs)
             }
         }
@@ -277,4 +302,15 @@ fun Project.localRepositoryResolver(name: String, extends: Configuration? = null
     if (extends != null) {
         extendsFrom(extends)
     }
+}
+
+fun Project.crossVersionTestModels(notation: kotlin.Any, configureAction: Action<Dependency> = Action {}) = provider {
+    val dependency = dependencies.create(notation)
+    if (dependency is ModuleDependency) {
+        dependency.capabilities {
+            requireCapability("${dependency.group}:${dependency.name}-${CROSSVERSION_TEST_MODELS}")
+        }
+    }
+    configureAction.execute(dependency)
+    return@provider dependency
 }

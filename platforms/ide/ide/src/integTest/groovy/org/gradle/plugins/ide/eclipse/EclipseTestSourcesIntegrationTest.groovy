@@ -27,6 +27,7 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         file('src/main/java').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -43,6 +44,7 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         file('src/test/java').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -65,6 +67,7 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         file('src/integration/java').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -95,6 +98,7 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         file('src/integration/java').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -119,6 +123,7 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         file('src/test/java').mkdirs()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:

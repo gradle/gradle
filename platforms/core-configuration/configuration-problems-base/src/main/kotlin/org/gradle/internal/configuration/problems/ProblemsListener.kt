@@ -17,12 +17,33 @@
 package org.gradle.internal.configuration.problems
 
 import org.gradle.api.Task
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
+/**
+ * Collects configuration cache problems discovered during serialization, deserialization, and execution.
+ *
+ * Problems are reported as they are discovered, and the listener implementation decides how to handle them
+ * (e.g. record in a report, fail the build, or suppress for incompatible tasks).
+ *
+ * The [forIncompatibleTask] and [forTask] methods return a scoped listener that adjusts problem severity
+ * for a particular task context (e.g. suppressing errors for tasks opted out of the configuration cache).
+ */
+@ServiceScope(Scope.BuildTree::class)
 interface ProblemsListener {
 
+    /**
+     * Reports a configuration cache problem discovered during serialization or deserialization.
+     */
     fun onProblem(problem: PropertyProblem)
 
+    /**
+     * Reports an unexpected error encountered during serialization or deserialization.
+     *
+     * Implementations typically wrap the error into a [PropertyProblem] and decide whether to
+     * re-throw or record it depending on the error type.
+     */
     fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
 
     /**
@@ -34,8 +55,18 @@ interface ProblemsListener {
      */
     fun onExecutionTimeProblem(problem: PropertyProblem)
 
+    /**
+     * Returns a scoped listener for a task that has been marked as incompatible with the configuration cache.
+     *
+     * Problems reported through the returned listener are typically suppressed or downgraded in severity.
+     */
     fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener
 
+    /**
+     * Returns a scoped listener for the given [task].
+     *
+     * If the task is subject to graceful degradation, the returned listener suppresses its problems.
+     */
     fun forTask(task: Task): ProblemsListener
 }
 

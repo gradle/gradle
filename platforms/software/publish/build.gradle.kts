@@ -8,6 +8,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.hashing)
@@ -20,7 +21,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.serviceLookup)
     implementation(projects.baseServicesGroovy) {
         because("Required for Specs")
     }
@@ -37,6 +37,10 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    // Javadoc-only: needed to resolve {@link MavenPublication ...}/{@link IvyPublication ...} references (downstream modules)
+    javadocReferences(projects.maven)
+    javadocReferences(projects.ivy)
 }
 
 gradleModule {
@@ -46,6 +50,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

@@ -19,11 +19,13 @@ dependencies {
     api(projects.projectFeatures)
     api(projects.projectFeaturesApi)
     api(projects.serviceLookup)
+    api(projects.workerShared)
 
     api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.domainObjectCollections)
     implementation(projects.functional)
     implementation(projects.jvmServices)
     implementation(projects.startParameter)
@@ -52,6 +54,4 @@ gradleModule {
 testFilesCleanup.reportOnly = true
 
 description = """Provides functionality for resolving and managing plugins during their application to projects."""
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

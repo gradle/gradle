@@ -22,10 +22,14 @@ import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Issue
+import spock.lang.Timeout
+
+import java.util.concurrent.TimeUnit
 
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/3612")
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
@@ -93,9 +97,13 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20644")
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
+    // Backstop the interruptible wait (handle.waitForFinish()) so a hung resume can't run until the
+    // build-level execution timeout; the debugger attach itself is bounded separately in JDWPUtil.
+    // See https://github.com/gradle/gradle-private/issues/3612
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
     def "can debug Java exec with socket server debugger (server = true) on explicitly any host with task :#taskName"() {
-        def jdwpHost = nonLoopbackAddress()
+        def jdwpHost = JDWPUtil.nonLoopbackAddress()
         Assume.assumeNotNull(jdwpHost)
 
         debugClient.host = jdwpHost
@@ -127,8 +135,12 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20644")
+    // Backstop the interruptible wait (handle.waitForFinish()) so a hung resume can't run until the
+    // build-level execution timeout; the debugger attach itself is bounded separately in JDWPUtil.
+    // See https://github.com/gradle/gradle-private/issues/3612
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
     def "can debug Java exec with socket server debugger (server = true) on via host with task :#taskName"() {
-        def jdwpHost = nonLoopbackAddress()
+        def jdwpHost = JDWPUtil.nonLoopbackAddress()
         Assume.assumeNotNull(jdwpHost)
 
         debugClient.host = jdwpHost
@@ -157,17 +169,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
-    }
-
-    /** To test attaching the debugger via a non-loopback network interface, we need to choose an IP address of such an interface. */
-    private static final String nonLoopbackAddress() {
-        println("Looking at network interfaces")
-        def address = Collections.list(NetworkInterface.getNetworkInterfaces())
-            .collectMany { it.isLoopback() ? [] : Collections.list(it.inetAddresses) }
-            .find { it instanceof Inet4Address && !it.isLoopbackAddress() }
-            ?.hostAddress
-        println("using address=$address")
-        return address
     }
 
     def "debug options overrides debug property with task :#taskName"() {

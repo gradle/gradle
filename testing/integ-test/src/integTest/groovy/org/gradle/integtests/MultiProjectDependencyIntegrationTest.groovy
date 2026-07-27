@@ -17,8 +17,9 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers
 
 class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
@@ -41,6 +42,7 @@ allprojects {
         executer.withArgument('--info')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "project dependency c->[a,b]"() {
         projectDependency from: 'c', to: ['a', 'b']
         when:
@@ -53,6 +55,7 @@ allprojects {
         depsCopied 'c', ['a', 'b']
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "project dependency c->b->a"() {
 
         projectDependency from: 'c', to: ['b']
@@ -68,6 +71,7 @@ allprojects {
         depsCopied 'a', []
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and b->c"() {
 
         projectDependency from: 'a', to: ['b', 'c']
@@ -83,6 +87,7 @@ allprojects {
         depsCopied 'c', []
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "project dependency a->[b,d] and b->c->d"() {
 
         projectDependency from: 'a', to: ['b', 'd']
@@ -100,6 +105,7 @@ allprojects {
         depsCopied 'd', []
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "project dependency a->[b,c] and b->d and c->d"() {
 
         projectDependency from: 'a', to: ['b', 'c']
@@ -117,6 +123,7 @@ allprojects {
         depsCopied 'd', []
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "circular project dependency without task cycle a->b->c->a:2"() {
 
         projectDependency from: 'a', to: ['b']
@@ -152,6 +159,7 @@ project(':c') {
         file('a/build/output.txt').text == "$outputValue"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency cycle a->b->c->a"() {
         projectDependency from: 'a', to: ['b']
         projectDependency from: 'b', to: ['c']
@@ -165,6 +173,7 @@ project(':c') {
         failure.assertThatDescription(CoreMatchers.startsWith("Circular dependency between the following tasks:"))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->b->c->d and c fails"() {
         projectDependency from: 'a', to: ['b']
         projectDependency from: 'b', to: ['c']
@@ -184,7 +193,8 @@ project(':c') {
 
     // 'c' + 'd' _may_ be built with parallel executer
     // test can't handle parallel task execution
-    @Requires(IntegTestPreconditions.NotParallelOrConfigCacheExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelOrConfigCacheExecutor)
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']
@@ -200,6 +210,7 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c', 'd'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and c->d and b fails with run with --continue"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']
@@ -217,6 +228,7 @@ project(':c') {
         jarsNotBuilt 'a', 'b'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "cross-project configuration / project loading")
     def "project dependency a->[b,c] and both b & c fail with --continue"() {
         projectDependency from: 'a', to: ['b', 'c']
         failingBuild 'b'

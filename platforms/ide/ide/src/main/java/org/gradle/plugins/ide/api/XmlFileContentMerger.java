@@ -20,6 +20,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 /**
  * Models the generation/parsing/merging capabilities.
@@ -36,10 +37,22 @@ public class XmlFileContentMerger extends FileContentMerger {
         this.xmlTransformer = xmlTransformer;
     }
 
+    /**
+     * The transformer that the {@code withXml} actions are registered on.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public XmlTransformer getXmlTransformer() {
         return xmlTransformer;
     }
 
+    /**
+     * Sets the transformer.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setXmlTransformer(XmlTransformer xmlTransformer) {
         this.xmlTransformer = xmlTransformer;
     }
@@ -53,8 +66,11 @@ public class XmlFileContentMerger extends FileContentMerger {
      * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param closure The closure to execute when the XML has been created.
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void withXml(@DelegatesTo(XmlProvider.class) Closure closure) {
+        IdeDeprecations.nagDeprecatedProperty(XmlFileContentMerger.class, "withXml");
         xmlTransformer.addAction(closure);
     }
 
@@ -64,8 +80,11 @@ public class XmlFileContentMerger extends FileContentMerger {
      * See {@link #withXml(Closure)}
      *
      * @param action The action to execute when the XML has been created.
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void withXml(Action<? super XmlProvider> action) {
+        IdeDeprecations.nagDeprecatedProperty(XmlFileContentMerger.class, "withXml");
         xmlTransformer.addAction(action);
     }
 }

@@ -144,6 +144,7 @@ This ensures that only `sub-project-1`'s `build` task is executed, rather than r
 You can use this pattern for any task.
 For example, to list all tasks available in `sub-project-3`, run `./gradlew :sub-project-3:tasks`.
 
+[[sec:multi_project_buildsrc]]
 == Multi-Project Builds using `buildSrc`
 
 Multi-project builds allow you to organize projects with many modules, wire dependencies between those modules, and easily share common build logic amongst them.
@@ -177,6 +178,7 @@ It is a good place to define and maintain shared configuration or imperative bui
 
 Consult the <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logic using `buildSrc`>> chapter to learn more.
 
+[[sec:composite_builds_build_logic]]
 == Composite Builds including `build-logic`
 
 Composite Builds, also referred to as _included builds_, are best for sharing logic between builds (_not subprojects_) or isolating access to shared build logic.

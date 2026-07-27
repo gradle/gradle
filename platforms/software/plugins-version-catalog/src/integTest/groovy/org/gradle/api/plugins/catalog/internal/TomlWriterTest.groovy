@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -36,6 +36,8 @@ class TomlWriterTest extends Specification {
 
     @TempDir
     File tempTomlDir
+
+    private final problems = TestUtil.problemsService()
 
     def "generates an equivalent file from an input (#file)"() {
         given:
@@ -77,9 +79,8 @@ format.version = "1.1"
         parse("/org/gradle/api/plugins/catalog/internal/wrong.toml")
 
         then:
-        def exception = thrown(InvalidUserDataException.class)
-        exception.message.contains("In file '")
-        exception.message.contains("wrong.toml'")
+        thrown(InvalidUserDataException.class)
+        problems.emitted.any { problem -> problem.originLocations.any { it.path?.contains("wrong.toml") } }
     }
 
     private Model generateFromModel(Model sourceModel) {
@@ -103,7 +104,7 @@ format.version = "1.1"
 
     private Model parse(Path path) {
         def supplier = Stub(Supplier)
-        def problems = TestUtil.problemsService()
+        def problemsService = problems
         def builder = new DefaultVersionCatalogBuilder(
             "libs",
             Interners.newStrongInterner(),
@@ -111,12 +112,12 @@ format.version = "1.1"
             TestUtil.objectFactory(),
             supplier) {
             @Override
-            protected InternalProblems getProblemsService() {
-                problems
+            protected ProblemsInternal getProblemsService() {
+                problemsService
             }
         }
 
-        TomlCatalogFileParser.parse(path, builder, { problems })
+        TomlCatalogFileParser.parse(path, builder, { problemsService })
         return new Model(builder.build())
     }
 

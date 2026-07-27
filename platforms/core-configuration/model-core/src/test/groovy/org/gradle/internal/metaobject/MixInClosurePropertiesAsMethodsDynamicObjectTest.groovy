@@ -17,22 +17,22 @@
 package org.gradle.internal.metaobject
 
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.internal.extensibility.MixInClosurePropertiesAsMethodsDynamicObject
+import org.gradle.internal.extensibility.ExtensibleDynamicObject
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+/**
+ * Tests the closure-as-method invocation behavior in {@link ExtensibleDynamicObject#tryInvokeMethod}.
+ * When a method is not found, ExtensibleDynamicObject falls back to looking for a property
+ * with the method name whose value is a Closure or NamedDomainObjectContainer.
+ */
 class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
-    def obj = new MixInClosurePropertiesAsMethodsDynamicObject() {
-        @Override
-        String getDisplayName() {
-            return "<obj>"
-        }
-    }
 
     def "invokes method on first delegate that has a property with closure value"() {
         def obj1 = Mock(DynamicObject)
         def obj2 = Mock(DynamicObject)
         def obj3 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2, obj3)
+        def obj = create(obj1, obj2, obj3)
 
         when:
         def result = obj.invokeMethod("m", ["value"] as Object[])
@@ -41,9 +41,9 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         result == "result"
 
         and:
-        1 * obj1.tryInvokeMethod("m", ["value"] as Object[]) >> DynamicInvokeResult.notFound()
-        1 * obj2.tryInvokeMethod("m", ["value"] as Object[]) >> DynamicInvokeResult.notFound()
-        1 * obj3.tryInvokeMethod("m", ["value"] as Object[]) >> DynamicInvokeResult.notFound()
+        1 * obj1.tryInvokeMethod("m", _) >> DynamicInvokeResult.notFound()
+        1 * obj2.tryInvokeMethod("m", _) >> DynamicInvokeResult.notFound()
+        1 * obj3.tryInvokeMethod("m", _) >> DynamicInvokeResult.notFound()
         1 * obj1.tryGetProperty("m") >> DynamicInvokeResult.notFound()
         1 * obj2.tryGetProperty("m") >> DynamicInvokeResult.found({ it -> "result" })
         0 * _
@@ -51,7 +51,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
 
     def "fails when first closure property does not accept the given parameters"() {
         def obj1 = Mock(DynamicObject)
-        obj.setObjects(obj1)
+        def obj = create(obj1)
 
         given:
         obj1.tryGetProperty("m") >> DynamicInvokeResult.found({ Number a -> "result 3" })
@@ -77,7 +77,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         }
 
         def obj1 = Mock(DynamicObject)
-        obj.setObjects(obj1)
+        def obj = create(obj1)
 
         given:
         obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
@@ -91,7 +91,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         def cl = { String result, Number n -> "$result: $n" }.curry("result")
 
         def obj1 = Mock(DynamicObject)
-        obj.setObjects(obj1)
+        def obj = create(obj1)
 
         given:
         obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
@@ -105,7 +105,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         def cl = { String result, Number n -> "$result: $n" }.curry("result")
 
         def obj1 = Mock(DynamicObject)
-        obj.setObjects(obj1)
+        def obj = create(obj1)
 
         given:
         obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
@@ -125,7 +125,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
 
         def obj1 = Mock(DynamicObject)
         def obj2 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2)
+        def obj = create(obj1, obj2)
 
         given:
         obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
@@ -145,7 +145,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         def cl = {}
 
         def obj1 = Mock(DynamicObject)
-        obj.setObjects(obj1)
+        def obj = create(obj1)
 
         given:
         obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
@@ -163,7 +163,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         def cl = {}
 
         def obj1 = Mock(DynamicObject)
-        obj.setObjects(obj1)
+        def obj = create(obj1)
 
         given:
         obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
@@ -175,4 +175,17 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         then:
         !result.isFound()
     }
+
+    /**
+     * Creates an ExtensibleDynamicObject with the given mock delegates added as
+     * additional objects. This ensures the closure-as-method fallback in
+     * ExtensibleDynamicObject.tryInvokeMethod can find properties from the delegates.
+     */
+    def create(DynamicObject... objects) {
+        def edo = new ExtensibleDynamicObject(new Object(), Object.class, TestUtil.instantiatorFactory().decorateLenient())
+        def composite = new CompositeDynamicObject(objects.toList(), () -> "<obj>")
+        edo.addObject(composite, ExtensibleDynamicObject.Location.BeforeConvention)
+        return edo
+    }
+
 }

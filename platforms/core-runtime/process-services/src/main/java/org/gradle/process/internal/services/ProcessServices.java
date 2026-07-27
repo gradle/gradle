@@ -17,6 +17,7 @@
 package org.gradle.process.internal.services;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.jspecify.annotations.NullMarked;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.sources.process.ExecSpecFactory;
@@ -72,6 +73,7 @@ public class ProcessServices extends AbstractGradleModuleServices {
         ExecFactory createExecFactory(
             FileResolver fileResolver,
             FileCollectionFactory fileCollectionFactory,
+            FilePropertyFactory filePropertyFactory,
             Instantiator instantiator,
             ObjectFactory objectFactory,
             ExecutorFactory executorFactory,
@@ -81,6 +83,7 @@ public class ProcessServices extends AbstractGradleModuleServices {
             return DefaultExecActionFactory.of(
                 fileResolver,
                 fileCollectionFactory,
+                filePropertyFactory,
                 instantiator,
                 executorFactory,
                 temporaryFileProvider,

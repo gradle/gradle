@@ -95,8 +95,8 @@ class JUnit6JUnitIntegrationTest extends AbstractJUnitIntegrationTest implements
 
         then:
         def results = resultsFor(testDirectory)
-        results.testPathPreNormalized(':org.gradle.JUnit6OrderingTest').onlyRoot().assertChildCount(3, 0)
-        results.testPathPreNormalized(':org.gradle.JUnit6OrderingTest:org.gradle.JUnit6OrderingTest$NestedTestWithDefaultOrdering').onlyRoot().assertChildCount(2, 0)
+        results.testPath(':org.gradle.JUnit6OrderingTest').onlyRoot().assertChildCount(3, 0)
+        results.testPath(':org.gradle.JUnit6OrderingTest:org.gradle.JUnit6OrderingTest$NestedTestWithDefaultOrdering').onlyRoot().assertChildCount(2, 0)
 
         and: "tests are run in the proper order"
         outputContains("""JUnit6OrderingTest > testA() STANDARD_OUT

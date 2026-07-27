@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -75,7 +76,7 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
 
     private PropertyReportTask.PropertyReportModel computePropertyReportModel(Project project) {
         PropertyReportModel model = new PropertyReportModel();
-        Map<String, ?> projectProperties = project.getProperties();
+        Map<String, ?> projectProperties = ((ProjectInternal) project).collectPropertiesInternal();
         if (getProperty().isPresent()) {
             String propertyName = getProperty().get();
             if ("properties".equals(propertyName)) {

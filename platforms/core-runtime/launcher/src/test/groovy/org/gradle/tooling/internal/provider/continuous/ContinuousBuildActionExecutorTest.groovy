@@ -29,16 +29,17 @@ import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.buildtree.BuildActionRunner
+import org.gradle.internal.buildtree.BuildTreeActionExecutor
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.InputVisitor
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.properties.InputBehavior
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
 import org.gradle.internal.service.scopes.DefaultWorkInputListeners
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.session.BuildSessionActionExecutor
 import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.time.Time
@@ -58,7 +59,7 @@ import static org.gradle.internal.properties.InputBehavior.PRIMARY
 @RedirectStdIn
 class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
 
-    def delegate = Mock(BuildSessionActionExecutor)
+    def delegate = Mock(BuildTreeActionExecutor)
     def cancellationToken = new DefaultBuildCancellationToken()
     def buildExecutionTimer = Mock(BuildStartedTime)
     def requestMetadata = Stub(BuildRequestMetaData)
@@ -77,7 +78,10 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         runningDeployments >> deployments
         executionGate >> continuousExecutionGate
     }
-    def buildSessionContext = Mock(BuildSessionContext)
+    def buildSessionServices = Stub(ServiceRegistry)
+    def buildSessionContext = Stub(BuildSessionContext) {
+        getServices() >> buildSessionServices
+    }
     def textOutputFactory = new TestStyledTextOutputFactory()
     def executorService = Executors.newCachedThreadPool()
     def fileSystemIsWatchingAnyLocations = true
@@ -110,14 +114,14 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, buildSessionContext)
+        1 * delegate.runBuildTreeAction(action, buildSessionServices)
         0 * _
     }
 
     def "allows exceptions to propagate for single builds"() {
         given:
         continuousBuildDisabled()
-        1 * delegate.execute(action, buildSessionContext) >> {
+        1 * delegate.runBuildTreeAction(action, buildSessionServices) >> {
             throw new RuntimeException("!")
         }
 
@@ -138,7 +142,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, buildSessionContext)
+        1 * delegate.runBuildTreeAction(action, buildSessionServices)
         0 * _
         System.in instanceof DisconnectableInputStream
         System.in.read() == -1
@@ -318,9 +322,9 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void buildDeclaresInputs() {
-        delegate = new BuildSessionActionExecutor() {
+        delegate = new BuildTreeActionExecutor() {
             @Override
-            BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
+            BuildActionRunner.Result runBuildTreeAction(BuildAction action, ServiceRegistry buildSessionServices) {
                 declareInput(file)
                 return BuildActionRunner.Result.of(null)
             }
@@ -329,9 +333,9 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void buildDeclaresInputsAndTriggersChange() {
-        delegate = new BuildSessionActionExecutor() {
+        delegate = new BuildTreeActionExecutor() {
             @Override
-            BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
+            BuildActionRunner.Result runBuildTreeAction(BuildAction action, ServiceRegistry buildSessionServices) {
                 declareInput(file)
                 changeListeners.broadcastChange(FileWatcherRegistry.Type.MODIFIED, file.toPath())
                 return BuildActionRunner.Result.of(null)

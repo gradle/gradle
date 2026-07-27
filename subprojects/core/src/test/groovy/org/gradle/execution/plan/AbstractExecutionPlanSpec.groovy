@@ -93,18 +93,6 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         return project
     }
 
-    private static final UserCodeSource MOCK_USER_CODE_SOURCE = new UserCodeSource() {
-        @Override
-        org.gradle.internal.DisplayName getDisplayName() {
-            return Describables.of("mock")
-        }
-
-        @Override
-        String getPluginId() {
-            return null
-        }
-    }
-
     protected TaskInternal createTask(final String name, ProjectInternal project = this.project, Class type = TaskInternal) {
         def path = project.identityPath.child(name)
         TaskInternal task = Mock(type, name: name)
@@ -123,7 +111,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
         task.requiredServices >> emptyTaskRequiredServices()
-        task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project, MOCK_USER_CODE_SOURCE)
+        task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project, new UserCodeSource.Script(Describables.of("mock"), null))
         return task
     }
 

@@ -18,6 +18,8 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.registration.TaskRegistrar
@@ -60,18 +62,21 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
                 primaryAccess {
                     read = false
                     write = false
+                    exec = listOf(USER)
                 }
 
                 secondaryAccess {
                     name = "two"
                     read = true
                     write = false
+                    exec = listOf(GROUP, USER)
                 }
 
                 secondaryAccess {
                     name = "three"
                     read = true
                     write = true
+                    exec = listOf(USER, GROUP, ALL)
                 }
             }
         """
@@ -85,9 +90,9 @@ referencePoint = (1, 2)
 arguments = [one, two]
 flags = []
 mapProperty = {}
-primaryAccess = { primary, false, false}
-secondaryAccess { two, true, false}
-secondaryAccess { three, true, true}"""
+primaryAccess = { primary, false, false, [USER] }
+secondaryAccess { two, true, false, [GROUP, USER] }
+secondaryAccess { three, true, true, [USER, GROUP, ALL] }"""
         )
 
         where:
@@ -196,43 +201,51 @@ secondaryAccess { three, true, true}"""
             import ${BindsProjectType.class.name};
             import ${ProjectTypeBinding.class.name};
             import ${ProjectTypeBindingBuilder.class.name};
+            import ${ProjectTypeApplyAction.class.name};
+            import ${ProjectFeatureApplicationContext.class.name};
 
             @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding.class)
             public abstract class RestrictedPlugin implements Plugin<Project> {
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("restricted",  Extension.class, (context, definition, model) -> {
-                            Services services = context.getObjectFactory().newInstance(Services.class);
-                            services.getTaskRegistrar().register("printConfiguration", DefaultTask.class, task -> {
-                                Property<Extension.Point> referencePoint = definition.getReferencePoint();
-                                Extension.Access acc = definition.getPrimaryAccess();
-                                ListProperty<Extension.Access> secondaryAccess = definition.getSecondaryAccess();
+                        builder.bindProjectType("restricted",  Extension.class, ApplyAction.class)
+                            .withUnsafeDefinition();
+                    }
 
-                                task.doLast("print restricted extension content", t -> {
-                                    System.out.println("id = " + definition.getId().get());
-                                    Extension.Point point = referencePoint.getOrElse(definition.point(-1, -1));
-                                    System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
-                                    System.out.println("arguments = " + definition.getArguments().get());
-                                    System.out.println("flags = " + definition.getFlags());
-                                    System.out.println("mapProperty = " + definition.getMapProperty().get());
-                                    System.out.println("primaryAccess = { " +
-                                            acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
+                }
+
+                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<Extension, Extension.Model> {
+                    @javax.inject.Inject
+                    public ApplyAction() { }
+
+                    @javax.inject.Inject
+                    abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
+
+                    @Override
+                    public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, Extension definition, Extension.Model model) {
+                        getTaskRegistrar().register("printConfiguration", DefaultTask.class, task -> {
+                            Property<Extension.Point> referencePoint = definition.getReferencePoint();
+                            Extension.Access acc = definition.getPrimaryAccess();
+                            ListProperty<Extension.Access> secondaryAccess = definition.getSecondaryAccess();
+
+                            task.doLast("print restricted extension content", t -> {
+                                System.out.println("id = " + definition.getId().get());
+                                Extension.Point point = referencePoint.getOrElse(definition.point(-1, -1));
+                                System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
+                                System.out.println("arguments = " + definition.getArguments().get());
+                                System.out.println("flags = " + definition.getFlags());
+                                System.out.println("mapProperty = " + definition.getMapProperty().get());
+                                System.out.println("primaryAccess = { " +
+                                        acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + ", " + acc.getExec().get() + " }"
                                     );
                                     secondaryAccess.get().forEach(it -> {
                                         System.out.println("secondaryAccess { " +
-                                                it.getName().get() + ", " + it.getRead().get() + ", " + it.getWrite().get() +
-                                                "}"
+                                                it.getName().get() + ", " + it.getRead().get() + ", " + it.getWrite().get() + ", " + it.getExec().get() + " }"
                                         );
                                     });
                                 });
                             });
-                        })
-                        .withUnsafeDefinition();
-                    }
 
-                    interface Services {
-                        @javax.inject.Inject
-                        ${TaskRegistrar.class.name} getTaskRegistrar();
                     }
                 }
 
@@ -349,6 +362,12 @@ secondaryAccess { three, true, true}"""
                 public abstract Property<Boolean> getRead();
 
                 public abstract Property<Boolean> getWrite();
+
+                public abstract ListProperty<ExecutionAccess> getExec();
+
+                public enum ExecutionAccess {
+                    USER, GROUP, ALL
+                }
             }
 
             public static class Point {
@@ -433,6 +452,12 @@ secondaryAccess { three, true, true}"""
                 abstract val read: Property<Boolean>
 
                 abstract val write: Property<Boolean>
+
+                abstract val exec: ListProperty<ExecutionAccess>
+
+                enum class ExecutionAccess {
+                    USER, GROUP, ALL
+                }
             }
 
             class Point(val x: Int, val y: Int)

@@ -37,7 +37,7 @@ class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
         server.expectConcurrent("configure-a", "configure-b")
 
         expect:
-        ideaSync(IDEA_VERSION)
+        ideaSync()
     }
 
     private void simpleProject() {
@@ -48,7 +48,7 @@ class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
         """
 
         projectFile("gradle.properties") << """
-            org.gradle.unsafe.isolated-projects=true
+            org.gradle.isolated-projects=true
         """
 
         projectFile("build.gradle") << """

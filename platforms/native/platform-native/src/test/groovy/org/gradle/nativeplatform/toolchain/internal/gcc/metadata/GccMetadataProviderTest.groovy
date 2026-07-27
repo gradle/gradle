@@ -23,10 +23,12 @@ import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.TestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
@@ -265,7 +267,7 @@ End of search list."""
     def "handles failure to execute g++"() {
         given:
         def visitor = Mock(DiagnosticsVisitor)
-        def action = Mock(ExecAction)
+        def action = Mock(ExecAction) { getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty() }
         def execResult = Mock(ExecResult)
 
         and:
@@ -331,7 +333,7 @@ End of search list."""
         1 * visitor.node("g++ appears to be GCC rather than Clang. Treating it as GCC.")
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "parses gcc system includes"() {
         def includes = correctPathSeparators(['/usr/local', '/usr/some/dir'])
         expect:
@@ -339,7 +341,7 @@ End of search list."""
         result.component.systemIncludes*.path == includes
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "parses clang system includes"() {
         def includes = correctPathSeparators([
             '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include',
@@ -352,7 +354,7 @@ End of search list."""
         result.component.systemIncludes*.path == includes
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "ignores Framework directories for GCC"() {
         def includes = [
             '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include',
@@ -365,7 +367,7 @@ End of search list."""
         result.component.systemIncludes*.path == includes
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "parses gcc cygwin system includes and maps to windows paths"() {
         def includes = [
             '/usr/include',
@@ -402,7 +404,7 @@ End of search list."""
     }
 
     void runsCompiler(String output, String error) {
-        def action = Mock(ExecAction)
+        def action = Mock(ExecAction) { getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty() }
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
@@ -411,7 +413,7 @@ End of search list."""
     }
 
     void mapsPath(TestFile cygpath, String from, String to) {
-        def action = Mock(ExecAction)
+        def action = Mock(ExecAction) { getWorkingDirectory() >> TestUtil.objectFactory().directoryProperty() }
         def execResult = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.commandLine(cygpath.absolutePath, '-w', from)

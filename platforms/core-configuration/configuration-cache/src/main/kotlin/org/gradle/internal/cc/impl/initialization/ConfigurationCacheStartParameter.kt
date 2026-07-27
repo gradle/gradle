@@ -38,17 +38,6 @@ class ConfigurationCacheStartParameter internal constructor(
     internalOptions: InternalOptions,
     private val modelParameters: BuildModelParameters,
 ) {
-    /**
-     * Internal Configuration Cache options.
-     */
-    object Options {
-        /**
-         * See [org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter.customReportOutputDirectory].
-         */
-        const val REPORT_OUTPUT_DIR = "org.gradle.internal.configuration-cache.report-output-directory"
-    }
-
-    val taskExecutionAccessPreStable: Boolean = internalOptions.getBoolean("org.gradle.internal.configuration-cache.task-execution-access-pre-stable", false)
 
     /**
      * Should be provided if a link to the report is expected even if no errors were found.
@@ -63,7 +52,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * The default (when null) is to write the report under `<root build buildDir>/reports/configuration-cache`.
      */
     val customReportOutputDirectory: File? by lazy {
-        internalOptions.getStringOrNull(Options.REPORT_OUTPUT_DIR)?.let {
+        internalOptions.getStringOrNull("org.gradle.internal.configuration-cache.report-output-directory")?.let {
             buildTreeLocations.buildTreeRootDirectory.resolve(it)
         }
     }
@@ -181,6 +170,7 @@ class ConfigurationCacheStartParameter internal constructor(
 
     val develocityPluginVersion: String?
         get() = startParameter.develocityPluginVersion
+
     /**
      * Determines whether Isolated Projects option was enabled.
      *
@@ -188,6 +178,30 @@ class ConfigurationCacheStartParameter internal constructor(
      */
     val isIsolatedProjects: Boolean
         get() = modelParameters.isIsolatedProjects
+
+    /**
+     * Determines whether Isolated Projects Diagnostics mode is enabled.
+     *
+     * In Diagnostics mode, project configuration runs sequentially so that all IP violations can be collected
+     * deterministically. Outside Diagnostics mode, IP runs in optimistic-parallel mode and violations should
+     * fail the build as soon as they are discovered.
+     *
+     * Uses a build model parameter rather than a start parameter as the latter is not final and can be affected by other options of the build.
+     */
+    val isIsolatedProjectsDiagnostics: Boolean
+        get() = modelParameters.isIsolatedProjectsDiagnostics
+
+    /**
+     * Determines whether Isolated Projects "dangerously ignore problems" option is enabled.
+     *
+     * With this option, IP violations are reported but do not fail the build, so it can be timed to
+     * estimate the speedup before the violations are fixed. Outputs may be incorrect and the build
+     * may crash.
+     *
+     * Uses a build model parameter rather than a start parameter as the latter is not final and can be affected by other options of the build.
+     */
+    val isIsolatedProjectsDangerouslyIgnoreProblems: Boolean
+        get() = modelParameters.isIsolatedProjectsDangerouslyIgnoreProblems
 
     val entriesPerKey: Int
         get() = startParameter.configurationCacheEntriesPerKey

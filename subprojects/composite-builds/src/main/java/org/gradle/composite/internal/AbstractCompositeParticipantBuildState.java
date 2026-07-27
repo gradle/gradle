@@ -25,9 +25,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +42,8 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
 
     private @Nullable Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public AbstractCompositeParticipantBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
-        super(buildTree, buildDefinition, parent);
+    public AbstractCompositeParticipantBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, @Nullable BuildState parent) {
+        super(buildTreeServices, buildDefinition, parent);
     }
 
     @Override
@@ -50,9 +51,12 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
         if (availableModules == null) {
             ensureChildBuildConfigured();
             availableModules = new LinkedHashSet<>();
-            for (ProjectState project : getProjects().getAllProjects()) {
-                registerProject(availableModules, project.getMutableModel());
-            }
+            BuildProjectRegistry projectRegistry = getProjects();
+            projectRegistry.applyToMutableStateOfAllProjects(access -> {
+                for (ProjectState project : projectRegistry.getAllProjects()) {
+                    registerProject(availableModules, project, access.getMutableModel(project));
+                }
+            });
         }
         return availableModules;
     }
@@ -63,11 +67,12 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
 
     private static void registerProject(
         Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules,
+        ProjectState projectState,
         ProjectInternal project
     ) {
-        ProjectComponentIdentifier projectIdentifier = project.getOwner().getComponentIdentifier();
+        ProjectComponentIdentifier projectIdentifier = projectState.getComponentIdentifier();
         ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getServices().get(DependencyMetaDataProvider.class).getModule());
-        LOGGER.info("Registering {} in composite build. Will substitute for module '{}'.", project, moduleId.getModule());
+        LOGGER.info("Registering {} in composite build. Will substitute for module '{}'.", projectState, moduleId.getModule());
         availableModules.add(Pair.of(moduleId, projectIdentifier));
     }
 

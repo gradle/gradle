@@ -18,8 +18,9 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -30,7 +31,7 @@ import static org.hamcrest.core.IsNull.notNullValue
 @TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegrationTest {
 
-    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
+    @Requires(InstalledJdkTestPreconditions.DifferentJdkAvailable)
     def "respects fork options settings and ignores executable"() {
         def differentJvm = AvailableJavaHomes.differentJdk
         Assume.assumeThat(differentJvm, notNullValue())
@@ -143,6 +144,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() == old(other.lastModified())
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "compiles Scala incrementally across project boundaries"() {
         file("settings.gradle") << """include 'a', 'b'"""
         // overwrite the build file from setup

@@ -37,7 +37,10 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public class Project extends XmlPersistableConfigurationObject {
 
     private final PathFactory pathFactory;
@@ -126,6 +129,7 @@ public class Project extends XmlPersistableConfigurationObject {
         return "defaultProject.xml";
     }
 
+    @SuppressWarnings("deprecation")
     public void configure(List<IdeaModule> modules,
                           String jdkName, IdeaLanguageLevel languageLevel, JavaVersion bytecodeVersion,
                           Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs) {

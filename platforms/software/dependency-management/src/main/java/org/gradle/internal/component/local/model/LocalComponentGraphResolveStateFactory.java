@@ -23,9 +23,10 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenessVerifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -41,18 +42,15 @@ import java.util.function.Consumer;
 @ServiceScope(Scope.BuildTree.class)
 public class LocalComponentGraphResolveStateFactory {
 
-    private final AttributeDesugaring attributeDesugaring;
     private final ComponentIdGenerator idGenerator;
     private final LocalVariantGraphResolveStateBuilder metadataBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public LocalComponentGraphResolveStateFactory(
-        AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
         LocalVariantGraphResolveStateBuilder metadataBuilder,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        this.attributeDesugaring = attributeDesugaring;
         this.idGenerator = idGenerator;
         this.metadataBuilder = metadataBuilder;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -96,8 +94,13 @@ public class LocalComponentGraphResolveStateFactory {
         LocalComponentGraphResolveMetadata metadata,
         ConfigurationsProvider configurations
     ) {
+        ImmutableCapabilities defaultCapabilities = ImmutableCapabilities.of(
+            DefaultImmutableCapability.defaultCapabilityForComponent(metadata.getModuleVersionId())
+        );
+
         LocalVariantGraphResolveStateFactory variantsFactory = new ConfigurationsProviderVariantFactory(
             metadata.getId(),
+            defaultCapabilities,
             configurations,
             metadataBuilder,
             model,
@@ -138,7 +141,6 @@ public class LocalComponentGraphResolveStateFactory {
         return new DefaultLocalComponentGraphResolveState(
             instanceId,
             metadata,
-            attributeDesugaring,
             adHoc,
             variantsFactory,
             calculatedValueContainerFactory
@@ -172,6 +174,7 @@ public class LocalComponentGraphResolveStateFactory {
     private static class ConfigurationsProviderVariantFactory implements LocalVariantGraphResolveStateFactory {
 
         private final ComponentIdentifier componentId;
+        private final ImmutableCapabilities defaultCapabilities;
         private final ConfigurationsProvider configurationsProvider;
         private final LocalVariantGraphResolveStateBuilder stateBuilder;
         private final ModelContainer<?> model;
@@ -179,12 +182,14 @@ public class LocalComponentGraphResolveStateFactory {
 
         public ConfigurationsProviderVariantFactory(
             ComponentIdentifier componentId,
+            ImmutableCapabilities defaultCapabilities,
             ConfigurationsProvider configurationsProvider,
             LocalVariantGraphResolveStateBuilder stateBuilder,
             ModelContainer<?> model,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
             this.componentId = componentId;
+            this.defaultCapabilities = defaultCapabilities;
             this.configurationsProvider = configurationsProvider;
             this.stateBuilder = stateBuilder;
             this.model = model;
@@ -198,7 +203,7 @@ public class LocalComponentGraphResolveStateFactory {
                 DefaultLocalVariantGraphResolveStateBuilder.DependencyCache cache =
                     new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache();
 
-                VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
+                VariantIdentityUniquenessVerifier.buildReport(configurationsProvider, defaultCapabilities).assertNoConflicts();
 
                 configurationsProvider.visitConsumable(configuration -> {
                     LocalVariantGraphResolveState variantState = stateBuilder.createConsumableVariantState(

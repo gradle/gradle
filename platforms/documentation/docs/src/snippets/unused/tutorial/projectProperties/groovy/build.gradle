@@ -1,0 +1,29 @@
+// tag::configuration[]
+// Recommended: Accessing the value of a project property via the providers API (type-safe, lazy)
+// Note: does not look through the project hierarchy
+println providers.gradleProperty('myProjectProp').orNull
+
+// Accessing the value of a project property with hierarchical lookup, null if absent
+println findProperty('myProjectProp')
+
+// Querying the presence of a project property
+if (hasProperty('myProjectProp')) {
+    // Accessing the value, throws if not present
+    println property('myProjectProp')
+}
+
+// Using Groovy dynamic names, throws if not present
+println myProjectProp
+// end::configuration[]
+
+abstract class PrintValue extends DefaultTask {
+    @Input abstract Property<String> getInputValue()
+    @TaskAction void action() { println(inputValue.get()) }
+}
+
+// tag::execution[]
+tasks.register('printValue', PrintValue) {
+    // Eagerly accessing the value of a project property, set as a task input
+    inputValue = project.property('myProjectProp')
+}
+// end::execution[]

@@ -107,7 +107,7 @@ import java.util.Set;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'
@@ -163,6 +163,7 @@ public abstract class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;

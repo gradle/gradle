@@ -18,9 +18,9 @@ package org.gradle.plugin.devel.impldeps
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
 // Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 

@@ -19,6 +19,7 @@ Gradle uses two main features to reduce build time: *incremental builds* and *bu
 
 image::gradle-basic-8.png[]
 
+[[sec:task_outcome_labels]]
 == Task Outcome Labels
 
 When you run a Gradle build with verbose mode turned on, each task prints a short outcome label that describes what happened during execution.
@@ -50,6 +51,7 @@ These labels help you understand Gradle’s behavior and performance optimizatio
 | `FAILED`             | The task ran but encountered an error.
 |===
 
+[[sec:incremental_builds_basics]]
 == Incremental Builds
 
 An *incremental build* is a build that avoids running tasks whose inputs have not changed since the previous build.
@@ -93,6 +95,7 @@ When you run a task that has been previously executed and hasn't changed, then `
 
 TIP: To permanently enable verbose mode, add `org.gradle.console=verbose` to your `gradle.properties` file.
 
+[[sec:build_caching_basics]]
 == Build Caching
 
 Incremental Builds are a great optimization that helps avoid work already done.

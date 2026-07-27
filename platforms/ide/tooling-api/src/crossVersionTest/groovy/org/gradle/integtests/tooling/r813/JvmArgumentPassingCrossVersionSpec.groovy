@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
 import org.junit.Assume
@@ -30,7 +30,7 @@ import spock.lang.Issue
 
 @ToolingApiVersion(">=8.13")
 @Requires(
-    value = IntegTestPreconditions.NotEmbeddedExecutor,
+    value = TestExecutionPreconditions.NotEmbeddedExecutor,
     reason = "In order to pass JVM arguments to the Gradle daemon, we need to use the external executor."
 )
 class JvmArgumentPassingCrossVersionSpec extends ToolingApiSpecification {

@@ -26,11 +26,14 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
 import spock.lang.Specification
 
+import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
+import static org.gradle.internal.file.impl.DefaultFileMetadata.file
 import static org.gradle.internal.fingerprint.DirectorySensitivity.DEFAULT
 import static org.gradle.internal.fingerprint.DirectorySensitivity.IGNORE_DIRECTORIES
 import static org.gradle.internal.fingerprint.LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
@@ -40,7 +43,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends Bas
     abstract RESULT createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs)
     abstract VISITOR createMockVisitor()
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "properly visits structure when ignoring directories"() {
         given:
         def visitor = createMockVisitor()
@@ -105,7 +108,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends Bas
         0 * visitor._
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "properly visits structure when ignoring only the root directory"() {
         given:
         def visitor = createMockVisitor()
@@ -157,7 +160,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends Bas
         0 * visitor._
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "properly visits structure when not ignoring directories"() {
         given:
         def visitor = createMockVisitor()
@@ -236,5 +239,59 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends Bas
 
         and:
         0 * visitor._
+    }
+
+    @Requires(OsTestPreconditions.NotWindows)
+    def "file visitor provides file length"() {
+        given:
+        def visitor = createMockVisitor()
+        def inputFileProperty = Mock(InputFilePropertySpec) {
+            getDirectorySensitivity() >> IGNORE_DIRECTORIES
+            getLineEndingNormalization() >> NORMALIZE_LINE_ENDINGS
+            getNormalizer() >> InputNormalizer.ABSOLUTE_PATH
+            getPropertyName() >> 'foo'
+        }
+        def fileOneSnapshot = new RegularFileSnapshot(
+            '/foo/one.txt', 'one.txt',
+            TestHashCodes.hashCodeFrom(123),
+            file(0, 1024, DIRECT)
+        )
+        def fileTwoSnapshot = new RegularFileSnapshot(
+            '/foo/sub/two.txt', 'two.txt',
+            TestHashCodes.hashCodeFrom(234),
+            file(0, 2048, DIRECT)
+        )
+        def snapshots = directory('/foo', [
+            fileOneSnapshot,
+            directory('/foo/sub', [
+                fileTwoSnapshot
+            ])
+        ])
+        def beforeExecutionState = Mock(BeforeExecutionState) {
+            getInputFileProperties() >> ImmutableSortedMap.of('foo',
+                Mock(CurrentFileCollectionFingerprint) {
+                    getHash() >> TestHashCodes.hashCodeFrom(345)
+                    getFingerprints() >> [
+                        '/foo/one.txt': new DefaultFileSystemLocationFingerprint('/foo/one.txt', FileType.RegularFile, TestHashCodes.hashCodeFrom(123)),
+                        '/foo/sub/two.txt': new DefaultFileSystemLocationFingerprint('/foo/sub/two.txt', FileType.RegularFile, TestHashCodes.hashCodeFrom(234)),
+                    ]
+                    getSnapshot() >> snapshots
+                }
+            )
+        }
+        def cachingState = CachingState.enabled(Mock(BuildCacheKey), beforeExecutionState)
+        def buildOpResult = createSnapshotInputsBuildOperationResult(
+            cachingState,
+            [inputFileProperty] as Set
+        )
+
+        when:
+        buildOpResult.visitInputFileProperties(visitor)
+
+        then:
+        1 * visitor.file { it.path == '/foo/one.txt' && it.length == 1024 }
+
+        and:
+        1 * visitor.file { it.path == '/foo/sub/two.txt' && it.length == 2048 }
     }
 }

@@ -22,17 +22,18 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.containsString
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample('scala/quickstart')
+    @UsesSample('integration-tests/scala/quickstart')
     def "can build jar with #dsl dsl"() {
         // Build and test projects
         TestFile projectDir = sample.dir.file(dsl)
@@ -55,7 +56,7 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTes
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample('scala/quickstart')
+    @UsesSample('integration-tests/scala/quickstart')
     def "can build scalaDoc with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
         executer.inDirectory(projectDir).withTasks('clean', 'scaladoc').run()

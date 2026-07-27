@@ -259,7 +259,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun scriptWithKotlinDslPlugin(version: String? = null): String =
         """
             plugins {
-                `kotlin-dsl`${if (version == null) "" else " version \"$version\""}
+                ${if (version == null) "`kotlin-dsl`" else "id(\"org.gradle.kotlin.kotlin-dsl\") version \"$version\""}
             }
 
             $repositoriesBlock

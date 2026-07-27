@@ -17,11 +17,11 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -31,11 +31,6 @@ import static org.hamcrest.CoreMatchers.containsString
  * production code attempts to perform reflection on JDK internals.
  */
 class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
-
     def setup() {
         buildFile << """
             plugins {
@@ -77,7 +72,7 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
         """
     }
 
-    @Requires(UnitTestPreconditions.Jdk16OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk16OrLater)
     @Issue("https://github.com/gradle/gradle/issues/19771")
     def "both tests and production code fail when application uses illegal reflection"() {
         when:
@@ -94,7 +89,7 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
             .assertFailureMessages(containsString('module java.base does not open java.lang to unnamed module'))
     }
 
-    @Requires(UnitTestPreconditions.Jdk16OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk16OrLater)
     @Issue("https://github.com/gradle/gradle/issues/19771")
     def "can add --add-opens flag in test to permit reflection"() {
         given:

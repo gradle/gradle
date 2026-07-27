@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.problems.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
@@ -116,6 +117,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "task input property with convention set to absent #operator is reported correctly"() {
 
         given:
+        enableProblemsApiCheck()
         def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
             val stringProvider = providers
@@ -137,15 +139,35 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains missingValueMessage { type('Build_gradle.PrintString').property('string') }
         configurationCache.assertStateStored()
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+            additionalData.asMap == [
+                'typeName': 'Build_gradle.PrintString',
+                'propertyName': 'string',
+            ]
+        }
 
         when:
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains missingValueMessage { type('Build_gradle.PrintString').property('string') }
         configurationCache.assertStateLoaded()
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+            additionalData.asMap == [
+                'typeName': 'Build_gradle.PrintString',
+                'propertyName': 'string',
+            ]
+        }
 
         where:
         operator << ['systemProperty', 'environmentVariable']

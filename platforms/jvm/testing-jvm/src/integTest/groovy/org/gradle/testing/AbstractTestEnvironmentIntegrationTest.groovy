@@ -19,7 +19,8 @@ package org.gradle.testing
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
 import org.junit.Assume
@@ -124,7 +125,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
             .assertStderr(Matchers.containsText("INFO via slf4j"))
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "can run tests referencing slf4j with modular java"() {
         Assume.assumeTrue(frameworkSupportsModularJava)
 
@@ -174,7 +175,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
     }
 
     @Requires(
-        value = UnitTestPreconditions.Jdk8OrEarlier,
+        value = JdkVersionTestPreconditions.Jdk8OrEarlier,
         reason = "Hangs on Java 9"
     )
     def "can run tests with custom system classloader and java agent"() {
@@ -229,7 +230,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         run 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }

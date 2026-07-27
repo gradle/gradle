@@ -78,6 +78,7 @@ import java.util.function.Function;
 
 import static java.util.stream.Collectors.toMap;
 
+@SuppressWarnings("this-escape")
 public abstract class DefaultMavenPublication implements MavenPublicationInternal {
 
     private final String name;

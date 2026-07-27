@@ -19,12 +19,12 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 @DoesNotSupportNonAsciiPaths(reason = "Using non-Unicode default character set encoding")
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires explicit encoding")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "requires explicit encoding")
     def "build scripts must be encoded using utf-8"() {
         given:
         executer.withDefaultCharacterEncoding("ISO-8859-15")

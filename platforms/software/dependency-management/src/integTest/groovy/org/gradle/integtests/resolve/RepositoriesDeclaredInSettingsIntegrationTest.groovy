@@ -21,7 +21,8 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -216,6 +217,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
     }
 
+    @Requires(value = [TestExecutionPreconditions.NotIsolatedProjects], reason = "Explicitly tests IP incompatible behavior")
     def "can fail the build if repositories are declared in a subproject block"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -223,10 +225,17 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             include 'lib1'
-            include 'lib2'
         """
 
-        def common = """
+        buildFile << """
+            subprojects {
+                repositories {
+                    maven { url = 'dummy' }
+                }
+            }
+        """
+
+        file("lib1/build.gradle") << """
             configurations {
                 conf
             }
@@ -234,20 +243,13 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             dependencies {
                 conf 'org:module:1.0'
             }
-
-            repositories {
-                maven { url = 'dummy' }
-            }
         """
-
-        file("lib1/build.gradle") << common
-        file("lib2/build.gradle") << common
 
         when:
         fails ':lib1:checkDeps'
 
         then:
-        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'lib1${File.separator}build.gradle'")
+        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
 
     }
 
@@ -613,7 +615,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     // fails to delete directory under Windows otherwise
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "can use a published settings plugin which will apply to both the main build and buildSrc"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
@@ -751,7 +753,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     // fails to delete directory under Windows otherwise
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     void "repositories declared in settings shouldn't be used to resolve plugins"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()

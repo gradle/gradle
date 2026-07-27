@@ -23,21 +23,15 @@ import org.junit.Test
 class ConfigurationCacheProblemsDegradationSummaryTest {
     @Test
     fun `degradation summary`() {
-        assertMessage(" because incompatible task was found.", emptyList(), 1)
-        assertMessage(" because incompatible tasks were found.", emptyList(), 3)
-        assertMessage(" because incompatible feature usage (feature A) was found.", listOf("feature A"), 0)
-        assertMessage(" because incompatible feature usage (feature A, feature B) was found.", listOf("feature A", "feature B"), 0)
-        assertMessage(" because incompatible task and feature usage (feature A) were found.", listOf("feature A"), 1)
-        assertMessage(" because incompatible tasks and feature usage (feature A) were found.", listOf("feature A"), 3)
-        assertMessage(" because incompatible tasks and feature usage (feature A, feature B) were found.", listOf("feature A", "feature B"), 3)
+        assertMessage(" because incompatible task was found.", 1)
+        assertMessage(" because incompatible tasks were found.", 3)
     }
 
-    private fun assertMessage(expected: String, degradingFeatures: List<String>, degradingTaskCount: Int) {
-        assertEquals(expected, renderSummary(degradingFeatures, degradingTaskCount))
+    private fun assertMessage(expected: String, degradingTaskCount: Int) {
+        assertEquals(expected, renderSummary(degradingTaskCount))
     }
 
-    private fun renderSummary(degradingFeatures: List<String>, degradingTaskCount: Int) = DegradationSummary(
-        degradingFeatures,
+    private fun renderSummary(degradingTaskCount: Int) = DegradationSummary(
         degradingTaskCount
     ).render()
 }

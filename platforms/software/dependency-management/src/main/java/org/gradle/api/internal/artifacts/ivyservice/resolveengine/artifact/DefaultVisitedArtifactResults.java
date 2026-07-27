@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ResolutionStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,21 +46,18 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
             }
         }
 
-        return new DefaultSelectedArtifactResults(spec.getSortOrder(), resolvedArtifactSets);
+        return new DefaultSelectedArtifactResults(resolvedArtifactSets);
     }
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {
+
         private final ResolvedArtifactSet allArtifacts;
         // Index of the artifact set == the id of the artifact set
         private final List<ResolvedArtifactSet> resolvedArtifactsById;
 
-        DefaultSelectedArtifactResults(ResolutionStrategy.SortOrder sortOrder, List<ResolvedArtifactSet> resolvedArtifactsById) {
+        DefaultSelectedArtifactResults(List<ResolvedArtifactSet> resolvedArtifactsById) {
             this.resolvedArtifactsById = resolvedArtifactsById;
-            if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
-                this.allArtifacts = CompositeResolvedArtifactSet.of(Lists.reverse(resolvedArtifactsById));
-            } else {
-                this.allArtifacts = CompositeResolvedArtifactSet.of(resolvedArtifactsById);
-            }
+            this.allArtifacts = CompositeResolvedArtifactSet.of(resolvedArtifactsById);
         }
 
         @Override
@@ -74,5 +69,6 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
         public ResolvedArtifactSet getArtifactsWithId(int id) {
             return resolvedArtifactsById.get(id);
         }
+
     }
 }

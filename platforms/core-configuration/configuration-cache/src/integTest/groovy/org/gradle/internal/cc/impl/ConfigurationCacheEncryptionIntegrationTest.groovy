@@ -26,8 +26,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import java.nio.charset.StandardCharsets
@@ -192,7 +193,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         outputContains("Calculating task graph as no cached configuration is available for tasks: help")
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "build fails if keystore cannot be created"() {
         given:
         def fs = NativeServicesTestFixture.instance.get(FileSystem)
@@ -287,7 +288,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         outputContains("Encryption key source: default Gradle keystore (${defaultKeystoreType})")
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Test sets a custom security properties file")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Test sets a custom security properties file")
     def "encryption service attempts to honor explicitly requested keystore type"() {
         buildFile """
             def encryptionService = services.get(org.gradle.internal.encryption.EncryptionConfiguration)

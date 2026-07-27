@@ -18,19 +18,20 @@ package org.gradle.internal.cc.impl
 
 import groovy.lang.Closure
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.execution.TaskExecutionGraphListener
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateLookup
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
-import org.gradle.internal.configuration.problems.ProblemFactory
-import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.util.Path
 import java.util.Objects
@@ -39,11 +40,11 @@ import java.util.Objects
 internal
 class CrossProjectConfigurationReportingTaskExecutionGraph(
     taskGraph: TaskExecutionGraphInternal,
-    private val referrerProject: ProjectInternal,
-    private val problems: ProblemsListener,
+    private val referrerProject: ProjectIdentity,
+    private val ipProblems: IsolatedProjectsProblemsReporter,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val problemFactory: ProblemFactory
+    private val projectStateLookup: ProjectStateLookup,
 ) : TaskExecutionGraphInternal {
 
     private
@@ -82,10 +83,12 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
             if (task == null) {
                 // check whether the path refers to a different project
                 val parentPath = Path.path(path).parent?.asString()
-                if (parentPath != referrerProject.path) {
+                if (parentPath != referrerProject.projectPath.asString()) {
                     // even though the task was not found, the current project is coupled with the other project:
                     // if the configuration of that project changes, the result of this call might be different
-                    val coupledProjects = listOfNotNull(parentPath?.let { referrerProject.findProject(it) })
+                    val coupledProjects = listOfNotNull(parentPath?.let { p ->
+                        projectStateLookup.findProject(referrerProject.resolveProjectPath(p))?.identity
+                    })
                     reportCrossProjectTaskAccess(coupledProjects, path)
                 }
             } else {
@@ -100,8 +103,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     private
     fun checkCrossProjectTaskAccess(task: Task) {
-        val taskOwner = task.project as ProjectInternal
-        if (!taskOwner.isReferrerProject) {
+        val taskOwner = (task as TaskInternal).taskIdentity.projectIdentity
+        if (taskOwner != referrerProject) {
             val coupledProjects = listOf(taskOwner)
             reportCrossProjectTaskAccess(coupledProjects, task.path)
         }
@@ -135,39 +138,34 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     private
     fun observingTasksMaybeFromOtherProjects(tasks: Collection<Task>) {
         val otherProjects = tasks.mapNotNullTo(LinkedHashSet(tasks.size / 8)) { task ->
-            (task.project as? ProjectInternal)?.takeIf { project -> !project.isReferrerProject }
+            (task.project as ProjectInternal).owner.identity.takeIf {
+                it != referrerProject
+            }
         }
         reportCrossProjectTaskAccess(otherProjects)
     }
 
     private
-    val Project.isReferrerProject: Boolean
-        get() = this is ProjectInternal && identityPath == referrerProject.identityPath
-
-    private
-    fun reportCrossProjectTaskAccess(coupledProjects: Iterable<ProjectInternal>, requestPath: String? = null) {
+    fun reportCrossProjectTaskAccess(coupledProjects: Iterable<ProjectIdentity>, requestPath: String? = null) {
         reportCoupledProjects(coupledProjects)
-        reportProjectIsolationProblem(requestPath)
-    }
 
-    private
-    fun reportCoupledProjects(coupledProjects: Iterable<ProjectInternal>) {
-        coupledProjects.forEach { other ->
-            coupledProjectsListener.onProjectReference(referrerProject.owner, other.owner)
+        ipProblems.report {
+            problem {
+                text("Project ")
+                reference(referrerProject.buildTreePath)
+                text(" cannot access the tasks in the task graph that were created by other projects")
+            }.exception { message ->
+                // As the exception message is not used for grouping, we can safely add the exact task name to it:
+                message.capitalized() + if (requestPath != null) "; tried to access '$requestPath'" else ""
+            }.build()
         }
     }
 
     private
-    fun reportProjectIsolationProblem(requestPath: String?) {
-        val problem = problemFactory.problem {
-            text("Project ")
-            reference(referrerProject.identityPath.toString())
-            text(" cannot access the tasks in the task graph that were created by other projects")
-        }.exception { message ->
-            // As the exception message is not used for grouping, we can safely add the exact task name to it:
-            message.capitalized() + if (requestPath != null) "; tried to access '$requestPath'" else '"'
-        }.build()
-        problems.onProblem(problem)
+    fun reportCoupledProjects(coupledProjects: Iterable<ProjectIdentity>) {
+        coupledProjects.forEach { other ->
+            coupledProjectsListener.onProjectReference(referrerProject, other)
+        }
     }
 
     private
@@ -176,7 +174,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     private
     class CrossProjectAccessTrackingTaskExecutionGraphListener(
         private val delegate: TaskExecutionGraphListener,
-        private val referrerProject: ProjectInternal,
+        private val referrerProject: ProjectIdentity,
         private val crossProjectModelAccess: CrossProjectModelAccess
     ) : TaskExecutionGraphListener {
 

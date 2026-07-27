@@ -117,10 +117,8 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         given:
         def moduleName = module.module
         buildFile << """
-            model {
-                tasks.generateDescriptorFileForIvyPublication {
-                    destination = 'generated-ivy.xml'
-                }
+            tasks.named("generateDescriptorFileForIvyPublication") {
+                destination = 'generated-ivy.xml'
             }
         """
 

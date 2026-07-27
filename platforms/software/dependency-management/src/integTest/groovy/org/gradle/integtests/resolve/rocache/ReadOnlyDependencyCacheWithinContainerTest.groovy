@@ -22,12 +22,13 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.testdistribution.LocalOnly
 
 @Requires(
-    value = [UnitTestPreconditions.HasDocker, IntegTestPreconditions.NotEmbeddedExecutor],
+    value = [TestEnvironmentPreconditions.HasDocker, TestExecutionPreconditions.NotEmbeddedExecutor],
     reason = "needs real Gradle distribution to run in container"
 )
 @LocalOnly
@@ -82,7 +83,7 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
             .succeeds("resolve")
 
         then:
-        result.with {
+        verifyAll(result) {
             assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/core/1.0/")
             assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/util/1.0/")
         }
@@ -125,7 +126,7 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
 
         then:
         results.each { result ->
-            result.with {
+            verifyAll(result) {
                 assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/core/1.0/")
                 assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/util/1.0/")
             }
@@ -142,7 +143,7 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
 
         then: "for next resolve, HEAD requests are redundant"
         results.each { result ->
-            result.with {
+            verifyAll(result) {
                 assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/core/1.0/")
                 assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/util/1.0/")
             }

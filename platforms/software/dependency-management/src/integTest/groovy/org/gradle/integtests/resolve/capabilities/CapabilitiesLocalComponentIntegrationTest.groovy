@@ -53,10 +53,11 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         failure.assertHasCause("""Module 'test:b' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project :' (compileClasspath)]""")
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project 'test'' (compileClasspath)]""")
     }
 
     def 'fails to resolve undeclared test fixture'() {
+        settingsFile << "rootProject.name = 'test'\n"
         buildFile << """
             apply plugin: 'java-library'
 
@@ -75,7 +76,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         succeeds 'dependencyInsight', '--configuration', 'compileClasspath', '--dependency', ':'
 
         then:
-        outputContains("Could not resolve root project :.")
+        outputContains("Could not resolve root project 'test'.")
     }
 
     def "can lazily define and request capability"() {
@@ -98,7 +99,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
             }
 
             dependencies {
-                deps(project) {
+                deps(project()) {
                     capabilities {
                         requireCapability(project.provider(() -> value))
                     }
@@ -157,7 +158,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         fails("resolve")
 
         then:
-        failure.assertHasCause("Unable to find a variant of 'project :other' with the requested capabilities: ['org:capability', feature 'foo']")
+        failure.assertHasCause("Unable to find a variant of 'project ':other'' with the requested capabilities: ['org:capability', feature 'foo']")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26377")
@@ -256,13 +257,14 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
             task resolve {
                 def files = configurations.runtimeClasspath.incoming.files
                 doLast {
-                    assert files*.name == ["foo.txt"]
+                    println files*.name
                 }
             }
         """
 
         expect:
         succeeds("resolve")
+        outputContains("[foo.txt]")
     }
 
     def "useful error message when target component has matching capability but incorrect attributes"() {
@@ -304,7 +306,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         fails("resolve")
 
         then:
-        failure.assertHasCause("No matching variant of project :other $description was found")
+        failure.assertHasCause("No matching variant of project ':other' $description was found")
         failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.category' with value 'foo' and the consumer needed attribute 'org.gradle.category' with value 'bar'")
 
         where:
@@ -313,4 +315,97 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         ["org:foo", "org:bar"]  | "with capabilities ['org:bar', 'org:foo']"
     }
 
+    def "requireCapability() narrows otherwise-ambiguous variants when capability differs in group or name"() {
+        given:
+        setupVariantsDistinguishedByCapability("org.example:c1:1.0", "org.example:c2:1.0")
+
+        expect:
+        succeeds "forceResolution"
+    }
+
+    def "requireCapability() does NOT narrow when notations differ only in the version segment, and the error message surfaces the effective selector"() {
+        given:
+        setupVariantsDistinguishedByCapability("group:name:1.0", "group:name:2.0")
+
+        when:
+        fails "forceResolution"
+
+        then: "the ambiguity is reported with the effective (version-stripped) capability and the trailer indicates required capability was considered"
+        assertFullMessageCorrect("""Required by:
+         root project 'test'
+      > The consumer was configured to find attribute 'custom' with value 'a1' and capability 'group:name'. However we cannot choose between the following variants of project ':producer':
+          - v1
+          - v2
+        All of them match the consumer attributes and required capability:
+          - Variant 'v1' capability 'group:name:1.0' declares attribute 'custom' with value 'a1'
+          - Variant 'v2' capability 'group:name:2.0' declares attribute 'custom' with value 'a1'""")
+    }
+
+    private void setupVariantsDistinguishedByCapability(String c1Notation, String c2Notation) {
+        settingsFile << """
+            include("producer")
+            rootProject.name = "test"
+        """
+
+        file("producer/build.gradle") << """
+            group = "org.example"
+            version = "1.0"
+
+            def custom = Attribute.of("custom", String)
+
+            configurations {
+                consumable("v1") {
+                    attributes {
+                        attribute(custom, "a1")
+                    }
+                    outgoing {
+                        capability("${c1Notation}")
+                    }
+                }
+                consumable("v2") {
+                    attributes {
+                        attribute(custom, "a1")
+                    }
+                    outgoing {
+                        capability("${c2Notation}")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def custom = Attribute.of("custom", String)
+
+            configurations {
+                dependencyScope("myDependencies")
+                resolvable("resolveMe") {
+                    extendsFrom(myDependencies)
+                }
+            }
+
+            dependencies {
+                myDependencies(project(":producer")) {
+                    attributes {
+                        attribute(custom, "a1")
+                    }
+                    capabilities {
+                        requireCapability("${c1Notation}")
+                    }
+                }
+            }
+
+            task forceResolution {
+                def files = configurations.resolveMe.incoming.files
+                doLast {
+                    files.each { println(it) }
+                }
+            }
+        """
+    }
+
+    private void assertFullMessageCorrect(String identifyingFragment) {
+        identifyingFragment.eachLine {
+            failure.assertHasErrorOutput(it.trim())
+        }
+    }
 }

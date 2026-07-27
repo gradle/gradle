@@ -83,6 +83,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @since 4.3
  */
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<Property<Publication>> publication;
@@ -90,6 +91,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final FileCollection variantFiles;
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
 
+    @SuppressWarnings("this-escape")
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getObjectFactory();
         this.publication = Transient.of(objectFactory.property(Publication.class));

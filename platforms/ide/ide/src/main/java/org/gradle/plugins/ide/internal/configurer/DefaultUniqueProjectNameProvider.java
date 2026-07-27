@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.project.ProjectStateLookup;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -30,8 +30,8 @@ public class DefaultUniqueProjectNameProvider extends AbstractUniqueProjectNameP
     @Nullable
     private Map<ProjectIdentity, String> deduplicated;
 
-    public DefaultUniqueProjectNameProvider(ProjectStateRegistry projectRegistry) {
-        super(projectRegistry);
+    public DefaultUniqueProjectNameProvider(ProjectStateLookup projectStateLookup) {
+        super(projectStateLookup);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class DefaultUniqueProjectNameProvider extends AbstractUniqueProjectNameP
     private synchronized Map<ProjectIdentity, String> getDeduplicatedNames() {
         if (deduplicated == null) {
             HierarchicalElementDeduplicator<ProjectIdentity> deduplicator = new HierarchicalElementDeduplicator<>(new ProjectPathDeduplicationAdapter());
-            List<ProjectIdentity> allProjects = projectRegistry.getAllProjects().stream()
+            List<ProjectIdentity> allProjects = projectStateLookup.getAllProjects().stream()
                 .map(ProjectState::getIdentity)
                 .collect(toList());
             this.deduplicated = deduplicator.deduplicate(allProjects);

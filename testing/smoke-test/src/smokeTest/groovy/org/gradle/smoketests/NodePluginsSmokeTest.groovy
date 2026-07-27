@@ -18,8 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-import static org.gradle.api.problems.Severity.ERROR
-
 class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Override
     Map<String, Versions> getPluginsToValidate() {
@@ -33,14 +31,24 @@ class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements 
     }
 
     @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        "node {}"
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('node')]
+    }
+
+    @Override
     void configureValidation(String testedPluginId, String version) {
         validatePlugins {
             if (testedPluginId == 'com.moowork.node') {
                 onPlugin('com.moowork.node') {
                     failsWith([
-                            (missingAnnotationMessage { type('com.moowork.gradle.node.npm.NpmSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
-                            (methodShouldNotBeAnnotatedMessage {type('com.moowork.gradle.node.npm.NpmSetupTask').kind('setter').method('setArgs').annotation('Internal').includeLink()}): ERROR,
-                            (missingAnnotationMessage { type('com.moowork.gradle.node.yarn.YarnSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
+                        (missingAnnotationMessage { type('com.moowork.gradle.node.npm.NpmSetupTask').property('args').missingInputOrOutput().includeLink() }): "error",
+                        (methodShouldNotBeAnnotatedMessage {type('com.moowork.gradle.node.npm.NpmSetupTask').kind('setter').method('setArgs').annotation('Internal').includeLink()}): "error",
+                        (missingAnnotationMessage { type('com.moowork.gradle.node.yarn.YarnSetupTask').property('args').missingInputOrOutput().includeLink() }): "error",
                     ])
                 }
             } else {

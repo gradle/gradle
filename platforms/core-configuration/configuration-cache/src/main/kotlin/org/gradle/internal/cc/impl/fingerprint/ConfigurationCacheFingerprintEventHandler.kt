@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.properties.GradlePropertiesListener
 import org.gradle.api.internal.properties.GradlePropertyScope
@@ -34,8 +35,8 @@ import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.cc.impl.CoupledProjectsListener
+import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
-import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.execution.WorkInputListeners
@@ -61,12 +62,12 @@ import java.util.EnumSet
 @ServiceScope(Scope.BuildTree::class)
 internal class ConfigurationCacheFingerprintEventHandler(
     private val workInputListeners: WorkInputListeners,
-    private val scriptFileResolverListeners: ScriptFileResolverListeners
+    private val scriptFileResolverListeners: ScriptFileResolverListeners,
+    private val inputTrackingState: InputTrackingState
 ) :
 // For these listeners this class is the only "real" implementation.
 // Event sources get our instance through ServiceRegistry.
     ChangingValueDependencyResolutionListener,
-    ConfigurationCacheEnvironment.Listener,
     CoupledProjectsListener,
     FeatureFlagListener,
     FileCollectionObservationListener,
@@ -126,11 +127,15 @@ internal class ConfigurationCacheFingerprintEventHandler(
     }
 
     override fun beforeValueObtained() {
-        delegate?.beforeValueObtained()
+        // A value source computes its own value, so reads made while it runs are not build
+        // configuration inputs. Input tracking is disabled here in all modes for consistency.
+        // Some infrastructure relies on the input tracking state even in Vintage builds to emit/suppress
+        // deprecations.
+        inputTrackingState.disableForCurrentThread()
     }
 
     override fun afterValueObtained() {
-        delegate?.afterValueObtained()
+        inputTrackingState.restoreForCurrentThread()
     }
 
     override fun onExecute(work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {
@@ -201,7 +206,7 @@ internal class ConfigurationCacheFingerprintEventHandler(
         delegate?.onChangingModuleResolve(moduleId, expiry)
     }
 
-    override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+    override fun onProjectReference(referrer: ProjectIdentity, target: ProjectIdentity) {
         delegate?.onProjectReference(referrer, target)
     }
 
@@ -239,21 +244,5 @@ internal class ConfigurationCacheFingerprintEventHandler(
         snapshot: Map<String, String>
     ) {
         delegate?.onGradlePropertiesByPrefix(propertyScope, prefix, snapshot)
-    }
-
-    override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        delegate?.systemPropertiesPrefixedBy(prefix, snapshot)
-    }
-
-    override fun systemProperty(name: String, value: String?) {
-        delegate?.systemProperty(name, value)
-    }
-
-    override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        delegate?.envVariablesPrefixedBy(prefix, snapshot)
-    }
-
-    override fun envVariable(name: String, value: String?) {
-        delegate?.envVariable(name, value)
     }
 }

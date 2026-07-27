@@ -51,11 +51,6 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         return ""
     }
 
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
-
     def "suite output is visible"() {
         Assume.assumeTrue(supportsSuiteOutput())
 
@@ -154,7 +149,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         executer.withTasks('test').run()
 
         then:
-        GenericHtmlTestExecutionResult result = new GenericHtmlTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
+        GenericHtmlTestExecutionResult result = new GenericHtmlTestExecutionResult(testDirectory)
         result.assertTestPathsExecuted(
             ':org.gradle.ASuite:org.gradle.OkTest:ok',
             ':org.gradle.ASuite:org.gradle.OkTest:anotherOk',
@@ -350,7 +345,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         succeeds("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResult = resultsFor()
         List<String> expectedDuplicatesInSuite = expectedManyParameterizedTests().collect { path ->
             ":AllParamTestsSuite${path}".toString()
         }
@@ -377,7 +372,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         succeeds("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResult = resultsFor()
         testResult.assertTestPathsExecuted(expectedManyParameterizedTests() as String[])
     }
 
@@ -399,7 +394,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         succeeds("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResult = resultsFor()
         List<String> expectedDuplicatesInSuite = expectedManyParameterizedTests().collect { path ->
             ":AllParamTestsSuite${path}".toString()
         }

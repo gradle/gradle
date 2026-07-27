@@ -26,6 +26,8 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectOrderingUtil
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -43,13 +45,11 @@ import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
-import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import org.gradle.kotlin.dsl.provider.runCatching
 import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -66,7 +66,6 @@ data class KotlinBuildScriptModelParameter(
     val scriptFile: File?,
     val correlationId: String?
 )
-
 
 internal
 object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
@@ -103,7 +102,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             ?: return projectScriptModelBuilder(null, modelRequestProject)
 
         modelRequestProject.findProjectWithBuildFile(scriptFile)?.let { buildFileProject ->
-            return projectScriptModelBuilder(scriptFile, buildFileProject as ProjectInternal)
+            return projectScriptModelBuilder(scriptFile, buildFileProject)
         }
 
         modelRequestProject.enclosingSourceSetOf(scriptFile)?.let { enclosingSourceSet ->
@@ -143,14 +142,17 @@ fun log(message: String) {
 
 
 private
-fun Project.findProjectWithBuildFile(file: File) =
-    allprojects.find { it.buildFile == file }
+fun ProjectInternal.findProjectWithBuildFile(file: File) =
+    ProjectOrderingUtil.orderedAllProjectsOf(owner)
+        .asSequence()
+        .map { it.mutableModelEvenAfterFailure }
+        .find { it.buildFile == file }
 
 
 private
-fun Project.enclosingSourceSetOf(file: File): EnclosingSourceSet? =
+fun ProjectInternal.enclosingSourceSetOf(file: File): EnclosingSourceSet? =
     findSourceSetOf(file)
-        ?: findSourceSetOfFileIn(subprojects, file)
+        ?: findSourceSetOfFileInSubprojects(file)
 
 
 private
@@ -158,10 +160,10 @@ data class EnclosingSourceSet(val project: Project, val sourceSet: SourceSet)
 
 
 private
-fun findSourceSetOfFileIn(projects: Iterable<Project>, file: File): EnclosingSourceSet? =
-    projects
+fun ProjectInternal.findSourceSetOfFileInSubprojects(file: File): EnclosingSourceSet? =
+    ProjectOrderingUtil.orderedSubprojectsOf(owner)
         .asSequence()
-        .mapNotNull { it.findSourceSetOf(file) }
+        .mapNotNull { it.mutableModelEvenAfterFailure.findSourceSetOf(file) }
         .firstOrNull()
 
 
@@ -172,10 +174,9 @@ fun Project.findSourceSetOf(file: File): EnclosingSourceSet? =
     }
 
 
-private
+internal
 val Project.sourceSets
     get() = extensions.findByType(typeOf<SourceSetContainer>())
-
 
 private
 fun precompiledScriptPluginModelBuilder(
@@ -188,35 +189,11 @@ fun precompiledScriptPluginModelBuilder(
     scriptClassPath = DefaultClassPath.of(enclosingSourceSet.sourceSet.compileClasspath),
     enclosingScriptProjectDir = enclosingSourceSet.project.projectDir,
     additionalImports = {
-        enclosingSourceSet.project.precompiledScriptPluginsMetadataDir.run {
-            implicitImportsFrom(
-                resolve("accessors").resolve(hashOf(scriptFile))
-            ) + implicitImportsFrom(
-                resolve("plugin-spec-builders").resolve(kotlinDslPluginSpecBuildersImplicitImports)
-            ) + implicitImportsFrom(
-                // Gradle <= 8.12 was using this other name with a dash but this was incompatible with moving to kotlin-scripting-host API
-                // Keeping it for compatibility with previous Gradle versions
-                resolve("plugin-spec-builders").resolve("implicit-imports")
-            )
+        PrecompiledScriptPluginsMetadataDir.of(enclosingSourceSet.project).run {
+            implicitAccessorsImports(scriptFile) + implicitPluginSpecBuildersImports
         }
     }
 )
-
-
-private
-val Project.precompiledScriptPluginsMetadataDir: File
-    get() = layout.buildDirectory.dir("kotlin-dsl/precompiled-script-plugins-metadata").get().asFile
-
-
-private
-fun implicitImportsFrom(file: File): List<String> =
-    file.takeIf { it.isFile }?.readLines() ?: emptyList()
-
-
-private
-fun hashOf(scriptFile: File) =
-    KotlinScriptHashing.hashOf(scriptFile.readText())
-
 
 private
 fun projectScriptModelBuilder(
@@ -376,8 +353,15 @@ fun textResourceScriptSource(description: String, scriptFile: File, resourceLoad
 
 
 private
-fun sourceLookupScriptHandlersFor(project: Project) =
-    project.hierarchy.map { it.buildscript }.toList()
+fun sourceLookupScriptHandlersFor(project: ProjectInternal) =
+     buildList {
+         var current: ProjectState? = project.owner
+         while (current != null) {
+             add(current.mutableModelEvenAfterFailure.buildscript)
+             current = current.parent
+         }
+     }
+
 
 
 private
@@ -497,19 +481,7 @@ val Project.scriptImplicitImports
     get() = serviceOf<ImplicitImports>().list
 
 
-private
-val Project.hierarchy: Sequence<Project>
-    get() = sequence {
-        var project = this@hierarchy
-        yield(project)
-        while (project != project.rootProject) {
-            project = project.parent!!
-            yield(project)
-        }
-    }
-
-
-private
+internal
 val Project.isLocationAwareEditorHintsEnabled: Boolean
     get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
 

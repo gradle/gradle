@@ -19,10 +19,10 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GitUtility
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
@@ -78,8 +78,8 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
             case 1, 2 -> '0.24.1'
             default -> "3.6.0" + switch (groovyVersionNumber.major) {
                 case 3 -> ""
-                // Temporary override as there is no CodeNarc release for Groovy 5.0 yet
-                case 5 -> "-groovy-4.0"
+                // Temporary override as there is no CodeNarc release for Groovy 5.0 or 6.0 yet
+                case 5, 6 -> "-groovy-4.0"
                 default -> "-groovy-${groovyVersionNumber.major}.${groovyVersionNumber.minor}"
             }
         }
@@ -118,6 +118,7 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/22172')
+    @ToBeFixedForIsolatedProjects(because = "subprojects, applies CodeNarc/Checkstyle to subprojects")
     void 'CodeNarc/Checkstyle do not fail with PermGen space error'() {
         given:
         withCheckstyle()
@@ -161,11 +162,13 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
         return VersionNumber.parse(GroovyCoverage.SUPPORTED_BY_JDK.min()) <= VersionNumber.parse("2.4.7") ? [ "2.4.7" ] : []
     }
 
-    @Requires([UnitTestPreconditions.Jdk11OrLater, IntegTestPreconditions.NotConfigCached]) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
+    @Requires(JdkVersionTestPreconditions.Jdk11OrLater) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
         GitUtility.initGitDir(testDirectory)
-        buildFile << """
+        buildFile """
+            import org.ajoberstar.grgit.*
+
             buildscript {
               repositories {
                 ${mavenCentralRepository()}
@@ -176,14 +179,28 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
               }
             }
 
-            import org.ajoberstar.grgit.*
-            Grgit.open(currentDir: project.rootProject.rootDir)
+            def openGit = tasks.register("openGit") {
+                def repoDir = project.rootProject.rootDir
+                doLast {
+                    Grgit.open(currentDir: repoDir)
+                    println("GrGit run")
+                }
+            }
+
+            allprojects {
+                tasks.withType(AbstractCodeQualityTask).configureEach {
+                    dependsOn(":openGit")
+                }
+            }
         """
         withCheckstyle()
         goodCode(LOCAL_GROOVY)
 
-        expect:
+        when:
         succeeds 'check'
+
+        then:
+        outputContains("GrGit run")
 
         where:
         iteration << (0..10)

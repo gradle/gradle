@@ -18,13 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.api.plugins.internal.ant.AntWorkAction;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
@@ -38,57 +37,69 @@ public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParamete
     }
 
     @Override
-    protected Action<AntBuilderDelegate> getAntAction() {
-        return new Action<AntBuilderDelegate>() {
-            @Override
-            public void execute(AntBuilderDelegate ant) {
-                GroovydocParameters parameters = getParameters();
+    public void execute(AntBuilderDelegate ant) {
+        GroovydocParameters parameters = getParameters();
 
-                final VersionNumber version = getGroovyVersion();
+        final VersionNumber version = getGroovyVersion();
 
-                final Map<String, Object> args = new LinkedHashMap<>();
-                args.put("sourcepath", parameters.getTmpDir().get().getAsFile());
-                args.put("destdir", parameters.getDestinationDirectory().get().getAsFile());
-                args.put("use", parameters.getUse().get());
-                if (isAtLeast(version, "2.4.6")) {
-                    args.put("noTimestamp", parameters.getNoTimestamp().get());
-                    args.put("noVersionStamp", parameters.getNoVersionStamp().get());
-                }
-                args.put(parameters.getAccess().get().name().toLowerCase(Locale.ROOT), true);
+        final Map<String, Object> args = new LinkedHashMap<>();
+        args.put("sourcepath", parameters.getTmpDir().get().getAsFile());
+        args.put("destdir", parameters.getDestinationDirectory().get().getAsFile());
+        args.put("use", parameters.getUse().get());
+        if (isAtLeast(version, "2.4.6")) {
+            args.put("noTimestamp", parameters.getNoTimestamp().get());
+            args.put("noVersionStamp", parameters.getNoVersionStamp().get());
+        }
+        args.put(parameters.getAccess().get().name().toLowerCase(Locale.ROOT), true);
 
-                args.put("author", parameters.getIncludeAuthor().get());
-                if (isAtLeast(version, "1.7.3")) {
-                    args.put("processScripts", parameters.getProcessScripts().get());
-                    args.put("includeMainForScripts", parameters.getIncludeMainForScripts().get());
-                }
-                putIfNotNull(args, "windowtitle", parameters.getWindowTitle().getOrNull());
-                putIfNotNull(args, "doctitle", parameters.getDocTitle().getOrNull());
-                putIfNotNull(args, "header", parameters.getHeader().getOrNull());
-                putIfNotNull(args, "footer", parameters.getFooter().getOrNull());
-                putIfNotNull(args, "overview", parameters.getOverview().getOrNull());
+        args.put("author", parameters.getIncludeAuthor().get());
+        if (isAtLeast(version, "1.7.3")) {
+            args.put("processScripts", parameters.getProcessScripts().get());
+            args.put("includeMainForScripts", parameters.getIncludeMainForScripts().get());
+        }
+        putIfNotNull(args, "windowtitle", parameters.getWindowTitle().getOrNull());
+        putIfNotNull(args, "doctitle", parameters.getDocTitle().getOrNull());
+        putIfNotNull(args, "header", parameters.getHeader().getOrNull());
+        putIfNotNull(args, "footer", parameters.getFooter().getOrNull());
 
-                ant.invokeMethod("taskdef", ImmutableMap.of(
-                    "name", "groovydoc",
-                    "classname", "org.codehaus.groovy.ant.Groovydoc"
-                ));
+        // javaVersion (passed to JavaParser) was added to the Groovydoc Ant task in Groovy 4.0.27.
+        if (isAtLeast(version, "4.0.27")) {
+            putIfNotNull(args, "javaVersion", parameters.getJavaVersion().getOrNull());
+        }
 
-                ant.invokeMethod("groovydoc", new Object[]{args, new Closure<Object>(this, this) {
-                    @SuppressWarnings("unused") // Magic Groovy method
-                    public Object doCall(Object ignore) {
-                        for (GroovydocParameters.Link link : parameters.getLinks().get()) {
-                            ant.invokeMethod("link", new Object[]{
-                                ImmutableMap.of(
-                                    "packages", Joiner.on(",").join(link.getPackages()),
-                                    "href", link.getUrl()
-                                )
-                            });
-                        }
+        // The following options were added to the Groovydoc Ant task in Groovy 6.0.0.
+        // Threshold is the first 6.0.0 pre-release so alphas/betas pick up the options while preserving "6.0.0" > "6.0.0-alpha-*".
+        if (isAtLeast(version, "6.0.0-alpha-1")) {
+            args.put("showInternal", parameters.getShowInternal().get());
+            args.put("noIndex", parameters.getNoIndex().get());
+            args.put("noDeprecatedList", parameters.getNoDeprecatedList().get());
+            args.put("noHelp", parameters.getNoHelp().get());
+            putIfNotNull(args, "syntaxHighlighter", parameters.getSyntaxHighlighter().getOrNull());
+            putIfNotNull(args, "theme", parameters.getTheme().getOrNull());
+            putIfNotNull(args, "preLanguage", parameters.getPreLanguage().getOrNull());
+        }
 
-                        return null;
-                    }
-                }});
+        putIfNotNull(args, "overview", parameters.getOverview().getOrNull());
+
+        ant.taskdef("groovydoc", "org.codehaus.groovy.ant.Groovydoc");
+
+        ant.createNode("groovydoc", args, () -> {
+            for (GroovydocParameters.Link link : parameters.getLinks().get()) {
+                ant.createNode("link",
+                    ImmutableMap.of(
+                        "packages", Joiner.on(",").join(link.getPackages()),
+                        "href", link.getUrl()
+                    )
+                );
             }
-        };
+            // Additional stylesheets are configured via nested <addStylesheet file="..."/> elements,
+            // available in the Groovydoc Ant task since Groovy 6.0.0.
+            if (isAtLeast(version, "6.0.0-alpha-1")) {
+                for (File stylesheet : parameters.getAdditionalStylesheets().getFiles()) {
+                    ant.createNode("addStylesheet", ImmutableMap.of("file", stylesheet.getAbsolutePath()));
+                }
+            }
+        });
     }
 
     private static VersionNumber getGroovyVersion() {

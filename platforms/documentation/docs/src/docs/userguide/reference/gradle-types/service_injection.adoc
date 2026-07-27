@@ -14,11 +14,29 @@
 
 [[service_injection]]
 = Services and Service Injection
-:keywords: services, service, injection, inject, objectfactory, providerfactory, workerexecutor, archiveoperations, execoperations, toolingmodelbuilderregistry, testeventreporterfactory
+:keywords: services, service, injection, inject
 
-Gradle provides a number of useful services that can be used by custom Gradle types.
-For example, the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service can be used by a task to run work in parallel, as seen in the <<worker_api.adoc#worker_api,worker API>> section.
-The services are made available through _service injection_.
+Gradle exposes a set of _services_, covering things like file and archive operations, process execution, dependency creation, worker scheduling, problem reporting, build-feature flags, and dataflow scheduling.
+
+A *service* is a collaborator object whose lifecycle Gradle manages; a single instance is shared across the build and supplied to your code on demand.
+These services aren't meant to be constructed directly, since they rely on internal Gradle state.
+
+To use a *service*, your custom type declares a dependency on it and Gradle supplies the instance.
+This pattern is called _service injection_, and it works uniformly across every type Gradle instantiates for you, including tasks, plugins, extensions, value sources, build services, and worker actions.
+
+The most common form is constructor injection on an abstract type.
+The same `CleanTempTask` is shown below as a Kotlin DSL class, a Groovy DSL class, and a stand-alone Java class that you would typically place in `buildSrc` or a binary plugin:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=clean-temp-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=clean-temp-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin/buildSrc/src/main/java/org/example",files="CleanTempTask.java[tags=clean-temp-inject]"]
+====
+
+A task that needs to run work in parallel injects the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[`WorkerExecutor`] service in the same way, as shown in the <<worker_api.adoc#worker_api,worker API>> section.
+
+Reaching for service injection rather than `project.copy(...)`, `project.exec(...)`, or other ad-hoc `Project` accessors helps keep your code compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>> and <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, and makes your types easier to unit-test by passing stub services.
+See <<#service_injection_patterns,Service injection patterns>> for the full set of `@Inject` forms used in the rest of this page.
 
 [[services_for_injection]]
 == Available services
@@ -28,35 +46,100 @@ Only inject the services explicitly listed below to ensure stability and compati
 
 The following services are available for injection in all Gradle instantiated objects:
 
-1. <<objectfactory,`ObjectFactory`>> - Allows model objects to be created.
-2. <<providerfactory,`ProviderFactory`>> - Creates `Provider` instances.
-3. <<filesystemoperations,`FileSystemOperations`>> - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
-4. <<archiveoperations,`ArchiveOperations`>> - Allows a task to run operations on archive files such as ZIP or TAR files.
-5. <<execoperations,`ExecOperations`>> - Allows a task to run external processes with dedicated support for running external `java` programs.
+[%header,cols="1,4"]
+|===
+| Service | Description
+
+| <<objectfactory,`ObjectFactory`>>
+| Creates model objects, properties, collections, and file-related objects. Use it when defining custom Gradle types or nested DSL objects in a plugin or extension.
+
+| <<providerfactory,`ProviderFactory`>>
+| Creates `Provider` instances and exposes environment, system-property, and Gradle-property values. Use it to read environment variables, system properties, or to wrap a computed value as a lazy `Provider`.
+
+| <<filesystemoperations,`FileSystemOperations`>>
+| Runs filesystem operations such as deleting, copying, or syncing files and directories. Use it from a task or worker action that needs to delete, copy, or sync files.
+
+| <<archiveoperations,`ArchiveOperations`>>
+| Runs operations on archive files such as ZIP or TAR. Use it to read or extract the contents of an archive.
+
+| <<execoperations,`ExecOperations`>>
+| Runs external processes, with dedicated support for running external `java` programs. Use it to run an external program or `java` process from a task or worker action.
+
+| <<problems,`Problems`>> incubating-label:[]
+| Reports structured problems that surface in the console, the HTML problems report, and the Tooling API. Use it to surface errors or warnings consistently to the IDE, the problems report, and Build Scan.
+|===
 
 === Additional services in workers
 
 The following services are available for injection in worker API actions and parameters:
 
-1. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
+[%header,cols="1,4"]
+|===
+| Service | Description
+
+| <<workerexecutor,`WorkerExecutor`>>
+| Schedules work to run in parallel via the Worker API. Use it from a task that needs to run CPU-bound work in parallel or in an isolated classloader.
+|===
+
+=== Additional services in projects and settings
+
+The following services are available for injection in both project and settings plugins, extensions and objects:
+
+[%header,cols="1,4"]
+|===
+| Service | Description
+
+| <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>>
+| Registers a Gradle Tooling API model builder. Use it to expose a custom model to the Tooling API so IDEs and other tools can consume it.
+
+| <<dependencyfactory,`DependencyFactory`>>
+| Creates `Dependency` instances in a type-safe way. Use it to programmatically construct `Dependency` instances in a plugin without a `Project` reference.
+
+| <<dependencyconstraintfactory,`DependencyConstraintFactory`>> incubating-label:[]
+| Creates `DependencyConstraint` instances in a type-safe way. Use it to programmatically construct dependency constraints in a plugin without a `Project` reference.
+
+| <<buildfeatures,`BuildFeatures`>>
+| Reports whether features such as Configuration Cache and Isolated Projects are requested and active. Use it to branch plugin logic on whether the Configuration Cache or Isolated Projects is active.
+
+| <<flow_services,`FlowScope` and `FlowProviders`>> incubating-label:[]
+| Register dataflow actions that run on build lifecycle events such as build completion. Use them to run cleanup, notification, or reporting work at the end of every build.
+
+| <<buildinvocationdetails,`BuildInvocationDetails`>> incubating-label:[]
+| Exposes information about the current build invocation, such as its wall-clock start time. Use it to read the build's start time for timing or reporting.
+|===
 
 === Additional services in projects
 
 The following services are available for injection in project plugins, extensions and objects created in a project:
 
-1. <<sec:projectlayout,`ProjectLayout`>> - Provides access to key project locations.
-2. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
-3. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
-4. <<testeventreporterfactory,`TestEventReporterFactory`>> - Allows a plugin to access Gradle's test events and its corresponding API.
-5. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
+[%header,cols="1,4"]
+|===
+| Service | Description
+
+| <<sec:projectlayout,`ProjectLayout`>>
+| Provides access to key project locations such as the project directory and build directory. Use it to resolve paths relative to the project directory or build directory.
+
+| <<workerexecutor,`WorkerExecutor`>>
+| Schedules work to run in parallel via the Worker API. Use it from a task that needs to run CPU-bound work in parallel or in an isolated classloader.
+
+| <<testeventreporterfactory,`TestEventReporterFactory`>> incubating-label:[]
+| Provides access to Gradle's test event reporting API. Use it to emit test events from a custom task that runs tests itself.
+
+| <<softwarecomponentfactory,`SoftwareComponentFactory`>>
+| Creates adhoc software components for publishing. Use it to define a custom publishable software component without a full component model.
+|===
 
 === Additional services in settings
 
-The following services are available for injection in settings plugins, extensions and objects created in a project:
+The following services are available for injection in settings plugins, extensions and objects created in a settings script:
 
-1. <<buildlayout,`BuildLayout`>> - Provides access to important locations for a Gradle build.
-2. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
-3. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
+[%header,cols="1,4"]
+|===
+| Service | Description
+
+| <<buildlayout,`BuildLayout`>>
+| Provides access to important locations for a Gradle build, such as the root directory and settings file. Use it from a settings plugin to resolve paths relative to the root settings directory.
+|===
 
 [[objectfactory]]
 == `ObjectFactory`
@@ -68,8 +151,8 @@ You can obtain an instance of `ObjectFactory` using the `project.objects` proper
 Here's a simple example demonstrating how to use `ObjectFactory` to create a property and set its value:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=object-factory]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=object-factory]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=object-factory]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=object-factory]"]
 ====
 
 TIP: It is preferable to let Gradle create objects automatically by using <<properties_providers.adoc#managed_properties,managed properties>>.
@@ -83,15 +166,15 @@ The constructor uses this to create a nested `Resource` object (also a custom Gr
 [source,java]
 .DownloadExtension.java
 ----
-include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
-include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+include::{snippetsPath}/reference/plugin-development/nestedObjects/groovy/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
+include::{snippetsPath}/reference/plugin-development/nestedObjects/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 
 Here is another example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=object-factory-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=object-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=object-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=object-factory-inject]"]
 ====
 
 The `MyObjectFactoryTask` task uses an `ObjectFactory` instance, which is injected into the task's constructor using the `@Inject` annotation.
@@ -106,15 +189,15 @@ You can obtain a `ProjectLayout` instance from a `Project` object using the `pro
 Here's a simple example:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=project-layout]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=project-layout]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=project-layout]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=project-layout]"]
 ====
 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=project-layout-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=project-layout-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=project-layout-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=project-layout-inject]"]
 ====
 
 The `MyProjectLayoutTask` task uses a `ProjectLayout` instance, which is injected into the task's constructor using the `@Inject` annotation.
@@ -133,15 +216,15 @@ You can obtain a `BuildLayout` instance from a `Settings` object using the `sett
 Here's a simple example:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="settings.gradle.kts[tags=build-layout]"]
-include::sample[dir="snippets/providers/services/groovy",files="settings.gradle[tags=build-layout]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="settings.gradle.kts[tags=build-layout]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="settings.gradle[tags=build-layout]"]
 ====
 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="settings.gradle.kts[tags=build-layout-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="settings.gradle[tags=build-layout-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="settings.gradle.kts[tags=build-layout-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="settings.gradle[tags=build-layout-inject]"]
 ====
 
 This code defines a `MyBuildLayoutPlugin` plugin that implements the `Plugin` interface for the `Settings` type.
@@ -163,8 +246,8 @@ The `ProviderFactory` interface provides methods for creating various types of p
 Here's a simple example demonstrating the use of `ProviderFactory` using `project.providers`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=provider-factory]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=provider-factory]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=provider-factory]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=provider-factory]"]
 ====
 
 The task named `printMessage` uses the `ProviderFactory` to create a `provider` that supplies the message string.
@@ -172,8 +255,8 @@ The task named `printMessage` uses the `ProviderFactory` to create a `provider` 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=provider-factory-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=provider-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=provider-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=provider-factory-inject]"]
 ====
 
 The `ProviderFactory` service is injected into the `MyProviderFactoryTask` task's constructor using the `@Inject` annotation.
@@ -190,8 +273,8 @@ This helps isolate the work from the main Gradle process, providing better relia
 Here's a basic example of how you might use `WorkerExecutor` in a build script:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=worker-executor]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=worker-executor]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=worker-executor]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=worker-executor]"]
 ====
 
 See <<worker_api.adoc#worker_api,the worker API>> for more details.
@@ -205,8 +288,8 @@ It is part of the `org.gradle.api.file` package and is typically used in custom 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=file-system-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=file-system-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=file-system-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=file-system-inject]"]
 ====
 
 The `FileSystemOperations` service is injected into the `MyFileSystemOperationsTask` task's constructor using the `@Inject` annotation.
@@ -214,8 +297,8 @@ The `FileSystemOperations` service is injected into the `MyFileSystemOperationsT
 With some ceremony, it is possible to use `FileSystemOperations` in an ad-hoc task defined in a build script:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=file-system-adhoc]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=file-system-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=file-system-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=file-system-adhoc]"]
 ====
 
 First, you need to declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
@@ -232,8 +315,8 @@ It is part of the `org.gradle.api.file` package and is typically used in custom 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=archive-op-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=archive-op-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-inject]"]
 ====
 
 The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
@@ -241,8 +324,8 @@ The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` t
 With some ceremony, it is possible to use `ArchiveOperations` in an ad-hoc task defined in a build script:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=archive-op-adhoc]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=archive-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-adhoc]"]
 ====
 
 First, you need to declare an interface with a property of type `ArchiveOperations`, here named `InjectedArcOps`, to serve as an injection point.
@@ -259,8 +342,8 @@ It is part of the `org.gradle.process` package and is typically used in custom t
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=exec-op-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=exec-op-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-inject]"]
 ====
 
 The `ExecOperations` is injected into the `MyExecOperationsTask` task's constructor using the `@Inject` annotation.
@@ -268,8 +351,8 @@ The `ExecOperations` is injected into the `MyExecOperationsTask` task's construc
 With some ceremony, it is possible to use `ExecOperations` in an ad-hoc task defined in a build script:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=exec-op-adhoc]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=exec-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-adhoc]"]
 ====
 
 First, you need to declare an interface with a property of type `ExecOperations`, here named `InjectedExecOps`, to serve as an injection point.
@@ -288,16 +371,14 @@ The `ToolingModelBuilderRegistry` interface is part of the `org.gradle.tooling.p
 Here's a simplified example:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=tooling-model]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=tooling-model]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=tooling-model]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=tooling-model]"]
 ====
 
 You can learn more at <<tooling_api.adoc#tooling_api,Tooling API>>.
 
 [[testeventreporterfactory]]
-== `TestEventReporterFactory`
-
-WARNING: This API is incubating.
+== `TestEventReporterFactory` incubating-label:[]
 
 link:{javadocPath}/org/gradle/api/tasks/testing/TestEventReporterFactory.html[`TestEventReporterFactory`] is a service that provides access to the test event reporting API.
 
@@ -308,7 +389,103 @@ You can learn more at <<test_reporting_api.adoc#test_reporting_api,Test Reportin
 
 link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] is a service that provides methods for creating dependencies in a type-safe way.
 
-You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies,Implementing Binary Plugins guide>>.
+You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies_plugins,Implementing Binary Plugins guide>>.
+
+[[dependencyconstraintfactory]]
+== `DependencyConstraintFactory` incubating-label:[]
+
+link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyConstraintFactory.html[`DependencyConstraintFactory`] is a service that provides methods for creating link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html[`DependencyConstraint`] instances in a type-safe way.
+It is the constraint-creation counterpart to <<dependencyfactory,`DependencyFactory`>> and is typically used by plugins that publish or consume dependency constraints.
+
+The service is only available via `@Inject`, there is no project-level accessor.
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=dependency-constraint-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=dependency-constraint-factory-inject]"]
+====
+
+The `CreateConstraintTask` task receives a `DependencyConstraintFactory` instance through its constructor using the `@Inject` annotation.
+
+[[problems]]
+== `Problems` incubating-label:[]
+
+link:{javadocPath}/org/gradle/api/problems/Problems.html[`Problems`] is a service that allows tasks and plugins to report structured problems.
+Reported problems surface in the console, the HTML <<reporting_problems.adoc#sec:generated_html_report,problems report>>, and through the <<tooling_api.adoc#tooling_api,Tooling API>>, so IDEs and Build Scan can render them consistently.
+
+Obtain a link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] from the injected `Problems` service via `problems.getReporter()` and call `report()` (recoverable) or `throwing()` (fatal).
+
+====
+include::sample[dir="snippets/reference/plugin-development/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-service]"]
+include::sample[dir="snippets/reference/plugin-development/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-service]"]
+====
+
+You can learn more in the <<reporting_problems.adoc#sec:reporting_problems,Reporting Plugin Problems with the Problems API>> guide.
+
+[[buildfeatures]]
+== `BuildFeatures`
+
+link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] is a service that exposes the requested and active state of major Gradle features currently the <<configuration_cache.adoc#config_cache,Configuration Cache>> and <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, so plugins can adapt their behavior accordingly.
+
+A plugin can, for example, gate optional logic that is incompatible with Isolated Projects on the active state of that feature:
+
+[source,java]
+.MyPlugin.java
+----
+include::{snippetsPath}/reference/plugin-development/reactingToBuildFeatures/groovy/buildSrc/src/main/java/MyPlugin.java[tags=my-plugin]
+----
+<1> The `BuildFeatures` service can be injected into plugins, tasks, and other managed types.
+<2> Use `getRequested()` to read the user's opt-in or opt-out, returning a `Provider<Boolean>` that may be empty when the user expressed no preference.
+<3> Use `getActive()` to read whether the feature is actually active in the current build, returning a non-empty `Provider<Boolean>`.
+
+You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:reacting_to_build_features,Implementing Binary Plugins guide>>.
+
+[[flow_services]]
+== `FlowScope` and `FlowProviders` incubating-label:[]
+
+link:{javadocPath}/org/gradle/api/flow/FlowScope.html[`FlowScope`] and link:{javadocPath}/org/gradle/api/flow/FlowProviders.html[`FlowProviders`] are services that together let a plugin register <<dataflow_actions.adoc#dataflow_action,dataflow actions>> (isolated pieces of work that run when their input providers become available, such as at the end of a build).
+
+`FlowScope` registers the actions; `FlowProviders` exposes build lifecycle events (such as the build work result) as `Provider` values that can be wired into action parameters. Both services are typically injected together into a project or settings plugin:
+
+[source,java]
+.SoundFeedbackPlugin.java
+----
+include::{snippetsPath}/reference/gradle-types/playSound/groovy/plugin/src/main/java/org/gradle/sample/sound/SoundFeedbackPlugin.java[tag=flow-action]
+----
+<1> Use service injection to obtain `FlowScope` and `FlowProviders` instances.
+<2> Register an action in the `always` scope so it runs at the end of every build.
+<3> Wire `FlowProviders.getBuildWorkResult()` into the action's parameters so the action receives the success-or-failure outcome.
+
+You can learn more in the <<dataflow_actions.adoc#dataflow_action,Dataflow Actions>> reference.
+
+[[buildinvocationdetails]]
+== `BuildInvocationDetails` incubating-label:[]
+
+link:{javadocPath}/org/gradle/api/invocation/BuildInvocationDetails.html[`BuildInvocationDetails`] is a service that exposes information about the current build invocation, most notably the wall-clock time at which the build was started.
+It is useful for plugins that report build duration, emit timing metrics, or display a banner with the build's start time.
+
+The service is only available via `@Inject`, there is no project-level accessor.
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=build-invocation-details-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=build-invocation-details-inject]"]
+====
+
+The `ReportBuildStartTask` task receives a `BuildInvocationDetails` instance through its constructor using the `@Inject` annotation.
+
+[[softwarecomponentfactory]]
+== `SoftwareComponentFactory`
+
+link:{javadocPath}/org/gradle/api/component/SoftwareComponentFactory.html[`SoftwareComponentFactory`] is a service that lets a plugin create link:{javadocPath}/org/gradle/api/component/AdhocComponentWithVariants.html[`AdhocComponentWithVariants`] instances (adhoc software components built from outgoing variants) for publication via the <<publishing_setup.adoc#publishing_components,publishing plugins>>.
+It is typically used by plugins that produce custom component types and want to publish them without defining a full component model.
+
+The service is only available via `@Inject`, there is no project-level accessor.
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=software-component-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=software-component-factory-inject]"]
+====
+
+The `CustomComponentPlugin` plugin receives a `SoftwareComponentFactory` instance through its constructor using the `@Inject` annotation, creates an adhoc component, and adds it to the project's components container so it can be referenced by a publication.
 
 [[service_injection_patterns]]
 == Service injection patterns
@@ -316,6 +493,7 @@ You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differen
 There are two ways that services can be provided to an object.
 
 === Constructor injection
+
 A service can be injected into the constructor of the class. The constructor must be public and annotated with the `javax.inject.Inject` annotation.
 
 Gradle uses the declared type of each constructor parameter to determine the services that the object requires.
@@ -326,11 +504,12 @@ Here is an example that shows a task type that receives an `WorkerExecutor` via 
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
+include::{snippetsPath}/reference/plugin-development/constructorServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
 
 [[property_injection]]
 === Property injection
+
 A service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
 
 Gradle defers the creation of the service until the getter method is called. This can be more performant than constructor injection.
@@ -345,5 +524,5 @@ Here is an example that shows a task type that receives two services via propert
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
+include::{snippetsPath}/reference/plugin-development/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----

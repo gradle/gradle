@@ -138,13 +138,15 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         eclipseModel.javaSourceSettings."$languageLevelProperty" == JavaVersion.current()
 
         where:
-        type     | compatibilityProperty | languageLevelProperty   | projectType | pluginType
-        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "java"      | JavaBasePlugin
-        "target" | "targetCompatibility" | "targetBytecodeVersion" | "java"      | JavaBasePlugin
-        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "scala"     | ScalaBasePlugin
-        "target" | "targetCompatibility" | "targetBytecodeVersion" | "scala"     | ScalaBasePlugin
-        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "groovy"    | GroovyBasePlugin
-        "target" | "targetCompatibility" | "targetBytecodeVersion" | "groovy"    | GroovyBasePlugin
+        type     | compatibilityProperty | languageLevelProperty
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"
+        "target" | "targetCompatibility" | "targetBytecodeVersion"
+
+        combined:
+        projectType | pluginType
+        "java"      | JavaBasePlugin
+        "scala"     | ScalaBasePlugin
+        "groovy"    | GroovyBasePlugin
     }
 
     def "default language levels are set for JVM projects if compatibility is set to null"() {

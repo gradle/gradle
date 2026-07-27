@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -37,38 +36,55 @@ import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import javax.inject.Inject;
 import java.io.File;
 
 @ServiceScope(Scope.Project.class)
-public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
+public class PublishArtifactNotationParserFactory {
+
     private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider metaDataProvider;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public PublishArtifactNotationParserFactory(ObjectFactory objectFactory, DependencyMetaDataProvider metaDataProvider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public PublishArtifactNotationParserFactory(
+        ObjectFactory objectFactory,
+        DependencyMetaDataProvider metaDataProvider,
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
         this.objectFactory = objectFactory;
         this.metaDataProvider = metaDataProvider;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
-    @Override
-    public NotationParser<Object, ConfigurablePublishArtifact> create() {
+    public PublishArtifactNotationParser create() {
         FileNotationConverter fileConverter = new FileNotationConverter();
-        return NotationParserBuilder
-                .toType(ConfigurablePublishArtifact.class)
-                .converter(new DecoratingConverter())
-                .converter(new ArchiveTaskNotationConverter())
-                .converter(new FileProviderNotationConverter())
-                .converter(new FileSystemLocationNotationConverter())
-                .converter(fileConverter)
-                .converter(new FileMapNotationConverter(fileConverter))
-                .toComposite();
+        NotationParser<Object, ConfigurablePublishArtifact> parser = NotationParserBuilder
+            .toType(ConfigurablePublishArtifact.class)
+            .converter(new DecoratingConverter())
+            .converter(new ArchiveTaskNotationConverter())
+            .converter(new FileProviderNotationConverter())
+            .converter(new FileSystemLocationNotationConverter())
+            .converter(fileConverter)
+            .converter(new FileMapNotationConverter(fileConverter))
+            .toComposite();
+
+        return new PublishArtifactNotationParser() {
+            @Override
+            public void describe(DiagnosticsVisitor visitor) {
+                parser.describe(visitor);
+            }
+            @Override
+            public ConfigurablePublishArtifact parseNotation(Object notation) throws TypeConversionException {
+                return parser.parseNotation(notation);
+            }
+        };
     }
 
     private class DecoratingConverter extends TypedNotationConverter<PublishArtifact, ConfigurablePublishArtifact> {
@@ -173,4 +189,5 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
             return defaultPublishArtifact;
         }
     }
+
 }

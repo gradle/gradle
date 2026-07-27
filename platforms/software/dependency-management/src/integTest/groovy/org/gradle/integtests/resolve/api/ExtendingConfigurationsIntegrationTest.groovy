@@ -17,6 +17,8 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 @FluidDependenciesResolveTest
@@ -178,6 +180,7 @@ task checkResolveParentThenChild {
         succeeds("resolve")
     }
 
+    @Requires(value = [TestExecutionPreconditions.NotIsolatedProjects], reason = "Explicitly tests IP incompatible behavior")
     def "extending a configuration in another project is not allowed"() {
         given:
         settingsFile """
@@ -452,5 +455,38 @@ Extended Configurations
         outputContains("[foo-1.0.jar, bar-1.0.jar]")
         outputContains("Realizing one")
         outputDoesNotContain("Realizing zzz")
+    }
+
+    def "variant computation does not eagerly realize lazy artifact providers on consumable configurations"() {
+        given:
+        buildFile """
+            plugins {
+                id 'java-library'
+            }
+
+            configurations.dependencyScope("parent")
+            configurations.consumable("lazyOutgoing") {
+                extendsFrom(configurations.parent)
+                outgoing.artifacts(provider {
+                    throw new RuntimeException("Lazy artifact provider should not be realized during variant computation")
+                })
+            }
+
+            configurations.dependencyScope("selfDep")
+            dependencies {
+                selfDep project(":")
+            }
+            configurations.resolvable("trigger") {
+                extendsFrom(configurations.selfDep)
+            }
+
+            tasks.register("resolve") {
+                inputs.files(configurations.trigger)
+                doLast { println "resolved" }
+            }
+        """
+
+        expect:
+        succeeds "resolve"
     }
 }

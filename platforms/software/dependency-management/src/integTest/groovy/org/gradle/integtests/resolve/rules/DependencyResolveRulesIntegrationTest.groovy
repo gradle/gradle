@@ -71,7 +71,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds(":b:checkDeps")
         resolve.expectGraph(":b") {
             root(":b", "test:b:") {
-                edge("project :a", "org.gradle.test:a:1.3") {
+                edge("project ':a'", "org.gradle.test:a:1.3") {
                     selectedByRule()
                 }
             }

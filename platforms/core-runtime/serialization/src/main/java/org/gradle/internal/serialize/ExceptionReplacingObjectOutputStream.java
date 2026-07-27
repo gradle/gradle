@@ -32,6 +32,7 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
         }
     };
 
+    @SuppressWarnings("this-escape")
     public ExceptionReplacingObjectOutputStream(OutputStream outputSteam) throws IOException {
         super(outputSteam);
         enableReplaceObject(true);

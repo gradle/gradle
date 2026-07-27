@@ -26,7 +26,6 @@ test-splits/
 !/.idea/inspectionProfiles
 !/.idea/icon.png
 !/.idea/icon_dark.png
-!/.idea/gradle.xml
 */**/.idea
 */**/.shelf
 .shelf
@@ -123,4 +122,5 @@ atlassian-ide-plugin.xml
 .claude/CLAUDE.local.md
 .claude/settings.local.json
 .claude/worktrees
+.harness.json
 

@@ -23,18 +23,20 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Assume
+import spock.lang.Issue
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @IntegrationTestTimeout(180)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest implements JavaToolchainFixture {
-    boolean isOracleJDK = TestPrecondition.satisfied(UnitTestPreconditions.JdkOracle) && (Jvm.current().jre != null)
+    boolean isOracleJDK = TestPrecondition.satisfied(JdkVersionTestPreconditions.JdkOracle) && (Jvm.current().jre != null)
 
     WorkerExecutorFixture.WorkActionClass workActionThatPrintsWorkingDirectory
 
@@ -101,7 +103,26 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         fails("runInWorker")
 
         then:
-        failureCauseContains('Setting the working directory of a worker is not supported')
+        failureCauseContains("Setting the working directory of a worker is not supported.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38455")
+    def "re-setting the working directory of a worker to its default value is supported"() {
+        fixture.withWorkActionClassInBuildScript()
+        workActionThatPrintsWorkingDirectory.writeToBuildFile()
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                isolationMode = 'processIsolation'
+                workActionClass = ${workActionThatPrintsWorkingDirectory.name}.class
+                additionalForkOptions = { it.workingDir = it.workingDir }
+            }
+        """
+
+        when:
+        succeeds("runInWorker")
+
+        then:
+        assertWorkerExecuted("runInWorker")
     }
 
     def "interesting worker daemon fork options are honored"() {
@@ -148,7 +169,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         assertWorkerExecuted("runInDaemon")
     }
 
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java11HomeAvailable)
     def "worker daemons honor different executable specified in fork options"() {
         def differentJvm = AvailableJavaHomes.differentJdkWithValidJre
         Assume.assumeNotNull(differentJvm)

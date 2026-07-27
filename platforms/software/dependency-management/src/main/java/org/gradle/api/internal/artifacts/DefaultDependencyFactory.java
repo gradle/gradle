@@ -121,6 +121,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         return dependencyNotationParser.getFileCollectionNotationParser().parseNotation(fileCollection);
     }
 
+    @Deprecated
     @Override
     public ProjectDependency create(Project project) {
         ProjectDependency dependency = dependencyNotationParser.getProjectNotationParser().parseNotation(project);
@@ -138,7 +139,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         if (project == null) {
             throw new IllegalStateException("This dependency factory is not associated with a project, so a dependency for the current project cannot be created.  Use create(Project) instead.");
         }
-        return create(project);
+        return projectDependencyFactory.create(project.getPath());
     }
 
     // endregion

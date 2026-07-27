@@ -147,17 +147,15 @@ public class ReleaseNotesTransformer extends FilterReader {
     }
 
     private void addHighlightJsToHead(Document document) {
+        String base = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1";
         Element head = document.head();
 
         head.appendElement("link")
             .attr("rel", "stylesheet")
-            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css");
-
-        head.appendElement("script")
-            .attr("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js");
-
-        head.appendElement("script")
-            .append("hljs.highlightAll();");
+            .attr("href", base + "/styles/stackoverflow-light.min.css");
+        head.appendElement("script").attr("src", base + "/highlight.min.js");
+        head.appendElement("script").attr("src", base + "/languages/groovy.min.js");
+        head.appendElement("script").append("hljs.highlightAll();");
     }
 
     private void addJavascriptToHead(Document document) {

@@ -18,7 +18,8 @@ package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 class CancellationContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
@@ -65,7 +66,7 @@ class CancellationContinuousIntegrationTest extends AbstractContinuousIntegratio
         cancelsAndExits()
     }
 
-    @Requires([UnitTestPreconditions.NotWindows, UnitTestPreconditions.NotAlpine])
+    @Requires([OsTestPreconditions.NotWindows, OsTestPreconditions.NotAlpine])
     // GradleHandle.abort() is unsafe on Windows - this is a test infrastructure problem
     def "does not cancel on EOT or by closing System.in when not interactive"() {
         when:

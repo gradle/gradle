@@ -23,14 +23,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec {
     def currentGradle = GradleVersion.current().version
 
-    @Requires(value = UnitTestPreconditions.Jdk15OrEarlier, reason = "older Gradle version 6.7.1 is used in test")
+    @Requires(value = JdkVersionTestPreconditions.Jdk15OrEarlier, reason = "older Gradle version 6.7.1 is used in test")
     def "can publish and use Gradle plugin with multiple variants"() {
         given:
         def producer = file('producer')

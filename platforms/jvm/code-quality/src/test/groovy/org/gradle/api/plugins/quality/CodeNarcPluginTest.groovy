@@ -52,7 +52,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         codenarc.maxPriority2Violations == 0
         codenarc.maxPriority3Violations == 0
         codenarc.reportFormat == "html"
-        codenarc.reportsDir == project.file("build/reports/codenarc")
+        codenarc.reportsDirectory.get().asFile == project.file("build/reports/codenarc")
         codenarc.sourceSets == []
         !codenarc.ignoreFailures
     }

@@ -74,6 +74,13 @@ class ConfigurationCacheProblemsSummary(
     var deferredProblemCount: Int = 0
 
     /**
+     * Subset of [deferredProblemCount] that originates from Isolated Projects violations.
+     * Tracked separately because IP failure is independent of the CC `--configuration-cache-problems` flag.
+     */
+    private
+    var deferredIsolatedProjectsProblemCount: Int = 0
+
+    /**
      * Problems reported by CC-incompatible tasks.
      */
     private
@@ -93,9 +100,6 @@ class ConfigurationCacheProblemsSummary(
 
     private
     var incompatibleTasksCount: Int = 0
-
-    private
-    var incompatibleFeatureCount: Int = 0
 
     /**
      * Report-unique problem causes observed among all reported problems.
@@ -123,13 +127,13 @@ class ConfigurationCacheProblemsSummary(
             totalProblemCount = totalProblemCount,
             reportUniqueProblemCount = problemCauses.size,
             deferredProblemCount = deferredProblemCount,
+            deferredIsolatedProjectsProblemCount = deferredIsolatedProjectsProblemCount,
             consoleProblemCount = totalProblemCount - suppressedSilentlyProblemCount,
             overflownProblemCount = overflownProblemCount,
             consoleProblemCauses = problemCausesForConsole(),
             originalProblemExceptions = ImmutableList.copyOf(originalProblemExceptions),
             maxCollectedProblems = maxCollectedProblems,
-            incompatibleTasksCount = incompatibleTasksCount,
-            incompatibleFeatureCount = incompatibleFeatureCount
+            incompatibleTasksCount = incompatibleTasksCount
         )
     }
 
@@ -151,12 +155,17 @@ class ConfigurationCacheProblemsSummary(
      * Returns`true` if the problem was accepted, `false` if it was rejected because the maximum number of unique problems was reached,
      * or the problem was not report-unique.
      */
-    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity, forIsolatedProjects: Boolean = false): Boolean {
         lock.withLock {
             // count problems regardless of uniqueness / overflowing
             totalProblemCount += 1
             when (severity) {
-                ProblemSeverity.Deferred -> deferredProblemCount += 1
+                ProblemSeverity.Deferred -> {
+                    deferredProblemCount += 1
+                    if (forIsolatedProjects) {
+                        deferredIsolatedProjectsProblemCount += 1
+                    }
+                }
                 ProblemSeverity.Suppressed -> suppressedProblemCount += 1
                 ProblemSeverity.SuppressedSilently -> suppressedSilentlyProblemCount += 1
                 ProblemSeverity.Interrupting -> {}
@@ -181,13 +190,6 @@ class ConfigurationCacheProblemsSummary(
     fun onIncompatibleTask() {
         lock.withLock {
             incompatibleTasksCount += 1
-        }
-    }
-
-    fun onIncompatibleFeature(problem: PropertyProblem) {
-        lock.withLock {
-            onProblem(problem, ProblemSeverity.SuppressedSilently)
-            incompatibleFeatureCount += 1
         }
     }
 
@@ -238,6 +240,12 @@ class Summary(
     val deferredProblemCount: Int,
 
     /**
+     * Subset of [deferredProblemCount] originating from Isolated Projects violations, which fail the
+     * build regardless of the CC `--configuration-cache-problems` flag.
+     */
+    val deferredIsolatedProjectsProblemCount: Int,
+
+    /**
      * Problems that should appear in the console summary.
      *
      * This should exclude problems with severity [ProblemSeverity.SuppressedSilently], which are still
@@ -265,12 +273,7 @@ class Summary(
      * Total number of tasks in the current work graph that are not CC-compatible.
      */
     private
-    val incompatibleTasksCount: Int,
-    /**
-     * Total number of features that are not CC-compatible.
-     */
-    private
-    val incompatibleFeatureCount: Int
+    val incompatibleTasksCount: Int
 ) {
     @VisibleForTesting
     internal
@@ -315,10 +318,9 @@ class Summary(
                 }
             }
             val hasIncompatibleTasks = incompatibleTasksCount > 0
-            val hasIncompatibleFeatures = incompatibleFeatureCount > 0
             htmlReportFile?.let {
                 appendLine()
-                if ((hasIncompatibleTasks || hasIncompatibleFeatures) && !hasConsoleProblems) {
+                if (hasIncompatibleTasks && !hasConsoleProblems) {
                     // Some tests parse this line, you may need to change them if you change the message.
                     append("Some tasks or features in this build are not compatible with the configuration cache.")
                     appendLine()

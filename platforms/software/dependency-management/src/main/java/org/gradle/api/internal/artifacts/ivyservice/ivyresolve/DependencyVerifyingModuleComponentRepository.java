@@ -26,8 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
@@ -145,8 +144,8 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                                 boolean changingModule = requestMetaData.isChanging() || hashSource.get().isChangingModule();
                                 if (!changingModule) {
                                     File artifactFile = metadataFileSource.getArtifactFile();
-                                    if (artifactFile != null) {
-                                        // it's possible that the file is null if it has been removed from the cache
+                                    if (artifactFile != null && artifactFile.exists()) {
+                                        // it's possible that the file is null if it has been removed from the cache for example
                                         Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(sources, artifact);
                                         operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, signatureFileFactory, getName(), getId());
                                     } else {
@@ -291,8 +290,8 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             }
 
             @Override
-            public TaskDependency getBuildDependencies() {
-                return new DefaultTaskDependency();
+            public TaskDependencyContainer getBuildDependencies() {
+                return TaskDependencyContainer.EMPTY;
             }
         }
     }

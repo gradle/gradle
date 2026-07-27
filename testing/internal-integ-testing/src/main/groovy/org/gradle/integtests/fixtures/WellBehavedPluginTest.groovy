@@ -48,6 +48,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
         expect:
         expectTaskProjectDeprecationIfNeeded()
+        expectMainTaskDeprecations()
         succeeds mainTask
     }
 
@@ -70,6 +71,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
         expect:
         expectTaskProjectDeprecationIfNeeded()
+        expectMainTaskDeprecations()
         succeeds mainTask
     }
 
@@ -203,6 +205,9 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         if (expectTaskProjectDeprecation) {
             expectTaskProjectDeprecation()
         }
+    }
+
+    void expectMainTaskDeprecations() {
     }
 
     void expectTaskProjectDeprecation() {

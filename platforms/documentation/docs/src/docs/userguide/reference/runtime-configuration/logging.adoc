@@ -86,17 +86,9 @@ $ ./gradlew run --info
 
 You can emit log messages directly from build scripts and tasks using Gradle's built-in logger:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/tutorial/logging">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=task-log-stdout]"]
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=task-log-stdout]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/kotlin",files="build.gradle.kts[tags=task-log-stdout]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/groovy",files="build.gradle[tags=task-log-stdout]"]
 ====
 
 Use appropriate log levels (`lifecycle`, `info`, `debug`) to ensure your build output is clear and informative.
@@ -159,17 +151,9 @@ If you suspect that a Gradle Plugin may inadvertently expose sensitive informati
 A simple option for logging in your build file is to write messages to standard output.
 Gradle redirects anything written to standard output to its logging system at the `QUIET` log level:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/tutorial/logging">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-println]"]
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-println]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/kotlin",files="build.gradle.kts[tags=use-println]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/groovy",files="build.gradle[tags=use-println]"]
 ====
 
 Gradle also provides a `logger` property to a build script, which is an instance of link:{javadocPath}/org/gradle/api/logging/Logger.html[Logger].
@@ -177,23 +161,23 @@ This interface extends the SLF4J `Logger` interface and adds a few Gradle-specif
 Below is an example of how this is used in the build script:
 
 ====
-include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger]"]
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-logger]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/kotlin",files="build.gradle.kts[tags=use-logger]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/groovy",files="build.gradle[tags=use-logger]"]
 ====
 
 Use the link https://www.slf4j.org/manual.html#typical_usage[typical SLF4J pattern] to replace a placeholder with an actual value in the log message.
 
 ====
-include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger-placeholder]"]
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-logger-placeholder]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/kotlin",files="build.gradle.kts[tags=use-logger-placeholder]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/groovy",files="build.gradle[tags=use-logger-placeholder]"]
 ====
 
 You can also hook into Gradle's logging system from within other classes used in the build (classes from the `buildSrc` directory, for example) with an SLF4J logger.
 You can use this logger the same way as you use the provided logger in the build script.
 
 ====
-include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-slf4j]"]
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-slf4j]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/kotlin",files="build.gradle.kts[tags=use-slf4j]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/groovy",files="build.gradle[tags=use-slf4j]"]
 ====
 
 [[sec:external_tools]]
@@ -212,24 +196,16 @@ This behavior is configurable.
 
 The `project` object provides a link:{javadocPath}/org/gradle/api/logging/LoggingManager.html[LoggingManager], which allows you to change the log levels that standard out or error are redirected to when your build script is evaluated.
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/tutorial/logging">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=capture-stdout]"]
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=capture-stdout]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/kotlin",files="build.gradle.kts[tags=capture-stdout]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/groovy",files="build.gradle[tags=capture-stdout]"]
 ====
 
 To change the log level for standard out or error during task execution, use a link:{javadocPath}/org/gradle/api/logging/LoggingManager.html[LoggingManager].
 
 ====
-include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=task-capture-stdout]"]
-include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=task-capture-stdout]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/kotlin",files="build.gradle.kts[tags=task-capture-stdout]"]
+include::sample[dir="snippets/reference/runtime-configuration/logging/groovy",files="build.gradle[tags=task-capture-stdout]"]
 ====
 
 Gradle also integrates with the https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html[Java Util Logging], Jakarta Commons Logging and https://logging.apache.org/log4j/2.x/[Log4j] logging toolkits.
@@ -254,17 +230,9 @@ This is accessible from a build script, an init script, or via the embedding API
 Note that this completely disables Gradle's default output.
 Below is an example init script that changes how task execution and build completion are logged:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/initScripts/customLogger">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
-include::sample[dir="snippets/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
+include::sample[dir="snippets/reference/runtime-configuration/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+include::sample[dir="snippets/reference/runtime-configuration/customLogger/groovy",files="customLogger.init.gradle[]"]
 ====
 
 ====
@@ -276,7 +244,7 @@ $ ./gradlew -I customLogger.init.gradle.kts build
 ----
 [source,text]
 ----
-include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
+include::{snippetsPath}/reference/runtime-configuration/customLogger/tests/customLogger.out[]
 ----
 =====
 [.multi-language-text.lang-groovy]
@@ -287,7 +255,7 @@ $ ./gradlew -I customLogger.init.gradle build
 ----
 [source,text]
 ----
-include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
+include::{snippetsPath}/reference/runtime-configuration/customLogger/tests/customLogger.out[]
 ----
 =====
 ====

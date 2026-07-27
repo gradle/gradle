@@ -32,7 +32,6 @@ import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.io.safeWrap
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
@@ -40,6 +39,7 @@ import org.gradle.internal.cc.impl.serialize.DefaultSharedObjectDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultSharedObjectEncoder
 import org.gradle.internal.cc.impl.serialize.ParallelStringDecoder
 import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -101,7 +101,7 @@ internal
 class DefaultConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val host: ConfigurationCacheHost,
-    private val problems: ConfigurationCacheProblems,
+    private val problems: ProblemsListener,
     private val beanStateReaderLookup: BeanStateReaderLookup,
     private val beanStateWriterLookup: BeanStateWriterLookup,
     private val eventEmitter: BuildOperationProgressEventEmitter,
@@ -185,6 +185,7 @@ class DefaultConfigurationCacheIO internal constructor(
         !stateFile.exists -> {
             emptyList()
         }
+
         else -> withReadContextFor(stateFile, customClassDecoder = NullClassDecoder) {
             readStrings().map { CandidateEntry(it) }
         }

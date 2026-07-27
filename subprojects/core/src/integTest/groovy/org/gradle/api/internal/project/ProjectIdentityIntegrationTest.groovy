@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
 
@@ -44,7 +44,7 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     def 'a new Project instance is used for each build'() {
         given:
         executer.requireIsolatedDaemons()

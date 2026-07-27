@@ -18,6 +18,7 @@ package org.gradle.performance.regression.buildcache
 
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import org.gradle.performance.fixture.SwiftToolchainFixture
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -27,7 +28,8 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
     def setup() {
-        runner.minimumBaseVersion = "4.5"
+        runner.minimumBaseVersion = "4.9"
+        SwiftToolchainFixture.configureSwift6Toolchain(runner, temporaryFolder.testDirectory)
     }
 
     def "clean assemble with local cache (swift)"() {

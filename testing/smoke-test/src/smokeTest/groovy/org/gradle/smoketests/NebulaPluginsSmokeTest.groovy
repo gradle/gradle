@@ -16,8 +16,8 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -244,6 +244,30 @@ testImplementation('junit:junit:4.7')""")
             'com.netflix.nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
             'com.netflix.nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]
+    }
+
+    @Override
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        switch (testedPluginId) {
+            case 'com.netflix.nebula.dependency-recommender':
+                return "dependencyRecommendations {}"
+            case 'com.netflix.nebula.lint':
+                return "gradleLint.rules = []"
+            default:
+                return null
+        }
+    }
+
+    @Override
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        switch (testedPluginId) {
+            case 'com.netflix.nebula.dependency-recommender':
+                return [parentMethodInvocationDeprecation('dependencyRecommendations')]
+            case 'com.netflix.nebula.lint':
+                return [parentPropertyAccessDeprecation('gradleLint')]
+            default:
+                return []
+        }
     }
 }
 

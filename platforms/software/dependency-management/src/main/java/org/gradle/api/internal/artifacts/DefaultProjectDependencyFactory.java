@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
@@ -38,7 +38,7 @@ public class DefaultProjectDependencyFactory {
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
-    private final ProjectStateRegistry projectStateRegistry;
+    private final ProjectStateLookup projectStateLookup;
     private final ProjectFinder projectFinder;
 
     public DefaultProjectDependencyFactory(
@@ -46,14 +46,14 @@ public class DefaultProjectDependencyFactory {
         CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
-        ProjectStateRegistry projectStateRegistry,
+        ProjectStateLookup projectStateLookup,
         ProjectFinder projectFinder
     ) {
         this.instantiator = instantiator;
         this.capabilityNotationParser = capabilityNotationParser;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
-        this.projectStateRegistry = projectStateRegistry;
+        this.projectStateLookup = projectStateLookup;
         this.projectFinder = projectFinder;
     }
 
@@ -68,7 +68,7 @@ public class DefaultProjectDependencyFactory {
     }
 
     public ProjectDependency create(Path projectIdentityPath) {
-        ProjectState projectState = projectStateRegistry.findProjectState(projectIdentityPath);
+        ProjectState projectState = projectStateLookup.findProject(projectIdentityPath);
         if (projectState == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectIdentityPath.asString()));
         }

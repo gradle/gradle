@@ -282,9 +282,18 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
                 LOGGER.info("Uploading {} to {}", externalResource.getShortDisplayName(), externalResource.getPath());
             }
             putResource(externalResource, new FileReadableContent(content));
-            if (!localRepo) {
+            if (!localRepo && !isSignatureFile(externalResource)) {
                 publishChecksums(externalResource, content);
             }
+        }
+
+        /**
+         * Signature files (e.g. {@code .asc}, {@code .sig}) are themselves integrity artifacts, so we do not
+         * publish checksums for them. This matches the behavior of the Maven publishing tooling.
+         */
+        private static boolean isSignatureFile(ExternalResourceName destination) {
+            String path = destination.getPath();
+            return path.endsWith(".asc") || path.endsWith(".sig");
         }
 
         private void publishChecksums(ExternalResourceName destination, File content) {

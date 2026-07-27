@@ -1,0 +1,32 @@
+import org.gradle.api.Named
+import org.gradle.api.attributes.Attribute
+
+plugins {
+    id 'java-library'
+}
+
+interface TargetConfiguration extends Named {
+    static final Attribute<TargetConfiguration> TARGET_ATTRIBUTE = Attribute.of(TargetConfiguration)
+}
+
+// tag::bundling-attribute[]
+configurations {
+    compileClasspath {
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+        }
+    }
+}
+// end::bundling-attribute[]
+
+// tag::target-attribute[]
+configurations {
+    compileClasspath {
+        attributes {
+            // tag::target-attribute-single[]
+            attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named(TargetConfiguration, 'debug'))
+            // end::target-attribute-single[]
+        }
+    }
+}
+// end::target-attribute[]

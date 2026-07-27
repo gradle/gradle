@@ -18,7 +18,7 @@ package org.gradle.java.compile.daemon
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.java.compile.AbstractJavaCompilerIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
@@ -78,7 +78,7 @@ class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationS
         succeeds "compileJava"
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "computes target jvm version when using toolchain"() {
         given:
         def jdk = AvailableJavaHomes.differentVersion

@@ -21,6 +21,8 @@ import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Before
@@ -356,13 +358,20 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import ${BindsProjectType.class.name};
             import ${ProjectTypeBinding.class.name};
             import ${ProjectTypeBindingBuilder.class.name};
+            import ${ProjectTypeApplyAction.class.name};
+            import ${ProjectFeatureApplicationContext.class.name};
 
             @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding.class)
             public abstract class RestrictedPlugin implements Plugin<Project> {
                 public static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("restricted",  Extension.class, (context, definition, model) -> { }).withUnsafeDefinition();
+                        builder.bindProjectType("restricted",  Extension.class, ApplyAction.class).withUnsafeDefinition();
                     }
+                }
+
+                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<Extension, Extension.Model> {
+                    @javax.inject.Inject public ApplyAction() { }
+                    @Override public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, Extension definition, Extension.Model model) { }
                 }
 
                 @Override

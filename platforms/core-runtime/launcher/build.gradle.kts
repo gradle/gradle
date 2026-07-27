@@ -25,6 +25,7 @@ dependencies {
     api(projects.fileWatching)
     api(projects.files)
     api(projects.hashing)
+    api(projects.hashingServices)
     api(projects.instrumentationAgentServices)
     api(projects.stdlibJavaExtensions)
     api(projects.jvmServices)
@@ -78,6 +79,7 @@ dependencies {
     }
 
     // The wrapper expects the launcher Jar to have classpath entries that contain the main class and its runtime classpath
+    // See `BootstrapMainStarter`
     manifestClasspath(projects.gradleCliMain)
 
     testImplementation(projects.internalIntegTesting)
@@ -116,6 +118,4 @@ strictCompile {
 }
 
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

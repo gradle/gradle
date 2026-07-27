@@ -17,6 +17,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -74,6 +75,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private final JavaForkOptionsInternal javaOptions;
     private final ModularitySpec modularity;
 
+    @SuppressWarnings("this-escape")
     public JavaExecHandleBuilder(
         FileCollectionFactory fileCollectionFactory,
         ObjectFactory objectFactory,
@@ -270,6 +272,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     public void setExecutable(String executable) {
         javaOptions.setExecutable(executable);
+    }
+
+    public DirectoryProperty getWorkingDirectory() {
+        return javaOptions.getWorkingDirectory();
     }
 
     @Nullable
@@ -496,7 +502,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     private void createArgsFile(List<String> argsFileContents, List<String> effectiveArguments) throws IOException {
         File argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt");
-        effectiveArguments.addAll(ArgWriter.argsFileGenerator(argsFile, ArgWriter.javaStyleFactory()).apply(argsFileContents));
+        effectiveArguments.addAll(ArgWriter.javaStyle().generateArgsFile(argsFileContents, argsFile));
     }
 
     private static Manifest toManifest(FileCollection classpath) {
@@ -525,7 +531,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
         // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
         execHandleBuilder.setExecutable(getExecutable());
-        execHandleBuilder.setWorkingDir(getWorkingDir());
+        execHandleBuilder.setWorkingDir(getWorkingDirectory().get().getAsFile());
         execHandleBuilder.setEnvironment(getEnvironment());
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }

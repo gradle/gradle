@@ -42,7 +42,7 @@ import org.gradle.kotlin.dsl.support.uncheckedCast
  * @see [DependencyHandler.create]
  */
 @Suppress("DEPRECATION")
-@Deprecated("Use single-string notation instead")
+@Deprecated("Use single-string notation or DependencyFactory instead")
 fun DependencyHandler.create(
     group: String,
     name: String,

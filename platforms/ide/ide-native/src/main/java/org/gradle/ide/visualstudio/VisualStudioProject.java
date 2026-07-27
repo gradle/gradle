@@ -31,18 +31,15 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * <pre class='autoTested'>
  *  plugins {
- *      id 'cpp'
  *      id 'visual-studio'
  *  }
  *
- *  model {
- *      visualStudio {
- *          projects.all {
- *              projectFile.location = "vs/${name}.vcxproj"
- *              projectFile.withXml {
- *                  asNode().appendNode('PropertyGroup', [Label: 'Custom'])
- *                          .appendNode('ProjectDetails', "Project is named ${project.name}")
- *              }
+ *  visualStudio {
+ *      projects.all {
+ *          projectFile.location = "vs/${name}.vcxproj"
+ *          projectFile.withXml {
+ *              asNode().appendNode('PropertyGroup', [Label: 'Custom'])
+ *                      .appendNode('ProjectDetails', "Project is named ${project.name}")
  *          }
  *      }
  *  }

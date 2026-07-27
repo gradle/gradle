@@ -25,10 +25,14 @@ import javax.inject.Inject
 abstract class IncubatingApiReportTask : DefaultTask() {
 
     private val additionalClasspath = project.objects.fileCollection().apply {
-        val libs = project.the<VersionCatalogsExtension>().named("libs")
+        val libs = project.the<VersionCatalogsExtension>().named("buildLibs")
         from(
             project.configurations.detachedConfiguration(
-                project.dependencies.create(libs.findLibrary("kotlinCompilerEmbeddable").get().get())
+                project.dependencies.create(libs.findLibrary("kotlinCompilerEmbeddable").get().get().copy().apply {
+                    version {
+                        strictly(embeddedKotlinVersion)
+                    }
+                }),
             )
         )
     }

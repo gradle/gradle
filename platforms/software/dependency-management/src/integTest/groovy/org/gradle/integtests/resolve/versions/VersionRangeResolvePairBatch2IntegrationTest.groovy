@@ -18,9 +18,9 @@ package org.gradle.integtests.resolve.versions
 
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 class VersionRangeResolvePairBatch2IntegrationTest extends AbstractVersionRangeResolveIntegrationTest {
     def "resolve pair #permutation"() {
         given:

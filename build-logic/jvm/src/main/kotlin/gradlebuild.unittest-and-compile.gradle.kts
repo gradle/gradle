@@ -20,6 +20,7 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
+import gradlebuild.basics.develocityServerUrl
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
@@ -36,7 +37,7 @@ import gradlebuild.basics.testing.excludeSpockAnnotation
 import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.identity.extension.GradleModuleExtension
-import gradlebuild.identity.extension.ModuleTargetRuntimes
+import gradlebuild.identity.extension.DEFAULT_TARGET_JVM_VERSION
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import org.gradle.internal.jvm.JpmsConfiguration
@@ -62,8 +63,7 @@ val gradleModule = the<GradleModuleExtension>()
 the<JvmCompileExtension>().apply {
     compilations {
         configureEach {
-            // Everything compiles to Java 17 by default
-            targetJvmVersion = 17
+            targetJvmVersion = DEFAULT_TARGET_JVM_VERSION
         }
     }
     addCompilationFrom(sourceSets.main) {
@@ -92,33 +92,13 @@ fun configureCompileDefaults() {
     }
 }
 
-/**
- * Given the declared target platforms of a given Gradle module, determine
- * the JVM version that the production code should target.
- */
-fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
-    // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
-    val targetRuntimeJavaVersions = mapOf(
-        client to 8,
-        daemon to 17,
-        worker to 8
-    )
-
-    // By default, compile to 17. This ensures projects that do not declare any target runtimes
-    // can successfully resolve their classpaths. Then, `:checkTargetRuntimes` will ensure that
-    // each project declares the proper target runtimes. Note that `:checkTargetRuntimes` cannot
-    // execute unless all project classpaths can be successfully resolved.
-    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(17)
-}
-
 fun configureSourcesVariant() {
     java {
         withSourcesJar()
     }
 
     // TODO: This should not be necessary anymore now that we have variant reselection.
-    @Suppress("UnusedPrivateProperty")
-    val transitiveSourcesElements by configurations.creating {
+    configurations.create("transitiveSourcesElements") {
         isCanBeResolved = false
         isCanBeConsumed = true
         extendsFrom(configurations.implementation.get())
@@ -170,13 +150,14 @@ fun addDependencies() {
         testImplementation(testLibs.findLibrary("spock").get())
         testImplementation(testLibs.findLibrary("junit5Vintage").get())
         testImplementation(testLibs.findLibrary("spockJUnit4").get())
+        testImplementation(testLibs.findLibrary("mockitoCore").get())
         testImplementation(testLibs.findLibrary("develocityTestAnnotation").get())
         testRuntimeOnly(testLibs.findLibrary("bytebuddy").get())
         testRuntimeOnly(testLibs.findLibrary("objenesis").get())
         testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
-        val platformImplementation by configurations.creating
+        val platformImplementation = configurations.create("platformImplementation")
         configurations["compileClasspath"].extendsFrom(platformImplementation)
         configurations["runtimeClasspath"].extendsFrom(platformImplementation)
         configurations["testCompileClasspath"].extendsFrom(platformImplementation)
@@ -274,7 +255,10 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
  * If enabled, test JVM will inherit the DEVELOCITY_ACCESS_TOKEN
  * environment variable. This allows build scans to be published for integration tests.
  */
-fun Test.inheritDevelocityAccessTokenEnv() = setOf("smoke-test").contains(project.name)
+fun Test.inheritedEnvVars(): List<String> = when {
+    project.name == "smoke-test" -> listOf("DEVELOCITY_ACCESS_KEY", "DEVELOCITY_SERVER_URL", "DEVELOCITY_EDGE_DISCOVERY", "CI")
+    else -> emptyList()
+}
 
 fun Test.usesEmbeddedExecuter() = systemProperties["org.gradle.integtest.executer"]?.equals("embedded") ?: false
 
@@ -305,17 +289,14 @@ fun configureTests() {
     tasks.withType<Test>().configureEach {
 
         configureAndroidUserHome()
-        filterEnvironmentVariables(inheritDevelocityAccessTokenEnv())
+        filterEnvironmentVariables(inheritedEnvVars())
 
         maxParallelForks = project.maxParallelForks
 
         jvmArgumentProviders.add(CiEnvironmentProvider(this))
         runWithJavaVersion(JavaLanguageVersion.of(project.testJavaVersion))
 
-        if (name != "archTest") {
-            // TODO distinguish archTest and other tests
-            addOsAsInputs()
-        }
+        addOsAsInputs()
         configureRerun()
 
         if (BuildEnvironment.isCiServer) {
@@ -361,12 +342,13 @@ fun configureTests() {
         }
 
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // GitHub actions for contributor PRs use a public Build Scan instance
-            // in this case we need to explicitly configure the PTS server
+            // Falling back to https://ge.gradle.org when absent (e.g. GitHub actions for contributor PRs,
+            // which use a public Build Scan instance).
             // Don't move this line into the lambda as it may cause config cache problems
+            val ptsServerUrl = project.develocityServerUrl.getOrElse("https://ge.gradle.org")
             extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
                 this as PredictiveTestSelectionConfigurationInternal
-                server = uri("https://ge.gradle.org")
+                server = uri(ptsServerUrl)
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }

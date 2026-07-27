@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.internal.services;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.os.OperatingSystem;
@@ -30,12 +29,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
-import org.gradle.nativeplatform.internal.NativeBinaryRenderer;
-import org.gradle.nativeplatform.internal.NativeExecutableBinaryRenderer;
 import org.gradle.nativeplatform.internal.NativePlatformResolver;
-import org.gradle.nativeplatform.internal.SharedLibraryBinaryRenderer;
-import org.gradle.nativeplatform.internal.StaticLibraryBinaryRenderer;
-import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolverServices;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
@@ -63,10 +57,6 @@ import org.gradle.process.internal.ExecActionFactory;
 public class NativeBinaryServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(AbstractBinaryRenderer.class, NativeBinaryRenderer.class);
-        registration.add(AbstractBinaryRenderer.class, SharedLibraryBinaryRenderer.class);
-        registration.add(AbstractBinaryRenderer.class, StaticLibraryBinaryRenderer.class);
-        registration.add(AbstractBinaryRenderer.class, NativeExecutableBinaryRenderer.class);
         registration.add(NativePlatforms.class);
         registration.add(NativePlatformResolver.class);
         registration.add(DefaultTargetMachineFactory.class);
@@ -84,7 +74,6 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new NativeDependencyResolverServices());
         registration.add(CompilerMetaDataProviderFactory.class);
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.api.problems.Severity
 import org.gradle.plugin.devel.tasks.TaskValidationReportFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.TaskOutcome
@@ -78,6 +77,7 @@ trait WithPluginValidation {
             def failsValidation = validations.any { !it.messages.isEmpty() }
             def validation = owner.runner([
                 "--init-script", "validate-external-gradle-plugin.gradle.kts",
+                "--stacktrace",
                 "validateExternalPlugins",
                 "--continue",
                 *extraParameters] as String[])
@@ -139,7 +139,7 @@ trait WithPluginValidation {
         private final String pluginId
         private final File reportFile
 
-        private Map<String, Severity> messages = [:]
+        private Map<String, String> messages = [:]
 
         boolean skipped
         boolean tested
@@ -177,7 +177,7 @@ trait WithPluginValidation {
             messages = [:]
         }
 
-        void failsWith(Map<String, Severity> messages) {
+        void failsWith(Map<String, String> messages) {
             this.messages = messages
         }
     }

@@ -76,6 +76,9 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun addAllLater(provider: Provider<out Iterable<Task>>) =
         delegate.addAllLater(provider)
 
+    override fun getElements(): Provider<out Collection<Task>> =
+        delegate.elements
+
     @Deprecated("Use register instead. There is no matching method taking a map notation, so you will have replace the map with proper arguments. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.")
     @Suppress("DEPRECATION")
     override fun create(options: Map<String, *>): Task =

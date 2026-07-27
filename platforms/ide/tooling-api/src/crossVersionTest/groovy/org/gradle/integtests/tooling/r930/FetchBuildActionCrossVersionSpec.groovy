@@ -106,6 +106,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         dsl << [GROOVY, KOTLIN]
     }
 
+    @TargetGradleVersion("<9.7.0")
     def "returns a failure if a model builder throws an exception with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder("throw new RuntimeException('broken builder')")
@@ -122,7 +123,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages == ["broken builder"]
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "returns a failure if project configuration fails due to #description with #dsl DSL"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -189,7 +190,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "'#method' returns the same result as other fetch methods in the presence of project build script failures"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -210,19 +211,18 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages[0].contains("A problem occurred configuring root project 'root'.")
 
         where:
-        method                                                       | buildAction                                              | dsl
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | GROOVY
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | GROOVY
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | GROOVY
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | GROOVY
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | KOTLIN
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | KOTLIN
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | KOTLIN
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | KOTLIN
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
+
+        combined:
+        dsl << [GROOVY, KOTLIN]
 
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "'#method' method returns the same failed result as other fetch methods with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder()
@@ -253,15 +253,14 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages[0].contains(expectedFailure)
 
         where:
-        method                                                       | buildAction                                              | dsl
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | GROOVY
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | GROOVY
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | GROOVY
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | GROOVY
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | KOTLIN
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | KOTLIN
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | KOTLIN
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | KOTLIN
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
+
+        combined:
+        dsl << [GROOVY, KOTLIN]
     }
 
     private void writeSettingsFile(GradleDsl dsl, String s) {

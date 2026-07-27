@@ -29,7 +29,6 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -110,7 +109,6 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
      * Note that currently you cannot measure this build operation in Gradle profiler, since the
      * BuildService responsible for measuring it has already been closed when the build operation fires.
      */
-    @NullMarked
     public interface DevelocityPluginBuildFinishedBuildOperationType extends BuildOperationType<DevelocityPluginBuildFinishedBuildOperationType.Details, DevelocityPluginBuildFinishedBuildOperationType.Result> {
         Details DETAILS = new Details() {};
 

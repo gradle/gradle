@@ -21,10 +21,10 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.FileSystemWatchingHelper
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 @LocalOnly
-@Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = "There is no shared state without a daemon")
+@Requires(value = TestExecutionPreconditions.NotNoDaemonExecutor, reason = "There is no shared state without a daemon")
 class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousIntegrationTest implements FileSystemWatchingFixture {
 
     def setup() {

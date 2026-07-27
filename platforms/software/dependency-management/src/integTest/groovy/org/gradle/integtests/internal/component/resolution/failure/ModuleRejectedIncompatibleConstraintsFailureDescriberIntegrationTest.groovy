@@ -77,8 +77,8 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.1.0 - directly in 'project :a' (apiElements)
-4.2.0 - directly in 'project :b' (apiElements) (1 other path to this version)""")
+4.1.0 - directly in 'project ':a'' (apiElements)
+4.2.0 - directly in 'project ':b'' (apiElements) (1 other path to this version)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
@@ -148,8 +148,8 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.1.0 - directly in 'project :a' (apiElements)
-4.2.0 - transitively via 'project :b' (apiElements) (1 other path to this version)""")
+4.1.0 - directly in 'project ':a'' (apiElements)
+4.2.0 - transitively via 'project ':b'' (apiElements) (1 other path to this version)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
@@ -219,10 +219,10 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.5 - directly in 'project :c' (apiElements)
-4.5.8 - transitively via 'project :b' (apiElements)
-4.5.10 - transitively via 'project :b' (apiElements)
-4.5.11 - directly in 'project :a' (apiElements)""")
+4.5 - directly in 'project ':c'' (apiElements)
+4.5.8 - transitively via 'project ':b'' (apiElements)
+4.5.10 - transitively via 'project ':b'' (apiElements)
+4.5.11 - directly in 'project ':a'' (apiElements)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
@@ -280,8 +280,8 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.5.1 - directly in 'project :a' (apiElements) (1 other path to this version)
-4.5.2 - directly in 'project :c' (apiElements)""")
+4.5.1 - directly in 'project ':a'' (apiElements) (1 other path to this version)
+4.5.2 - directly in 'project ':c'' (apiElements)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
@@ -321,13 +321,13 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
                     inputs.files.files.forEach { println(it) }
                 }
             }
-
-            subprojects {
-                apply plugin: "java-library"
-            }
         """
 
         groovyFile("a/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 api(project(":a:a1"))
                 api(project(":a:a2"))
@@ -335,6 +335,10 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         """)
 
         groovyFile("b/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 api(project(":b:b1"))
                 api(project(":b:b2"))
@@ -342,17 +346,22 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         """)
 
         groovyFile("c/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 api(project(":c:c1"))
                 api(project(":c:c2"))
             }
         """)
 
-        file("a/a1/build.gradle").touch()
-        file("a/a2/build.gradle").touch()
-        file("b/b1/build.gradle").touch()
-        file("b/b2/build.gradle").touch()
-        file("c/c1/build.gradle").touch()
-        file("c/c2/build.gradle").touch()
+        ["a/a1", "a/a2", "b/b1", "b/b2", "c/c1", "c/c2"].each {
+            file("$it/build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+            """
+        }
     }
 }

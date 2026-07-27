@@ -18,7 +18,6 @@ package org.gradle.testing
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
@@ -28,12 +27,6 @@ import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.equalTo
 
 class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.CUSTOM
-    }
-
     def "successful tests do not emit HTML reports to console"() {
         given:
         buildFile << passingTask("passing")
@@ -300,7 +293,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasFailures(2)
 
-        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        def aggregateResults = aggregateResults('')
         assert aggregateResults.testPath(":").rootNames == ["aFirst", "bSecond", "cThird", "dFourth"]
     }
 
@@ -417,6 +410,35 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         def tests = resultsFor(testDirectory)
         def testNames = theResults.collect { "the test is: " + it }.toSorted(GUtil.caseInsensitive())
         tests.testPath(":").onlyRoot().assertOnlyChildrenExecuted(*testNames)
+    }
+
+    def "HTML report renders sortable markup for test-results tables"() {
+        given:
+        buildFile << passingTask("passing")
+
+        when:
+        succeeds("passing")
+
+        then:
+        def results = aggregateResults()
+        // Table is marked sortable and its data rows live inside a <tbody>
+        results.assertHtml("table.test-results.sortable > tbody > tr") {
+            assert !it.isEmpty()
+        }
+        // Numeric columns default to descending on first click
+        results.assertHtml("table.test-results th[data-sort-default=desc]") {
+            def headers = it*.text()
+            assert headers.containsAll(["Tests", "Failures", "Skipped", "Duration"])
+            assert !headers.contains("Success rate")
+            assert !headers.contains("Child")
+        }
+        // Duration cells carry a numeric data-sort-value (parseable as a long)
+        results.assertHtml("table.test-results > tbody > tr > td[data-sort-value]") {
+            assert !it.isEmpty()
+            it.each { cell ->
+                Long.parseLong(cell.attr("data-sort-value"))
+            }
+        }
     }
 
     def passingTask(String name, boolean print = false) {

@@ -32,6 +32,7 @@ import org.gradle.integtests.fixtures.logging.DiscardingConnectionMessageRemoval
 import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmptyLineRemovalOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmptyLineTrimmerOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.GradleTaskFailureBuildFileNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.PlatformInOutputNormalizer;
@@ -50,6 +51,7 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     FileSeparatorOutputNormalizer.class,
     GradleWelcomeOutputNormalizer.class,
     GradleOutputNormalizer.class,
+    GradleTaskFailureBuildFileNormalizer.class,
     ArtifactResolutionOmittingOutputNormalizer.class,
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,

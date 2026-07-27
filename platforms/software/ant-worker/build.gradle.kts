@@ -6,11 +6,11 @@ description = "Implements a worker which can execute ant tasks in a separate wor
 
 dependencies {
     api(projects.ant)             // IsolatedAntBuilder, AntBuilderDelegate
-    api(projects.baseServices)
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(libs.inject)
 
+    implementation(projects.baseServices)
     implementation(libs.slf4jApi)
 }
 

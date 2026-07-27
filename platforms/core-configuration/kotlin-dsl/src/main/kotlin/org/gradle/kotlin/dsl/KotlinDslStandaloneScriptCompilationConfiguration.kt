@@ -35,7 +35,7 @@ abstract class KotlinDslStandaloneScriptCompilationConfiguration protected const
     compilerOptions.put(listOf(
         "-language-version", "2.2",
         "-api-version", "2.2",
-        "-Xjvm-default=all",
+        "-jvm-default=enable",
         "-Xjsr305=strict",
         "-Xjspecify-annotations=strict",
         "-Xskip-prerelease-check",

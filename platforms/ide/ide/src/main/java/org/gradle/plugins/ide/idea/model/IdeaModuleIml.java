@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import java.io.File;
 
@@ -24,13 +25,17 @@ import java.io.File;
  * Models the generation/parsing/merging capabilities of an IDEA module.
  * <p>
  * For examples, see docs for {@link IdeaModule}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public class IdeaModuleIml extends XmlFileContentMerger {
 
     private File generateTo;
 
     public IdeaModuleIml(XmlTransformer xmlTransformer, File generateTo) {
         super(xmlTransformer);
+        IdeDeprecations.nagDeprecatedType(IdeaModuleIml.class);
         this.generateTo = generateTo;
     }
 

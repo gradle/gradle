@@ -17,8 +17,22 @@
 package org.gradle.api.configuration
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
+
+    def "can print operational parameters via an internal option"() {
+        when:
+        run "help", "-q", "-Dorg.gradle.internal.operations.verbose.parameters=true"
+
+        then:
+        def cc = GradleContextualExecuter.isConfigCache()
+        def ip = GradleContextualExecuter.isIsolatedProjects()
+        outputContains("Operational build model parameters: {")
+        outputContains("configurationCache=$cc")
+        outputContains("isolatedProjects=$ip")
+        outputContains("vintage=${!cc && !ip}")
+    }
 
     def "can inject service into settings plugin"() {
         settingsFile """

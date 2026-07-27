@@ -21,6 +21,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -28,7 +29,7 @@ import javax.inject.Inject;
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'
@@ -70,9 +71,11 @@ public abstract class EclipseJdt {
 
     private String javaRuntimeName;
 
+    @SuppressWarnings("deprecation")
     private final PropertiesFileContentMerger file;
 
     @Inject
+    @SuppressWarnings("deprecation")
     public EclipseJdt(PropertiesFileContentMerger file) {
         this.file = file;
     }
@@ -136,13 +139,22 @@ public abstract class EclipseJdt {
         return javaRuntimeName;
     }
 
+    /**
+     * Set Java Runtime name.
+     */
     public void setJavaRuntimeName(String javaRuntimeName) {
         this.javaRuntimeName = javaRuntimeName;
     }
 
+    // The getter does not nag: Groovy's dynamic dispatch probes the `file` property for any
+    // unresolved `file(...)` call inside a `jdt { }` block, which would produce false-positive
+    // warnings. The file(Closure)/file(Action) hooks nag instead.
     /**
      * See {@link #file(Action) }
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public PropertiesFileContentMerger getFile() {
         return file;
     }
@@ -156,8 +168,12 @@ public abstract class EclipseJdt {
      * The object passed to withProperties{} closures is of type {@link java.util.Properties}
      * <p>
      * For example see docs for {@link EclipseJdt}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void file(@DelegatesTo(PropertiesFileContentMerger.class) Closure closure) {
+        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
         ConfigureUtil.configure(closure, file);
     }
 
@@ -172,8 +188,11 @@ public abstract class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      *
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void file(Action<? super PropertiesFileContentMerger> action) {
+        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
         action.execute(file);
     }
 }

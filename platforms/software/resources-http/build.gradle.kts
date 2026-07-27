@@ -23,6 +23,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.jacksonDatabind)
     implementation(libs.jcifs)
     implementation(libs.jsoup)
     implementation(libs.slf4jApi)
@@ -30,8 +31,9 @@ dependencies {
     runtimeOnly(projects.core)
     runtimeOnly(projects.coreApi)
 
+    runtimeOnly(libs.jacksonCore)
+
     testImplementation(projects.internalIntegTesting)
-    testImplementation(testLibs.jettyWebApp)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 
@@ -51,6 +53,4 @@ gradleModule {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

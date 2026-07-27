@@ -41,6 +41,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     private static final URL STYLE_URL = Resources.getResource(GenericPageRenderer.class, "style.css");
 
     public static String getUrlTo(
+        boolean shrink,
         Path originatingPath, boolean isOriginatingPathLeaf,
         Path targetPath, boolean isTargetPathLeaf
     ) {
@@ -49,8 +50,8 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         }
         // We know we're emitting to the file system, so let's just use NIO Path to do the path manipulation.
         // We need the `.` for relative resolution to work properly
-        java.nio.file.Path relativePath = Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(originatingPath, isOriginatingPathLeaf)).getParent()
-            .relativize(Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(targetPath, isTargetPathLeaf)));
+        java.nio.file.Path relativePath = Paths.get("./" + HtmlTestReportPathBuilder.buildFilePath(shrink, originatingPath, isOriginatingPathLeaf)).getParent()
+            .relativize(Paths.get("./" + HtmlTestReportPathBuilder.buildFilePath(shrink, targetPath, isTargetPathLeaf)));
         // Escape things that aren't `/` for the URL
         StringBuilder url = new StringBuilder();
         for (java.nio.file.Path segment : relativePath) {
@@ -61,13 +62,16 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         return url.substring(0, url.length() - 1);
     }
 
+    private final boolean shrink;
     private final List<TestOutputReader> outputReaders;
     private final List<String> rootDisplayNames;
 
     GenericPageRenderer(
+        boolean shrink,
         List<TestOutputReader> outputReaders,
         List<String> rootDisplayNames
     ) {
+        this.shrink = shrink;
         this.outputReaders = outputReaders;
         this.rootDisplayNames = rootDisplayNames;
     }
@@ -83,6 +87,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
             htmlWriter.startElement("a")
                 .attribute("class", "breadcrumb")
                 .attribute("href", getUrlTo(
+                    shrink,
                     path, getModel().getChildren().isEmpty(),
                     ancestorPath, false
                 ))
@@ -145,7 +150,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 PerRootInfo info = infos.get(perRootInfoIndex);
 
                 final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
-                perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex));
+                perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(shrink, rootIndex, perRootInfoIndex));
                 TestOutputReader outputReader = outputReaders.get(rootIndex);
                 boolean hasStdout = false;
                 boolean hasStderr = false;

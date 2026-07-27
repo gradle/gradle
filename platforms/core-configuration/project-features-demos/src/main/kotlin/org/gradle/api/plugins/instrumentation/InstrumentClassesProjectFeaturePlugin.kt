@@ -24,6 +24,8 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.binding.ProjectFeatureBindingBuilder
 import org.gradle.features.binding.ProjectFeatureBinding
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectFeatureApplyAction
 import org.gradle.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources.JavaSources
 import org.gradle.features.registration.TaskRegistrar
@@ -31,7 +33,6 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 
@@ -53,23 +54,30 @@ class InstrumentClassesProjectFeaturePlugin : Plugin<Project> {
             builder.bindProjectFeatureToDefinition(
                 "instrument",
                 InstrumentClassesDefinition::class,
-                JavaSources::class
-            ) { definition, buildModel, target ->
-                val services = objectFactory.newInstance(Services::class.java)
-                val instrumentClassesTask = services.taskRegistrar.register("instrument" + StringUtils.capitalize(target.name) + "Classes", InstrumentClasses::class.java) { task ->
+                JavaSources::class,
+                ApplyAction::class
+            )
+        }
+
+        abstract class ApplyAction : ProjectFeatureApplyAction<InstrumentClassesDefinition, InstrumentClassesModel, JavaSources> {
+            @get:Inject
+            abstract val taskRegistrar: TaskRegistrar
+
+            override fun apply(
+                context: ProjectFeatureApplicationContext,
+                definition: InstrumentClassesDefinition,
+                buildModel: InstrumentClassesModel,
+                parentDefinition: JavaSources
+            ) {
+                val instrumentClassesTask = taskRegistrar.register("instrument" + StringUtils.capitalize(parentDefinition.name) + "Classes", InstrumentClasses::class.java) { task ->
                     task.group = LifecycleBasePlugin.BUILD_GROUP
-                    task.description = "Instruments the ${target.name} classes."
-                    task.bytecodeDir.set(getBuildModel(target).byteCodeDir)
+                    task.description = "Instruments the ${parentDefinition.name} classes."
+                    task.bytecodeDir.set(context.getBuildModel(parentDefinition).byteCodeDir)
                     task.instrumentedClassesDir.set(definition.destinationDirectory)
                 }
 
                 buildModel.instrumentedClassesDirectory.set(instrumentClassesTask.map { it.instrumentedClassesDir.get() })
             }
-        }
-
-        interface Services {
-            @get:Inject
-            val taskRegistrar: TaskRegistrar
         }
     }
 

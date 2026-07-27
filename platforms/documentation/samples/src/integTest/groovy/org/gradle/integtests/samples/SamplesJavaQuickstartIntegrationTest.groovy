@@ -30,7 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
+    public final Sample sample = new Sample(testDirectoryProvider, 'integration-tests/java/quickstart')
 
     def setup() {
         executer.withRepositoryMirrors()

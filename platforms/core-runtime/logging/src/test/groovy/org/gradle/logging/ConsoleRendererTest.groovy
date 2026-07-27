@@ -18,19 +18,20 @@ package org.gradle.logging
 
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import spock.lang.Specification
 
 class ConsoleRendererTest extends Specification {
     ConsoleRenderer renderer = new ConsoleRenderer()
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "produces triple-slash file URLs"() {
         expect:
         renderer.asClickableFileUrl(new File("/foo/teŝt files/bar")) == "file:///foo/te%C5%9Dt%20files/bar"
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "produces triple-slash file URLs on Windows"() {
         expect:
         renderer.asClickableFileUrl(new File("C:\\foo\\teŝt files\\bar")) == "file:///C:/foo/te%C5%9Dt%20files/bar"

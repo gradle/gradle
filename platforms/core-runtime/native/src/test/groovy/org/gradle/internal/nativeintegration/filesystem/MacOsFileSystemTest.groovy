@@ -16,11 +16,12 @@
 package org.gradle.internal.nativeintegration.filesystem
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
-@Requires(UnitTestPreconditions.MacOs)
+@Requires(OsTestPreconditions.MacOs)
 class MacOsFileSystemTest extends Specification {
     def fs = NativeServicesTestFixture.instance.get(FileSystem)
 

@@ -63,6 +63,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
 
     protected T domainObject;
 
+    @SuppressWarnings("this-escape")
     public GeneratorTask() {
         if (!getIncremental()) {
             getOutputs().upToDateWhen(Specs.satisfyNone());
@@ -81,7 +82,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
 
     @SuppressWarnings("UnusedDeclaration")
     @TaskAction
-    void generate() {
+    protected void generate() {
         File inputFile = getInputFileIfExists();
         if (inputFile != null) {
             try {

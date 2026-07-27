@@ -26,6 +26,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
@@ -459,12 +460,13 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             assertHasDescription(
                 "Execution failed for task ':compileKotlin' (registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper')."
             )
-            assertHasErrorOutput(
-                """my-project-plugin.gradle.kts:3:17 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""
+            assertOutputContainsPattern(
+                """'fun Project\.plugins\(block: PluginDependenciesSpec\.\(\) -> Unit\): Nothing' is deprecated\. The plugins \{\} block must not be used here\. If you need to apply a plugin imperatively, please use apply<PluginType>\(\) or apply\(plugin = "id"\) instead\.\s+Location: .*?my-project-plugin\.gradle\.kts line 3"""
             )
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
@@ -507,7 +509,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 open class ProjectPlugin : Plugin<Project> {
                     override fun apply(target: Project) {
                         val projectName = target.name
-                        target.task("run") {
+                        target.tasks.register("run") {
                             doLast { println("Project " + projectName + "!") }
                         }
                     }

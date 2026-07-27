@@ -29,6 +29,9 @@ import java.lang.annotation.Target;
  *
  * <p>This will cause the task <em>not</em> to be considered out-of-date when the property has changed.</p>
  *
+ * <p>Properties annotated with {@code @Internal} are not subject to presence validation and are treated as
+ * inherently optional. There is no need, and it is an error, to also annotate them with {@link org.gradle.api.tasks.Optional}.</p>
+ *
  * @since 3.0
  */
 @Documented

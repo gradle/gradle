@@ -18,6 +18,8 @@ package org.gradle.api.execution;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 import java.util.Set;
@@ -34,6 +36,8 @@ import java.util.Set;
  * is empty before then. You can receive a notification when the graph is populated, using {@link
  * #whenReady(groovy.lang.Closure)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
  */
+// Public `TaskExecutionGraph` service shadowed at the project scope by the IP reporting wrapper
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface TaskExecutionGraph {
     /**
      * <p>Adds a listener to this graph, to be notified when this graph is ready.</p>
@@ -71,6 +75,11 @@ public interface TaskExecutionGraph {
      * <p>Adds a closure to be called when this graph has been populated. This graph is passed to the closure as a
      * parameter.</p>
      *
+     * <p>When the configuration cache is enabled, this callback only
+     * fires during the configuration phase (a cache miss). On a cache hit,
+     * the task graph is loaded from the cache and this callback is not
+     * invoked.
+     *
      * @param closure The closure to execute when this graph has been populated.
      */
     void whenReady(Closure closure);
@@ -78,6 +87,11 @@ public interface TaskExecutionGraph {
     /**
      * <p>Adds an action to be called when this graph has been populated. This graph is passed to the action as a
      * parameter.</p>
+     *
+     * <p>When the configuration cache is enabled, this callback only
+     * fires during the configuration phase (a cache miss). On a cache hit,
+     * the task graph is loaded from the cache and this callback is not
+     * invoked.
      *
      * @param action The action to execute when this graph has been populated.
      *
