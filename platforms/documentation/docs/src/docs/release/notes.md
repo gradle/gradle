@@ -79,6 +79,25 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
+#### Look up Gradle services from scripts and task actions
+
+Build, settings, and init scripts, as well as task actions, can now [look up commonly used Gradle services](userguide/service_injection.html#looking_up_services) directly, without declaring an `@Inject` point or going through the `objects.newInstance(...)` ceremony:
+
+```kotlin
+tasks.register("cleanReports") {
+    val fs = service<FileSystemOperations>()
+    doLast {
+        fs.delete { delete("build/reports") }
+    }
+}
+```
+
+Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. It is compatible with the Configuration Cache and Isolated Projects, and covers `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, and `ArchiveOperations` in every scope, `ProjectLayout` in projects and tasks, `BuildLayout` in settings, and `ExecOperations` in task actions. In the Kotlin and Java DSLs, looking up a service that is not available in the current scope is caught at compile time.
+
+Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or later at runtime.
+
+See the [Looking up services in scripts](userguide/service_injection.html#looking_up_services) section in the Gradle User Manual for more details.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 

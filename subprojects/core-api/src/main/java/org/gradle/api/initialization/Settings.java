@@ -29,6 +29,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.SettingsService;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.declarative.dsl.model.annotations.Adding;
@@ -305,6 +306,24 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     @HiddenInDefinition
     ProviderFactory getProviders();
+
+    /**
+     * Looks up a service provided by Gradle for use in this build.
+     *
+     * <p>The services available for lookup are the Gradle types that implement {@link SettingsService}.</p>
+     *
+     * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
+     * use {@link Gradle#getSharedServices()} to access those.</p>
+     *
+     * @param serviceType the type of the service to look up
+     * @param <T> the service type
+     * @return the service instance. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException when the given type is not one of the services available in this scope
+     * @since 9.8.0
+     */
+    @Incubating
+    @HiddenInDefinition
+    <T extends SettingsService> T service(Class<T> serviceType);
 
     /**
      * Returns the {@link Gradle} instance for the current build.

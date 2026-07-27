@@ -46,6 +46,25 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.10[Kotlin 2.4.10].
 
+[[service_method_added_to_project_settings_gradle_task]]
+==== New `service(Class)` method on `Project`, `Settings`, `Gradle`, and `Task`
+
+Gradle 9.8.0 adds an incubating `service(Class)` method to link:{javadocPath}/org/gradle/api/Project.html[`Project`], link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`], link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`], and link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with reified `service<T>()` extensions in the Kotlin DSL.
+See <<service_injection.adoc#looking_up_services,Looking up services in scripts>> for details.
+
+If your build, plugin, or convention already exposes a member called `service` on one of these types (for example a user-defined extension, a Groovy dynamic property, or a Kotlin extension function), the new built-in member may shadow it or make calls ambiguous.
+Rename your member (for example to `myService`) to disambiguate:
+
+[source,kotlin]
+.build.gradle.kts
+----
+// Before: shadowed by the new built-in Project.service(Class)
+fun Project.service(name: String): MyService = extensions.getByName(name) as MyService
+
+// After: rename to avoid the conflict
+fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
+----
+
 [[task_logging_listeners_are_now_stored_in_the_configuration_cache]]
 ==== Task logging listeners are now stored in the Configuration Cache
 

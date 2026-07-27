@@ -212,6 +212,8 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/projectAtExe
 
 Fixing ad-hoc tasks in scripts requires additional effort, making it a good opportunity to refactor them into proper task classes.
 
+TIP: Ad-hoc tasks and scripts can also obtain these services directly with the <<service_injection.adoc#looking_up_services,`service(...)` lookup>>, avoiding the extra injected type shown above.
+
 The table below lists recommended replacements for commonly used `Project` methods:
 
 [cols="a,a",options="header"]

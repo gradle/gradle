@@ -18,6 +18,8 @@ package org.gradle.api.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.ProjectService;
+import org.gradle.api.services.TaskService;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.declarative.dsl.model.annotations.ValueFactories;
 import org.gradle.internal.service.scopes.Scope;
@@ -35,7 +37,7 @@ import java.io.File;
  * @since 4.1
  */
 @ServiceScope(Scope.Project.class)
-public interface ProjectLayout {
+public interface ProjectLayout extends ProjectService, TaskService {
     /**
      * Returns the project directory.
      */
