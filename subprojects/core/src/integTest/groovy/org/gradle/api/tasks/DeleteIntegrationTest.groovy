@@ -127,7 +127,7 @@ abstract class DeleteIntegrationTest extends AbstractIntegrationSpec {
         assertTrue(subject.exists())
         assertFalse(keep.exists())
         assertTrue(remove.exists())
-        // java.io.File.exists() return false for symbolic links to nonexistent targets
+        // java.io.File.exists() returns false for symbolic links to nonexistent targets
         // https://bugs.openjdk.org/browse/JDK-4956115
         assertFalse(Files.exists(link.toPath(), LinkOption.NOFOLLOW_LINKS))
     }
