@@ -113,12 +113,14 @@ abstract class DeleteIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << '''
             task delete(type: Delete) {
-                delete 'test/orig'
                 delete 'test/subject/link'
                 followSymlinks = false
             }
         '''
 
+        and:
+        orig.deleteDir()
+        
         expect:
         succeeds("delete")
         assertFalse(orig.exists())
