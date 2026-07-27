@@ -16,13 +16,14 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import software.amazon.awssdk.services.s3.model.GetObjectResponse
-
-import software.amazon.awssdk.core.ResponseInputStream
 import org.gradle.internal.resource.ExternalResourceName
+import software.amazon.awssdk.core.ResponseInputStream
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import spock.lang.Specification
 
-
+/**
+ * Unit tests for {@link S3ResourceConnector}.
+ */
 class S3ResourceConnectorTest extends Specification {
     def uri = new URI("http://somewhere")
     def name = new ExternalResourceName(uri)
@@ -37,11 +38,10 @@ class S3ResourceConnectorTest extends Specification {
 
     def "should get a resource"() {
         S3Client s3Client = Mock()
-        software.amazon.awssdk.services.s3.S3Client amazonS3Client =
-            software.amazon.awssdk.services.s3.S3Client.builder().build()
+        //noinspection GroovyAccessibility
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = software.amazon.awssdk.services.s3.S3Client.builder().region(S3Client.DEFAULT_REGION).build()
         def getObjectResponse = GetObjectResponse.builder().build()
-        ResponseInputStream<GetObjectResponse> responseInputStream =
-            new ResponseInputStream(getObjectResponse, new ByteArrayInputStream('contents'.getBytes()))
+        ResponseInputStream<GetObjectResponse> responseInputStream = new ResponseInputStream(getObjectResponse, new ByteArrayInputStream('contents'.getBytes()))
         def getResourceResponse = new S3Client.GetResourceResponse(amazonS3Client, responseInputStream)
         1 * s3Client.getResource(uri) >> getResourceResponse
 
@@ -54,5 +54,4 @@ class S3ResourceConnectorTest extends Specification {
         cleanup:
         s3Resource?.close()
     }
-
 }

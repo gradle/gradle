@@ -18,6 +18,7 @@ dependencies {
     api(libs.awsSdkCore)
     api(libs.awsSdkRegions)
     api(libs.guava)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.hashing)
