@@ -167,11 +167,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     @Override
-    public DependencyResolutionServices newDetachedResolver(DomainObjectContext owner) {
+    public DependencyResolutionServices newDetachedResolver(DependencyManagementParameters params) {
         return newDetachedResolver(
             parent.get(FileResolver.class),
             parent.get(FileCollectionFactory.class),
-            owner
+            params
         );
     }
 
@@ -179,7 +179,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     public DependencyResolutionServices newDetachedResolver(
         FileResolver resolver,
         FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner
+        DependencyManagementParameters params
     ) {
         @SuppressWarnings("resource")
         ServiceRegistry services = ServiceRegistryBuilder.builder()
@@ -189,10 +189,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 registration.add(FileCollectionFactory.class, fileCollectionFactory);
                 registration.add(DependencyMetaDataProvider.class, AnonymousModule::new);
                 registration.add(ProjectFinder.class, new UnknownProjectFinder("Project dependencies cannot be declared here."));
-                registration.add(DomainObjectContext.class, owner);
             })
             .provider(new TransformGradleUserHomeServices())
-            .provider(new DependencyResolutionScopeServices(owner))
+            .provider(new DependencyResolutionScopeServices(params))
             .build();
 
         DependencyResolutionServices dms = services.get(DependencyResolutionServices.class);
@@ -208,8 +207,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     @Override
-    public void addDslServices(ServiceRegistration registration, DomainObjectContext domainObjectContext) {
-        registration.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
+    public void addDslServices(ServiceRegistration registration, DependencyManagementParameters params) {
+        registration.addProvider(new DependencyResolutionScopeServices(params));
     }
 
     private static class TransformGradleUserHomeServices implements ServiceRegistrationProvider {
@@ -229,10 +228,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
     private static class DependencyResolutionScopeServices implements ServiceRegistrationProvider {
 
-        private final DomainObjectContext domainObjectContext;
+        private final DependencyManagementParameters params;
 
-        public DependencyResolutionScopeServices(DomainObjectContext domainObjectContext) {
-            this.domainObjectContext = domainObjectContext;
+        public DependencyResolutionScopeServices(DependencyManagementParameters params) {
+            this.params = params;
         }
 
         @SuppressWarnings("unused") // DI configuration
@@ -257,6 +256,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
             registration.add(ConfigurationServicesBundle.class, DefaultConfigurationServicesBundle.class);
+        }
+
+        @Provides
+        DependencyManagementInstanceIdentity createInstanceIdentity() {
+            return new DependencyManagementInstanceIdentity(params.getDisplayName());
         }
 
         @Provides
@@ -428,6 +432,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             Instantiator instantiator,
             CollectionCallbackActionDecorator callbackDecorator,
             DomainObjectContext domainObjectContext,
+            DependencyManagementInstanceIdentity instanceIdentity,
             DefaultConfigurationFactory defaultConfigurationFactory,
             ResolutionStrategyFactory resolutionStrategyFactory,
             ProblemsInternal problemsService,
@@ -438,6 +443,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 instantiator,
                 callbackDecorator,
                 domainObjectContext,
+                instanceIdentity,
                 defaultConfigurationFactory,
                 resolutionStrategyFactory,
                 problemsService,
@@ -477,7 +483,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         @Provides
         DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, DependencyLockingProvider dependencyLockingProvider, ServiceRegistry serviceRegistry) {
-            if (domainObjectContext.isPluginContext()) {
+            if (!params.isDependencyLockingEnabled()) {
                 throw new IllegalStateException("Cannot use locking handler in plugins context");
             }
             // The lambda factory is to avoid eager creation of the configuration container
@@ -489,13 +495,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             FileResolver fileResolver,
             StartParameter startParameter,
             DomainObjectContext context,
+            DependencyManagementInstanceIdentity instanceIdentity,
             GlobalDependencyResolutionRules globalDependencyResolutionRules,
             ListenerManager listenerManager,
             PropertyFactory propertyFactory,
             FilePropertyFactory filePropertyFactory,
             FileResourceListener fileResourceListener
         ) {
-            if (domainObjectContext.isPluginContext()) {
+            if (!params.isDependencyLockingEnabled()) {
                 return NoOpDependencyLockingProvider.getInstance();
             }
 
@@ -503,6 +510,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 fileResolver,
                 startParameter,
                 context,
+                instanceIdentity,
+                params.getDependencyLockingPrefix(),
                 globalDependencyResolutionRules.getDependencySubstitutionRules(),
                 propertyFactory,
                 filePropertyFactory,
@@ -536,7 +545,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             InstanceGenerator instantiator = instantiatorFactory.decorateScheme().instantiator();
 
             DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, isolatableFactory, moduleIdentifierFactory);
-            if (domainObjectContext.isScript()) {
+            if (params.isJvmEnvironment()) {
                 componentMetadataHandler.setVariantDerivationStrategy(instantiator.newInstance(JavaEcosystemVariantDerivationStrategy.class, mavenVariantAttributesFactory));
             }
             return componentMetadataHandler;
@@ -570,12 +579,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides
         ComponentMetadataRulesSupplier createComponentMetadataRulesSupplier(
             ComponentMetadataHandlerInternal componentMetadataHandler,
-            DependencyResolutionManagementInternal drm,
-            DomainObjectContext context
+            DependencyResolutionManagementInternal drm
         ) {
             return () -> {
                 ImmutableComponentMetadataRules rules = componentMetadataHandler.getConfiguredRules();
-                if (context.isScript() || (!rules.getRules().isEmpty() && drm.getConfiguredRulesMode().useProjectRules())) {
+                if (params.ignoreGlobalComponentMetadataRules() || (!rules.getRules().isEmpty() && drm.getConfiguredRulesMode().useProjectRules())) {
                     return rules;
                 }
                 return ((ComponentMetadataHandlerInternal) drm.getComponents()).getConfiguredRules();
@@ -603,10 +611,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        RepositoriesSupplier createRepositoriesSupplier(RepositoryHandler repositoryHandler, DependencyResolutionManagementInternal drm, DomainObjectContext context) {
+        RepositoriesSupplier createRepositoriesSupplier(RepositoryHandler repositoryHandler, DependencyResolutionManagementInternal drm) {
             return () -> {
                 List<ResolutionAwareRepository> repositories = collectRepositories(repositoryHandler);
-                if (context.isScript() || context.isDetachedState()) {
+                if (params.ignoreGlobalRepositories()) {
                     return repositories;
                 }
                 DependencyResolutionManagementInternal.RepositoriesModeInternal mode = drm.getConfiguredRepositoriesMode();

@@ -28,6 +28,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.attributes.AttributeDesugaring
@@ -38,6 +39,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
+import org.gradle.internal.Describables
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -82,7 +84,8 @@ class DefaultConfigurationContainerTest extends Specification {
         new AttributeDesugaring(attributesFactory),
         new ResolveExceptionMapper(StandaloneDomainObjectContext.ANONYMOUS, new DocumentationRegistry()),
         TestUtil.providerFactory(),
-        new TestWorkerLeaseService()
+        new TestWorkerLeaseService(),
+        new DependencyManagementInstanceIdentity(Describables.of("unknown"))
     )
 
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
@@ -102,6 +105,7 @@ class DefaultConfigurationContainerTest extends Specification {
         TestUtil.instantiatorFactory().decorateLenient(),
         callbackActionDecorator,
         StandaloneDomainObjectContext.ANONYMOUS,
+        configurationServices.instanceIdentity,
         configurationFactory,
         Mock(ResolutionStrategyFactory),
         TestUtil.problemsService(),

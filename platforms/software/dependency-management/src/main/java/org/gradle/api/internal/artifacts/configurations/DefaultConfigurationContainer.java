@@ -34,6 +34,7 @@ import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -59,7 +60,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     private static final Pattern RESERVED_NAMES_FOR_DETACHED_CONFS = Pattern.compile(DETACHED_CONFIGURATION_DEFAULT_NAME + "\\d*");
 
-    private final DomainObjectContext owner;
+    private final DependencyManagementInstanceIdentity instanceIdentity;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final ResolutionStrategyFactory resolutionStrategyFactory;
     private final ProblemsInternal problemsService;
@@ -73,6 +74,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         Instantiator instantiator,
         CollectionCallbackActionDecorator callbackDecorator,
         DomainObjectContext owner,
+        DependencyManagementInstanceIdentity instanceIdentity,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory,
         ProblemsInternal problemsService,
@@ -81,7 +83,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     ) {
         super(Configuration.class, instantiator, Named.Namer.INSTANCE, callbackDecorator);
 
-        this.owner = owner;
+        this.instanceIdentity = instanceIdentity;
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.problemsService = problemsService;
@@ -390,6 +392,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public String getDisplayName() {
-        return "configuration container for " + owner.getDisplayName();
+        return "configuration container for " + instanceIdentity.getDisplayName();
     }
 }
