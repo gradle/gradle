@@ -31,6 +31,7 @@ dependencies {
     pluginsRuntimeOnly(projects.publish)
     pluginsRuntimeOnly(projects.signing)
     pluginsRuntimeOnly(projects.scala)
+    pluginsRuntimeOnly(projects.testRetry)
     pluginsRuntimeOnly(projects.war)
 
     pluginsRuntimeOnly(projects.javaPlatform) {
