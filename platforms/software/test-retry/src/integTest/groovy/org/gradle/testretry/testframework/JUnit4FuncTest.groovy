@@ -24,23 +24,23 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         return 'java'
     }
 
-    protected isRerunsAllParameterizedIterations() {
+    protected boolean isRerunsAllParameterizedIterations() {
         false
     }
 
-    protected String initializationErrorSyntheticTestMethodName(String gradleVersion) {
-        gradleVersion > "9.3" ?  "executionError" : "initializationError"
+    protected String initializationErrorSyntheticTestMethodName() {
+        "executionError"
     }
 
-    protected String afterClassErrorTestMethodName(String gradleVersion) {
+    protected String afterClassErrorTestMethodName() {
         "classMethod"
     }
 
-    protected String beforeClassErrorTestMethodName(String gradleVersion) {
+    protected String beforeClassErrorTestMethodName() {
         "classMethod"
     }
 
-    def "handles failure in #lifecycle - exhaustive #exhaust (gradle version #gradleVersion)"(String gradleVersion, String lifecycle, boolean exhaust) {
+    def "handles failure in #lifecycle - exhaustive #exhaust"(String lifecycle, boolean exhaust) {
         given:
         buildFile << """
             test.retry.maxRetries = 2
@@ -61,38 +61,36 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def runner = gradleRunner(gradleVersion as String)
-        def result = exhaust ? runner.buildAndFail() : runner.build()
+        exhaust ? fails('test') : succeeds('test')
 
         then:
         if (lifecycle == "BeforeClass") {
-            with(result.output) {
-                it.count("${beforeClassErrorTestMethodName(gradleVersion)} FAILED") == (exhaust ? 3 : 2)
-                it.count('successTest PASSED') == (exhaust ? 0 : 1)
-                it.count("${beforeClassErrorTestMethodName(gradleVersion)} PASSED") == (exhaust ? 0 : 1)
+            with(output) {
+                assert it.count("${beforeClassErrorTestMethodName()} FAILED") == (exhaust ? 3 : 2)
+                assert it.count('successTest PASSED') == (exhaust ? 0 : 1)
+                assert it.count("${beforeClassErrorTestMethodName()} PASSED") == (exhaust ? 0 : 1)
             }
         } else if (lifecycle == "AfterClass") {
-            with(result.output) {
-                it.count("${afterClassErrorTestMethodName(gradleVersion)} FAILED") == (exhaust ? 3 : 2)
-                it.count('successTest PASSED') == 3
-                it.count("${afterClassErrorTestMethodName(gradleVersion)} PASSED") == (exhaust ? 0 : 1)
+            with(output) {
+                assert it.count("${afterClassErrorTestMethodName()} FAILED") == (exhaust ? 3 : 2)
+                assert it.count('successTest PASSED') == 3
+                assert it.count("${afterClassErrorTestMethodName()} PASSED") == (exhaust ? 0 : 1)
             }
         } else {
-            with(result.output) {
-                it.count('successTest FAILED') == (exhaust ? 3 : 2)
-                it.count('successTest PASSED') == (exhaust ? 0 : 1)
+            with(output) {
+                assert it.count('successTest FAILED') == (exhaust ? 3 : 2)
+                assert it.count('successTest PASSED') == (exhaust ? 0 : 1)
             }
         }
 
         where:
-        [gradleVersion, lifecycle, exhaust] << GroovyCollections.combinations((Iterable) [
-            GRADLE_VERSIONS_UNDER_TEST,
+        [lifecycle, exhaust] << [
             ['BeforeClass', 'Before', 'AfterClass', 'After'],
             [true, false]
-        ])
+        ].combinations()
     }
 
-    def "handles parameterized test in super class (gradle version #gradleVersion)"() {
+    def "handles parameterized test in super class"() {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -147,20 +145,16 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).buildAndFail()
+        fails('test')
 
         then:
-
-        with(result.output) {
-            it.count('test[0: test(0)=true]') == (isRerunsAllParameterizedIterations() ? 2 : 1)
-            it.count('test[1: test(1)=false]') == 2
+        with(output) {
+            assert it.count('test[0: test(0)=true]') == (isRerunsAllParameterizedIterations() ? 2 : 1)
+            assert it.count('test[1: test(1)=false]') == 2
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
-    def "can rerun on failure in super class (gradle version #gradleVersion)"() {
+    def "can rerun on failure in super class"() {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -188,21 +182,17 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-
-        with(result.output) {
-            it.count('parent FAILED') == 1
-            it.count('parent PASSED') == 1
-            it.count('inherited PASSED') == 1
+        with(output) {
+            assert it.count('parent FAILED') == 1
+            assert it.count('parent PASSED') == 1
+            assert it.count('inherited PASSED') == 1
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
-    def "handles flaky runner (gradle version #gradleVersion)"() {
+    def "handles flaky runner"() {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -234,25 +224,19 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
                 public void someTest() {
                 }
             }
-
-
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-
-        with(result.output) {
-            it.count("FlakyTests > ${initializationErrorSyntheticTestMethodName(gradleVersion)} FAILED") == 1
-            it.count('FlakyTests > someTest PASSED') == 1
+        with(output) {
+            assert it.count("FlakyTests > ${initializationErrorSyntheticTestMethodName()} FAILED") == 1
+            assert it.count('FlakyTests > someTest PASSED') == 1
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
-    def "handles flaky static initializer (gradle version #gradleVersion)"() {
+    def "handles flaky static initializer"() {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -273,20 +257,17 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-        with(result.output) {
-            it.count('FlakyTests > someTest FAILED') == 1
-            it.count('java.lang.ExceptionInInitializerError') == 1
-            it.count('FlakyTests > someTest PASSED') == 1
+        with(output) {
+            assert it.count('FlakyTests > someTest FAILED') == 1
+            assert it.count('java.lang.ExceptionInInitializerError') == 1
+            assert it.count('FlakyTests > someTest PASSED') == 1
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
-    def "handles parameterized tests (gradle version #gradleVersion)"() {
+    def "handles parameterized tests"() {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -330,20 +311,17 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).buildAndFail()
+        fails('test')
 
         then:
-        with(result.output) {
-            it.count('test[0: test(0)=true] PASSED') == (isRerunsAllParameterizedIterations() ? 2 : 1)
-            it.count('test[1: test(1)=false] FAILED') == 2
+        with(output) {
+            assert it.count('test[0: test(0)=true] PASSED') == (isRerunsAllParameterizedIterations() ? 2 : 1)
+            assert it.count('test[1: test(1)=false] FAILED') == 2
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
     @Issue("https://github.com/gradle/test-retry-gradle-plugin/issues/52")
-    def "test that is skipped after failure is considered to be still failing (gradle version #gradleVersion)"() {
+    def "test that is skipped after failure is considered to be still failing"() {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -363,19 +341,16 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).buildAndFail()
+        fails('test')
 
         then:
-        with(result.output) {
-            it.count('flakyAssumeTest FAILED') == 1
-            it.count('flakyAssumeTest SKIPPED') == 1
+        with(output) {
+            assert it.count('flakyAssumeTest FAILED') == 1
+            assert it.count('flakyAssumeTest SKIPPED') == 1
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
-    def "test that is skipped after failure with option 'failOnSkippedAfterRetry = false' is passes (gradle version #gradleVersion)"() {
+    def "test that is skipped after failure with option 'failOnSkippedAfterRetry = false' is passes"() {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -396,19 +371,16 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-        with(result.output) {
-            it.count('flakyAssumeTest FAILED') == 1
-            it.count('flakyAssumeTest SKIPPED') == 1
+        with(output) {
+            assert it.count('flakyAssumeTest FAILED') == 1
+            assert it.count('flakyAssumeTest SKIPPED') == 1
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
-    def "handles failure in rule before = #failBefore (gradle version #gradleVersion)"(String gradleVersion, boolean failBefore) {
+    def "handles failure in rule before = #failBefore"(boolean failBefore) {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -450,22 +422,19 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-        with(result.output) {
-            it.count('ruleTest FAILED') == 1
-            it.count("ruleTest PASSED") == 1
+        with(output) {
+            assert it.count('ruleTest FAILED') == 1
+            assert it.count("ruleTest PASSED") == 1
         }
 
         where:
-        [gradleVersion, failBefore] << GroovyCollections.combinations((Iterable) [
-            GRADLE_VERSIONS_UNDER_TEST,
-            [true, false]
-        ])
+        failBefore << [true, false]
     }
 
-    def "handles failure in class rule before = #failBefore (gradle version #gradleVersion)"(String gradleVersion, boolean failBefore) {
+    def "handles failure in class rule before = #failBefore"(boolean failBefore) {
         given:
         buildFile << """
             test.retry.maxRetries = 1
@@ -507,29 +476,26 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
         if (failBefore) {
-            with(result.output) {
-                it.count("${beforeClassErrorTestMethodName(gradleVersion)} FAILED") == 1
-                it.count("ruleTest PASSED") == 1
+            with(output) {
+                assert it.count("${beforeClassErrorTestMethodName()} FAILED") == 1
+                assert it.count("ruleTest PASSED") == 1
             }
         } else {
-            with(result.output) {
-                it.count("${afterClassErrorTestMethodName(gradleVersion)} FAILED") == 1
-                it.count("ruleTest PASSED") == 2
+            with(output) {
+                assert it.count("${afterClassErrorTestMethodName()} FAILED") == 1
+                assert it.count("ruleTest PASSED") == 2
             }
         }
 
         where:
-        [gradleVersion, failBefore] << GroovyCollections.combinations((Iterable) [
-            GRADLE_VERSIONS_UNDER_TEST,
-            [true, false]
-        ])
+        failBefore << [true, false]
     }
 
-    def "can rerun on whole class via className (gradle version #gradleVersion)"() {
+    def "can rerun on whole class via className"() {
         given:
         buildFile << """
             test.retry {
@@ -556,20 +522,17 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-        with(result.output) {
-            it.count('b FAILED') == 1
-            it.count('b PASSED') == 1
-            it.count('a PASSED') == 2
+        with(output) {
+            assert it.count('b FAILED') == 1
+            assert it.count('b PASSED') == 1
+            assert it.count('a PASSED') == 2
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
-    def "can rerun on whole class via annotation (gradle version #gradleVersion and retry annotation #retryAnnotation)"() {
+    def "can rerun on whole class via annotation #retryAnnotation"(String retryAnnotation) {
         given:
         buildFile << """
             dependencies {
@@ -615,23 +578,24 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-        with(result.output) {
-            it.count('b FAILED') == 1
-            it.count('b PASSED') == 1
-            it.count('a PASSED') == 2
+        with(output) {
+            assert it.count('b FAILED') == 1
+            assert it.count('b PASSED') == 1
+            assert it.count('a PASSED') == 2
         }
 
         where:
-        [gradleVersion, retryAnnotation] << [
-            GRADLE_VERSIONS_UNDER_TEST,
-            ["acme.CustomClassRetry", "com.gradle.enterprise.testing.annotations.ClassRetry", "com.gradle.develocity.testing.annotations.ClassRetry"]
-        ].combinations()
+        retryAnnotation << [
+            "acme.CustomClassRetry",
+            "com.gradle.enterprise.testing.annotations.ClassRetry",
+            "com.gradle.develocity.testing.annotations.ClassRetry"
+        ]
     }
 
-    def "handles flaky setup that prevents the retries of initially failed methods (gradle version #gradleVersion)"() {
+    def "handles flaky setup that prevents the retries of initially failed methods"() {
         given:
         buildFile << """
             test.retry.maxRetries = 2
@@ -659,22 +623,19 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-        with(result.output) {
-            it.count('flakyTest FAILED') == 1
-            it.count("${beforeClassErrorTestMethodName(gradleVersion)} FAILED") == 1
-            it.count("${beforeClassErrorTestMethodName(gradleVersion)} PASSED") == 1
-            it.count('flakyTest PASSED') == 1
-            it.count('successfulTest PASSED') == 2
+        with(output) {
+            assert it.count('flakyTest FAILED') == 1
+            assert it.count("${beforeClassErrorTestMethodName()} FAILED") == 1
+            assert it.count("${beforeClassErrorTestMethodName()} PASSED") == 1
+            assert it.count('flakyTest PASSED') == 1
+            assert it.count('successfulTest PASSED') == 2
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
-    def "handles setup failure after cleanup failure (gradle version #gradleVersion)"() {
+    def "handles setup failure after cleanup failure"() {
         given:
         buildFile << """
             test.retry.maxRetries = 2
@@ -707,27 +668,24 @@ class JUnit4FuncTest extends AbstractFrameworkFuncTest {
         """
 
         when:
-        def result = gradleRunner(gradleVersion).build()
+        succeeds('test')
 
         then:
-        def differentiatesBetweenSetupAndCleanupMethods = beforeClassErrorTestMethodName(gradleVersion) != afterClassErrorTestMethodName(gradleVersion)
-        with(result.output) {
-            it.count('flakyTest FAILED') == 1
-            it.count('flakyTest PASSED') == 1
-            it.count('successfulTest PASSED') == 2
+        def differentiatesBetweenSetupAndCleanupMethods = beforeClassErrorTestMethodName() != afterClassErrorTestMethodName()
+        with(output) {
+            assert it.count('flakyTest FAILED') == 1
+            assert it.count('flakyTest PASSED') == 1
+            assert it.count('successfulTest PASSED') == 2
 
             if (differentiatesBetweenSetupAndCleanupMethods) {
-                it.count("${afterClassErrorTestMethodName(gradleVersion)} FAILED") == 1
-                it.count("${afterClassErrorTestMethodName(gradleVersion)} PASSED") == 1
-                it.count("${beforeClassErrorTestMethodName(gradleVersion)} FAILED") == 1
-                it.count("${beforeClassErrorTestMethodName(gradleVersion)} PASSED") == 1
+                assert it.count("${afterClassErrorTestMethodName()} FAILED") == 1
+                assert it.count("${afterClassErrorTestMethodName()} PASSED") == 1
+                assert it.count("${beforeClassErrorTestMethodName()} FAILED") == 1
+                assert it.count("${beforeClassErrorTestMethodName()} PASSED") == 1
             } else {
-                it.count("${beforeClassErrorTestMethodName(gradleVersion)} FAILED") == 2
-                it.count("${beforeClassErrorTestMethodName(gradleVersion)} PASSED") == 1
+                assert it.count("${beforeClassErrorTestMethodName()} FAILED") == 2
+                assert it.count("${beforeClassErrorTestMethodName()} PASSED") == 1
             }
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 }
