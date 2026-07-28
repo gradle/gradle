@@ -51,6 +51,7 @@ dependencies {
     api(projects.daemonServices)
 
     api(libs.guava)
+    api(libs.inject)
     api(libs.jspecify)
 
     implementation(projects.buildProcessServices)
