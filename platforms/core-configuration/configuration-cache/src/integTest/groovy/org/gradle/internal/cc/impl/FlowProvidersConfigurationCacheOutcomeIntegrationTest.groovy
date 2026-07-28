@@ -16,13 +16,47 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.test.fixtures.file.TestFile
-
 class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    public static final String OUTCOME_PRINTING_PLUGIN = """
+            import org.gradle.api.flow.*
+            import org.gradle.api.configuration.ConfigurationCacheOutcome
+
+            class OutcomePrintingPlugin implements Plugin<Settings> {
+
+                private final FlowScope flowScope
+                private final FlowProviders flowProviders
+
+                @Inject
+                OutcomePrintingPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+
+                void apply(Settings target) {
+                    flowScope.always(PrintOutcome) {
+                        parameters.outcome = flowProviders.configurationCacheOutcome
+                    }
+                }
+            }
+
+            class PrintOutcome implements FlowAction<Parameters> {
+
+                interface Parameters extends FlowParameters {
+                    @Input Property<ConfigurationCacheOutcome> getOutcome()
+                }
+
+                void execute(Parameters parameters) {
+                    println('CC outcome: ' + parameters.outcome.get())
+                }
+            }
+
+            apply plugin: OutcomePrintingPlugin
+        """
 
     def "flow action observes NOT_ENABLED when the configuration cache is not used"() {
         given:
-        withOutcomePrintingPluginIn settingsFile
+        settingsFile OUTCOME_PRINTING_PLUGIN
 
         when:
         run DISABLE_CLI_OPT, 'help'
@@ -34,7 +68,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
     def "flow action observes STORED on a cache miss and REUSED on a cache hit"() {
         given:
         def configCache = newConfigurationCacheFixture()
-        withOutcomePrintingPluginIn settingsFile
+        settingsFile OUTCOME_PRINTING_PLUGIN
 
         when: 'first run stores the entry'
         configurationCacheRun 'help'
@@ -53,7 +87,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
 
     def "flow action observes DISCARDED when an incompatible task is scheduled"() {
         given:
-        withOutcomePrintingPluginIn settingsFile
+        settingsFile OUTCOME_PRINTING_PLUGIN
         buildFile '''
             tasks.register('incompatible') {
                 notCompatibleWithConfigurationCache('declarative reason')
@@ -70,7 +104,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
 
     def "flow action observes NOT_STORED on a cache miss in read-only mode"() {
         given:
-        withOutcomePrintingPluginIn settingsFile
+        settingsFile OUTCOME_PRINTING_PLUGIN
 
         when:
         configurationCacheRun ENABLE_READ_ONLY_CACHE, 'help'
@@ -81,7 +115,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
 
     def "flow action observes the outcome when the build fails"() {
         given:
-        withOutcomePrintingPluginIn settingsFile
+        settingsFile OUTCOME_PRINTING_PLUGIN
         buildFile '''
             tasks.register('broken') {
                 doLast { throw new GradleException('boom') }
@@ -152,7 +186,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
 
     def "flow action observes UPDATED when the entry is partially reused"() {
         given:
-        withOutcomePrintingPluginIn settingsFile
+        settingsFile OUTCOME_PRINTING_PLUGIN
 
         when:
         configurationCacheRun 'help'
@@ -182,7 +216,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
                 dependsOn gradle.includedBuild('included').task(':ok')
             }
         """
-        withOutcomePrintingPluginIn file('included/settings.gradle')
+        file('included/settings.gradle') << OUTCOME_PRINTING_PLUGIN
         file('included/build.gradle') << '''
             tasks.register('ok')
         '''
@@ -275,7 +309,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
 
     def "flow action of a GradleBuild nested build observes NOT_ENABLED"() {
         given:
-        withOutcomePrintingPluginIn file('nested/settings.gradle')
+        file('nested/settings.gradle') << OUTCOME_PRINTING_PLUGIN
         file('nested/build.gradle') << ''
         settingsFile ''
         buildFile """
@@ -292,41 +326,4 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         outputContains 'CC outcome: NOT_ENABLED'
     }
 
-    private void withOutcomePrintingPluginIn(TestFile scriptFile) {
-        scriptFile << """
-            import org.gradle.api.flow.*
-            import org.gradle.api.configuration.ConfigurationCacheOutcome
-
-            class OutcomePrintingPlugin implements Plugin<Settings> {
-
-                private final FlowScope flowScope
-                private final FlowProviders flowProviders
-
-                @Inject
-                OutcomePrintingPlugin(FlowScope flowScope, FlowProviders flowProviders) {
-                    this.flowScope = flowScope
-                    this.flowProviders = flowProviders
-                }
-
-                void apply(Settings target) {
-                    flowScope.always(PrintOutcome) {
-                        parameters.outcome = flowProviders.configurationCacheOutcome
-                    }
-                }
-            }
-
-            class PrintOutcome implements FlowAction<Parameters> {
-
-                interface Parameters extends FlowParameters {
-                    @Input Property<ConfigurationCacheOutcome> getOutcome()
-                }
-
-                void execute(Parameters parameters) {
-                    println('CC outcome: ' + parameters.outcome.get())
-                }
-            }
-
-            apply plugin: OutcomePrintingPlugin
-        """
-    }
 }
