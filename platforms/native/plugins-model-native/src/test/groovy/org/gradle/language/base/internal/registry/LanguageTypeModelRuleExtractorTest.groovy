@@ -108,6 +108,10 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
     class NotImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet {}
 
     class NotExtendingBaseLanguageSourceSet extends AbstractBuildableComponentSpec implements CustomLanguageSourceSet {
+        NotExtendingBaseLanguageSourceSet() {
+            super(null, null)
+        }
+
         @Override
         String getDisplayName() {
             return null
