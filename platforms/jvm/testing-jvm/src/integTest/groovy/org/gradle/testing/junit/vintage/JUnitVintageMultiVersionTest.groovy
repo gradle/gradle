@@ -29,7 +29,7 @@ trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
     }
 
     AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
-        new JUnit4TestSourceConfiguration(MultiVersionIntegrationSpec.version)
+        new JUnit4CommonTestSources.JUnit4TestSourceConfiguration(MultiVersionIntegrationSpec.version)
     }
 
     static class JUnitVintageBuildScriptConfiguration implements AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration {

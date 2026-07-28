@@ -26,7 +26,7 @@ trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
     }
 
     AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
-        new JUnit4TestSourceConfiguration(AbstractTestingMultiVersionIntegrationTest.version as String)
+        new JUnit4CommonTestSources.JUnit4TestSourceConfiguration(AbstractTestingMultiVersionIntegrationTest.version as String)
     }
 
     static class JUnit4BuildScriptConfiguration implements AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration {
