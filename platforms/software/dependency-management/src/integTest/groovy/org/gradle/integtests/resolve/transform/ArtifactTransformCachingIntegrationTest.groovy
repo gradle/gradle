@@ -689,7 +689,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @Flaky
+    @Flaky(because = "Long-quarantined flaky test; no open tracking issue")
     def "can use configuration parameter of type #type"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """

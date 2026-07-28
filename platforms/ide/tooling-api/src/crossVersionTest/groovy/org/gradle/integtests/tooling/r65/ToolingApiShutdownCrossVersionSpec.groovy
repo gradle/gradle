@@ -133,7 +133,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     @TargetGradleVersion(">=6.5")
-    @Flaky
+    @Flaky(because = "Long-quarantined flaky test; no open tracking issue")
     def "disconnect stops multiple daemons"() {
         setup:
         buildFile.text = """
