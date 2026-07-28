@@ -31,6 +31,5 @@ dependencies {
 
     testImplementation(libs.groovy)
     testImplementation(testLibs.spock)
-    testImplementation(libs.asm)
     testImplementation(gradleTestKit())
 }
