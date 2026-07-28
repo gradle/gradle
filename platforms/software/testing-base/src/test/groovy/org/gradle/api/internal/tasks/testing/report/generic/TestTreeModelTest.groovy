@@ -18,14 +18,17 @@ package org.gradle.api.internal.tasks.testing.report.generic
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore
+import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 import spock.lang.TempDir
 
+import java.nio.file.Files
 import java.nio.file.Path
 
 /**
@@ -134,6 +137,37 @@ class TestTreeModelTest extends Specification {
         testNode.perRootInfo[0].size() == 2
         testNode.perRootInfo[0][0].isLeaf()
         testNode.perRootInfo[0][1].isLeaf()
+    }
+
+    def "useResultsFrom closes the output reader after use"() {
+        given:
+        def storeDir = tempDir.resolve("store-with-output")
+        def store = new SerializableTestResultStore(storeDir)
+        def writer = store.openWriter(0)
+        try {
+            def root = descriptor("root", null)
+            def suite = descriptor("MySuite", root, "com.example.MySuite")
+            def testA = descriptor("testA", suite, "com.example.MySuite")
+
+            writer.started(root, new TestStartEvent(100))
+            writer.started(suite, new TestStartEvent(100))
+            writer.started(testA, new TestStartEvent(100))
+            writer.output(testA, new DefaultTestOutputEvent(100, TestOutputEvent.Destination.StdOut, "test output"))
+            writer.completed(testA, successResult(100, 200), new TestCompleteEvent(200))
+            writer.completed(suite, successResult(100, 200), new TestCompleteEvent(200))
+            writer.completed(root, successResult(100, 200), new TestCompleteEvent(200))
+        } finally {
+            writer.close()
+        }
+
+        when:
+        TestTreeModelResultsProvider.useResultsFrom(storeDir) { provider ->
+            provider.visitClasses { }
+        }
+
+        then:
+        noExceptionThrown()
+        Files.deleteIfExists(storeDir.resolve("output-events.bin"))
     }
 
     private SerializableTestResultStore writeStore(
