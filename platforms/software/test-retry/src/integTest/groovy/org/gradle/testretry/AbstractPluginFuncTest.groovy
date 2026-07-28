@@ -17,50 +17,20 @@ package org.gradle.testretry
 
 import groovy.json.StringEscapeUtils
 import groovy.xml.XmlSlurper
-import org.gradle.testkit.runner.GradleRunner
-import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.intellij.lang.annotations.Language
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 
-import java.lang.management.ManagementFactory
-
-import static java.util.Arrays.asList
-
-abstract class AbstractPluginFuncTest extends Specification implements TestFrameworkVersionData {
-
-    public static final List<String> GRADLE_VERSIONS_UNDER_TEST = gradleVersionsUnderTest()
-
-    @Rule
-    TemporaryFolder testProjectDir = new TemporaryFolder()
-
-    File gradleProperties
-
-    File settingsFile
-
-    File buildFile
+abstract class AbstractPluginFuncTest extends AbstractIntegrationSpec implements TestFrameworkVersionData {
 
     def setup() {
-        gradleProperties = testProjectDir.newFile('gradle.properties')
-        testJavaToolchainVersion().ifPresent { major ->
-            // When a specific Java version is specified that tests should configure,
-            // we have to configure the build to allow finding the version via an env variable.
-            def expectedEnvVar = "JDK${major}"
-            assert (System.getenv(expectedEnvVar) != null) : "Test toolchain version is configured but env var ${expectedEnvVar} is missing!"
+        executer.withRepositoryMirrors()
 
-            gradleProperties << "org.gradle.java.installations.fromEnv=${expectedEnvVar}"
-        }
-
-        settingsFile = testProjectDir.newFile('settings.gradle')
         settingsFile << "rootProject.name = 'hello-world'"
-        buildFile = testProjectDir.newFile('build.gradle')
         buildFile << baseBuildScript()
 
-        testProjectDir.newFolder('src', 'test', 'java', 'acme')
-        testProjectDir.newFolder('src', 'test', 'groovy', 'acme')
-        testProjectDir.newFolder('src', 'test', 'kotlin', 'acme')
+        file('src/test/java/acme').mkdirs()
+        file('src/test/groovy/acme').mkdirs()
+        file('src/test/kotlin/acme').mkdirs()
 
         writeJavaTestSource flakyAssertClass()
     }
@@ -115,23 +85,14 @@ abstract class AbstractPluginFuncTest extends Specification implements TestFrame
         """
     }
 
-    File file(String path) {
-        def file = new File(testProjectDir.root, path)
-        assert file.parentFile.mkdirs() || file.parentFile.directory
-        assert file.createNewFile() || file.file
-        file
-    }
-
     String baseBuildScript() {
         """
             plugins {
                 id '${languagePlugin}'
-                id 'org.gradle.test-retry'
+                id 'org.gradle.test-retry-bundled'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             ${buildConfiguration()}
 
@@ -140,38 +101,17 @@ abstract class AbstractPluginFuncTest extends Specification implements TestFrame
                     events "passed", "skipped", "failed"
                 }
             }
-
-            ${jdkConfigurationForTest()}
         """
     }
-
-    String jdkConfigurationForTest() {
-        def maybeTestJavaVersion = testJavaToolchainVersion()
-
-        if (maybeTestJavaVersion.present) {
-            def testJavaVersion = maybeTestJavaVersion.get()
-            println "Test runs with Java ${testJavaVersion}"
-
-            """
-                java {
-                    toolchain {
-                        languageVersion = JavaLanguageVersion.of(${testJavaVersion})
-                    }
-                }
-            """
-        } else {
-            return ""
-        }
-   }
 
     abstract String getLanguagePlugin()
 
     String baseBuildScriptWithoutPlugin() {
-        baseBuildScript() - "id 'org.gradle.test-retry'"
+        baseBuildScript() - "id 'org.gradle.test-retry-bundled'"
     }
 
     String baseBuildScriptWithNotAppliedTestRetryPlugin() {
-        baseBuildScript().replace("id 'org.gradle.test-retry'", "id 'org.gradle.test-retry' apply false")
+        baseBuildScript().replace("id 'org.gradle.test-retry-bundled'", "id 'org.gradle.test-retry-bundled' apply false")
     }
 
     protected String buildConfiguration() {
@@ -190,17 +130,13 @@ abstract class AbstractPluginFuncTest extends Specification implements TestFrame
         return """acme.FlakyAssert.flakyAssertPassFailPass("${StringEscapeUtils.escapeJava(id)}");"""
     }
 
-    @SuppressWarnings("GroovyAssignabilityCheck")
-    void writeTestSource(
-        String source,
-        String language,
-        String extension
-    ) {
-        String packageName = (source =~ /package\s+([\w.]+)/)[0][1]
-        String className = (source =~ /(class|interface)\s+(\w+)\s+/)[0][2]
+    void writeTestSource(String source, String language, String extension) {
+        def packageMatch = (source =~ /package\s+([\w.]+)/)
+        def classMatch = (source =~ /(class|interface)\s+(\w+)\s+/)
+        String packageName = packageMatch[0][1]
+        String className = classMatch[0][2]
         String sourceFilePackage = "src/test/$language/${packageName.replace('.', '/')}"
-        new File(testProjectDir.root, sourceFilePackage).mkdirs()
-        testProjectDir.newFile("$sourceFilePackage/${className}.$extension") << source
+        file("$sourceFilePackage/${className}.$extension") << source
     }
 
     void writeJavaTestSource(@Language("JAVA") String source) {
@@ -215,29 +151,17 @@ abstract class AbstractPluginFuncTest extends Specification implements TestFrame
         writeTestSource(source, 'kotlin', 'kt')
     }
 
-    GradleRunner gradleRunner(String gradleVersion, String... arguments = ['test', '-S']) {
-        GradleRunner.create()
-            .withDebug(ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0)
-            .withProjectDir(testProjectDir.root)
-            .withArguments(arguments)
-            .withPluginClasspath()
-            .forwardOutput()
-            .tap {
-                gradleVersion == GradleVersion.current().toString() ? null : it.withGradleVersion(gradleVersion)
-            }
-    }
-
-    def assertTestReportContains(String testClazz, String testName, int expectedSuccessCount, int expectedFailCount) {
-        assertXmlReportContains(testClazz, testName, expectedSuccessCount, expectedFailCount)
-        true
-    }
-
     String reportedTestName(String testName) {
         testName
     }
 
-    def assertXmlReportContains(String testClazz, String testName, int expectedSuccessCount, int expectedFailCount) {
-        def xml = new XmlSlurper().parse(new File(testProjectDir.root, "build/test-results/test/TEST-acme.${testClazz}.xml"))
+    boolean assertTestReportContains(String testClazz, String testName, int expectedSuccessCount, int expectedFailCount) {
+        assertXmlReportContains(testClazz, testName, expectedSuccessCount, expectedFailCount)
+        true
+    }
+
+    boolean assertXmlReportContains(String testClazz, String testName, int expectedSuccessCount, int expectedFailCount) {
+        def xml = new XmlSlurper().parse(file("build/test-results/test/TEST-acme.${testClazz}.xml"))
         // assert summary
         xml.'**'.find { it.name() == 'testsuite' && it.@name == "acme.${testClazz}" && it.@tests == "${expectedFailCount + expectedSuccessCount}" }
 
@@ -246,57 +170,5 @@ abstract class AbstractPluginFuncTest extends Specification implements TestFrame
         assert xml.'**'.findAll { it.name() == 'testcase' && it.@classname == "acme.${testClazz}" && !it.failure.isEmpty() }.size() == expectedFailCount
         assert xml.'**'.findAll { it.name() == 'testcase' && it.@classname == "acme.${testClazz}" && it.failure.isEmpty() }.size() == expectedSuccessCount
         true
-    }
-
-    /**
-     * Returns the Java major version that runs this test class.
-     */
-
-    static int javaMajorVersion() {
-        def version = System.getProperty("java.version")
-        if (version.startsWith("1.")) {
-            return Integer.parseInt(version.substring(2, 3)) // "1.8" → 8
-        }
-        return Integer.parseInt(version.split("\\.")[0]) // "17.0.2" → 17
-    }
-
-    /**
-     * Returns the Java major version to configure builds running in this test class.
-     */
-    static Optional<Integer> testJavaToolchainVersion() {
-        Optional.ofNullable(System.getProperty("testJavaToolchainVersion"))
-            .map(s -> s.toInteger())
-    }
-
-    /**
-     * Returns the Java major version builds running in this test class use.
-     */
-    static int effectiveTestJavaMajorVersion() {
-        testJavaToolchainVersion().orElseGet { javaMajorVersion() }
-    }
-
-    static private List<String> gradleVersionsUnderTest() {
-        def testJavaVersion = testJavaToolchainVersion()
-        def explicitGradleVersions = System.getProperty('org.gradle.test.gradleVersions')
-        if (explicitGradleVersions) {
-            def gradleVersions = asList(explicitGradleVersions.split("\\|"))
-
-            if (testJavaVersion?.orElse(null) >= 25) {
-                // Java 25 is only supported for Gradle 9.1.0 and above
-                removedVersionsBefore(9, 1, gradleVersions)
-            } else {
-                gradleVersions
-            }
-
-        } else {
-            [GradleVersion.current().toString()]
-        }
-    }
-
-    static private List<String> removedVersionsBefore(int major, int minor, List<String> versions) {
-        versions.findAll {
-            def version = VersionNumber.parse(it)
-            (version.major == major && version.minor >= minor) || version.major > major
-        }
     }
 }
