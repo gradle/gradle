@@ -19,8 +19,8 @@ package org.gradle.internal.cc.impl
 import groovy.io.FileType
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
@@ -30,11 +30,8 @@ import spock.lang.Issue
  * agent has to be re-applied by the JVM that loads the cache entry, based on its own agent status.
  */
 @Requires(
-    value = [
-        OsTestPreconditions.NotWindows,
-        TestExecutionPreconditions.NotEmbeddedExecutor
-    ],
-    reason = "Attaches a custom -javaagent: to the daemon (flaky on Windows) and relies on a real, cold daemon rebuilding the classloader (masked by the in-process embedded executor)"
+    value = TestExecutionPreconditions.NotEmbeddedExecutor,
+    reason = "Relies on a real, cold daemon rebuilding the classloader from the cache entry, which the in-process embedded executor masks"
 )
 class ConfigurationCacheThirdPartyAgentInstrumentationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     // The agent rewrites this constant to an equal-length replacement, so the presence of one
@@ -72,9 +69,7 @@ class ConfigurationCacheThirdPartyAgentInstrumentationIntegrationTest extends Ab
 
         then: "the cache is loaded and the agent's transformation is reapplied"
         configurationCache.assertStateLoaded()
-        // A fresh daemon was started (the store run's daemon was killed), so the buildscript
-        // classloader is reconstructed from the cache entry rather than reused from memory.
-        daemons.daemons.size() == 2
+        loadRanInFreshJvm()
         outputContains("marker value = $PATCHED_MARKER")
     }
 
@@ -100,7 +95,7 @@ class ConfigurationCacheThirdPartyAgentInstrumentationIntegrationTest extends Ab
 
         then: "the cache is loaded and the agent's transformation is reapplied"
         configurationCache.assertStateLoaded()
-        daemons.daemons.size() == 2
+        loadRanInFreshJvm()
         outputContains("marker value = $PATCHED_MARKER")
     }
 
@@ -125,7 +120,7 @@ class ConfigurationCacheThirdPartyAgentInstrumentationIntegrationTest extends Ab
 
         then: "the cache is loaded and the agent transforms the restored classpath"
         configurationCache.assertStateLoaded()
-        daemons.daemons.size() == 2
+        loadRanInFreshJvm()
         outputContains("marker value = $PATCHED_MARKER")
     }
 
@@ -150,11 +145,15 @@ class ConfigurationCacheThirdPartyAgentInstrumentationIntegrationTest extends Ab
 
         then: "the cache is loaded and the pre-instrumented classes are served"
         configurationCache.assertStateLoaded()
-        daemons.daemons.size() == 2
+        loadRanInFreshJvm()
         outputContains("marker value = $ORIGINAL_MARKER")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/38619")
+    @Requires(
+        value = TestExecutionPreconditions.NotNoDaemonExecutor,
+        reason = "The last two runs have to be configured on the warm daemon holding the classloader restored by the earlier cache load; without a daemon every run rebuilds the classloader through the resolver instead"
+    )
     def "Gradle instrumentation still tracks build logic inputs when composed with a third-party agent"() {
         given:
         def agentJar = buildPatchingAgentJar()
@@ -245,6 +244,19 @@ class ConfigurationCacheThirdPartyAgentInstrumentationIntegrationTest extends Ab
 
     private DaemonLogsAnalyzer getDaemons() {
         new DaemonLogsAnalyzer(executer.daemonBaseDir)
+    }
+
+    /**
+     * Checks that the runs before and after {@code daemons.killAll()} used distinct daemons, so the
+     * loading run reconstructed the buildscript classloader from the cache entry instead of reusing
+     * it from memory.
+     */
+    private void loadRanInFreshJvm() {
+        // The no-daemon executor starts a fresh JVM for every run, so there the check
+        // is unnecessary (and daemon logs are not written at all).
+        if (!GradleContextualExecuter.noDaemon) {
+            assert daemons.daemons.size() == 2
+        }
     }
 
     private void withAgent(File agentJar) {
