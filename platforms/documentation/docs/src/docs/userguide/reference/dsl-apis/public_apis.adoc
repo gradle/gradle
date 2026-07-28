@@ -72,10 +72,12 @@ Conversely, the `**` wildcard matches the noted package and its subpackages.
 The Kotlin DSL provides a public API on top of the Gradle API.
 The following Kotlin DSL packages are public API:
 
-* `org.gradle.kotlin.dsl`
-* `org.gradle.kotlin.dsl.plugins.dsl`
-* `org.gradle.kotlin.dsl.precompile`
+[source,text]
+----
+org.gradle.kotlin.dsl.*  (top-level classes only — excludes subpackages)
+org.gradle.kotlin.dsl.plugins.dsl.*
+org.gradle.kotlin.dsl.precompile.*
+----
 
-Subpackages of these, for example `org.gradle.kotlin.dsl.support` or `org.gradle.kotlin.dsl.provider`, are internal implementation details and must not be used from plugins or build scripts.
 
 NOTE: For more details, see <<kotlin_dsl.adoc#avoid_using_internal_kotlin_dsl_apis,Avoid Using Internal Kotlin DSL APIs>>.
