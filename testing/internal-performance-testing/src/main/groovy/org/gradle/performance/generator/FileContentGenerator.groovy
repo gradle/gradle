@@ -426,7 +426,7 @@ abstract class FileContentGenerator {
     }
 
     protected final int getPropertyCount() {
-        Math.ceil((double) config.minLinesOfCodePerSourceFile / 10)
+        (int) Math.ceil((double) config.minLinesOfCodePerSourceFile / 10)
     }
 
     protected final String decideOnJavaPlugin(String plugin, Boolean projectHasParents) {
