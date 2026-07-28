@@ -19,7 +19,12 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultConfigurationCacheDescriptor;
-import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryOutcomeResult;
+import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryDiscardedResult;
+import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryNotStoredResult;
+import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryReusedResult;
+import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryStoredResult;
+import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryUndeterminedResult;
+import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryUpdatedResult;
 import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.DefaultFailureResult;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
@@ -72,6 +77,22 @@ public class ConfigurationCacheOperationMapper implements BuildOperationMapper<C
             return new DefaultFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)));
         }
         ConfigurationCacheEntryOutcomeBuildOperationType.Result operationResult = (ConfigurationCacheEntryOutcomeBuildOperationType.Result) finishEvent.getResult();
-        return new DefaultConfigurationCacheEntryOutcomeResult(startTime, endTime, operationResult.getOutcome().name(), operationResult.getProblemCount());
+        int problemCount = operationResult.getProblemCount();
+        switch (operationResult.getOutcome()) {
+            case STORED:
+                return new DefaultConfigurationCacheEntryStoredResult(startTime, endTime, problemCount);
+            case REUSED:
+                return new DefaultConfigurationCacheEntryReusedResult(startTime, endTime, problemCount);
+            case UPDATED:
+                return new DefaultConfigurationCacheEntryUpdatedResult(startTime, endTime, problemCount);
+            case DISCARDED:
+                return new DefaultConfigurationCacheEntryDiscardedResult(startTime, endTime, problemCount);
+            case NOT_STORED:
+                return new DefaultConfigurationCacheEntryNotStoredResult(startTime, endTime, problemCount);
+            case UNDETERMINED:
+                return new DefaultConfigurationCacheEntryUndeterminedResult(startTime, endTime, problemCount);
+            default:
+                throw new IllegalStateException("Unknown configuration cache entry outcome: " + operationResult.getOutcome());
+        }
     }
 }

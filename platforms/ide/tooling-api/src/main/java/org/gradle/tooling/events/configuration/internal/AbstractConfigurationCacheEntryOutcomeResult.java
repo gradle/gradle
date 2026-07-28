@@ -21,19 +21,12 @@ import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class DefaultConfigurationCacheEntryOutcomeResult extends DefaultOperationSuccessResult implements ConfigurationCacheEntryOutcomeResult {
-    private final String outcome;
+public abstract class AbstractConfigurationCacheEntryOutcomeResult extends DefaultOperationSuccessResult implements ConfigurationCacheEntryOutcomeResult {
     private final int problemCount;
 
-    public DefaultConfigurationCacheEntryOutcomeResult(long startTime, long endTime, String outcome, int problemCount) {
+    protected AbstractConfigurationCacheEntryOutcomeResult(long startTime, long endTime, int problemCount) {
         super(startTime, endTime);
-        this.outcome = outcome;
         this.problemCount = problemCount;
-    }
-
-    @Override
-    public String getOutcome() {
-        return outcome;
     }
 
     @Override

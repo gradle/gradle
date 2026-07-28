@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.configuration.internal;
 
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoredResult;
 import org.jspecify.annotations.NullMarked;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 9.8.0
- */
 @NullMarked
-public interface InternalConfigurationCacheEntryOutcomeResult {
-    /**
-     * The number of configuration cache problems reported to the console.
-     */
-    int getProblemCount();
+public class DefaultConfigurationCacheEntryStoredResult extends AbstractConfigurationCacheEntryOutcomeResult implements ConfigurationCacheEntryStoredResult {
+    public DefaultConfigurationCacheEntryStoredResult(long startTime, long endTime, int problemCount) {
+        super(startTime, endTime, problemCount);
+    }
 }

@@ -53,7 +53,7 @@ public class FeatureCheckBuildResult implements BuildResult {
         BuildOperationParameters buildOperationParameters,
         @NonNull ByteSource outputSource,
         List<BuildTask> tasks,
-        @Nullable String configurationCacheOutcome
+        @Nullable ConfigurationCacheOutcome configurationCacheOutcome
     ) {
         delegateBuildResult = new DefaultBuildResult(outputSource, tasks, configurationCacheOutcome);
         outputFeatureCheck = new BuildResultOutputFeatureCheck(buildOperationParameters.getTargetGradleVersion(), buildOperationParameters.isEmbedded());

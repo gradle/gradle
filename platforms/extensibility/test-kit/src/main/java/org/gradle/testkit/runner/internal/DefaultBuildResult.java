@@ -46,22 +46,10 @@ public class DefaultBuildResult implements BuildResult {
         this(outputSource, tasks, null);
     }
 
-    public DefaultBuildResult(ByteSource outputSource, List<BuildTask> tasks, @Nullable String configurationCacheOutcome) {
+    public DefaultBuildResult(ByteSource outputSource, List<BuildTask> tasks, @Nullable ConfigurationCacheOutcome configurationCacheOutcome) {
         this.outputSource = outputSource;
         this.tasks = tasks;
-        this.configurationCacheOutcome = toConfigurationCacheOutcome(configurationCacheOutcome);
-    }
-
-    private static ConfigurationCacheOutcome toConfigurationCacheOutcome(@Nullable String outcomeName) {
-        if (outcomeName == null) {
-            return ConfigurationCacheOutcome.NOT_ENABLED;
-        }
-        try {
-            return ConfigurationCacheOutcome.valueOf(outcomeName);
-        } catch (IllegalArgumentException e) {
-            // An outcome added by a later Gradle version that this TestKit version does not know about
-            return ConfigurationCacheOutcome.UNDETERMINED;
-        }
+        this.configurationCacheOutcome = configurationCacheOutcome == null ? ConfigurationCacheOutcome.NOT_ENABLED : configurationCacheOutcome;
     }
 
     @Override

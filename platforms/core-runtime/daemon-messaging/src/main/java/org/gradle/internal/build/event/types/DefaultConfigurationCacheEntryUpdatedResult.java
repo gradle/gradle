@@ -16,27 +16,12 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryOutcomeResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryUpdatedResult;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class DefaultConfigurationCacheEntryOutcomeResult extends DefaultSuccessResult implements InternalConfigurationCacheEntryOutcomeResult {
-    private final String outcome;
-    private final int problemCount;
-
-    public DefaultConfigurationCacheEntryOutcomeResult(long startTime, long endTime, String outcome, int problemCount) {
-        super(startTime, endTime);
-        this.outcome = outcome;
-        this.problemCount = problemCount;
-    }
-
-    @Override
-    public String getOutcome() {
-        return outcome;
-    }
-
-    @Override
-    public int getProblemCount() {
-        return problemCount;
+public class DefaultConfigurationCacheEntryUpdatedResult extends AbstractConfigurationCacheEntryOutcomeResult implements InternalConfigurationCacheEntryUpdatedResult {
+    public DefaultConfigurationCacheEntryUpdatedResult(long startTime, long endTime, int problemCount) {
+        super(startTime, endTime, problemCount);
     }
 }

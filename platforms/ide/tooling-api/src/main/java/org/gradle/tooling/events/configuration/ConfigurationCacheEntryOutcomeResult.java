@@ -22,23 +22,21 @@ import org.jspecify.annotations.NullMarked;
 
 /**
  * The final outcome of configuration caching for a build invocation.
+ * <p>
+ * The concrete outcome is expressed by the subtype of this interface. More subtypes may be
+ * added in future Gradle versions.
  *
+ * @see ConfigurationCacheEntryStoredResult
+ * @see ConfigurationCacheEntryReusedResult
+ * @see ConfigurationCacheEntryUpdatedResult
+ * @see ConfigurationCacheEntryDiscardedResult
+ * @see ConfigurationCacheEntryNotStoredResult
+ * @see ConfigurationCacheEntryUndeterminedResult
  * @since 9.8.0
  */
 @Incubating
 @NullMarked
 public interface ConfigurationCacheEntryOutcomeResult extends OperationResult {
-    /**
-     * Returns the outcome for the configuration cache entry.
-     * <p>
-     * One of {@code "STORED"}, {@code "REUSED"}, {@code "UPDATED"}, {@code "DISCARDED"},
-     * {@code "NOT_STORED"} or {@code "UNDETERMINED"}. More values may be added in future Gradle versions.
-     *
-     * @return the outcome
-     * @since 9.8.0
-     */
-    String getOutcome();
-
     /**
      * Returns the number of configuration cache problems reported to the console for this build invocation.
      *

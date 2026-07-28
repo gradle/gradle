@@ -21,12 +21,10 @@ import org.jspecify.annotations.NullMarked;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
+ * A configuration cache entry was found and partially reused; the invalidated projects were re-configured and the entry was updated.
+ *
  * @since 9.8.0
  */
 @NullMarked
-public interface InternalConfigurationCacheEntryOutcomeResult {
-    /**
-     * The number of configuration cache problems reported to the console.
-     */
-    int getProblemCount();
+public interface InternalConfigurationCacheEntryUpdatedResult extends InternalConfigurationCacheEntryOutcomeResult {
 }

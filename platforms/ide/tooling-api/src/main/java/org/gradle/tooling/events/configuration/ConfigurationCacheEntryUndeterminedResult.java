@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.configuration;
 
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * The build finished before the outcome of configuration caching was determined, e.g. because it failed early.
  *
  * @since 9.8.0
  */
+@Incubating
 @NullMarked
-public interface InternalConfigurationCacheEntryOutcomeResult {
-    /**
-     * The number of configuration cache problems reported to the console.
-     */
-    int getProblemCount();
+public interface ConfigurationCacheEntryUndeterminedResult extends ConfigurationCacheEntryOutcomeResult {
 }

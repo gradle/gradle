@@ -22,6 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.configuration.ConfigurationCacheEntryOutcomeResult
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryReusedResult
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoredResult
 import org.gradle.tooling.events.configuration.ConfigurationCacheOperationDescriptor
 
 @ToolingApiVersion(">=9.8")
@@ -48,10 +50,8 @@ class ConfigurationCacheEntryOutcomeProgressEventCrossVersionSpec extends Toolin
         then:
         def outcomeOperation = events.operation("Configuration cache entry outcome")
         outcomeOperation.descriptor instanceof ConfigurationCacheOperationDescriptor
-        with((ConfigurationCacheEntryOutcomeResult) outcomeOperation.result) {
-            outcome == "STORED"
-            problemCount == 0
-        }
+        outcomeOperation.result instanceof ConfigurationCacheEntryStoredResult
+        ((ConfigurationCacheEntryOutcomeResult) outcomeOperation.result).problemCount == 0
 
         when:
         events = ProgressEvents.create()
@@ -64,7 +64,7 @@ class ConfigurationCacheEntryOutcomeProgressEventCrossVersionSpec extends Toolin
         }
 
         then:
-        ((ConfigurationCacheEntryOutcomeResult) events.operation("Configuration cache entry outcome").result).outcome == "REUSED"
+        events.operation("Configuration cache entry outcome").result instanceof ConfigurationCacheEntryReusedResult
     }
 
     @TargetGradleVersion(">=9.8")

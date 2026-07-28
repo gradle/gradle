@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import com.google.common.io.ByteSource;
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.ConfigurationCacheOutcome;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -30,7 +31,7 @@ public class GradleExecutionResult {
     private final ByteSource outputSource;
     private final List<BuildTask> tasks;
     @Nullable
-    private final String configurationCacheOutcome;
+    private final ConfigurationCacheOutcome configurationCacheOutcome;
     @Nullable
     private final Throwable throwable;
 
@@ -55,7 +56,7 @@ public class GradleExecutionResult {
         BuildOperationParameters buildOperationParameters,
         ByteSource outputSource,
         List<BuildTask> tasks,
-        @Nullable String configurationCacheOutcome,
+        @Nullable ConfigurationCacheOutcome configurationCacheOutcome,
         @Nullable Throwable throwable
     ) {
         this.buildOperationParameters = buildOperationParameters;
@@ -79,11 +80,11 @@ public class GradleExecutionResult {
     }
 
     /**
-     * The raw outcome name reported by the build's configuration cache entry outcome event,
+     * The outcome reported by the build's configuration cache entry outcome event,
      * or {@code null} if no such event was received.
      */
     @Nullable
-    public String getConfigurationCacheOutcome() {
+    public ConfigurationCacheOutcome getConfigurationCacheOutcome() {
         return configurationCacheOutcome;
     }
 

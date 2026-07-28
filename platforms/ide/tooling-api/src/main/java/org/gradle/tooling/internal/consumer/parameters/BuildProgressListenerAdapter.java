@@ -44,7 +44,12 @@ import org.gradle.tooling.events.configuration.ConfigurationCacheFinishEvent;
 import org.gradle.tooling.events.configuration.ConfigurationCacheOperationDescriptor;
 import org.gradle.tooling.events.configuration.ConfigurationCacheProgressEvent;
 import org.gradle.tooling.events.configuration.ConfigurationCacheStartEvent;
-import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryOutcomeResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryDiscardedResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryNotStoredResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryReusedResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryStoredResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryUndeterminedResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryUpdatedResult;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheFinishEvent;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheOperationDescriptor;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheStartEvent;
@@ -203,7 +208,13 @@ import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifie
 import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryDiscardedResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryNotStoredResult;
 import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryOutcomeResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryReusedResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryStoredResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryUndeterminedResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryUpdatedResult;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
 import org.gradle.tooling.internal.protocol.events.InternalFilePosition;
@@ -574,8 +585,25 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (!(result instanceof InternalConfigurationCacheEntryOutcomeResult)) {
             return null;
         }
-        InternalConfigurationCacheEntryOutcomeResult outcomeResult = (InternalConfigurationCacheEntryOutcomeResult) result;
-        return new DefaultConfigurationCacheEntryOutcomeResult(result.getStartTime(), result.getEndTime(), outcomeResult.getOutcome(), outcomeResult.getProblemCount());
+        long startTime = result.getStartTime();
+        long endTime = result.getEndTime();
+        int problemCount = ((InternalConfigurationCacheEntryOutcomeResult) result).getProblemCount();
+        if (result instanceof InternalConfigurationCacheEntryStoredResult) {
+            return new DefaultConfigurationCacheEntryStoredResult(startTime, endTime, problemCount);
+        } else if (result instanceof InternalConfigurationCacheEntryReusedResult) {
+            return new DefaultConfigurationCacheEntryReusedResult(startTime, endTime, problemCount);
+        } else if (result instanceof InternalConfigurationCacheEntryUpdatedResult) {
+            return new DefaultConfigurationCacheEntryUpdatedResult(startTime, endTime, problemCount);
+        } else if (result instanceof InternalConfigurationCacheEntryDiscardedResult) {
+            return new DefaultConfigurationCacheEntryDiscardedResult(startTime, endTime, problemCount);
+        } else if (result instanceof InternalConfigurationCacheEntryNotStoredResult) {
+            return new DefaultConfigurationCacheEntryNotStoredResult(startTime, endTime, problemCount);
+        } else if (result instanceof InternalConfigurationCacheEntryUndeterminedResult) {
+            return new DefaultConfigurationCacheEntryUndeterminedResult(startTime, endTime, problemCount);
+        } else {
+            // An outcome added by a later Gradle version that this client does not know about
+            return null;
+        }
     }
 
     private void broadcastFileDownloadEvent(InternalProgressEvent event, InternalFileDownloadDescriptor descriptor) {

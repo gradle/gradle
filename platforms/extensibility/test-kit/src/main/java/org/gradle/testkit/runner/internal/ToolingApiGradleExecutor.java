@@ -20,6 +20,7 @@ import com.google.common.io.FileBackedOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.ConfigurationCacheOutcome;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.UnsupportedFeatureException;
@@ -35,7 +36,12 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryDiscardedResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryNotStoredResult;
 import org.gradle.tooling.events.configuration.ConfigurationCacheEntryOutcomeResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryReusedResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoredResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryUpdatedResult;
 import org.gradle.tooling.events.configuration.ConfigurationCacheFinishEvent;
 import org.gradle.tooling.events.task.TaskFailureResult;
 import org.gradle.tooling.events.task.TaskFinishEvent;
@@ -229,20 +235,35 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     @NullMarked
     private static class ConfigurationCacheOutcomeListener implements ProgressListener {
-        private @Nullable String outcome;
+        private @Nullable ConfigurationCacheOutcome outcome;
 
         @Override
         public void statusChanged(ProgressEvent event) {
             if (event instanceof ConfigurationCacheFinishEvent) {
-                ConfigurationCacheEntryOutcomeResult result = ((ConfigurationCacheFinishEvent) event).getResult();
-                if (result != null) {
-                    outcome = result.getOutcome();
-                }
+                outcome = toOutcome(((ConfigurationCacheFinishEvent) event).getResult());
+            }
+        }
+
+        private static ConfigurationCacheOutcome toOutcome(@Nullable ConfigurationCacheEntryOutcomeResult result) {
+            if (result instanceof ConfigurationCacheEntryStoredResult) {
+                return ConfigurationCacheOutcome.STORED;
+            } else if (result instanceof ConfigurationCacheEntryReusedResult) {
+                return ConfigurationCacheOutcome.REUSED;
+            } else if (result instanceof ConfigurationCacheEntryUpdatedResult) {
+                return ConfigurationCacheOutcome.UPDATED;
+            } else if (result instanceof ConfigurationCacheEntryDiscardedResult) {
+                return ConfigurationCacheOutcome.DISCARDED;
+            } else if (result instanceof ConfigurationCacheEntryNotStoredResult) {
+                return ConfigurationCacheOutcome.NOT_STORED;
+            } else {
+                // ConfigurationCacheEntryUndeterminedResult, no result at all,
+                // or an outcome added by a later Gradle version that this TestKit version does not know about
+                return ConfigurationCacheOutcome.UNDETERMINED;
             }
         }
 
         @Nullable
-        String getOutcome() {
+        ConfigurationCacheOutcome getOutcome() {
             return outcome;
         }
     }
