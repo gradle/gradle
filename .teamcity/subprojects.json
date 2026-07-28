@@ -1585,7 +1585,7 @@
     "name": "test-retry",
     "path": "platforms/software/test-retry",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
