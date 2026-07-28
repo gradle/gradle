@@ -40,8 +40,7 @@ import org.junit.Rule
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
  * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
-// Caused by https://github.com/gradle/gradle/issues/35572
-@DoesNotSupportNonAsciiPaths
+@DoesNotSupportNonAsciiPaths(reason = "https://github.com/gradle/gradle/issues/35572")
 class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements RunnerFactory {
 
     @Rule
