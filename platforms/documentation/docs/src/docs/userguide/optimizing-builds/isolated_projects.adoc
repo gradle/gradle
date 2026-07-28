@@ -584,6 +584,7 @@ org.gradle.isolated-projects=true
 ====
 The legacy property name `org.gradle.unsafe.isolated-projects` is still accepted, but the new `org.gradle.isolated-projects` name is preferred.
 The same applies to `org.gradle.unsafe.isolated-projects.diagnostics` and `org.gradle.unsafe.isolated-projects.dangerously-ignore-problems`.
+When both the legacy and the new name of a property are set, an explicit `false` from either one disables the feature.
 ====
 
 If you have never enabled the feature in the build before, it's likely that the build is not compatible and contains Isolated Projects <<sec:constraint_violations,constraint violations>>.
