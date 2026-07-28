@@ -1246,7 +1246,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
              *
              * Unlike managed properties, whose getters are generated and simply return a field, non-managed
              * properties have hand-written getters that may fail when invoked outside the usual lifecycle.
-             * Such a property is simply left without an owner.</p
+             * Such a property is simply left without an owner.
              */
             protected void attachPropertyIfPossible(AttachedProperty attached) {
                 // GENERATE try { <attach property> } catch (Exception ignored) { }

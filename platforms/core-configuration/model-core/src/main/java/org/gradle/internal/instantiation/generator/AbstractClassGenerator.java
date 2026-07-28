@@ -1060,9 +1060,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 }
                 if (deferOwnerAttach && isReattachProperty(property) && hasAttachableOverridableGetter(property)) {
                     // Register non-managed lazy properties for on-demand (re-)attachment to their owners.
-                    // The owner is normally attached by the overriding getter, which is not invoked when the object
-                    // is restored from the configuration cache, so the property would otherwise lose its owner.
-                    // See https://github.com/gradle/gradle/issues/37421.
+                    // The owner is normally attached by the overriding getter. CC deserialization writes straight to the
+                    // backing field without invoking it, so the property would never receive an owner.
+                    // See ModelObject#attachModelProperties().
                     visitor.attachOnDemand(property, applyRole);
                 }
             }

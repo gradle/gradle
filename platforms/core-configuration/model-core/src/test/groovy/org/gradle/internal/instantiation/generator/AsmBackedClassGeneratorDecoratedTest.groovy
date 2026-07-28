@@ -151,15 +151,14 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         def bean = create(type, Describables.of("<display name>"))
 
         // Read the backing field directly, without going through the attaching getter. This mirrors how
-        // the configuration cache restores the property - straight into the field - so the owner-attach that
-        // normally happens in the generated getter override never runs, leaving the property without an owner.
+        // deserialization restores the property - straight into the field
         def field = type.getDeclaredField(fieldName)
         field.accessible = true
 
         expect: "the property restored into the field has no owner yet"
         field.get(bean).toString() == ownerlessDisplayName
 
-        when: "the model properties are re-attached, as the configuration cache does after deserialization"
+        when: "the model properties are re-attached, as happens after deserialization"
         (bean as ModelObject).attachModelProperties()
 
         then: "the owner (and thus the display name) is restored, observed via the field rather than the getter"
@@ -178,7 +177,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         def field = HasFailingAndWorkingPropertyGetters.getDeclaredField("working")
         field.accessible = true
 
-        when: "model properties are re-attached, as the configuration cache does after deserialization"
+        when: "model properties are re-attached, as happens after deserialization"
         (bean as ModelObject).attachModelProperties()
 
         then: "the failure is ignored and the remaining properties are still attached"
