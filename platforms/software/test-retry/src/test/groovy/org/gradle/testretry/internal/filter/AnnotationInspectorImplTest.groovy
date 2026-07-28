@@ -15,13 +15,15 @@
  */
 package org.gradle.testretry.internal.filter
 
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testretry.internal.testsreader.TestsReader
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-import javax.annotation.Nullable
+import javax.tools.JavaCompiler
+import javax.tools.StandardLocation
+import javax.tools.ToolProvider
+import org.jspecify.annotations.Nullable
 
 class AnnotationInspectorImplTest extends Specification {
 
@@ -29,13 +31,6 @@ class AnnotationInspectorImplTest extends Specification {
     TemporaryFolder dir = new TemporaryFolder()
 
     AnnotationInspector inspector
-
-    def setup() {
-        def settingsFile = dir.newFile('settings.gradle')
-        settingsFile << "rootProject.name = 'hello-world'"
-        def buildFile = dir.newFile('build.gradle')
-        buildFile << "plugins { id 'java' }"
-    }
 
     def "finds annotations"() {
         given:
@@ -76,9 +71,26 @@ class AnnotationInspectorImplTest extends Specification {
     }
 
     AnnotationInspector inspector() {
-        GradleRunner.create().withProjectDir(dir.root).withArguments("compileJava").build()
-        def reader = new TestsReader([new File(dir.root, "build/classes/java/main")].toSet(), [])
+        def classesDir = new File(dir.root, "build/classes/java/main")
+        classesDir.mkdirs()
+        compileJavaSources(new File(dir.root, "src/main/java"), classesDir)
+        def reader = new TestsReader([classesDir].toSet(), [])
         new AnnotationInspectorImpl(reader)
+    }
+
+    private static void compileJavaSources(File sourceDir, File outputDir) {
+        JavaCompiler compiler = ToolProvider.systemJavaCompiler
+        def fileManager = compiler.getStandardFileManager(null, null, null)
+        try {
+            fileManager.setLocation(StandardLocation.CLASS_OUTPUT, [outputDir])
+            def sourceFiles = []
+            sourceDir.eachFileRecurse { if (it.name.endsWith(".java")) sourceFiles << it }
+            def javaFileObjects = fileManager.getJavaFileObjectsFromFiles(sourceFiles)
+            def task = compiler.getTask(null, fileManager, null, null, null, javaFileObjects)
+            assert task.call(): "javac failed to compile ${sourceFiles*.name}"
+        } finally {
+            fileManager.close()
+        }
     }
 
     private void nonInheritedAnnotation(String name) {
@@ -87,7 +99,7 @@ class AnnotationInspectorImplTest extends Specification {
             import java.lang.annotation.Retention;
             import java.lang.annotation.RetentionPolicy;
             import java.lang.annotation.Target;
-            
+
             @Retention(RetentionPolicy.RUNTIME)
             @Target({ ElementType.TYPE })
             public @interface $name { }
@@ -100,7 +112,7 @@ class AnnotationInspectorImplTest extends Specification {
             import java.lang.annotation.Retention;
             import java.lang.annotation.RetentionPolicy;
             import java.lang.annotation.Target;
-            
+
             @Retention(RetentionPolicy.RUNTIME)
             @Target({ ElementType.TYPE })
             @java.lang.annotation.Inherited
@@ -113,7 +125,5 @@ class AnnotationInspectorImplTest extends Specification {
             ${annotations.collect { "@$it" }.join("\n")}
             class $name ${superClass ? " extends $superClass" : ""} {}
         """
-
     }
-
 }

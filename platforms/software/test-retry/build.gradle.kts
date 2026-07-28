@@ -34,13 +34,6 @@ dependencies {
 
     testImplementation(libs.groovy)
     testImplementation(testLibs.spock)
-    testImplementation(gradleTestKit())
-
-    integTestImplementation(projects.internalIntegTesting)
-    integTestImplementation(projects.core)
-    integTestImplementation(projects.testingJvm)
-    integTestImplementation(libs.groovy)
-    integTestImplementation(testLibs.spock)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
