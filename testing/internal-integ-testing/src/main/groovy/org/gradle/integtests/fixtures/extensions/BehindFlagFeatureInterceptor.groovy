@@ -69,7 +69,7 @@ abstract class BehindFlagFeatureInterceptor extends AbstractMultiTestInterceptor
         def combinations = allFeatures.collect { it.displayNames.keySet() }.combinations()
         combinations.each {
             Map<String, String> executionValues = [:]
-            Iterator<String> iter = it.iterator()
+            Iterator<String> iter = (it as List<String>).iterator()
             boolean skip = false
             features.keySet().each { String key ->
                 executionValues[key] = iter.next()
