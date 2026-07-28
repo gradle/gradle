@@ -27,6 +27,7 @@ import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.DeprecatedAliasDisableWinsBooleanBuildOption;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.IntegerBuildOption;
@@ -680,7 +681,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class IsolatedProjectsOption extends DeprecatedAliasDisableWinsBooleanBuildOption<StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.isolated-projects";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
         public static final String LONG_OPTION = "isolated-projects";
@@ -708,7 +709,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class IsolatedProjectsDiagnosticsOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class IsolatedProjectsDiagnosticsOption extends DeprecatedAliasDisableWinsBooleanBuildOption<StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.isolated-projects.diagnostics";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.diagnostics";
 
@@ -722,7 +723,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class IsolatedProjectsDangerouslyIgnoreProblemsOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class IsolatedProjectsDangerouslyIgnoreProblemsOption extends DeprecatedAliasDisableWinsBooleanBuildOption<StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.isolated-projects.dangerously-ignore-problems";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.dangerously-ignore-problems";
 

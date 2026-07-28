@@ -66,7 +66,7 @@ abstract class KotlinSettingsScriptTemplate(
      * Configures the build script classpath for settings.
      *
      * @see [Settings.buildscript]
-     * @since 9.8.0
+     * @since 9.7.0
      */
     @Suppress("unused")
     open fun buildscript(block: ScriptHandlerScope.() -> Unit): Unit =
