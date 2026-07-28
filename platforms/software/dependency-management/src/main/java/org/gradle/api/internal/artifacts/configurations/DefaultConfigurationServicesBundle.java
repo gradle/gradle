@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -58,6 +59,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final ResolveExceptionMapper exceptionMapper;
     private final ProviderFactory providerFactory;
     private final ProjectLeaseRegistry projectLeaseRegistry;
+    private final DependencyManagementInstanceIdentity instanceIdentity;
 
     @Inject
     public DefaultConfigurationServicesBundle(
@@ -74,7 +76,8 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         AttributeDesugaring attributeDesugaring,
         ResolveExceptionMapper exceptionMapper,
         ProviderFactory providerFactory,
-        ProjectLeaseRegistry projectLeaseRegistry
+        ProjectLeaseRegistry projectLeaseRegistry,
+        DependencyManagementInstanceIdentity instanceIdentity
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
@@ -90,6 +93,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.exceptionMapper = exceptionMapper;
         this.providerFactory = providerFactory;
         this.projectLeaseRegistry = projectLeaseRegistry;
+        this.instanceIdentity = instanceIdentity;
     }
 
     @Override
@@ -160,6 +164,11 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     @Override
     public ProjectLeaseRegistry getProjectLeaseRegistry() {
         return projectLeaseRegistry;
+    }
+
+    @Override
+    public DependencyManagementInstanceIdentity getInstanceIdentity() {
+        return instanceIdentity;
     }
 
 }

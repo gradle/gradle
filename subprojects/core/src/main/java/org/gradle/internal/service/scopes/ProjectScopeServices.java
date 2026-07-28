@@ -21,6 +21,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
@@ -39,7 +40,6 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -77,6 +77,7 @@ import org.gradle.configuration.project.DefaultProjectConfigurationActionContain
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.file.PathToFileResolver;
@@ -147,7 +148,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         ProjectDomainObjectContext domainObjectContext = new ProjectDomainObjectContext(project.getOwner());
         registration.add(DomainObjectContext.class, domainObjectContext);
 
-        dependencyManagementServices.addDslServices(registration, domainObjectContext);
+        dependencyManagementServices.addDslServices(registration, new DependencyManagementParameters(project.getOwner().getDisplayName(), "", false, false, false));
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerProjectServices(registration);
         }
@@ -315,7 +316,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             project.getClassLoaderScope(),
             fileResolver,
             fileCollectionFactory,
-            StandaloneDomainObjectContext.forProjectBuildscript(project.getOwner())
+            new DependencyManagementParameters(Describables.of("buildscript of", project.getOwner().getDisplayName()), "buildscript-", true, true, true)
         );
     }
 

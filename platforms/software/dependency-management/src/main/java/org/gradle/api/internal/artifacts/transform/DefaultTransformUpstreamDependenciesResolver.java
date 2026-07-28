@@ -39,7 +39,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -54,6 +53,7 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
 
@@ -333,16 +333,14 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public boolean usesMutableProjectState() {
-            return owner.getProjectState() != null;
+            return owner instanceof ProjectDomainObjectContext;
         }
 
         @Override
         public @Nullable ProjectInternal getOwningProject() {
-            ProjectState projectState = owner.getProjectState();
-            if (projectState != null) {
-                return projectState.getMutableModel();
-            }
-            return null;
+            return owner instanceof ProjectDomainObjectContext pdoc
+                ? pdoc.getModel().getMutableModel()
+                : null;
         }
 
         @Nullable

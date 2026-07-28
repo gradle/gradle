@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -57,4 +58,5 @@ public interface ConfigurationServicesBundle {
     ResolveExceptionMapper getExceptionMapper();
     ProviderFactory getProviderFactory();
     ProjectLeaseRegistry getProjectLeaseRegistry();
+    DependencyManagementInstanceIdentity getInstanceIdentity();
 }
