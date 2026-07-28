@@ -145,20 +145,20 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_classifier]"]
 ====
 
-For example, if a code-analysis or documentation-generation task needs the sources JAR as an artifact input:
+For example, to depend on the sources or Javadoc JAR:
 
 ====
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/kotlin",files="build.gradle.kts[tags=use_classifier_sources]"]
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_classifier_sources]"]
 ====
 
-**Common use cases for classifiers:**
+*Common use cases for classifiers*:
 
-* **Sources and Javadoc JARs**: Projects that explicitly depend on Java sources (e.g., for code analysis or documentation generation) can use the `sources` or `javadoc` classifiers.
+* *Sources and Javadoc JARs*: use the `sources` or `javadoc` classifiers, for example when a code-analysis or documentation-generation task needs the artifact as an input.
 
-* **Test Fixtures**: For test fixtures specifically, prefer the dedicated `testFixtures(libs.my.lib)` API rather than declaring the `test-fixtures` classifier explicitly.
+* *Platform-specific artifacts*: native libraries may publish separate artifacts for different operating systems or architectures (for example, `linux-x86_64`, `windows-x86_64`), as shown in the primary example above.
 
-* **Platform-specific artifacts**: Native libraries may publish separate artifacts for different operating systems or architectures (e.g., `linux-x86_64`, `windows-x86_64`).
+* *Test fixtures*: prefer the dedicated `testFixtures(libs.my.lib)` API over declaring the `test-fixtures` classifier explicitly.
 
 For artifact types (common in Android projects needing `@aar`), use the `artifact` block:
 
@@ -397,7 +397,7 @@ These are explicit limitations the catalog TOML format does not support:
 * `exclude` rules
 * `capabilities` requirements
 
-**Workarounds**: For classifiers and artifact types, see <<#sec:classifiers_artifact_types_and_capabilities, Classifiers, artifact types, and capabilities>>.
+*Workarounds*: for classifiers and artifact types, see <<#sec:classifiers_artifact_types_and_capabilities, Classifiers, artifact types, and capabilities>>.
 For excludes and capabilities, apply them at the dependency declaration site in your build script using the standard dependency configuration DSL.
 
 [[sec:programmatic-catalog-versions]]

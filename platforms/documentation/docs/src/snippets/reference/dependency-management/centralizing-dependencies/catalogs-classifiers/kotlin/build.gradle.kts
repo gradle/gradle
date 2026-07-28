@@ -4,7 +4,7 @@ plugins {
 
 // tag::use_classifier[]
 dependencies {
-    implementation(variantOf(libs.my.lib) { classifier("test-fixtures") })
+    implementation(variantOf(libs.my.lib) { classifier("linux-x86_64") })
 }
 // end::use_classifier[]
 
