@@ -20,7 +20,7 @@ This release also enhances the [Configuration Cache](#configuration-cache-improv
 
 In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), Gradle now shows a source location for up to 2050 problems per build, up from 50, so the console, problems report, and Tooling API pinpoint many more issues.
 
-[Security and infrastructure](#security-and-infrastructure) improvements make trusted PGP keys easier to document and signing-key rotations easier to spot, while [build authoring](#build-authoring-improvements) gains a `reproducibleFileTimestamp` property on archive tasks for `SOURCE_DATE_EPOCH`-compatible builds, along with several new APIs for build and plugin authors.
+[Security and infrastructure](#security-and-infrastructure) improvements make trusted PGP keys easier to document and signing-key rotations easier to spot, while [build authoring](#build-authoring-improvements) gains custom archive timestamps along with several new APIs for build and plugin authors.
 
 Finally, [performance improvements](#performance-improvements) let file system watching work with a custom project cache directory, and [dependency management](#dependency-management-enhancements) previews improved dependency resolution ordering.
 
