@@ -54,14 +54,6 @@
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
-            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate.buildscript(kotlin.jvm.functions.Function1)",
-            "acceptation": "This member was missing after a refactor, it is not new",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
             "type": "org.gradle.process.ExecOperations",
             "member": "Class org.gradle.process.ExecOperations",
             "acceptation": "Marked as injectable via the incubating service(Class) lookup markers (#13121)",
