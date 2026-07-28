@@ -15,6 +15,8 @@ sourceSets.main {
 dependencies {
     api(projects.coreApi)
 
+    compileOnly(projects.kotlinDsl)
+
     implementation(projects.baseServices)
     implementation(projects.core)
     implementation(projects.messaging)
