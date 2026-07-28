@@ -25,7 +25,7 @@ import org.gradle.testretry.internal.executer.TestNames;
 import org.gradle.testretry.internal.testsreader.TestsReader;
 import org.gradle.util.GradleVersion;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.Set;
 import java.util.regex.Pattern;

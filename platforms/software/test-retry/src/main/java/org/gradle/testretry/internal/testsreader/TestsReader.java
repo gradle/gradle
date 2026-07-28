@@ -15,8 +15,8 @@
  */
 package org.gradle.testretry.internal.testsreader;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.slf4j.Logger;
@@ -125,7 +125,7 @@ public final class TestsReader {
         return Optional.empty();
     }
 
-    @NotNull
+    @NonNull
     private String classFileName(String className) {
         return className.replace('.', '/') + ".class";
     }

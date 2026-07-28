@@ -29,7 +29,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testretry.TestRetryTaskExtension;
 import org.gradle.testretry.internal.executer.RetryTestExecuter;
 import org.gradle.util.GradleVersion;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -167,7 +167,7 @@ public final class TestTaskConfigurer {
         }
 
         @Override
-        public void execute(@NotNull Task task) {
+        public void execute(@NonNull Task task) {
             if (shouldReplaceTestExecutor.get()) {
                 task.getLogger().info("Test execution via the test-retry plugin is deactivated. Retries are handled by the Develocity plugin.");
             } else {
@@ -179,7 +179,7 @@ public final class TestTaskConfigurer {
     private static class FinalizeTaskAction implements Action<Test> {
 
         @Override
-        public void execute(@NotNull Test task) {
+        public void execute(@NonNull Test task) {
             TestExecuter<JvmTestExecutionSpec> testExecuter = getTestExecuter(task);
             if (testExecuter instanceof RetryTestExecuter) {
                 ((RetryTestExecuter) testExecuter).failWithNonRetriedTestsIfAny();
@@ -200,7 +200,7 @@ public final class TestTaskConfigurer {
         }
 
         @Override
-        public void execute(@NotNull Test task) {
+        public void execute(@NonNull Test task) {
             RetryTestExecuter retryTestExecuter = createRetryTestExecuter(task, adapter, objectFactory);
             setTestExecuter(task, retryTestExecuter);
         }

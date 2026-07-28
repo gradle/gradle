@@ -17,7 +17,7 @@ package org.gradle.testretry.internal.executer;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 final class TestDescriptorImpl implements TestDescriptorInternal {
 
