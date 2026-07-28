@@ -32,33 +32,27 @@ trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMes
     }
 
 
-    @Override
     String getIterableSymbol() {
         '.*'
     }
 
-    @Override
     String getNameSymbolFor(String name) {
         ".<name>"
     }
 
-    @Override
     String getKeySymbolFor(String name) {
         '.<key>'
     }
 
-    @Override
     void assertValidationSucceeds() {
         succeeds "validatePlugins"
     }
 
-    @Override
     void assertValidationFailsWith(int errorCount) {
         fails "validatePlugins"
         failure.assertHasCause("Plugin validation failed with $errorCount problem${errorCount == 1 ? '' : 's'}")
     }
 
-    @Override
     TestFile source(String path) {
         return file(path)
     }
