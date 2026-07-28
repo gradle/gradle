@@ -395,7 +395,7 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         threadFactory?.uncaught?.poll(1, TimeUnit.SECONDS)
     }
 
-    def "an over-max worker exits via shouldContinue when blocking finishes and effective max shrinks"() {
+    def "an excess worker exits via shouldContinue when blocking finishes and effective max shrinks"() {
         given:
         createProcessor(1, 2)
         def queue = leaseProcessor.createSubmissionQueue()
@@ -418,7 +418,7 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         assert aBlockingStarted.await(15, TimeUnit.SECONDS)
         assert bRunning.await(15, TimeUnit.SECONDS)
 
-        // Queue two gated probes, then open the over-max window: the effective max
+        // Queue two gated probes, then leave a worker in excess: the effective max
         // shrinks to 1 while the worker count is 2.
         2.times { queue.add({ probesStarted.incrementAndGet(); probeRelease.await() } as Runnable) }
         aRelease.countDown()
@@ -434,5 +434,55 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
 
         cleanup:
         probeRelease?.countDown()
+    }
+
+    def "an excess worker waiting for a lease exits when blocking finishes without any other lock activity"() {
+        given:
+        def waitingForLease = new CountDownLatch(2)
+        registry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
+            @Override
+            void runWorkerLoop(WorkerLoop loop) {
+                super.runWorkerLoop(new WorkerLoop() {
+                    private boolean signalled
+
+                    @Override
+                    boolean shouldContinue() {
+                        boolean result = loop.shouldContinue()
+                        if (result && !signalled) {
+                            signalled = true
+                            waitingForLease.countDown()
+                        }
+                        return result
+                    }
+
+                    @Override
+                    void runOnce() {
+                        loop.runOnce()
+                    }
+                })
+            }
+        }
+        registry.startProjectExecution(true)
+        threadFactory = new CountingThreadFactory()
+        backingExecutor = Executors.newCachedThreadPool(threadFactory)
+        leaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, registry, backingExecutor, 1, 2)
+        def queue = leaseProcessor.createSubmissionQueue()
+        // Hold the only lease so every spawned worker ends up waiting for one.
+        heldLease = registry.startWorker()
+
+        when:
+        queue.add({} as Runnable)
+        // Compensation raises the effective max to 2, spawning a second worker that also waits.
+        leaseProcessor.notifyBlockingWorkStarting()
+        // Hold until both workers are waiting for a lease
+        assert waitingForLease.await(15, TimeUnit.SECONDS)
+        // Shrinks the effective max back to 1. Nothing else touches the coordination service
+        // afterwards, so the excess worker only exits if this wakes it.
+        leaseProcessor.notifyBlockingWorkFinished()
+
+        then:
+        ConcurrentTestUtil.poll(10) {
+            assert leaseProcessor.@workerCounter.currentWorkerCount() == 1
+        }
     }
 }

@@ -160,6 +160,8 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
     @Override
     public void notifyBlockingWorkFinished() {
         workerCounter.notifyBlockingWorkFinished();
+        // Wake up workers so excess workers can exit if the effective max has shrunk.
+        coordinationService.notifyStateChange();
     }
 
     public void shutdown() {
