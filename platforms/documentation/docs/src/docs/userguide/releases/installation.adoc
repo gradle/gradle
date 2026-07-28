@@ -378,66 +378,26 @@ You can verify the integrity of the Gradle distribution by downloading the SHA-2
 [[sec:bootstrapping_new_gradle_projects]]
 == Bootstrapping new projects
 
-Once Gradle is installed, you can bootstrap a new Gradle project using the `gradle init` command.
+Once Gradle is installed, run `gradle init` to bootstrap a new Gradle project.
 This is particularly useful for CLI users starting a project from scratch without an IDE.
 
+The `init` task generates a build script, a settings file, the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> files, and (for non-`basic` project types) sample source code.
+Once the Wrapper is committed, you and your team can build the project with `./gradlew` (or `gradlew.bat` on Windows).
+
+For an interactive walkthrough, run:
+
 [source,bash]
 ----
 $ gradle init
 ----
 
-The `init` task generates a new Gradle project with the following:
+Gradle asks you to pick a project type (Application, Library, Gradle plugin, or a basic build structure), a build script DSL (Kotlin or Groovy), a test framework, and project and package names.
 
-- A `build.gradle` or `build.gradle.kts` build script
-- A `settings.gradle` or `settings.gradle.kts` settings file
-- The <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> files (`gradlew`, `gradlew.bat`, and the `gradle/wrapper/` directory)
-- Sample source code (optional, based on project type selection)
-
-The command runs interactively, allowing you to:
-
-- Select a project type (Application, Library, Gradle plugin, or Basic)
-- Choose a build script DSL (Groovy or Kotlin)
-- Select a test framework
-- Set project and source package names
-
-Once the project is initialized with the Gradle Wrapper, team members can build the project using `./gradlew` (or `gradlew.bat` on Windows) without installing Gradle themselves.
-
-**Example: Creating a new Java application**
-
-[source,bash]
-----
-$ mkdir my-app && cd my-app
-$ gradle init
-Select type of build to generate:
-  1: Application
-  2: Library
-  ...
-Enter selection (default: Application) [1..4] 1
-
-Select implementation language:
-  1: Java
-  2: Kotlin
-  ...
-Enter selection (default: Java) [1..6] 1
-
-...
-
-BUILD SUCCESSFUL
-----
-
-After initialization, you can build and run the project:
-
-[source,bash]
-----
-$ ./gradlew build
-$ ./gradlew run
-----
-
-For non-interactive project generation, you can pass options directly:
+For non-interactive use, pass the options directly:
 
 [source,bash]
 ----
 $ gradle init --type java-application --dsl kotlin --test-framework junit-jupiter --package com.example --project-name my-app
 ----
 
-See the <<build_init_plugin.adoc#build_init_plugin,Build Init Plugin>> documentation for more details on project types and options.
+See the <<build_init_plugin.adoc#build_init_plugin,Build Init Plugin>> documentation for the full list of project types, flags, and options.
