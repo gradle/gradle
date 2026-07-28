@@ -31,8 +31,9 @@ public interface BuildOperationQueue<T extends BuildOperation> {
     /**
      * Adds an operation to be executed, potentially executing it instantly.
      * <p>
-     * Execution is constrained by the configured maximum number of workers: the operation is required to
-     * acquire a {@link org.gradle.internal.work.WorkerLeaseRegistry worker lease} before proceeding.
+     * Execution is constrained by the {@linkplain org.gradle.internal.work.WorkerLimits#getMaxWorkerCount()
+     * configured maximum number of workers}: the operation is required to acquire a
+     * {@linkplain org.gradle.internal.work.WorkerLeaseRegistry worker lease} before proceeding.
      * Intended for CPU intensive operations.
      *
      * @param operation operation to execute
@@ -43,9 +44,10 @@ public interface BuildOperationQueue<T extends BuildOperation> {
     /**
      * Adds an operation to be executed without holding a worker lease, potentially executing it instantly.
      * <p>
-     * Execution is not constrained by the configured maximum number of workers, allowing as many threads as
-     * required up to a separate, higher limit. Intended for IO intensive operations. Such operations must not
-     * depend on acquiring a worker lease.
+     * Execution is not constrained by the {@linkplain org.gradle.internal.work.WorkerLimits#getMaxWorkerCount()
+     * configured maximum number of workers}, allowing as many threads as required up to a
+     * {@linkplain org.gradle.internal.work.WorkerLimits#getMaxUnconstrainedWorkerCount() separate, higher limit}.
+     * Intended for IO intensive operations. Such operations must not depend on acquiring a worker lease.
      * <p>
      * Operations added this way are tracked by this queue just like those added via {@link #add}: they are
      * covered by {@link #cancel()} and awaited by {@link #waitForCompletion()}, and their failures are
