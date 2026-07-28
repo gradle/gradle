@@ -30,6 +30,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -283,6 +284,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
         registration.add(BuildDefinition.class, buildDefinition);
         registration.add(BuildState.class, buildState);
+        registration.add(DomainObjectContext.class, new BuildDomainObjectContext(buildState));
 
         registration.addProvider(new BuildCacheServices());
 

@@ -16,19 +16,24 @@
 
 package gradlebuild.binarycompatibility.sources
 
+import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.body.AnnotationDeclaration
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration
 import com.github.javaparser.ast.body.BodyDeclaration
+import com.github.javaparser.ast.body.CallableDeclaration
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.ConstructorDeclaration
 import com.github.javaparser.ast.body.EnumConstantDeclaration
 import com.github.javaparser.ast.body.EnumDeclaration
 import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.body.Parameter
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName
+import com.github.javaparser.ast.type.TypeParameter
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter
 import gradlebuild.binarycompatibility.jApiClass
 import gradlebuild.binarycompatibility.simpleName
+import japicmp.model.JApiBehavior
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
@@ -65,7 +70,7 @@ object JavaSourceQueries {
                 when (member) {
                     is JApiClass -> getSinceJavaClassVisitorFor(declaringClassSimpleName)
                     is JApiField -> getSinceJavaFieldVisitorFor(member)
-                    is JApiConstructor -> getSinceJavaConstructorVisitorFor(declaringClassSimpleName)
+                    is JApiConstructor -> getSinceJavaConstructorVisitorFor(declaringClassSimpleName, member)
                     is JApiMethod -> getSinceJavaMethodVisitorFor(declaringClassSimpleName, member)
                     else -> error("Unsupported japicmp member type ${member::class}")
                 }
@@ -107,11 +112,14 @@ fun getSinceJavaFieldVisitorFor(field: JApiField) =
 
 
 private
-fun getSinceJavaConstructorVisitorFor(classSimpleName: String) =
+fun getSinceJavaConstructorVisitorFor(classSimpleName: String, constructor: JApiConstructor) =
     object : SinceVisitor() {
 
         override fun visit(declaration: ConstructorDeclaration, arg: Unit?): SinceTagStatus? =
-            declaration.getSinceIfMatchesName(classSimpleName) ?: super.visit(declaration, arg)
+            declaration
+                .takeIf { it.matchesName(classSimpleName) && it.matchesParametersOf(constructor.binaryParameterTypes) }
+                ?.getSince()?.let { SinceTagStatus.Present(it) }
+                ?: super.visit(declaration, arg)
     }
 
 
@@ -123,7 +131,9 @@ fun getSinceJavaMethodVisitorFor(classSimpleName: String, method: JApiMethod) =
             declaration.getSinceIfMatchesName(method.name) ?: super.visit(declaration, arg)
 
         override fun visit(declaration: MethodDeclaration, arg: Unit?): SinceTagStatus? =
-            declaration.getSinceIfMatchesName(method.name)
+            declaration
+                .takeIf { it.matchesName(method.name) && it.matchesParametersOf(method.binaryParameterTypes) }
+                ?.getSince()?.let { SinceTagStatus.Present(it) }
 
         override fun visit(declaration: EnumDeclaration, arg: Unit?): SinceTagStatus? {
             return if (declaration.matchesName(classSimpleName) && method.isEnumImplicitMethod()) {
@@ -146,6 +156,59 @@ fun <T : NodeWithSimpleName<*>> T.matchesName(candidateName: String) =
 private
 fun matchesName(name: String, candidateName: String) =
     name == candidateName.replace(".*\\$".toRegex(), "") // strip outer class names
+
+
+private
+val JApiBehavior.binaryParameterTypes: List<String>
+    get() = parameters.map { it.type }
+
+
+private
+fun CallableDeclaration<*>.matchesParametersOf(binaryParameterTypes: List<String>): Boolean {
+    if (parameters.size != binaryParameterTypes.size) {
+        return false
+    }
+    val typeParameterBounds = typeParameterBounds()
+    return parameters.withIndex().all { (index, parameter) ->
+        binaryParameterTypes[index].matchesSourceParameter(parameter, typeParameterBounds)
+    }
+}
+
+private
+fun CallableDeclaration<*>.typeParameterBounds(): Map<String, String?> =
+    (enclosingTypeParameters() + typeParameters)
+        .associate { it.nameAsString to it.typeBound.firstOrNull()?.nameAsString }
+
+
+private
+fun Node.enclosingTypeParameters(): List<TypeParameter> {
+    val result = mutableListOf<TypeParameter>()
+    var parent = parentNode.orElse(null)
+    while (parent != null) {
+        if (parent is ClassOrInterfaceDeclaration) {
+            result += parent.typeParameters
+        }
+        parent = parent.parentNode.orElse(null)
+    }
+    return result
+}
+
+
+private
+fun String.matchesSourceParameter(parameter: Parameter, typeParameterBounds: Map<String, String?>): Boolean {
+    val binaryArrayDepth = count { it == '[' }
+    val binarySimpleName = substringBefore('[').substringAfterLast('.').substringAfterLast('$')
+
+    val sourceText = parameter.type.asString()
+    val sourceArrayDepth = sourceText.count { it == '[' } + if (parameter.isVarArgs) 1 else 0
+    val sourceRawName = sourceText.substringBefore('<').substringBefore('[').trim().substringAfterLast('.')
+    // A source type parameter is erased to its bound (Object when unbounded) in the binary signature
+    val sourceSimpleName =
+        if (typeParameterBounds.containsKey(sourceRawName)) (typeParameterBounds[sourceRawName] ?: "Object").substringAfterLast('.')
+        else sourceRawName
+
+    return binaryArrayDepth == sourceArrayDepth && binarySimpleName == sourceSimpleName
+}
 
 private
 val SINCE_REGEX = Regex("""@since ([^\s]+)""")

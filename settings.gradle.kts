@@ -168,11 +168,12 @@ val core = platform("core") {
         subproject("normalization-api")
         subproject("normalization-java")
         subproject("persistent-cache")
-        subproject("worker-process-services")
         subproject("request-handler-worker")
         subproject("scoped-persistent-cache")
         subproject("snapshots")
         subproject("worker-main")
+        subproject("worker-process-services")
+        subproject("worker-shared")
         subproject("workers")
     }
 }
@@ -217,6 +218,7 @@ val software = platform("software") {
     subproject("dependency-management")
     subproject("plugins-distribution")
     subproject("distributions-publishing")
+    subproject("isolated-ant-builder")
     subproject("ivy")
     subproject("maven")
     subproject("platform-base")
@@ -325,7 +327,6 @@ testing {
     subproject("distributions-core")
     subproject("distributions-integ-tests")
     subproject("integ-test")
-    subproject("internal-architecture-testing")
     subproject("internal-distribution-testing")
     subproject("internal-integ-testing")
     subproject("internal-performance-testing")
@@ -345,4 +346,3 @@ FeaturePreviews.Feature.entries.forEach { feature ->
         enableFeaturePreview(feature.name)
     }
 }
-

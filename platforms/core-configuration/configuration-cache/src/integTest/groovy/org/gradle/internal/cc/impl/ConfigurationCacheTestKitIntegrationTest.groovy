@@ -22,6 +22,7 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
 
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
+import org.gradle.testkit.runner.ConfigurationCacheOutcome
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -57,10 +58,10 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
 
     def "configuration cache without any Java agent succeeds without problem [#mode]"() {
         when:
-        def output = testRunner(mode).withArguments("--configuration-cache").build().output
+        def result = testRunner(mode).withArguments("--configuration-cache").build()
 
         then:
-        !output.contains("Configuration cache problems found")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
 
         where:
         mode << PluginResolutionMode.values()
@@ -72,15 +73,15 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         def agentJar = buildStubAgentJar()
 
         when:
-        def output = testRunner(mode)
+        def result = testRunner(mode)
             .withJvmArguments("-javaagent:${agentJar}")
             .withArguments("--configuration-cache")
             .build()
-            .output
 
         then:
+        def output = result.output
         !output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
-        !output.contains("Configuration cache problems found")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
 
         where:
         mode << PluginResolutionMode.values()
@@ -91,15 +92,15 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         def agentJar = buildTransformerAgentJar()
 
         when:
-        def output = testRunner(mode)
+        def result = testRunner(mode)
             .withJvmArguments("-javaagent:${agentJar}")
             .withArguments("--configuration-cache")
             .build()
-            .output
 
         then:
+        def output = result.output
         !output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
-        !output.contains("Configuration cache problems found")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
 
         where:
         mode << PluginResolutionMode.values()
@@ -110,14 +111,13 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         // (any JVMTI agent can subscribe to ClassFileLoadHook and transform bytecode). JDWP itself does
         // not register a transformer, so the build proceeds cleanly via the compose path.
         when:
-        def output = testRunner(mode)
+        def result = testRunner(mode)
             .withJvmArguments("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:0")
             .withArguments("--configuration-cache")
             .build()
-            .output
 
         then:
-        !output.contains("Configuration cache problems found")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
 
         where:
         mode << PluginResolutionMode.values()
@@ -130,14 +130,13 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         def jdwpLibrary = jdwpAgentLibraryPath()
 
         when:
-        def output = testRunner(mode)
+        def result = testRunner(mode)
             .withJvmArguments("-agentpath:${jdwpLibrary}=transport=dt_socket,server=y,suspend=n,address=*:0")
             .withArguments("--configuration-cache")
             .build()
-            .output
 
         then:
-        !output.contains("Configuration cache problems found")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
 
         where:
         mode << PluginResolutionMode.values()
@@ -160,14 +159,14 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         """
 
         when:
-        def output = testRunner(mode)
+        def result = testRunner(mode)
             .withJvmArguments("-javaagent:${agentJar}")
             .withArguments("--configuration-cache", "noop")
             .build()
-            .output
 
         then:
-        !output.contains("Configuration cache problems found")
+        def output = result.output
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
         output.contains("helper says from-build-src")
 
         where:
@@ -183,14 +182,13 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         """
 
         when:
-        def output = testRunner(mode)
+        def result = testRunner(mode)
             .withJvmArguments("-javaagent:${agentJar}=destfile=${destFile.absolutePath}")
             .withArguments("--configuration-cache", "noop")
             .build()
-            .output
 
         then:
-        !output.contains("Configuration cache problems found")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
         destFile.exists()
         destFile.length() > 0
 
@@ -208,14 +206,15 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         def agentJar = buildStubAgentJar()
 
         when:
-        def output = testRunner(PluginResolutionMode.INJECTED_CLASSPATH)
+        def result = testRunner(PluginResolutionMode.INJECTED_CLASSPATH)
             .withJvmArguments("-javaagent:${agentJar}")
             .withArguments("--configuration-cache", "-Dorg.gradle.internal.instrumentation.agent=false")
             .buildAndFail()
-            .output
 
         then:
+        def output = result.output
         output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.DISCARDED
     }
 
     def "third-party Java agent with Gradle's instrumentation agent disabled without CC succeeds [#mode]"() {
@@ -223,15 +222,15 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         def agentJar = buildStubAgentJar()
 
         when:
-        def output = testRunner(mode)
+        def result = testRunner(mode)
             .withJvmArguments("-javaagent:${agentJar}")
             .withArguments("-Dorg.gradle.internal.instrumentation.agent=false")
             .build()
-            .output
 
         then:
+        def output = result.output
         !output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
-        !output.contains("Configuration cache problems found")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.NOT_ENABLED
 
         where:
         mode << PluginResolutionMode.values()
@@ -283,7 +282,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             withInput("Plugin class 'MyPlugin': system property 'my.property'")
             ignoringUnexpectedInputs()
         }
-        output.contains("Configuration cache entry stored.")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
     }
 
     @Issue("https://github.com/gradle/gradle/issues/27956")
@@ -361,7 +360,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             withInput("Plugin 'test.my-plugin': system property 'my.property'")
             ignoringUnexpectedInputs()
         }
-        output.contains("Configuration cache entry stored.")
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
     }
 
     /**

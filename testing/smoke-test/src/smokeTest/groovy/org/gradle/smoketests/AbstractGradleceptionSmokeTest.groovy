@@ -80,6 +80,10 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
         runner.ignoreDeprecationWarnings("Gradleception smoke tests don't check for deprecation warnings; TODO: we should add expected deprecations for each task being called")
         runner.withJdkWarningChecksDisabled() // The Gradle build somehow still emits these warnings
+        // The Gradle build publishes Build Scans and uses the remote build cache, so a Develocity outage makes the
+        // Develocity agent log connection stack traces to the build output. Those are infrastructure noise unrelated
+        // to what these smoke tests verify. See https://github.com/gradle/gradle-private/issues/5290
+        runner.ignoreStackTraces("Develocity agent may log stack traces when ge.gradle.org / the remote build cache is unavailable")
 
         return runner
     }

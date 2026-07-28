@@ -521,6 +521,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         private final Class<?> owner;
         private final String consumerClass;
         private final CallInterceptor callInterceptor;
+        private final boolean isVararg;
 
         public InterceptedMetaMethod(
             @Nullable MetaMethod original,
@@ -532,14 +533,21 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             boolean isVararg,
             InstrumentedGroovyCallsTracker callsTracker
         ) {
+            // Groovy 5 made ParameterTypes.nativeParamTypes and isVargsMethod private, so both
+            // have to go through the constructor and an override rather than field assignment.
+            super(nativeParameterTypes);
             this.original = original;
             this.name = name;
             this.owner = owner;
             this.consumerClass = consumerClass;
             this.callInterceptor = callInterceptor;
             this.callsTracker = callsTracker;
-            this.nativeParamTypes = nativeParameterTypes;
-            this.isVargsMethod = isVararg;
+            this.isVararg = isVararg;
+        }
+
+        @Override
+        public boolean isVargsMethod() {
+            return isVararg;
         }
 
         @Override

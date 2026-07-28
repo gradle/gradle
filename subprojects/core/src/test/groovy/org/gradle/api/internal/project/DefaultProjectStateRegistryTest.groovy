@@ -27,6 +27,7 @@ import org.gradle.api.problems.ProblemReporter
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.model.DefaultCalculatedModelValue
 import org.gradle.internal.operations.BuildOperationsParameters
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -112,14 +113,14 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def rootProject = project(":")
         def rootState = registry.stateFor(projectId(":"))
 
-        1 * projectFactory.createProject(_, _, rootState, _, _, _, _) >> rootProject
+        1 * projectFactory.createProject(_, _, rootState, _, _, _) >> rootProject
 
         rootState.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
 
         def project = project("p1")
         def state = registry.stateFor(projectId("p1"))
 
-        1 * projectFactory.createProject(_, _, state, _, _, _, _) >> project
+        1 * projectFactory.createProject(_, _, state, _, _, _) >> project
 
         state.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
 
@@ -702,7 +703,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createProject(state1, project1)
         def state2 = registry.stateFor(projectId("p2"))
         createProject(state2, project2)
-        def calculatedValue = state1.newCalculatedValue("initial")
+        def calculatedValue = new DefaultCalculatedModelValue<>(state1, workerLeaseService, "initial")
 
         when:
         calculatedValue.set("bad")
@@ -742,7 +743,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createProject(state1, project1)
         def state2 = registry.stateFor(projectId("p2"))
         createProject(state2, project2)
-        def calculatedValue = state1.newCalculatedValue("initial")
+        def calculatedValue = new DefaultCalculatedModelValue<>(state1, workerLeaseService, "initial")
 
         when:
         calculatedValue.update { throw new RuntimeException() }
@@ -782,7 +783,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def project1 = project("p1")
         def state1 = registry.stateFor(projectId("p1"))
         createProject(state1, project1)
-        def calculatedValue = state1.newCalculatedValue("initial")
+        def calculatedValue = new DefaultCalculatedModelValue<>(state1, workerLeaseService, "initial")
 
         when:
         async {
@@ -821,7 +822,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def project1 = project("p1")
         def state1 = registry.stateFor(projectId("p1"))
         createProject(state1, project1)
-        def calculatedValue = state1.newCalculatedValue("initial")
+        def calculatedValue = new DefaultCalculatedModelValue<>(state1, workerLeaseService, "initial")
 
         when:
         async {
@@ -856,7 +857,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def project2 = project("p2")
         def state2 = registry.stateFor(projectId("p2"))
         createProject(state2, project2)
-        def calculatedValue = state1.newCalculatedValue("initial")
+        def calculatedValue = new DefaultCalculatedModelValue<>(state1, workerLeaseService, "initial")
 
         when:
         async {
@@ -898,13 +899,13 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def rootProject = project(':')
         def rootState = registry.stateFor(projectId(buildPath, ':'))
 
-        1 * projectFactory.createProject(_, _, rootState, _, _, _, _) >> rootProject
+        1 * projectFactory.createProject(_, _, rootState, _, _, _) >> rootProject
 
         rootState.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
 
     void createProject(ProjectState state, ProjectInternal project) {
-        1 * projectFactory.createProject(_, _, state, _, _, _, _) >> project
+        1 * projectFactory.createProject(_, _, state, _, _, _) >> project
 
         state.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }

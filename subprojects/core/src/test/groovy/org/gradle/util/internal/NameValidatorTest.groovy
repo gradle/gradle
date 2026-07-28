@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory
@@ -32,6 +33,7 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
+import org.gradle.internal.Describables
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.instantiation.InstantiationScheme
@@ -51,7 +53,7 @@ class NameValidatorTest extends Specification {
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
-        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, StandaloneDomainObjectContext.ANONYMOUS, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory), TestUtil.problemsService(), Mock(ConfigurationResolver.Factory), AttributeTestUtil.mutableSchema())],
+        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, StandaloneDomainObjectContext.ANONYMOUS, new DependencyManagementInstanceIdentity(Describables.of("unknown")), Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory), TestUtil.problemsService(), Mock(ConfigurationResolver.Factory), AttributeTestUtil.mutableSchema())],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), TestFiles.taskDependencyFactory(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
 

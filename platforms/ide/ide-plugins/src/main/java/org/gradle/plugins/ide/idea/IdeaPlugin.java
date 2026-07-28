@@ -326,6 +326,9 @@ public abstract class IdeaPlugin extends IdePlugin {
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
+                // ".gradle" is the default project cache dir name (see BuildScopeCacheDir). Hardcoding it here is a
+                // historical accident: it should honor the user-configurable --project-cache-dir instead.
+                // We deliberately leave it as-is, as this IDE model generation is scheduled for removal in Gradle 10.
                 excludeDirs.add(project.file(".gradle"));
                 excludeDirs.add(project.getLayout().getBuildDirectory().getAsFile().get());
                 return excludeDirs;
@@ -337,7 +340,7 @@ public abstract class IdeaPlugin extends IdePlugin {
             public PathFactory call() {
                 final PathFactory factory = new PathFactory();
                 factory.addPathVariable("MODULE_DIR", task.get().getOutputFile().getParentFile());
-                for (Map.Entry<String, File> entry : module.getPathVariables().entrySet()) {
+                for (Map.Entry<String, File> entry : DeprecationLogger.whileDisabled(() -> module.getPathVariables()).entrySet()) {
                     factory.addPathVariable(entry.getKey(), entry.getValue());
                 }
                 return factory;
@@ -509,6 +512,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         return !moduleLanguageLevel.equals(ideaProject.getLanguageLevel());
     }
 
+    @SuppressWarnings("deprecation")
     private void configureForScalaPlugin() {
         boolean isolatedProjects = getBuildFeatures().getIsolatedProjects().getActive().get();
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
@@ -571,6 +575,12 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     }
 
+    /**
+     * Injects and returns an instance of {@link BuildFeatures}.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     @Inject
     protected abstract BuildFeatures getBuildFeatures();
 }

@@ -58,6 +58,7 @@ import org.gradle.internal.cc.impl.models.BuildTreeModel
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
+import org.gradle.internal.cc.impl.serialize.FingerprintDeserializationException
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
@@ -838,6 +839,18 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprint(candidateEntry: CandidateEntry, rootDirs: List<File>): CheckedFingerprint {
+        if (rootDirs.isNotEmpty() && startParameter.buildTreeRootDirectory !in rootDirs) {
+            return CheckedFingerprint.Invalid(
+                buildPath(),
+                StructuredMessage.build {
+                    text("the location of the build has changed from ")
+                    reference(rootDirs.first().path)
+                    text(" to ")
+                    reference(startParameter.buildTreeRootDirectory.path)
+                }
+            )
+        }
+
         // Register all included build root directories as watchable hierarchies,
         // so we can load the fingerprint for build scripts and other files from included builds
         // without violating file system invariants.
@@ -871,16 +884,21 @@ class DefaultConfigurationCache internal constructor(
     fun ConfigurationCacheRepository.Layout.checkFingerprintAgainstLoadedProperties(
         candidateEntry: CandidateEntry
     ): CheckedFingerprint =
-        when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
-            null -> {
-                // Build inputs are up-to-date, check project specific inputs
-                CheckedFingerprint.Valid(
-                    candidateEntry.id,
-                    checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
-                )
-            }
+        try {
+            when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
+                null -> {
+                    // Build inputs are up-to-date, check project specific inputs
+                    CheckedFingerprint.Valid(
+                        candidateEntry.id,
+                        checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
+                    )
+                }
 
-            else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
+                else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
+            }
+        } catch (e: FingerprintDeserializationException) {
+            logger.info("Configuration cache entry discarded because a fingerprint value could not be loaded", e)
+            CheckedFingerprint.Invalid(buildPath(), e.reason)
         }
 
     private

@@ -413,12 +413,23 @@ public abstract class IdeaModule {
      * For example, you might add a {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
      * <p>
      * For example see docs for {@link IdeaModule}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public Map<String, File> getPathVariables() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathVariables");
         return pathVariables;
     }
 
+    /**
+     * Sets the path variables.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setPathVariables(Map<String, File> pathVariables) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathVariables");
         this.pathVariables = pathVariables;
     }
 

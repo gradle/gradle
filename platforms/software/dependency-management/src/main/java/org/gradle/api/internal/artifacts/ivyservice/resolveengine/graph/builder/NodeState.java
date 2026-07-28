@@ -96,8 +96,13 @@ public class NodeState implements DependencyGraphNode {
      * The node this node has been replaced by in a capability conflict, if this
      * node has been previously involved in a resolved capability conflict and
      * has lost that conflict.
+     * <p>
+     * This value may be stale. This pointer records the result of capability conflict resolution
+     * and only remains valid while the winner's component is present in the graph. Nothing updates this
+     * value when a participating module changes selection. This field must only be read by
+     * {@link #maybeResolveCapabilityReplacement()}, which ensures target replacement nodes are still valid.
      */
-    private @Nullable NodeState replacement;
+    private @Nullable NodeState capabilityReplacement;
     private @Nullable Pair<Capability, Collection<NodeState>> capabilityReject;
 
     private int transitiveEdgeCount;
@@ -172,10 +177,26 @@ public class NodeState implements DependencyGraphNode {
         this.dependenciesMayChange = component.getModule().isVirtualPlatform();
     }
 
-    NodeState maybeResolveReplacement() {
+    /**
+     * Follow the chain of capability replacement results to determine the node, if any, that should
+     * be targeted instead of this one. Otherwise, return this node if it has not been replaced.
+     */
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    NodeState maybeResolveCapabilityReplacement() {
         NodeState node = this;
-        while (node.getReplacement() != null) {
-            node = node.getReplacement();
+        while (node.capabilityReplacement != null) {
+            NodeState winner = node.capabilityReplacement;
+            // Validate that this replacement is still valid. If the winning node's component is no
+            // longer selected, the target node is no longer present in the graph and the current node
+            // should be returned. Note, that node may still end up conflicting with the corresponding
+            // version-upgraded node that we originally conflicted with. We clear the stale pointer
+            // rather than just skipping it, so that it cannot reactivate a superseded decision if the
+            // evicted component is later re-selected.
+            if (winner.getComponent() != winner.getComponent().getModule().getSelected()) {
+                node.capabilityReplacement = null;
+                break;
+            }
+            node = winner;
         }
         return node;
     }
@@ -794,7 +815,7 @@ public class NodeState implements DependencyGraphNode {
         if (winner == this) {
             resolveState.onMoreSelected(this);
         } else {
-            this.replacement = winner;
+            this.capabilityReplacement = winner;
             restartIncomingEdges();
         }
     }
@@ -837,14 +858,6 @@ public class NodeState implements DependencyGraphNode {
 
     private static String formatCapability(Capability capability) {
         return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
-    }
-
-    /**
-     * The node in the same component as this node, that won against this node
-     * during capability conflict resolution, if any.
-     */
-    public @Nullable NodeState getReplacement() {
-        return replacement;
     }
 
     private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
@@ -1241,26 +1254,31 @@ public class NodeState implements DependencyGraphNode {
      * Retarget all incoming edges of this node. Called in two contexts:
      * <ul>
      *     <li>On losing nodes of capability conflicts, to move their edges to the winner.</li>
-     *     <li>On nodes (and their replacements) of components losing version or module conflicts
+     *     <li>On nodes (and their capability replacements) of components losing version or module conflicts
      *         in {@link ModuleResolveState#changeSelection}, to retarget edges to the new selection.</li>
      * </ul>
-     * In the second case, the node may be a capability conflict replacement that has its own
+     * In the second case, the node may be a capability conflict winner that has its own
      * legitimate incoming edges from other modules. Those edges re-attach to this node after
      * retargeting, so the node may still have incoming edges when this method returns.
      */
     void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
-            EdgeState singleEdge = incomingEdges.get(0);
-            singleEdge.retarget();
-            // The edge should have retargeted away from this node, unless it targets
-            // this node's own module and re-attached (replacement during version change).
-            assert !singleEdge.getTargetNodes().contains(this) || singleEdge.getSelector().getTargetModule() == getComponent().getModule();
+            retargetSingleEdge(incomingEdges.get(0));
         } else if (incomingEdges.size() > 1) {
             for (EdgeState edge : new ArrayList<>(incomingEdges)) {
-                edge.retarget();
-                assert !edge.getTargetNodes().contains(this) || edge.getSelector().getTargetModule() == getComponent().getModule();
+                retargetSingleEdge(edge);
             }
         }
+    }
+
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private void retargetSingleEdge(EdgeState edge) {
+        edge.retarget();
+        // The edge should have retargeted away from this node. If it still targets us, we must be
+        // the winner of a capability conflict, and the edge either targets us natively or was
+        // redirected to us via a loser's still-valid capability replacement. In both cases, our
+        // component must still be its module's selection.
+        assert !edge.getTargetNodes().contains(this) || getComponent() == getComponent().getModule().getSelected();
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {

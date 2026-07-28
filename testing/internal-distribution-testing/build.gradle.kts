@@ -50,6 +50,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.daemonLogging)
+    implementation(projects.daemonMessaging)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
@@ -64,6 +65,7 @@ dependencies {
     implementation(projects.time)
     implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
+    implementation(projects.workerShared)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -78,6 +80,10 @@ dependencies {
     compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    // Javadoc-only: for {@link} references to types in internal-integ-testing and tooling-api test fixtures
+    javadocReferences(projects.internalIntegTesting)
+    javadocReferences(testFixtures(projects.toolingApi))
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
@@ -132,9 +138,3 @@ abstract class PrepareVersionsInfo : DefaultTask() {
         gradlebuild.basics.util.ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
-

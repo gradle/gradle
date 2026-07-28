@@ -469,6 +469,80 @@ class PublicAPIRulesTest extends Specification {
         implicitMethod << ["values", "valueOf"]
     }
 
+    def "the @since annotation on the matching method overload is recognised"() {
+        given:
+        def rule = withContext(new SinceAnnotationRule([:]))
+        def jApiMethod = Stub(JApiMethod)
+        jApiMethod.name >> 'method'
+        jApiMethod.jApiClass >> jApiClassifier
+        jApiMethod.parameters >> [paramStub('int')]
+
+        when:
+        sourceFile.text = """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 10.0
+                 */
+                public void method(long p) { }
+                /**
+                 * @since 11.38
+                 */
+                public void method(int p) { }
+            }
+        """
+
+        then:
+        rule.maybeViolation(jApiMethod) == null
+    }
+
+    def "the @since annotation on the matching constructor overload is recognised"() {
+        given:
+        def rule = withContext(new SinceAnnotationRule([:]))
+        def jApiConstructor = Stub(JApiConstructor)
+        jApiConstructor.name >> 'ApiTest'
+        jApiConstructor.jApiClass >> jApiClassifier
+        jApiConstructor.parameters >> [paramStub('int')]
+
+        when:
+        sourceFile.text = """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 10.0
+                 */
+                public $TEST_INTERFACE_SIMPLE_NAME(long p) { }
+                /**
+                 * @since 11.38
+                 */
+                public $TEST_INTERFACE_SIMPLE_NAME(int p) { }
+            }
+        """
+
+        then:
+        rule.maybeViolation(jApiConstructor) == null
+    }
+
+    def "the @since annotation on a generic method is recognised"() {
+        given:
+        def rule = withContext(new SinceAnnotationRule([:]))
+        def jApiMethod = Stub(JApiMethod)
+        jApiMethod.name >> 'method'
+        jApiMethod.jApiClass >> jApiClassifier
+        jApiMethod.parameters >> [paramStub('java.lang.Object')]
+
+        when:
+        sourceFile.text = """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 11.38
+                 */
+                public <T> void method(T p) { }
+            }
+        """
+
+        then:
+        rule.maybeViolation(jApiMethod) == null
+    }
+
     private def paramStub(String type) {
         def stub = Stub(JApiParameter)
         stub.type >> type

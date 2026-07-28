@@ -21,6 +21,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.problems.internal.ProblemsInternal;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildActionRunner;
@@ -93,6 +94,7 @@ public class RootBuildLifecycleBuildActionExecutor {
             try {
                 initDeprecationLogging(startParameter);
                 maybeNagOnDeprecatedJavaRuntimeVersion();
+                maybeNagOnImplicitParallelModelBuildingOptIn(startParameter);
                 RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(startParameter, null));
                 return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
             } finally {
@@ -109,6 +111,38 @@ public class RootBuildLifecycleBuildActionExecutor {
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(showStacktrace.equals(ShowStacktrace.ALWAYS) || showStacktrace.equals(ShowStacktrace.ALWAYS_FULL));
         DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, problemsService, problemsStream);
+    }
+
+    /**
+     * Deprecates relying on the legacy default where parallel model building (used by the Tooling API,
+     * e.g. during IDE sync) is derived from the {@code org.gradle.parallel} property.
+     * <p>
+     * This applies only to Vintage model building, which is the only mode where the implicit
+     * {@code org.gradle.parallel} -> parallel model building link exists.
+     * <p>
+     * "Vintage" refers to the resolved {@link BuildModelParameters} mode, not the user-facing opt-in:
+     * model building with Configuration Cache enabled currently falls back to Vintage (models cannot be
+     * cached yet), so such builds are in scope of this deprecation. Isolated Projects model building is not.
+     * <p>
+     * The nag is intentionally emitted regardless of the {@code org.gradle.tooling.parallel.ignore-legacy-default}
+     * system property: in a future major, having {@code org.gradle.parallel} enabled without an explicit value
+     * for {@code org.gradle.tooling.parallel} during model building will be an error, so users relying on the
+     * default must make it explicit now to avoid breaking on upgrade.
+     */
+    private void maybeNagOnImplicitParallelModelBuildingOptIn(StartParameterInternal startParameter) {
+        boolean relyingOnLegacyDefault = buildModelParameters.isModelBuilding()
+            && buildModelParameters.isVintage()
+            && !startParameter.getParallelToolingModelBuilding().isExplicit()
+            && startParameter.isParallelProjectExecutionEnabled();
+        if (relyingOnLegacyDefault) {
+            String toolingParallelProperty = StartParameterBuildOptions.ParallelToolingModelBuildingOption.PROPERTY_NAME;
+            DeprecationLogger.deprecateBehaviour("Relying on the default value of the '" + toolingParallelProperty + "' property while 'org.gradle.parallel' is enabled.")
+                .withContext("Whether the Tooling API builds project models in parallel (for example, during IDE sync) should be controlled explicitly via '" + toolingParallelProperty + "'.")
+                .withAdvice("Set '" + toolingParallelProperty + "' to 'true' or 'false' explicitly.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecate_implicit_parallel_model_building")
+                .nagUser();
+        }
     }
 
     private static void maybeNagOnDeprecatedJavaRuntimeVersion() {

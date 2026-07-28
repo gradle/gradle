@@ -91,7 +91,7 @@ abstract class AbstractKotlinDslScriptsModelBuilder : ToolingModelBuilder {
 
     private
     fun requireRootProject(project: Project) =
-        require(project == project.rootProject) {
+        require(project.parent == null) {
             "$MODEL_NAME can only be requested on the root project, got $project"
         }
 }

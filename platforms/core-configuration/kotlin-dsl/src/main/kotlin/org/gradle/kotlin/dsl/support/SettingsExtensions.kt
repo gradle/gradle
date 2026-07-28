@@ -18,6 +18,13 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.initialization.Settings
 
 
+/**
+ * Looks up any service in the build (`Gradle`) scope service registry, including Gradle internal services.
+ *
+ * Note that this resolves against the `Gradle` scope, not the `Settings` scope.
+ * This function is not considered stable public API. For the publicly supported services,
+ * prefer [org.gradle.api.initialization.Settings.service].
+ */
 inline fun <reified T : Any> Settings.serviceOf(): T =
     gradle.serviceOf()
 

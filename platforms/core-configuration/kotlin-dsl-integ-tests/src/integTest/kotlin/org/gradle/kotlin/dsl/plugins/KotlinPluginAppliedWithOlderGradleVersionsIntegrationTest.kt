@@ -57,8 +57,9 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             arrayOf("9.4.0", "2.3.0", "2.2"),
             arrayOf("9.5.0", "2.3.20", "2.2"),
 
-            arrayOf("9.6.0-rc-3", "2.3.21", "2.2"), // TODO: final version
-            arrayOf("9.7.0-milestone-1", "2.4.0", "2.2"), // TODO: final version
+            arrayOf("9.6.0", "2.3.21", "2.2"),
+            arrayOf("9.7.0-milestone-2", "2.4.0", "2.2"), // TODO: final version
+            // arrayOf("9.8.0", "2.4.10", "2.2"), // TODO: once available
         )
     }
 

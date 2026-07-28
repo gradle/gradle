@@ -212,6 +212,8 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/projectAtExe
 
 Fixing ad-hoc tasks in scripts requires additional effort, making it a good opportunity to refactor them into proper task classes.
 
+TIP: Ad-hoc tasks and scripts can also obtain these services directly with the <<service_injection.adoc#looking_up_services,`service(...)` lookup>>, avoiding the extra injected type shown above.
+
 The table below lists recommended replacements for commonly used `Project` methods:
 
 [cols="a,a",options="header"]
@@ -587,15 +589,17 @@ Because `obtain()` runs on every build, it is recommended to keep the implementa
 
 TIP: Plugin and build scripts should avoid running external processes at configuration time.
 
-You should avoid using these APIs for running processes during configuration:
+You must not use these APIs directly for running processes during configuration:
 
 - *Java/Kotlin*: `ProcessBuilder`, `Runtime.exec(...)`, etc...
 - *Groovy*: `*.execute()`, etc...
 - *Gradle*: `ExecOperations.exec`, `ExecOperations.javaexec`, etc...
 
-The flexibility of these methods prevent Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
+The flexibility of these methods prevents Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
+Therefore, Gradle reports a Configuration Cache problem when it detects such an invocation.
+Even when the Configuration Cache is disabled, calling these methods at configuration time still emits a deprecation warning and will become an error in a future Gradle version.
 
-However, if running processes is required at configuration time, you can use the configuration-cache-compatible APIs detailed below.
+If running processes is required at configuration time, you can use the configuration-cache-compatible APIs detailed below.
 
 For simpler cases, when grabbing the output of the process is enough,
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:exec(org.gradle.api.Action)[`providers.exec()`] and

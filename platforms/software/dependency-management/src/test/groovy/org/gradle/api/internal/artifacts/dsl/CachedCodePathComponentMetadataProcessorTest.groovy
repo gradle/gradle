@@ -89,7 +89,7 @@ class CachedCodePathComponentMetadataProcessorTest extends Specification {
         )
 
         when: "a processor runs on this metadata through the caching code path"
-        def processor = processorWithCacheThatNeverHits()
+        def processor = processorWithCacheThatNeverHits(metadataRuleContainer.asImmutable())
         def result = processor.processMetadata(metadata.asImmutable())
 
         then: "the result should have the variant added by the rule"
@@ -107,7 +107,7 @@ class CachedCodePathComponentMetadataProcessorTest extends Specification {
         "ivy"        | 2
     }
 
-    private DefaultComponentMetadataProcessor processorWithCacheThatNeverHits() {
+    private DefaultComponentMetadataProcessor processorWithCacheThatNeverHits(ImmutableComponentMetadataRules container) {
         CacheBuilder cacheBuilder
         cacheBuilder = Mock(CacheBuilder) {
             withInitialLockMode(_ as FileLockManager.LockMode) >> { cacheBuilder }
@@ -140,8 +140,16 @@ class CachedCodePathComponentMetadataProcessorTest extends Specification {
         def executorWithCache = new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, Mock(Serializer))
 
         new DefaultComponentMetadataProcessor(
-            metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser,
-            AttributeTestUtil.attributesFactory(), executorWithCache, DependencyManagementTestUtil.platformSupport(), context
+            context,
+            container,
+            NoOpDerivationStrategy.instance,
+            instantiator,
+            dependencyMetadataNotationParser,
+            dependencyConstraintMetadataNotationParser,
+            componentIdentifierNotationParser,
+            AttributeTestUtil.attributesFactory(),
+            executorWithCache,
+            DependencyManagementTestUtil.platformSupport()
         )
     }
 

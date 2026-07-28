@@ -307,6 +307,7 @@ public class DependencyGraphBuilder {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private static void validateGraph(
         ResolveState resolveState,
         boolean denyDynamicSelectors,
@@ -325,7 +326,7 @@ public class DependencyGraphBuilder {
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
                     module.visitAllIncomingEdges(edge -> edge.failWith(error));
-                } else if (Iterables.any(selected.getNodes(), node -> node.getReplacement() == null)) {
+                } else if (Iterables.any(selected.getNodes(), node -> node.maybeResolveCapabilityReplacement() == node)) {
                     for (NodeState node : selected.getNodes()) {
                         if (node.isRejectedForCapabilityConflict()) {
                             GradleException error = resolutionFailureHandler.nodeRejectedDueToCapabilityConflict(node);

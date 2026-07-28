@@ -26,9 +26,8 @@ public class HttpErrorStatusCodeException extends RuntimeException {
 
     private final int statusCode;
 
-    public HttpErrorStatusCodeException(String method, String source, int statusCode, String reason) {
-        super(String.format("Could not %s '%s'. Received status code %s from server: %s",
-            method, source, statusCode, reason));
+    public HttpErrorStatusCodeException(int statusCode, String reason) {
+        super(String.format("Received status code %s from server: %s", statusCode, reason));
         this.statusCode = statusCode;
     }
 

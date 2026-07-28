@@ -41,6 +41,30 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[kotlin_2_4_10]]
+==== Upgrade to Kotlin 2.4.10
+
+The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.10[Kotlin 2.4.10].
+
+[[service_method_added_to_project_settings_gradle_task]]
+==== New `service(Class)` method on `Project`, `Settings`, `Gradle`, and `Task`
+
+Gradle 9.8.0 adds an incubating `service(Class)` method to link:{javadocPath}/org/gradle/api/Project.html[`Project`], link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`], link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`], and link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with reified `service<T>()` extensions in the Kotlin DSL.
+See <<service_injection.adoc#looking_up_services,Looking up services in scripts>> for details.
+
+If your build, plugin, or convention already exposes a member called `service` on one of these types (for example a user-defined extension, a Groovy dynamic property, or a Kotlin extension function), the new built-in member may shadow it or make calls ambiguous.
+Rename your member (for example to `myService`) to disambiguate:
+
+[source,kotlin]
+.build.gradle.kts
+----
+// Before: shadowed by the new built-in Project.service(Class)
+fun Project.service(name: String): MyService = extensions.getByName(name) as MyService
+
+// After: rename to avoid the conflict
+fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
+----
+
 [[task_logging_listeners_are_now_stored_in_the_configuration_cache]]
 ==== Task logging listeners are now stored in the Configuration Cache
 
@@ -58,12 +82,82 @@ org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=
 
 This property is a temporary opt-out and will be removed in a future Gradle release.
 
+[[kotlin_object_singletons_in_configuration_cache]]
+==== Kotlin `object` singletons keep their identity in the Configuration Cache
+
+A Kotlin `object` (including `companion object` declarations) stored in the Configuration Cache is now restored as the same singleton instance.
+As a consequence, only the singleton's identity is restored, not any mutable state it may hold.
+
+Previously, each `object` was serialized as a regular bean and rebuilt as a _new_ instance on a cache hit, so `deserialized === TheObject` was `false`.
+If you relied on mutable state surviving a cache hit, move it into a task property or another bean type that is serialized by value.
+
+=== Deprecations
+
+[[deprecate_implicit_parallel_model_building]]
+==== Deprecation of implicit opt-in to parallel model building
+
+Parallel model building lets Tooling API clients (most commonly IDEs during project synchronization) build project models in parallel.
+Historically, it had no dedicated control and was enabled implicitly whenever parallel execution (`org.gradle.parallel=true` or `--parallel`) was enabled.
+
+Gradle 9.4.0 introduced the dedicated `org.gradle.tooling.parallel` property to control parallel model building explicitly.
+When that property is not set, its value is currently derived from `org.gradle.parallel` to preserve backward compatibility.
+
+Relying on this implicit behavior is now deprecated.
+When `org.gradle.parallel` is enabled and `org.gradle.tooling.parallel` is not set explicitly during model building, Gradle emits a deprecation warning.
+In Gradle 10, the two properties will become independent, and enabling `org.gradle.parallel` without an explicit value for `org.gradle.tooling.parallel` during model building will be an error.
+
+To avoid the warning and prepare for Gradle 10, set `org.gradle.tooling.parallel` explicitly to either `true` or `false`, for example in `gradle.properties`:
+
+[source,properties]
+----
+org.gradle.tooling.parallel=true
+----
+
+Additionally, the transitional system property `org.gradle.tooling.parallel.ignore-legacy-default` (used by some IDEs during sync to opt out of the legacy default) will no longer be honored in Gradle 10.
+Once `org.gradle.parallel` and `org.gradle.tooling.parallel` are independent, the flag is redundant, so Gradle 10 simply ignores it.
+No action is required in Gradle 9.x; if you set it explicitly, you can remove it when upgrading to Gradle 10.
+
+[[config_time_external_processes]]
+==== Deprecation of starting external processes at configuration time with `ExecOperations` and Java/Groovy standard APIs
+
+Starting an external process at configuration time with link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] or the Java and Groovy standard APIs directly is now deprecated.
+This includes:
+
+- `ExecOperations.exec` and `ExecOperations.javaexec`.
+- `java.lang.ProcessBuilder.start()` and `ProcessBuilder.startPipeline(...)`.
+- `java.lang.Runtime.exec(...)` (all overloads).
+- The Groovy process helpers `String.execute(...)`, `String[].execute(...)`, and `List.execute(...)`.
+
+This does *not* affect uses of the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] providers (`providers.exec` / `providers.javaexec`) or a <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, `ValueSource`>> that runs a process inside — those remain the supported way to run a process at configuration time.
+
+Starting an external process at configuration time in any of the deprecated ways is already an error when the Configuration Cache is enabled.
+To simplify preparation for the Configuration Cache being enabled by default in Gradle 10, and to open the way to it becoming the only mode of execution, Gradle now unconditionally deprecates behaviors that are unsupported with the Configuration Cache.
+
+Migrate to one of the following, in order of preference:
+
+1. *Move the process execution into a task*, so it runs at execution time and benefits from build caching, up-to-date checks, and work avoidance.
+Use an link:{javadocPath}/org/gradle/api/tasks/Exec.html[`Exec`] or link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[`JavaExec`] task, or a custom task that injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] and runs the process in its task action.
+2. For simple cases, use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`providers.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`providers.javaexec`].
+Prefer wiring the returned provider lazily to task inputs, and call `get()` only as a last resort.
+3. For more complex output processing, use a <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, `ValueSource`>> that injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] (or uses `java.lang.ProcessBuilder` directly).
+The same guidance about wiring the provider lazily to task inputs applies.
+
+This behavior will become an error in Gradle 11.
 
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
 
 === Potential breaking changes
 
+[[publish_no_checksums_for_signature_files]]
+==== Checksum files are no longer published for signature files
+
+When publishing to Maven or Ivy repositories, Gradle no longer publishes checksum files (such as `.sha1` and `.md5`) for signature files like `.asc` and `.sig`.
+
+A signature is itself an integrity artifact, so a checksum of a signature provides no additional protection, and the standard Maven publishing tooling does not publish these files either.
+The signature files themselves continue to be published unchanged; only their checksum files are no longer produced.
+
+[[project_cache_dir_no_longer_watched]]
 ==== The project cache directory is no longer watched
 
 Gradle no longer watches the _project cache directory_ (the `.gradle` directory in the root project, or a custom location set with `--project-cache-dir`).
@@ -78,6 +172,7 @@ Source-dependency check-outs, which live under the project cache directory but w
 
 See <<file_system_watching.adoc#sec:excluding_files_and_directories,Excluding files and directories>> for details.
 
+[[kotlin_2_4_0]]
 ==== Upgrade to Kotlin 2.4.0
 
 The embedded Kotlin has been upgraded from 2.3.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.0[Kotlin 2.4.0].
@@ -203,6 +298,9 @@ The Isolated Projects feature can now be enabled with stable property names that
 The legacy `org.gradle.unsafe.*` names are now deprecated and will be removed in a future release.
 They continue to be accepted as aliases for now and currently emit no warning.
 Update your `gradle.properties` and command-line invocations to the new names.
+
+When both the legacy and the new name of a property are set — for example, the new name in `gradle.properties` and the legacy name injected by a plugin or CI script on the command line — an explicit `false` from either one disables the feature.
+This guarantees that tooling which still opts out via a legacy property name keeps working after a build migrates to the new names.
 
 See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
@@ -1048,7 +1146,10 @@ We are deprecating these file generation tasks:
 * associated `clean*` tasks
 
 In addition to the tasks, certain model properties that only affect the generated files are also deprecated.
-These include `idea.module.iml { ... }`, `idea.project.ipr { ... }`, `idea.workspace { ... }`, `eclipse.wtp { ... }`, and the `file { ... }` merging hooks on `EclipseJdt`.
+These include `idea.module.iml { ... }`, `idea.project.ipr { ... }`, `idea.workspace { ... }`, `idea.targetVersion`, `idea.pathVariables`, `idea.module.pathVariables`, `idea.project.projectLibraries`, `eclipse.wtp.facet { ... }`, the `file { ... }` merging hooks on `EclipseJdt` and `eclipse.wtp.component`, and the `withXml { ... }` hook on all `file { ... }` blocks.
+The `beforeMerged { ... }` and `whenMerged { ... }` hooks on the eclipse project and classpath models are _not_ deprecated, as they also affect the model consumed by the IDE.
+
+The rest of `eclipse.wtp { ... }` is _not_ deprecated: the `eclipse.wtp.component { ... }` configuration feeds the WTP classpath attributes surfaced via the Tooling API, which Eclipse Buildship consumes.
 
 The model properties that affect how IDEs understand your project (source directories, language levels, dependency scopes, etc.) are _not_ deprecated.
 When you apply the plugins and configure the `idea { ... }` or `eclipse { ... }` blocks in your build scripts, you can customize how your IDE understands your project.

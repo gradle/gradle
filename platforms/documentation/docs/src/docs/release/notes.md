@@ -70,6 +70,27 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### TestKit API for asserting the Configuration Cache outcome
+
+Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded — an approach that broke whenever the wording of the console messages changed.
+
+The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly:
+
+```groovy
+def result = GradleRunner.create()
+    .withProjectDir(projectDir)
+    .withArguments("myTask", "--configuration-cache")
+    .build()
+
+assert result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
+```
+
+See [`ConfigurationCacheOutcome`](javadoc/org/gradle/testkit/runner/ConfigurationCacheOutcome.html) for the possible outcomes.
+
+The outcome is also available to any Tooling API client through a new [`CONFIGURATION_CACHE`](javadoc/org/gradle/tooling/events/OperationType.html#CONFIGURATION_CACHE) progress event type.
+
+See the [Testing with the Configuration Cache](userguide/test_kit.html#sub:test-kit-configuration-cache) section in the Gradle User Manual for more details.
+
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
@@ -79,8 +100,60 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
+#### Look up Gradle services from scripts and task actions
+
+Build, settings, and init scripts, as well as task actions, can now [look up commonly used Gradle services](userguide/service_injection.html#looking_up_services) directly, without declaring an `@Inject` point or going through the `objects.newInstance(...)` ceremony:
+
+```kotlin
+tasks.register("cleanReports") {
+    val fs = service<FileSystemOperations>()
+    doLast {
+        fs.delete { delete("build/reports") }
+    }
+}
+```
+
+Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. It is compatible with the Configuration Cache and Isolated Projects, and covers `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, and `ArchiveOperations` in every scope, `ProjectLayout` in projects and tasks, `BuildLayout` in settings, and `ExecOperations` in task actions. In the Kotlin and Java DSLs, looking up a service that is not available in the current scope is caught at compile time.
+
+Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or later at runtime.
+
+See the [Looking up services in scripts](userguide/service_injection.html#looking_up_services) section in the Gradle User Manual for more details.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
+
+#### Groovydoc supports modern Java sources and Groovy 6 output options
+
+The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes configuration options that had previously only been available through the Groovy CLI, Ant task, or Maven plugin, closing a long-standing gap in Gradle's Groovydoc support.
+
+**Java source parsing level:** Groovydoc uses JavaParser to read Java sources mixed into Groovy projects. When the parser's assumed language level is older than the sources, modern constructs — switch expressions, sealed classes, records, and similar — fail to parse, and the affected classes are silently omitted from the generated documentation. The new `javaVersion` property forwards the language level to Groovydoc so those sources parse cleanly:
+
+```kotlin
+tasks.groovydoc {
+    javaVersion = JavaLanguageVersion.of(21)
+}
+```
+
+This option requires Groovy 4.0.27 or later and is silently ignored on earlier Groovy versions.
+
+**Groovy 6.0.0 documentation options:** For projects using Groovy 6.0.0 or later, several new properties are now available on the `Groovydoc` task to control the generated output:
+
+| Property | Purpose |
+| --- | --- |
+| `showInternal` | Include members annotated with `groovy.transform.Internal` (GEP-17). |
+| `noIndex` | Suppress the alphabetical index page. |
+| `noDeprecatedList` | Suppress the deprecated-list page. |
+| `noHelp` | Suppress the help page. |
+| `syntaxHighlighter` | Select the client-side syntax highlighter (`"prism"` or `"none"`). |
+| `theme` | Lock the palette (`"auto"`, `"light"`, or `"dark"`). |
+| `preLanguage` | Default language id applied to unclassified `<pre>` code blocks. |
+| `additionalStylesheets` | Extra stylesheets copied alongside the default. |
+
+All of these are silently ignored on earlier Groovy versions, so they are safe to configure in builds that may be run against multiple Groovy releases.
+
+All new properties are [incubating](userguide/feature_lifecycle.html#feature_preview).
+
+See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in the DSL Reference for the full list of configuration options.
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.

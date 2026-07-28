@@ -47,6 +47,7 @@ import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
@@ -143,8 +144,11 @@ import java.util.concurrent.Callable;
  * <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
  * of the corresponding getter or setter method.</li>
  *
- * <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
- * can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
+ * <li>The <em>extra</em> properties of the project. Each project maintains a map of extra properties, which
+ * can contain any arbitrary name -&gt; value pair. Project-scoped Gradle properties that are not mapped directly to a
+ * {@code Project} property are also available in this scope. Values added explicitly to the extra properties extension
+ * take precedence over Gradle properties with the same name.
+ * Once defined, the properties of this scope are readable and writable.
  * See <a href="#extraproperties">extra properties</a> for more details.</li>
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
@@ -153,8 +157,8 @@ import java.util.concurrent.Callable;
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
  * property.</li>
  *
- * <li>The extra properties and convention properties are inherited from the project's parent, recursively up to the root
- * project. The properties of this scope are read-only.</li>
+ * <li>The extra properties and extensions of ancestor projects, starting with the parent project and continuing to
+ * the root project. The properties of this scope are read-only.</li>
  *
  * </ul>
  *
@@ -1110,6 +1114,29 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ProjectLayout getLayout();
 
     /**
+     * Looks up a service provided by Gradle for use in this project.
+     *
+     * <p>The services available for lookup are the Gradle types that implement {@link ProjectService}.</p>
+     *
+     * <p>Perform this lookup at configuration time. The returned instance may be captured and used later
+     * from a task action, and is safe to store in the configuration cache. To look a service up from
+     * within a task action, use {@link Task#service(Class)} instead.</p>
+     *
+     * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
+     * use {@link org.gradle.api.services.ServiceReference} or {@link org.gradle.api.invocation.Gradle#getSharedServices()}
+     * to access those.</p>
+     *
+     * @param serviceType the type of the service to look up
+     * @param <T> the service type
+     * @return the service instance. Never returns null.
+     * @throws InvalidUserDataException when the given type is not one of the services available in this scope
+     * @since 9.8.0
+     */
+    @Incubating
+    @HiddenInDefinition
+    <T extends ProjectService> T service(Class<T> serviceType);
+
+    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
@@ -1494,17 +1521,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>If this project object has a property with the given name, return the value of the property.</li>
      *
-     * <li>If this project has an extension with the given name, return the extension.</li>
-     *
-     * <li>If this project's convention object has a property with the given name, return the value of the
-     * property.</li>
-     *
      * <li>If this project has an extra property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has an extension with the given name, return the extension.</li>
      *
      * <li>If this project has a task with the given name, return the task.</li>
      *
-     * <li>Search up through this project's ancestor projects for a convention property or extra property with the
-     * given name.</li>
+     * <li>Search up through this project's ancestor projects, starting with the parent project, for an extra property
+     * or extension with the given name.</li>
      *
      * <li>If not found, a {@link MissingPropertyException} is thrown.</li>
      *
@@ -1527,17 +1551,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>If this project object has a property with the given name, return the value of the property.</li>
      *
-     * <li>If this project has an extension with the given name, return the extension.</li>
-     *
-     * <li>If this project's convention object has a property with the given name, return the value of the
-     * property.</li>
-     *
      * <li>If this project has an extra property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has an extension with the given name, return the extension.</li>
      *
      * <li>If this project has a task with the given name, return the task.</li>
      *
-     * <li>Search up through this project's ancestor projects for a convention property or extra property with the
-     * given name.</li>
+     * <li>Search up through this project's ancestor projects, starting with the parent project, for an extra property
+     * or extension with the given name.</li>
      *
      * <li>If not found, null value is returned.</li>
      *

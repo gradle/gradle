@@ -57,6 +57,9 @@ class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         """
         when:
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.api.XmlFileContentMerger.withXml"): 1,
+        )
         run("eclipse")
         then:
 
@@ -673,6 +676,9 @@ class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         expectTaskTypeDeprecations(
                 ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.file"): 1,
+                ("org.gradle.plugins.ide.api.PropertiesFileContentMerger.beforeMerged"): 1,
+                ("org.gradle.plugins.ide.api.PropertiesFileContentMerger.whenMerged"): 1,
+                ("org.gradle.plugins.ide.api.PropertiesFileContentMerger.withProperties"): 1,
         )
         run "eclipse"
         def jdt = parseJdtFile()

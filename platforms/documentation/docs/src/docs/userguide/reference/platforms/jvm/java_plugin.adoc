@@ -471,6 +471,8 @@ The basename to use for archives, such as JAR or ZIP files. Default value: `__pr
 
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
++
+See <<building_java_projects.adoc#sec:jar_manifest, Modifying the JAR manifest>> for examples of configuring attributes and using Provider values.
 
 [[sec:java_test]]
 == Testing
@@ -747,7 +749,7 @@ Check with the annotation processor project directly for the most up-to-date inf
 | link:https://github.com/airbnb/epoxy/releases/tag/4.0.0-beta1[4.0.0-beta1]
 | N/A
 
-| link:https://docs.jboss.org/hibernate/orm/5.4/topical/html_single/metamodelgen/MetamodelGenerator.html[JPA Static Metamodel Generator]
+| link:https://docs.hibernate.org/orm/7.2/userguide/html_single/#tooling-modelgen[Hibernate Processor] (formerly link:https://docs.hibernate.org/orm/5.4/topical/html_single/metamodelgen/MetamodelGenerator.html[JPA Static Metamodel Generator], now also supports Jakarta Data)
 | link:https://github.com/hibernate/hibernate-orm/releases/tag/5.4.11[5.4.11]
 | N/A
 

@@ -833,13 +833,6 @@
     "crossVersionTests": true
   },
   {
-    "name": "internal-architecture-testing",
-    "path": "testing/internal-architecture-testing",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "internal-build-reports",
     "path": "packaging/internal-build-reports",
     "unitTests": false,
@@ -900,6 +893,13 @@
     "path": "platforms/core-configuration/isolated-action-services",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "isolated-ant-builder",
+    "path": "platforms/software/isolated-ant-builder",
+    "unitTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -1719,6 +1719,13 @@
     "path": "platforms/core-execution/worker-process-services",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "worker-shared",
+    "path": "platforms/core-execution/worker-shared",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

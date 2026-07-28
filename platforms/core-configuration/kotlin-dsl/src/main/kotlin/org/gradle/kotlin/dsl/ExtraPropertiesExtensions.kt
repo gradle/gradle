@@ -31,6 +31,11 @@ import kotlin.reflect.KProperty
 /**
  * The extra properties extension in this object's extension container.
  *
+ * For a [org.gradle.api.Project], this accesses only that project's extra properties. Values set explicitly
+ * on the extension take precedence over Gradle properties with the same name when those properties are not mapped
+ * directly to a `Project` property. This does not perform the broader lookup used by
+ * [org.gradle.api.Project.findProperty].
+ *
  * @see [ExtensionContainer.getExtraProperties]
  */
 val ExtensionAware.extra: ExtraPropertiesExtension
