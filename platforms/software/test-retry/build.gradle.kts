@@ -28,4 +28,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.jspecify)
+
+    testImplementation(libs.groovy)
+    testImplementation(testLibs.spock)
+    testImplementation(libs.asm)
+    testImplementation(gradleTestKit())
 }
