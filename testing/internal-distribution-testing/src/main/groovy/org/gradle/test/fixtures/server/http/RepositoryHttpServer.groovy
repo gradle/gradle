@@ -20,6 +20,7 @@ import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.server.RepositoryServer
+import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.util.GradleVersion
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
@@ -36,6 +37,12 @@ class RepositoryHttpServer extends HttpServer implements RepositoryServer {
     RepositoryHttpServer(TestDirectoryProvider testDirectoryProvider, String gradleVersion) {
         this.testDirectoryProvider = testDirectoryProvider
         this.gradleVersion = gradleVersion
+    }
+
+    // Groovy 5 doesn't accept HttpServer's property getter as implementing the inherited abstract method
+    @Override
+    List<ServerExpectation> getExpectations() {
+        return super.getExpectations()
     }
 
     @Override
