@@ -1582,6 +1582,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "test-retry",
+    "path": "platforms/software/test-retry",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "test-suites-base",
     "path": "platforms/software/test-suites-base",
     "unitTests": false,

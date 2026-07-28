@@ -184,6 +184,7 @@ public class PackageCycleTest {
         )),
         entry("start-parameter", List.of("org/gradle/**")),
         entry("test-kit", List.of("org/gradle/testkit/runner/internal/**")),
+        entry("test-retry", List.of("org/gradle/testretry/**")),
         entry("testing-base", List.of("org/gradle/api/internal/tasks/testing/**")),
         entry("testing-base-infrastructure", List.of("org/gradle/api/internal/tasks/testing/**")),
         entry("testing-jvm", List.of("org/gradle/api/internal/tasks/testing/**")),
