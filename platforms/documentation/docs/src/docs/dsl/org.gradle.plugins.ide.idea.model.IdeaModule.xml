@@ -25,9 +25,9 @@
                 <td>
                     <itemizedlist>
                         <listitem><literal>COMPILE</literal> -> empty</listitem>
-                        <listitem><literal>RUNTIME</literal> -> plus <literal>project.configurations.runtimeClasspath</literal></listitem>
-                        <listitem><literal>TEST</literal> -> plus <literal>project.configurations.testCompileClasspath</literal> and <literal>project.configurations.testRuntimeClasspath</literal></listitem>
-                        <listitem><literal>PROVIDED</literal> -> plus <literal>project.configurations.compileClasspath</literal></listitem>
+                        <listitem><literal>RUNTIME</literal> -> <literal>plus += project.configurations.runtimeClasspath</literal></listitem>
+                        <listitem><literal>TEST</literal> -> <literal>plus += project.configurations.testCompileClasspath</literal> and <literal>plus += project.configurations.testRuntimeClasspath</literal></listitem>
+                        <listitem><literal>PROVIDED</literal> -> <literal>plus += project.configurations.compileClasspath</literal></listitem>
                     </itemizedlist>
                 </td>
             </tr>
