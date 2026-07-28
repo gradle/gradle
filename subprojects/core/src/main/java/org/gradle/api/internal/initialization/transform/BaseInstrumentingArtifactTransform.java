@@ -31,6 +31,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
@@ -44,7 +45,6 @@ import java.io.File;
 import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.Parameters;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
-import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.AGENT_INSTRUMENTATION_MARKER;
 import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.LEGACY_INSTRUMENTATION_MARKER;
 import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
@@ -87,13 +87,19 @@ public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> i
             // When agent is supported, we output an instrumented jar and an original jar,
             // so we can then later reconstruct instrumented jars classpath and original jars classpath.
             // We add `instrumented-` prefix to the file since names for the same transform needs to be unique when querying results via ArtifactCollection.
-            createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER.getFileName()));
+            createNewFile(outputs.file(agentInstrumentationMarker().getFileName()));
             doTransform(artifactToTransform, outputs, originalName -> INSTRUMENTED_ENTRY_PREFIX + originalName);
         } else {
             createNewFile(outputs.file(LEGACY_INSTRUMENTATION_MARKER.getFileName()));
             doTransform(artifactToTransform, outputs, originalName -> originalName);
         }
     }
+
+    /**
+     * The marker identifying the instrumentation pipeline of this transform in the produced classpath,
+     * see {@link TransformedClassPath#handleInstrumentingArtifactTransform(java.util.List)}.
+     */
+    protected abstract TransformedClassPath.FileMarker agentInstrumentationMarker();
 
     private boolean isAgentSupported() {
         return getParameters().getAgentSupported().get();
