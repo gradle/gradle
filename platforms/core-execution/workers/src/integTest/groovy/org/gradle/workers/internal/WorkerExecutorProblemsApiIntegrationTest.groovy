@@ -22,6 +22,7 @@ import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.problems.ProblemUsageProgressDetails
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Issue
@@ -315,6 +316,10 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             if (isolationMode == "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
                 // In a worker process the problem is attributed to the work request's build operation
                 operationId == Long.parseLong(buildOperationIdFile.text)
+            } else {
+                // In-process workers are covered by the daemon-side fallback, which attributes
+                // problems from unenrolled threads to the root build operation
+                operationId == buildOperationsFixture.root(RunBuildBuildOperationType).id
             }
         }
 
