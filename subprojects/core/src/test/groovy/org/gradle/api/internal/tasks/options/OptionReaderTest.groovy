@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options
 
+import groovy.transform.CompileStatic
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.tasks.TaskOptionsGenerator
@@ -26,8 +27,16 @@ import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.util.TestUtil
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 import spock.lang.Issue
 import spock.lang.Specification
+
+import java.lang.invoke.MethodHandles
 
 class OptionReaderTest extends Specification {
 
@@ -396,13 +405,13 @@ class OptionReaderTest extends Specification {
 
     def "throws decent error when description not set"() {
         when:
-        TaskOptionsGenerator.generate(new TestClass7(), reader).getAll()
+        TaskOptionsGenerator.generate(newOptionWithoutDescriptionOnMethod(), reader).getAll()
         then:
         def e = thrown(OptionValidationException)
         e.message == "No description set on option 'aValue' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass7'."
 
         when:
-        TaskOptionsGenerator.generate(new TestClass8(), reader).getAll()
+        TaskOptionsGenerator.generate(newOptionWithoutDescriptionOnField(), reader).getAll()
         then:
         e = thrown(OptionValidationException)
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
@@ -444,7 +453,7 @@ class OptionReaderTest extends Specification {
         e.message == "@OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidProviderCollectionTypeSomeOptionMethod'. Supported method must be non-static, return a Collection<String> or Provider<Collection<String>> and take no parameters."
 
         when:
-        TaskOptionsGenerator.generate(new TestClass8(), reader).getAll()
+        TaskOptionsGenerator.generate(newOptionWithoutDescriptionOnField(), reader).getAll()
         then:
         e = thrown(OptionValidationException)
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
@@ -863,15 +872,90 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestClass7 {
-        @Option(option = 'aValue')
-        public void setStrings(String value) {
+    // Cached because a class name may be defined into the loader only once; each test builds a fresh instance.
+    private static Class<?> optionWithoutDescriptionOnMethodClass
+    private static Class<?> optionWithoutDescriptionOnFieldClass
+
+    /**
+     * Generates an instance whose {@code setStrings} setter carries an {@code @Option} with no
+     * {@code description}, so reading it reflectively throws {@link java.lang.annotation.IncompleteAnnotationException}.
+     * Neither Groovy 5 nor javac will compile such an annotation from source, so it is emitted as bytecode.
+     */
+    @CompileStatic
+    private static Object newOptionWithoutDescriptionOnMethod() {
+        if (optionWithoutDescriptionOnMethodClass == null) {
+            String internalName = 'org/gradle/api/internal/tasks/options/OptionReaderTest$TestClass7'
+            ClassWriter cw = new ClassWriter(0)
+            cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER, internalName, null, "java/lang/Object", null)
+            writeDefaultConstructor(cw)
+
+            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "setStrings", "(Ljava/lang/String;)V", null, null)
+            AnnotationVisitor av = mv.visitAnnotation(Type.getDescriptor(Option), true)
+            av.visit("option", "aValue")
+            // deliberately omit 'description' to produce an incomplete annotation
+            av.visitEnd()
+            mv.visitCode()
+            mv.visitInsn(Opcodes.RETURN)
+            mv.visitMaxs(0, 2)
+            mv.visitEnd()
+            cw.visitEnd()
+
+            optionWithoutDescriptionOnMethodClass = defineClass(cw.toByteArray())
         }
+        return optionWithoutDescriptionOnMethodClass.getDeclaredConstructor().newInstance()
     }
 
-    public static class TestClass8 {
-        @Option
-        String field
+    /**
+     * Generates an instance with an {@code @Option}-annotated field (and matching setter) that omits
+     * {@code description}, mirroring {@link #newOptionWithoutDescriptionOnMethod()} for the field path.
+     */
+    @CompileStatic
+    private static Object newOptionWithoutDescriptionOnField() {
+        if (optionWithoutDescriptionOnFieldClass == null) {
+            String internalName = 'org/gradle/api/internal/tasks/options/OptionReaderTest$TestClass8'
+            ClassWriter cw = new ClassWriter(0)
+            cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER, internalName, null, "java/lang/Object", null)
+
+            FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "field", "Ljava/lang/String;", null, null)
+            // no annotation members: 'option' defaults to the field name, 'description' stays incomplete
+            fv.visitAnnotation(Type.getDescriptor(Option), true).visitEnd()
+            fv.visitEnd()
+
+            writeDefaultConstructor(cw)
+
+            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "setField", "(Ljava/lang/String;)V", null, null)
+            mv.visitCode()
+            mv.visitVarInsn(Opcodes.ALOAD, 0)
+            mv.visitVarInsn(Opcodes.ALOAD, 1)
+            mv.visitFieldInsn(Opcodes.PUTFIELD, internalName, "field", "Ljava/lang/String;")
+            mv.visitInsn(Opcodes.RETURN)
+            mv.visitMaxs(2, 2)
+            mv.visitEnd()
+            cw.visitEnd()
+
+            optionWithoutDescriptionOnFieldClass = defineClass(cw.toByteArray())
+        }
+        return optionWithoutDescriptionOnFieldClass.getDeclaredConstructor().newInstance()
+    }
+
+    @CompileStatic
+    private static void writeDefaultConstructor(ClassWriter cw) {
+        MethodVisitor ctor = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
+        ctor.visitCode()
+        ctor.visitVarInsn(Opcodes.ALOAD, 0)
+        ctor.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
+        ctor.visitInsn(Opcodes.RETURN)
+        ctor.visitMaxs(1, 1)
+        ctor.visitEnd()
+    }
+
+    /**
+     * {@code @CompileStatic} keeps the caller-sensitive {@link MethodHandles#lookup()} bound to this test
+     * class, so the class is defined in this package rather than in the Groovy runtime's package.
+     */
+    @CompileStatic
+    private static Class<?> defineClass(byte[] bytes) {
+        return MethodHandles.lookup().defineClass(bytes)
     }
 
     public static class TestClass9 {

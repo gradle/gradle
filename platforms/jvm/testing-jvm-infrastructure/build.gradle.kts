@@ -55,6 +55,9 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.time))
 
+    testImplementation(libs.asm) {
+        because("We generate a class carrying an incomplete @RunWith annotation, which cannot be written in source")
+    }
     testImplementation(testLibs.assertj) {
         because("We test assertion errors coming from AssertJ")
     }

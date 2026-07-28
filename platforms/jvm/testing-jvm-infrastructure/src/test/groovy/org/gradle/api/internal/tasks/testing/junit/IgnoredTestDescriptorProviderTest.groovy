@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit
 
+import groovy.transform.CompileStatic
 import junit.framework.TestCase
 import junit.framework.TestSuite
 import org.junit.Ignore
@@ -28,9 +29,15 @@ import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.junit.runner.Runner
 import org.junit.runner.notification.RunNotifier
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 import spock.lang.Specification
 
 import java.lang.annotation.IncompleteAnnotationException
+import java.lang.invoke.MethodHandles
 
 /**
  * Tests {@link IgnoredTestDescriptorProvider}.
@@ -49,13 +56,43 @@ class IgnoredTestDescriptorProviderTest extends Specification {
         IgnoredTestDescriptorProvider.getAllDescriptions(Description.createSuiteDescription(testClass), testClass.getName())
     }
 
-    @SuppressWarnings
+    /**
+     * Generates a class annotated with {@code @RunWith} but without its mandatory {@code value},
+     * so that reading it reflectively throws {@link IncompleteAnnotationException}. Neither Groovy 5
+     * nor javac will compile such an annotation from source.
+     *
+     * <p>{@code @CompileStatic} is required so the caller-sensitive {@link MethodHandles#lookup()}
+     * resolves to this test class rather than the Groovy runtime, keeping the generated class in the
+     * lookup's package.
+     */
+    @CompileStatic
+    private static Class<?> emptyRunWithClass() {
+        String name = "${IgnoredTestDescriptorProviderTest.class.name}\$GeneratedEmptyRunWithSpec"
+        ClassWriter cw = new ClassWriter(0)
+        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER, name.replace('.', '/'), null, "java/lang/Object", null)
+
+        AnnotationVisitor av = cw.visitAnnotation(Type.getDescriptor(RunWith), true)
+        // deliberately omit the 'value' member to produce an incomplete annotation
+        av.visitEnd()
+
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
+        mv.visitCode()
+        mv.visitVarInsn(Opcodes.ALOAD, 0)
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
+        mv.visitInsn(Opcodes.RETURN)
+        mv.visitMaxs(1, 1)
+        mv.visitEnd()
+        cw.visitEnd()
+
+        return MethodHandles.lookup().defineClass(cw.toByteArray())
+    }
+
     def "can get @RunWith runner through legacy means"() {
         expect:
         IgnoredTestDescriptorProvider.getRunnerLegacy(RunWithSpec.class) instanceof CustomRunner
 
         when:
-        IgnoredTestDescriptorProvider.getRunnerLegacy(EmptyRunWithSpec.class)
+        IgnoredTestDescriptorProvider.getRunnerLegacy(emptyRunWithClass())
 
         then:
         thrown IncompleteAnnotationException
@@ -85,12 +122,6 @@ class IgnoredTestDescriptorProviderTest extends Specification {
     @Ignore
     @RunWith(CustomRunner.class)
     static class RunWithSpec {
-        void doTest() {}
-    }
-
-    @Ignore
-    @RunWith()
-    static class EmptyRunWithSpec {
         void doTest() {}
     }
 
