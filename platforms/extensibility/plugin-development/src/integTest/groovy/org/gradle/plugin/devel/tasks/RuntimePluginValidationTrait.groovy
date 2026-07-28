@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.test.fixtures.file.TestFile
 
 trait RuntimePluginValidationTrait implements CommonPluginValidationTrait {
-    @Override
     def setup() {
         enableProblemsApiCheck()
         expectReindentedValidationMessage()
@@ -30,17 +29,14 @@ trait RuntimePluginValidationTrait implements CommonPluginValidationTrait {
 
     String iterableSymbol = '.$0'
 
-    @Override
     String getNameSymbolFor(String name) {
         ".$name\$0"
     }
 
-    @Override
     String getKeySymbolFor(String name) {
         ".$name"
     }
 
-    @Override
     void assertValidationSucceeds() {
         succeeds "run"
         result.assertTaskExecuted(":run")
@@ -55,7 +51,6 @@ trait RuntimePluginValidationTrait implements CommonPluginValidationTrait {
         }
     }
 
-    @Override
     TestFile source(String path) {
         return file("buildSrc/$path")
     }
