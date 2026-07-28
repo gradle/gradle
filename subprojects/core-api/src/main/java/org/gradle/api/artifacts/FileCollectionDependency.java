@@ -17,11 +17,13 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A {@code FileCollectionDependency} is a {@link Dependency} on a collection of local files which are not stored in a
  * repository.
  */
+@HasInternalProtocol
 public interface FileCollectionDependency extends Dependency {
 
     /**

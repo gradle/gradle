@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ConfigurationPublications
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
@@ -24,7 +25,9 @@ import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.model.ComponentIdGenerator
@@ -165,5 +168,49 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
 
     def create() {
         return converter.createConsumableVariantState(configuration, componentId, cache, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
+    }
+
+    def "DefaultLocalFileDependencyMetadata.getComponentId returns null for non-SelfResolvingDependencyInternal"() {
+        given:
+        def customDependency = Mock(FileCollectionDependency) {
+            getFiles() >> Mock(FileCollection)
+            getGroup() >> null
+            getName() >> "custom"
+            getVersion() >> null
+        }
+        def metadata = new DefaultLocalVariantGraphResolveStateBuilder.DefaultLocalFileDependencyMetadata(customDependency)
+
+        expect:
+        metadata.getComponentId() == null
+    }
+
+    def "DefaultLocalFileDependencyMetadata.getComponentId returns component id for SelfResolvingDependencyInternal"() {
+        given:
+        def expectedComponentId = Mock(ComponentIdentifier)
+        def selfResolvingDependency = Mock(SelfResolvingDependencyInternal) {
+            getFiles() >> Mock(FileCollection)
+            getGroup() >> null
+            getName() >> "self-resolving"
+            getVersion() >> null
+            getTargetComponentId() >> expectedComponentId
+        }
+        def metadata = new DefaultLocalVariantGraphResolveStateBuilder.DefaultLocalFileDependencyMetadata(selfResolvingDependency)
+
+        expect:
+        metadata.getComponentId() == expectedComponentId
+    }
+
+    def "DefaultLocalFileDependencyMetadata.getSource returns the original dependency"() {
+        given:
+        def dependency = Mock(FileCollectionDependency) {
+            getFiles() >> Mock(FileCollection)
+            getGroup() >> null
+            getName() >> "test"
+            getVersion() >> null
+        }
+        def metadata = new DefaultLocalVariantGraphResolveStateBuilder.DefaultLocalFileDependencyMetadata(dependency)
+
+        expect:
+        metadata.getSource().is(dependency)
     }
 }
