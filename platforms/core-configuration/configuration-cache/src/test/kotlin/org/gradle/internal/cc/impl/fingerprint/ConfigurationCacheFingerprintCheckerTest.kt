@@ -412,6 +412,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun writeString(value: CharSequence?): Unit =
             undefined()
 
+        override fun writeFile(value: File?): Unit =
+            undefined()
+
         override fun writeBytes(bytes: ByteArray?): Unit =
             undefined()
 
@@ -551,6 +554,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun readString(): String =
+            undefined()
+
+        override fun readFile(): File =
             undefined()
 
         override fun readBoolean(): Boolean =
