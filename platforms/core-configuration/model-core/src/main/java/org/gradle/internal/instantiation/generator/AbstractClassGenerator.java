@@ -426,6 +426,20 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return isAttachableType(metadata.getReturnType(), metadata.method::isAnnotationPresent);
     }
 
+    /**
+     * Does any getter that we override actually attach the owner? This mirrors the per-getter condition used when
+     * generating the getters, so that we only register a property for re-attachment if some generated getter would
+     * have attached it in the first place.
+     */
+    private static boolean hasAttachableOverridableGetter(PropertyMetadata property) {
+        for (MethodMetadata getter : property.getOverridableGetters()) {
+            if (isAttachableMethod(getter)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean isAttachableType(Class<?> type, Predicate<Class<? extends Annotation>> propertyHasAnnotation) {
         // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and @Nested value current implement OwnerAware
         return Provider.class.isAssignableFrom(type) || isConfigurableFileCollectionType(type) || hasNestedAnnotation(propertyHasAnnotation);
@@ -1039,9 +1053,17 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetadata property : conventionProperties) {
-                boolean applyRole = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property) && isRoleType(property);
+                boolean deferOwnerAttach = isAttachProperty(property) && isLazyAttachPropertyIfNeeded(property);
+                boolean applyRole = deferOwnerAttach && isRoleType(property);
                 if (applyRole) {
                     visitor.instantiatesNestedObjects();
+                }
+                if (deferOwnerAttach && isReattachProperty(property) && hasAttachableOverridableGetter(property)) {
+                    // Register non-managed lazy properties for on-demand (re-)attachment to their owners.
+                    // The owner is normally attached by the overriding getter, which is not invoked when the object
+                    // is restored from the configuration cache, so the property would otherwise lose its owner.
+                    // See https://github.com/gradle/gradle/issues/37421.
+                    visitor.attachOnDemand(property, applyRole);
                 }
             }
         }

@@ -435,6 +435,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final static Type GENERATED_SUBCLASS_TYPE = getType(GeneratedSubclass.class);
         private final static Type MODEL_OBJECT_TYPE = getType(ModelObject.class);
         private final static Type OWNER_AWARE_TYPE = getType(OwnerAware.class);
+        private final static Type EXCEPTION_TYPE = getType(Exception.class);
         private final static Type CONVENTION_AWARE_TYPE = getType(IConventionAware.class);
         private final static Type CONVENTION_AWARE_HELPER_TYPE = getType(ConventionAwareHelper.class);
         private final static Type DYNAMIC_OBJECT_AWARE_TYPE = getType(DynamicObjectAware.class);
@@ -1240,6 +1241,32 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 super(methodVisitor);
             }
 
+            /**
+             * Same as {@link #attachProperty(AttachedProperty)}, but tolerates a getter that fails.
+             *
+             * Unlike managed properties, whose getters are generated and simply return a field, non-managed
+             * properties have hand-written getters that may fail when invoked outside the usual lifecycle.
+             * Such a property is simply left without an owner.</p
+             */
+            protected void attachPropertyIfPossible(AttachedProperty attached) {
+                // GENERATE try { <attach property> } catch (Exception ignored) { }
+                Label tryStart = new Label();
+                Label tryEnd = new Label();
+                Label handler = new Label();
+                Label done = new Label();
+                visitTryCatchBlock(tryStart, tryEnd, handler, EXCEPTION_TYPE.getInternalName());
+                visitLabel(tryStart);
+                attachProperty(attached);
+                // Discard the value left on the stack by the attach, so that both branches below leave the stack empty
+                _POP();
+                visitLabel(tryEnd);
+                _GOTO(done);
+                visitLabel(handler);
+                // Discard the ignored exception
+                _POP();
+                visitLabel(done);
+            }
+
             protected void attachProperty(AttachedProperty attached) {
                 // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
                 PropertyMetadata property = attached.property;
@@ -1396,7 +1423,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, INIT_ATTACH_METHOD, RETURN_VOID);
                 for (AttachedProperty attached : propertiesToAttachOnDemand) {
-                    attachProperty(attached);
+                    attachPropertyIfPossible(attached);
                 }
                 _RETURN();
             }});

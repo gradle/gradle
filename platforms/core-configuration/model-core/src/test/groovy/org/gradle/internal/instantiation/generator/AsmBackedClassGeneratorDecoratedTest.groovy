@@ -20,6 +20,7 @@ import com.google.common.base.Function
 import org.gradle.api.Action
 import org.gradle.api.NonExtensible
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
@@ -27,7 +28,9 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
+import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.ConfigureUtil
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import java.util.function.BiFunction
@@ -140,6 +143,70 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.prop.toString() == "property 'prop'"
         beanWithDisplayName.prop.toString() == "<display-name> property 'prop'"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37421")
+    def "re-attaches owner to non-managed read only #description when model properties are re-attached"() {
+        given:
+        def bean = create(type, Describables.of("<display name>"))
+
+        // Read the backing field directly, without going through the attaching getter. This mirrors how
+        // the configuration cache restores the property - straight into the field - so the owner-attach that
+        // normally happens in the generated getter override never runs, leaving the property without an owner.
+        def field = type.getDeclaredField(fieldName)
+        field.accessible = true
+
+        expect: "the property restored into the field has no owner yet"
+        field.get(bean).toString() == ownerlessDisplayName
+
+        when: "the model properties are re-attached, as the configuration cache does after deserialization"
+        (bean as ModelObject).attachModelProperties()
+
+        then: "the owner (and thus the display name) is restored, observed via the field rather than the getter"
+        field.get(bean).toString() == "<display name> property 'someValue'"
+
+        where:
+        description                  | type                       | fieldName | ownerlessDisplayName
+        "Property"                   | HasReadOnlyProperty        | "prop"    | "property(java.lang.String, undefined)"
+        "ConfigurableFileCollection" | HasReadOnlyFileCollection  | "files"   | "file collection"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37421")
+    def "attempting to reattach the owner to a non-managed properties ignores getter exception"() {
+        given:
+        def bean = create(HasFailingAndWorkingPropertyGetters, Describables.of("<display name>"))
+        def field = HasFailingAndWorkingPropertyGetters.getDeclaredField("working")
+        field.accessible = true
+
+        when: "model properties are re-attached, as the configuration cache does after deserialization"
+        (bean as ModelObject).attachModelProperties()
+
+        then: "the failure is ignored and the remaining properties are still attached"
+        noExceptionThrown()
+        field.get(bean).toString() == "<display name> property 'working'"
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/37421")
+    def "attaches owner to a non-managed read only Property whose main getter is final and only overload is not attachable"() {
+        given:
+        def bean = create(HasFinalPropertyGetterAndBooleanOverload, Describables.of("<display name>"))
+        def field = HasFinalPropertyGetterAndBooleanOverload.getDeclaredField("prop")
+        field.accessible = true
+
+        expect: "the property has no owner"
+        // FIXME The property should have an owner, whether read through the field or through the getter:
+        // field.get(bean).toString() == "<display name> property 'someValue'"
+        // bean.getSomeValue().toString() == "<display name> property 'someValue'"
+        field.get(bean).toString() == "property(java.lang.Boolean, undefined)"
+        bean.getSomeValue().toString() == "property(java.lang.Boolean, undefined)"
+
+        when: "model properties are re-attached"
+        (bean as ModelObject).attachModelProperties()
+
+        then: "the property still has no owner"
+        // FIXME The property should have an owner here too:
+        // field.get(bean).toString() == "<display name> property 'someValue'"
+        field.get(bean).toString() == "property(java.lang.Boolean, undefined)"
     }
 
     def "can attach nested extensions to object"() {
@@ -744,6 +811,54 @@ class HasReadOnlyProperty {
 
     HasReadOnlyProperty(ObjectFactory objectFactory) {
         prop = objectFactory.property(String)
+    }
+}
+
+class HasFinalPropertyGetterAndBooleanOverload {
+    private final Property<Boolean> prop
+
+    // Final, so it cannot be overridden to attach the owner, even though this is the getter
+    // that exposes the Property, and would need an owner.
+    final Property<Boolean> getSomeValue() {
+        return prop
+    }
+
+    // Non-final, so this is the only getter that could be overridden, but its boolean return type is not attachable.
+    boolean isSomeValue() {
+        return prop.getOrElse(false)
+    }
+
+    HasFinalPropertyGetterAndBooleanOverload(ObjectFactory objectFactory) {
+        prop = objectFactory.property(Boolean)
+    }
+}
+
+class HasFailingAndWorkingPropertyGetters {
+    private final Property<String> working
+
+    // Mirrors GenerateModuleMetadata.getPublication(), whose value is discarded during serialization.
+    Property<String> getFailing() {
+        throw new IllegalStateException("The value of this property has been discarded during serialization.")
+    }
+
+    Property<String> getWorking() {
+        return working
+    }
+
+    HasFailingAndWorkingPropertyGetters(ObjectFactory objectFactory) {
+        working = objectFactory.property(String)
+    }
+}
+
+class HasReadOnlyFileCollection {
+    private final ConfigurableFileCollection files
+
+    ConfigurableFileCollection getSomeValue() {
+        return files
+    }
+
+    HasReadOnlyFileCollection(ObjectFactory objectFactory) {
+        files = objectFactory.fileCollection()
     }
 }
 
