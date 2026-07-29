@@ -17,6 +17,7 @@ package org.gradle.composite.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.PlanExecutor;
@@ -26,7 +27,6 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -38,6 +38,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.io.Closeable;
@@ -121,12 +122,25 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     }
 
     @Override
-    public IncludedBuildTaskResource locateTask(TaskIdentifier taskIdentifier) {
+    public TaskNode locateTaskNode(TaskInternal task) {
         return withState(workGraph -> {
-            BuildState build = buildRegistry.getBuild(taskIdentifier.getBuildIdentifier());
-            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(taskIdentifier);
-            return new TaskBackedResource(workGraph, build, taskNode);
+            BuildState build = buildOf(task);
+            return build.getWorkGraph().locateTaskNode(task);
         });
+    }
+
+    @Override
+    public void queueForExecution(TaskInternal task) {
+        withState(workGraph -> {
+            BuildState build = buildOf(task);
+            workGraph.queueForExecution(build, build.getWorkGraph().locateTaskNode(task));
+            return null;
+        });
+    }
+
+    private BuildState buildOf(TaskInternal task) {
+        Path buildPath = task.getTaskIdentity().getProjectIdentity().getBuildPath();
+        return buildRegistry.getBuild(buildPath);
     }
 
     @Override
@@ -166,14 +180,14 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
 
         @Override
-        public void scheduleTasks(Collection<TaskIdentifier> tasksToBuild) {
-            for (TaskIdentifier identifier : tasksToBuild) {
+        public void scheduleTasks(Collection<TaskInternal> tasksToBuild) {
+            for (TaskInternal task : tasksToBuild) {
                 // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
                 // running tasks at the same time
-                if (identifier.getTask().getState().getExecuted()) {
+                if (task.getState().getExecuted()) {
                     continue;
                 }
-                locateTask(identifier).queueForExecution();
+                queueForExecution(task);
             }
         }
 
@@ -192,7 +206,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             controllers = createControllers();
         }
 
-        public void queueForExecution(BuildState build, ExportedTaskNode taskNode) {
+        public void queueForExecution(BuildState build, TaskNode taskNode) {
             assertIsOwner();
             assertCanQueueTask();
             controllers.getBuildController(build).queueForExecution(taskNode);
@@ -260,25 +274,4 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
     }
 
-    private static class TaskBackedResource implements IncludedBuildTaskResource {
-        private final DefaultBuildTreeWorkGraph workGraph;
-        private final BuildState build;
-        private final ExportedTaskNode taskNode;
-
-        public TaskBackedResource(DefaultBuildTreeWorkGraph workGraph, BuildState build, ExportedTaskNode taskNode) {
-            this.workGraph = workGraph;
-            this.build = build;
-            this.taskNode = taskNode;
-        }
-
-        @Override
-        public void queueForExecution() {
-            workGraph.queueForExecution(build, taskNode);
-        }
-
-        @Override
-        public TaskNode getTaskNode() {
-            return taskNode.getTaskNode();
-        }
-    }
 }
