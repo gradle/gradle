@@ -17,7 +17,6 @@ package org.gradle.composite.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.PlanExecutor;
@@ -275,26 +274,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         @Override
         public void queueForExecution() {
             workGraph.queueForExecution(build, taskNode);
-        }
-
-        @Override
-        public void onComplete(Runnable action) {
-            taskNode.onComplete(action);
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            return taskNode.getTask();
-        }
-
-        @Override
-        public State getTaskState() {
-            return taskNode.getTaskState();
-        }
-
-        @Override
-        public String healthDiagnostics() {
-            return taskNode.healthDiagnostics();
         }
 
         @Override
