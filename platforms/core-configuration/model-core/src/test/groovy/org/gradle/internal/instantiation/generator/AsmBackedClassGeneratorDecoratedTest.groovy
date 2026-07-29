@@ -29,10 +29,16 @@ import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.state.ModelObject
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
+import java.lang.annotation.Annotation
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 import java.util.function.BiFunction
 
 import static AsmBackedClassGeneratorTest.Bean
@@ -183,6 +189,34 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         then: "the failure is ignored and the remaining properties are still attached"
         noExceptionThrown()
         field.get(bean).toString() == "<display name> property 'working'"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37421")
+    def "attempting to reattach the owner propagates a role handler exception"() {
+        given: "a role handler that fails"
+        def attempts = []
+        def roleHandler = new PropertyRoleAnnotationHandler() {
+            Set<Class<? extends Annotation>> getAnnotationTypes() { [Producer] as Set }
+            void applyRoleTo(ModelObject owner, Object target) {
+                attempts << target
+                throw new IllegalStateException("cannot apply the role")
+            }
+        }
+        def generator = AsmBackedClassGenerator.decorateAndInject([], roleHandler, [], new TestCrossBuildInMemoryCacheFactory(), 0)
+        def bean = create(generator, HasRoleAnnotatedManagedProperty)
+
+        // Write the value straight into the backing field, as deserialization does, so that the getter returns
+        // it instead of creating it - and therefore does not apply the role itself.
+        def field = bean.getClass().getDeclaredField("__someValue__")
+        field.accessible = true
+        field.set(bean, TestUtil.objectFactory().property(String))
+
+        when: "model properties are re-attached, as happens after deserialization"
+        (bean as ModelObject).attachModelProperties()
+
+        then: "the failure surfaces - only the getter invocation is meant to be tolerated"
+        thrown(IllegalStateException)
+        attempts.size() == 1
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/37421")
@@ -811,6 +845,15 @@ class HasReadOnlyProperty {
     HasReadOnlyProperty(ObjectFactory objectFactory) {
         prop = objectFactory.property(String)
     }
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@interface Producer {}
+
+interface HasRoleAnnotatedManagedProperty {
+    @Producer
+    Property<String> getSomeValue()
 }
 
 class HasFinalPropertyGetterAndBooleanOverload {

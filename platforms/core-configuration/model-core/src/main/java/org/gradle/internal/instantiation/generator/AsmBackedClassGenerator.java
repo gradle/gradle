@@ -1244,22 +1244,26 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             /**
              * Same as {@link #attachProperty(AttachedProperty)}, but tolerates a getter that fails.
              *
-             * Unlike managed properties, whose getters are generated and simply return a field, non-managed
-             * properties have hand-written getters that may fail when invoked outside the usual lifecycle.
-             * Such a property is simply left without an owner.
+             * <p>The getter is invoked only to obtain the property so its owner can be re-attached, so a failure
+             * here is not reported: the property is simply left without an owner. A later direct call to the
+             * getter still fails as usual.</p>
              */
             protected void attachPropertyIfPossible(AttachedProperty attached) {
-                // GENERATE try { <attach property> } catch (Exception ignored) { }
+                // GENERATE
+                //     <type> value;
+                //     try { value = get<prop>(); } catch (Exception ignored) { <skip this property> }
+                //     ManagedObjectFactory.attachOwner(value, this, <property-name>);
                 Label tryStart = new Label();
                 Label tryEnd = new Label();
                 Label handler = new Label();
                 Label done = new Label();
                 visitTryCatchBlock(tryStart, tryEnd, handler, EXCEPTION_TYPE.getInternalName());
                 visitLabel(tryStart);
-                attachProperty(attached);
+                invokeGetter(attached.property);
+                visitLabel(tryEnd);
+                attachOwnerToValueOnStack(attached);
                 // Discard the value left on the stack by the attach, so that both branches below leave the stack empty
                 _POP();
-                visitLabel(tryEnd);
                 _GOTO(done);
                 visitLabel(handler);
                 // Discard the ignored exception
@@ -1269,16 +1273,28 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             protected void attachProperty(AttachedProperty attached) {
                 // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
-                PropertyMetadata property = attached.property;
-                boolean applyRole = attached.applyRole;
+                invokeGetter(attached.property);
+                attachOwnerToValueOnStack(attached);
+            }
+
+            private void invokeGetter(PropertyMetadata property) {
+                // GENERATE get<prop>()
                 MethodMetadata getter = property.getMainGetter();
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
+            }
+
+            /**
+             * Attaches the owner to the property value on the top of the stack, and applies the property's role
+             * if it has one. Leaves a single value on the stack.
+             */
+            private void attachOwnerToValueOnStack(AttachedProperty attached) {
+                boolean applyRole = attached.applyRole;
                 if (applyRole) {
                     _DUP();
                 }
                 _ALOAD(0);
-                _LDC(property.getName());
+                _LDC(attached.property.getName());
                 _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
                 if (applyRole) {
                     applyRole();
