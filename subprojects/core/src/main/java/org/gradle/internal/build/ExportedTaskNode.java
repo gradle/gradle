@@ -17,8 +17,6 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.composite.internal.IncludedBuildTaskResource;
-import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 
 /**
@@ -26,15 +24,6 @@ import org.gradle.execution.plan.TaskNode;
  */
 public interface ExportedTaskNode {
     TaskInternal getTask();
-
-    IncludedBuildTaskResource.State getTaskState();
-
-    /**
-     * Invokes the given action when this task completes (as per {@link Node#isComplete()}). Does nothing if this task has already completed.
-     */
-    void onComplete(Runnable action);
-
-    String healthDiagnostics();
 
     TaskNode getTaskNode();
 }
