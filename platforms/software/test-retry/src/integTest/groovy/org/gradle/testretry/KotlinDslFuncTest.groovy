@@ -21,14 +21,13 @@ class KotlinDslFuncTest extends AbstractPluginFuncTest {
         return 'java'
     }
 
-    def "kotlin extension configuration (gradle version #gradleVersion)"() {
+    def "kotlin extension configuration"() {
         given:
         buildFile.delete()
-        buildFile = testProjectDir.newFile('build.gradle.kts')
-        buildFile.text = """
+        buildKotlinFile.text = """
             plugins {
                 java
-                id("org.gradle.test-retry")
+                id("org.gradle.test-retry-bundled")
             }
 
             repositories {
@@ -50,10 +49,7 @@ class KotlinDslFuncTest extends AbstractPluginFuncTest {
         writeJavaTestSource(passingTest())
 
         expect:
-        gradleRunner(gradleVersion).build()
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
+        succeeds('test')
     }
 
     private static String passingTest() {
