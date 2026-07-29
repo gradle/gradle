@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Collection;
@@ -30,7 +31,7 @@ public interface BuildWorkGraph extends Stoppable {
     /**
      * Schedules the given tasks and all of their dependencies in this work graph.
      */
-    boolean schedule(Collection<ExportedTaskNode> taskNodes);
+    boolean schedule(Collection<TaskNode> taskNodes);
 
     /**
      * Adds tasks and other nodes to this work graph.

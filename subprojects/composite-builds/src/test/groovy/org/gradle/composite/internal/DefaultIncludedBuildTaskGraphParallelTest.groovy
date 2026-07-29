@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.TaskInternal
@@ -128,7 +127,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled work"() {
         def services = new TreeServices(workers)
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def build = build(services, Path.ROOT)
         def node = new TestNode()
 
         when:
@@ -149,8 +148,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled unrelated work across multiple builds"() {
         def services = new TreeServices(workers)
-        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, Path.path(":child"))
+        def build = build(services, Path.ROOT)
         def childNode = new TestNode("child build node")
         def node = new TestNode("main build node")
 
@@ -177,8 +176,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs the work of each build under the operation of that build"() {
         def services = new TreeServices(workers)
-        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, Path.path(":child"))
+        def build = build(services, Path.ROOT)
         def childNode = new TestNode("child build node")
         def node = new TestNode("main build node")
 
@@ -207,8 +206,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled related work across multiple builds"() {
         def services = new TreeServices(workers)
-        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, Path.path(":child"))
+        def build = build(services, Path.ROOT)
         def childNode = new TestNode("child build node")
         def node = new DelegateNode("main build node", [childNode])
 
@@ -235,8 +234,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "stops running work and fails with exception when build is cancelled"() {
         def services = new TreeServices(workers)
-        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, Path.path(":child"))
+        def build = build(services, Path.ROOT)
         def childNode = new CancellingNode("child build node", cancellationToken)
         def node = new DelegateNode("main build node", [childNode])
 
@@ -267,7 +266,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "fails when no further nodes can be selected"() {
         def services = new TreeServices(manyWorkers)
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def build = build(services, Path.ROOT)
         def node = new DependenciesStuckNode()
 
         when:
@@ -293,8 +292,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "fails when no further nodes can be selected across multiple builds"() {
         def services = new TreeServices(manyWorkers)
-        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, Path.path(":child"))
+        def build = build(services, Path.ROOT)
         def node = new DependenciesStuckNode("main build node")
         def childNode = new DependenciesStuckNode("child build node")
 
@@ -343,21 +342,19 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         return result
     }
 
-    BuildServices build(TreeServices services, BuildIdentifier identifier) {
-        def identityPath = Stub(Path)
+    BuildServices build(TreeServices services, Path identityPath) {
         def gradle = Stub(GradleInternal) {
             getIdentityPath() >> identityPath
         }
         def buildOperation = Stub(BuildOperationRef) {
-            getId() >> new OperationIdentifier(identifier.buildPath.hashCode())
+            getId() >> new OperationIdentifier(identityPath.hashCode())
         }
-        return new BuildServices(services, identifier, gradle, buildOperation)
+        return new BuildServices(services, identityPath, gradle, buildOperation)
     }
 
     TaskInternal task(BuildServices services, Node dependsOn) {
         def projectState = Stub(ProjectState)
-        def buildId = Path.path(services.identifier.buildPath)
-        def projectId = ProjectIdentity.forRootProject(buildId, "root")
+        def projectId = ProjectIdentity.forRootProject(services.identityPath, "root")
         def project = Stub(ProjectInternal) {
             getProjectIdentity() >> projectId
         }
@@ -535,15 +532,15 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         final TreeServices services
         final GradleInternal gradle
         final BuildState state
-        final BuildIdentifier identifier
+        final Path identityPath
         final BuildOperationRef buildOperation
 
-        BuildServices(TreeServices services, BuildIdentifier identifier, GradleInternal gradle, BuildOperationRef buildOperation) {
-            this.identifier = identifier
+        BuildServices(TreeServices services, Path identityPath, GradleInternal gradle, BuildOperationRef buildOperation) {
+            this.identityPath = identityPath
             this.services = services
             this.gradle = gradle
             this.buildOperation = buildOperation
-            this.state = build(identifier, buildWorkGraphController(identifier.toString(), this))
+            this.state = build(identityPath, buildWorkGraphController(new DefaultBuildIdentifier(identityPath).toString(), this))
         }
     }
 
