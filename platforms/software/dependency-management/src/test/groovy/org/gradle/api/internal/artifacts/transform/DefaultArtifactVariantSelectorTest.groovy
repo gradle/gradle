@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.dsl.dependencies.FallbackVariantSupport
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -28,6 +29,8 @@ import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
+import org.gradle.api.internal.model.NamedObjectInstantiator
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Describables
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
@@ -207,7 +210,8 @@ Found the following transformation chains:
             matchingCache,
             AttributeTestUtil.attributesFactory(),
             schemaServices,
-            variantSelectionFailureProcessor
+            variantSelectionFailureProcessor,
+            new FallbackVariantSupport(new NamedObjectInstantiator(new TestCrossBuildInMemoryCacheFactory()))
         )
     }
 

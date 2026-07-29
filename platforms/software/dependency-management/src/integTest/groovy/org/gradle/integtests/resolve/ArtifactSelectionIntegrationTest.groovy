@@ -385,7 +385,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("files: [a2.jar]")
-        outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=api}]")
+        outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, org.gradle.fallback-variant=false, usage=api}]")
     }
 
     def "applies producer's disambiguation rules when selecting variant"() {
@@ -481,7 +481,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("files: [a3.jar]")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=tasty, usage=api}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=tasty, org.gradle.fallback-variant=false, usage=api}]")
     }
 
     def "applies producer's compatibility disambiguation rules for additional producer attributes when selecting variant"() {
@@ -569,7 +569,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("files: [a3.jar]")
-        outputContains("variants: [{artifactType=jar, buildType=debug, extra=good, usage=api}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, extra=good, org.gradle.fallback-variant=false, usage=api}]")
     }
 
     def "can select the implicit variant of a configuration"() {
@@ -746,7 +746,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project ':lib', project ':ui', org:test:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=integration}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, org.gradle.fallback-variant=false, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=integration}]")
     }
 
     def "can query the content of view before task graph is calculated"() {
