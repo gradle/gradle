@@ -22,22 +22,24 @@ import java.util.function.BooleanSupplier
 
 class DefaultWorkerLeaseServiceTryWhileConditionTest extends AbstractWorkerLeaseServiceTest {
 
-    def "runs the action directly when the current thread already holds a worker lease"() {
+    def "fails when the current thread already holds a worker lease"() {
         def registry = workerLeaseService(1)
         def lease = registry.startWorker()
         def runCount = new AtomicInteger()
 
         when:
-        registry.tryWhileConditionToRunAsWorkerThread({
-            assert registry.isWorkerThread()
-            assert registry.currentWorkerLease == lease
-            runCount.incrementAndGet()
-        } as Runnable, { true } as BooleanSupplier)
+        registry.tryWhileConditionToRunAsWorkerThread(
+            { runCount.incrementAndGet() } as Runnable,
+            { true } as BooleanSupplier
+        )
 
         then:
-        runCount.get() == 1
+        def e = thrown(IllegalStateException)
+        e.message == "Current thread already holds a worker lease."
+        runCount.get() == 0
         // The pre-existing lease is unaffected.
         registry.isWorkerThread()
+        registry.currentWorkerLease == lease
 
         cleanup:
         lease?.leaseFinish()

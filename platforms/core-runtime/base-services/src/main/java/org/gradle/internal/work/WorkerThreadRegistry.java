@@ -58,8 +58,12 @@ public interface WorkerThreadRegistry {
      *
      * <p>Unlike {@link #runAsWorkerThread(Runnable)}, the caller decides how long it is willing to wait for a lease.
      *
+     * <p>Also unlike {@link #runAsWorkerThread(Runnable)}, the caller must not call this method from a thread that already holds a worker lease.
+     * Technically this could be allowed, but it has little benefit.
+     *
      * @param action the action to run while holding a worker lease
      * @param shouldContinue supplier that returns {@code true} to keep waiting for a lease, {@code false} to give up. This should be cheap as it is called under the state lock.
+     * @throws IllegalStateException if the calling thread already holds a worker lease
      */
     void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue);
 

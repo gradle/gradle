@@ -140,13 +140,12 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue) {
-        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
-        if (!locks.isEmpty()) {
-            // Already a worker
-            action.run();
-            return;
+        if (!workerLeaseLockRegistry.getResourceLocksByCurrentThread().isEmpty()) {
+            // This is technically something we could support to make this more similar to runAsWorkerThread
+            // But for now we don't need it, so we keep this stricter.
+            throw new IllegalStateException("Current thread already holds a worker lease.");
         }
-        locks = Collections.singletonList(newWorkerLease());
+        Collection<? extends ResourceLock> locks = Collections.singletonList(newWorkerLease());
         if (!coordinationService.withStateLock(tryLockWhile(shouldContinue, locks))) {
             // The caller gave up waiting for a lease.
             return;
