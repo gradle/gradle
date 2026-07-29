@@ -77,7 +77,11 @@ class FlakyTestQuarantine(
         name = "Flaky Test Quarantine - ${testCoverage.asName()}"
         description = "Run all flaky tests skipped multiple times"
 
-        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 60)
+        // AllVersionsCrossVersion runs the flaky ONLY strategy against every released Gradle
+        // version; spinning up ~20 distributions/daemons pushes it past the default 60 min
+        // (gradle-private#4895), so give that single coverage more headroom.
+        val timeout = if (testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION) 120 else 60
+        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = timeout)
 
         if (os == Os.LINUX) {
             steps {
