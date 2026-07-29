@@ -16,16 +16,12 @@
 
 package org.gradle.internal.build;
 
-import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.composite.internal.IncludedBuildTaskResource;
-import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
-import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -36,9 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -47,7 +41,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private final BuildLifecycleController controller;
     private final BuildIdentifier buildIdentifier;
     private final WorkerLeaseService workerLeaseService;
-    private final Map<String, DefaultExportedTaskNode> nodesByPath = new ConcurrentHashMap<>();
     private final Object lock = new Object();
     private Thread currentOwner;
     private final Set<DefaultBuildWorkGraph> pendingGraphs = new HashSet<>();
@@ -66,16 +59,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             if (currentOwner != null) {
                 throw new IllegalStateException("Cannot reset work graph state as another thread is currently using the work graph.");
             }
-            nodesByPath.clear();
         }
         taskNodeFactory.resetState();
     }
 
     @Override
-    public ExportedTaskNode locateTask(TaskIdentifier taskIdentifier) {
-        DefaultExportedTaskNode node = doLocate(taskIdentifier);
-        node.maybeBindTask(taskIdentifier.getTask());
-        return node;
+    public TaskNode locateTaskNode(TaskInternal task) {
+        return taskNodeFactory.getOrCreateNode(task);
     }
 
     @Override
@@ -97,9 +87,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
     }
 
-    private DefaultExportedTaskNode doLocate(TaskIdentifier taskIdentifier) {
-        return nodesByPath.computeIfAbsent(taskIdentifier.getTaskPath(), DefaultExportedTaskNode::new);
-    }
 
     private class DefaultBuildWorkGraph implements BuildWorkGraph {
         private final Thread owner;
@@ -125,17 +112,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
-        public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
+        public boolean schedule(Collection<TaskNode> taskNodes) {
             assertIsOwner();
             List<Task> tasks = new ArrayList<>();
-            for (ExportedTaskNode taskNode : taskNodes) {
-                DefaultExportedTaskNode node = (DefaultExportedTaskNode) taskNode;
-                if (nodesByPath.get(node.taskPath) != taskNode) {
-                    throw new IllegalArgumentException();
-                }
-                if (node.shouldSchedule()) {
+            for (TaskNode taskNode : taskNodes) {
+                if (!taskNode.isRequired()) {
                     // Not already in task graph
-                    tasks.add(node.getTask());
+                    tasks.add(taskNode.getTask());
                 }
             }
             if (tasks.isEmpty()) {
@@ -175,14 +158,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         private void createPlan() {
             if (plan == null) {
                 plan = controller.newWorkGraph();
-                plan.onComplete(this::nodeComplete);
-            }
-        }
-
-        private void nodeComplete(LocalTaskNode node) {
-            DefaultExportedTaskNode exportedNode = nodesByPath.get(node.getTask().getPath());
-            if (exportedNode != null) {
-                exportedNode.fireCompleted();
+                plan.onComplete(TaskNode::fireCompleted);
             }
         }
 
@@ -222,85 +198,4 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
     }
 
-    private class DefaultExportedTaskNode implements ExportedTaskNode {
-        final String taskPath;
-        TaskNode taskNode;
-        Runnable action = Runnables.doNothing();
-
-        DefaultExportedTaskNode(String taskPath) {
-            this.taskPath = taskPath;
-        }
-
-        void maybeBindTask(TaskInternal task) {
-            synchronized (lock) {
-                if (taskNode == null) {
-                    taskNode = taskNodeFactory.getOrCreateNode(task);
-                }
-            }
-        }
-
-        @Override
-        public void onComplete(Runnable action) {
-            synchronized (lock) {
-                Runnable previous = this.action;
-                this.action = () -> {
-                    previous.run();
-                    action.run();
-                };
-            }
-        }
-
-        @Override
-        public TaskNode getTaskNode() {
-            synchronized (lock) {
-                if (taskNode == null) {
-                    throw new IllegalStateException("No task has been bound for task node '" + taskPath + "'.");
-                }
-                return taskNode;
-            }
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            return getTaskNode().getTask();
-        }
-
-        @Override
-        public IncludedBuildTaskResource.State getTaskState() {
-            synchronized (lock) {
-                TaskNode taskNode = getTaskNode();
-                if (taskNode.isExecuted() && taskNode.isSuccessful()) {
-                    return IncludedBuildTaskResource.State.Success;
-                } else if (taskNode.isExecuted()) {
-                    return IncludedBuildTaskResource.State.Failed;
-                } else if (taskNode.isComplete()) {
-                    // Not scheduled
-                    return IncludedBuildTaskResource.State.NotScheduled;
-                } else {
-                    // Scheduled but not completed
-                    return IncludedBuildTaskResource.State.Scheduled;
-                }
-            }
-        }
-
-        boolean shouldSchedule() {
-            synchronized (lock) {
-                return taskNode == null || !taskNode.isRequired();
-            }
-        }
-
-        @Override
-        public String healthDiagnostics() {
-            synchronized (lock) {
-                return "exportedTaskState=" + getTaskState();
-            }
-        }
-
-        public void fireCompleted() {
-            synchronized (lock) {
-                action.run();
-                action = Runnables.doNothing();
-            }
-        }
-    }
 }

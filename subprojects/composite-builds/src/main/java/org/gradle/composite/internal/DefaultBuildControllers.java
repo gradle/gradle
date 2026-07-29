@@ -17,8 +17,6 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildState;
@@ -26,6 +24,7 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.Path;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -37,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultBuildControllers implements BuildControllers {
     // Always iterate over the controllers in a fixed order
-    private final Map<BuildIdentifier, BuildController> controllers = new TreeMap<>(idComparator());
+    private final Map<Path, BuildController> controllers = new TreeMap<>(idComparator());
     private final ManagedExecutor executorService;
     private final WorkerLeaseService workerLeaseService;
     private final PlanExecutor planExecutor;
@@ -54,13 +53,13 @@ class DefaultBuildControllers implements BuildControllers {
 
     @Override
     public BuildController getBuildController(BuildState build) {
-        BuildController buildController = controllers.get(build.getBuildIdentifier());
+        BuildController buildController = controllers.get(build.getIdentityPath());
         if (buildController != null) {
             return buildController;
         }
 
         BuildController newBuildController = new DefaultBuildController(build, workerLeaseService);
-        controllers.put(build.getBuildIdentifier(), newBuildController);
+        controllers.put(build.getIdentityPath(), newBuildController);
         return newBuildController;
     }
 
@@ -129,20 +128,20 @@ class DefaultBuildControllers implements BuildControllers {
         CompositeStoppable.stoppable(controllers.values()).stop();
     }
 
-    private static Comparator<BuildIdentifier> idComparator() {
-        return (id1, id2) -> {
+    private static Comparator<Path> idComparator() {
+        return (path1, path2) -> {
             // Root is always last
-            if (id1.equals(DefaultBuildIdentifier.ROOT)) {
-                if (id2.equals(DefaultBuildIdentifier.ROOT)) {
+            if (path1.equals(Path.ROOT)) {
+                if (path2.equals(Path.ROOT)) {
                     return 0;
                 } else {
                     return 1;
                 }
             }
-            if (id2.equals(DefaultBuildIdentifier.ROOT)) {
+            if (path2.equals(Path.ROOT)) {
                 return -1;
             }
-            return id1.getBuildPath().compareTo(id2.getBuildPath());
+            return path1.compareTo(path2);
         };
     }
 }

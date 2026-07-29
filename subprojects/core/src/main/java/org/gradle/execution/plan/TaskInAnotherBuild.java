@@ -17,14 +17,10 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
-import org.gradle.composite.internal.IncludedBuildTaskResource;
-import org.gradle.composite.internal.TaskIdentifier;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -34,39 +30,38 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
+
     public static TaskInAnotherBuild of(
         TaskInternal task,
         BuildTreeWorkGraphController taskGraph
     ) {
-        BuildIdentifier targetBuild = buildIdentifierOf(task);
-        TaskIdentifier taskIdentifier = new TaskIdentifier(targetBuild, task);
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
-        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild) {
+        TaskNode targetNode = taskGraph.locateTaskNode(task);
+        return new TaskInAnotherBuild(task.getIdentityPath()) {
+
             @Override
-            protected IncludedBuildTaskResource getTarget() {
-                return taskResource;
+            public TaskNode getTargetNode() {
+                return targetNode;
             }
+
+            @Override
+            protected void queueTargetForExecution() {
+                taskGraph.queueForExecution(task);
+            }
+
         };
+
     }
 
     /**
      * Creates a reference to a task in another build, restored from the configuration cache.
      *
      * The reference must be {@link Restored#bindTarget bound} to its restored target node once all
-     * builds in the tree have been loaded. The target task is located on-demand, once the work graph
-     * is being scheduled, to allow for cycles between builds stored to the configuration cache.
+     * builds in the tree have been loaded.
      *
-     * @param taskPath the path to the task relative to its build
-     * @param targetBuild the build containing the task
-     * @param taskGraph the task graph where the task should be located
+     * @param taskIdentityPath the path to the task relative to its build tree
      */
-    public static Restored restored(
-        String taskPath,
-        BuildIdentifier targetBuild,
-        BuildTreeWorkGraphController taskGraph
-    ) {
-        Path taskIdentityPath = Path.path(targetBuild.getBuildPath()).append(Path.path(taskPath));
-        return new Restored(taskIdentityPath, taskPath, targetBuild, taskGraph);
+    public static Restored restored(Path taskIdentityPath) {
+        return new Restored(taskIdentityPath);
     }
 
     /**
@@ -74,21 +69,10 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
      */
     public static class Restored extends TaskInAnotherBuild {
 
-        private final BuildTreeWorkGraphController taskGraph;
-        private final Lazy<IncludedBuildTaskResource> target;
-
         private @Nullable TaskNode targetNode;
 
-        private Restored(
-            Path taskIdentityPath,
-            String taskPath,
-            BuildIdentifier targetBuild,
-            BuildTreeWorkGraphController taskGraph
-        ) {
-            super(taskIdentityPath, taskPath, targetBuild);
-            this.taskGraph = taskGraph;
-
-            this.target = Lazy.unsafe().of(this::locateTarget);
+        private Restored(Path taskIdentityPath) {
+            super(taskIdentityPath);
         }
 
         /**
@@ -98,61 +82,53 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
             this.targetNode = targetNode;
         }
 
-        private IncludedBuildTaskResource locateTarget() {
+        @Override
+        public TaskNode getTargetNode() {
             if (targetNode == null) {
                 throw new IllegalStateException("No target node has been bound for " + this);
             }
-            return taskGraph.locateTask(new TaskIdentifier(getTargetBuild(), targetNode.getTask()));
+            return targetNode;
         }
 
         @Override
-        protected IncludedBuildTaskResource getTarget() {
-            return target.get();
+        protected void queueTargetForExecution() {
+            // Nothing to queue. The target node is always part of its build's restored work graph
         }
 
     }
 
-    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Scheduled;
+    private @Nullable DependenciesState targetOutcome;
     private final Path taskIdentityPath;
-    private final String taskPath;
-    private final BuildIdentifier targetBuild;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild) {
+    protected TaskInAnotherBuild(Path taskIdentityPath) {
         this.taskIdentityPath = taskIdentityPath;
-        this.taskPath = taskPath;
-        this.targetBuild = targetBuild;
-    }
-
-    public BuildIdentifier getTargetBuild() {
-        return targetBuild;
-    }
-
-    public String getTaskPath() {
-        return taskPath;
     }
 
     public Path getTaskIdentityPath() {
         return taskIdentityPath;
     }
 
+    /**
+     * The node for the target task, in the other build's work graph.
+     */
+    public abstract TaskNode getTargetNode();
+
     @Override
     public TaskInternal getTask() {
-        return getTarget().getTask();
+        return getTargetNode().getTask();
     }
 
     @Override
-    protected ExecutionState getInitialState() {
-        switch (getTarget().getTaskState()) {
-            case Scheduled:
-            case NotScheduled:
-                return null;
-            case Success:
+    protected @Nullable ExecutionState getInitialState() {
+        TaskNode targetNode = getTargetNode();
+        if (targetNode.isExecuted()) {
+            if (targetNode.isSuccessful()) {
                 return ExecutionState.EXECUTED;
-            case Failed:
+            } else {
                 return ExecutionState.FAILED_DEPENDENCY;
-            default:
-                throw new IllegalStateException();
+            }
         }
+        return null;
     }
 
     @Override
@@ -169,7 +145,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
 
     @Override
     public void prepareForExecution(Action<Node> monitor) {
-        getTarget().onComplete(() -> monitor.execute(this));
+        getTargetNode().onComplete(() -> monitor.execute(this));
     }
 
     @Nullable
@@ -199,8 +175,13 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-        getTarget().queueForExecution();
+        queueTargetForExecution();
     }
+
+    /**
+     * Queues the target task for execution in its build's work graph.
+     */
+    protected abstract void queueTargetForExecution();
 
     @Override
     public DependenciesState doCheckDependenciesComplete() {
@@ -210,20 +191,16 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         }
 
         // This node is ready to "execute" when the task in the other build has completed
-        if (!taskState.isComplete()) {
-            taskState = getTarget().getTaskState();
-        }
-        switch (taskState) {
-            case Scheduled:
+        if (targetOutcome == null) {
+            TaskNode targetNode = getTargetNode();
+            if (!targetNode.isComplete()) {
                 return DependenciesState.NOT_COMPLETE;
-            case Success:
-                return DependenciesState.COMPLETE_AND_SUCCESSFUL;
-            case Failed:
-            case NotScheduled:
-                return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
-            default:
-                throw new IllegalArgumentException();
+            }
+            targetOutcome = targetNode.isExecuted() && targetNode.isSuccessful()
+                ? DependenciesState.COMPLETE_AND_SUCCESSFUL
+                : DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
         }
+        return targetOutcome;
     }
 
     @Override
@@ -234,7 +211,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
         super.nodeSpecificHealthDiagnostics(builder);
-        builder.append(", taskState=").append(taskState).append(", ").append(getTarget().healthDiagnostics());
+        builder.append(", target=[").append(getTargetNode().healthDiagnostics()).append("]");
     }
 
     @Override
@@ -242,13 +219,4 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         // This node does not do anything itself
     }
 
-    private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentifier();
-    }
-
-    protected abstract IncludedBuildTaskResource getTarget();
-
-    public TaskNode getTargetNode() {
-        return getTarget().getTaskNode();
-    }
 }

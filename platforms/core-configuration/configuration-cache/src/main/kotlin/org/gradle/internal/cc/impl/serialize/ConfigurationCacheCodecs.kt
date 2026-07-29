@@ -23,6 +23,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.PathSerializer
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
@@ -41,7 +42,6 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.util.internal.PatternSetFactory
-import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.execution.InputFingerprinter
@@ -202,7 +202,6 @@ class DefaultConfigurationCacheCodecs(
     patternSetFactory: PatternSetFactory,
     fileOperations: FileOperations,
     fileFactory: FileFactory,
-    includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
@@ -377,7 +376,7 @@ class DefaultConfigurationCacheCodecs(
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
-        bind(TaskInAnotherBuildCodec(includedTaskGraph))
+        bind(TaskInAnotherBuildCodec(PathSerializer()))
 
         bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
     }
