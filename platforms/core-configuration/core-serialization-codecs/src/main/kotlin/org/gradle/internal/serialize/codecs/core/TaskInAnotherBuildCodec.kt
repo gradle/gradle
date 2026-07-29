@@ -16,18 +16,15 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.execution.plan.TaskInAnotherBuild
 import org.gradle.internal.build.BuildIdentity
-import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.execution.plan.TaskInAnotherBuild
 
 
-class TaskInAnotherBuildCodec(
-    private val includedTaskGraph: BuildTreeWorkGraphController
-) : Codec<TaskInAnotherBuild> {
+object TaskInAnotherBuildCodec : Codec<TaskInAnotherBuild> {
 
     override suspend fun WriteContext.encode(value: TaskInAnotherBuild) {
         value.run {
@@ -39,10 +36,6 @@ class TaskInAnotherBuildCodec(
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
         val taskPath = readString()
         val targetBuild = readNonNull<BuildIdentity>()
-        return TaskInAnotherBuild.restored(
-            taskPath,
-            targetBuild,
-            includedTaskGraph
-        )
+        return TaskInAnotherBuild.restored(taskPath, targetBuild)
     }
 }

@@ -19,7 +19,10 @@ package org.gradle.execution.plan;
 import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
+import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -28,6 +31,36 @@ import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 public abstract class TaskNode extends Node {
     private final Set<Node> shouldSuccessors = newSortedNodeSet();
     private final Set<Node> finalizingSuccessors = newSortedNodeSet();
+    private @Nullable List<Runnable> completionListeners;
+
+    /**
+     * Registers an action to invoke when this node completes (as per {@link Node#isComplete()}).
+     * Does nothing if this node has already completed.
+     */
+    public void onComplete(Runnable action) {
+        synchronized (this) {
+            if (completionListeners == null) {
+                completionListeners = new ArrayList<>();
+            }
+            completionListeners.add(action);
+        }
+    }
+
+    /**
+     * Invoked by the execution plan that contains this node when this node completes.
+     */
+    public void fireCompleted() {
+        List<Runnable> listeners;
+        synchronized (this) {
+            listeners = completionListeners;
+            completionListeners = null;
+        }
+        if (listeners != null) {
+            for (Runnable listener : listeners) {
+                listener.run();
+            }
+        }
+    }
 
     @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
