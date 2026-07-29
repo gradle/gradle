@@ -26,10 +26,6 @@ public interface SubmissionQueue {
      * Process work from this queue on the current thread until the queue is empty.
      *
      * <p>
-     * Only processes work if needed. Some implementations may choose to not process work
-     * if there is already sufficient concurrency.
-     *
-     * <p>
      * The caller must stop submitting to this queue before draining it, otherwise concurrent
      * {@link #add(Runnable)} calls can keep the current thread here indefinitely. Work already
      * submitted may still be running on other threads when this returns; this only guarantees

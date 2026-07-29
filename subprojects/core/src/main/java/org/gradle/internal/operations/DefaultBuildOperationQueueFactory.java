@@ -20,6 +20,8 @@ import org.gradle.internal.work.SubmissionQueue;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.Nullable;
 
+import java.util.concurrent.Executor;
+
 public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFactory {
 
     private final WorkerLeaseService workerLeaseService;
@@ -31,14 +33,14 @@ public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFac
     @Override
     public <T extends BuildOperation> BuildOperationQueue<T> create(
         SubmissionQueue constrainedQueue,
-        SubmissionQueue unconstrainedQueue,
+        Executor unconstrainedExecutor,
         boolean allowAccessToProjectState,
         BuildOperationQueue.QueueWorker<T> worker,
         @Nullable BuildOperationRef parent
     ) {
         // Assert that the current thread is a worker
         workerLeaseService.getCurrentWorkerLease();
-        return new DefaultBuildOperationQueue<>(allowAccessToProjectState, workerLeaseService, constrainedQueue, unconstrainedQueue, worker, parent);
+        return new DefaultBuildOperationQueue<>(allowAccessToProjectState, workerLeaseService, constrainedQueue, unconstrainedExecutor, worker, parent);
     }
 
 }

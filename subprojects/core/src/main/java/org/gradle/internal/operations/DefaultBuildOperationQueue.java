@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
@@ -85,7 +86,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final boolean allowAccessToProjectState;
     private final WorkerLeaseService workerLeases;
     private final SubmissionQueue constrainedQueue;
-    private final SubmissionQueue unconstrainedQueue;
+    private final Executor unconstrainedExecutor;
     private final QueueWorker<T> queueWorker;
     private final @Nullable BuildOperationRef parent;
 
@@ -99,14 +100,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         boolean allowAccessToProjectState,
         WorkerLeaseService workerLeases,
         SubmissionQueue constrainedQueue,
-        SubmissionQueue unconstrainedQueue,
+        Executor unconstrainedExecutor,
         QueueWorker<T> queueWorker,
         @Nullable BuildOperationRef parent
     ) {
         this.allowAccessToProjectState = allowAccessToProjectState;
         this.workerLeases = workerLeases;
         this.constrainedQueue = constrainedQueue;
-        this.unconstrainedQueue = unconstrainedQueue;
+        this.unconstrainedExecutor = unconstrainedExecutor;
         this.queueWorker = queueWorker;
         this.parent = parent;
     }
@@ -118,7 +119,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     @Override
     public void addUnconstrained(T operation) {
-        unconstrainedQueue.add(registerOperation(operation));
+        unconstrainedExecutor.execute(registerOperation(operation));
     }
 
     /**

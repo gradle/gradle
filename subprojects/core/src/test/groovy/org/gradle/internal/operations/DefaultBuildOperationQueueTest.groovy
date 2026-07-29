@@ -23,8 +23,6 @@ import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.ResourceLockStatistics
-import org.gradle.internal.work.SubmissionQueue
-import org.gradle.internal.work.UnconstrainedSubmissionQueue
 import org.gradle.internal.work.WorkerLeaseQueueProcessor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
@@ -93,16 +91,16 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, threads, threads * 2)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), unconstrainedQueue(unconstrainedPool), new SimpleWorker(), null)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(unconstrainedPool), new SimpleWorker(), null)
     }
 
     /**
-     * An unconstrained queue backed by its own pool, mirroring how DefaultBuildOperationExecutor
-     * wires one up. Deliberately independent of the worker leases.
+     * A pool for unconstrained work, mirroring how DefaultBuildOperationExecutor wires one up.
+     * Deliberately independent of the worker leases.
      */
-    SubmissionQueue unconstrainedQueue(ExecutorService pool = Executors.newCachedThreadPool()) {
+    ExecutorService newUnconstrainedExecutor(ExecutorService pool = Executors.newCachedThreadPool()) {
         unconstrainedExecutor = pool
-        return new UnconstrainedSubmissionQueue(unconstrainedExecutor)
+        return pool
     }
 
     def cleanup() {
@@ -384,7 +382,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), unconstrainedQueue(), recordingWorker, null)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), recordingWorker, null)
 
         when:
         operationQueue.add(new Success())
@@ -439,7 +437,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 2, 4)
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), unconstrainedQueue(), new SimpleWorker(), null)
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
 
         when:
         operationQueue.add(new SynchronizedBuildOperation({}, startedLatch, releaseLatch))
@@ -485,7 +483,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), unconstrainedQueue(), recordingWorker, null)
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), recordingWorker, null)
 
         when:
         operationQueue.add(new Success())

@@ -25,8 +25,6 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.work.SubmissionQueue;
-import org.gradle.internal.work.UnconstrainedSubmissionQueue;
 import org.gradle.internal.work.WorkerLeaseQueueProcessor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
@@ -45,7 +43,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final WorkerLeaseQueueProcessor maxWorkersProcessor;
     private final ManagedExecutor maxWorkersBackingExecutor;
     private final ManagedExecutor unconstrainedExecutor;
-    private final SubmissionQueue unconstrainedSubmissionQueue;
 
     public DefaultBuildOperationExecutor(
         BuildOperationRunner buildOperationRunner,
@@ -79,7 +76,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             "Unconstrained build operations",
             workerLimits.getMaxUnconstrainedWorkerCount()
         );
-        this.unconstrainedSubmissionQueue = new UnconstrainedSubmissionQueue(unconstrainedExecutor);
     }
 
     @Override
@@ -104,7 +100,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     ) {
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(
             maxWorkersProcessor.createSubmissionQueue(),
-            unconstrainedSubmissionQueue,
+            unconstrainedExecutor,
             allowAccessToProjectState,
             operation -> runner.execute(operation, worker),
             currentBuildOperationRef.get()
