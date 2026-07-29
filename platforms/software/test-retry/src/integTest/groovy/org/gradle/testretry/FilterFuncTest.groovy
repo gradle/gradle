@@ -19,7 +19,7 @@ import javax.annotation.Nullable
 
 class FilterFuncTest extends AbstractGeneralPluginFuncTest {
 
-    def "can filter what is retried (gradle version #gradleVersion)"() {
+    def "can filter what is retried"() {
         given:
         buildFile << """
             test.retry {
@@ -51,24 +51,21 @@ class FilterFuncTest extends AbstractGeneralPluginFuncTest {
         noRetry << test("IncludeWithBadAnnotation", null, "InheritedExcludedAnnotation")
 
         when:
-        def result = gradleRunner(gradleVersion).buildAndFail()
+        fails('test')
 
         then:
         noRetry.each { testName ->
-            with(result.output) {
+            with(output) {
                 it.count("${testName} > flakyTest FAILED") == 1
                 it.count("${testName} > flakyTest PASSED") == 0
             }
         }
         shouldRetry.each { testName ->
-            with(result.output) {
+            with(output) {
                 it.count("${testName} > flakyTest FAILED") == 2
                 it.count("${testName} > flakyTest PASSED") == 1
             }
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
     def "annotation can be inherited from classpath"() {
@@ -122,16 +119,13 @@ class FilterFuncTest extends AbstractGeneralPluginFuncTest {
         noRetry << test("ExcludedTest", "BaseTest",)
 
         when:
-        def result = gradleRunner(gradleVersion).buildAndFail()
+        fails('test')
 
         then:
-        with(result.output) {
+        with(output) {
             it.count("ExcludedTest > flakyTest FAILED") == 1
             it.count("ExcludedTest > flakyTest PASSED") == 0
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
     private void nonInheritedAnnotation(String name) {
