@@ -300,8 +300,10 @@ class ConfigurationCacheState(
     suspend fun WriteContext.writeBuildsInTree(buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
         val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentifier }
         val builds = mutableMapOf<BuildState, BuildToStore>()
+        val scheduledWorkPerBuild = mutableMapOf<BuildIdentifier, ScheduledWork>()
         host.visitBuilds { state ->
             val gradle = state.mutableModel
+            scheduledWorkPerBuild[state.buildIdentifier] = gradle.taskGraph.collectScheduledWork()
             val hasScheduledWork = gradle.taskGraph.hasScheduledWork()
             builds[state] = BuildToStore(state, hasScheduledWork, hasChildren = gradle.isRootBuild)
             if (hasScheduledWork && state is StandAloneNestedBuild) {
@@ -309,17 +311,18 @@ class ConfigurationCacheState(
                 builds[state.owner] = builds.getValue(state.owner).hasChildren()
             }
         }
-        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, collectTransformedProjectsPerBuild(builds))
+        val transformedProjectsPerBuild = collectTransformedProjectsPerBuild(scheduledWorkPerBuild)
+        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, scheduledWorkPerBuild, transformedProjectsPerBuild)
         writeCollection(builds.values) { build ->
             writeBuildState(build, buildTreeState)
         }
     }
 
     private
-    fun collectTransformedProjectsPerBuild(builds: MutableMap<BuildState, BuildToStore>): Map<BuildIdentifier, Set<Path>> {
+    fun collectTransformedProjectsPerBuild(scheduledWorkPerBuild: Map<BuildIdentifier, ScheduledWork>): Map<BuildIdentifier, Set<Path>> {
         val result = mutableMapOf<BuildIdentifier, MutableSet<Path>>()
-        builds.keys.forEach { buildState ->
-            buildState.mutableModel.taskGraph.collectScheduledWork().scheduledNodes
+        scheduledWorkPerBuild.values.forEach { scheduledWork ->
+            scheduledWork.scheduledNodes
                 .asSequence()
                 .filterIsInstance<TransformStepNode>()
                 .forEach { node ->
@@ -504,7 +507,7 @@ class ConfigurationCacheState(
         val gradle = buildState.mutableModel
         if (buildState.isProjectsCreated) {
             writeBoolean(true)
-            val scheduledWork = gradle.taskGraph.collectScheduledWork()
+            val scheduledWork = buildTreeState.getScheduledWorkOfBuild(buildState)
             withDebugFrame({ "Gradle" }) {
                 writeGradleState(gradle)
                 val transformInputProjects = buildTreeState.getTransformedProjectsOfBuild(buildState)
@@ -1013,10 +1016,15 @@ class ConfigurationCacheState(
 internal
 class StoredBuildTreeState(
     val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>,
+    private val scheduledWorkPerBuild: Map<BuildIdentifier, ScheduledWork>,
     val transformedProjectsPerBuild: Map<BuildIdentifier, Set<Path>>
 ) {
     fun getTransformedProjectsOfBuild(build: BuildState): Set<Path> =
         transformedProjectsPerBuild[build.buildIdentifier].orEmpty()
+
+    fun getScheduledWorkOfBuild(build: BuildState): ScheduledWork =
+        scheduledWorkPerBuild[build.buildIdentifier]
+            ?: error("No scheduled work snapshot for build '${build.identityPath}'")
 }
 
 
