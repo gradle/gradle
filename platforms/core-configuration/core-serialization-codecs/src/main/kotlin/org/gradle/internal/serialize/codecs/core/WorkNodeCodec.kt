@@ -37,6 +37,7 @@ import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.PostExecutionNodeAwareActionNode
 import org.gradle.execution.plan.ScheduledWork
+import org.gradle.execution.plan.TaskInAnotherBuild
 import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheException
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
@@ -79,11 +80,23 @@ interface IsolateContextSource {
 
 
 /**
- * The work graph restored from a build's state, along with each restored node indexed by its node id.
+ * The work graph restored from a build's state, each restored node indexed by its node id and
+ * the restored references to task nodes in other builds, which are not yet to be bound to their
+ * target nodes.
  */
 class RestoredWorkGraph(
-    val work: ScheduledWork,
-    val nodesById: Int2ObjectMap<Node>
+    val scheduledWork: ScheduledWork,
+    val nodesById: Int2ObjectMap<Node>,
+    val taskReferences: List<RestoredTaskReference>
+)
+
+
+/**
+ * A restored [TaskInAnotherBuild] node, together with the id of its target node in another build's work graph.
+ */
+class RestoredTaskReference(
+    val node: TaskInAnotherBuild.Restored,
+    val targetNodeId: Int
 )
 
 
@@ -158,13 +171,14 @@ class WorkNodeCodec(
             }
         }
         val entryNodes = readEntryNodes(nodeForId)
-        val nodes = readEdgesAndGroupMembership(nodeForId)
+        val taskReferences = mutableListOf<RestoredTaskReference>()
+        val nodes = readEdgesAndGroupMembership(nodeForId, taskReferences)
         val work = ScheduledWork(nodes, entryNodes).also {
             // ensure no unnecessary copying happens (for performance)
             assert(it.scheduledNodes === nodes)
             assert(it.entryNodes === entryNodes)
         }
-        return RestoredWorkGraph(work, nodesById)
+        return RestoredWorkGraph(work, nodesById, taskReferences)
     }
 
     private
@@ -193,15 +207,24 @@ class WorkNodeCodec(
             writeSmallInt(idForNode(node))
             writeSuccessorReferencesOf(node, actionNodeSuccessors, idForNode)
             writeNodeGroup(node.group, idForNode)
+            if (node is TaskInAnotherBuild) {
+                // A stored reference always has a scheduled target. A reference whose target task has
+                // already executed is also complete, so the reference is never part of the stored work graph.
+                writeSmallInt(idForNode(node.targetNode))
+            }
         }
     }
 
     private
-    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId): List<Node> =
+    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId, taskReferences: MutableList<RestoredTaskReference>): List<Node> =
         buildCollection({ ImmutableList.builderWithExpectedSize<Node>(it) }) {
             val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
+            if (node is TaskInAnotherBuild) {
+                val targetNodeId = readSmallInt()
+                taskReferences.add(RestoredTaskReference(node as TaskInAnotherBuild.Restored, targetNodeId))
+            }
             add(node)
         }.build()
 

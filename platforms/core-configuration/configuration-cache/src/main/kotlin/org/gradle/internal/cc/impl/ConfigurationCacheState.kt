@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.cache.Cleanup
@@ -39,6 +40,7 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
+import org.gradle.execution.plan.TaskNode
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
@@ -75,6 +77,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.serialize.codecs.core.IdForNode
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
+import org.gradle.internal.serialize.codecs.core.RestoredWorkGraph
 import org.gradle.internal.serialize.codecs.core.assignNodeIds
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
@@ -205,6 +208,7 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
+        bindRestoredTaskReferences(builds)
         return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder)
     }
 
@@ -257,6 +261,28 @@ class ConfigurationCacheState(
         }
     }
 
+    /**
+     * Binds each restored reference to a task in another build to its restored target node.
+     * This can only be done once all builds in the tree have been loaded, as a reference may
+     * point into the work graph of a build that is loaded after the referencing build.
+     */
+    private
+    fun bindRestoredTaskReferences(builds: List<CachedBuildState>) {
+        val buildsWithWork = builds.filterIsInstance<BuildWithWork>()
+        val allNodesById = Int2ObjectOpenHashMap<Node>(buildsWithWork.sumOf { it.workGraph.nodesById.size })
+        for (build in buildsWithWork) {
+            allNodesById.putAll(build.workGraph.nodesById)
+        }
+        for (build in buildsWithWork) {
+            for (reference in build.workGraph.taskReferences) {
+                val targetNode = requireNotNull(allNodesById[reference.targetNodeId]) {
+                    "No node with id ${reference.targetNodeId} was restored for ${reference.node}"
+                }
+                reference.node.bindTarget(targetNode as TaskNode)
+            }
+        }
+    }
+
     private
     fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
         return graph.scheduleWork { builder ->
@@ -266,7 +292,7 @@ class ConfigurationCacheState(
             for (build in builds) {
                 if (build is BuildWithWork) {
                     builder.withWorkGraph(build.build.state) {
-                        it.setScheduledWork(build.workGraph)
+                        it.setScheduledWork(build.workGraph.scheduledWork)
                     }
                 }
             }
@@ -578,10 +604,10 @@ class ConfigurationCacheState(
     }
 
     private
-    fun ReadContext.readWorkGraph(gradle: GradleInternal): ScheduledWork =
+    fun ReadContext.readWorkGraph(gradle: GradleInternal): RestoredWorkGraph =
         workNodeCodec(gradle).run {
             readWork()
-        }.work
+        }
 
     private
     suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
