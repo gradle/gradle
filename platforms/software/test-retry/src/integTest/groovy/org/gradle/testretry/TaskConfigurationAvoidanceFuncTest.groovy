@@ -17,27 +17,20 @@ package org.gradle.testretry
 
 class TaskConfigurationAvoidanceFuncTest extends AbstractGeneralPluginFuncTest {
 
-    def "test tasks are not created from use of plugin (gradle version #gradleVersion)"() {
+    def "test tasks are not created from use of plugin"() {
         when:
         buildFile.text = baseBuildScriptWithoutPlugin() + listenerAndTaskRegistration()
-        def result = gradleRunner(gradleVersion)
-            .withArguments("help")
-            .build()
+        succeeds('help')
 
         then:
-        !result.output.contains("CREATED TASK ")
+        !output.contains("CREATED TASK ")
 
         when:
         buildFile.text = baseBuildScript() + listenerAndTaskRegistration()
-        result = gradleRunner(gradleVersion)
-            .withArguments("help")
-            .build()
+        succeeds('help')
 
         then:
-        !result.output.contains("CREATED TASK ")
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
+        !output.contains("CREATED TASK ")
     }
 
     static String listenerAndTaskRegistration() {
