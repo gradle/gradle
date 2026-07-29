@@ -31,25 +31,21 @@ class CucumberTestNGFuncTest extends AbstractCucumberFuncTest {
     }
 
     @PendingFeature
-    def "retries scenarios independently from each other (gradle version #gradleVersion)"(String gradleVersion) {
+    def "retries scenarios independently from each other"() {
         given:
         writeFlakyFeatureFile()
         writeFlakyStepDefinitions()
         writeCucumberEntrypoint()
 
         when:
-        def runner = gradleRunner(gradleVersion as String)
-        def result = runner.build()
+        succeeds('test')
 
         then:
-        with(result.output) {
-            it.count('runScenario[0]("Passing scenario", "Optional[Retry feature]") PASSED') == 1
-            it.count('runScenario[1]("Flaky scenario", "Optional[Retry feature]") FAILED') == 1
-            it.count('runScenario[1]("Flaky scenario", "Optional[Retry feature]") PASSED') == 1
+        with(output) {
+            assert it.count('runScenario[0]("Passing scenario", "Optional[Retry feature]") PASSED') == 1
+            assert it.count('runScenario[1]("Flaky scenario", "Optional[Retry feature]") FAILED') == 1
+            assert it.count('runScenario[1]("Flaky scenario", "Optional[Retry feature]") PASSED') == 1
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 
     private writeCucumberEntrypoint() {
