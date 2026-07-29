@@ -19,6 +19,15 @@ package org.gradle.internal.work;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Tracks how many workers a {@link WorkerLeaseQueueProcessor} is allowed to have running.
+ *
+ * <p>A <em>slot</em> is similar to a worker lease, but because there are multiple thread pools of workers
+ * we need a separate way to track how many of our workers are allowed to be started in case other thread
+ * pools relinquish their lease(s) and we can start more workers. We should remove this in the future by
+ * consolidating all worker pools into a single pool, or by notifying pools when a lease is relinquished
+ * so they can start more workers.
+ */
 final class WorkerCounter {
     private static final class WorkerCountState {
         /**
