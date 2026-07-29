@@ -83,9 +83,17 @@ class CorePluginFuncTest extends AbstractGeneralPluginFuncTest {
         failedTest()
 
         when:
-        // Pass the system property to the child Gradle JVM, since it runs in a separate process
+        // The plugin reads this via Boolean.getBoolean(...) at apply time. That "apply time"
+        // runs in the forked build JVM under forkingIntegTest, but in the test JVM under
+        // embeddedIntegTest. Set both to cover both executers; clear the System property
+        // afterwards so it doesn't bleed into subsequent tests running in the same JVM.
         executer.withBuildJvmOpts("-D${TestRetryTaskExtensionAdapter.SIMULATE_NOT_RETRYABLE_PROPERTY}=true")
-        fails('test')
+        System.setProperty(TestRetryTaskExtensionAdapter.SIMULATE_NOT_RETRYABLE_PROPERTY, "true")
+        try {
+            fails('test')
+        } finally {
+            System.clearProperty(TestRetryTaskExtensionAdapter.SIMULATE_NOT_RETRYABLE_PROPERTY)
+        }
 
         then:
         assertTestReportContains("FailedTests", reportedTestName("failedTest"), 0, 1)
