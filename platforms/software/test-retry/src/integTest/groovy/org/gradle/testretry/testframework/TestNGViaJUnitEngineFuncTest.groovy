@@ -19,9 +19,6 @@ import javax.annotation.Nullable
 
 import static org.gradle.testretry.testframework.BaseTestNGFuncTest.TestNGLifecycleType.AFTER_CLASS
 import static org.gradle.testretry.testframework.BaseTestNGFuncTest.TestNGLifecycleType.AFTER_TEST
-import static org.gradle.testretry.testframework.BaseTestNGFuncTest.TestNGLifecycleType.BEFORE_CLASS
-import static org.gradle.testretry.testframework.BaseTestNGFuncTest.TestNGLifecycleType.BEFORE_METHOD
-import static org.gradle.testretry.testframework.BaseTestNGFuncTest.TestNGLifecycleType.AFTER_METHOD
 import static org.gradle.testretry.testframework.BaseTestNGFuncTest.TestNGLifecycleType.BEFORE_TEST
 
 class TestNGViaJUnitEngineFuncTest extends BaseTestNGFuncTest {

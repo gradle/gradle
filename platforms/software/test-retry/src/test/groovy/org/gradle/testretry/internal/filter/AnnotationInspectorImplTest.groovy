@@ -84,7 +84,11 @@ class AnnotationInspectorImplTest extends Specification {
         try {
             fileManager.setLocation(StandardLocation.CLASS_OUTPUT, [outputDir])
             def sourceFiles = []
-            sourceDir.eachFileRecurse { if (it.name.endsWith(".java")) sourceFiles << it }
+            sourceDir.eachFileRecurse {
+                if (it.name.endsWith(".java")) {
+                    sourceFiles << it
+                }
+            }
             def javaFileObjects = fileManager.getJavaFileObjectsFromFiles(sourceFiles)
             def task = compiler.getTask(null, fileManager, null, null, null, javaFileObjects)
             assert task.call(): "javac failed to compile ${sourceFiles*.name}"
