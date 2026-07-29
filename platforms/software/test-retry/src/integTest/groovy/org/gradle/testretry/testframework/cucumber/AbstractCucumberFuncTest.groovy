@@ -47,8 +47,8 @@ abstract class AbstractCucumberFuncTest extends AbstractFrameworkFuncTest {
 
     protected void writeFeatureFile(String name, String content) {
         def featuresDir = "src/test/resources/features"
-        new File(testProjectDir.root, featuresDir).mkdirs()
-        testProjectDir.newFile("$featuresDir/${name}.feature") << content
+        file(featuresDir).mkdirs()
+        file("$featuresDir/${name}.feature") << content
     }
 
     protected void writeFlakyStepDefinitions() {
