@@ -18,6 +18,8 @@ package org.gradle.internal.serialize.codecs.core
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap
@@ -64,17 +66,53 @@ import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.util.Path
 import java.util.concurrent.atomic.AtomicReference
 
-private
 typealias NodeForId = (Int) -> Node
 
 
-private
 typealias IdForNode = (Node) -> Int
 
 
 interface IsolateContextSource {
     fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext
     fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext
+}
+
+
+/**
+ * The work graph restored from a build's state, along with each restored node indexed by its node id.
+ */
+class RestoredWorkGraph(
+    val work: ScheduledWork,
+    val nodesById: Int2ObjectMap<Node>
+)
+
+
+/**
+ * Assigns an ID to every node of the given work graphs, in a single id space spanning all graphs.
+ */
+fun assignNodeIds(workGraphs: Iterable<ScheduledWork>): IdForNode {
+    val ids = Object2IntOpenHashMap<Node>().apply {
+        defaultReturnValue(-1)
+    }
+    for (workGraph in workGraphs) {
+        for (node in workGraph.scheduledNodes) {
+            require(ids.put(node, ids.size) == -1) {
+                "$node is scheduled in more than one work graph"
+            }
+            if (node is LocalTaskNode) {
+                // The prepareNode is not included as a scheduled node but is a dependency of
+                // scheduled task nodes. Also assign an ID for it here.
+                ids[node.prepareNode] = ids.size
+            }
+        }
+    }
+    return { node ->
+        ids.getInt(node).also { id ->
+            require(id >= 0) {
+                "Node id missing for node $node"
+            }
+        }
+    }
 }
 
 
@@ -88,53 +126,45 @@ class WorkNodeCodec(
     private val parallelLoad: Boolean
 ) {
 
-    fun WriteContext.writeWork(work: ScheduledWork) {
+    fun WriteContext.writeWork(work: ScheduledWork, idForNode: IdForNode) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withGradleIsolate(owner, internalTypesCodec) {
-            doWrite(work)
+            doWrite(work, idForNode)
         }
     }
 
-    fun ReadContext.readWork(): ScheduledWork =
+    fun ReadContext.readWork(): RestoredWorkGraph =
         withGradleIsolate(owner, internalTypesCodec) {
             doRead()
         }
 
     private
-    fun WriteContext.doWrite(work: ScheduledWork) {
+    fun WriteContext.doWrite(work: ScheduledWork, idForNode: IdForNode) {
         val nodes = work.scheduledNodes
-        val entryNodes = work.entryNodes
-        val nodeCount = nodes.size
-        val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount).apply {
-            defaultReturnValue(-1)
-        }
-
-        val scheduledEntryNodeIds = assignNodeIds(scheduledNodeIds, nodes, entryNodes)
-        val idForNode: IdForNode = { node ->
-            scheduledNodeIds.getInt(node).also { nodeId ->
-                require(nodeId >= 0) {
-                    "Node id missing for node $node"
-                }
-            }
-        }
-
-        writeSmallInt(scheduledNodeIds.size)
+        val scheduledEntryNodeIds = entryNodeIdsOf(nodes, work.entryNodes, idForNode)
+        writeSmallInt(nodes.size)
         val actionNodeSuccessors = writeNodes(nodes, idForNode)
         writeEntryNodes(scheduledEntryNodeIds)
         writeEdgesAndGroupMembership(nodes, actionNodeSuccessors, idForNode)
     }
 
     private
-    fun ReadContext.doRead(): ScheduledWork {
-        val nodeIdCount = readSmallInt()
-        val nodeForId = readNodes(nodeIdCount)
+    fun ReadContext.doRead(): RestoredWorkGraph {
+        val nodeCount = readSmallInt()
+        val nodesById = readNodes(nodeCount)
+        val nodeForId: NodeForId = { id ->
+            requireNotNull(nodesById[id]) {
+                "No node with id $id was restored"
+            }
+        }
         val entryNodes = readEntryNodes(nodeForId)
         val nodes = readEdgesAndGroupMembership(nodeForId)
-        return ScheduledWork(nodes, entryNodes).also {
+        val work = ScheduledWork(nodes, entryNodes).also {
             // ensure no unnecessary copying happens (for performance)
             assert(it.scheduledNodes === nodes)
             assert(it.entryNodes === entryNodes)
         }
+        return RestoredWorkGraph(work, nodesById)
     }
 
     private
@@ -176,10 +206,10 @@ class WorkNodeCodec(
         }.build()
 
     private
-    fun assignNodeIds(
-        scheduledNodeIds: Object2IntOpenHashMap<Node>,
+    fun entryNodeIdsOf(
         nodes: List<Node>,
-        entryNodes: ImmutableSet<Node>
+        entryNodes: ImmutableSet<Node>,
+        idForNode: IdForNode
     ): List<Int> {
         // Not all entry nodes are always scheduled.
         // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
@@ -187,13 +217,8 @@ class WorkNodeCodec(
         // Not restoring them as entry points doesn't affect the resulting execution plan.
         val scheduledEntryNodeIds = mutableListOf<Int>()
         nodes.forEach { node ->
-            val nodeId = scheduledNodeIds.size
-            scheduledNodeIds[node] = nodeId
             if (node in entryNodes) {
-                scheduledEntryNodeIds.add(nodeId)
-            }
-            if (node is LocalTaskNode) {
-                scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
+                scheduledEntryNodeIds.add(idForNode(node))
             }
         }
         return scheduledEntryNodeIds
@@ -215,14 +240,14 @@ class WorkNodeCodec(
     }
 
     private
-    fun ReadContext.readNodes(nodeIdCount: Int): NodeForId {
-        val nodesById = flatten(
-            readNodeBatchesInParallel().iterator(),
-            Array<Node?>(nodeIdCount) { null }
-        ) { (node, id) ->
-            this[id] = node
+    fun ReadContext.readNodes(nodeIdCount: Int): Int2ObjectMap<Node> {
+        val nodesById = Int2ObjectOpenHashMap<Node>(nodeIdCount)
+        readNodeBatchesInParallel().forEach { batch ->
+            batch.forEach { (node, id) ->
+                nodesById.put(id, node)
+            }
         }
-        return { id: Int -> nodesById[id]!! }
+        return nodesById
     }
 
     private
