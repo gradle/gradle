@@ -21,7 +21,6 @@ import groovy.transform.stc.FromString
 import org.apache.commons.lang3.NotImplementedException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.WorkNodeAction
-import org.gradle.composite.internal.IncludedBuildTaskResource
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -151,7 +150,12 @@ class NodeComparatorTest extends Specification {
     protected TaskInAnotherBuild createTaskInAnotherBuild(int index) {
         return new TaskInAnotherBuild(path(index), null, null) {
             @Override
-            protected IncludedBuildTaskResource getTarget() {
+            TaskNode getTargetNode() {
+                throw new NotImplementedException()
+            }
+
+            @Override
+            protected void queueTargetForExecution() {
                 throw new NotImplementedException()
             }
         }
