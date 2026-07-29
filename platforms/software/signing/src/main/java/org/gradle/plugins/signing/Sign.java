@@ -43,6 +43,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
@@ -128,7 +129,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private void signTask(final AbstractArchiveTask archiveTask) {
         dependsOn(archiveTask);
-        addSignature(new Signature(() -> archiveTask.getArchiveFile().get().getAsFile(), () -> archiveTask.getArchiveClassifier().getOrNull(), this, this));
+        addSignature(new Signature(null, () -> archiveTask.getArchiveFile().get().getAsFile(), () -> archiveTask.getArchiveClassifier().getOrNull(), null, this, this));
     }
 
     /**
@@ -142,7 +143,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private void signArtifact(PublishArtifact publishArtifact) {
         dependsOn(publishArtifact);
-        addSignature(new Signature(publishArtifact, this, this));
+        addSignature(new Signature(publishArtifact, publishArtifact::getFile, publishArtifact::getClassifier, publishArtifact::getName, this, this));
     }
 
     /**
@@ -156,12 +157,18 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
      * Configures the task to sign each of the given artifacts, using the given classifier as the classifier for the resultant signature publish artifact.
      */
     public void sign(String classifier, File... files) {
+        DeprecationLogger.deprecateMethod(Sign.class, "sign(String, File...)")
+            .withAdvice("Use sign(File...) instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_sign_classifier")
+            .nagUser();
+
         addSignatures(classifier, files);
     }
 
     private void addSignatures(String classifier, File[] files) {
         for (File file : files) {
-            addSignature(new Signature(file, classifier, this, this));
+            addSignature(new Signature(null, () -> file, () -> classifier, null, this, this));
         }
     }
 

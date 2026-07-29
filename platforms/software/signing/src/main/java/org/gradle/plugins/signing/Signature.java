@@ -28,6 +28,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
@@ -62,6 +63,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @see #getName()
      */
+    @Deprecated
     private String name;
 
     /**
@@ -69,6 +71,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @see #getExtension()
      */
+    @Deprecated
     private String extension;
 
     /**
@@ -76,6 +79,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @see #getType()
      */
+    @Deprecated
     private String type;
 
     /**
@@ -83,6 +87,7 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @see #getClassifier()
      */
+    @Deprecated
     private String classifier;
 
     /**
@@ -90,13 +95,16 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @see #getDate()
      */
+    @Deprecated
     private Date date;
 
     private Callable<File> toSignGenerator;
 
+    @Deprecated
     private Callable<String> classifierGenerator;
 
     @Nullable
+    @Deprecated
     private Callable<String> nameGenerator;
 
     /**
@@ -108,15 +116,31 @@ public class Signature extends AbstractPublishArtifact {
      * @param toSign The artifact that is to be signed
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(final PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
-        this(toSign, toSign::getFile, toSign::getClassifier, toSign::getName, signatureSpec, tasks);
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
+        this.toSignGenerator = toSign::getFile;
+        this.classifierGenerator = toSign::getClassifier;
+        this.nameGenerator = toSign::getName;
+        this.signatureSpec = signatureSpec;
+        this.source = toSign;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     Signature(Buildable source, Callable<File> toSign, Callable<String> classifier, Callable<String> name, SignatureSpec signatureSpec, Object... tasks) {
         // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        init(toSign, classifier, name, signatureSpec);
+        this.toSignGenerator = toSign;
+        this.classifierGenerator = classifier;
+        this.nameGenerator = name;
+        this.signatureSpec = signatureSpec;
         this.source = source;
     }
 
@@ -126,11 +150,19 @@ public class Signature extends AbstractPublishArtifact {
      * @param toSign The file that is to be signed
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(final File toSign, SignatureSpec signatureSpec, Object... tasks) {
-        // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        init(returning(toSign), null, null, signatureSpec);
+        this.toSignGenerator = returning(toSign);
+        this.signatureSpec = signatureSpec;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     /**
@@ -140,11 +172,20 @@ public class Signature extends AbstractPublishArtifact {
      * @param classifier The classifier to assign to the signature (should match the files)
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(final File toSign, final String classifier, SignatureSpec signatureSpec, Object... tasks) {
-        // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        init(returning(toSign), returning(classifier), null, signatureSpec);
+        this.toSignGenerator = returning(toSign);
+        this.classifierGenerator = returning(classifier);
+        this.signatureSpec = signatureSpec;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     /**
@@ -156,13 +197,20 @@ public class Signature extends AbstractPublishArtifact {
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(Closure<File> toSign, Closure<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
-        // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.signatureSpec = signatureSpec;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     /**
@@ -174,18 +222,20 @@ public class Signature extends AbstractPublishArtifact {
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     *
+     * @deprecated This constructor will be deprecated in Gradle 10.
      */
+    @Deprecated
     public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
-        // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        init(toSign, classifier, null, signatureSpec);
-    }
-
-    private void init(Callable<File> toSign, Callable<String> classifier, @Nullable Callable<String> name, SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
-        this.nameGenerator = name;
         this.signatureSpec = signatureSpec;
+
+        DeprecationLogger.deprecateAction("Constructing a Signature object")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_constructors")
+            .nagUser();
     }
 
     /**
@@ -200,7 +250,18 @@ public class Signature extends AbstractPublishArtifact {
         return uncheckedCall(toSignGenerator);
     }
 
+    /**
+     * Set the name returned by {@link #getName()}.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setName(String name) {
+        DeprecationLogger.deprecateMethod(Signature.class, "setName(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         this.name = name;
     }
 
@@ -211,27 +272,39 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The name. May be {@code null} if unknown at this time.
      *
-     * FIXME Nullability consistency with superclass.
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public String getName() {
-        return name != null ? name : defaultName();
-    }
+        DeprecationLogger.deprecateMethod(Signature.class, "getName()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
 
-    @Nullable
-    private String defaultName() {
-        return nameGenerator != null ? uncheckedCall(nameGenerator) : fileName();
-    }
-
-    @Nullable
-    private String fileName() {
+        if (name != null) {
+            return name;
+        }
+        if (nameGenerator != null) {
+            return uncheckedCall(nameGenerator);
+        }
         final File file = getFile();
         return file != null ? file.getName() : null;
     }
 
+    /**
+     * Set the extension returned by {@link #getExtension()}.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setExtension(String extension) {
+        DeprecationLogger.deprecateMethod(Signature.class, "setExtension(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         this.extension = extension;
     }
 
@@ -242,22 +315,37 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The extension. May be {@code null} if unknown at this time.
      *
-     * FIXME Nullability consistency with superclass.
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public String getExtension() {
-        return extension != null ? extension : signatureTypeExtension();
-    }
+        DeprecationLogger.deprecateMethod(Signature.class, "getExtension()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
 
-    @Nullable
-    private String signatureTypeExtension() {
+        if (extension != null) {
+            return extension;
+        }
+
         SignatureType signatureType = getSignatureType();
         return signatureType != null ? signatureType.getExtension() : null;
     }
 
+    /**
+     * Set the type returned by {@link #getType()}.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setType(String type) {
+        DeprecationLogger.deprecateMethod(Signature.class, "setType(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         this.type = type;
     }
 
@@ -269,17 +357,21 @@ public class Signature extends AbstractPublishArtifact {
      *
      * @return The type. May be {@code null} if the file to sign or signature type are unknown at this time.
      *
-     * FIXME Nullability consistency with superclass.
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public String getType() {
-        return type != null ? type : defaultType();
-    }
+        DeprecationLogger.deprecateMethod(Signature.class, "getType()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
 
-    @Nullable
-    private String defaultType() {
+        if (type != null) {
+            return type;
+        }
+
         File toSign = getToSign();
         SignatureType signatureType = getSignatureType();
         return toSign != null && signatureType != null
@@ -287,7 +379,18 @@ public class Signature extends AbstractPublishArtifact {
             : null;
     }
 
+    /**
+     * Set the classifier returned by {@link #getClassifier()}.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setClassifier(String classifier) {
+        DeprecationLogger.deprecateMethod(Signature.class, "setClassifier(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         this.classifier = classifier;
     }
 
@@ -297,19 +400,37 @@ public class Signature extends AbstractPublishArtifact {
      * <p>Defaults to the classifier of the source artifact (if signing an artifact) or the given classifier at construction (if given).</p>
      *
      * @return The classifier. May be {@code null} if unknown at this time.
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public String getClassifier() {
-        return classifier != null ? classifier : defaultClassifier();
-    }
+        DeprecationLogger.deprecateMethod(Signature.class, "getClassifier()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
 
-    private String defaultClassifier() {
+        if (classifier != null) {
+            return classifier;
+        }
+
         return classifierGenerator == null ? null : uncheckedCall(classifierGenerator);
     }
 
+    /**
+     * Set the date returned by {@link #getDate()}.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setDate(Date date) {
+        DeprecationLogger.deprecateMethod(Signature.class, "setDate(Date)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         this.date = date;
     }
 
@@ -319,16 +440,22 @@ public class Signature extends AbstractPublishArtifact {
      * <p>Defaults to the last modified time of the {@link #getFile() signature file} (if exists)</p>
      *
      * @return The date of the signature. May be {@code null} if unknown at this time.
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public Date getDate() {
-        return date != null ? date : defaultDate();
-    }
+        DeprecationLogger.deprecateMethod(Signature.class, "getDate()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
 
-    @Nullable
-    private Date defaultDate() {
+        if (date != null) {
+            return date;
+        }
+
         final File file = getFile();
         if (file == null) {
             return null;
@@ -402,14 +529,52 @@ public class Signature extends AbstractPublishArtifact {
         return source;
     }
 
+    /**
+     * Get the build dependencies of this signature.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
     @Internal
     @Override
+    @Deprecated
     public TaskDependency getBuildDependencies() {
+        DeprecationLogger.deprecateMethod(Signature.class, "getBuildDependencies()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         return super.getBuildDependencies();
     }
 
+    /**
+     * Add build dependencies to this signature.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
     @Override
+    @Deprecated
+    public AbstractPublishArtifact builtBy(Object... tasks) {
+        DeprecationLogger.deprecateMethod(Signature.class, "builtBy(Object...)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
+        return super.builtBy(tasks);
+    }
+
+    /**
+     * Return if this signature should be published.
+     *
+     * @deprecated This method will be removed in Gradle 10.
+     */
+    @Override
+    @Deprecated
     public boolean shouldBePublished() {
+        DeprecationLogger.deprecateMethod(Signature.class, "shouldBePublished()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_signature_as_artifact")
+            .nagUser();
+
         return true;
     }
 
@@ -493,5 +658,6 @@ public class Signature extends AbstractPublishArtifact {
         public void generate() {
             signatureType.sign(signatory, toSign);
         }
+
     }
 }
