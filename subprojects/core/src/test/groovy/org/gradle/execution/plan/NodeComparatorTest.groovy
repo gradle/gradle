@@ -148,7 +148,7 @@ class NodeComparatorTest extends Specification {
     }
 
     protected TaskInAnotherBuild createTaskInAnotherBuild(int index) {
-        return new TaskInAnotherBuild(path(index), null, null) {
+        return new TaskInAnotherBuild(path(index)) {
             @Override
             TaskNode getTargetNode() {
                 throw new NotImplementedException()

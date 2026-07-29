@@ -16,26 +16,24 @@
 
 package org.gradle.internal.serialize.codecs.core
 
-import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.PathSerializer
+import org.gradle.execution.plan.TaskInAnotherBuild
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.execution.plan.TaskInAnotherBuild
 
 
-object TaskInAnotherBuildCodec : Codec<TaskInAnotherBuild> {
+class TaskInAnotherBuildCodec(
+    val pathSerializer: PathSerializer
+) : Codec<TaskInAnotherBuild> {
 
     override suspend fun WriteContext.encode(value: TaskInAnotherBuild) {
-        value.run {
-            writeString(taskPath)
-            write(targetBuild)
-        }
+        pathSerializer.write(this, value.taskIdentityPath)
     }
 
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
-        val taskPath = readString()
-        val targetBuild = readNonNull<BuildIdentifier>()
-        return TaskInAnotherBuild.restored(taskPath, targetBuild)
+        val taskIdentityPath = pathSerializer.read(this)
+        return TaskInAnotherBuild.restored(taskIdentityPath)
     }
+
 }

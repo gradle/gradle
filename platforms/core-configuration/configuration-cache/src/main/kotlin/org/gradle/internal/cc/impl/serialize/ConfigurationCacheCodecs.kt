@@ -23,6 +23,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.PathSerializer
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
@@ -375,7 +376,7 @@ class DefaultConfigurationCacheCodecs(
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
-        bind(TaskInAnotherBuildCodec)
+        bind(TaskInAnotherBuildCodec(PathSerializer()))
 
         bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
     }

@@ -16,30 +16,40 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.util.Path
 
 abstract class AbstractIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def buildStateRegistry = Mock(BuildStateRegistry)
 
-    BuildState build(BuildIdentifier id, BuildWorkGraphController workGraph = null) {
-        def build = Mock(IncludedBuildState)
-        _ * build.buildIdentifier >> id
-        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraphController))
-        _ * buildStateRegistry.getBuild(id) >> build
+    BuildState build(Path path, BuildWorkGraphController workGraph = null) {
+        def build = Mock(IncludedBuildState) {
+            getIdentityPath() >> path
+            getWorkGraph() >> (workGraph ?: Stub(BuildWorkGraphController))
+        }
+        _ * buildStateRegistry.getBuild(path) >> build
         return build
     }
 
-    TaskIdentifier taskIdentifier(BuildIdentifier id, String taskPath) {
-        def task = Stub(TaskInternal) {
-            getPath() >> taskPath
+    TaskInternal task(Path buildPath, String taskName) {
+        def projectIdentity = ProjectIdentity.forRootProject(buildPath, "root")
+        def project = Stub(ProjectInternal) {
+            getProjectIdentity() >> projectIdentity
         }
-        return new TaskIdentifier(id, task)
+        def taskIdentity = TestTaskIdentities.create(taskName, DefaultTask, project)
+        return Stub(TaskInternal) {
+            getPath() >> taskIdentity.path
+            getTaskIdentity() >> taskIdentity
+        }
     }
 
 }
