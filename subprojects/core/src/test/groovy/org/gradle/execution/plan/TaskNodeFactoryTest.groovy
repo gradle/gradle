@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildIdentity
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -42,10 +43,13 @@ class TaskNodeFactoryTest extends Specification {
     def e = task('e')
 
     def setup() {
-        factory = new TaskNodeFactory(new BuildIdentity(Path.ROOT), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), Stub(ExecutionNodeAccessHierarchies), TestUtil.problemsService())
+        factory = new TaskNodeFactory(new BuildIdentity(Path.ROOT), Stub(BuildTreeWorkGraphController), Stub(BuildStateRegistry), Stub(NodeValidator), new TestBuildOperationRunner(), Stub(ExecutionNodeAccessHierarchies), TestUtil.problemsService())
     }
 
     private TaskInternal task(String name) {
+        def project = Mock(ProjectInternal) {
+            getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
+        }
         Mock(TaskInternal) {
             getName() >> name
             compareTo(_) >> { args -> name.compareTo(args[0].name) }
