@@ -26,4 +26,12 @@ class ConfigurationAPIDeprecations {
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property"
         )
     }
+
+    static void expectSetVisibleMethodDeprecation(GradleExecuter executer) {
+        executer.expectDocumentedDeprecationWarning(
+            "The Configuration.setVisible(boolean) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property"
+        )
+    }
 }
