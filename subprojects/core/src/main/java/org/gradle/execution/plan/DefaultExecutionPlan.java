@@ -124,6 +124,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     @Override
+    public void addEntryNode(Node node) {
+        addEntryNodes(Collections.singletonList(node));
+    }
+
+    @Override
     public void addEntryTasks(Collection<? extends Task> tasks) {
         addEntryTasks(tasks, order++);
     }
