@@ -20,7 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
@@ -33,9 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -44,7 +41,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private final BuildLifecycleController controller;
     private final BuildIdentifier buildIdentifier;
     private final WorkerLeaseService workerLeaseService;
-    private final Map<String, DefaultExportedTaskNode> nodesByPath = new ConcurrentHashMap<>();
     private final Object lock = new Object();
     private Thread currentOwner;
     private final Set<DefaultBuildWorkGraph> pendingGraphs = new HashSet<>();
@@ -63,16 +59,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             if (currentOwner != null) {
                 throw new IllegalStateException("Cannot reset work graph state as another thread is currently using the work graph.");
             }
-            nodesByPath.clear();
         }
         taskNodeFactory.resetState();
     }
 
     @Override
-    public ExportedTaskNode locateTask(TaskIdentifier taskIdentifier) {
-        DefaultExportedTaskNode node = doLocate(taskIdentifier);
-        node.maybeBindTask(taskIdentifier.getTask());
-        return node;
+    public TaskNode locateTaskNode(TaskInternal task) {
+        return taskNodeFactory.getOrCreateNode(task);
     }
 
     @Override
@@ -94,9 +87,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
     }
 
-    private DefaultExportedTaskNode doLocate(TaskIdentifier taskIdentifier) {
-        return nodesByPath.computeIfAbsent(taskIdentifier.getTaskPath(), DefaultExportedTaskNode::new);
-    }
 
     private class DefaultBuildWorkGraph implements BuildWorkGraph {
         private final Thread owner;
@@ -122,17 +112,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
-        public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
+        public boolean schedule(Collection<TaskNode> taskNodes) {
             assertIsOwner();
             List<Task> tasks = new ArrayList<>();
-            for (ExportedTaskNode taskNode : taskNodes) {
-                DefaultExportedTaskNode node = (DefaultExportedTaskNode) taskNode;
-                if (nodesByPath.get(node.taskPath) != taskNode) {
-                    throw new IllegalArgumentException();
-                }
-                if (node.shouldSchedule()) {
+            for (TaskNode taskNode : taskNodes) {
+                if (!taskNode.isRequired()) {
                     // Not already in task graph
-                    tasks.add(node.getTask());
+                    tasks.add(taskNode.getTask());
                 }
             }
             if (tasks.isEmpty()) {
@@ -212,42 +198,4 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
     }
 
-    private class DefaultExportedTaskNode implements ExportedTaskNode {
-        final String taskPath;
-        TaskNode taskNode;
-
-        DefaultExportedTaskNode(String taskPath) {
-            this.taskPath = taskPath;
-        }
-
-        void maybeBindTask(TaskInternal task) {
-            synchronized (lock) {
-                if (taskNode == null) {
-                    taskNode = taskNodeFactory.getOrCreateNode(task);
-                }
-            }
-        }
-
-        @Override
-        public TaskNode getTaskNode() {
-            synchronized (lock) {
-                if (taskNode == null) {
-                    throw new IllegalStateException("No task has been bound for task node '" + taskPath + "'.");
-                }
-                return taskNode;
-            }
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            return getTaskNode().getTask();
-        }
-
-        boolean shouldSchedule() {
-            synchronized (lock) {
-                return taskNode == null || !taskNode.isRequired();
-            }
-        }
-
-    }
 }

@@ -343,7 +343,9 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     BuildServices build(TreeServices services, BuildIdentity identifier) {
-        def gradle = Stub(GradleInternal)
+        def gradle = Stub(GradleInternal) {
+            getIdentityPath() >> identifier.buildPath
+        }
         def buildOperation = Stub(BuildOperationRef) {
             getId() >> new OperationIdentifier(identifier.buildPath.asString().hashCode())
         }

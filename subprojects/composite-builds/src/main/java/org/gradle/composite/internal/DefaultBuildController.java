@@ -30,7 +30,6 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -53,8 +52,8 @@ class DefaultBuildController implements BuildController {
     }
 
     private final BuildWorkGraph workGraph;
-    private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
-    private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
+    private final Set<TaskNode> scheduled = new LinkedHashSet<>();
+    private final Set<TaskNode> queuedForExecution = new LinkedHashSet<>();
     private final WorkerLeaseService workerLeaseService;
 
     private State state = State.DiscoveringTasks;
@@ -65,7 +64,7 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
-    public void queueForExecution(ExportedTaskNode taskNode) {
+    public void queueForExecution(TaskNode taskNode) {
         assertInState(State.DiscoveringTasks);
         queuedForExecution.add(taskNode);
     }
@@ -114,7 +113,7 @@ class DefaultBuildController implements BuildController {
         //   also check for cycles across all nodes
         Set<TaskInternal> visited = new HashSet<>();
         Set<TaskInternal> visiting = new HashSet<>();
-        for (ExportedTaskNode node : scheduled) {
+        for (TaskNode node : scheduled) {
             checkForCyclesFor(node.getTask(), visited, visiting);
         }
         workGraph.finalizeGraph();

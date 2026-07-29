@@ -21,9 +21,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
-import org.gradle.composite.internal.IncludedBuildTaskResource;
-import org.gradle.composite.internal.TaskIdentifier;
-import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -38,10 +35,8 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         TaskInternal task,
         BuildTreeWorkGraphController taskGraph
     ) {
-        BuildIdentity targetBuild = buildIdentityOf(task);
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(new TaskIdentifier(targetBuild, task));
-        TaskNode targetNode = taskResource.getTaskNode();
-        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild) {
+        TaskNode targetNode = taskGraph.locateTaskNode(task);
+        return new TaskInAnotherBuild(task.getIdentityPath()) {
 
             @Override
             public TaskNode getTargetNode() {
@@ -50,8 +45,9 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
             @Override
             protected void queueTargetForExecution() {
-                taskResource.queueForExecution();
+                taskGraph.queueForExecution(task);
             }
+
         };
 
     }
@@ -62,15 +58,10 @@ public abstract class TaskInAnotherBuild extends TaskNode {
      * The reference must be {@link Restored#bindTarget bound} to its restored target node once all
      * builds in the tree have been loaded.
      *
-     * @param taskPath the path to the task relative to its build
-     * @param targetBuild the build containing the task
+     * @param taskIdentityPath the path to the task relative to its build tree
      */
-    public static Restored restored(
-        String taskPath,
-        BuildIdentity targetBuild
-    ) {
-        Path taskIdentityPath = targetBuild.getBuildPath().append(Path.path(taskPath));
-        return new Restored(taskIdentityPath, taskPath, targetBuild);
+    public static Restored restored(Path taskIdentityPath) {
+        return new Restored(taskIdentityPath);
     }
 
     /**
@@ -80,8 +71,8 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
         private @Nullable TaskNode targetNode;
 
-        private Restored(Path taskIdentityPath, String taskPath, BuildIdentity targetBuild) {
-            super(taskIdentityPath, taskPath, targetBuild);
+        private Restored(Path taskIdentityPath) {
+            super(taskIdentityPath);
         }
 
         /**
@@ -108,21 +99,9 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
     private @Nullable DependenciesState targetOutcome;
     private final Path taskIdentityPath;
-    private final String taskPath;
-    private final BuildIdentity targetBuild;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentity targetBuild) {
+    protected TaskInAnotherBuild(Path taskIdentityPath) {
         this.taskIdentityPath = taskIdentityPath;
-        this.taskPath = taskPath;
-        this.targetBuild = targetBuild;
-    }
-
-    public BuildIdentity getTargetBuild() {
-        return targetBuild;
-    }
-
-    public String getTaskPath() {
-        return taskPath;
     }
 
     public Path getTaskIdentityPath() {
@@ -238,10 +217,6 @@ public abstract class TaskInAnotherBuild extends TaskNode {
     @Override
     public void execute(NodeExecutionContext context) {
         // This node does not do anything itself
-    }
-
-    private static BuildIdentity buildIdentityOf(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentity();
     }
 
 }
