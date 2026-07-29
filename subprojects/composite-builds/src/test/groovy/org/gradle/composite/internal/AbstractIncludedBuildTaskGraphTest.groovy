@@ -16,7 +16,11 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -28,18 +32,25 @@ abstract class AbstractIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def buildStateRegistry = Mock(BuildStateRegistry)
 
     BuildState build(BuildIdentity id, BuildWorkGraphController workGraph = null) {
-        def build = Mock(IncludedBuildState)
-        _ * build.buildIdentity >> id
-        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraphController))
+        def build = Mock(IncludedBuildState) {
+            getBuildIdentity() >> id
+            getIdentityPath() >> id.buildPath
+            getWorkGraph() >> (workGraph ?: Stub(BuildWorkGraphController))
+        }
         _ * buildStateRegistry.getBuild(id.buildPath) >> build
         return build
     }
 
-    TaskIdentifier taskIdentifier(BuildIdentity id, String taskPath) {
-        def task = Stub(TaskInternal) {
-            getPath() >> taskPath
+    TaskInternal task(BuildIdentity id, String taskName) {
+        def projectIdentity = ProjectIdentity.forRootProject(id.buildPath, "root")
+        def project = Stub(ProjectInternal) {
+            getProjectIdentity() >> projectIdentity
         }
-        return new TaskIdentifier(id, task)
+        def taskIdentity = TestTaskIdentities.create(taskName, DefaultTask, project)
+        return Stub(TaskInternal) {
+            getPath() >> taskIdentity.path
+            getTaskIdentity() >> taskIdentity
+        }
     }
 
 }

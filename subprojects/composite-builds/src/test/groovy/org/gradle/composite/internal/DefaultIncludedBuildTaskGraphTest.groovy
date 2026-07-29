@@ -18,13 +18,13 @@ package org.gradle.composite.internal
 
 import org.gradle.execution.plan.PlanExecutor
 import org.gradle.internal.build.BuildIdentity
-import org.gradle.util.Path
 import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
+import org.gradle.util.Path
 
 class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTest {
     def workerLeaseService = new TestWorkerLeaseService()
@@ -69,7 +69,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph has not been created"() {
         when:
-        graph.locateTask(taskIdentifier(new BuildIdentity(Path.ROOT), ":task")).queueForExecution()
+        graph.queueForExecution(task(new BuildIdentity(Path.ROOT), "task"))
 
         then:
         def e = thrown(IllegalStateException)
@@ -79,7 +79,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
     def "cannot schedule tasks when after graph has finished execution"() {
         when:
         graph.withNewWorkGraph { 12 }
-        graph.locateTask(taskIdentifier(new BuildIdentity(Path.ROOT), ":task")).queueForExecution()
+        graph.queueForExecution(task(new BuildIdentity(Path.ROOT), "task"))
 
         then:
         def e = thrown(IllegalStateException)
@@ -93,7 +93,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         when:
         graph.withNewWorkGraph { g ->
-            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
+            graph.queueForExecution(task(id, "task"))
         }
 
         then:
@@ -110,7 +110,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
         graph.withNewWorkGraph { g ->
             g.scheduleWork {
             }
-            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
+            graph.queueForExecution(task(id, "task"))
         }
 
         then:
@@ -127,7 +127,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         workGraphController.newWorkGraph() >> workGraph
         workGraph.runWork() >> {
-            graph.locateTask(taskIdentifier(new BuildIdentity(Path.ROOT), ":task")).queueForExecution()
+            graph.queueForExecution(task(new BuildIdentity(Path.ROOT), "task"))
         }
 
         when:
@@ -153,7 +153,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
             def f= g.scheduleWork {
             }
             f.runWork()
-            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
+            graph.queueForExecution(task(id, "task"))
         }
 
         then:
