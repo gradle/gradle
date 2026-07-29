@@ -305,7 +305,9 @@ class DefaultBuildOperationQueueTest extends Specification {
         startedLatch.await(30, TimeUnit.SECONDS)
         operationQueue.cancel()
         releaseLatch.countDown()
-        operationQueue.waitForCompletion()
+        // Cancelled operations still have to be pulled off the queue, so the waiting thread may have
+        // to drain them itself, which it can only do while holding a lease.
+        workerRegistry.runAsWorkerThread { operationQueue.waitForCompletion() }
 
         then:
         expectedInvocations * operationAction.run()
@@ -342,7 +344,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         5.times { operationQueue.addUnconstrained(operation { executedAfterCancel.incrementAndGet() }) }
         operationQueue.cancel()
         releaseLatch.countDown()
-        operationQueue.waitForCompletion()
+        workerRegistry.runAsWorkerThread { operationQueue.waitForCompletion() }
 
         then:
         executedAfterCancel.get() == 0

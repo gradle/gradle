@@ -35,7 +35,13 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private static final class QueueState {
         private final QueueStatus status;
+        /**
+         * Operations waiting for a thread to pick them up.
+         */
         private final int pendingOperations;
+        /**
+         * Operations a thread has picked up and not yet finished.
+         */
         private final int inFlightOperations;
 
         private QueueState(QueueStatus status, int pendingOperations, int inFlightOperations) {
@@ -55,23 +61,15 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         QueueState startOperation() {
-            // Cancellation must short-circuit atomically with the in-flight increment, otherwise
-            // waitForCompletion can observe isComplete() == true between cancel() and this op
-            // joining the in-flight count, and skip the wait while a failure is still in flight.
-            if (status == QueueStatus.CANCELED) {
-                return this;
-            }
-            return new QueueState(status, pendingOperations, inFlightOperations + 1);
+            return new QueueState(status, pendingOperations - 1, inFlightOperations + 1);
         }
 
         QueueState finishOperation() {
-            // cancel() zeroes pendingOperations; skip the decrement in that case.
-            int newPending = status == QueueStatus.CANCELED ? pendingOperations : pendingOperations - 1;
-            return new QueueState(status, newPending, inFlightOperations - 1);
+            return new QueueState(status, pendingOperations, inFlightOperations - 1);
         }
 
         QueueState cancelQueue() {
-            return new QueueState(QueueStatus.CANCELED, 0, inFlightOperations);
+            return new QueueState(QueueStatus.CANCELED, pendingOperations, inFlightOperations);
         }
 
         QueueState waitToComplete() {
@@ -179,9 +177,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             // and this thread has one to lend. See https://github.com/gradle/gradle/issues/37613
             // Unconstrained work cannot stall that way, and running it here would put it back under a lease.
             //
-            // The drain terminates because the status flip above makes add() throw, so nothing more
-            // can be submitted. Operations polled by other threads may still be running afterwards;
-            // allOperationsComplete below is what waits for those.
+            // The drain terminates because add() throws in both WAITING_TO_COMPLETE and CANCELED, so
+            // nothing more can be submitted. Operations polled by other threads may still be running
+            // afterwards; allOperationsComplete below is what waits for those.
             if (prev.pendingOperations > 0) {
                 constrainedQueue.processWorkUsingCurrentThreadUntilEmpty();
             }
@@ -234,26 +232,26 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         @Override
         public void run() {
             QueueState currentState = state.updateAndGet(QueueState::startOperation);
-            if (currentState.status == QueueStatus.CANCELED) {
-                return;
-            }
             try {
-                CurrentBuildOperationRef.instance().with(parent, () -> {
-                    if (allowAccessToProjectState) {
-                        runOperation();
-                    } else {
-                        // Disallow this thread from making any changes to the project locks while it is running the work. This implies that this thread will not
-                        // block waiting for access to some other project, which means it can proceed even if some other thread is waiting for a project lock it
-                        // holds without causing a deadlock. This in turn implies that this thread does not need to release the project locks it holds while
-                        // blocking waiting for an operation to complete and does not need to deal with another thread stealing its project lock(s) while blocking.
-                        //
-                        // See {@link ProjectLeaseRegistry#whileDisallowingProjectLockChanges} for more details
-                        workerLeases.whileDisallowingProjectLockChanges(() -> {
+                // A cancelled queue still has to account for this operation, so skip the work rather than return
+                if (currentState.status != QueueStatus.CANCELED) {
+                    CurrentBuildOperationRef.instance().with(parent, () -> {
+                        if (allowAccessToProjectState) {
                             runOperation();
-                            return null;
-                        });
-                    }
-                });
+                        } else {
+                            // Disallow this thread from making any changes to the project locks while it is running the work. This implies that this thread will not
+                            // block waiting for access to some other project, which means it can proceed even if some other thread is waiting for a project lock it
+                            // holds without causing a deadlock. This in turn implies that this thread does not need to release the project locks it holds while
+                            // blocking waiting for an operation to complete and does not need to deal with another thread stealing its project lock(s) while blocking.
+                            //
+                            // See {@link ProjectLeaseRegistry#whileDisallowingProjectLockChanges} for more details
+                            workerLeases.whileDisallowingProjectLockChanges(() -> {
+                                runOperation();
+                                return null;
+                            });
+                        }
+                    });
+                }
             } finally {
                 QueueState newState = state.updateAndGet(QueueState::finishOperation);
                 // In WORKING state more work may still be scheduled, so we're not done yet
