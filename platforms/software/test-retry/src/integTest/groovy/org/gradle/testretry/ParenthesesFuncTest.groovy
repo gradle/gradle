@@ -15,30 +15,16 @@
  */
 package org.gradle.testretry
 
-import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
-
 import static groovy.lang.Tuple2.tuple
 
-@IgnoreIf(
-    value = { COMPATIBLE_GRADLE_VERSIONS_UNDER_TEST.empty },
-    reason = "Kotlin plugin compatible from 6.8 onwards"
-)
-@IgnoreIf(
-    value = { effectiveTestJavaMajorVersion() > 21 },
-    reason = "Kotlin does not support Java 25 yet"
-)
 class ParenthesesFuncTest extends AbstractPluginFuncTest {
-
-    private static final List<String> COMPATIBLE_GRADLE_VERSIONS_UNDER_TEST = GRADLE_VERSIONS_UNDER_TEST.findAll { GradleVersion.version(it) >= GradleVersion.version("6.8") }
 
     @Override
     String getLanguagePlugin() {
         "org.jetbrains.kotlin.jvm' version '1.9.23"
     }
 
-    def "should work with parentheses in test name"(String gradleVersion, Tuple2<Closure<File>, String> scenarios) {
+    def "should work with parentheses in test name"(Tuple2<Closure<File>, String> scenarios) {
         given:
         def (setupTest, String testSource) = scenarios
         setupTest(buildFile)
@@ -46,20 +32,22 @@ class ParenthesesFuncTest extends AbstractPluginFuncTest {
         and:
         writeKotlinTestSource testSource
 
+        and:
+        // Kotlin Gradle plugin 1.9.23 emits deprecation warnings for APIs used internally
+        executer.expectDocumentedDeprecationWarning("The StartParameter.isConfigurationCacheRequested property has been deprecated. This is scheduled to be removed in Gradle 10. Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. Consult the upgrading guide for further information: https://docs.gradle.org/9.8.0-19700101000000+0000/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested")
+        executer.expectDocumentedDeprecationWarning("Declaring a Usage attribute with a legacy value has been deprecated. This will fail with an error in Gradle 10. A Usage attribute was declared with value 'java-api-jars'. Declare a Usage attribute with value 'java-api' and a LibraryElements attribute with value 'jar' instead. Consult the upgrading guide for further information: https://docs.gradle.org/9.8.0-19700101000000+0000/userguide/upgrading_version_9.html#deprecate_legacy_usage_values")
+        executer.expectDocumentedDeprecationWarning("Declaring a Usage attribute with a legacy value has been deprecated. This will fail with an error in Gradle 10. A Usage attribute was declared with value 'java-runtime-jars'. Declare a Usage attribute with value 'java-runtime' and a LibraryElements attribute with value 'jar' instead. Consult the upgrading guide for further information: https://docs.gradle.org/9.8.0-19700101000000+0000/userguide/upgrading_version_9.html#deprecate_legacy_usage_values")
+
         expect:
-        def result = gradleRunner(gradleVersion, "test").build()
-        result.task(":test").outcome == TaskOutcome.SUCCESS
+        succeeds('test')
 
         where:
-        [gradleVersion, scenarios] << [
-            COMPATIBLE_GRADLE_VERSIONS_UNDER_TEST,
-            [
-                tuple({ bf -> setupJunit5Test(bf) }, junit5TestWithParentheses()),
-                tuple({ bf -> setupJunit5Test(bf) }, junit5ParameterizedTestWithParentheses()),
-                tuple({ bf -> setupJunit4Test(bf) }, junit4TestWithJUnitParams()),
-                tuple({ bf -> setupJunit4Test(bf) }, junit4TestWithJUnitParamsWithTestCaseName())
-            ]
-        ].combinations()
+        scenarios << [
+            tuple({ bf -> setupJunit5Test(bf) }, junit5TestWithParentheses()),
+            tuple({ bf -> setupJunit5Test(bf) }, junit5ParameterizedTestWithParentheses()),
+            tuple({ bf -> setupJunit4Test(bf) }, junit4TestWithJUnitParams()),
+            tuple({ bf -> setupJunit4Test(bf) }, junit4TestWithJUnitParamsWithTestCaseName())
+        ]
     }
 
     private void setupJunit4Test(File buildFile) {
