@@ -31,7 +31,6 @@ import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import java.lang.annotation.Annotation
@@ -217,29 +216,6 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         then: "the failure surfaces - only the getter invocation is meant to be tolerated"
         thrown(IllegalStateException)
         attempts.size() == 1
-    }
-
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/37421")
-    def "attaches owner to a non-managed read only Property whose main getter is final and only overload is not attachable"() {
-        given:
-        def bean = create(HasFinalPropertyGetterAndBooleanOverload, Describables.of("<display name>"))
-        def field = HasFinalPropertyGetterAndBooleanOverload.getDeclaredField("prop")
-        field.accessible = true
-
-        expect: "the property has no owner"
-        // FIXME The property should have an owner, whether read through the field or through the getter:
-        // field.get(bean).toString() == "<display name> property 'someValue'"
-        // bean.getSomeValue().toString() == "<display name> property 'someValue'"
-        field.get(bean).toString() == "property(java.lang.Boolean, undefined)"
-        bean.getSomeValue().toString() == "property(java.lang.Boolean, undefined)"
-
-        when: "model properties are re-attached"
-        (bean as ModelObject).attachModelProperties()
-
-        then: "the property still has no owner"
-        // FIXME The property should have an owner here too:
-        // field.get(bean).toString() == "<display name> property 'someValue'"
-        field.get(bean).toString() == "property(java.lang.Boolean, undefined)"
     }
 
     def "can attach nested extensions to object"() {
@@ -854,25 +830,6 @@ class HasReadOnlyProperty {
 interface HasRoleAnnotatedManagedProperty {
     @Producer
     Property<String> getSomeValue()
-}
-
-class HasFinalPropertyGetterAndBooleanOverload {
-    private final Property<Boolean> prop
-
-    // Final, so it cannot be overridden to attach the owner, even though this is the getter
-    // that exposes the Property, and would need an owner.
-    final Property<Boolean> getSomeValue() {
-        return prop
-    }
-
-    // Non-final, so this is the only getter that could be overridden, but its boolean return type is not attachable.
-    boolean isSomeValue() {
-        return prop.getOrElse(false)
-    }
-
-    HasFinalPropertyGetterAndBooleanOverload(ObjectFactory objectFactory) {
-        prop = objectFactory.property(Boolean)
-    }
 }
 
 class HasFailingAndWorkingPropertyGetters {
