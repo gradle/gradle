@@ -15,39 +15,37 @@
  */
 package org.gradle.testretry.testframework
 
-import spock.lang.IgnoreIf
-
-@IgnoreIf(
-    value = { COMPATIBLE_GRADLE_VERSIONS_SPOCK_1.empty },
-    reason = "Gradle 9 requires at least Java 17, but Spock 1 isn't compatible with this version anymore"
-)
-@IgnoreIf(
-    value = { effectiveTestJavaMajorVersion() >= 17 },
-    reason = "Spock 1 tests do not run with Java 17 or higher"
-)
+// Spock 1 requires Groovy 2.5; not resolvable against current Gradle's Groovy 4 runtime.
+// Java 17+ (required by Gradle 9) is also incompatible with Spock 1.
+@spock.lang.Ignore
 class Spock1FuncTest extends SpockBaseFuncTest {
     @Override
     String getLanguagePlugin() {
         return 'groovy'
     }
 
+    @Override
     boolean isRerunsParameterizedMethods() {
         true
     }
 
-    boolean canTargetInheritedMethods(String gradleVersion) {
+    @Override
+    boolean canTargetInheritedMethods() {
         true
     }
 
-    protected String staticInitErrorTestMethodName(String gradleVersion) {
+    @Override
+    protected String staticInitErrorTestMethodName() {
         "initializationError"
     }
 
-    protected String beforeClassErrorTestMethodName(String gradleVersion) {
+    @Override
+    protected String beforeClassErrorTestMethodName() {
         "classMethod"
     }
 
-    protected String afterClassErrorTestMethodName(String gradleVersion) {
+    @Override
+    protected String afterClassErrorTestMethodName() {
         "classMethod"
     }
 }
