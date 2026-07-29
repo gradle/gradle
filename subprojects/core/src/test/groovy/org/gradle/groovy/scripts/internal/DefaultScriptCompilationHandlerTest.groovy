@@ -41,6 +41,7 @@ import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.Describables
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.file.Deleter
@@ -59,6 +60,9 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
+
+import javax.inject.Inject
+import java.lang.reflect.Modifier
 
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
@@ -499,6 +503,59 @@ class Outer {
 Outer.Inner.Deeper weMustGoDeeper = null
 """
         ]
+    }
+
+    def "classes declared in a script are compiled like ordinary Groovy classes"() {
+        def scriptText = """
+class DeclaredInScript {
+    @javax.inject.Inject
+    void injectedMethod() {}
+}
+class WithInjectedConstructor {
+    @javax.inject.Inject
+    WithInjectedConstructor(String ignored) {}
+}
+"""
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", scriptText))
+
+        when:
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
+
+        then:
+        def loader = new URLClassLoader([scriptCacheDir.toURI().toURL()] as URL[], classLoader)
+        try {
+            def declaredInScript = loader.loadClass("DeclaredInScript")
+
+            def defaultConstructor = declaredInScript.getConstructor()
+            assert Modifier.isPublic(defaultConstructor.modifiers)
+            assert defaultConstructor.newInstance() != null
+
+            assert GroovyObject.isAssignableFrom(declaredInScript)
+
+            assert declaredInScript.getMethod("injectedMethod").getAnnotation(Inject) != null
+            assert loader.loadClass("WithInjectedConstructor").getConstructor(String).getAnnotation(Inject) != null
+        } finally {
+            ClassLoaderUtils.tryClose(loader)
+        }
+    }
+
+    def "custom verifier visits generated closure classes before Groovy's verifier"() {
+        // Groovy's verifier adds $getStaticMetaClass to every class it visits and nothing adds it
+        // earlier, so its absence means the custom verifier got there first.
+        Map<String, Boolean> alreadyVerified = [:]
+        Action<ClassNode> recordingVerifier = { ClassNode node ->
+            if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
+                alreadyVerified[node.name] = !node.getDeclaredMethods('$getStaticMetaClass').isEmpty()
+            }
+        } as Action<ClassNode>
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", "def c = { 'in a closure' }; c()"))
+
+        when:
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, recordingVerifier)
+
+        then:
+        !alreadyVerified.isEmpty()
+        alreadyVerified.values().every { !it }
     }
 
     private void checkScriptClassesInCache(boolean empty = false) {
