@@ -73,7 +73,9 @@ import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.serialize.codecs.core.IdForNode
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
+import org.gradle.internal.serialize.codecs.core.assignNodeIds
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -312,7 +314,8 @@ class ConfigurationCacheState(
             }
         }
         val transformedProjectsPerBuild = collectTransformedProjectsPerBuild(scheduledWorkPerBuild)
-        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, scheduledWorkPerBuild, transformedProjectsPerBuild)
+        val idForNode = assignNodeIds(scheduledWorkPerBuild.values)
+        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, scheduledWorkPerBuild, idForNode, transformedProjectsPerBuild)
         writeCollection(builds.values) { build ->
             writeBuildState(build, buildTreeState)
         }
@@ -524,7 +527,7 @@ class ConfigurationCacheState(
             if (scheduledWork.scheduledNodes.isNotEmpty()) {
                 writeBoolean(true)
                 withDebugFrame({ "Work Graph" }) {
-                    writeWorkGraphOf(gradle, scheduledWork)
+                    writeWorkGraphOf(gradle, scheduledWork, buildTreeState.idForNode)
                 }
             } else {
                 writeBoolean(false)
@@ -568,17 +571,17 @@ class ConfigurationCacheState(
     }
 
     private
-    fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
+    fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork, idForNode: IdForNode) {
         workNodeCodec(gradle).run {
-            writeWork(scheduledWork)
+            writeWork(scheduledWork, idForNode)
         }
     }
 
     private
-    fun ReadContext.readWorkGraph(gradle: GradleInternal) =
+    fun ReadContext.readWorkGraph(gradle: GradleInternal): ScheduledWork =
         workNodeCodec(gradle).run {
             readWork()
-        }
+        }.work
 
     private
     suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
@@ -1005,6 +1008,7 @@ internal
 class StoredBuildTreeState(
     val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>,
     private val scheduledWorkPerBuild: Map<BuildIdentifier, ScheduledWork>,
+    val idForNode: IdForNode,
     val transformedProjectsPerBuild: Map<BuildIdentifier, Set<Path>>
 ) {
     fun getTransformedProjectsOfBuild(build: BuildState): Set<Path> =

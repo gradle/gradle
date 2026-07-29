@@ -37,6 +37,7 @@ dependencies {
 
     api(libs.kotlinStdlib)
     api(libs.slf4jApi)
+    api(libs.fastutil)
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.beanSerializationServices)
@@ -61,7 +62,6 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.commonsLang)
-    implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
 
