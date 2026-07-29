@@ -22,59 +22,63 @@ class CollidingRetryExtensionPluginFuncTest extends AbstractGeneralPluginFuncTes
         buildSrcWithEmptyClass("com.gradle.enterprise.testretry", "TestRetryExtension")
 
         and:
-        buildFile.text = baseBuildScriptWithNotAppliedTestRetryPlugin()
+        buildFile.text = buildScriptWithoutRetryPlugin()
         applySomePluginWhichAddsRetryExtensionForClass("com.gradle.enterprise.testretry.TestRetryExtension")
         applyTestRetryPlugin()
 
         when:
-        def result = gradleRunner(gradleVersion).buildAndFail()
+        fails('test')
 
         then:
-        result.output.contains("The Develocity Gradle plugin is conflicting with the Test Retry Gradle plugin")
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
+        failure.assertHasCause("The Develocity Gradle plugin is conflicting with the Test Retry Gradle plugin")
     }
 
     def "detects existing retry extension from some other Gradle plugin"() {
         given:
-        buildFile.text = baseBuildScriptWithNotAppliedTestRetryPlugin()
+        buildFile.text = buildScriptWithoutRetryPlugin()
         applySomePluginWhichAddsRetryExtensionForClass("java.lang.Object")
         applyTestRetryPlugin()
 
         when:
-        def result = gradleRunner(gradleVersion).buildAndFail()
+        fails('test')
 
         then:
-        result.output.contains("Another plugin is conflicting with the Test Retry Gradle plugin")
+        failure.assertHasCause("Another plugin is conflicting with the Test Retry Gradle plugin")
+    }
 
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
+    /**
+     * Build script with the java plugin applied but the retry plugin NOT yet applied.
+     * Uses legacy apply() instead of the plugins {} block to avoid the "apply false" restriction
+     * on core/bundled plugins.
+     */
+    String buildScriptWithoutRetryPlugin() {
+        return """
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+
+            ${buildConfiguration()}
+
+            tasks.named("test").configure {
+                testLogging {
+                    events "passed", "skipped", "failed"
+                }
+            }
+        """
     }
 
     void buildSrcWithEmptyClass(String packageName, String className) {
-        def buildSrc = new FileTreeBuilder(testProjectDir.newFolder("buildSrc"))
-
-        buildSrc {
-            file("build.gradle")
-            dir("src/main/java") {
-                dir(packageName.replace('.', '/')) {
-                    file("${className}.java") {
-                        text = """
-                            package ${packageName};
-                            public class ${className} {
-                            }
-                        """.stripMargin()
-                    }
-                }
+        file("buildSrc/build.gradle").createFile()
+        file("buildSrc/src/main/java/${packageName.replace('.', '/')}/${className}.java").text = """
+            package ${packageName};
+            public class ${className} {
             }
-
-        }
+        """
     }
 
     void applyTestRetryPlugin() {
         buildFile << """
-            apply plugin: "org.gradle.test-retry"
+            apply plugin: "org.gradle.test-retry-bundled"
         """
     }
 
