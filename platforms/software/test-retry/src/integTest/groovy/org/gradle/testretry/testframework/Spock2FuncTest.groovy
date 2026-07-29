@@ -15,11 +15,10 @@
  */
 package org.gradle.testretry.testframework
 
-import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
 @IgnoreIf(
-    value = { effectiveTestJavaMajorVersion() >= 21 },
+    value = { jvm.java21Compatible },
     reason = "Current version of spock2-groovy4 does not support Java 21 or above"
 )
 class Spock2FuncTest extends SpockBaseJunit5FuncTest {
@@ -30,18 +29,18 @@ class Spock2FuncTest extends SpockBaseJunit5FuncTest {
     }
 
     @Override
-    boolean canTargetInheritedMethods(String gradleVersion) {
-        GradleVersion.version(gradleVersion) >= GradleVersion.version("7.0")
+    boolean canTargetInheritedMethods() {
+        true
     }
 
     @Override
-    protected String beforeClassErrorTestMethodName(String gradleVersion) {
-        gradleVersion == "5.0" ? "classMethod" : "initializationError"
+    protected String beforeClassErrorTestMethodName() {
+        "initializationError"
     }
 
     @Override
-    protected String afterClassErrorTestMethodName(String gradleVersion) {
-        gradleVersion == "5.0" ? "classMethod" : "executionError"
+    protected String afterClassErrorTestMethodName() {
+        "executionError"
     }
 
     @Override
@@ -49,7 +48,7 @@ class Spock2FuncTest extends SpockBaseJunit5FuncTest {
         return """
             dependencies {
                 implementation '${spock2Dependency()}'
-                // Since Gradle 9, the JUnit platform launcher is no longer provided by Gradle. 
+                // Since Gradle 9, the JUnit platform launcher is no longer provided by Gradle.
                 testRuntimeOnly '${junitPlatformLauncherDependency()}'
             }
             test {

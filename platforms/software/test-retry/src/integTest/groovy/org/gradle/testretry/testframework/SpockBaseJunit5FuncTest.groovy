@@ -18,22 +18,22 @@ package org.gradle.testretry.testframework
 abstract class SpockBaseJunit5FuncTest extends SpockBaseFuncTest {
 
     @Override
-    boolean canTargetInheritedMethods(String gradleVersion) {
+    boolean canTargetInheritedMethods() {
         true
     }
 
     @Override
-    protected String staticInitErrorTestMethodName(String gradleVersion) {
-        gradleVersion == "5.0" ? "classMethod" : "initializationError"
-    }
-
-    @Override
-    protected String beforeClassErrorTestMethodName(String gradleVersion) {
+    protected String staticInitErrorTestMethodName() {
         "initializationError"
     }
 
     @Override
-    protected String afterClassErrorTestMethodName(String gradleVersion) {
+    protected String beforeClassErrorTestMethodName() {
+        "initializationError"
+    }
+
+    @Override
+    protected String afterClassErrorTestMethodName() {
         "executionError"
     }
 
