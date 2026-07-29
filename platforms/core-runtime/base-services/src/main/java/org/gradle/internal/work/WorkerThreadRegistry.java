@@ -21,6 +21,8 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.BooleanSupplier;
+
 /**
  * Allows a thread to enlist in resource locking, for example to lock the mutable state of a project.
  */
@@ -49,21 +51,25 @@ public interface WorkerThreadRegistry {
     void runAsWorkerThread(Runnable action);
 
     /**
+     * Runs the given action as a worker, as long as the given condition holds while waiting for a lease.
+     *
+     * <p>This method blocks until a worker lease is available. If no lease is available and {@code shouldContinue}
+     * returns {@code false}, this method gives up and returns without running the action.
+     *
+     * <p>Unlike {@link #runAsWorkerThread(Runnable)}, the caller decides how long it is willing to wait for a lease.
+     *
+     * @param action the action to run while holding a worker lease
+     * @param shouldContinue supplier that returns {@code true} to keep waiting for a lease, {@code false} to give up. This should be cheap as it is called under the state lock.
+     */
+    void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue);
+
+    /**
      * Runs the given action as an unmanaged worker, if not already a worker. This is basically the same as {@link #runAsWorkerThread(Runnable)} but does not block waiting for a lease.
      * Instead, a temporary lease is granted to the current thread.
      *
      * You should avoid using this method and prefer {@link #runAsWorkerThread(Runnable)} instead. This method is here to allow some backwards compatibility constraints to be honored.
      */
     void runAsUnmanagedWorkerThread(Runnable action);
-
-    /**
-     * Runs the worker loop until it should stop.
-     *
-     * This method blocks until a worker lease is available, or the worker loop determines that it should stop.
-     *
-     * @param workerLoop the worker loop to run
-     */
-    void runWorkerLoop(WorkerLoop workerLoop);
 
     /**
      * Starts a new lease for the current thread. Marks the reservation of a lease. Blocks until a lease is available.

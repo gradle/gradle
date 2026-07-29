@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.BooleanSupplier
 
 @Timeout(value = 30, unit = TimeUnit.SECONDS)
 class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
@@ -323,11 +324,11 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         def mainThread = Thread.currentThread()
         registry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
             @Override
-            void runWorkerLoop(WorkerLoop loop) {
+            void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue) {
                 if (Thread.currentThread() !== mainThread) {
                     workerStartedLoop.countDown()
                 }
-                super.runWorkerLoop(loop)
+                super.tryWhileConditionToRunAsWorkerThread(action, shouldContinue)
             }
         }
         registry.startProjectExecution(true)
@@ -441,25 +442,15 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         def waitingForLease = new CountDownLatch(2)
         registry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
             @Override
-            void runWorkerLoop(WorkerLoop loop) {
-                super.runWorkerLoop(new WorkerLoop() {
-                    private boolean signalled
-
-                    @Override
-                    boolean shouldContinue() {
-                        boolean result = loop.shouldContinue()
-                        if (result && !signalled) {
-                            signalled = true
-                            waitingForLease.countDown()
-                        }
-                        return result
+            void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue) {
+                def signalled = new AtomicBoolean()
+                super.tryWhileConditionToRunAsWorkerThread(action, {
+                    boolean result = shouldContinue.getAsBoolean()
+                    if (result && signalled.compareAndSet(false, true)) {
+                        waitingForLease.countDown()
                     }
-
-                    @Override
-                    void runOnce() {
-                        loop.runOnce()
-                    }
-                })
+                    return result
+                } as BooleanSupplier)
             }
         }
         registry.startProjectExecution(true)

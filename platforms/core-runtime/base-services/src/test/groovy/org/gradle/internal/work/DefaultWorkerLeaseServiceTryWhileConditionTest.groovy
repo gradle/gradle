@@ -18,32 +18,24 @@ package org.gradle.internal.work
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.BooleanSupplier
 
-class DefaultWorkerLeaseServiceWorkerLoopTest extends AbstractWorkerLeaseServiceTest {
+class DefaultWorkerLeaseServiceTryWhileConditionTest extends AbstractWorkerLeaseServiceTest {
 
-    def "runs the loop directly when the current thread already holds a worker lease"() {
+    def "runs the action directly when the current thread already holds a worker lease"() {
         def registry = workerLeaseService(1)
         def lease = registry.startWorker()
         def runCount = new AtomicInteger()
-        def loop = new WorkerLoop() {
-            @Override
-            boolean shouldContinue() {
-                return runCount.get() < 3
-            }
-
-            @Override
-            void runOnce() {
-                assert registry.isWorkerThread()
-                assert registry.currentWorkerLease == lease
-                runCount.incrementAndGet()
-            }
-        }
 
         when:
-        registry.runWorkerLoop(loop)
+        registry.tryWhileConditionToRunAsWorkerThread({
+            assert registry.isWorkerThread()
+            assert registry.currentWorkerLease == lease
+            runCount.incrementAndGet()
+        } as Runnable, { true } as BooleanSupplier)
 
         then:
-        runCount.get() == 3
+        runCount.get() == 1
         // The pre-existing lease is unaffected.
         registry.isWorkerThread()
 
@@ -52,57 +44,40 @@ class DefaultWorkerLeaseServiceWorkerLoopTest extends AbstractWorkerLeaseService
         registry?.stop()
     }
 
-    def "acquires a worker lease then runs the loop when the current thread is not a worker"() {
+    def "acquires a worker lease then runs the action when the current thread is not a worker"() {
         def registry = workerLeaseService(1)
         def runCount = new AtomicInteger()
         def sawWorkerLease = new AtomicBoolean()
-        def loop = new WorkerLoop() {
-            @Override
-            boolean shouldContinue() {
-                return runCount.get() < 1
-            }
-
-            @Override
-            void runOnce() {
-                sawWorkerLease.set(registry.isWorkerThread())
-                runCount.incrementAndGet()
-            }
-        }
 
         when:
-        registry.runWorkerLoop(loop)
+        registry.tryWhileConditionToRunAsWorkerThread({
+            sawWorkerLease.set(registry.isWorkerThread())
+            runCount.incrementAndGet()
+        } as Runnable, { true } as BooleanSupplier)
 
         then:
         sawWorkerLease.get()
         runCount.get() == 1
-        // The temporary lease is released after the loop exits.
+        // The temporary lease is released after the action returns.
         !registry.isWorkerThread()
 
         cleanup:
         registry?.stop()
     }
 
-    def "returns without running the loop when shouldContinue becomes false while blocked on lease"() {
+    def "returns without running the action when the condition becomes false while blocked on lease"() {
         def registry = workerLeaseService(1)
         def holder = registry.startWorker() // Hold the only lease so the spawned thread starves.
         def keepBlocking = new AtomicBoolean(true)
         def runCount = new AtomicInteger()
-        def loop = new WorkerLoop() {
-            @Override
-            boolean shouldContinue() {
-                return keepBlocking.get()
-            }
-
-            @Override
-            void runOnce() {
-                runCount.incrementAndGet()
-            }
-        }
 
         when:
         async {
             start {
-                registry.runWorkerLoop(loop)
+                registry.tryWhileConditionToRunAsWorkerThread(
+                    { runCount.incrementAndGet() } as Runnable,
+                    { keepBlocking.get() } as BooleanSupplier
+                )
                 instant.returned
                 assert !registry.isWorkerThread()
             }
@@ -124,25 +99,13 @@ class DefaultWorkerLeaseServiceWorkerLoopTest extends AbstractWorkerLeaseService
         registry?.stop()
     }
 
-    def "releases the acquired lease on exit even if shouldContinue is initially false"() {
+    def "releases the acquired lease on exit"() {
         def registry = workerLeaseService(1)
-        def loop = new WorkerLoop() {
-            @Override
-            boolean shouldContinue() {
-                return false
-            }
-
-            @Override
-            void runOnce() {
-                throw new AssertionError("runOnce should not be called")
-            }
-        }
 
         when:
-        registry.runWorkerLoop(loop)
+        registry.tryWhileConditionToRunAsWorkerThread({} as Runnable, { true } as BooleanSupplier)
 
         then:
-        // The temporary lease is released even when the loop exits immediately.
         !registry.isWorkerThread()
         // A subsequent worker can acquire the only lease.
         def lease = registry.startWorker()
@@ -153,22 +116,14 @@ class DefaultWorkerLeaseServiceWorkerLoopTest extends AbstractWorkerLeaseService
         registry?.stop()
     }
 
-    def "propagates exceptions from runOnce and releases the lease"() {
+    def "propagates exceptions from the action and releases the lease"() {
         def registry = workerLeaseService(1)
-        def loop = new WorkerLoop() {
-            @Override
-            boolean shouldContinue() {
-                return true
-            }
-
-            @Override
-            void runOnce() {
-                throw new RuntimeException("BOOM")
-            }
-        }
 
         when:
-        registry.runWorkerLoop(loop)
+        registry.tryWhileConditionToRunAsWorkerThread(
+            { throw new RuntimeException("BOOM") } as Runnable,
+            { true } as BooleanSupplier
+        )
 
         then:
         def e = thrown(RuntimeException)

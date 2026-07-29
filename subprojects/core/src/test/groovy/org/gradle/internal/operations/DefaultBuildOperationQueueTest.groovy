@@ -28,7 +28,6 @@ import org.gradle.internal.work.UnconstrainedSubmissionQueue
 import org.gradle.internal.work.WorkerLeaseQueueProcessor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.internal.work.WorkerLoop
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Timeout
@@ -40,6 +39,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.BooleanSupplier
 
 @Timeout(value = 30, unit = TimeUnit.SECONDS)
 class DefaultBuildOperationQueueTest extends Specification {
@@ -370,17 +370,17 @@ class DefaultBuildOperationQueueTest extends Specification {
         coordinationService = new DefaultResourceLockCoordinationService()
         workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
             @Override
-            void runWorkerLoop(WorkerLoop loop) {
+            void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue) {
                 // Called once per spawned worker; signal that the worker thread has entered the loop
                 // and is about to block trying to acquire a lease (since the main thread holds the only one).
                 if (Thread.currentThread() !== mainThread) {
                     workerStartedLoop.countDown()
                 }
-                super.runWorkerLoop(loop)
+                super.tryWhileConditionToRunAsWorkerThread(action, shouldContinue)
             }
         }
         workerRegistry.startProjectExecution(true)
-        // Keep the lease on the main thread so the spawned worker starves on runWorkerLoop.
+        // Keep the lease on the main thread so the spawned worker starves waiting for one.
         lease = workerRegistry.startWorker()
         backingExecutor = Executors.newCachedThreadPool()
         workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
@@ -390,7 +390,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         operationQueue.add(new Success())
 
         and:
-        // Wait until the worker has entered runWorkerLoop and is blocked acquiring a lease.
+        // Wait until the worker has started and is blocked acquiring a lease.
         // This ensures that the main thread will be needed to progress the queue.
         assert workerStartedLoop.await(10, TimeUnit.SECONDS)
 

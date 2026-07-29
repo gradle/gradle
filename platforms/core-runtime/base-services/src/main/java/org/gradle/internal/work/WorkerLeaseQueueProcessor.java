@@ -141,7 +141,7 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             try {
                 workerThreadRegistry.setOwningThreadPool(this);
                 try {
-                    workerThreadRegistry.runWorkerLoop(consumer);
+                    workerThreadRegistry.tryWhileConditionToRunAsWorkerThread(consumer, consumer::shouldContinue);
                 } finally {
                     workerThreadRegistry.setOwningThreadPool(null);
                 }
@@ -170,21 +170,27 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
         coordinationService.notifyStateChange();
     }
 
-    private final class QueueConsumer implements WorkerLoop {
+    private final class QueueConsumer implements Runnable {
         @Nullable
         private SubmissionQueueImpl currentQueue;
         private boolean locallyFinished;
         private boolean slotReleased;
 
+        @Override
+        public void run() {
+            while (shouldContinue()) {
+                runOnce();
+            }
+        }
+
         /**
+         * {@return {@code true} if this worker should keep consuming work}
+         *
          * <p>Side effect: if the worker count has exceeded the effective max (e.g. a blocking
          * worker just unblocked, shrinking the cap), this method atomically releases this
-         * worker's slot and returns {@code false} so the loop exits. The CAS in
-         * {@link WorkerCounter#tryReleaseExcessSlot()} ensures only the excess workers exit
-         * when multiple consumers race the same check.
+         * worker's slot and returns {@code false} so the loop exits.
          */
-        @Override
-        public boolean shouldContinue() {
+        boolean shouldContinue() {
             if (locallyFinished || shutdown.get() || slotReleased) {
                 return false;
             }
@@ -202,8 +208,7 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             }
         }
 
-        @Override
-        public void runOnce() {
+        private void runOnce() {
             Runnable work = pullFromQueues();
             if (work != null) {
                 // Most task throwables will be handled by FutureTask.
