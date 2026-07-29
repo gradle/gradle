@@ -18,23 +18,23 @@ package org.gradle.testretry.testframework
 class JUnit4ViaJUnitVintageFuncTest extends JUnit4FuncTest {
 
     @Override
-    protected isRerunsAllParameterizedIterations() {
+    protected boolean isRerunsAllParameterizedIterations() {
         true
     }
 
     @Override
-    protected String initializationErrorSyntheticTestMethodName(String gradleVersion) {
-        gradleVersion == "5.0" ? "classMethod" : "initializationError"
+    protected String initializationErrorSyntheticTestMethodName() {
+        "initializationError"
     }
 
     @Override
-    protected String afterClassErrorTestMethodName(String gradleVersion) {
-        gradleVersion == "5.0" ? "classMethod" : "executionError"
+    protected String afterClassErrorTestMethodName() {
+        "executionError"
     }
 
     @Override
-    protected String beforeClassErrorTestMethodName(String gradleVersion) {
-        gradleVersion == "5.0" ? "classMethod" : "initializationError"
+    protected String beforeClassErrorTestMethodName() {
+        "initializationError"
     }
 
     protected String buildConfiguration() {
