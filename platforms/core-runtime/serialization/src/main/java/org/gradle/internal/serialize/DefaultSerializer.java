@@ -17,12 +17,14 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
 
-public class DefaultSerializer<T> extends AbstractSerializer<T> {
+public class DefaultSerializer<T extends @Nullable Object> extends AbstractSerializer<T> {
     private ClassLoader classLoader;
 
     public DefaultSerializer() {
@@ -46,7 +48,7 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
         try {
             return Cast.uncheckedNonnullCast(new ClassLoaderObjectInputStream(decoder.getInputStream(), classLoader).readObject());
         } catch (StreamCorruptedException e) {
-            return null;
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
