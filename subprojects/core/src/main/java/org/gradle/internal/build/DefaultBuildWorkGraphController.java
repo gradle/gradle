@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -112,22 +113,22 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
-        public boolean schedule(Collection<TaskNode> taskNodes) {
+        public boolean schedule(Collection<Node> allNodes) {
             assertIsOwner();
-            List<Task> tasks = new ArrayList<>();
-            for (TaskNode taskNode : taskNodes) {
-                if (!taskNode.isRequired()) {
+            List<Node> entryNodes = new ArrayList<>();
+            for (Node node : allNodes) {
+                if (!node.isRequired()) {
                     // Not already in task graph
-                    tasks.add(taskNode.getTask());
+                    entryNodes.add(node);
                 }
             }
-            if (tasks.isEmpty()) {
+            if (entryNodes.isEmpty()) {
                 return false;
             }
             controller.getGradle().getOwner().getProjects().withMutableStateOfAllProjects(() -> {
                 createPlan();
                 controller.prepareToScheduleTasks();
-                controller.populateWorkGraph(plan, workGraph -> workGraph.addEntryTasks(tasks));
+                controller.populateWorkGraph(plan, workGraph -> workGraph.addEntryNodes(entryNodes));
             });
             return true;
         }

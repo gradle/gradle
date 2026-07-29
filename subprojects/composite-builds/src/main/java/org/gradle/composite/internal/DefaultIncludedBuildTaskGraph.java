@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
@@ -108,7 +109,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     @Override
     public <T> T withNewWorkGraph(Function<? super BuildTreeWorkGraph, T> action) {
         DefaultBuildTreeWorkGraph previous = current.get();
-        DefaultBuildTreeWorkGraph workGraph = new DefaultBuildTreeWorkGraph();
+        DefaultBuildTreeWorkGraph workGraph = new DefaultBuildTreeWorkGraph(createControllers());
         current.set(workGraph);
         try {
             try {
@@ -122,25 +123,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     }
 
     @Override
-    public TaskNode locateTaskNode(TaskInternal task) {
-        return withState(workGraph -> {
-            BuildState build = buildOf(task);
-            return build.getWorkGraph().locateTaskNode(task);
-        });
-    }
-
-    @Override
-    public void queueForExecution(TaskInternal task) {
+    public void queueForExecution(BuildState targetBuild, Node node) {
         withState(workGraph -> {
-            BuildState build = buildOf(task);
-            workGraph.queueForExecution(build, build.getWorkGraph().locateTaskNode(task));
+            workGraph.queueForExecution(targetBuild, node);
             return null;
         });
-    }
-
-    private BuildState buildOf(TaskInternal task) {
-        Path buildPath = task.getTaskIdentity().getProjectIdentity().getBuildPath();
-        return buildRegistry.getBuild(buildPath);
     }
 
     @Override
@@ -187,7 +174,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 if (task.getState().getExecuted()) {
                     continue;
                 }
-                queueForExecution(task);
+                Path buildPath = task.getTaskIdentity().getProjectIdentity().getBuildPath();
+                BuildState targetBuild = buildRegistry.getBuild(buildPath);
+                TaskNode node = targetBuild.getWorkGraph().locateTaskNode(task);
+                queueForExecution(targetBuild, node);
             }
         }
 
@@ -201,15 +191,15 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         private final BuildControllers controllers;
         private State state = State.NotPrepared;
 
-        public DefaultBuildTreeWorkGraph() {
-            owner = Thread.currentThread();
-            controllers = createControllers();
+        public DefaultBuildTreeWorkGraph(DefaultBuildControllers controllers) {
+            this.owner = Thread.currentThread();
+            this.controllers = controllers;
         }
 
-        public void queueForExecution(BuildState build, TaskNode taskNode) {
+        public void queueForExecution(BuildState build, Node node) {
             assertIsOwner();
             assertCanQueueTask();
-            controllers.getBuildController(build).queueForExecution(taskNode);
+            controllers.getBuildController(build).queueForExecution(node);
         }
 
         @Override

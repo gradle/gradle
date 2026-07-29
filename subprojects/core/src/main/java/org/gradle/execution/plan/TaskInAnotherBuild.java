@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -32,11 +33,11 @@ import java.util.Set;
 public abstract class TaskInAnotherBuild extends TaskNode {
 
     public static TaskInAnotherBuild of(
-        TaskInternal task,
-        BuildTreeWorkGraphController taskGraph
+        TaskNode targetNode,
+        BuildState targetBuild,
+        BuildTreeWorkGraphController workGraph
     ) {
-        TaskNode targetNode = taskGraph.locateTaskNode(task);
-        return new TaskInAnotherBuild(task.getIdentityPath()) {
+        return new TaskInAnotherBuild(targetNode.getTask().getIdentityPath()) {
 
             @Override
             public TaskNode getTargetNode() {
@@ -45,11 +46,10 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
             @Override
             protected void queueTargetForExecution() {
-                taskGraph.queueForExecution(task);
+                workGraph.queueForExecution(targetBuild, targetNode);
             }
 
         };
-
     }
 
     /**

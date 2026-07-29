@@ -16,7 +16,9 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.PlanExecutor
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
@@ -68,7 +70,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph has not been created"() {
         when:
-        graph.queueForExecution(task(Path.ROOT, "task"))
+        graph.queueForExecution(Stub(BuildState), Stub(Node))
 
         then:
         def e = thrown(IllegalStateException)
@@ -78,7 +80,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
     def "cannot schedule tasks when after graph has finished execution"() {
         when:
         graph.withNewWorkGraph { 12 }
-        graph.queueForExecution(task(Path.ROOT, "task"))
+        graph.queueForExecution(Stub(BuildState), Stub(Node))
 
         then:
         def e = thrown(IllegalStateException)
@@ -87,12 +89,11 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
         given:
-        def buildPath = Path.ROOT
-        build(buildPath)
+        def build = build(Path.ROOT)
 
         when:
         graph.withNewWorkGraph { g ->
-            graph.queueForExecution(task(buildPath, "task"))
+            graph.queueForExecution(build, Stub(Node))
         }
 
         then:
@@ -102,14 +103,13 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph has been prepared for execution"() {
         given:
-        def buildPath = Path.ROOT
-        build(buildPath)
+        def build = build(Path.ROOT)
 
         when:
         graph.withNewWorkGraph { g ->
             g.scheduleWork {
             }
-            graph.queueForExecution(task(buildPath, "task"))
+            graph.queueForExecution(build, Stub(Node))
         }
 
         then:
@@ -126,7 +126,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         workGraphController.newWorkGraph() >> workGraph
         workGraph.runWork() >> {
-            graph.queueForExecution(task(buildPath, "task"))
+            graph.queueForExecution(build, Stub(Node))
         }
 
         when:
@@ -144,15 +144,14 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph has completed task execution"() {
         given:
-        def buildPath = Path.ROOT
-        build(buildPath)
+        def build = build(Path.ROOT)
 
         when:
         graph.withNewWorkGraph { g ->
             def f= g.scheduleWork {
             }
             f.runWork()
-            graph.queueForExecution(task(buildPath, "task"))
+            graph.queueForExecution(build, Stub(Node))
         }
 
         then:

@@ -18,14 +18,12 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.execution.plan.TaskNode;
-import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildWorkGraph;
@@ -52,8 +50,8 @@ class DefaultBuildController implements BuildController {
     }
 
     private final BuildWorkGraph workGraph;
-    private final Set<TaskNode> scheduled = new LinkedHashSet<>();
-    private final Set<TaskNode> queuedForExecution = new LinkedHashSet<>();
+    private final Set<Node> scheduled = new LinkedHashSet<>();
+    private final Set<Node> queuedForExecution = new LinkedHashSet<>();
     private final WorkerLeaseService workerLeaseService;
 
     private State state = State.DiscoveringTasks;
@@ -64,9 +62,9 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
-    public void queueForExecution(TaskNode taskNode) {
+    public void queueForExecution(Node node) {
         assertInState(State.DiscoveringTasks);
-        queuedForExecution.add(taskNode);
+        queuedForExecution.add(node);
     }
 
     @Override
@@ -111,10 +109,10 @@ class DefaultBuildController implements BuildController {
 
         // TODO - This check should live in the task execution plan, so that it can reuse checks that have already been performed and
         //   also check for cycles across all nodes
-        Set<TaskInternal> visited = new HashSet<>();
-        Set<TaskInternal> visiting = new HashSet<>();
-        for (TaskNode node : scheduled) {
-            checkForCyclesFor(node.getTask(), visited, visiting);
+        Set<Node> visited = new HashSet<>();
+        Set<Node> visiting = new HashSet<>();
+        for (Node node : scheduled) {
+            checkForCyclesFor(node, visited, visiting);
         }
         workGraph.finalizeGraph();
 
@@ -140,20 +138,22 @@ class DefaultBuildController implements BuildController {
         }
     }
 
-    private static void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
+    private static void checkForCyclesFor(Node task, Set<Node> visited, Set<Node> visiting) {
         if (visited.contains(task)) {
             // Already checked
             return;
         }
         if (!visiting.add(task)) {
             // Visiting dependencies -> have found a cycle
-            CachingDirectedGraphWalker<TaskInternal, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
+            CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
             graphWalker.add(task);
-            List<Set<TaskInternal>> cycles = graphWalker.findCycles();
-            Set<TaskInternal> cycle = cycles.get(0);
+            List<Set<Node>> cycles = graphWalker.findCycles();
+            Set<Node> cycle = cycles.get(0);
 
-            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
-                if (cycle.contains(dep)) {
+            DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>((node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.toString()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
+                // Only report task nodes involved in cycles, as they are more actionable and don't leak
+                // internal node types to users.
+                if (dep instanceof TaskNode && cycle.contains(dep)) {
                     connectedNodes.add(dep);
                 }
             }));
@@ -166,14 +166,15 @@ class DefaultBuildController implements BuildController {
         visited.add(task);
     }
 
-    private static void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
-        TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
-        TaskNode node = taskNodeFactory.getOrCreateNode(task);
-        for (Node dependency : node.getAllSuccessors()) {
-            if (dependency instanceof TaskNode) {
-                consumer.accept(((TaskNode) dependency).getTask());
+    private static void visitDependenciesOf(Node node, Consumer<? super Node> visitor) {
+        node.getAllSuccessors().forEach(dep -> {
+            if (dep instanceof TaskInAnotherBuild) {
+                // Hop over the included build reference so we can detect cycles across build work graphs.
+                visitor.accept(((TaskInAnotherBuild) dep).getTargetNode());
+            } else {
+                visitor.accept(dep);
             }
-        }
+        });
     }
 
     private ExecutionResult<Void> doRun() {
