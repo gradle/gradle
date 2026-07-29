@@ -40,23 +40,19 @@ class CucumberJUnit5FuncTest extends AbstractCucumberFuncTest {
     }
 
     @PendingFeature
-    def "retries scenarios independently from each other (gradle version #gradleVersion)"(String gradleVersion) {
+    def "retries scenarios independently from each other"() {
         given:
         writeFlakyFeatureFile()
         writeFlakyStepDefinitions()
 
         when:
-        def runner = gradleRunner(gradleVersion as String)
-        def result = runner.build()
+        succeeds('test')
 
         then:
-        with(result.output) {
-            it.count("Passing scenario PASSED") == 1
-            it.count("Flaky scenario FAILED") == 1
-            it.count("Flaky scenario PASSED") == 1
+        with(output) {
+            assert it.count("Passing scenario PASSED") == 1
+            assert it.count("Flaky scenario FAILED") == 1
+            assert it.count("Flaky scenario PASSED") == 1
         }
-
-        where:
-        gradleVersion << GRADLE_VERSIONS_UNDER_TEST
     }
 }
