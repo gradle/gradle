@@ -158,8 +158,8 @@ One good test to confirm reproducibility is to try re-building an older version 
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/reproducibleBuilds-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/reproducibleBuilds-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> No `java { toolchain { ... } }` block is declared. Gradle has no default toolchain, so the JDK used for compilation falls back to whichever `JAVA_HOME` is active. Different machines (and even different JDK patch releases on the same machine) emit different bytecode.
@@ -169,8 +169,8 @@ include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/groovy",fil
 ==== Do This Instead
 
 ====
-include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/best-practices/reproducibleBuilds-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/reproducibleBuilds-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> Pin the JDK used to compile so the build is decoupled from each developer's local `JAVA_HOME` and from whichever JDK happens to be on the CI image; Gradle auto-provisions a matching JDK if one isn't found.
