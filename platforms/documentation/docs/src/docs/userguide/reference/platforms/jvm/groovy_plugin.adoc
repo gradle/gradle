@@ -37,7 +37,7 @@ include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/groovy",f
 == Tasks
 
 The Groovy plugin adds the following tasks to the project.
-Information about altering the dependencies to Java compile tasks are found <<building_java_projects.adoc#sec:building_jvm_lang,here>>.
+Information about altering the dependencies to Java compile tasks is found <<building_java_projects.adoc#sec:building_jvm_lang,here>>.
 
 `compileGroovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
 _Depends on_: `compileJava`
@@ -123,7 +123,7 @@ include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/kotlin",f
 include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/groovy",files="build.gradle[tags=groovy-test-dependency]"]
 ====
 
-To use the Groovy library that ships with Gradle, declare a `localGroovy()` dependency. Note that different Gradle versions ship with different Groovy versions; as such, using `localGroovy()` is less safe then declaring a regular Groovy dependency.
+To use the Groovy library that ships with Gradle, declare a `localGroovy()` dependency. Note that different Gradle versions ship with different Groovy versions; as such, using `localGroovy()` is less safe than declaring a regular Groovy dependency.
 
 ====
 include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/kotlin",files="build.gradle.kts[tags=bundled-groovy-dependency]"]
@@ -256,7 +256,7 @@ include::sample[dir="snippets/reference/platforms/jvm/compilationAvoidance/groov
 [[sec:incremental_groovy_compilation]]
 == Incremental Groovy compilation
 
-Since 5.6, Gradle introduces an experimental incremental Groovy compiler. To enable incremental compilation for Groovy, you need:
+Since Gradle 5.6, Gradle has included an experimental incremental Groovy compiler. To enable incremental compilation for Groovy, you need:
 
 * Enable <<groovy_plugin.adoc#sec:groovy_compilation_avoidance,Groovy compilation avoidance>>.
 * Explicitly enable incremental Groovy compilation in the build script:
@@ -274,7 +274,7 @@ This gives you the following benefits:
   For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files — only the changed ones need to be recompiled.
 
 To understand how incremental compilation works, see <<java_plugin.adoc#sec:incremental_compile,Incremental Java compilation>> for a detailed overview.
-Note that there're several differences from Java incremental compilation:
+Note that there are several differences from Java incremental compilation:
 
 The Groovy compiler doesn't keep `@Retention` in generated annotation class bytecode (https://issues.apache.org/jira/browse/GROOVY-9185[GROOVY-9185]), thus all annotations are `RUNTIME`.
 This means that changes to source-retention annotations won't trigger a full recompilation.
@@ -290,7 +290,7 @@ Also see <<java_plugin.adoc#sec:incremental_compilation_known_issues,Known issue
 == Compiling and testing for Java 6 or Java 7
 
 With <<toolchains.adoc#toolchains,toolchain support>> added to `GroovyCompile`, it is possible to compile Groovy code using a different Java version than the one running Gradle.
-If you also have Java source files, this will also configure `JavaCompile` to use the right Java compiler is used, as can be seen in the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> documentation.
+If you also have Java source files, this will also configure `JavaCompile` to use the right Java compiler, as can be seen in the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> documentation.
 
 [[sec:example_configure_java_7_build_for_groovy]]
 === Example: Configure Java 7 build for Groovy
