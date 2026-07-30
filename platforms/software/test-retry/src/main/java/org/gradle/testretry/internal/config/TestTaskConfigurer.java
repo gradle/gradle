@@ -219,6 +219,7 @@ public final class TestTaskConfigurer {
         return method;
     }
 
+    @SuppressWarnings("TypeParameterUnusedInFormals")
     private static <T> T invoke(Object instance, Method method, Object... args) {
         try {
             Object result = method.invoke(instance, args);

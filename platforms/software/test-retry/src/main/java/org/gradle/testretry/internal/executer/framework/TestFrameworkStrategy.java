@@ -53,7 +53,7 @@ public interface TestFrameworkStrategy {
     }
 
     static boolean isSpock2Used(JvmTestExecutionSpec spec) {
-        return isSpock2JarOnPath(spec.getClasspath()) || supportsJavaModules() && isSpock2JarOnPath(spec.getModulePath());
+        return isSpock2JarOnPath(spec.getClasspath()) || (supportsJavaModules() && isSpock2JarOnPath(spec.getModulePath()));
     }
 
     static boolean supportsJavaModules() {

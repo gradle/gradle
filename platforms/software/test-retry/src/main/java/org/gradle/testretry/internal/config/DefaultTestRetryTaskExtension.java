@@ -43,18 +43,22 @@ public class DefaultTestRetryTaskExtension implements TestRetryTaskExtension {
         this.classRetryCriteria = new ClassRetryCriteriaImpl(objects);
     }
 
+    @Override
     public Property<Boolean> getFailOnPassedAfterRetry() {
         return failOnPassedAfterRetry;
     }
 
+    @Override
     public Property<Boolean> getFailOnSkippedAfterRetry() {
         return failOnSkippedAfterRetry;
     }
 
+    @Override
     public Property<Integer> getMaxRetries() {
         return maxRetries;
     }
 
+    @Override
     public Property<Integer> getMaxFailures() {
         return maxFailures;
     }

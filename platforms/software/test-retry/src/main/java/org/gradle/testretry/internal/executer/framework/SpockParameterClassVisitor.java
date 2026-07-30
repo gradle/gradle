@@ -22,7 +22,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +55,7 @@ final class SpockParameterClassVisitor extends TestsReader.Visitor<Map<String, L
     @Override
     public Map<String, List<String>> getResult() {
         if (!isSpec) {
-            return Collections.emptyMap();
+            return new HashMap<>();
         }
 
         Map<String, List<String>> map = new HashMap<>();

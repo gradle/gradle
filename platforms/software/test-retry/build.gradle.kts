@@ -5,13 +5,6 @@ plugins {
 
 description = "Bundled Gradle plugin that mitigates flaky tests by retrying them when they fail"
 
-sourceSets.main {
-    // All Java sources in this subproject are copied verbatim from the upstream
-    // test-retry-gradle-plugin and would trigger multiple errorprone checks.
-    // Disable errorprone for the main sourceset rather than modify any imported file.
-    errorprone.enabled = false
-}
-
 dependencies {
     api(projects.coreApi)
     api(projects.testingBaseInfrastructure)
