@@ -48,7 +48,16 @@ class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """.stripIndent()
 
         when:
-        def result = runner('spotbugsMain').build()
+        // The deprecation warning is expected until https://github.com/spotbugs/spotbugs-gradle-plugin/issues/1773 is fixed
+        def result = runner('spotbugsMain')
+            .expectDeprecationWarning(
+                "The Configuration.setVisible(boolean) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property",
+                "https://github.com/spotbugs/spotbugs-gradle-plugin/issues/1773"
+            )
+            .build()
 
         then:
         file('build/reports/spotbugs').isDirectory()
