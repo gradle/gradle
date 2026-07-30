@@ -44,6 +44,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger())
         def patternSet = Mock(PatternSet)
         List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir)
+        List<FileVisitDetails> visitedByDirectoryWalker = [].asSynchronized()
         Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {
             @Override
             boolean isSatisfiedBy(FileTreeElement element) {
@@ -57,7 +58,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
                 assert element.relativePath == elementFromFileWalker.relativePath
                 assert element.getPermissions().toUnixNumeric() ==
                     elementFromFileWalker.getPermissions().toUnixNumeric()
-                visitedWithJdk7Walker.remove(elementFromFileWalker)
+                visitedByDirectoryWalker.add(elementFromFileWalker)
                 return true
             }
         }
@@ -67,7 +68,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         then:
         1 * patternSet.getAsSpec() >> assertingSpec
 
-        visitedWithJdk7Walker.empty
+        visitedWithJdk7Walker.sort() == visitedByDirectoryWalker.sort()
     }
 
     @Override
