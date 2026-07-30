@@ -55,6 +55,7 @@ import org.opentest4j.AssertionFailedError
 import spock.lang.Specification
 
 import java.nio.file.Files
+import java.util.function.Predicate
 import java.util.regex.Pattern
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
@@ -865,10 +866,10 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
      *
      * @see #receivedProblem(int)
      */
-    protected ReceivedProblem findReceivedProblem(Closure<ReceivedProblem> criteria) {
-        def found = getReceivedProblems().findIndexOf { it?.collect(criteria) }
-        assert found >= 0 : "No problems match the criteria"
-        return receivedProblem(found)
+    protected ReceivedProblem findReceivedProblem(Predicate<ReceivedProblem> criteria) {
+        def index = getReceivedProblems().findIndexOf { it && criteria.test(it) }
+        assert index >= 0: "No received problem matches the given criteria"
+        return receivedProblem(index)
     }
 
     /**
