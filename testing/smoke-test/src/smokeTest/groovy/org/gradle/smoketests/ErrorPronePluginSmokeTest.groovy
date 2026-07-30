@@ -62,7 +62,16 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         expect:
-        runner('compileJava').build()
+        // The deprecation warning is expected until https://github.com/tbroyer/gradle-errorprone-plugin/issues/188 is fixed
+        runner('compileJava')
+            .expectDeprecationWarning(
+                "The Configuration.setVisible(boolean) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property",
+                "https://github.com/tbroyer/gradle-errorprone-plugin/issues/188"
+            )
+            .build()
     }
 
     @Override
