@@ -223,7 +223,7 @@ public class S3Client {
 
             // Buffer the body to bytes because SDK v2 may re-read the stream (payload signing,
             // retries, checksums), and callers commonly pass non-markable streams (e.g. FileInputStream).
-            byte[] body = inputStream.readNBytes(Math.toIntExact(contentLength));
+            byte[] body = readExactly(inputStream, Math.toIntExact(contentLength));
             try (software.amazon.awssdk.services.s3.S3Client amazonS3Client = build()) {
                 amazonS3Client.putObject(putObjectRequest, RequestBody.fromBytes(body));
             }
@@ -255,8 +255,9 @@ public class S3Client {
 
                     for (int partNumber = 1; filePosition < contentLength; partNumber++) {
                         partSize = Math.min(partSize, contentLength - filePosition);
-                        // See putSingleObject: buffer per-part so the SDK can re-read for signing / retries.
-                        byte[] part = inputStream.readNBytes(Math.toIntExact(partSize));
+                        // Buffer per-part so the SDK can re-read for signing / retries;
+                        // readExactly guards against short reads that would silently truncate the upload.
+                        byte[] part = readExactly(inputStream, Math.toIntExact(partSize));
                         RequestBody requestBody = RequestBody.fromBytes(part);
                         UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
                             .bucket(bucketName)
@@ -267,7 +268,7 @@ public class S3Client {
                         String eTag = amazonS3Client.uploadPart(uploadPartRequest, requestBody).eTag();
                         CompletedPart completedPart = CompletedPart.builder().partNumber(partNumber).eTag(eTag).build();
                         partETags.add(completedPart);
-                        filePosition += partSize;
+                        filePosition += part.length;
                     }
 
                     CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
@@ -383,19 +384,41 @@ public class S3Client {
 
     /**
      * Caches the bucket's real region from the redirect response and returns the URI to retry.
-     * Falls back to the original URI if the response has no Location header.
+     * Throws when the redirect has neither a Location header nor an x-amz-bucket-region header,
+     * since retrying the same URI with the same region would just loop.
      */
     private URI recordRegionAndResolveRedirect(S3Exception e, String bucketName, URI originalUri) {
         Optional<String> region = regionFromRedirectException(e);
         if (region.isPresent()) {
             KNOWN_BUCKET_REGIONS.put(bucketName, Region.of(region.get()));
         }
-        return locationFromRedirectException(e).or(originalUri);
+        Optional<URI> location = locationFromRedirectException(e);
+        if (!location.isPresent() && !region.isPresent()) {
+            throw ResourceExceptions.getFailed(originalUri, e);
+        }
+        return location.or(originalUri);
     }
 
-    private boolean isNoSuchKey(S3Exception e) {
-        // 404 alone covers HEAD responses, which have no XML body and therefore no errorCode.
-        return e.statusCode() == 404 || "NoSuchKey".equalsIgnoreCase(e.awsErrorDetails().errorCode());
+    // A HEAD 404 has no response body, so SDK v2 leaves errorCode null; a GET 404 with an
+    // XML body populates it (typically "NoSuchKey"). Only fall back to a bare-404 check when
+    // the errorCode is absent, so unrelated 404s (NoSuchBucket, endpoint proxies, etc.) still
+    // bubble up as errors instead of being silently swallowed as "resource missing".
+    private static boolean isNoSuchKey(S3Exception e) {
+        String errorCode = e.awsErrorDetails().errorCode();
+        return "NoSuchKey".equalsIgnoreCase(errorCode)
+            || (errorCode == null && e.statusCode() == 404);
+    }
+
+    /**
+     * Reads exactly {@code n} bytes from the stream, or throws if the stream ends early.
+     * Guards against silent upload truncation from {@link InputStream#readNBytes(int)} short reads.
+     */
+    private static byte[] readExactly(InputStream inputStream, int n) throws IOException {
+        byte[] buf = inputStream.readNBytes(n);
+        if (buf.length != n) {
+            throw new IOException("Expected " + n + " bytes but stream produced only " + buf.length);
+        }
+        return buf;
     }
 
     private Optional<URI> locationFromRedirectException(S3Exception e) {

@@ -16,8 +16,11 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails
 import software.amazon.awssdk.core.client.config.SdkClientOption
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.internal.endpoints.S3EndpointUtils
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse
@@ -264,10 +267,139 @@ class S3ClientTest extends Specification {
         ex.message.startsWith("Could not write to resource 'https://somehost/file.txt'")
     }
 
+    def "should map numRetries N to maxAttempts N+1 on the built client"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.absent()
+        s3Properties.getProxy() >> Optional.absent()
+        s3Properties.getMaxErrorRetryCount() >> Optional.of(3)
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
+
+        when:
+        def amazonS3Client = s3Client.build()
+        def retryStrategy = amazonS3Client.clientConfiguration.option(SdkClientOption.RETRY_STRATEGY)
+
+        then:
+        // numRetries counts retries after the initial attempt; maxAttempts counts total.
+        // A "fix" from +1 to +0 would silently reduce retries by one.
+        retryStrategy.maxAttempts() == 4
+    }
+
+    def "should default region to US_EAST_1 when no bucket-derived region is available"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.absent()
+        s3Properties.getProxy() >> Optional.absent()
+        s3Properties.getMaxErrorRetryCount() >> Optional.absent()
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
+
+        when:
+        def amazonS3Client = s3Client.build()
+
+        then:
+        amazonS3Client.serviceClientConfiguration().region() == Region.US_EAST_1
+    }
+
+    def "should default to AnonymousCredentialsProvider when no credentials given"() {
+        given:
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> Optional.absent()
+        s3Properties.getProxy() >> Optional.absent()
+        s3Properties.getMaxErrorRetryCount() >> Optional.absent()
+        S3Client s3Client = new S3Client((org.gradle.api.credentials.AwsCredentials) null, s3Properties)
+
+        when:
+        def amazonS3Client = s3Client.build()
+
+        then:
+        // Guards against a regression to null/DefaultCredentialsProvider, which would leak IMDS
+        // lookups and break anonymous S3 access to public buckets.
+        amazonS3Client.serviceClientConfiguration().credentialsProvider() instanceof AnonymousCredentialsProvider
+    }
+
+    def "put buffers body so RequestBody can be re-read by SDK signing/retries"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        URI uri = new URI("s3://localhost/foo.txt")
+        byte[] expected = 'hello world'.bytes
+        RequestBody captured = null
+
+        when:
+        // Non-markable stream: a regression from RequestBody.fromBytes back to fromInputStream
+        // would break at the second .newStream() call below because the underlying InputStream
+        // would be exhausted and mark/reset unsupported.
+        s3Client.put(new NonMarkableInputStream(expected), expected.length as long, uri)
+
+        then:
+        1 * amazonS3Client.putObject(*_) >> { args ->
+            captured = args[1] as RequestBody
+            null
+        }
+
+        and:
+        captured.contentStreamProvider().newStream().bytes == expected
+        captured.contentStreamProvider().newStream().bytes == expected
+    }
+
+    def "getMetaData returns null on 404 with null errorCode (HEAD-style response)"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
+        URI uri = new URI("s3://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        // HEAD 404 with empty body: SDK v2 doesn't populate errorCode.
+        S3Exception ex = (S3Exception) S3Exception.builder()
+            .statusCode(404)
+            .awsErrorDetails(AwsErrorDetails.builder().build())
+            .build()
+        amazonS3Client.headObject(_) >> { throw ex }
+
+        expect:
+        s3Client.getMetaData(uri) == null
+    }
+
+    def "getMetaData returns null on 404 with NoSuchKey errorCode"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
+        URI uri = new URI("s3://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Exception ex = (S3Exception) S3Exception.builder()
+            .statusCode(404)
+            .awsErrorDetails(AwsErrorDetails.builder().errorCode("NoSuchKey").build())
+            .build()
+        amazonS3Client.headObject(_) >> { throw ex }
+
+        expect:
+        s3Client.getMetaData(uri) == null
+    }
+
+    def "getMetaData does NOT swallow 404 with unrelated errorCode (e.g. NoSuchBucket)"() {
+        given:
+        software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
+        URI uri = new URI("s3://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        S3Exception ex = (S3Exception) S3Exception.builder()
+            .statusCode(404)
+            .awsErrorDetails(AwsErrorDetails.builder().errorCode("NoSuchBucket").build())
+            .build()
+        amazonS3Client.headObject(_) >> { throw ex }
+
+        when:
+        s3Client.getMetaData(uri)
+
+        then:
+        thrown(ResourceException)
+    }
+
     def credentials() {
         def credentials = TestCredentialUtil.defaultAwsCredentials()
         credentials.setAccessKey("AKey")
         credentials.setSecretKey("ASecret")
         credentials
+    }
+
+    private static class NonMarkableInputStream extends ByteArrayInputStream {
+        NonMarkableInputStream(byte[] buf) { super(buf) }
+        @Override boolean markSupported() { false }
     }
 }

@@ -547,7 +547,9 @@ class S3Server extends HttpServer implements RepositoryServer {
                 response.addHeader('x-amz-request-id', X_AMZ_REQUEST_ID)
                 response.addHeader('Date', DATE_HEADER)
                 response.addHeader('Server', SERVER_AMAZON_S3)
-                response.sendError(404, 'not found')
+                // Use setStatus, not sendError, to avoid Jetty auto-writing an HTML body /
+                // setting text/html Content-Type. A real S3 HEAD 404 has no body.
+                response.setStatus(404)
             }
         })
     }
