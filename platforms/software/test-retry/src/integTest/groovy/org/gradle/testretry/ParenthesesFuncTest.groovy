@@ -15,8 +15,14 @@
  */
 package org.gradle.testretry
 
+import spock.lang.IgnoreIf
+
 import static groovy.lang.Tuple2.tuple
 
+// The scratch project applies the Kotlin Gradle plugin at version 1.9.23, which does not
+// support Java 22 or later as a compile target. Skip this test on Java 22+ JVMs; upstream
+// had the same guard and it was removed during migration on faulty reasoning.
+@IgnoreIf({ jvm.java22Compatible })
 class ParenthesesFuncTest extends AbstractPluginFuncTest {
 
     @Override
