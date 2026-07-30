@@ -450,6 +450,16 @@ public class TestFile extends File {
         setText(newContent.toString());
     }
 
+    /**
+     * Opts out of Groovy 5's {@code ResourceGroovyMethods.asBoolean(File)}, which makes a file
+     * truthy only when it exists. This preserves prior behavior that we rely on.
+     *
+     * @return always {@code true}
+     */
+    public boolean asBoolean() {
+        return true;
+    }
+
     public TestFile assertExists() {
         assertTrue(String.format("%s does not exist", this), exists());
         return this;
