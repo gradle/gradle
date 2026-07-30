@@ -119,13 +119,23 @@ Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or late
 
 See the [Looking up services in scripts](userguide/service_injection.html#looking_up_services) section in the Gradle User Manual for more details.
 
-#### Nested `Gradle.settingsEvaluated` callbacks are now honored
+#### Nested `Gradle.settingsEvaluated` callbacks are honored
 
+Gradle now honors nested [`Gradle.settingsEvaluated`](javadoc/org/gradle/api/invocation/Gradle.html#settingsEvaluated(org.gradle.api.Action)) callbacks.
 Previously, a `settingsEvaluated` callback registered from within another `settingsEvaluated` callback was silently ignored.
 
-Such callbacks are now executed after all previously added callbacks finish executing, in the same lifecycle phase, matching the behavior of nested [`Project.afterEvaluate`](javadoc/org/gradle/api/Project.html#afterEvaluate(org.gradle.api.Action)) callbacks.
+Nested callbacks now run after all previously registered callbacks finish, within the same lifecycle phase, matching the behavior of nested [`Project.afterEvaluate`](javadoc/org/gradle/api/Project.html#afterEvaluate(org.gradle.api.Action)):
 
-See [`Gradle.settingsEvaluated`](javadoc/org/gradle/api/invocation/Gradle.html#settingsEvaluated(org.gradle.api.Action)) for details.
+```kotlin
+gradle.settingsEvaluated {
+    // runs first
+    gradle.settingsEvaluated {
+        // runs after all outer callbacks finish, in the same phase
+    }
+}
+```
+
+See the [`settingsEvaluated`](userguide/build_lifecycle.html#settings_evaluated) section in the Gradle User Manual for more details.
 
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
