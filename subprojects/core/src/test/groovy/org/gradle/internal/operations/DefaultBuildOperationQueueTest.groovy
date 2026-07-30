@@ -207,6 +207,23 @@ class DefaultBuildOperationQueueTest extends Specification {
         noExceptionThrown()
     }
 
+    def "queue completes when the processor is shut down with operations still queued"() {
+        given:
+        // The main thread holds the only lease, so the spawned worker starves and the operations
+        // are still queued when the processor is shut down.
+        setupQueue(1)
+        def executed = new AtomicInteger()
+
+        when:
+        3.times { operationQueue.add(operation { executed.incrementAndGet() }) }
+        workerLeaseProcessor.shutdown()
+        operationQueue.waitForCompletion()
+
+        then:
+        noExceptionThrown()
+        executed.get() == 3
+    }
+
     def "constrained operation stays queued for the waiting thread when no worker can be spawned"() {
         given:
         setupQueue(1)

@@ -219,7 +219,7 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         leaseProcessor.@activeQueues.isEmpty()
     }
 
-    def "processWorkUsingCurrentThreadUntilEmpty stops when executor is shut down"() {
+    def "processWorkUsingCurrentThreadUntilEmpty finishes its queue even once the processor is shut down"() {
         given:
         createProcessor(1)
         def queue = leaseProcessor.createSubmissionQueue()
@@ -246,7 +246,8 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
 
         then:
         returned.await(15, TimeUnit.SECONDS)
-        !secondRan.get()
+        // Abandoning the second task here would leave whoever is counting this work waiting forever.
+        secondRan.get()
     }
 
     def "spawns a compensation worker when a task blocks via registry.blocking"() {

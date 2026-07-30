@@ -60,7 +60,9 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             if (!processor.workerThreadRegistry.isWorkerThread()) {
                 throw new IllegalStateException("Current thread is not a worker thread.");
             }
-            while (!processor.shutdown.get()) {
+            // Deliberately runs to the end of the queue even once the processor is shut down.
+            // This ensures callers get accurate accounting of their work, if necessary.
+            while (true) {
                 Runnable work = poll();
                 if (work == null) {
                     return;
@@ -76,11 +78,6 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
                     });
                 }
             }
-            // Discard remaining work on shutdown.
-            // This is a best-effort attempt to clean up,
-            // it doesn't matter too much if we miss some work here as the processor is likely about to be GC'd.
-            queue.clear();
-            processor.activeQueues.remove(this);
         }
 
         boolean hasWork() {
