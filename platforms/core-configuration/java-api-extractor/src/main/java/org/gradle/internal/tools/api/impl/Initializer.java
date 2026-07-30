@@ -33,5 +33,5 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
-@interface Initializer {
+public @interface Initializer {
 }
