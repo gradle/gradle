@@ -26,7 +26,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.model.S3Object
-import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
 import org.gradle.api.Action
 import org.gradle.integtests.resource.s3.fixtures.S3Server
@@ -81,8 +80,8 @@ class S3ClientIntegrationTest extends Specification {
 
         S3ConnectionProperties s3SystemProperties = Mock {
             getEndpoint() >> Optional.of(server.uri)
-            getProxy() >> Optional.fromNullable(null)
-            getMaxErrorRetryCount() >> Optional.absent()
+            getProxy() >> Optional.ofNullable(null)
+            getMaxErrorRetryCount() >> Optional.empty()
             getPartSize() >> 512
             getMultipartThreshold() >> 1024
         }

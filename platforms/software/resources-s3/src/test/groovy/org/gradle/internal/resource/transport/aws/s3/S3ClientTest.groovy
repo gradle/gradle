@@ -32,7 +32,6 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.model.UploadPartRequest
 import software.amazon.awssdk.services.s3.model.UploadPartResponse
-import com.google.common.base.Optional
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import org.gradle.util.TestCredentialUtil
@@ -43,7 +42,7 @@ class S3ClientTest extends Specification {
     final S3ConnectionProperties s3ConnectionProperties = Mock()
 
     def setup(){
-        _ * s3ConnectionProperties.getEndpoint() >> Optional.absent()
+        _ * s3ConnectionProperties.getEndpoint() >> Optional.empty()
         _ * s3ConnectionProperties.getPartSize() >> 512
         _ * s3ConnectionProperties.getMultipartThreshold() >> 1024
     }
@@ -81,7 +80,7 @@ class S3ClientTest extends Specification {
             .build()
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Mock()
         S3ConnectionProperties s3Properties = Mock()
-        _ * s3Properties.getEndpoint() >> Optional.absent()
+        _ * s3Properties.getEndpoint() >> Optional.empty()
         _ * s3Properties.getPartSize() >> 7
         _ * s3Properties.getMultipartThreshold() >> 10
         S3Client client = new S3Client(amazonS3Client, s3Properties)
@@ -176,8 +175,8 @@ class S3ClientTest extends Specification {
         setup:
         S3ConnectionProperties s3Properties = Stub()
         s3Properties.getProxy() >> Optional.of(new HttpProxySettings.HttpProxy("localhost", 8080, 'username', 'password'))
-        s3Properties.getEndpoint() >> Optional.absent()
-        s3Properties.getMaxErrorRetryCount() >> Optional.absent()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
         when:
         S3Client s3Client = new S3Client(credentials(), s3Properties)
         def amazonS3Client = s3Client.build()
@@ -196,7 +195,7 @@ class S3ClientTest extends Specification {
         proxySettings.getProxy(nonProxied) >> null
 
         S3ConnectionProperties s3Properties = Stub()
-        s3Properties.getProxy() >> Optional.absent()
+        s3Properties.getProxy() >> Optional.empty()
         s3Properties.getEndpoint() >> endpointOverride
 
         when:
@@ -212,11 +211,11 @@ class S3ClientTest extends Specification {
 
         where:
         nonProxied                                               | endpointOverride
-        org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.S3_HOSTNAME | Optional.absent()
-        "mydomain.com"                                           | Optional.absent()
+        org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.S3_HOSTNAME | Optional.empty()
+        "mydomain.com"                                           | Optional.empty()
     }
 
-    def "should include uri when meta-data not found"() {
+    def "getMetaData wraps generic S3Exception with the resource uri"() {
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
@@ -252,7 +251,7 @@ class S3ClientTest extends Specification {
         software.amazon.awssdk.services.s3.S3Client amazonS3Client = Stub()
         URI uri = new URI("https://somehost/file.txt")
         S3ConnectionProperties s3Properties = Stub()
-        s3Properties.getProxy() >> Optional.absent()
+        s3Properties.getProxy() >> Optional.empty()
         S3Client s3Client = new S3Client(s3Properties)
 
         S3Exception amazonS3Exception = S3Exception.builder()
@@ -270,8 +269,8 @@ class S3ClientTest extends Specification {
     def "should map numRetries N to maxAttempts N+1 on the built client"() {
         given:
         S3ConnectionProperties s3Properties = Stub()
-        s3Properties.getEndpoint() >> Optional.absent()
-        s3Properties.getProxy() >> Optional.absent()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
         s3Properties.getMaxErrorRetryCount() >> Optional.of(3)
         S3Client s3Client = new S3Client(credentials(), s3Properties)
 
@@ -288,9 +287,9 @@ class S3ClientTest extends Specification {
     def "should default region to US_EAST_1 when no bucket-derived region is available"() {
         given:
         S3ConnectionProperties s3Properties = Stub()
-        s3Properties.getEndpoint() >> Optional.absent()
-        s3Properties.getProxy() >> Optional.absent()
-        s3Properties.getMaxErrorRetryCount() >> Optional.absent()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
         S3Client s3Client = new S3Client(credentials(), s3Properties)
 
         when:
@@ -303,9 +302,9 @@ class S3ClientTest extends Specification {
     def "should default to AnonymousCredentialsProvider when no credentials given"() {
         given:
         S3ConnectionProperties s3Properties = Stub()
-        s3Properties.getEndpoint() >> Optional.absent()
-        s3Properties.getProxy() >> Optional.absent()
-        s3Properties.getMaxErrorRetryCount() >> Optional.absent()
+        s3Properties.getEndpoint() >> Optional.empty()
+        s3Properties.getProxy() >> Optional.empty()
+        s3Properties.getMaxErrorRetryCount() >> Optional.empty()
         S3Client s3Client = new S3Client((org.gradle.api.credentials.AwsCredentials) null, s3Properties)
 
         when:

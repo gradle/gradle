@@ -17,10 +17,10 @@
 package org.gradle.internal.resource.transport.aws.s3;
 
 import software.amazon.awssdk.regions.Region;
-import com.google.common.base.Optional;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +87,7 @@ public class S3RegionalResource {
 
         matcher = FALLBACK_ENDPOINT_PATTERN.matcher(uri.toString());
         if (matcher.find()) {
-            this.region = Optional.absent();
+            this.region = Optional.empty();
             this.bucketName = getBucketName(matcher.group(1));
             this.key = matcher.group(2);
 

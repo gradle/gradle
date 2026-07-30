@@ -17,7 +17,6 @@ dependencies {
     }
     api(libs.awsSdkCore)
     api(libs.awsSdkRegions)
-    api(libs.guava)
     api(libs.jspecify)
 
     implementation(projects.baseServices)
@@ -31,6 +30,7 @@ dependencies {
     implementation(libs.awsSdkRetriesSpi)
     implementation(libs.awsSdkUtils)
     implementation(libs.commonsLang)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.core)

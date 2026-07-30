@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -62,6 +61,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
@@ -70,7 +70,6 @@ public class S3Client {
     // Preserve that behavior when no region has been derived from a bucket URL.
     private static final Region DEFAULT_REGION = Region.US_EAST_1;
 
-    // amazonS3ClientMock is used to configure Mocks for testing.
     private software.amazon.awssdk.services.s3.@Nullable S3Client amazonS3ClientMock;
     private AwsCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();
     private @Nullable URI endpoint;
@@ -181,7 +180,7 @@ public class S3Client {
         return clientOverrideConfigurationBuilder.build();
     }
 
-    private  SdkHttpClient.Builder<ApacheHttpClient.Builder> createProxyConfiguration() {
+    private SdkHttpClient.Builder<ApacheHttpClient.Builder> createProxyConfiguration() {
         ProxyConfiguration.Builder proxyConfigurationBuilder = ProxyConfiguration.builder();
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
@@ -208,6 +207,18 @@ public class S3Client {
     }
 
     private void putSingleObject(InputStream inputStream, Long contentLength, URI destination) {
+        // Buffer the body to bytes because SDK v2 may re-read the stream (payload signing,
+        // retries, checksums), and callers commonly pass non-markable streams (e.g. FileInputStream).
+        // Reading is separate from the S3 call so a local read failure surfaces with a clear message
+        // instead of being mislabeled as an S3 upload failure.
+        byte[] body;
+        try {
+            body = readExactly(inputStream, Math.toIntExact(contentLength));
+        } catch (IOException e) {
+            throw ResourceExceptions.failure(destination,
+                String.format("Could not read source stream while uploading to '%s'.", destination), e);
+        }
+
         try {
             S3RegionalResource s3RegionalResource = new S3RegionalResource(destination, KNOWN_BUCKET_REGIONS);
             String bucketName = s3RegionalResource.getBucketName();
@@ -221,13 +232,10 @@ public class S3Client {
                 .contentLength(contentLength).build();
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
 
-            // Buffer the body to bytes because SDK v2 may re-read the stream (payload signing,
-            // retries, checksums), and callers commonly pass non-markable streams (e.g. FileInputStream).
-            byte[] body = readExactly(inputStream, Math.toIntExact(contentLength));
             try (software.amazon.awssdk.services.s3.S3Client amazonS3Client = build()) {
                 amazonS3Client.putObject(putObjectRequest, RequestBody.fromBytes(body));
             }
-        } catch (SdkException | IOException e) {
+        } catch (SdkException e) {
             throw ResourceExceptions.putFailed(destination, e);
         }
     }
@@ -255,8 +263,9 @@ public class S3Client {
 
                     for (int partNumber = 1; filePosition < contentLength; partNumber++) {
                         partSize = Math.min(partSize, contentLength - filePosition);
-                        // Buffer per-part so the SDK can re-read for signing / retries;
-                        // readExactly guards against short reads that would silently truncate the upload.
+                        // Buffer per-part so the SDK can re-read for signing / retries with a
+                        // non-markable source stream. readExactly guards against short reads that
+                        // would silently truncate the upload (S3 rejects non-final parts < 5 MiB).
                         byte[] part = readExactly(inputStream, Math.toIntExact(partSize));
                         RequestBody requestBody = RequestBody.fromBytes(part);
                         UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
@@ -367,6 +376,10 @@ public class S3Client {
     }
 
     private void configureClient(S3RegionalResource s3RegionalResource) {
+        // Reset before recomputing so a stale region or endpoint from a previous call
+        // doesn't leak into requests for a different bucket (e.g. cross-region uploads).
+        this.endpoint = null;
+        this.region = null;
         Optional<URI> endpointProperty = s3ConnectionProperties.getEndpoint();
         if (endpointProperty.isPresent()) {
             endpoint = endpointProperty.get();
@@ -396,7 +409,7 @@ public class S3Client {
         if (!location.isPresent() && !region.isPresent()) {
             throw ResourceExceptions.getFailed(originalUri, e);
         }
-        return location.or(originalUri);
+        return location.orElse(originalUri);
     }
 
     // A HEAD 404 has no response body, so SDK v2 leaves errorCode null; a GET 404 with an
@@ -422,20 +435,10 @@ public class S3Client {
     }
 
     private Optional<URI> locationFromRedirectException(S3Exception e) {
-        java.util.Optional<String> locationHeader = e
-            .awsErrorDetails()
-            .sdkHttpResponse()
-            .firstMatchingHeader("Location");
-        // Convert from java.util.Optional to com.google.common.base.Optional.
-        return locationHeader.map(h -> Optional.of(URI.create(h))).orElseGet(Optional::absent);
+        return e.awsErrorDetails().sdkHttpResponse().firstMatchingHeader("Location").map(URI::create);
     }
 
     private Optional<String> regionFromRedirectException(S3Exception e) {
-        java.util.Optional<String> bucketRegionHeader = e
-            .awsErrorDetails()
-            .sdkHttpResponse()
-            .firstMatchingHeader("x-amz-bucket-region");
-        // Convert from java.util.Optional to com.google.common.base.Optional.
-        return bucketRegionHeader.map(Optional::of).orElseGet(Optional::absent);
+        return e.awsErrorDetails().sdkHttpResponse().firstMatchingHeader("x-amz-bucket-region");
     }
  }
