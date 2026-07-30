@@ -136,7 +136,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: microsoft # no temurin available
-          java-version: 21.0.1
+          java-version: 21
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties

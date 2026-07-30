@@ -44,3 +44,7 @@ listOf(configurations["apiElements"], configurations["runtimeElements"]).forEach
     }
 }
 
+
+errorprone {
+    nullawayEnabled = true
+}

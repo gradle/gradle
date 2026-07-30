@@ -206,7 +206,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         return getRegistries().getProjectLockRegistry().getResourceLocksByCurrentThread();
     }
 
-    @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
     private Registries getRegistries() {
         return registries.get();
     }
