@@ -47,7 +47,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """
             plugins {
                 `kotlin-dsl`
-                id("dev.detekt") version "2.0.0-alpha.4"
+                id("dev.detekt") version "2.0.0-alpha.5"
             }
 
             $repositoriesBlock
@@ -80,6 +80,13 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """.trimIndent()
         )
 
+        // This is necessary until https://github.com/detekt/detekt/issues/9558 is resolved
+        executer.expectDocumentedDeprecationWarning(
+            "The Configuration.setVisible(boolean) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property"
+        )
         build("generateScriptPluginAdapters", "detekt")
     }
 
