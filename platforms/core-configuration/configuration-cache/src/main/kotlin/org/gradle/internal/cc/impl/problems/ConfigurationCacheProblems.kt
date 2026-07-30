@@ -83,9 +83,9 @@ val isolatedProjectsDangerouslyIgnoreProblemsSentences = listOf(
 
 val configurationCacheWarnModeSentences = listOf(
     "Configuration Cache warn mode is ENABLED.",
-    "Configuration Cache problems are being ignored.",
+    "Configuration Cache constraint violations are being ignored.",
     "Build outputs may be incorrect and the build may crash unexpectedly.",
-    "Use this only to discover configuration cache problems.",
+    "Use this only to discover configuration cache incompatibilities.",
     "Do not use this to produce artifacts."
 )
 
