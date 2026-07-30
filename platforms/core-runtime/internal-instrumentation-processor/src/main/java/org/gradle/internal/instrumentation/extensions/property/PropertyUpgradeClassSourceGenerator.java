@@ -122,7 +122,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             onProcessedRequest.accept(request);
             return spec;
         } catch (Exception e) {
-            onFailure.accept(new HasFailures.FailureInfo(request, requireNonNull(e.getMessage())));
+            onFailure.accept(new HasFailures.FailureInfo(request, e.toString()));
             throw e;
         }
     }

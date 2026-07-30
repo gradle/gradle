@@ -191,7 +191,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
                 .map(Success::new)
                 .collect(Collectors.toList());
         } catch (IllegalArgumentException failure) {
-            return Collections.singletonList(new InvalidRequest(requireNonNull(failure.getMessage())));
+            return Collections.singletonList(new InvalidRequest(failure.toString()));
         }
     }
 
