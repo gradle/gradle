@@ -87,4 +87,17 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
         [parentMethodInvocationDeprecation('play')]
     }
+
+    @Override
+    SmokeTestGradleRunner runner(String... tasks) {
+        // The playframework plugin calls the deprecated Configuration.setVisible(boolean) method
+        return super.runner(tasks)
+            .expectDeprecationWarning(
+                "The Configuration.setVisible(boolean) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property",
+                "https://github.com/gradle/playframework/issues/218"
+            )
+    }
 }
