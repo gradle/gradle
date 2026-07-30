@@ -222,6 +222,10 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
         def kotlinVersionNumber = VersionNumber.parse(version)
         def deprecations = [parentMethodInvocationDeprecation('kotlin')]
+        if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_20) {
+            // The Kotlin plugin calls the deprecated Configuration.setVisible(boolean) method until KT-78754 was fixed in Kotlin 2.3.20 / 2.4.0
+            deprecations << "The Configuration.setVisible(boolean) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate-visible-property".toString()
+        }
         if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21) {
             deprecations << "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration".toString()
         }
