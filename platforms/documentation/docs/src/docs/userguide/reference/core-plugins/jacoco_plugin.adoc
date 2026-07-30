@@ -15,7 +15,7 @@
 [[jacoco_plugin]]
 = The JaCoCo Plugin
 
-The JaCoCo plugin provides code coverage metrics for Java code via integration with http://www.eclemma.org/jacoco/[JaCoCo].
+The JaCoCo plugin provides code coverage metrics for Java code via integration with https://www.jacoco.org/jacoco/[JaCoCo].
 
 [[sec:jacoco_getting_started]]
 == Getting Started
@@ -28,7 +28,7 @@ include::sample[dir="snippets/reference/core-plugins/jacoco-quickstart/groovy",f
 ====
 
 If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created.
-By default, a HTML report is generated at `layout.buildDirectory.dir("reports/jacoco/test")`.
+By default, an HTML report is generated at `layout.buildDirectory.dir("reports/jacoco/test/html")`.
 
 NOTE: While tests should be executed before generation of the report, the `jacocoTestReport` task does not depend on the `test` task.
 
@@ -53,6 +53,7 @@ include::sample[dir="snippets/reference/core-plugins/jacoco-quickstart/groovy",f
 [%header%autowidth,compact]
 |===
 | Property | Gradle default
+| toolVersion | `0.8.14`
 | reportsDirectory | `layout.buildDirectory.dir("reports/jacoco")`
 |===
 
@@ -82,7 +83,7 @@ include::sample[dir="snippets/reference/core-plugins/jacoco-quickstart/kotlin",f
 include::sample[dir="snippets/reference/core-plugins/jacoco-quickstart/groovy",files="build.gradle[tags=violation-rules-configuration]"]
 ====
 
-The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task is not a task dependency of the `check` task provided by the Java plugin. There is a good reason for it. The task is currently not incremental as it doesn't declare any outputs. Any violation of the declared rules would automatically result in a failed build when executing the `check` task. This behavior might not be desirable for all users. Future versions of Gradle might change the behavior.
+The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task is not a task dependency of the `check` task provided by the Java plugin. There is a good reason for it. The task is currently not incremental as it doesn't declare any outputs. Any violation of the declared rules would automatically result in a failed build when executing the `check` task. This behavior might not be desirable for all users.
 
 [[sec:jacoco_specific_task_configuration]]
 == JaCoCo specific task configuration
