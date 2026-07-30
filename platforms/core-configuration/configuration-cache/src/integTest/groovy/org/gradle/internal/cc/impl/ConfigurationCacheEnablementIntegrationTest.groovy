@@ -66,24 +66,13 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
     def "configuration cache warn mode is reported through the Problems API"() {
         given:
-        buildFile "task ok {}"
         enableProblemsApiCheck()
 
         when:
-        run("ok", "--configuration-cache", "--configuration-cache-problems=warn")
+        run("help", "--configuration-cache", "--configuration-cache-problems=warn")
 
         then:
-        receivedProblems.size() == 1
-
-        verifyAll(receivedProblem) {
-            fqid == 'validation:configuration-cache:configuration-cache-warn-mode'
-
-            contextualLabel == 'Configuration Cache warn mode is ENABLED. ' +
-                'Configuration Cache problems are being ignored. ' +
-                'Build outputs may be incorrect and the build may crash unexpectedly. ' +
-                'Use this only to discover configuration cache problems. ' +
-                'Do not use this to produce artifacts.'
-
+        verifyAll(consumeWarnModeProblem()) {
             definition.severity == Severity.WARNING
         }
     }

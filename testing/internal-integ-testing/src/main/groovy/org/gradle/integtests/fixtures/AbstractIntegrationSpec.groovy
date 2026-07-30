@@ -859,6 +859,19 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     /**
+     * Returns the first received problem that matches the given criteria and marks it as validated.
+     * The validation should only verify the contextual attributes of the received problem, as the problem definition is checked at the end of each test (see {@see KnownProblemIds}).
+     * Fails if no problem matches the condition.
+     *
+     * @see #receivedProblem(int)
+     */
+    protected ReceivedProblem findReceivedProblem(Closure<ReceivedProblem> criteria) {
+        def found = getReceivedProblems().findIndexOf { it?.collect(criteria) }
+        assert found >= 0 : "No problems match the criteria"
+        return receivedProblem(found)
+    }
+
+    /**
      * Generates a `repositories` block pointing to the standard maven repo fixture.
      *
      * This is often required for running with configuration cache enabled, as
