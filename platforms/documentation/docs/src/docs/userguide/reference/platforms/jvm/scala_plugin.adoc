@@ -36,7 +36,7 @@ include::sample[dir="snippets/reference/platforms/jvm/scalaQuickstart/groovy",fi
 == Tasks
 
 The Scala plugin adds the following tasks to the project.
-Information about altering the dependencies to Java compile tasks are found <<building_java_projects.adoc#sec:building_jvm_lang,here>>.
+Information about altering the dependencies to Java compile tasks is found <<building_java_projects.adoc#sec:building_jvm_lang,here>>.
 
 `compileScala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
 _Depends on_: `compileJava`
@@ -286,7 +286,7 @@ include::sample[dir="snippets/reference/platforms/jvm/zinc/groovy",files="build.
 
 By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes, incremental compilation can significantly reduce Scala compilation time. It is particularly effective when frequently compiling small code increments, as is often done at development time.
 
-The Scala plugin defaults to incremental compilation by integrating with https://github.com/typesafehub/zinc[Zinc], a standalone version of https://github.com/harrah/xsbt[sbt]'s incremental Scala compiler. If you want to disable the incremental compilation, set `force = true` in your build file:
+The Scala plugin defaults to incremental compilation by integrating with https://github.com/sbt/zinc[Zinc], a standalone version of https://www.scala-sbt.org/[sbt]'s incremental Scala compiler. If you want to disable the incremental compilation, set `force = true` in your build file:
 
 ====
 include::sample[dir="snippets/reference/platforms/jvm/force/kotlin",files="build.gradle.kts[tags=force-compilation]"]
@@ -299,12 +299,12 @@ The Zinc-based Scala Compiler supports joint compilation of Java and Scala code.
 
 Incremental compilation requires dependency analysis of the source code. The results of this analysis are stored in the file designated by `scalaCompileOptions.incrementalOptions.analysisFile` (which has a sensible default). In a multi-project build, analysis files are passed on to downstream `ScalaCompile` tasks to enable incremental compilation across project boundaries. For `ScalaCompile` tasks added by the Scala plugin, no configuration is necessary to make this work. For other `ScalaCompile` tasks that you might add, the property `scalaCompileOptions.incrementalOptions.publishedCode` needs to be configured to point to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream `ScalaCompile` tasks. Note that if `publishedCode` is not set correctly, downstream tasks may not recompile code affected by upstream changes, leading to incorrect compilation results.
 
-Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to enhance Gradle's own compiler daemon to stay alive across Gradle invocations, reusing the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
+Note that Zinc's Nailgun based daemon mode is not supported.
 
 [[sec:eclipse_integration]]
 == Eclipse Integration
 
-When the Eclipse plugin encounters a Scala project, it adds additional configuration to make the project work with Scala IDE out of the box. Specifically, the plugin adds a Scala nature and dependency container.
+When the Eclipse plugin encounters a Scala project, it adds additional configuration for Scala tooling. Specifically, the plugin adds a Scala nature and dependency container to the generated Eclipse metadata.
 
 [[sec:intellij_idea_integration]]
 == IntelliJ IDEA Integration
@@ -315,3 +315,5 @@ When the IDEA plugin encounters a Scala project, it adds additional configuratio
 include::sample[dir="snippets/reference/platforms/jvm/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
 include::sample[dir="snippets/reference/platforms/jvm/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
 ====
+
+NOTE: The `targetVersion` property on `IdeaModel` is deprecated and will be removed in Gradle 10.
