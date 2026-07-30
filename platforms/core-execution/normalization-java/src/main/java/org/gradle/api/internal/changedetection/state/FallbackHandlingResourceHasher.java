@@ -145,7 +145,7 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         }
 
         @Override
-        public <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
+        public <T extends @Nullable Object> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
             return action.apply(new ByteArrayInputStream(getContent()));
         }
 
