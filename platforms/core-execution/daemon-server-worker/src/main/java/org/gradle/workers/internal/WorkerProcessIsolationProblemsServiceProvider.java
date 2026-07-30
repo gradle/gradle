@@ -31,7 +31,6 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.FallbackBuildOperationIdRef;
-import org.gradle.internal.operations.RootBuildOperationRef;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -56,9 +55,7 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
         // request's build operation as its current operation. Capture it eagerly so that
         // problems reported from user-spawned threads (which have no current operation)
         // can still be attributed to the work request's operation.
-        RootBuildOperationRef rootBuildOperationRef = new RootBuildOperationRef();
-        rootBuildOperationRef.set(CurrentBuildOperationRef.instance().getId());
-        serviceRegistration.add(RootBuildOperationRef.class, rootBuildOperationRef);
+        serviceRegistration.add(WorkRequestBuildOperationRef.class, new WorkRequestBuildOperationRef(CurrentBuildOperationRef.instance().getId()));
     }
 
     @NonNull
@@ -120,12 +117,12 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
         IsolatableSerializerRegistry isolatableSerializerRegistry,
         InstantiatorFactory instantiatorFactory,
         WorkerProblemProtocol responder,
-        RootBuildOperationRef rootBuildOperationRef
+        WorkRequestBuildOperationRef workRequestBuildOperationRef
     ) {
         return new DefaultProblems(
             new WorkerProblemEmitter(responder),
             null,
-            new FallbackBuildOperationIdRef(CurrentBuildOperationRef.instance(), rootBuildOperationRef),
+            new FallbackBuildOperationIdRef(CurrentBuildOperationRef.instance(), workRequestBuildOperationRef),
             new ExceptionProblemRegistry(),
             null,
             instantiatorFactory.decorate(serviceRegistry),
