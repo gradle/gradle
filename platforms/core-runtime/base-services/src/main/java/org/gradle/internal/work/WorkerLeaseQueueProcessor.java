@@ -82,6 +82,10 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             processor.activeQueues.remove(this);
         }
 
+        boolean hasWork() {
+            return !queue.isEmpty();
+        }
+
         @Nullable
         Runnable poll() {
             Runnable item = queue.poll();
@@ -141,7 +145,7 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             try {
                 workerThreadRegistry.setOwningThreadPool(this);
                 try {
-                    workerThreadRegistry.tryWhileConditionToRunAsWorkerThread(consumer, consumer::shouldContinue);
+                    workerThreadRegistry.tryWhileConditionToRunAsWorkerThread(consumer, consumer::shouldContinueWaitingForLease);
                 } finally {
                     workerThreadRegistry.setOwningThreadPool(null);
                 }
@@ -173,14 +177,38 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
     private final class QueueConsumer implements Runnable {
         @Nullable
         private SubmissionQueueImpl currentQueue;
-        private boolean locallyFinished;
         private boolean slotReleased;
 
         @Override
         public void run() {
             while (shouldContinue()) {
-                runOnce();
+                Runnable work = pullFromQueues();
+                if (work == null) {
+                    break;
+                }
+                // Most task throwables will be handled by FutureTask.
+                // Unexpected throwables are handled by backing executor.
+                work.run();
             }
+        }
+
+        /**
+         * Extension of {@link #shouldContinue()} that also checks if there is work to do,
+         * as we otherwise wouldn't be able to exit the lease wait if there is no work to do.
+         *
+         * @return {@code true} if this worker should keep waiting for a lease
+         */
+        boolean shouldContinueWaitingForLease() {
+            if (!shouldContinue()) {
+                return false;
+            }
+            // `currentQueue` is not set while waiting for a lease, so no need to check it.
+            for (SubmissionQueueImpl queue : activeQueues) {
+                if (queue.hasWork()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
@@ -190,8 +218,8 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
          * worker just unblocked, shrinking the cap), this method atomically releases this
          * worker's slot and returns {@code false} so the loop exits.
          */
-        boolean shouldContinue() {
-            if (locallyFinished || shutdown.get() || slotReleased) {
+        private boolean shouldContinue() {
+            if (shutdown.get() || slotReleased) {
                 return false;
             }
             if (workerCounter.tryReleaseExcessSlot()) {
@@ -199,24 +227,6 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
                 return false;
             }
             return true;
-        }
-
-        void releaseSlotIfStillOwned() {
-            if (!slotReleased) {
-                workerCounter.releaseSlot();
-                slotReleased = true;
-            }
-        }
-
-        private void runOnce() {
-            Runnable work = pullFromQueues();
-            if (work != null) {
-                // Most task throwables will be handled by FutureTask.
-                // Unexpected throwables are handled by backing executor.
-                work.run();
-            } else {
-                locallyFinished = true;
-            }
         }
 
         @Nullable
@@ -243,5 +253,11 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             return iterator.hasNext() ? iterator.next() : null;
         }
 
+        void releaseSlotIfStillOwned() {
+            if (!slotReleased) {
+                workerCounter.releaseSlot();
+                slotReleased = true;
+            }
+        }
     }
 }
