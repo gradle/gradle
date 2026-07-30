@@ -71,6 +71,7 @@ import java.util.stream.Collectors;
  * <p>This task uses Groovy's Groovydoc tool to generate the API documentation. Please note
  * that the Groovydoc tool has some limitations at the moment. The version of the Groovydoc
  * that is used, is the one from the Groovy dependency defined in the build script.
+ * @since 0.7
  */
 @CacheableTask
 public abstract class Groovydoc extends SourceTask {
@@ -130,6 +131,11 @@ public abstract class Groovydoc extends SourceTask {
     @Internal
     public abstract Property<String> getMaxMemory();
 
+    /**
+     * Generate.
+     *
+     * @since 0.8
+     */
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
@@ -229,6 +235,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the directory to generate the documentation into.
      *
      * @return The directory to generate the documentation into
+     * @since 0.7
      */
     @ReplacedBy("destinationDirectory")
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationDirectory() instead", willBeDeprecated = true)
@@ -238,6 +245,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets the directory to generate the documentation into.
+     * @since 0.7
      */
     public void setDestinationDir(File destinationDir) {
         getDestinationDirectory().set(destinationDir);
@@ -248,6 +256,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the classpath containing the Groovy library to be used.
      *
      * @return The classpath containing the Groovy library to be used
+     * @since 0.7
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -257,6 +266,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets the classpath containing the Groovy library to be used.
+     * @since 0.7
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
@@ -266,6 +276,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the classpath used to locate classes referenced by the documented sources.
      *
      * @return The classpath used to locate classes referenced by the documented sources
+     * @since 1.0
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -275,6 +286,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets the classpath used to locate classes referenced by the documented sources.
+     * @since 1.0
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
@@ -282,6 +294,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to create class and package usage pages.
+     * @since 0.8
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -291,6 +304,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to create class and package usage pages.
+     * @since 0.8
      */
     public void setUse(boolean use) {
         this.use = use;
@@ -298,6 +312,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -307,6 +322,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     public void setNoTimestamp(boolean noTimestamp) {
         this.noTimestamp = noTimestamp;
@@ -314,6 +330,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -323,6 +340,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     public void setNoVersionStamp(boolean noVersionStamp) {
         this.noVersionStamp = noVersionStamp;
@@ -330,6 +348,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the browser window title for the documentation. Set to {@code null} when there is no window title.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -343,6 +362,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets the browser window title for the documentation.
      *
      * @param windowTitle A text for the windows title
+     * @since 0.8
      */
     public void setWindowTitle(@Nullable String windowTitle) {
         this.windowTitle = windowTitle;
@@ -350,6 +370,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the title for the package index(first) page. Set to {@code null} when there is no document title.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -363,6 +384,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets title for the package index(first) page (optional).
      *
      * @param docTitle the docTitle as HTML
+     * @since 0.8
      */
     public void setDocTitle(@Nullable String docTitle) {
         this.docTitle = docTitle;
@@ -370,6 +392,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the HTML header for each page. Set to {@code null} when there is no header.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -383,6 +406,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets header text for each page (optional).
      *
      * @param header the header as HTML
+     * @since 0.8
      */
     public void setHeader(@Nullable String header) {
         this.header = header;
@@ -390,6 +414,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the HTML footer for each page. Set to {@code null} when there is no footer.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -403,6 +428,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets footer text for each page (optional).
      *
      * @param footer the footer as HTML
+     * @since 0.8
      */
     public void setFooter(@Nullable String footer) {
         this.footer = footer;
@@ -410,6 +436,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
+     * @since 2.14
      */
     @Nullable
     @Optional
@@ -422,6 +449,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets a HTML text to be used for overview documentation (optional).
      * <p>
      * <b>Example:</b> {@code overviewText = resources.text.fromFile("/overview.html")}
+     * @since 2.14
      */
     public void setOverviewText(@Nullable TextResource overviewText) {
         this.overview = overviewText;
@@ -588,6 +616,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the links to groovydoc/javadoc output at the given URL.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -600,6 +629,7 @@ public abstract class Groovydoc extends SourceTask {
      *
      * @param links The links to set
      * @see #link(String, String...)
+     * @since 0.9
      */
     public void setLinks(Set<Link> links) {
         this.links = links;
@@ -610,6 +640,7 @@ public abstract class Groovydoc extends SourceTask {
      *
      * @param url Base URL of external site
      * @param packages list of package prefixes
+     * @since 0.9
      */
     public void link(String url, String... packages) {
         links.add(new Link(url, packages));
@@ -617,6 +648,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * A Link class represent a link between groovydoc/javadoc output and url.
+     * @since 0.9
      */
     public static class Link implements Serializable {
         private List<String> packages = new ArrayList<String>();
@@ -627,6 +659,7 @@ public abstract class Groovydoc extends SourceTask {
          *
          * @param url Base URL of external site
          * @param packages list of package prefixes
+         * @since 0.9
          */
         public Link(String url, String... packages) {
             throwExceptionIfNull(url, "Url must not be null");
@@ -648,6 +681,7 @@ public abstract class Groovydoc extends SourceTask {
 
         /**
          * Returns a list of package prefixes to be linked with an external site.
+         * @since 0.9
          */
         public List<String> getPackages() {
             return Collections.unmodifiableList(packages);
@@ -655,6 +689,7 @@ public abstract class Groovydoc extends SourceTask {
 
         /**
          * Returns the base url for the external site.
+         * @since 0.9
          */
         public String getUrl() {
             return url;

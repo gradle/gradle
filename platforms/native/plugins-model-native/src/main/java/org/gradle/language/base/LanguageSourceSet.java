@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
  * A set of sources for a programming language.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 1.6
  */
 @Incubating
 @HasInternalProtocol
@@ -38,11 +39,22 @@ public interface LanguageSourceSet extends BuildableComponentSpec {
 
     /**
      * The source files.
+     * @since 1.6
      */
     SourceDirectorySet getSource();
 
+    /**
+     * Generated.
+     *
+     * @since 1.11
+     */
     void generatedBy(Task generatorTask);
 
+    /**
+     * Returns the parent name.
+     *
+     * @since 2.9
+     */
     @Nullable
     String getParentName();
 }

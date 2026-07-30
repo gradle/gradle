@@ -20,6 +20,7 @@ import org.gradle.api.component.Component;
 
 /**
  * A Maven Module component.
+ * @since 2.3
  */
 public interface MavenModule extends Component {
 }

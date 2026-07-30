@@ -25,16 +25,27 @@ import java.io.File;
  * Specifies the installation location for a native executable.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.9
  */
 @Incubating @UnmanagedStruct
 @Deprecated
 public class NativeInstallationSpec {
     private File directory;
 
+    /**
+     * Returns the directory.
+     *
+     * @since 2.9
+     */
     public File getDirectory() {
         return directory;
     }
 
+    /**
+     * Sets the directory.
+     *
+     * @since 2.9
+     */
     public void setDirectory(File directory) {
         this.directory = directory;
     }

@@ -29,6 +29,7 @@ import java.util.Collection;
 
 /**
  * Base Code Quality Extension.
+ * @since 1.0
  */
 public abstract class CodeQualityExtension {
 
@@ -38,6 +39,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The version of the code quality tool to be used.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     public String getToolVersion() {
@@ -46,6 +48,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The version of the code quality tool to be used.
+     * @since 1.0
      */
     public void setToolVersion(String toolVersion) {
         this.toolVersion = toolVersion;
@@ -53,6 +56,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public Collection<SourceSet> getSourceSets() {
@@ -61,6 +65,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
+     * @since 1.0
      */
     public void setSourceSets(Collection<SourceSet> sourceSets) {
         this.sourceSets = sourceSets;
@@ -70,6 +75,7 @@ public abstract class CodeQualityExtension {
      * Whether to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     public boolean isIgnoreFailures() {
@@ -80,6 +86,7 @@ public abstract class CodeQualityExtension {
      * Whether to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
+     * @since 1.0
      */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
@@ -95,6 +102,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The directory where reports will be generated.
+     * @since 1.0
      */
     @ReplacedBy("reportsDirectory")
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getReportsDirectory() instead", willBeDeprecated = true)
@@ -104,6 +112,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * Sets the directory where reports will be generated.
+     * @since 1.0
      */
     public void setReportsDir(File reportsDir) {
         getReportsDirectory().set(reportsDir);

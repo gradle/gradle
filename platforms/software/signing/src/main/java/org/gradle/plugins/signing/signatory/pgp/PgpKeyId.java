@@ -22,25 +22,46 @@ import java.util.Locale;
 
 /**
  * A normalised form for keys, which are friendliest for users as hex strings but used internally as longs.
+ * @since 1.0
  */
 public class PgpKeyId implements Comparable<PgpKeyId> {
 
     private final long asLong;
     private final String asHex;
 
+    /**
+     * Creates a new {@code PgpKeyId}.
+     *
+     * @since 1.0
+     */
     public PgpKeyId(long keyId) {
         asLong = keyId;
         asHex = toHex(keyId);
     }
 
+    /**
+     * Creates a new {@code PgpKeyId}.
+     *
+     * @since 1.0
+     */
     public PgpKeyId(PGPPublicKey keyId) {
         this(keyId.getKeyID());
     }
 
+    /**
+     * Creates a new {@code PgpKeyId}.
+     *
+     * @since 1.0
+     */
     public PgpKeyId(PGPSignature signature) {
         this(signature.getKeyID());
     }
 
+    /**
+     * Creates a new {@code PgpKeyId}.
+     *
+     * @since 1.0
+     */
     public PgpKeyId(String keyId) {
         asLong = toLong(keyId);
         asHex = toHex(asLong);
@@ -69,18 +90,38 @@ public class PgpKeyId implements Comparable<PgpKeyId> {
             : this.asHex.compareTo(other.asHex);
     }
 
+    /**
+     * Returns the as hex.
+     *
+     * @since 1.0
+     */
     public final String getAsHex() {
         return asHex;
     }
 
+    /**
+     * Returns the as long.
+     *
+     * @since 1.0
+     */
     public final long getAsLong() {
         return asLong;
     }
 
+    /**
+     * To hex.
+     *
+     * @since 1.0
+     */
     public static String toHex(long keyId) {
         return String.format("%08X", 0xFFFFFFFFL & keyId);
     }
 
+    /**
+     * To long.
+     *
+     * @since 1.0
+     */
     public static long toLong(String keyId) {
         if (keyId == null) {
             throw new IllegalArgumentException("'keyId' cannot be null");

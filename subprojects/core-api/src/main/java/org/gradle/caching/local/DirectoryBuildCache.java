@@ -31,6 +31,7 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
 
     /**
      * Returns the directory to use to store the build cache.
+     * @since 3.5
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -42,6 +43,7 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
      * Sets the directory to use to store the build cache.
      *
      * The directory is evaluated as per {@code Project.file(Object)}.
+     * @since 3.5
      */
     public void setDirectory(@Nullable Object directory) {
         this.directory = directory;

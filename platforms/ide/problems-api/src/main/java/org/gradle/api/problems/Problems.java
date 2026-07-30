@@ -29,7 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * <p>
  * Clients should expect that in future Gradle versions the reported problems will appear in console messages, reports, etc.
  *
- * @since 8.6
+ * @since 8.4
  */
 @Incubating
 @ServiceScope(Scope.BuildTree.class)

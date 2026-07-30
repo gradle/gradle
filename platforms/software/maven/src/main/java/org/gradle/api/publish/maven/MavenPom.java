@@ -41,12 +41,14 @@ public interface MavenPom {
 
     /**
      * Returns the packaging (for example: jar, war) for the publication represented by this POM.
+     * @since 1.7
      */
     @ToBeReplacedByLazyProperty
     String getPackaging();
 
     /**
      * Sets the packaging for the publication represented by this POM.
+     * @since 1.7
      */
     void setPackaging(String packaging);
 
@@ -178,6 +180,7 @@ public interface MavenPom {
      * @param action The configuration action.
      * @see MavenPublication
      * @see XmlProvider
+     * @since 1.4
      */
     void withXml(Action<? super XmlProvider> action);
 

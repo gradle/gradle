@@ -59,6 +59,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * Plugin that provides support for generating Jacoco coverage data.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/jacoco_plugin.html">JaCoCo plugin reference</a>
+ * @since 1.6
  */
 public abstract class JacocoPlugin implements Plugin<Project> {
 
@@ -68,8 +69,23 @@ public abstract class JacocoPlugin implements Plugin<Project> {
      * @since 3.4
      */
     public static final String DEFAULT_JACOCO_VERSION = "0.8.14";
+    /**
+     * The agent configuration name.
+     *
+     * @since 2.14
+     */
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
+    /**
+     * The ant configuration name.
+     *
+     * @since 2.14
+     */
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
+    /**
+     * The plugin extension name.
+     *
+     * @since 2.14
+     */
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
 
     private final Instantiator instantiator;

@@ -34,6 +34,7 @@ public interface DependencyResolutionManagement {
     /**
      * Configures the repositories used by all projects
      * @param repositoryConfiguration the repositories configuration
+     * @since 6.8
      */
     @Incubating
     @HiddenInDefinition
@@ -41,25 +42,38 @@ public interface DependencyResolutionManagement {
 
     /**
      * Returns the shared repository handler
+     * @since 6.8
      */
     @Incubating
     RepositoryHandler getRepositories();
 
+    /**
+     * Returns the repositories mode.
+     *
+     * @since 6.8
+     */
     @Incubating
     Property<RepositoriesMode> getRepositoriesMode();
 
     /**
      * Registers component metadata rules used by all projects
      * @param registration the registration action
+     * @since 6.8
      */
     @HiddenInDefinition
     void components(Action<? super ComponentMetadataHandler> registration);
 
+    /**
+     * Returns the rules mode.
+     *
+     * @since 6.8
+     */
     @HiddenInDefinition
     Property<RulesMode> getRulesMode();
 
     /**
      * Returns the shared component metadata handler
+     * @since 6.8
      */
     @HiddenInDefinition
     ComponentMetadataHandler getComponents();

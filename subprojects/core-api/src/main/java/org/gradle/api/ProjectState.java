@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * {@code ProjectState} provides information about the execution state of a project.
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface ProjectState {
@@ -28,6 +29,7 @@ public interface ProjectState {
      * <p>Returns true if this project has been evaluated.</p>
      *
      * @return true if this project has been evaluated.
+     * @since 0.9
      */
     boolean getExecuted();
 
@@ -35,12 +37,14 @@ public interface ProjectState {
      * Returns the exception describing the project failure, if any.
      *
      * @return The exception, or null if project evaluation did not fail.
+     * @since 0.9
      */
     @Nullable
     Throwable getFailure();
 
     /**
      * Throws the project failure, if any. Does nothing if the project did not fail.
+     * @since 0.9
      */
     void rethrowFailure();
 }

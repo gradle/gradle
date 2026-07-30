@@ -37,6 +37,11 @@ import org.gradle.api.Incubating;
  * @since 7.4
  */
 public class VerificationException extends GradleException {
+    /**
+     * Creates a new {@code VerificationException}.
+     *
+     * @since 7.4
+     */
     public VerificationException(String message) {
         super(message);
     }

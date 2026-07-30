@@ -37,6 +37,7 @@ import org.gradle.internal.service.scopes.Scope;
  *     <li>Before <strong>each</strong> "test suite" as defined by the testing framework is executed
  *     (for JVM, this typically means prior to every test class)</li>
  * </ol>
+ * @since 0.9
  */
 @EventScope(Scope.Build.class)
 @DeprecatedInGradleScope
@@ -44,6 +45,7 @@ public interface TestListener {
     /**
      * Called before a test suite is started.
      * @param suite The suite whose tests are about to be executed.
+     * @since 0.9
      */
     default void beforeSuite(TestDescriptor suite) {}
 
@@ -51,12 +53,14 @@ public interface TestListener {
      * Called after a test suite is finished.
      * @param suite The suite whose tests have finished being executed.
      * @param result The aggregate result for the suite.
+     * @since 0.9
      */
     default void afterSuite(TestDescriptor suite, TestResult result) {}
 
     /**
      * Called before an atomic test is started.
      * @param testDescriptor The test which is about to be executed.
+     * @since 0.9
      */
     default void beforeTest(TestDescriptor testDescriptor) {}
 
@@ -64,6 +68,7 @@ public interface TestListener {
      * Called after an atomic test is finished.
      * @param testDescriptor The test which has finished executing.
      * @param result The test result.
+     * @since 0.9
      */
     default void afterTest(TestDescriptor testDescriptor, TestResult result) {}
 }

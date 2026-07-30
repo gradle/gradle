@@ -45,6 +45,7 @@ import static org.gradle.internal.UncheckedException.uncheckedCall;
  * A digital signature file artifact.
  *
  * <p>A signature file is always generated from another file, which may be a {@link PublishArtifact}.</p>
+ * @since 1.0
  */
 public class Signature extends AbstractPublishArtifact {
 
@@ -118,6 +119,7 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      *
      * @deprecated This constructor will be deprecated in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public Signature(final PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
@@ -152,6 +154,7 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      *
      * @deprecated This constructor will be deprecated in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public Signature(final File toSign, SignatureSpec signatureSpec, Object... tasks) {
@@ -174,6 +177,7 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      *
      * @deprecated This constructor will be deprecated in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public Signature(final File toSign, final String classifier, SignatureSpec signatureSpec, Object... tasks) {
@@ -199,6 +203,7 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      *
      * @deprecated This constructor will be deprecated in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public Signature(Closure<File> toSign, Closure<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
@@ -224,6 +229,7 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      *
      * @deprecated This constructor will be deprecated in Gradle 10.
+     * @since 3.0
      */
     @Deprecated
     public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
@@ -242,6 +248,7 @@ public class Signature extends AbstractPublishArtifact {
      * The file that is to be signed.
      *
      * @return The file. May be {@code null} if unknown at this time.
+     * @since 1.0
      */
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
@@ -254,6 +261,7 @@ public class Signature extends AbstractPublishArtifact {
      * Set the name returned by {@link #getName()}.
      *
      * @deprecated This method will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setName(String name) {
@@ -297,6 +305,7 @@ public class Signature extends AbstractPublishArtifact {
      * Set the extension returned by {@link #getExtension()}.
      *
      * @deprecated This method will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setExtension(String extension) {
@@ -338,6 +347,7 @@ public class Signature extends AbstractPublishArtifact {
      * Set the type returned by {@link #getType()}.
      *
      * @deprecated This method will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setType(String type) {
@@ -383,6 +393,7 @@ public class Signature extends AbstractPublishArtifact {
      * Set the classifier returned by {@link #getClassifier()}.
      *
      * @deprecated This method will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setClassifier(String classifier) {
@@ -423,6 +434,7 @@ public class Signature extends AbstractPublishArtifact {
      * Set the date returned by {@link #getDate()}.
      *
      * @deprecated This method will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setDate(Date date) {
@@ -494,6 +506,7 @@ public class Signature extends AbstractPublishArtifact {
      * The signatory of this signature file.
      *
      * @return The signatory. May be {@code null} if unknown at this time.
+     * @since 1.0
      */
     @Internal("already tracked as part of the Sign task")
     @ToBeReplacedByLazyProperty
@@ -505,6 +518,7 @@ public class Signature extends AbstractPublishArtifact {
      * The file representation type of the signature.
      *
      * @return The signature type. May be {@code null} if unknown at this time.
+     * @since 1.0
      */
     @Internal("already tracked as part of the Sign task")
     @ToBeReplacedByLazyProperty
@@ -512,11 +526,21 @@ public class Signature extends AbstractPublishArtifact {
         return signatureSpec.getSignatureType();
     }
 
+    /**
+     * Sets the signature spec.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("unused")
     public void setSignatureSpec(SignatureSpec signatureSpec) {
         this.signatureSpec = signatureSpec;
     }
 
+    /**
+     * Returns the signature spec.
+     *
+     * @since 1.0
+     */
     @Internal
     @SuppressWarnings("unused")
     @ToBeReplacedByLazyProperty
@@ -585,6 +609,7 @@ public class Signature extends AbstractPublishArtifact {
      * {@link #getSignatureType() signature type} must be known (i.e. non {@code null}).</p>
      *
      * @throws InvalidUserDataException if the there is insufficient information available to generate the signature.
+     * @since 1.0
      */
     public void generate() {
         Generator generator = getGenerator();
@@ -638,23 +663,43 @@ public class Signature extends AbstractPublishArtifact {
         private final Signatory signatory;
         private final File toSign;
 
+        /**
+         * Creates a new {@code Generator}.
+         *
+         * @since 8.1
+         */
         public Generator(SignatureType signatureType, Signatory signatory, File toSign) {
             this.signatureType = signatureType;
             this.signatory = signatory;
             this.toSign = toSign;
         }
 
+        /**
+         * Returns the to sign.
+         *
+         * @since 8.1
+         */
         @PathSensitive(PathSensitivity.NONE)
         @InputFile
         public File getToSign() {
             return toSign;
         }
 
+        /**
+         * Returns the file.
+         *
+         * @since 8.1
+         */
         @OutputFile
         public File getFile() {
             return signatureType.fileFor(toSign);
         }
 
+        /**
+         * Generate.
+         *
+         * @since 8.1
+         */
         public void generate() {
             signatureType.sign(signatory, toSign);
         }

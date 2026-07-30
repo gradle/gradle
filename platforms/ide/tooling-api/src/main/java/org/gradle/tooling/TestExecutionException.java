@@ -26,6 +26,11 @@ import java.util.List;
  * @since 2.6
  */
 public class TestExecutionException extends GradleConnectionException {
+    /**
+     * Creates a new {@code TestExecutionException}.
+     *
+     * @since 2.6
+     */
     public TestExecutionException(String message, Throwable throwable) {
         super(message, throwable);
     }
@@ -40,6 +45,11 @@ public class TestExecutionException extends GradleConnectionException {
         super(message, throwable, failures);
     }
 
+    /**
+     * Creates a new {@code TestExecutionException}.
+     *
+     * @since 2.6
+     */
     public TestExecutionException(String message) {
         super(message);
     }

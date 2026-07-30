@@ -28,9 +28,15 @@ import kotlin.script.dependencies.PseudoFuture
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptDependenciesResolver
 
+/**
+ * @since 4.7
+ */
 @Deprecated("Will be removed in Gradle 10")
 class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
+    /**
+     * @since 5.3
+     */
     companion object {
 
         init {
@@ -40,15 +46,23 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
                 .nagUser()
         }
 
+        /**
+         * @since 5.3
+         */
         fun hashOf(charSequence: CharSequence) =
             KotlinScriptHashing.hashOf(charSequence)
 
+        /**
+         * @since 6.3
+         */
         fun hashOfNormalisedString(charSequence: CharSequence) =
             KotlinScriptHashing.hashOfNormalisedString(charSequence)
 
         /**
          * **Optimisation note**: assumes [scriptText] contains only `\n` line separators as any script text
          * coming from the Kotlin compiler already should.
+         *
+         * @since 6.0
          */
         fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
             implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
@@ -71,9 +85,21 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
             this?.get(key) as? String
     }
 
+    /**
+     * @since 4.7
+     */
     object EnvironmentProperties {
+        /**
+         * @since 4.7
+         */
         const val kotlinDslImplicitImports = "kotlinDslImplicitImports"
+        /**
+         * @since 8.13
+         */
         const val kotlinDslPluginSpecBuildersImplicitImports = "kotlinDslPluginSpecBuildersImplicitImports"
+        /**
+         * @since 8.1
+         */
         const val projectRoot = "projectRoot"
     }
 

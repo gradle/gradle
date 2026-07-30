@@ -73,6 +73,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      *
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
+     * @since 4.0
      */
     <T> Provider<T> provider(Callable<? extends @Nullable T> value);
 

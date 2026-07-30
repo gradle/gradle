@@ -29,11 +29,13 @@ public interface CatalogPluginExtension {
     /**
      * Configures the version catalog.
      * @param spec the spec used to configure the dependencies
+     * @since 7.0
      */
     void versionCatalog(Action<? super VersionCatalogBuilder> spec);
 
     /**
      * Configures an explicit alias for a dependency in case of name clash
+     * @since 7.0
      */
     void configureExplicitAlias(String alias, String group, String name);
 }

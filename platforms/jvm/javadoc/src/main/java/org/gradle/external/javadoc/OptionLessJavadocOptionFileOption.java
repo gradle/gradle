@@ -26,13 +26,29 @@ import java.io.IOException;
  * Represents a Javadoc option.
  *
  * @param <T> The type which this option represents.
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface OptionLessJavadocOptionFileOption<T> {
+    /**
+     * Returns the value.
+     *
+     * @since 0.9
+     */
     @NotToBeReplacedByLazyProperty(because = "OptionLessJavadocOptionFileOption should be deprecated and replaced with a Property")
     T getValue();
 
+    /**
+     * Sets the value.
+     *
+     * @since 0.9
+     */
     void setValue(T value);
 
+    /**
+     * Write.
+     *
+     * @since 0.9
+     */
     void write(JavadocOptionFileWriterContext writerContext) throws IOException;
 }

@@ -77,6 +77,7 @@ public interface FlowProviders {
      *
      * @see FlowAction
      * @see FlowScope
+     * @since 8.1
      */
     Provider<BuildWorkResult> getBuildWorkResult();
 }

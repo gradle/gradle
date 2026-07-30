@@ -85,21 +85,48 @@ import java.util.function.Supplier;
  * (for example) the Java, Groovy, or Kotlin plugins.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
+ * @since 0.9
  */
 public abstract class JavaBasePlugin implements Plugin<Project> {
+    /**
+     * The check task name.
+     *
+     * @since 0.9
+     */
     public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
 
+    /**
+     * The verification group.
+     *
+     * @since 0.9
+     */
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
+    /**
+     * The build task name.
+     *
+     * @since 0.9
+     */
     public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
 
+    /**
+     * The build dependents task name.
+     *
+     * @since 0.9
+     */
     @Deprecated
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
 
+    /**
+     * The build needed task name.
+     *
+     * @since 0.9
+     */
     @Deprecated
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
 
     /**
      * Task group name for documentation-related tasks.
+     * @since 0.9
      */
     public static final String DOCUMENTATION_GROUP = JvmConstants.DOCUMENTATION_GROUP;
 

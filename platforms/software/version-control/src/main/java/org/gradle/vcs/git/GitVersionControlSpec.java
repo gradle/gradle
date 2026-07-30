@@ -24,7 +24,7 @@ import java.net.URI;
 /**
  * A specification of a Git repository.
  *
- * @since 4.4
+ * @since 4.3
  */
 public interface GitVersionControlSpec extends VersionControlSpec {
     /**
@@ -35,17 +35,20 @@ public interface GitVersionControlSpec extends VersionControlSpec {
      * Specifically, {@link java.net.URL} extends {@link URI} to add network
      * operations which are both unsuited for simple data specification and
      * allocate additional memory.</p>
+     * @since 4.3
      */
     @ToBeReplacedByLazyProperty
     URI getUrl();
 
     /**
      * Sets the URL of the repository.
+     * @since 4.3
      */
     void setUrl(URI url);
 
     /**
      * Sets the URL of the repository.
+     * @since 4.3
      */
     void setUrl(String url);
 }

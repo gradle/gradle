@@ -34,6 +34,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
  * Legacy base class for Gradle Kotlin DSL standalone [Project] scripts IDE support, aka. build scripts.
  *
  * @see KotlinProjectScriptTemplate
+ *
+ * @since 4.1
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
@@ -71,6 +73,8 @@ abstract class KotlinBuildScript(
      * Configures the build script classpath for this project.
      *
      * @see [Project.buildscript]
+     *
+     * @since 4.1
      */
     @Suppress("unused")
     open fun buildscript(block: ScriptHandlerScope.() -> Unit): Unit =
@@ -80,6 +84,8 @@ abstract class KotlinBuildScript(
      * Configures the plugin dependencies for this project.
      *
      * @see [PluginDependenciesSpec]
+     *
+     * @since 4.1
      */
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =

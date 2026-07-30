@@ -37,28 +37,54 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).
+ * @since 1.0
  */
 public class Classpath extends XmlPersistableConfigurationObject {
     private final FileReferenceFactory fileReferenceFactory;
     private List<ClasspathEntry> entries = new ArrayList<>();
 
+    /**
+     * Creates a new {@code Classpath}.
+     *
+     * @since 1.0
+     */
     public Classpath(XmlTransformer xmlTransformer, FileReferenceFactory fileReferenceFactory) {
         super(xmlTransformer);
         this.fileReferenceFactory = fileReferenceFactory;
     }
 
+    /**
+     * Creates a new {@code Classpath}.
+     *
+     * @since 3.0
+     */
     public Classpath(FileReferenceFactory fileReferenceFactory) {
         this(new XmlTransformer(), fileReferenceFactory);
     }
 
+    /**
+     * Creates a new {@code Classpath}.
+     *
+     * @since 1.0
+     */
     public Classpath() {
         this(new FileReferenceFactory());
     }
 
+    /**
+     * Returns the entries.
+     *
+     * @since 1.0
+     */
     public List<ClasspathEntry> getEntries() {
         return entries;
     }
 
+    /**
+     * Sets the entries.
+     *
+     * @since 1.0
+     */
     public void setEntries(List<ClasspathEntry> entries) {
         this.entries = entries;
     }
@@ -88,6 +114,11 @@ public class Classpath extends XmlPersistableConfigurationObject {
         }
     }
 
+    /**
+     * Configure.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings({"unchecked"}) // TODO: Change this signature once we can break compatibility
     public Object configure(List<?> newEntries) {
         List<SourceFolder> newSourceFolders = newEntries.stream()
@@ -226,6 +257,7 @@ public class Classpath extends XmlPersistableConfigurationObject {
      * @return The new file reference.
      * @see AbstractLibrary#setJavadocPath(FileReference)
      * @see AbstractLibrary#setSourcePath(FileReference)
+     * @since 3.0
      */
     public FileReference fileReference(Object reference) {
         if (reference instanceof File) {

@@ -95,6 +95,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Examples on configuring the <b>resolution strategy</b> - see docs for {@link ResolutionStrategy}
  *
  * Please see the <a href="https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:what-are-dependency-configurations" target="_top">Managing Dependency Configurations</a> User Manual chapter for more information.
+ * @since 0.7
  */
 @HasInternalProtocol
 @ServiceScope(Scope.Project.class)
@@ -128,6 +129,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @param dependencies The dependencies of the configuration.
      * @return The configuration.
+     * @since 0.7
      */
     Configuration detachedConfiguration(Dependency... dependencies);
 

@@ -34,6 +34,7 @@ import java.util.Comparator;
  * eventually fail if they are not equal.</p>
  *
  * @param <T> the type of the attribute
+ * @since 3.3
  */
 @HasInternalProtocol
 public interface CompatibilityRuleChain<T> {
@@ -41,6 +42,7 @@ public interface CompatibilityRuleChain<T> {
      * Adds an ordered check rule to this chain.
      *
      * @param comparator the comparator to use
+     * @since 3.3
      */
     void ordered(Comparator<? super T> comparator);
 
@@ -48,6 +50,7 @@ public interface CompatibilityRuleChain<T> {
      * Adds an reverse ordered check rule to this chain.
      *
      * @param comparator the comparator to use
+     * @since 3.3
      */
     void reverseOrdered(Comparator<? super T> comparator);
 

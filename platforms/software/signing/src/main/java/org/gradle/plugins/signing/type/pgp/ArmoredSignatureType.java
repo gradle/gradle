@@ -26,6 +26,7 @@ import java.io.OutputStream;
 
 /**
  * Armored signature type.
+ * @since 1.0
  */
 public class ArmoredSignatureType extends AbstractSignatureType {
 

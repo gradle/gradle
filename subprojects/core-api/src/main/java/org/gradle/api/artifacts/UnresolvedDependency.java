@@ -17,17 +17,19 @@ package org.gradle.api.artifacts;
 
 /**
  * Unsuccessfully resolved dependency.
+ * @since 1.0
  */
 public interface UnresolvedDependency {
     /**
      * The module selector of the dependency.
      *
-     * @since 1.1-rc-1
+     * @since 1.1
      */
     ModuleVersionSelector getSelector();
 
     /**
      * the exception that is the cause of unresolved state
+     * @since 1.0
      */
     Throwable getProblem();
 }

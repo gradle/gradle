@@ -26,6 +26,7 @@ import java.util.Set;
 
 /**
  * Represents a component instance in the resolved dependency graph. Provides some basic identity and dependency information about the component.
+ * @since 1.10
  */
 @UsedByScanPlugin
 @HasInternalProtocol
@@ -43,6 +44,7 @@ public interface ResolvedComponentResult extends ComponentResult {
      * </ul>
      *
      * @return the dependencies of this component
+     * @since 1.10
      */
     Set<? extends DependencyResult> getDependencies();
 
@@ -50,6 +52,7 @@ public interface ResolvedComponentResult extends ComponentResult {
      * Returns the incoming dependencies of this component.
      *
      * @return the dependents of this component
+     * @since 1.10
      */
     Set<? extends ResolvedDependencyResult> getDependents();
 
@@ -58,6 +61,7 @@ public interface ResolvedComponentResult extends ComponentResult {
      * Useful if multiple candidate components were found during dependency resolution.
      *
      * @return the reason for selecting the component
+     * @since 1.10
      */
     ComponentSelectionReason getSelectionReason();
 
@@ -66,6 +70,7 @@ public interface ResolvedComponentResult extends ComponentResult {
      * module version for the component has been declared, usually by declaring how the component should be published.
      *
      * @return the module version of the component, or {@code null} if this component has no associated module version.
+     * @since 1.10
      */
     @Nullable
     ModuleVersionIdentifier getModuleVersion();

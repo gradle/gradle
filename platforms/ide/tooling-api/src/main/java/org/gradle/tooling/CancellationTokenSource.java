@@ -41,6 +41,7 @@ public interface CancellationTokenSource {
      * will notify its {@link org.gradle.tooling.ResultHandler#onFailure(GradleConnectionException)}
      * with a {@link BuildCancelledException} describing how it was cancelled.
      * </p>
+     * @since 2.1
      */
     void cancel();
 
@@ -49,6 +50,7 @@ public interface CancellationTokenSource {
      * Always returns the same instance.
      *
      * @return The cancellation token.
+     * @since 2.1
      */
     CancellationToken token();
 }

@@ -29,6 +29,7 @@ import org.gradle.api.Named;
 public interface TestSuite extends Named {
     /**
      * Available targets for this test suite.
+     * @since 7.3
      */
     DomainObjectCollection<? extends TestSuiteTarget> getTargets();
 }

@@ -24,12 +24,14 @@ import org.gradle.api.tasks.Internal;
 
 /**
  * The reporting configuration for the {@link JacocoReport} task.
+ * @since 1.6
  */
 public interface JacocoReportsContainer extends ReportContainer<ConfigurableReport> {
     /**
      * The JaCoCo HTML report
      *
      * @return The JaCoCo HTML report
+     * @since 1.6
      */
     @Internal
     DirectoryReport getHtml();
@@ -38,6 +40,7 @@ public interface JacocoReportsContainer extends ReportContainer<ConfigurableRepo
      * The JaCoCo (single file) XML report
      *
      * @return The JaCoCo (single file) XML report
+     * @since 1.6
      */
     @Internal
     SingleFileReport getXml();
@@ -46,6 +49,7 @@ public interface JacocoReportsContainer extends ReportContainer<ConfigurableRepo
      * The JaCoCo (single file) CSV report
      *
      * @return The JaCoCo (single file) CSV report
+     * @since 1.6
      */
     @Internal
     SingleFileReport getCsv();

@@ -57,6 +57,7 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
      * (see {@link UserClassFilePermissions}).
+     * @since 8.3
      */
     void user(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
@@ -78,6 +79,7 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
      * (see {@link UserClassFilePermissions}).
+     * @since 8.3
      */
     void group(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
@@ -100,6 +102,7 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
      * (see {@link UserClassFilePermissions}).
+     * @since 8.3
      */
     void other(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
@@ -199,6 +202,7 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      * into(...)
      * filePermissions { unix("r--r--r--") }
      * </pre>
+     * @since 8.3
      */
     void unix(String unixNumericOrSymbolic);
 
@@ -218,6 +222,7 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      *   unix(482)            // decimal int literal
      *   unix("rwxr-----")    // non-numeric string
      * </pre>
+     * @since 8.3
      */
     void unix(int unixNumeric);
 

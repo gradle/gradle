@@ -28,11 +28,13 @@ public interface MavenPomOrganization {
 
     /**
      * The name of this organization.
+     * @since 4.8
      */
     Property<String> getName();
 
     /**
      * The URL of this organization.
+     * @since 4.8
      */
     Property<String> getUrl();
 

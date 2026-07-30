@@ -34,6 +34,7 @@ public interface CompatibilityCheckDetails<T> {
      * Never equal to the {@link #getProducerValue()}.
      *
      * @return the value from the consumer
+     * @since 3.3
      */
     @Nullable
     T getConsumerValue();
@@ -44,17 +45,20 @@ public interface CompatibilityCheckDetails<T> {
      * Never equal to the {@link #getConsumerValue()}.
      *
      * @return the value from the producer
+     * @since 3.3
      */
     @Nullable
     T getProducerValue();
 
     /**
      * Calling this method will indicate that the attributes are compatible.
+     * @since 3.3
      */
     void compatible();
 
     /**
      * Calling this method will indicate that the attributes are incompatible.
+     * @since 3.3
      */
     void incompatible();
 }
