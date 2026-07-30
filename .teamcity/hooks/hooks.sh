@@ -30,11 +30,16 @@ case "${PHASE}" in
   *) echo "Usage: $(basename "$0") (pre|post)" >&2; exit 2 ;;
 esac
 
-# Only smoke tests share the integration-test Gradle user home, so only they benefit here.
-if [[ "${BUILD_TYPE_ID:-}" != *SmokeTest* ]]; then
-  echo "Skipping artifact cache: BUILD_TYPE_ID='${BUILD_TYPE_ID:-}' is not a SmokeTest build."
-  exit 0
-fi
+# Only builds that reuse the shared integration-test Gradle user home (intTestHomeDir/distributions-*)
+# benefit here: the smoke tests, and the AllVersionsCrossVersion flaky quarantine, which otherwise
+# re-downloads ~40 released Gradle distributions (several GB) on every run (gradle-private#4895).
+case "${BUILD_TYPE_ID:-}" in
+  *SmokeTest* | *FlakyQuarantine_Check_AllVersionsCrossVersion*) ;;
+  *)
+    echo "Skipping artifact cache: BUILD_TYPE_ID='${BUILD_TYPE_ID:-}' does not use the shared integration-test home."
+    exit 0
+    ;;
+esac
 
 # The CI agent provides the artifact-cache contract; without it (local/non-EC2) do nothing.
 if [[ ! -x "${GRADLE_UNIVERSAL_CACHE_CLI_PATH:-}" ]]; then
