@@ -34,11 +34,19 @@ import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 import org.gradle.util.internal.TextUtil
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests
+
+    // The Kotlin plugin calls the deprecated Configuration.setVisible(boolean) method until KT-78754 was fixed in Kotlin 2.3.20 / 2.4.0
+    private static final String SET_VISIBLE_DEPRECATION =
+        "The Configuration.setVisible(boolean) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 10. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property"
 
     def setup() {
         captureBuildOperations()
@@ -438,7 +446,13 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }
         """
 
+        and:
+        def kotlinCallsSetVisibleMethod = VersionNumber.parse(kotlinPluginVersion).baseVersion < VersionNumber.parse("2.3.20")
+
         when:
+        if (kotlinCallsSetVisibleMethod) {
+            executer.expectDocumentedDeprecationWarning(SET_VISIBLE_DEPRECATION)
+        }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
         def eventsOnTest = toolchainEvents(":test")
@@ -454,6 +468,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         when:
+        // The second invocation is a configuration cache hit, so configuration (and the nag) does not re-run
+        if (kotlinCallsSetVisibleMethod && GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning(SET_VISIBLE_DEPRECATION)
+        }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         eventsOnCompile = toolchainEvents(":compileKotlin")
         eventsOnTest = toolchainEvents(":test")
