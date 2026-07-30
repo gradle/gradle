@@ -34,6 +34,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -166,6 +167,58 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         then:
         thrown IllegalStateException
+    }
+
+    def "queue completes when a constrained operation cannot be handed off"() {
+        given:
+        setupQueue(1)
+        workerLeaseProcessor.shutdown()
+
+        when:
+        operationQueue.add(new Success())
+
+        then:
+        thrown IllegalStateException
+
+        when:
+        operationQueue.cancel()
+        operationQueue.waitForCompletion()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "queue completes when an unconstrained operation cannot be handed off"() {
+        given:
+        setupQueue(1)
+        unconstrainedExecutor.shutdown()
+
+        when:
+        operationQueue.addUnconstrained(new Success())
+
+        then:
+        thrown RejectedExecutionException
+
+        when:
+        operationQueue.cancel()
+        operationQueue.waitForCompletion()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "constrained operation stays queued for the waiting thread when no worker can be spawned"() {
+        given:
+        setupQueue(1)
+        backingExecutor.shutdown()
+        def executed = new AtomicInteger()
+
+        when:
+        operationQueue.add(operation { executed.incrementAndGet() })
+        operationQueue.waitForCompletion()
+
+        then:
+        executed.get() == 1
     }
 
     def "unconstrained operations do not run on a worker thread"() {

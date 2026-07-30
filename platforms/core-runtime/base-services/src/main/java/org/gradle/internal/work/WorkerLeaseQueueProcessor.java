@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -140,19 +141,26 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             // We already have enough workers.
             return;
         }
-        backingExecutor.execute(() -> {
-            QueueConsumer consumer = new QueueConsumer();
-            try {
-                workerThreadRegistry.setOwningThreadPool(this);
+        try {
+            backingExecutor.execute(() -> {
+                QueueConsumer consumer = new QueueConsumer();
                 try {
-                    workerThreadRegistry.tryWhileConditionToRunAsWorkerThread(consumer, consumer::shouldContinueWaitingForLease);
+                    workerThreadRegistry.setOwningThreadPool(this);
+                    try {
+                        workerThreadRegistry.tryWhileConditionToRunAsWorkerThread(consumer, consumer::shouldContinueWaitingForLease);
+                    } finally {
+                        workerThreadRegistry.setOwningThreadPool(null);
+                    }
                 } finally {
-                    workerThreadRegistry.setOwningThreadPool(null);
+                    consumer.releaseSlotIfStillOwned();
                 }
-            } finally {
-                consumer.releaseSlotIfStillOwned();
-            }
-        });
+            });
+        } catch (RejectedExecutionException e) {
+            // The backing pool is shutting down, so we cannot add workers. Anything already queued is
+            // left to whichever thread is still draining. Propagating would break the all-or-nothing
+            // contract of SubmissionQueue.add, which has taken ownership of the task by this point.
+            workerCounter.releaseSlot();
+        }
     }
 
     @Override

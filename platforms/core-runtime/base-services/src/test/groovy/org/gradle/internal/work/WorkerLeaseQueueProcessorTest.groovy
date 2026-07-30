@@ -95,6 +95,36 @@ class WorkerLeaseQueueProcessorTest extends AbstractWorkerLeaseServiceTest {
         ran.await(15, TimeUnit.SECONDS)
     }
 
+    def "a rejected worker spawn neither fails the add nor leaks a slot"() {
+        given:
+        createProcessor(1)
+        def queue = leaseProcessor.createSubmissionQueue()
+        backingExecutor.shutdown()
+
+        when:
+        queue.add({} as Runnable)
+
+        then:
+        noExceptionThrown()
+        leaseProcessor.@workerCounter.currentWorkerCount() == 0
+    }
+
+    def "a rejected compensation spawn neither fails the caller nor leaks a slot"() {
+        given:
+        createProcessor(1, 2)
+        backingExecutor.shutdown()
+
+        when:
+        leaseProcessor.notifyBlockingWorkStarting()
+
+        then:
+        noExceptionThrown()
+        leaseProcessor.@workerCounter.currentWorkerCount() == 0
+
+        cleanup:
+        leaseProcessor.notifyBlockingWorkFinished()
+    }
+
     def "peak concurrent task execution does not exceed maxWorkers"() {
         given:
         createProcessor(2)

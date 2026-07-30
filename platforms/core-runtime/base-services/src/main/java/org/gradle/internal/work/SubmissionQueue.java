@@ -20,6 +20,17 @@ import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public interface SubmissionQueue {
+    /**
+     * Submit a task to be run by this queue.
+     *
+     * <p>
+     * Either the task is accepted or this throws; it never throws after taking ownership of the
+     * task. Callers that account for submitted work can therefore treat a failure here as "this
+     * task will never run".
+     *
+     * @param task the task to run
+     * @throws IllegalStateException if this queue can no longer accept work
+     */
     void add(Runnable task);
 
     /**

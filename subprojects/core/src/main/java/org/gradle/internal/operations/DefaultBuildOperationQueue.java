@@ -27,6 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
     private enum QueueStatus {
@@ -62,6 +63,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
         QueueState startOperation() {
             return new QueueState(status, pendingOperations - 1, inFlightOperations + 1);
+        }
+
+        QueueState removeOperation() {
+            return new QueueState(status, pendingOperations - 1, inFlightOperations);
         }
 
         QueueState finishOperation() {
@@ -112,12 +117,33 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     @Override
     public void add(T operation) {
-        constrainedQueue.add(registerOperation(operation));
+        submit(operation, constrainedQueue::add);
     }
 
     @Override
     public void addUnconstrained(T operation) {
-        unconstrainedExecutor.execute(registerOperation(operation));
+        submit(operation, unconstrainedExecutor::execute);
+    }
+
+    /**
+     * Accounts for a newly submitted operation and then hands it off to run.
+     *
+     * <p>If the hand-off fails the operation is unregistered again, so that a queue which is
+     * subsequently cancelled can still complete instead of waiting forever on work that was never
+     * scheduled. This relies on the hand-off either accepting the operation or throwing, never both.
+     *
+     * @param operation the operation to run
+     * @param handOff passes the wrapped operation to whatever will run it
+     * @throws IllegalStateException if this queue has already been cancelled or completed
+     */
+    private void submit(T operation, Consumer<Runnable> handOff) {
+        OperationRunnable runnable = registerOperation(operation);
+        try {
+            handOff.accept(runnable);
+        } catch (Throwable t) {
+            unregisterOperation();
+            throw t;
+        }
     }
 
     /**
@@ -139,6 +165,17 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         });
         return new OperationRunnable(operation);
+    }
+
+    /**
+     * Reverses {@link #registerOperation}, completing the queue if this was the last operation
+     * outstanding and no more can be submitted.
+     */
+    private void unregisterOperation() {
+        QueueState newState = state.updateAndGet(QueueState::removeOperation);
+        if (newState.isComplete() && newState.status != QueueStatus.WORKING) {
+            allOperationsComplete.countDown();
+        }
     }
 
     @Override
