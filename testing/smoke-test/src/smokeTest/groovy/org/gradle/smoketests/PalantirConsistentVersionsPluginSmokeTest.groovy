@@ -65,5 +65,13 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
                 "Using a Project object as a dependency notation has been deprecated. This will fail with an error in Gradle 10. Please use the project(String) method on DependencyHandler or the createProjectDependency(String) method on DependencyFactory instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_project_notation",
                 "https://github.com/palantir/gradle-consistent-versions/issues/1637"
             )
+            // The deprecation warning is expected until https://github.com/palantir/gradle-consistent-versions/issues/1700 is fixed
+            .expectDeprecationWarning(
+                "The Configuration.setVisible(boolean) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property",
+                "https://github.com/palantir/gradle-consistent-versions/issues/1700"
+            )
     }
 }
