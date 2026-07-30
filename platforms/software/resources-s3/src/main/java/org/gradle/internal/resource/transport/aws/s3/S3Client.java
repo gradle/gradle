@@ -32,7 +32,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -171,10 +171,12 @@ public class S3Client {
         ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = ClientOverrideConfiguration.builder();
         Optional<Integer> maxErrorRetryCount = s3ConnectionProperties.getMaxErrorRetryCount();
         if (maxErrorRetryCount.isPresent()) {
-            RetryPolicy retryPolicy = RetryPolicy.builder()
-                .numRetries(maxErrorRetryCount.get())
-                .build();
-            clientOverrideConfigurationBuilder.retryPolicy(retryPolicy);
+            // maxAttempts includes the initial attempt; numRetries counted only retries. Preserve behavior with +1.
+            clientOverrideConfigurationBuilder.retryStrategy(
+                DefaultRetryStrategy.legacyStrategyBuilder()
+                    .maxAttempts(maxErrorRetryCount.get() + 1)
+                    .build()
+            );
         }
         return clientOverrideConfigurationBuilder.build();
     }

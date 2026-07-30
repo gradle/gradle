@@ -27,6 +27,8 @@ dependencies {
     implementation(libs.awsSdkAuth)
     implementation(libs.awsSdkAwsCore)
     implementation(libs.awsSdkHttpClientSpi)
+    implementation(libs.awsSdkRetries)
+    implementation(libs.awsSdkRetriesSpi)
     implementation(libs.awsSdkUtils)
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
