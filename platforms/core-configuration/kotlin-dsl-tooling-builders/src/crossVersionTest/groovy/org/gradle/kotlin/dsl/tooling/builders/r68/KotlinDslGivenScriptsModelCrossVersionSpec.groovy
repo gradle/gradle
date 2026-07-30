@@ -22,7 +22,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters.setModelParameters
 
-@TargetGradleVersion(">=6.8")
+@TargetGradleVersion(">=6.8 <9.8")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
 class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsModelCrossVersionSpec {
 

@@ -25,6 +25,15 @@ class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolated
 
     static final String CONFIGURE_ON_DEMAND_FOR_TOOLING = "-Dorg.gradle.internal.isolated-projects.configure-on-demand=tooling"
     static final String CACHING_FOR_TOOLING = "-Dorg.gradle.internal.isolated-projects.caching=tooling"
+    static final String LEGACY_KOTLIN_DSL_SCRIPTS_MODEL_BUILDER = "-Dorg.gradle.internal.legacy-kotlin-dsl-scripts-model=true"
+
+    /**
+     * The IP-safe KotlinDslScriptsModel builder is the default even without Isolated Projects, so parity
+     * tests must force the legacy builder when fetching the model they compare the IP-safe one against.
+     */
+    void withLegacyKotlinDslScriptsModelBuilder() {
+        executer.withArguments(LEGACY_KOTLIN_DSL_SCRIPTS_MODEL_BUILDER)
+    }
 
     @Override
     void withIsolatedProjects(String... moreExecuterArgs) {
