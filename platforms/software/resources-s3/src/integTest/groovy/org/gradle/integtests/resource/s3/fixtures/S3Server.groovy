@@ -536,6 +536,20 @@ class S3Server extends HttpServer implements RepositoryServer {
             }
         }
         expect(httpStub)
+
+        // Also allow (but don't require) a HEAD probe for the same path. Gradle's Ivy resolver
+        // probes URLs with HEAD before GET, and the underlying HTTP server returns 405 (Method
+        // Not Allowed) if only GET is registered. Using allow() makes the HEAD stub optional so
+        // callers that only send GET (e.g. Maven publish) don't get an unmet-expectation failure.
+        allow(url, false, ['HEAD'], new HttpServer.ActionSupport("return 404 for missing HEAD") {
+            void handle(HttpRequest request, HttpResponse response) {
+                response.addHeader('x-amz-id-2', X_AMZ_ID_2)
+                response.addHeader('x-amz-request-id', X_AMZ_REQUEST_ID)
+                response.addHeader('Date', DATE_HEADER)
+                response.addHeader('Server', SERVER_AMAZON_S3)
+                response.sendError(404, 'not found')
+            }
+        })
     }
 
     def stubGetFileBroken(String url) {

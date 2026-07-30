@@ -52,7 +52,7 @@ class S3ClientTest extends Specification {
         URI uri = new URI("s3://localhost/maven/snapshot/myFile.txt")
 
         when:
-        client.put(Mock(InputStream), 12L, uri)
+        client.put(new ByteArrayInputStream(new byte[12]), 12L, uri)
         then:
         1 * amazonS3Client.putObject(*_) >> { args ->
             PutObjectRequest putObjectRequest = args[0]
@@ -91,7 +91,7 @@ class S3ClientTest extends Specification {
             .build()
 
         when:
-        client.put(Mock(InputStream), 12L, uri)
+        client.put(new ByteArrayInputStream(new byte[12]), 12L, uri)
         then:
         1 * amazonS3Client.createMultipartUpload(*_) >> { args ->
             CreateMultipartUploadRequest createMultipartUpload = args[0]

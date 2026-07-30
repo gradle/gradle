@@ -24,7 +24,9 @@ import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -70,7 +72,7 @@ public class S3Client {
 
     // amazonS3ClientMock is used to configure Mocks for testing.
     private software.amazon.awssdk.services.s3.@Nullable S3Client amazonS3ClientMock;
-    private @Nullable StaticCredentialsProvider credentialsProvider;
+    private AwsCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();
     private @Nullable URI endpoint;
     private @Nullable Region region;
     private final S3ResourceResolver resourceResolver = new S3ResourceResolver();
@@ -104,8 +106,6 @@ public class S3Client {
                     )
                 );
             }
-        } else {
-            this.credentialsProvider = null;
         }
     }
 
@@ -143,9 +143,7 @@ public class S3Client {
             .httpClientBuilder(createProxyConfiguration())
             .overrideConfiguration(createConnectionProperties());
 
-        if (credentialsProvider != null) {
-            clientBuilder.credentialsProvider(credentialsProvider);
-        }
+        clientBuilder.credentialsProvider(credentialsProvider);
         if (endpoint != null) {
             clientBuilder.endpointOverride(endpoint);
         }
@@ -221,10 +219,13 @@ public class S3Client {
                 .contentLength(contentLength).build();
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
 
+            // Buffer the body to bytes because SDK v2 may re-read the stream (payload signing,
+            // retries, checksums), and callers commonly pass non-markable streams (e.g. FileInputStream).
+            byte[] body = inputStream.readNBytes(Math.toIntExact(contentLength));
             try (software.amazon.awssdk.services.s3.S3Client amazonS3Client = build()) {
-                amazonS3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, contentLength));
+                amazonS3Client.putObject(putObjectRequest, RequestBody.fromBytes(body));
             }
-        } catch (SdkException e) {
+        } catch (SdkException | IOException e) {
             throw ResourceExceptions.putFailed(destination, e);
         }
     }
@@ -252,7 +253,9 @@ public class S3Client {
 
                     for (int partNumber = 1; filePosition < contentLength; partNumber++) {
                         partSize = Math.min(partSize, contentLength - filePosition);
-                        RequestBody requestBody = RequestBody.fromInputStream(inputStream, partSize);
+                        // See putSingleObject: buffer per-part so the SDK can re-read for signing / retries.
+                        byte[] part = inputStream.readNBytes(Math.toIntExact(partSize));
+                        RequestBody requestBody = RequestBody.fromBytes(part);
                         UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
                             .bucket(bucketName)
                             .key(s3BucketKey)
@@ -276,7 +279,7 @@ public class S3Client {
                         .multipartUpload(completedMultipartUpload)
                         .build();
                     amazonS3Client.completeMultipartUpload(completeRequest);
-                } catch (SdkException e) {
+                } catch (SdkException | IOException e) {
                     AbortMultipartUploadRequest abortRequest = AbortMultipartUploadRequest.builder()
                         .bucket(bucketName)
                         .key(s3BucketKey)
@@ -286,7 +289,7 @@ public class S3Client {
                     throw e;
                 }
             }
-        } catch (SdkException e) {
+        } catch (SdkException | IOException e) {
             throw ResourceExceptions.putFailed(destination, e);
         }
     }
@@ -389,7 +392,8 @@ public class S3Client {
     }
 
     private boolean isNoSuchKey(S3Exception e) {
-        return "NoSuchKey".equalsIgnoreCase(e.awsErrorDetails().errorCode());
+        // 404 alone covers HEAD responses, which have no XML body and therefore no errorCode.
+        return e.statusCode() == 404 || "NoSuchKey".equalsIgnoreCase(e.awsErrorDetails().errorCode());
     }
 
     private Optional<URI> locationFromRedirectException(S3Exception e) {
