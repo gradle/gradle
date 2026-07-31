@@ -67,4 +67,24 @@ public interface BuildRequestOrBuilder extends
    */
   com.google.protobuf.ByteString
       getProjectDirBytes();
+
+  /**
+   * <pre>
+   * client-generated id, used to target this build for cancellation
+   * </pre>
+   *
+   * <code>string build_id = 3;</code>
+   * @return The buildId.
+   */
+  java.lang.String getBuildId();
+  /**
+   * <pre>
+   * client-generated id, used to target this build for cancellation
+   * </pre>
+   *
+   * <code>string build_id = 3;</code>
+   * @return The bytes for buildId.
+   */
+  com.google.protobuf.ByteString
+      getBuildIdBytes();
 }

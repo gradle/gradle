@@ -27,6 +27,10 @@ import org.gradle.launcher.exec.BuildActionResult
 import org.gradle.launcher.exec.BuildExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.grpc.proto.BuildEnvironment
+import org.gradle.tooling.internal.grpc.proto.BuildEvent
+import org.gradle.tooling.internal.grpc.proto.BuildRequest
+import org.gradle.tooling.internal.grpc.proto.CancelRequest
+import org.gradle.tooling.internal.grpc.proto.CancelResponse
 import org.gradle.tooling.internal.grpc.proto.ModelRequest
 import org.gradle.tooling.internal.grpc.proto.ModelResponse
 import org.gradle.tooling.internal.grpc.proto.ModelType
@@ -156,11 +160,60 @@ class ToolingServiceImplTest extends Specification {
         observer.value.buildEnvironment.gradleVersion
     }
 
+    def "reports not cancelled when no build with the id is running"() {
+        given:
+        def observer = new CapturingCancelObserver()
+
+        when:
+        service.cancel(cancelRequest("build-x"), observer)
+
+        then:
+        0 * stateControl.requestCancel()
+
+        and:
+        observer.completed
+        !observer.value.cancelled
+        observer.value.message.contains("No running build")
+    }
+
+    def "cancels the running build when the build id matches"() {
+        given:
+        def buildObserver = new CapturingBuildObserver()
+        def cancelObserver = new CapturingCancelObserver()
+
+        when:
+        service.runBuild(buildRequest("build-1"), buildObserver)
+
+        then:
+        // A Cancel arriving while this build runs (its id is registered) must trip the daemon's cancel.
+        1 * buildExecutor.execute(_, _, _) >> {
+            service.cancel(cancelRequest("build-1"), cancelObserver)
+            BuildActionResult.of(Mock(SerializedPayload))
+        }
+        1 * stateControl.requestCancel()
+
+        and:
+        cancelObserver.completed
+        cancelObserver.value.cancelled
+        cancelObserver.value.message.contains("build-1")
+    }
+
     private ModelRequest modelRequest(String modelName) {
         ModelRequest.newBuilder()
             .setProjectDir(temp.testDirectory.absolutePath)
             .setModelName(modelName)
             .build()
+    }
+
+    private BuildRequest buildRequest(String buildId) {
+        BuildRequest.newBuilder()
+            .setProjectDir(temp.testDirectory.absolutePath)
+            .setBuildId(buildId)
+            .build()
+    }
+
+    private static CancelRequest cancelRequest(String buildId) {
+        CancelRequest.newBuilder().setBuildId(buildId).build()
     }
 
     static class CapturingObserver implements StreamObserver<ModelResponse> {
@@ -176,6 +229,44 @@ class ToolingServiceImplTest extends Specification {
         @Override
         void onError(Throwable t) {
             error = t
+        }
+
+        @Override
+        void onCompleted() {
+            completed = true
+        }
+    }
+
+    static class CapturingCancelObserver implements StreamObserver<CancelResponse> {
+        CancelResponse value
+        boolean completed
+
+        @Override
+        void onNext(CancelResponse response) {
+            value = response
+        }
+
+        @Override
+        void onError(Throwable t) {
+        }
+
+        @Override
+        void onCompleted() {
+            completed = true
+        }
+    }
+
+    static class CapturingBuildObserver implements StreamObserver<BuildEvent> {
+        List<BuildEvent> events = []
+        boolean completed
+
+        @Override
+        void onNext(BuildEvent event) {
+            events << event
+        }
+
+        @Override
+        void onError(Throwable t) {
         }
 
         @Override

@@ -74,6 +74,37 @@ public final class ToolingGrpc {
     return getQueryModelMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.CancelRequest,
+      org.gradle.tooling.internal.grpc.proto.CancelResponse> getCancelMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Cancel",
+      requestType = org.gradle.tooling.internal.grpc.proto.CancelRequest.class,
+      responseType = org.gradle.tooling.internal.grpc.proto.CancelResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.CancelRequest,
+      org.gradle.tooling.internal.grpc.proto.CancelResponse> getCancelMethod() {
+    io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.CancelRequest, org.gradle.tooling.internal.grpc.proto.CancelResponse> getCancelMethod;
+    if ((getCancelMethod = ToolingGrpc.getCancelMethod) == null) {
+      synchronized (ToolingGrpc.class) {
+        if ((getCancelMethod = ToolingGrpc.getCancelMethod) == null) {
+          ToolingGrpc.getCancelMethod = getCancelMethod =
+              io.grpc.MethodDescriptor.<org.gradle.tooling.internal.grpc.proto.CancelRequest, org.gradle.tooling.internal.grpc.proto.CancelResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Cancel"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  org.gradle.tooling.internal.grpc.proto.CancelRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  org.gradle.tooling.internal.grpc.proto.CancelResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new ToolingMethodDescriptorSupplier("Cancel"))
+              .build();
+        }
+      }
+    }
+    return getCancelMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -142,6 +173,17 @@ public final class ToolingGrpc {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getQueryModelMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     * Cancel a running build, identified by the build_id set on its BuildRequest. Maps to a Tooling
+     * API CancellationTokenSource.cancel(). Safe to call when no matching build is running.
+     * </pre>
+     */
+    public void cancel(org.gradle.tooling.internal.grpc.proto.CancelRequest request,
+        io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.CancelResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCancelMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -158,6 +200,13 @@ public final class ToolingGrpc {
                 org.gradle.tooling.internal.grpc.proto.ModelRequest,
                 org.gradle.tooling.internal.grpc.proto.ModelResponse>(
                   this, METHODID_QUERY_MODEL)))
+          .addMethod(
+            getCancelMethod(),
+            io.grpc.stub.ServerCalls.asyncUnaryCall(
+              new MethodHandlers<
+                org.gradle.tooling.internal.grpc.proto.CancelRequest,
+                org.gradle.tooling.internal.grpc.proto.CancelResponse>(
+                  this, METHODID_CANCEL)))
           .build();
     }
   }
@@ -197,6 +246,18 @@ public final class ToolingGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getQueryModelMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     * Cancel a running build, identified by the build_id set on its BuildRequest. Maps to a Tooling
+     * API CancellationTokenSource.cancel(). Safe to call when no matching build is running.
+     * </pre>
+     */
+    public void cancel(org.gradle.tooling.internal.grpc.proto.CancelRequest request,
+        io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.CancelResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCancelMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -233,6 +294,17 @@ public final class ToolingGrpc {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getQueryModelMethod(), getCallOptions(), request);
     }
+
+    /**
+     * <pre>
+     * Cancel a running build, identified by the build_id set on its BuildRequest. Maps to a Tooling
+     * API CancellationTokenSource.cancel(). Safe to call when no matching build is running.
+     * </pre>
+     */
+    public org.gradle.tooling.internal.grpc.proto.CancelResponse cancel(org.gradle.tooling.internal.grpc.proto.CancelRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCancelMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -259,10 +331,23 @@ public final class ToolingGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getQueryModelMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     * Cancel a running build, identified by the build_id set on its BuildRequest. Maps to a Tooling
+     * API CancellationTokenSource.cancel(). Safe to call when no matching build is running.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<org.gradle.tooling.internal.grpc.proto.CancelResponse> cancel(
+        org.gradle.tooling.internal.grpc.proto.CancelRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCancelMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_RUN_BUILD = 0;
   private static final int METHODID_QUERY_MODEL = 1;
+  private static final int METHODID_CANCEL = 2;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -288,6 +373,10 @@ public final class ToolingGrpc {
         case METHODID_QUERY_MODEL:
           serviceImpl.queryModel((org.gradle.tooling.internal.grpc.proto.ModelRequest) request,
               (io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.ModelResponse>) responseObserver);
+          break;
+        case METHODID_CANCEL:
+          serviceImpl.cancel((org.gradle.tooling.internal.grpc.proto.CancelRequest) request,
+              (io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.CancelResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -352,6 +441,7 @@ public final class ToolingGrpc {
               .setSchemaDescriptor(new ToolingFileDescriptorSupplier())
               .addMethod(getRunBuildMethod())
               .addMethod(getQueryModelMethod())
+              .addMethod(getCancelMethod())
               .build();
         }
       }

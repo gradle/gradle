@@ -31,6 +31,10 @@ service Tooling {
 
   // Query information about a build (the "C" slice). Unary request/response.
   rpc QueryModel(ModelRequest) returns (ModelResponse);
+
+  // Cancel a running build, identified by the build_id set on its BuildRequest. Maps to a Tooling
+  // API CancellationTokenSource.cancel(). Safe to call when no matching build is running.
+  rpc Cancel(CancelRequest) returns (CancelResponse);
 }
 
 // ---- RunBuild ----
@@ -38,6 +42,16 @@ service Tooling {
 message BuildRequest {
   repeated string args = 1;   // CLI-equivalent args: tasks + flags (-P/-D/--x)
   string project_dir = 2;     // build root; drives build layout
+  string build_id = 3;        // client-generated id, used to target this build for cancellation
+}
+
+message CancelRequest {
+  string build_id = 1;        // the build_id of the RunBuild to cancel
+}
+
+message CancelResponse {
+  bool cancelled = 1;         // true when a running build with that id was asked to cancel
+  string message = 2;
 }
 
 message BuildEvent {

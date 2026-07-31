@@ -16,6 +16,8 @@ import re
 import subprocess
 import sys
 import tempfile
+import threading
+import uuid
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -83,11 +85,19 @@ def ansi_for(pb, style):
     return table.get(style, "")
 
 
-def run_build(stub, pb, tasks, project_dir, token):
-    request = pb.BuildRequest(args=tasks, project_dir=project_dir)
+def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=None):
+    request = pb.BuildRequest(args=tasks, project_dir=project_dir, build_id=build_id)
     metadata = [("x-gradle-daemon-token", token)]
     use_color = sys.stdout.isatty()
     print("[gRPC] RunBuild(args=%s)" % tasks, file=sys.stderr)
+
+    # Cancellation: while the build streams, fire a Cancel(build_id) RPC after the given delay. The
+    # daemon trips the build's cancellation token; the stream then delivers the cancelled result.
+    if cancel_after is not None:
+        def do_cancel():
+            resp = stub.Cancel(pb.CancelRequest(build_id=build_id), metadata=metadata)
+            print("[cancel] %s (cancelled=%s)" % (resp.message, resp.cancelled), file=sys.stderr)
+        threading.Timer(cancel_after, do_cancel).start()
 
     success = False
     message = ""
@@ -175,6 +185,8 @@ def main():
                         help="For --query project: which sample project to target (per-project model)")
     parser.add_argument("--exclude-plugins", action="store_true",
                         help="For --query project: send an IdeModelQuery parameter that omits the plugin list")
+    parser.add_argument("--cancel-after", type=float, default=None, metavar="SECONDS",
+                        help="Cancel the build this many seconds after it starts (via a Cancel RPC)")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -202,7 +214,8 @@ def main():
     build_args = (args.tasks or []) + extra
     if not build_args:
         build_args = ["help"]
-    sys.exit(run_build(stub, pb, build_args, project_dir, token))
+    build_id = uuid.uuid4().hex
+    sys.exit(run_build(stub, pb, build_args, project_dir, token, build_id, args.cancel_after))
 
 
 if __name__ == "__main__":

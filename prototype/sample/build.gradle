@@ -16,3 +16,20 @@ tasks.register('boom') {
         throw new GradleException('Intentional failure for the prototype demo')
     }
 }
+
+// A long-running task that polls the build cancellation token, so a gRPC Cancel is observable: the
+// daemon trips the token and the task stops promptly instead of running to completion.
+tasks.register('sleeper') {
+    doLast {
+        def token = gradle.services.get(org.gradle.initialization.BuildCancellationToken)
+        println 'sleeper: running, waiting to be cancelled'
+        for (int i = 0; i < 600; i++) {
+            if (token.cancellationRequested) {
+                println 'sleeper: cancellation requested, stopping'
+                return
+            }
+            Thread.sleep(100)
+        }
+        println 'sleeper: finished without cancellation'
+    }
+}

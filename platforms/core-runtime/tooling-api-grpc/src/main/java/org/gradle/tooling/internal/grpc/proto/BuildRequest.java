@@ -18,6 +18,7 @@ private static final long serialVersionUID = 0L;
   private BuildRequest() {
     args_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     projectDir_ = "";
+    buildId_ = "";
   }
 
   @java.lang.Override
@@ -144,6 +145,53 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int BUILD_ID_FIELD_NUMBER = 3;
+  @SuppressWarnings("serial")
+  private volatile java.lang.Object buildId_ = "";
+  /**
+   * <pre>
+   * client-generated id, used to target this build for cancellation
+   * </pre>
+   *
+   * <code>string build_id = 3;</code>
+   * @return The buildId.
+   */
+  @java.lang.Override
+  public java.lang.String getBuildId() {
+    java.lang.Object ref = buildId_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      buildId_ = s;
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * client-generated id, used to target this build for cancellation
+   * </pre>
+   *
+   * <code>string build_id = 3;</code>
+   * @return The bytes for buildId.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getBuildIdBytes() {
+    java.lang.Object ref = buildId_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      buildId_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -163,6 +211,9 @@ private static final long serialVersionUID = 0L;
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(projectDir_)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, projectDir_);
+    }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(buildId_)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, buildId_);
     }
     getUnknownFields().writeTo(output);
   }
@@ -184,6 +235,9 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(projectDir_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, projectDir_);
     }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(buildId_)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, buildId_);
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -203,6 +257,8 @@ private static final long serialVersionUID = 0L;
         .equals(other.getArgsList())) return false;
     if (!getProjectDir()
         .equals(other.getProjectDir())) return false;
+    if (!getBuildId()
+        .equals(other.getBuildId())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -220,6 +276,8 @@ private static final long serialVersionUID = 0L;
     }
     hash = (37 * hash) + PROJECT_DIR_FIELD_NUMBER;
     hash = (53 * hash) + getProjectDir().hashCode();
+    hash = (37 * hash) + BUILD_ID_FIELD_NUMBER;
+    hash = (53 * hash) + getBuildId().hashCode();
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -352,6 +410,7 @@ private static final long serialVersionUID = 0L;
       args_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000001);
       projectDir_ = "";
+      buildId_ = "";
       return this;
     }
 
@@ -396,6 +455,9 @@ private static final long serialVersionUID = 0L;
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000002) != 0)) {
         result.projectDir_ = projectDir_;
+      }
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.buildId_ = buildId_;
       }
     }
 
@@ -458,6 +520,11 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00000002;
         onChanged();
       }
+      if (!other.getBuildId().isEmpty()) {
+        buildId_ = other.buildId_;
+        bitField0_ |= 0x00000004;
+        onChanged();
+      }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -495,6 +562,11 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000002;
               break;
             } // case 18
+            case 26: {
+              buildId_ = input.readStringRequireUtf8();
+              bitField0_ |= 0x00000004;
+              break;
+            } // case 26
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -740,6 +812,98 @@ private static final long serialVersionUID = 0L;
       checkByteStringIsUtf8(value);
       projectDir_ = value;
       bitField0_ |= 0x00000002;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object buildId_ = "";
+    /**
+     * <pre>
+     * client-generated id, used to target this build for cancellation
+     * </pre>
+     *
+     * <code>string build_id = 3;</code>
+     * @return The buildId.
+     */
+    public java.lang.String getBuildId() {
+      java.lang.Object ref = buildId_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        buildId_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <pre>
+     * client-generated id, used to target this build for cancellation
+     * </pre>
+     *
+     * <code>string build_id = 3;</code>
+     * @return The bytes for buildId.
+     */
+    public com.google.protobuf.ByteString
+        getBuildIdBytes() {
+      java.lang.Object ref = buildId_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        buildId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * client-generated id, used to target this build for cancellation
+     * </pre>
+     *
+     * <code>string build_id = 3;</code>
+     * @param value The buildId to set.
+     * @return This builder for chaining.
+     */
+    public Builder setBuildId(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      buildId_ = value;
+      bitField0_ |= 0x00000004;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * client-generated id, used to target this build for cancellation
+     * </pre>
+     *
+     * <code>string build_id = 3;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearBuildId() {
+      buildId_ = getDefaultInstance().getBuildId();
+      bitField0_ = (bitField0_ & ~0x00000004);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * client-generated id, used to target this build for cancellation
+     * </pre>
+     *
+     * <code>string build_id = 3;</code>
+     * @param value The bytes for buildId to set.
+     * @return This builder for chaining.
+     */
+    public Builder setBuildIdBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      buildId_ = value;
+      bitField0_ |= 0x00000004;
       onChanged();
       return this;
     }

@@ -87,5 +87,10 @@ run "19 parameterized model (no plugins)" 0 "plugins:      (none)" -- --query pr
 jvm "17 JVM Tooling API parity (:app)" 0 "project path: :app" -- "$HERE/sample/app"
 jvm "18 JVM Tooling API parity (:lib)" 0 "project path: :lib" -- "$HERE/sample/lib"
 
+# Cancellation: start the long-running 'sleeper' task and fire a Cancel RPC after 3s. The daemon trips
+# the build's cancellation token, the build ends as cancelled (exit 1), and the streamed result says so.
+# Runs last so the daemon is warm (buildSrc built) and the sleeper task starts promptly.
+run "20 cancel a running build" 1 "BUILD CANCELLED" -- sleeper --cancel-after 3
+
 echo "=== $PASS passed, $FAIL failed ==="
 [ "$FAIL" -eq 0 ]

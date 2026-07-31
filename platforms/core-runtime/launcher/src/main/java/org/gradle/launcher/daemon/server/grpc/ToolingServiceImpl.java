@@ -61,6 +61,8 @@ import org.gradle.tooling.internal.grpc.proto.BuildEnvironment;
 import org.gradle.tooling.internal.grpc.proto.BuildEvent;
 import org.gradle.tooling.internal.grpc.proto.BuildRequest;
 import org.gradle.tooling.internal.grpc.proto.BuildResult;
+import org.gradle.tooling.internal.grpc.proto.CancelRequest;
+import org.gradle.tooling.internal.grpc.proto.CancelResponse;
 import org.gradle.tooling.internal.grpc.proto.ModelRequest;
 import org.gradle.tooling.internal.grpc.proto.ModelResponse;
 import org.gradle.tooling.internal.grpc.proto.ModelType;
@@ -96,6 +98,9 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
     private final DaemonStateControl stateControl;
     private final BuildLayoutFactory buildLayoutFactory;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
+    // The build_id of the RunBuild currently executing, so a concurrent Cancel can target it. The
+    // daemon runs one build at a time, so a single slot is enough.
+    private final AtomicReference<String> runningBuildId = new AtomicReference<>();
 
     public ToolingServiceImpl(BuildExecutor buildExecutor, LoggingOutputInternal loggingOutput, DaemonStateControl stateControl, BuildLayoutFactory buildLayoutFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
         this.buildExecutor = buildExecutor;
@@ -121,6 +126,11 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         };
         loggingOutput.addOutputEventListener(listener);
 
+        String buildId = request.getBuildId();
+        if (!buildId.isEmpty()) {
+            runningBuildId.set(buildId);
+        }
+
         boolean success;
         String message;
         try {
@@ -145,13 +155,17 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
 
             BuildActionResult result = resultRef.get();
             success = result != null && !result.hasFailure() && !result.wasCancelled();
-            message = success ? "BUILD SUCCESSFUL" : "BUILD FAILED";
+            boolean cancelled = result != null && result.wasCancelled();
+            message = success ? "BUILD SUCCESSFUL" : cancelled ? "BUILD CANCELLED" : "BUILD FAILED";
         } catch (Throwable t) {
             LOGGER.warn("gRPC tooling API build failed to execute", t);
             success = false;
             message = "Build failed to run: " + t.getMessage();
         } finally {
             loggingOutput.removeOutputEventListener(listener);
+            if (!buildId.isEmpty()) {
+                runningBuildId.compareAndSet(buildId, null);
+            }
         }
 
         synchronized (responseLock) {
@@ -160,6 +174,25 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
                 .build());
             responseObserver.onCompleted();
         }
+    }
+
+    @Override
+    public void cancel(CancelRequest request, StreamObserver<CancelResponse> responseObserver) {
+        // Map a Tooling API cancellation onto the daemon's own cancel path: requestCancel() trips the
+        // BuildCancellationToken the running build (and its tasks) observe. Guard on the build id so a
+        // stale cancel cannot stop a later build that reused the daemon.
+        String buildId = request.getBuildId();
+        boolean matches = !buildId.isEmpty() && buildId.equals(runningBuildId.get());
+        if (matches) {
+            stateControl.requestCancel();
+        }
+        responseObserver.onNext(CancelResponse.newBuilder()
+            .setCancelled(matches)
+            .setMessage(matches
+                ? "Cancellation requested for build " + buildId
+                : "No running build with id '" + buildId + "'")
+            .build());
+        responseObserver.onCompleted();
     }
 
     @Override
