@@ -20,6 +20,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Type;
+import java.util.Set;
 
 /**
  * Provides a set of zero or more services. The get-methods may be called concurrently. {@link #stop()} is guaranteed to be only called once,
@@ -38,6 +39,15 @@ interface ServiceProvider extends Stoppable {
      * @return A visitor that should be used for all subsequent services.
      */
     Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor);
+
+    /**
+     * Adds to {@code dest} every type by which a service from this provider can be resolved, for introspection
+     * (see {@link ServiceRegistryIntrospection}). Implemented by the structural providers that hold the registry
+     * contents and the parent chain; per-service providers contribute their types via the owning registry's
+     * type index, so the default is a no-op. Must not realize any service.
+     */
+    default void collectServiceTypes(Set<Class<?>> dest) {
+    }
 
     interface Visitor {
         void visit(Service service);
