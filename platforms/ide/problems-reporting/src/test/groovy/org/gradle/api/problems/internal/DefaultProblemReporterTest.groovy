@@ -54,6 +54,19 @@ class DefaultProblemReporterTest extends Specification {
         0 * summarizer.emit(_, _)
     }
 
+    def "problem reported with an explicit operation id is emitted with that id"() {
+        given:
+        def reporter = reporter { null }
+        def problem = createTestProblem()
+        def operationId = new OperationIdentifier(1000L)
+
+        when:
+        reporter.report(problem, operationId)
+
+        then:
+        1 * summarizer.emit(problem, operationId)
+    }
+
     private DefaultProblemReporter reporter(Closure<OperationIdentifier> operationId) {
         new DefaultProblemReporter(
             summarizer,

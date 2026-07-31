@@ -40,7 +40,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(libs.jsr305)
-    implementation(libs.slf4jApi)
 
     testImplementation(projects.logging)
     integTestImplementation(projects.internalTesting)

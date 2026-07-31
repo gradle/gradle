@@ -196,6 +196,7 @@ dependencies {
     }
     testFixturesImplementation(projects.buildOption)
     testFixturesImplementation(projects.enterpriseOperations)
+    testFixturesImplementation(projects.problemsReporting)
     testFixturesImplementation(projects.messaging)
     testFixturesImplementation(projects.normalizationJava)
     testFixturesImplementation(projects.persistentCache)
