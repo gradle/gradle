@@ -23,6 +23,7 @@ description = "Worker RequestHandler that hosts long-running daemon server which
 
 dependencies {
 
+    api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.coreApi)
     api(projects.modelCore)
@@ -37,7 +38,6 @@ dependencies {
 
     implementation(projects.ant)
     implementation(projects.baseServices)
-    implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
     implementation(projects.concurrent)
     implementation(projects.domainObjectCollections)
