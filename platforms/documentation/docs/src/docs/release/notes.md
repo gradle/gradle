@@ -28,16 +28,18 @@ We would like to thank the following community members for their contributions t
 [Adam](https://github.com/aSemy),
 [Aman Gautam](https://github.com/Gautam-aman),
 [Aman Kumar](https://github.com/YukiCodepth),
+[Anton Dubrouski](https://github.com/adubrouski),
 [Aurimas](https://github.com/liutikas),
 [gbhavya07](https://github.com/gbhavya07),
 [Josh Friend](https://github.com/joshfriend),
 [nicklauslittle-gov](https://github.com/nicklauslittle-gov),
 [Pragati](https://github.com/psoni674),
 [project516](https://github.com/Project516),
+[Qin Mi](https://github.com/Uomocapra),
 [Ravi](https://github.com/rkdfx),
 [sk-reddy17](https://github.com/sk-reddy17),
 [Suvrat Acharya](https://github.com/Suvrat1629),
-[Yongshun Ye](https://github.com/ShreckYe).
+[Yongshun Ye](https://github.com/ShreckYe)
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
