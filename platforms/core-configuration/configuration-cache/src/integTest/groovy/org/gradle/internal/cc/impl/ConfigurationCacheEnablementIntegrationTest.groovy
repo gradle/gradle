@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import spock.lang.Issue
 
 import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.WARN
+import org.gradle.api.problems.Severity
 
 
 class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -62,6 +63,19 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
         then:
         fixture.assertStateLoaded()
+    }
+
+    def "configuration cache warn mode is reported through the Problems API"() {
+        given:
+        enableProblemsApiCheck()
+
+        when:
+        run("help", "--configuration-cache", "--configuration-cache-problems=warn")
+
+        then:
+        verifyAll(consumeWarnModeProblem()) {
+            definition.severity == Severity.WARNING
+        }
     }
 
     def "can enable with a property in gradle user home gradle.properties"() {
