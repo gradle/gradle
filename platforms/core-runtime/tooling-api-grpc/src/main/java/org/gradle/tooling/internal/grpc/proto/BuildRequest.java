@@ -192,6 +192,44 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int CONFIGURATION_FIELD_NUMBER = 4;
+  private org.gradle.tooling.internal.grpc.proto.BuildConfiguration configuration_;
+  /**
+   * <pre>
+   * structured build config beyond what args express
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+   * @return Whether the configuration field is set.
+   */
+  @java.lang.Override
+  public boolean hasConfiguration() {
+    return configuration_ != null;
+  }
+  /**
+   * <pre>
+   * structured build config beyond what args express
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+   * @return The configuration.
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.BuildConfiguration getConfiguration() {
+    return configuration_ == null ? org.gradle.tooling.internal.grpc.proto.BuildConfiguration.getDefaultInstance() : configuration_;
+  }
+  /**
+   * <pre>
+   * structured build config beyond what args express
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.BuildConfigurationOrBuilder getConfigurationOrBuilder() {
+    return configuration_ == null ? org.gradle.tooling.internal.grpc.proto.BuildConfiguration.getDefaultInstance() : configuration_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -214,6 +252,9 @@ private static final long serialVersionUID = 0L;
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(buildId_)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, buildId_);
+    }
+    if (configuration_ != null) {
+      output.writeMessage(4, getConfiguration());
     }
     getUnknownFields().writeTo(output);
   }
@@ -238,6 +279,10 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(buildId_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, buildId_);
     }
+    if (configuration_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, getConfiguration());
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -259,6 +304,11 @@ private static final long serialVersionUID = 0L;
         .equals(other.getProjectDir())) return false;
     if (!getBuildId()
         .equals(other.getBuildId())) return false;
+    if (hasConfiguration() != other.hasConfiguration()) return false;
+    if (hasConfiguration()) {
+      if (!getConfiguration()
+          .equals(other.getConfiguration())) return false;
+    }
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -278,6 +328,10 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getProjectDir().hashCode();
     hash = (37 * hash) + BUILD_ID_FIELD_NUMBER;
     hash = (53 * hash) + getBuildId().hashCode();
+    if (hasConfiguration()) {
+      hash = (37 * hash) + CONFIGURATION_FIELD_NUMBER;
+      hash = (53 * hash) + getConfiguration().hashCode();
+    }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -411,6 +465,11 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       projectDir_ = "";
       buildId_ = "";
+      configuration_ = null;
+      if (configurationBuilder_ != null) {
+        configurationBuilder_.dispose();
+        configurationBuilder_ = null;
+      }
       return this;
     }
 
@@ -458,6 +517,11 @@ private static final long serialVersionUID = 0L;
       }
       if (((from_bitField0_ & 0x00000004) != 0)) {
         result.buildId_ = buildId_;
+      }
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.configuration_ = configurationBuilder_ == null
+            ? configuration_
+            : configurationBuilder_.build();
       }
     }
 
@@ -525,6 +589,9 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00000004;
         onChanged();
       }
+      if (other.hasConfiguration()) {
+        mergeConfiguration(other.getConfiguration());
+      }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -567,6 +634,13 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000004;
               break;
             } // case 26
+            case 34: {
+              input.readMessage(
+                  getConfigurationFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              bitField0_ |= 0x00000008;
+              break;
+            } // case 34
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -906,6 +980,161 @@ private static final long serialVersionUID = 0L;
       bitField0_ |= 0x00000004;
       onChanged();
       return this;
+    }
+
+    private org.gradle.tooling.internal.grpc.proto.BuildConfiguration configuration_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.BuildConfiguration, org.gradle.tooling.internal.grpc.proto.BuildConfiguration.Builder, org.gradle.tooling.internal.grpc.proto.BuildConfigurationOrBuilder> configurationBuilder_;
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     * @return Whether the configuration field is set.
+     */
+    public boolean hasConfiguration() {
+      return ((bitField0_ & 0x00000008) != 0);
+    }
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     * @return The configuration.
+     */
+    public org.gradle.tooling.internal.grpc.proto.BuildConfiguration getConfiguration() {
+      if (configurationBuilder_ == null) {
+        return configuration_ == null ? org.gradle.tooling.internal.grpc.proto.BuildConfiguration.getDefaultInstance() : configuration_;
+      } else {
+        return configurationBuilder_.getMessage();
+      }
+    }
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     */
+    public Builder setConfiguration(org.gradle.tooling.internal.grpc.proto.BuildConfiguration value) {
+      if (configurationBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        configuration_ = value;
+      } else {
+        configurationBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000008;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     */
+    public Builder setConfiguration(
+        org.gradle.tooling.internal.grpc.proto.BuildConfiguration.Builder builderForValue) {
+      if (configurationBuilder_ == null) {
+        configuration_ = builderForValue.build();
+      } else {
+        configurationBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000008;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     */
+    public Builder mergeConfiguration(org.gradle.tooling.internal.grpc.proto.BuildConfiguration value) {
+      if (configurationBuilder_ == null) {
+        if (((bitField0_ & 0x00000008) != 0) &&
+          configuration_ != null &&
+          configuration_ != org.gradle.tooling.internal.grpc.proto.BuildConfiguration.getDefaultInstance()) {
+          getConfigurationBuilder().mergeFrom(value);
+        } else {
+          configuration_ = value;
+        }
+      } else {
+        configurationBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000008;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     */
+    public Builder clearConfiguration() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      configuration_ = null;
+      if (configurationBuilder_ != null) {
+        configurationBuilder_.dispose();
+        configurationBuilder_ = null;
+      }
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.BuildConfiguration.Builder getConfigurationBuilder() {
+      bitField0_ |= 0x00000008;
+      onChanged();
+      return getConfigurationFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.BuildConfigurationOrBuilder getConfigurationOrBuilder() {
+      if (configurationBuilder_ != null) {
+        return configurationBuilder_.getMessageOrBuilder();
+      } else {
+        return configuration_ == null ?
+            org.gradle.tooling.internal.grpc.proto.BuildConfiguration.getDefaultInstance() : configuration_;
+      }
+    }
+    /**
+     * <pre>
+     * structured build config beyond what args express
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.BuildConfiguration, org.gradle.tooling.internal.grpc.proto.BuildConfiguration.Builder, org.gradle.tooling.internal.grpc.proto.BuildConfigurationOrBuilder> 
+        getConfigurationFieldBuilder() {
+      if (configurationBuilder_ == null) {
+        configurationBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.gradle.tooling.internal.grpc.proto.BuildConfiguration, org.gradle.tooling.internal.grpc.proto.BuildConfiguration.Builder, org.gradle.tooling.internal.grpc.proto.BuildConfigurationOrBuilder>(
+                getConfiguration(),
+                getParentForChildren(),
+                isClean());
+        configuration_ = null;
+      }
+      return configurationBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

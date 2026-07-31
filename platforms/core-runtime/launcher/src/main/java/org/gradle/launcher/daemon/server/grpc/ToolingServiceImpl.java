@@ -57,6 +57,7 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.tooling.internal.grpc.proto.BuildConfiguration;
 import org.gradle.tooling.internal.grpc.proto.BuildEnvironment;
 import org.gradle.tooling.internal.grpc.proto.BuildEvent;
 import org.gradle.tooling.internal.grpc.proto.BuildRequest;
@@ -80,9 +81,11 @@ import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -161,7 +164,23 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         boolean success;
         String message;
         try {
-            StartParameterInternal startParameter = toStartParameter(request);
+            // Apply structured build configuration. System properties and the Gradle user home ride
+            // Gradle's own CLI converter (-D / --gradle-user-home) and take effect here. Environment
+            // variables, java_home and jvm_arguments select the build's process and JVM; the in-daemon
+            // path runs the build in this daemon's own JVM and bypasses the daemon's env-applying
+            // command step, so those are honoured by the cross-version bridge (which starts a fresh
+            // daemon per request) but not on this direct path.
+            BuildConfiguration config = request.getConfiguration();
+            List<String> args = new ArrayList<>(request.getArgsList());
+            for (Map.Entry<String, String> property : config.getSystemPropertiesMap().entrySet()) {
+                args.add("-D" + property.getKey() + "=" + property.getValue());
+            }
+            if (!config.getGradleUserHome().isEmpty()) {
+                args.add("--gradle-user-home");
+                args.add(config.getGradleUserHome());
+            }
+
+            StartParameterInternal startParameter = toStartParameter(args, new File(request.getProjectDir()));
             BuildAction action = new ExecuteBuildAction(startParameter);
             BuildActionParameters parameters = new DefaultBuildActionParameters(
                 System.getProperties(),
@@ -367,10 +386,6 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
                 .setStatus(status == null ? "" : status)
                 .build())
             .build();
-    }
-
-    private StartParameterInternal toStartParameter(BuildRequest request) {
-        return toStartParameter(request.getArgsList(), new File(request.getProjectDir()));
     }
 
     private StartParameterInternal toStartParameter(List<String> args, File projectDir) {

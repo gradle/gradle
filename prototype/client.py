@@ -99,8 +99,8 @@ def connect(stub, pb, token):
     return resp
 
 
-def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=None):
-    request = pb.BuildRequest(args=tasks, project_dir=project_dir, build_id=build_id)
+def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=None, config=None):
+    request = pb.BuildRequest(args=tasks, project_dir=project_dir, build_id=build_id, configuration=config)
     metadata = [("x-gradle-daemon-token", token)]
     use_color = sys.stdout.isatty()
     print("[gRPC] RunBuild(args=%s)" % tasks, file=sys.stderr)
@@ -207,6 +207,18 @@ def main():
     parser.add_argument("--discover", action="store_true",
                         help="Discover an endpoint for the project: a find-or-started bridge for the "
                              "version its wrapper declares, else the direct in-daemon path")
+    # Structured build configuration (BuildConfiguration).
+    parser.add_argument("--sys", action="append", default=[], metavar="K=V",
+                        help="System property for the build (repeatable)")
+    parser.add_argument("--env", action="append", default=[], metavar="K=V",
+                        help="Environment variable for the build (repeatable)")
+    parser.add_argument("--java-home", default=None, metavar="DIR",
+                        help="JDK to run the build with (honoured by the bridge; the in-daemon path "
+                             "runs in the daemon JVM)")
+    parser.add_argument("--gradle-user-home", default=None, metavar="DIR",
+                        help="Gradle user home directory for the build")
+    parser.add_argument("--jvm-arg", action="append", default=[], metavar="ARG",
+                        help="Build JVM argument (honoured by the bridge; repeatable)")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -258,8 +270,22 @@ def main():
     build_args = (args.tasks or []) + extra
     if not build_args:
         build_args = ["help"]
+    def parse_kv(items):
+        pairs = {}
+        for item in items:
+            key, _, value = item.partition("=")
+            pairs[key] = value
+        return pairs
+
+    config = pb.BuildConfiguration(
+        system_properties=parse_kv(args.sys),
+        environment_variables=parse_kv(args.env),
+        java_home=args.java_home or "",
+        gradle_user_home=args.gradle_user_home or "",
+        jvm_arguments=args.jvm_arg,
+    )
     build_id = uuid.uuid4().hex
-    sys.exit(run_build(stub, pb, build_args, project_dir, token, build_id, args.cancel_after))
+    sys.exit(run_build(stub, pb, build_args, project_dir, token, build_id, args.cancel_after, config))
 
 
 if __name__ == "__main__":

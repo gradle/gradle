@@ -78,6 +78,11 @@ run "16 plugin model (:lib project)"  0 "project path: :lib" -- --query project 
 # Handshake: the in-daemon server advertises the full direct-mode capability set (incl. plugin models).
 run "21 handshake (direct capabilities)" 0 "models.plugin" -- --query env
 
+# Structured build config: a system property reaches the build via the daemon's CLI converter.
+# (environment variables / java_home / jvm_args need a fresh daemon, so they are bridge-only - see the
+# bridge demo - because the in-daemon path runs the build in this daemon's own JVM.)
+run "22 build config (system property)" 0 "demo.sys=direct-cfg" -- printConfig --sys demo.sys=direct-cfg
+
 # Parameterized model: the client packs an IdeModelQuery(include_plugins=false) into the request Any.
 # The plugin's ParameterizedToolingModelBuilder unpacks it and omits the plugin list, so the same
 # :app model that lists plugins in scenario 15 now reports "(none)". Proves a typed request parameter

@@ -87,4 +87,31 @@ public interface BuildRequestOrBuilder extends
    */
   com.google.protobuf.ByteString
       getBuildIdBytes();
+
+  /**
+   * <pre>
+   * structured build config beyond what args express
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+   * @return Whether the configuration field is set.
+   */
+  boolean hasConfiguration();
+  /**
+   * <pre>
+   * structured build config beyond what args express
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+   * @return The configuration.
+   */
+  org.gradle.tooling.internal.grpc.proto.BuildConfiguration getConfiguration();
+  /**
+   * <pre>
+   * structured build config beyond what args express
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
+   */
+  org.gradle.tooling.internal.grpc.proto.BuildConfigurationOrBuilder getConfigurationOrBuilder();
 }

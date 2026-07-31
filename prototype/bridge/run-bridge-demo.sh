@@ -55,6 +55,9 @@ check "B4 cancel a running build"       1 "BUILD CANCELLED"                     
 # a plugin-model query up front instead of failing mid-request - the same client, degrading gracefully.
 check "B5 handshake (reduced capabilities)" 0 "capabilities: build.run, control.cancel, models.build_environment" -- --query env
 check "B6 plugin model refused by capability" 3 "no 'models.plugin' capability" -- --query project
+# Structured build config: the bridge starts a fresh daemon per request, so it honours the FULL set,
+# including environment variables (which the in-daemon direct path cannot apply - see scenario 22).
+check "B7 build config (system property + env var)" 0 "DEMO_ENV=bridged-env" -- printConfig --sys demo.sys=bridged-sys --env DEMO_ENV=bridged-env
 
 echo
 echo "=== $PASS passed, $FAIL failed (target Gradle $TARGET, no in-daemon gRPC server) ==="

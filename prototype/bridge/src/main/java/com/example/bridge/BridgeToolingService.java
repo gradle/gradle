@@ -21,6 +21,7 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.grpc.proto.BuildConfiguration;
 import org.gradle.tooling.internal.grpc.proto.BuildEvent;
 import org.gradle.tooling.internal.grpc.proto.BuildRequest;
 import org.gradle.tooling.internal.grpc.proto.BuildResult;
@@ -40,7 +41,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -90,7 +93,11 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
             running.put(buildId, cancellation);
         }
 
+        BuildConfiguration config = request.getConfiguration();
         GradleConnector connector = newConnector(new File(request.getProjectDir()));
+        if (!config.getGradleUserHome().isEmpty()) {
+            connector.useGradleUserHomeDir(new File(config.getGradleUserHome()));
+        }
         try (ProjectConnection connection = connector.connect()) {
             BuildLauncher launcher = connection.newBuild().withCancellationToken(cancellation.token());
 
@@ -99,11 +106,28 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
             for (String arg : request.getArgsList()) {
                 (arg.startsWith("-") ? arguments : tasks).add(arg);
             }
+            for (Map.Entry<String, String> property : config.getSystemPropertiesMap().entrySet()) {
+                arguments.add("-D" + property.getKey() + "=" + property.getValue());
+            }
             if (!tasks.isEmpty()) {
                 launcher.forTasks(tasks.toArray(new String[0]));
             }
             if (!arguments.isEmpty()) {
                 launcher.withArguments(arguments);
+            }
+
+            // The bridge honours the full configuration by mapping it onto the classic BuildLauncher,
+            // including the build JVM (java_home / jvm_arguments) that the in-daemon path cannot change.
+            if (!config.getEnvironmentVariablesMap().isEmpty()) {
+                Map<String, String> environment = new HashMap<>(System.getenv());
+                environment.putAll(config.getEnvironmentVariablesMap());
+                launcher.setEnvironmentVariables(environment);
+            }
+            if (!config.getJavaHome().isEmpty()) {
+                launcher.setJavaHome(new File(config.getJavaHome()));
+            }
+            if (!config.getJvmArgumentsList().isEmpty()) {
+                launcher.addJvmArguments(config.getJvmArgumentsList());
             }
 
             launcher.setStandardOutput(new LineStream(responseObserver, lock, LogLevel.LIFECYCLE));

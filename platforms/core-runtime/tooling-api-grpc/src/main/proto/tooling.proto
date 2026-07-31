@@ -63,6 +63,18 @@ message BuildRequest {
   repeated string args = 1;   // CLI-equivalent args: tasks + flags (-P/-D/--x)
   string project_dir = 2;     // build root; drives build layout
   string build_id = 3;        // client-generated id, used to target this build for cancellation
+  BuildConfiguration configuration = 4;  // structured build config beyond what args express
+}
+
+// Structured build configuration, mirroring the Tooling API LongRunningOperation surface. Some fields
+// (java_home, jvm_arguments) select the build's JVM and so are fully honoured by the bridge but limited
+// on the direct in-daemon path, where the build runs in the already-started daemon JVM.
+message BuildConfiguration {
+  map<string, string> system_properties = 1;
+  map<string, string> environment_variables = 2;
+  string java_home = 3;             // JDK to run the build with
+  string gradle_user_home = 4;      // the .gradle directory
+  repeated string jvm_arguments = 5;
 }
 
 message CancelRequest {

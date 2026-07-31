@@ -19,3 +19,14 @@ tasks.register('sleeper') {
         println 'sleeper: finished without cancellation'
     }
 }
+
+// Echoes a system property and an environment variable so the client can see structured build
+// configuration reaching a build the bridge drives on an old Gradle version.
+tasks.register('printConfig') {
+    def demoSys = providers.systemProperty('demo.sys')
+    def demoEnv = providers.environmentVariable('DEMO_ENV')
+    doLast {
+        println 'demo.sys=' + demoSys.getOrElse('(unset)')
+        println 'DEMO_ENV=' + demoEnv.getOrElse('(unset)')
+    }
+}
