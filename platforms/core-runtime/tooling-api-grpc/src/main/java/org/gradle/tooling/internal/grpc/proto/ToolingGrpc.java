@@ -136,6 +136,37 @@ public final class ToolingGrpc {
     return getCancelMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.InputChunk,
+      org.gradle.tooling.internal.grpc.proto.InputAck> getSendStandardInputMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "SendStandardInput",
+      requestType = org.gradle.tooling.internal.grpc.proto.InputChunk.class,
+      responseType = org.gradle.tooling.internal.grpc.proto.InputAck.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.CLIENT_STREAMING)
+  public static io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.InputChunk,
+      org.gradle.tooling.internal.grpc.proto.InputAck> getSendStandardInputMethod() {
+    io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.InputChunk, org.gradle.tooling.internal.grpc.proto.InputAck> getSendStandardInputMethod;
+    if ((getSendStandardInputMethod = ToolingGrpc.getSendStandardInputMethod) == null) {
+      synchronized (ToolingGrpc.class) {
+        if ((getSendStandardInputMethod = ToolingGrpc.getSendStandardInputMethod) == null) {
+          ToolingGrpc.getSendStandardInputMethod = getSendStandardInputMethod =
+              io.grpc.MethodDescriptor.<org.gradle.tooling.internal.grpc.proto.InputChunk, org.gradle.tooling.internal.grpc.proto.InputAck>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.CLIENT_STREAMING)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SendStandardInput"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  org.gradle.tooling.internal.grpc.proto.InputChunk.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  org.gradle.tooling.internal.grpc.proto.InputAck.getDefaultInstance()))
+              .setSchemaDescriptor(new ToolingMethodDescriptorSupplier("SendStandardInput"))
+              .build();
+        }
+      }
+    }
+    return getSendStandardInputMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -227,6 +258,18 @@ public final class ToolingGrpc {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCancelMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     * Feed a running build's standard input, client-streaming, correlated by build_id. Advertised via
+     * the "build.stdin" capability - honoured by the bridge (BuildLauncher.setStandardInput); the direct
+     * in-daemon path bypasses the daemon's input forwarding, so it does not advertise it.
+     * </pre>
+     */
+    public io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.InputChunk> sendStandardInput(
+        io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.InputAck> responseObserver) {
+      return io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall(getSendStandardInputMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -257,6 +300,13 @@ public final class ToolingGrpc {
                 org.gradle.tooling.internal.grpc.proto.CancelRequest,
                 org.gradle.tooling.internal.grpc.proto.CancelResponse>(
                   this, METHODID_CANCEL)))
+          .addMethod(
+            getSendStandardInputMethod(),
+            io.grpc.stub.ServerCalls.asyncClientStreamingCall(
+              new MethodHandlers<
+                org.gradle.tooling.internal.grpc.proto.InputChunk,
+                org.gradle.tooling.internal.grpc.proto.InputAck>(
+                  this, METHODID_SEND_STANDARD_INPUT)))
           .build();
     }
   }
@@ -320,6 +370,19 @@ public final class ToolingGrpc {
         io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.CancelResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getCancelMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     * Feed a running build's standard input, client-streaming, correlated by build_id. Advertised via
+     * the "build.stdin" capability - honoured by the bridge (BuildLauncher.setStandardInput); the direct
+     * in-daemon path bypasses the daemon's input forwarding, so it does not advertise it.
+     * </pre>
+     */
+    public io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.InputChunk> sendStandardInput(
+        io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.InputAck> responseObserver) {
+      return io.grpc.stub.ClientCalls.asyncClientStreamingCall(
+          getChannel().newCall(getSendStandardInputMethod(), getCallOptions()), responseObserver);
     }
   }
 
@@ -437,6 +500,7 @@ public final class ToolingGrpc {
   private static final int METHODID_RUN_BUILD = 1;
   private static final int METHODID_QUERY_MODEL = 2;
   private static final int METHODID_CANCEL = 3;
+  private static final int METHODID_SEND_STANDARD_INPUT = 4;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -481,6 +545,9 @@ public final class ToolingGrpc {
     public io.grpc.stub.StreamObserver<Req> invoke(
         io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
+        case METHODID_SEND_STANDARD_INPUT:
+          return (io.grpc.stub.StreamObserver<Req>) serviceImpl.sendStandardInput(
+              (io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.InputAck>) responseObserver);
         default:
           throw new AssertionError();
       }
@@ -536,6 +603,7 @@ public final class ToolingGrpc {
               .addMethod(getRunBuildMethod())
               .addMethod(getQueryModelMethod())
               .addMethod(getCancelMethod())
+              .addMethod(getSendStandardInputMethod())
               .build();
         }
       }

@@ -30,3 +30,11 @@ tasks.register('printConfig') {
         println 'DEMO_ENV=' + demoEnv.getOrElse('(unset)')
     }
 }
+
+// Reads a line from standard input and echoes it, so a client can prove it fed the build's stdin.
+tasks.register('readInput') {
+    doLast {
+        def line = new BufferedReader(new InputStreamReader(System.in)).readLine()
+        println 'read: ' + line
+    }
+}

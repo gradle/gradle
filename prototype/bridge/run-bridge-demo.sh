@@ -59,6 +59,15 @@ check "B6 plugin model refused by capability" 3 "no 'models.plugin' capability" 
 # including environment variables (which the in-daemon direct path cannot apply - see scenario 22).
 check "B7 build config (system property + env var)" 0 "DEMO_ENV=bridged-env" -- printConfig --sys demo.sys=bridged-sys --env DEMO_ENV=bridged-env
 
+# Standard input (advertised via the build.stdin capability): pipe a line in and the readInput task
+# echoes it, proving the client fed the build's stdin over gRPC while output streamed back.
+STDIN_OUT="$(printf 'hi-from-stdin\n' | "$PY" "$PROTO_ROOT/client.py" --endpoint "$ENDPOINT" --project-dir "$SAMPLE" --stdin readInput 2>&1)"; STDIN_EC=$?
+if [ "$STDIN_EC" -eq 0 ] && printf '%s' "$STDIN_OUT" | grep -qF 'read: hi-from-stdin'; then
+    echo "PASS  B8 forward standard input"; PASS=$((PASS+1))
+else
+    echo "FAIL  B8 forward standard input (exit=$STDIN_EC)"; printf '%s\n' "$STDIN_OUT" | sed 's/^/      | /' | tail -8; FAIL=$((FAIL+1))
+fi
+
 echo
 echo "=== $PASS passed, $FAIL failed (target Gradle $TARGET, no in-daemon gRPC server) ==="
 [ "$FAIL" -eq 0 ]

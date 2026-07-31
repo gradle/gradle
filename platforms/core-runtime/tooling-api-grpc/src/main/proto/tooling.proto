@@ -40,6 +40,11 @@ service Tooling {
   // Cancel a running build, identified by the build_id set on its BuildRequest. Maps to a Tooling
   // API CancellationTokenSource.cancel(). Safe to call when no matching build is running.
   rpc Cancel(CancelRequest) returns (CancelResponse);
+
+  // Feed a running build's standard input, client-streaming, correlated by build_id. Advertised via
+  // the "build.stdin" capability - honoured by the bridge (BuildLauncher.setStandardInput); the direct
+  // in-daemon path bypasses the daemon's input forwarding, so it does not advertise it.
+  rpc SendStandardInput(stream InputChunk) returns (InputAck);
 }
 
 // ---- Connect (handshake) ----
@@ -84,6 +89,16 @@ message CancelRequest {
 message CancelResponse {
   bool cancelled = 1;         // true when a running build with that id was asked to cancel
   string message = 2;
+}
+
+message InputChunk {
+  string build_id = 1;        // the running build to feed
+  bytes data = 2;             // standard-input bytes
+  bool close = 3;             // signals end of input (closes the build's standard input)
+}
+
+message InputAck {
+  int64 bytes_received = 1;
 }
 
 message BuildEvent {

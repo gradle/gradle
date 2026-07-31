@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import uuid
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -99,11 +100,25 @@ def connect(stub, pb, token):
     return resp
 
 
-def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=None, config=None):
+def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=None, config=None, forward_stdin=False):
     request = pb.BuildRequest(args=tasks, project_dir=project_dir, build_id=build_id, configuration=config)
     metadata = [("x-gradle-daemon-token", token)]
     use_color = sys.stdout.isatty()
     print("[gRPC] RunBuild(args=%s)" % tasks, file=sys.stderr)
+
+    # Standard input: stream this process's stdin to the build on a background thread, correlated by
+    # build_id, while RunBuild streams output back on this thread.
+    if forward_stdin:
+        def pump_stdin():
+            time.sleep(0.5)  # let the server register the build's standard-input pipe first
+            def chunks():
+                yield pb.InputChunk(build_id=build_id, data=sys.stdin.buffer.read(), close=True)
+            try:
+                ack = stub.SendStandardInput(chunks(), metadata=metadata)
+                print("[stdin] forwarded %d bytes" % ack.bytes_received, file=sys.stderr)
+            except Exception as e:  # noqa: BLE001 - prototype
+                print("[stdin] %s" % e, file=sys.stderr)
+        threading.Thread(target=pump_stdin, daemon=True).start()
 
     # Cancellation: while the build streams, fire a Cancel(build_id) RPC after the given delay. The
     # daemon trips the build's cancellation token; the stream then delivers the cancelled result.
@@ -219,6 +234,8 @@ def main():
                         help="Gradle user home directory for the build")
     parser.add_argument("--jvm-arg", action="append", default=[], metavar="ARG",
                         help="Build JVM argument (honoured by the bridge; repeatable)")
+    parser.add_argument("--stdin", action="store_true",
+                        help="Forward this process's standard input to the build (bridge only)")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -284,8 +301,13 @@ def main():
         gradle_user_home=args.gradle_user_home or "",
         jvm_arguments=args.jvm_arg,
     )
+    forward_stdin = args.stdin
+    if forward_stdin and "build.stdin" not in capabilities:
+        print("[client] this endpoint has no 'build.stdin' capability; standard input is forwarded "
+              "only by the bridge, not the in-daemon path", file=sys.stderr)
+        forward_stdin = False
     build_id = uuid.uuid4().hex
-    sys.exit(run_build(stub, pb, build_args, project_dir, token, build_id, args.cancel_after, config))
+    sys.exit(run_build(stub, pb, build_args, project_dir, token, build_id, args.cancel_after, config, forward_stdin))
 
 
 if __name__ == "__main__":

@@ -83,6 +83,11 @@ run "21 handshake (direct capabilities)" 0 "models.plugin" -- --query env
 # bridge demo - because the in-daemon path runs the build in this daemon's own JVM.)
 run "22 build config (system property)" 0 "demo.sys=direct-cfg" -- printConfig --sys demo.sys=direct-cfg
 
+# Standard input: the in-daemon path does not advertise build.stdin (it bypasses the daemon's input
+# forwarding), so the client declines to forward stdin up front and runs the build anyway - the same
+# graceful-degradation the bridge path exercises for stdin end to end (see the bridge demo).
+run "23 stdin declined by capability" 0 "no 'build.stdin' capability" -- hello --stdin
+
 # Parameterized model: the client packs an IdeModelQuery(include_plugins=false) into the request Any.
 # The plugin's ParameterizedToolingModelBuilder unpacks it and omits the plugin list, so the same
 # :app model that lists plugins in scenario 15 now reports "(none)". Proves a typed request parameter

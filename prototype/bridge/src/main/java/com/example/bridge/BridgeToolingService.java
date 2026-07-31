@@ -29,6 +29,8 @@ import org.gradle.tooling.internal.grpc.proto.CancelRequest;
 import org.gradle.tooling.internal.grpc.proto.CancelResponse;
 import org.gradle.tooling.internal.grpc.proto.ConnectRequest;
 import org.gradle.tooling.internal.grpc.proto.ConnectResponse;
+import org.gradle.tooling.internal.grpc.proto.InputAck;
+import org.gradle.tooling.internal.grpc.proto.InputChunk;
 import org.gradle.tooling.internal.grpc.proto.LogLevel;
 import org.gradle.tooling.internal.grpc.proto.ModelRequest;
 import org.gradle.tooling.internal.grpc.proto.ModelResponse;
@@ -39,7 +41,10 @@ import org.gradle.tooling.internal.grpc.proto.ToolingGrpc;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +64,8 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
     private final String gradleInstallation;
     // build_id -> cancellation source for the build currently running under it, so Cancel can reach it.
     private final ConcurrentHashMap<String, CancellationTokenSource> running = new ConcurrentHashMap<>();
+    // build_id -> the write end of the build's standard input, so SendStandardInput can feed it.
+    private final ConcurrentHashMap<String, PipedOutputStream> stdin = new ConcurrentHashMap<>();
 
     // The bridge speaks the same contract version but advertises only the subset it can deliver by
     // driving an old daemon through the classic Tooling API - no plugin-model projection, no logical
@@ -78,8 +85,48 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
             .addCapabilities("build.run")
             .addCapabilities("control.cancel")
             .addCapabilities("models.build_environment")
+            .addCapabilities("build.stdin")
             .build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public StreamObserver<InputChunk> sendStandardInput(StreamObserver<InputAck> responseObserver) {
+        // Client-streaming: forward each chunk to the write end of the matching build's standard input.
+        return new StreamObserver<InputChunk>() {
+            private long received;
+
+            @Override
+            public void onNext(InputChunk chunk) {
+                PipedOutputStream out = stdin.get(chunk.getBuildId());
+                if (out == null) {
+                    return;
+                }
+                try {
+                    byte[] data = chunk.getData().toByteArray();
+                    if (data.length > 0) {
+                        out.write(data);
+                        out.flush();
+                        received += data.length;
+                    }
+                    if (chunk.getClose()) {
+                        out.close();
+                    }
+                } catch (IOException ignore) {
+                    // The build finished or closed its input; nothing more to feed.
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+            }
+
+            @Override
+            public void onCompleted() {
+                responseObserver.onNext(InputAck.newBuilder().setBytesReceived(received).build());
+                responseObserver.onCompleted();
+            }
+        };
     }
 
     @Override
@@ -89,8 +136,16 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
         Object lock = new Object();
         String buildId = request.getBuildId();
         CancellationTokenSource cancellation = GradleConnector.newCancellationTokenSource();
+        PipedInputStream stdinIn = null;
         if (!buildId.isEmpty()) {
             running.put(buildId, cancellation);
+            try {
+                PipedOutputStream stdinOut = new PipedOutputStream();
+                stdinIn = new PipedInputStream(stdinOut, 64 * 1024);
+                stdin.put(buildId, stdinOut);
+            } catch (IOException ignore) {
+                stdinIn = null;
+            }
         }
 
         BuildConfiguration config = request.getConfiguration();
@@ -100,6 +155,9 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
         }
         try (ProjectConnection connection = connector.connect()) {
             BuildLauncher launcher = connection.newBuild().withCancellationToken(cancellation.token());
+            if (stdinIn != null) {
+                launcher.setStandardInput(stdinIn);
+            }
 
             List<String> tasks = new ArrayList<>();
             List<String> arguments = new ArrayList<>();
@@ -155,6 +213,14 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
         } finally {
             if (!buildId.isEmpty()) {
                 running.remove(buildId);
+                PipedOutputStream stdinOut = stdin.remove(buildId);
+                if (stdinOut != null) {
+                    try {
+                        stdinOut.close();
+                    } catch (IOException ignore) {
+                        // already closed by the input feeder
+                    }
+                }
             }
         }
         synchronized (lock) {
