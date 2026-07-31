@@ -22,6 +22,7 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.internal.buildtree.BuildTreeModelTarget
+import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.tooling.internal.provider.action.GrpcModelQueryAction
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
@@ -40,7 +41,7 @@ class GrpcModelQueryActionRunnerTest extends Specification {
     def "targets the requested project by its logical path"() {
         given:
         def rootDir = new File("root")
-        def action = new GrpcModelQueryAction(startParameter, "com.example.Model", rootDir, ":app", clientSubscriptions)
+        def action = new GrpcModelQueryAction(startParameter, "com.example.Model", rootDir, ":app", new byte[0], clientSubscriptions)
         def modelResult = Mock(ToolingModelBuilderResultInternal)
         def model = new Object()
         def serialized = Stub(SerializedPayload)
@@ -64,7 +65,7 @@ class GrpcModelQueryActionRunnerTest extends Specification {
 
     def "targets the default project when no path is given"() {
         given:
-        def action = new GrpcModelQueryAction(startParameter, "com.example.Model", new File("root"), "", clientSubscriptions)
+        def action = new GrpcModelQueryAction(startParameter, "com.example.Model", new File("root"), "", new byte[0], clientSubscriptions)
         def modelResult = Mock(ToolingModelBuilderResultInternal)
         BuildTreeModelTarget capturedTarget = null
 
@@ -79,6 +80,47 @@ class GrpcModelQueryActionRunnerTest extends Specification {
 
         and:
         capturedTarget instanceof BuildTreeModelTarget.Default
+    }
+
+    def "forwards the parameter bytes as a model request parameter"() {
+        given:
+        def bytes = [1, 2, 3] as byte[]
+        def action = new GrpcModelQueryAction(startParameter, "com.example.Model", new File("root"), "", bytes, clientSubscriptions)
+        def modelResult = Mock(ToolingModelBuilderResultInternal)
+        ToolingModelRequestContext capturedContext = null
+
+        when:
+        runner.run(action, buildController)
+
+        then:
+        1 * buildController.fromBuildModel(false, _) >> { boolean runTasks, BuildTreeModelAction a -> a.fromBuildModel(modelController) }
+        1 * modelController.getModel(_, _) >> { ignored, ToolingModelRequestContext ctx -> capturedContext = ctx; modelResult }
+        1 * modelResult.getModel() >> new Object()
+        1 * payloadSerializer.serialize(_) >> Stub(SerializedPayload)
+
+        and:
+        capturedContext.parameter.present
+        capturedContext.parameter.get() instanceof GrpcToolingModelParameter
+        (capturedContext.parameter.get() as GrpcToolingModelParameter).parameterBytes == bytes
+    }
+
+    def "sends no parameter when the parameter bytes are empty"() {
+        given:
+        def action = new GrpcModelQueryAction(startParameter, "com.example.Model", new File("root"), "", new byte[0], clientSubscriptions)
+        def modelResult = Mock(ToolingModelBuilderResultInternal)
+        ToolingModelRequestContext capturedContext = null
+
+        when:
+        runner.run(action, buildController)
+
+        then:
+        1 * buildController.fromBuildModel(false, _) >> { boolean runTasks, BuildTreeModelAction a -> a.fromBuildModel(modelController) }
+        1 * modelController.getModel(_, _) >> { ignored, ToolingModelRequestContext ctx -> capturedContext = ctx; modelResult }
+        1 * modelResult.getModel() >> new Object()
+        1 * payloadSerializer.serialize(_) >> Stub(SerializedPayload)
+
+        and:
+        !capturedContext.parameter.present
     }
 
     def "ignores actions it does not handle"() {

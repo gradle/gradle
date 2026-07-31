@@ -206,6 +206,47 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int PARAMETER_FIELD_NUMBER = 5;
+  private com.google.protobuf.Any parameter_;
+  /**
+   * <pre>
+   * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+   * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any parameter = 5;</code>
+   * @return Whether the parameter field is set.
+   */
+  @java.lang.Override
+  public boolean hasParameter() {
+    return parameter_ != null;
+  }
+  /**
+   * <pre>
+   * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+   * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any parameter = 5;</code>
+   * @return The parameter.
+   */
+  @java.lang.Override
+  public com.google.protobuf.Any getParameter() {
+    return parameter_ == null ? com.google.protobuf.Any.getDefaultInstance() : parameter_;
+  }
+  /**
+   * <pre>
+   * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+   * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any parameter = 5;</code>
+   */
+  @java.lang.Override
+  public com.google.protobuf.AnyOrBuilder getParameterOrBuilder() {
+    return parameter_ == null ? com.google.protobuf.Any.getDefaultInstance() : parameter_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -232,6 +273,9 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(projectPath_)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 4, projectPath_);
     }
+    if (parameter_ != null) {
+      output.writeMessage(5, getParameter());
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -253,6 +297,10 @@ private static final long serialVersionUID = 0L;
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(projectPath_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, projectPath_);
+    }
+    if (parameter_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(5, getParameter());
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -276,6 +324,11 @@ private static final long serialVersionUID = 0L;
         .equals(other.getModelName())) return false;
     if (!getProjectPath()
         .equals(other.getProjectPath())) return false;
+    if (hasParameter() != other.hasParameter()) return false;
+    if (hasParameter()) {
+      if (!getParameter()
+          .equals(other.getParameter())) return false;
+    }
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -295,6 +348,10 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getModelName().hashCode();
     hash = (37 * hash) + PROJECT_PATH_FIELD_NUMBER;
     hash = (53 * hash) + getProjectPath().hashCode();
+    if (hasParameter()) {
+      hash = (37 * hash) + PARAMETER_FIELD_NUMBER;
+      hash = (53 * hash) + getParameter().hashCode();
+    }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -428,6 +485,11 @@ private static final long serialVersionUID = 0L;
       type_ = 0;
       modelName_ = "";
       projectPath_ = "";
+      parameter_ = null;
+      if (parameterBuilder_ != null) {
+        parameterBuilder_.dispose();
+        parameterBuilder_ = null;
+      }
       return this;
     }
 
@@ -472,6 +534,11 @@ private static final long serialVersionUID = 0L;
       }
       if (((from_bitField0_ & 0x00000008) != 0)) {
         result.projectPath_ = projectPath_;
+      }
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.parameter_ = parameterBuilder_ == null
+            ? parameter_
+            : parameterBuilder_.build();
       }
     }
 
@@ -537,6 +604,9 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00000008;
         onChanged();
       }
+      if (other.hasParameter()) {
+        mergeParameter(other.getParameter());
+      }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -583,6 +653,13 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000008;
               break;
             } // case 34
+            case 42: {
+              input.readMessage(
+                  getParameterFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              bitField0_ |= 0x00000010;
+              break;
+            } // case 42
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -927,6 +1004,170 @@ private static final long serialVersionUID = 0L;
       bitField0_ |= 0x00000008;
       onChanged();
       return this;
+    }
+
+    private com.google.protobuf.Any parameter_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> parameterBuilder_;
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     * @return Whether the parameter field is set.
+     */
+    public boolean hasParameter() {
+      return ((bitField0_ & 0x00000010) != 0);
+    }
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     * @return The parameter.
+     */
+    public com.google.protobuf.Any getParameter() {
+      if (parameterBuilder_ == null) {
+        return parameter_ == null ? com.google.protobuf.Any.getDefaultInstance() : parameter_;
+      } else {
+        return parameterBuilder_.getMessage();
+      }
+    }
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     */
+    public Builder setParameter(com.google.protobuf.Any value) {
+      if (parameterBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        parameter_ = value;
+      } else {
+        parameterBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000010;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     */
+    public Builder setParameter(
+        com.google.protobuf.Any.Builder builderForValue) {
+      if (parameterBuilder_ == null) {
+        parameter_ = builderForValue.build();
+      } else {
+        parameterBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000010;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     */
+    public Builder mergeParameter(com.google.protobuf.Any value) {
+      if (parameterBuilder_ == null) {
+        if (((bitField0_ & 0x00000010) != 0) &&
+          parameter_ != null &&
+          parameter_ != com.google.protobuf.Any.getDefaultInstance()) {
+          getParameterBuilder().mergeFrom(value);
+        } else {
+          parameter_ = value;
+        }
+      } else {
+        parameterBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000010;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     */
+    public Builder clearParameter() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      parameter_ = null;
+      if (parameterBuilder_ != null) {
+        parameterBuilder_.dispose();
+        parameterBuilder_ = null;
+      }
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     */
+    public com.google.protobuf.Any.Builder getParameterBuilder() {
+      bitField0_ |= 0x00000010;
+      onChanged();
+      return getParameterFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     */
+    public com.google.protobuf.AnyOrBuilder getParameterOrBuilder() {
+      if (parameterBuilder_ != null) {
+        return parameterBuilder_.getMessageOrBuilder();
+      } else {
+        return parameter_ == null ?
+            com.google.protobuf.Any.getDefaultInstance() : parameter_;
+      }
+    }
+    /**
+     * <pre>
+     * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+     * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+     * </pre>
+     *
+     * <code>.google.protobuf.Any parameter = 5;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+        getParameterFieldBuilder() {
+      if (parameterBuilder_ == null) {
+        parameterBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                getParameter(),
+                getParentForChildren(),
+                isClean());
+        parameter_ = null;
+      }
+      return parameterBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

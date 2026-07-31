@@ -39,13 +39,15 @@ public class GrpcModelQueryAction extends SubscribableBuildAction {
     private final String modelName;
     private final File buildRootDir;
     private final String projectPath;
+    private final byte[] parameterBytes;
 
-    public GrpcModelQueryAction(StartParameterInternal startParameter, String modelName, File buildRootDir, String projectPath, BuildEventSubscriptions clientSubscriptions) {
+    public GrpcModelQueryAction(StartParameterInternal startParameter, String modelName, File buildRootDir, String projectPath, byte[] parameterBytes, BuildEventSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.buildRootDir = buildRootDir;
         this.projectPath = projectPath;
+        this.parameterBytes = parameterBytes;
     }
 
     @Override
@@ -67,6 +69,15 @@ public class GrpcModelQueryAction extends SubscribableBuildAction {
      */
     public String getProjectPath() {
         return projectPath;
+    }
+
+    /**
+     * The serialized {@code google.protobuf.Any} parameter for a parameterized model builder, or an
+     * empty array when the client sent no parameter. Gradle carries these bytes opaquely; the plugin's
+     * builder unpacks them.
+     */
+    public byte[] getParameterBytes() {
+        return parameterBytes;
     }
 
     @Override

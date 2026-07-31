@@ -101,41 +101,42 @@ public final class ToolingProto {
       "\035.gradle.tooling.grpc.LogLevel\"?\n\004Span\022\014" +
       "\n\004text\030\001 \001(\t\022)\n\005style\030\002 \001(\0162\032.gradle.too" +
       "ling.grpc.Style\"/\n\013BuildResult\022\017\n\007succes" +
-      "s\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\"{\n\014ModelRequest" +
-      "\022\023\n\013project_dir\030\001 \001(\t\022,\n\004type\030\002 \001(\0162\036.gr" +
-      "adle.tooling.grpc.ModelType\022\022\n\nmodel_nam" +
-      "e\030\003 \001(\t\022\024\n\014project_path\030\004 \001(\t\"\327\001\n\rModelR" +
-      "esponse\022\017\n\007success\030\001 \001(\010\022\r\n\005error\030\002 \001(\t\022" +
-      "B\n\021build_environment\030\003 \001(\0132%.gradle.tool" +
-      "ing.grpc.BuildEnvironmentH\000\022.\n\005tasks\030\004 \001" +
-      "(\0132\035.gradle.tooling.grpc.TaskListH\000\022)\n\tm" +
-      "odel_any\030\005 \001(\0132\024.google.protobuf.AnyH\000B\007" +
-      "\n\005model\"S\n\020BuildEnvironment\022\026\n\016gradle_ve" +
-      "rsion\030\001 \001(\t\022\021\n\tjava_home\030\002 \001(\t\022\024\n\014java_v" +
-      "ersion\030\003 \001(\005\"N\n\010TaskList\022\024\n\014project_path" +
-      "\030\001 \001(\t\022,\n\005tasks\030\002 \003(\0132\035.gradle.tooling.g" +
-      "rpc.TaskInfo\"J\n\010TaskInfo\022\014\n\004name\030\001 \001(\t\022\014" +
-      "\n\004path\030\002 \001(\t\022\r\n\005group\030\003 \001(\t\022\023\n\013descripti" +
-      "on\030\004 \001(\t*N\n\014ProgressType\022\022\n\016PROGRESS_STA" +
-      "RT\020\000\022\023\n\017PROGRESS_STATUS\020\001\022\025\n\021PROGRESS_CO" +
-      "MPLETE\020\002*i\n\010LogLevel\022\031\n\025LOG_LEVEL_UNSPEC" +
-      "IFIED\020\000\022\t\n\005QUIET\020\001\022\010\n\004WARN\020\002\022\r\n\tLIFECYCL" +
-      "E\020\003\022\010\n\004INFO\020\004\022\t\n\005DEBUG\020\005\022\t\n\005ERROR\020\006*\204\002\n\005" +
-      "Style\022\020\n\014STYLE_NORMAL\020\000\022\020\n\014STYLE_HEADER\020" +
-      "\001\022\024\n\020STYLE_USER_INPUT\020\002\022\024\n\020STYLE_IDENTIF" +
-      "IER\020\003\022\025\n\021STYLE_DESCRIPTION\020\004\022\031\n\025STYLE_PR" +
-      "OGRESS_STATUS\020\005\022\021\n\rSTYLE_SUCCESS\020\006\022\030\n\024ST" +
-      "YLE_SUCCESS_HEADER\020\007\022\021\n\rSTYLE_FAILURE\020\010\022" +
-      "\030\n\024STYLE_FAILURE_HEADER\020\t\022\016\n\nSTYLE_INFO\020" +
-      "\n\022\017\n\013STYLE_ERROR\020\013*9\n\tModelType\022\033\n\027MODEL" +
-      "_BUILD_ENVIRONMENT\020\000\022\017\n\013MODEL_TASKS\020\0012\260\001" +
-      "\n\007Tooling\022P\n\010RunBuild\022!.gradle.tooling.g" +
-      "rpc.BuildRequest\032\037.gradle.tooling.grpc.B" +
-      "uildEvent0\001\022S\n\nQueryModel\022!.gradle.tooli" +
-      "ng.grpc.ModelRequest\032\".gradle.tooling.gr" +
-      "pc.ModelResponseB8\n&org.gradle.tooling.i" +
-      "nternal.grpc.protoB\014ToolingProtoP\001b\006prot" +
-      "o3"
+      "s\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\"\244\001\n\014ModelReques" +
+      "t\022\023\n\013project_dir\030\001 \001(\t\022,\n\004type\030\002 \001(\0162\036.g" +
+      "radle.tooling.grpc.ModelType\022\022\n\nmodel_na" +
+      "me\030\003 \001(\t\022\024\n\014project_path\030\004 \001(\t\022\'\n\tparame" +
+      "ter\030\005 \001(\0132\024.google.protobuf.Any\"\327\001\n\rMode" +
+      "lResponse\022\017\n\007success\030\001 \001(\010\022\r\n\005error\030\002 \001(" +
+      "\t\022B\n\021build_environment\030\003 \001(\0132%.gradle.to" +
+      "oling.grpc.BuildEnvironmentH\000\022.\n\005tasks\030\004" +
+      " \001(\0132\035.gradle.tooling.grpc.TaskListH\000\022)\n" +
+      "\tmodel_any\030\005 \001(\0132\024.google.protobuf.AnyH\000" +
+      "B\007\n\005model\"S\n\020BuildEnvironment\022\026\n\016gradle_" +
+      "version\030\001 \001(\t\022\021\n\tjava_home\030\002 \001(\t\022\024\n\014java" +
+      "_version\030\003 \001(\005\"N\n\010TaskList\022\024\n\014project_pa" +
+      "th\030\001 \001(\t\022,\n\005tasks\030\002 \003(\0132\035.gradle.tooling" +
+      ".grpc.TaskInfo\"J\n\010TaskInfo\022\014\n\004name\030\001 \001(\t" +
+      "\022\014\n\004path\030\002 \001(\t\022\r\n\005group\030\003 \001(\t\022\023\n\013descrip" +
+      "tion\030\004 \001(\t*N\n\014ProgressType\022\022\n\016PROGRESS_S" +
+      "TART\020\000\022\023\n\017PROGRESS_STATUS\020\001\022\025\n\021PROGRESS_" +
+      "COMPLETE\020\002*i\n\010LogLevel\022\031\n\025LOG_LEVEL_UNSP" +
+      "ECIFIED\020\000\022\t\n\005QUIET\020\001\022\010\n\004WARN\020\002\022\r\n\tLIFECY" +
+      "CLE\020\003\022\010\n\004INFO\020\004\022\t\n\005DEBUG\020\005\022\t\n\005ERROR\020\006*\204\002" +
+      "\n\005Style\022\020\n\014STYLE_NORMAL\020\000\022\020\n\014STYLE_HEADE" +
+      "R\020\001\022\024\n\020STYLE_USER_INPUT\020\002\022\024\n\020STYLE_IDENT" +
+      "IFIER\020\003\022\025\n\021STYLE_DESCRIPTION\020\004\022\031\n\025STYLE_" +
+      "PROGRESS_STATUS\020\005\022\021\n\rSTYLE_SUCCESS\020\006\022\030\n\024" +
+      "STYLE_SUCCESS_HEADER\020\007\022\021\n\rSTYLE_FAILURE\020" +
+      "\010\022\030\n\024STYLE_FAILURE_HEADER\020\t\022\016\n\nSTYLE_INF" +
+      "O\020\n\022\017\n\013STYLE_ERROR\020\013*9\n\tModelType\022\033\n\027MOD" +
+      "EL_BUILD_ENVIRONMENT\020\000\022\017\n\013MODEL_TASKS\020\0012" +
+      "\260\001\n\007Tooling\022P\n\010RunBuild\022!.gradle.tooling" +
+      ".grpc.BuildRequest\032\037.gradle.tooling.grpc" +
+      ".BuildEvent0\001\022S\n\nQueryModel\022!.gradle.too" +
+      "ling.grpc.ModelRequest\032\".gradle.tooling." +
+      "grpc.ModelResponseB8\n&org.gradle.tooling" +
+      ".internal.grpc.protoB\014ToolingProtoP\001b\006pr" +
+      "oto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -189,7 +190,7 @@ public final class ToolingProto {
     internal_static_gradle_tooling_grpc_ModelRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_ModelRequest_descriptor,
-        new java.lang.String[] { "ProjectDir", "Type", "ModelName", "ProjectPath", });
+        new java.lang.String[] { "ProjectDir", "Type", "ModelName", "ProjectPath", "Parameter", });
     internal_static_gradle_tooling_grpc_ModelResponse_descriptor =
       getDescriptor().getMessageTypes().get(8);
     internal_static_gradle_tooling_grpc_ModelResponse_fieldAccessorTable = new

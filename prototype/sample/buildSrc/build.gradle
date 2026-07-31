@@ -1,7 +1,8 @@
 // buildSrc for the sample build: builds the "IDE" plugin that contributes a tooling model.
-// The plugin bundles its OWN protobuf-java (implementation), so the model type and protobuf
-// runtime live in the plugin classloader - never shared with the Gradle daemon. The daemon
-// only ever sees the serialized google.protobuf.Any bytes the builder returns.
+// protobuf-java is compileOnly: the Gradle runtime exports it to plugins, so the plugin's
+// generated model shares one com.google.protobuf.Message class with the daemon. That lets the
+// daemon Any.pack the returned message for native clients and the Tooling API adapt it for JVM
+// clients - one builder serving both.
 plugins {
     id 'java'
 }

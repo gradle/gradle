@@ -115,7 +115,7 @@ def run_build(stub, pb, tasks, project_dir, token):
     return 0 if success else 1
 
 
-def query_model(stub, pb, model, project_dir, token, project_path=""):
+def query_model(stub, pb, model, project_dir, token, project_path="", exclude_plugins=False):
     metadata = [("x-gradle-daemon-token", token)]
     if model == "env":
         request = pb.ModelRequest(project_dir=project_dir, type=pb.MODEL_BUILD_ENVIRONMENT)
@@ -134,10 +134,18 @@ def query_model(stub, pb, model, project_dir, token, project_path=""):
         # whose schema Gradle does not know; we decode it with the vendor proto the client shares
         # with the daemon-side plugin.
         import ide_model_pb2 as ide
+        from google.protobuf import any_pb2
         # The client stays connected to the build root and names the target project by its logical
         # path (e.g. ":app"); the daemon resolves it via BuildTreeModelTarget.ofProject. An empty
         # project_path targets the default (root) project.
         request = pb.ModelRequest(project_dir=project_dir, model_name="com.example.ide.IdeProjectModel", project_path=project_path)
+        # Optional typed parameter: pack the vendor's IdeModelQuery into the request Any. The daemon
+        # carries it opaquely; the plugin's ParameterizedToolingModelBuilder unpacks it and, here,
+        # omits the plugin list when include_plugins is false.
+        if exclude_plugins:
+            param = any_pb2.Any()
+            param.Pack(ide.IdeModelQuery(include_plugins=False))
+            request.parameter.CopyFrom(param)
         response = stub.QueryModel(request, metadata=metadata)
         if not response.success:
             print("[query] failed: %s" % response.error, file=sys.stderr)
@@ -150,7 +158,7 @@ def query_model(stub, pb, model, project_dir, token, project_path=""):
         print("  project path: %s" % ide_model.project_path)
         print("  project name: %s" % ide_model.project_name)
         print("  build dir:    %s" % ide_model.build_dir)
-        print("  plugins:      %s" % ", ".join(ide_model.plugin_ids))
+        print("  plugins:      %s" % (", ".join(ide_model.plugin_ids) or "(none)"))
         return 0
     raise SystemExit("Unknown model: %s" % model)
 
@@ -165,6 +173,8 @@ def main():
                         help="Query a model instead of running a build")
     parser.add_argument("--target", choices=["root", "app", "lib"], default="root",
                         help="For --query project: which sample project to target (per-project model)")
+    parser.add_argument("--exclude-plugins", action="store_true",
+                        help="For --query project: send an IdeModelQuery parameter that omits the plugin list")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -188,7 +198,7 @@ def main():
     stub = pb_grpc.ToolingStub(channel)
 
     if args.query:
-        sys.exit(query_model(stub, pb, args.query, project_dir, token, project_path))
+        sys.exit(query_model(stub, pb, args.query, project_dir, token, project_path, args.exclude_plugins))
     build_args = (args.tasks or []) + extra
     if not build_args:
         build_args = ["help"]

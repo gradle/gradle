@@ -89,8 +89,12 @@ public class GrpcModelQueryActionRunner implements BuildActionRunner {
             BuildTreeModelTarget target = projectPath.isEmpty()
                 ? BuildTreeModelTarget.ofDefault()
                 : BuildTreeModelTarget.ofProject(modelQuery.getBuildRootDir(), projectPath);
+            // Carry the client's Any parameter opaquely; the carrier adapts it onto the builder's
+            // parameter interface. No bytes means an unparameterized query (null parameter).
+            byte[] parameterBytes = modelQuery.getParameterBytes();
+            Object parameter = parameterBytes.length == 0 ? null : GrpcToolingModelParameter.of(parameterBytes);
             try {
-                ToolingModelRequestContext modelRequestContext = new ToolingModelRequestContext(modelName, null, false);
+                ToolingModelRequestContext modelRequestContext = new ToolingModelRequestContext(modelName, parameter, false);
                 return controller.getModel(target, modelRequestContext);
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;

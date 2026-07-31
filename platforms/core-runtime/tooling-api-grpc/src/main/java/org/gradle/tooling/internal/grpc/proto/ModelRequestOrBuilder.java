@@ -77,4 +77,34 @@ public interface ModelRequestOrBuilder extends
    */
   com.google.protobuf.ByteString
       getProjectPathBytes();
+
+  /**
+   * <pre>
+   * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+   * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any parameter = 5;</code>
+   * @return Whether the parameter field is set.
+   */
+  boolean hasParameter();
+  /**
+   * <pre>
+   * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+   * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any parameter = 5;</code>
+   * @return The parameter.
+   */
+  com.google.protobuf.Any getParameter();
+  /**
+   * <pre>
+   * Optional parameter for a ParameterizedToolingModelBuilder, wrapped in Any. The plugin owns the
+   * schema; Gradle carries it opaquely to the builder, which unpacks it. Empty means no parameter.
+   * </pre>
+   *
+   * <code>.google.protobuf.Any parameter = 5;</code>
+   */
+  com.google.protobuf.AnyOrBuilder getParameterOrBuilder();
 }

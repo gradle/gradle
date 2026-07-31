@@ -19,6 +19,11 @@ public final class IdeModelProto {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_com_example_ide_IdeProjectModel_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_com_example_ide_IdeModelQuery_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_com_example_ide_IdeModelQuery_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -31,8 +36,9 @@ public final class IdeModelProto {
       "\n\017ide_model.proto\022\017com.example.ide\"d\n\017Id" +
       "eProjectModel\022\024\n\014project_path\030\001 \001(\t\022\024\n\014p" +
       "roject_name\030\002 \001(\t\022\021\n\tbuild_dir\030\003 \001(\t\022\022\n\n" +
-      "plugin_ids\030\004 \003(\tB(\n\025com.example.ide.prot" +
-      "oB\rIdeModelProtoP\001b\006proto3"
+      "plugin_ids\030\004 \003(\t\"(\n\rIdeModelQuery\022\027\n\017inc" +
+      "lude_plugins\030\001 \001(\010B(\n\025com.example.ide.pr" +
+      "otoB\rIdeModelProtoP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -44,6 +50,12 @@ public final class IdeModelProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_com_example_ide_IdeProjectModel_descriptor,
         new java.lang.String[] { "ProjectPath", "ProjectName", "BuildDir", "PluginIds", });
+    internal_static_com_example_ide_IdeModelQuery_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_com_example_ide_IdeModelQuery_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_com_example_ide_IdeModelQuery_descriptor,
+        new java.lang.String[] { "IncludePlugins", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

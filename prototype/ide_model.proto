@@ -31,3 +31,10 @@ message IdeProjectModel {
   string build_dir = 3;      // absolute path
   repeated string plugin_ids = 4;   // plugins applied to the target project
 }
+
+// Vendor-owned request parameter for the IdeProjectModel builder. The native client packs this
+// into ModelRequest.parameter (an Any); the daemon carries it opaquely and the plugin's
+// ParameterizedToolingModelBuilder unpacks it to tailor the model it returns.
+message IdeModelQuery {
+  bool include_plugins = 1;   // when false, the builder returns the model without plugin_ids
+}

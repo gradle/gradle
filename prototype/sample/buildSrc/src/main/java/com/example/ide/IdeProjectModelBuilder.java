@@ -15,22 +15,29 @@
  */
 package com.example.ide;
 
+import com.example.ide.proto.IdeModelQuery;
 import com.example.ide.proto.IdeProjectModel;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A tooling model builder contributed by the "IDE" plugin. It produces a protobuf message the
- * Gradle runtime knows nothing about, packs it into a {@link Any} using the plugin's own bundled
- * protobuf-java, and returns the raw {@code byte[]}. Gradle carries those bytes opaquely; the
- * daemon-side gRPC layer forwards them inside {@code ModelResponse.model_any} without ever
- * referencing the {@link IdeProjectModel} class or a shared protobuf runtime.
+ * A tooling model builder contributed by the "IDE" plugin. It produces a protobuf message the Gradle
+ * runtime knows nothing about; the daemon-side gRPC layer packs it into a {@code google.protobuf.Any}
+ * for native clients, and the classic Tooling API adapts it onto the client's view interface. Both
+ * work because the plugin and the daemon share one {@code com.google.protobuf.Message} class
+ * (protobuf-java is exported to plugins - see DefaultGradleApiSpecProvider).
+ *
+ * <p>It is a {@link ParameterizedToolingModelBuilder} so a client can tailor the model with a typed
+ * parameter. The parameter travels as the bytes of an {@code Any} the builder unpacks into its own
+ * {@link IdeModelQuery} - the request-side mirror of the opaque-Any model result.</p>
  */
-public class IdeProjectModelBuilder implements ToolingModelBuilder {
+public class IdeProjectModelBuilder implements ParameterizedToolingModelBuilder<IdeModelParameter> {
 
     // The stable model identifier both clients ask for. The native gRPC client sends this string;
     // the JVM Tooling API client requests getModel(<its interface named this>.class). It is the
@@ -43,20 +50,46 @@ public class IdeProjectModelBuilder implements ToolingModelBuilder {
     }
 
     @Override
+    public Class<IdeModelParameter> getParameterType() {
+        return IdeModelParameter.class;
+    }
+
+    @Override
     public Object buildAll(String modelName, Project project) {
-        List<String> pluginIds = new ArrayList<>();
-        for (Plugin<?> plugin : project.getPlugins()) {
-            pluginIds.add(plugin.getClass().getName());
+        // No parameter (the JVM Tooling API parity client, and a native client that sent none):
+        // return the full model.
+        return build(project, true);
+    }
+
+    @Override
+    public Object buildAll(String modelName, IdeModelParameter parameter, Project project) {
+        return build(project, includePlugins(parameter));
+    }
+
+    private static boolean includePlugins(IdeModelParameter parameter) {
+        byte[] bytes = parameter.getParameterBytes();
+        if (bytes == null || bytes.length == 0) {
+            return true;
         }
-        // Return the protobuf message directly. A JVM Tooling API client receives it via the normal
-        // serialize/adapt path; the daemon-side gRPC layer packs it into an Any for native clients.
-        // Both work because the plugin and the daemon share one com.google.protobuf.Message class
-        // (protobuf-java is exported to plugins - see DefaultGradleApiSpecProvider).
-        return IdeProjectModel.newBuilder()
+        try {
+            return Any.parseFrom(bytes).unpack(IdeModelQuery.class).getIncludePlugins();
+        } catch (InvalidProtocolBufferException e) {
+            throw new IllegalArgumentException("Model parameter is not a valid IdeModelQuery Any", e);
+        }
+    }
+
+    private static IdeProjectModel build(Project project, boolean includePlugins) {
+        IdeProjectModel.Builder model = IdeProjectModel.newBuilder()
             .setProjectPath(project.getPath())
             .setProjectName(project.getName())
-            .setBuildDir(project.getLayout().getBuildDirectory().getAsFile().get().getAbsolutePath())
-            .addAllPluginIds(pluginIds)
-            .build();
+            .setBuildDir(project.getLayout().getBuildDirectory().getAsFile().get().getAbsolutePath());
+        if (includePlugins) {
+            List<String> pluginIds = new ArrayList<>();
+            for (Plugin<?> plugin : project.getPlugins()) {
+                pluginIds.add(plugin.getClass().getName());
+            }
+            model.addAllPluginIds(pluginIds);
+        }
+        return model.build();
     }
 }

@@ -75,6 +75,12 @@ run "14 plugin model (root project)"  0 "type.googleapis.com/com.example.ide.Ide
 run "15 plugin model (:app project)"  0 "project path: :app" -- --query project --target app
 run "16 plugin model (:lib project)"  0 "project path: :lib" -- --query project --target lib
 
+# Parameterized model: the client packs an IdeModelQuery(include_plugins=false) into the request Any.
+# The plugin's ParameterizedToolingModelBuilder unpacks it and omits the plugin list, so the same
+# :app model that lists plugins in scenario 15 now reports "(none)". Proves a typed request parameter
+# reaches the builder over gRPC.
+run "19 parameterized model (no plugins)" 0 "plugins:      (none)" -- --query project --target app --exclude-plugins
+
 # JVM parity: the SAME plugin model fetched over the classic JVM Tooling API (no gRPC). The builder
 # returns a protobuf message; the Tooling API adapts it to the client's view interface. Same data as
 # the native gRPC client returns above (scenarios 15/16) - one builder serves both clients.

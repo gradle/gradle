@@ -203,7 +203,9 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         // Target a specific project by its logical path (e.g. ":app") when the client asks for one,
         // the way a Tooling API BuildController.getModel(project, type) call does. The client stays
         // connected to the build root; it does not point its connection at the subproject directory.
-        BuildAction action = new GrpcModelQueryAction(startParameter, request.getModelName(), projectDir, request.getProjectPath(), new BuildEventSubscriptions(Collections.emptySet()));
+        // An optional Any parameter is forwarded opaquely for a ParameterizedToolingModelBuilder.
+        byte[] parameterBytes = request.hasParameter() ? request.getParameter().toByteArray() : new byte[0];
+        BuildAction action = new GrpcModelQueryAction(startParameter, request.getModelName(), projectDir, request.getProjectPath(), parameterBytes, new BuildEventSubscriptions(Collections.emptySet()));
         BuildActionParameters parameters = new DefaultBuildActionParameters(
             System.getProperties(),
             System.getenv(),
