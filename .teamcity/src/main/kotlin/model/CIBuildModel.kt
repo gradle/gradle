@@ -732,9 +732,6 @@ enum class SpecificBuild {
                 GRADLE_BUILD_SMOKE_TEST_NAME,
                 splitNumber = 4,
                 flakyTestStrategy = flakyTestStrategy,
-                // These are the only smoke tests that run nested Gradle builds against the distribution
-                // under test, so they are the only ones whose build cache hit rate depends on its version.
-                deterministicDistributionVersion = true,
             )
     },
     ConfigCacheSmokeTestsMinJavaVersion {
