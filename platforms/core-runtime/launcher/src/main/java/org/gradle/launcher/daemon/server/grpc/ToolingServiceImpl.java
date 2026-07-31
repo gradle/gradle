@@ -67,15 +67,31 @@ import org.gradle.tooling.internal.grpc.proto.CancelResponse;
 import org.gradle.tooling.internal.grpc.proto.ConnectRequest;
 import org.gradle.tooling.internal.grpc.proto.ConnectResponse;
 import org.gradle.tooling.internal.grpc.proto.Failure;
-import org.gradle.tooling.internal.grpc.proto.Outcome;
 import org.gradle.tooling.internal.grpc.proto.ModelRequest;
 import org.gradle.tooling.internal.grpc.proto.ModelResponse;
 import org.gradle.tooling.internal.grpc.proto.ModelType;
+import org.gradle.tooling.internal.grpc.proto.OperationDescriptor;
+import org.gradle.tooling.internal.grpc.proto.OperationFinished;
+import org.gradle.tooling.internal.grpc.proto.OperationResult;
+import org.gradle.tooling.internal.grpc.proto.OperationStarted;
+import org.gradle.tooling.internal.grpc.proto.OperationType;
+import org.gradle.tooling.internal.grpc.proto.Outcome;
 import org.gradle.tooling.internal.grpc.proto.OutputLine;
 import org.gradle.tooling.internal.grpc.proto.Span;
 import org.gradle.tooling.internal.grpc.proto.StyledOutput;
+import org.gradle.tooling.internal.grpc.proto.TaskOperationDetails;
 import org.gradle.tooling.internal.grpc.proto.ToolingGrpc;
-import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
+import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskSkippedResult;
+import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
+import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.action.GrpcModelQueryAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
@@ -86,8 +102,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -110,7 +128,8 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         "models.build_environment",
         "models.plugin",
         "models.project_targeting",
-        "models.parameterized"
+        "models.parameterized",
+        "events.task"
     ));
 
     private final BuildExecutor buildExecutor;
@@ -185,7 +204,27 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
             }
 
             StartParameterInternal startParameter = toStartParameter(args, new File(request.getProjectDir()));
-            BuildAction action = new ExecuteBuildAction(startParameter);
+
+            // Structured operation events on the direct path: subscribe to the requested operation
+            // kinds and run the build as a BuildModelAction with no model (exactly as the Tooling API's
+            // BuildLauncher does), so the daemon's own event pipeline forwards task events to the
+            // consumer below, which maps them onto the wire's operation tree.
+            Set<org.gradle.tooling.events.OperationType> operationTypes = EnumSet.noneOf(org.gradle.tooling.events.OperationType.class);
+            if (request.getSubscriptionsList().contains(OperationType.OPERATION_TYPE_TASK)) {
+                operationTypes.add(org.gradle.tooling.events.OperationType.TASK);
+            }
+            BuildEventConsumer eventConsumer = operationTypes.isEmpty()
+                ? NO_OP_EVENT_CONSUMER
+                : event -> {
+                    BuildEvent operationEvent = toOperationEvent(event);
+                    if (operationEvent != null) {
+                        synchronized (responseLock) {
+                            responseObserver.onNext(operationEvent);
+                        }
+                    }
+                };
+
+            BuildAction action = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, true, new BuildEventSubscriptions(operationTypes));
             BuildActionParameters parameters = new DefaultBuildActionParameters(
                 System.getProperties(),
                 System.getenv(),
@@ -199,7 +238,7 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
                 BuildRequestContext context = new DefaultBuildRequestContext(
                     new DefaultBuildRequestMetaData(new DefaultBuildClientMetaData(new GradleLauncherMetaData()), System.currentTimeMillis(), false),
                     stateControl.getCancellationToken(),
-                    NO_OP_EVENT_CONSUMER);
+                    eventConsumer);
                 resultRef.set(buildExecutor.execute(action, parameters, context));
             }, "gRPC tooling API build");
 
@@ -251,6 +290,60 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
             failure.addCauses(toFailure(cause));
         }
         return failure.build();
+    }
+
+    /**
+     * Maps a build-event-pipeline progress event (the internal protocol events the daemon forwards to
+     * the {@link BuildEventConsumer}) onto the wire's operation tree. Only task operations are mapped
+     * in this cut.
+     */
+    private static @Nullable BuildEvent toOperationEvent(Object event) {
+        if (event instanceof InternalOperationStartedProgressEvent) {
+            InternalOperationDescriptor descriptor = ((InternalOperationStartedProgressEvent) event).getDescriptor();
+            if (descriptor instanceof InternalTaskDescriptor) {
+                return BuildEvent.newBuilder()
+                    .setOperationStarted(OperationStarted.newBuilder().setOperation(taskDescriptor((InternalTaskDescriptor) descriptor)))
+                    .build();
+            }
+        } else if (event instanceof InternalOperationFinishedProgressEvent) {
+            InternalOperationFinishedProgressEvent finished = (InternalOperationFinishedProgressEvent) event;
+            if (finished.getDescriptor() instanceof InternalTaskDescriptor) {
+                InternalOperationResult result = finished.getResult();
+                long duration = result.getEndTime() - result.getStartTime();
+                return BuildEvent.newBuilder()
+                    .setOperationFinished(OperationFinished.newBuilder()
+                        .setOperation(taskDescriptor((InternalTaskDescriptor) finished.getDescriptor()))
+                        .setResult(OperationResult.newBuilder().setOutcome(outcomeOf(result)))
+                        .setDurationMillis(duration))
+                    .build();
+            }
+        }
+        return null;
+    }
+
+    private static OperationDescriptor.Builder taskDescriptor(InternalTaskDescriptor descriptor) {
+        return OperationDescriptor.newBuilder()
+            .setId(String.valueOf(descriptor.getId()))
+            .setParentId(descriptor.getParentId() != null ? String.valueOf(descriptor.getParentId()) : "")
+            .setDisplayName(descriptor.getDisplayName())
+            .setType(OperationType.OPERATION_TYPE_TASK)
+            .setTask(TaskOperationDetails.newBuilder().setTaskPath(descriptor.getTaskPath()));
+    }
+
+    private static Outcome outcomeOf(InternalOperationResult result) {
+        if (result instanceof InternalTaskFailureResult) {
+            return Outcome.OUTCOME_FAILED;
+        }
+        if (result instanceof InternalTaskSkippedResult) {
+            return Outcome.OUTCOME_SKIPPED;
+        }
+        if (result instanceof InternalTaskCachedResult && ((InternalTaskCachedResult) result).isFromCache()) {
+            return Outcome.OUTCOME_FROM_CACHE;
+        }
+        if (result instanceof InternalTaskSuccessResult) {
+            return ((InternalTaskSuccessResult) result).isUpToDate() ? Outcome.OUTCOME_UP_TO_DATE : Outcome.OUTCOME_SUCCESS;
+        }
+        return Outcome.OUTCOME_SUCCESS;
     }
 
     @Override

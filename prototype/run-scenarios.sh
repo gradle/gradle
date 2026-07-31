@@ -91,9 +91,9 @@ run "23 stdin declined by capability" 0 "no 'build.stdin' capability" -- hello -
 # Structured failures: a failed build reports an outcome + a failure tree (deserialized from the
 # daemon's serialized failure), not just a message. Works in both modes.
 run "24 structured failure (boom)" 1 "[failure]" -- boom
-# Operation events are bridge-only in this cut (direct-mode wiring of the daemon event pipeline is a
-# follow-up), so the client declines the subscription up front - graceful degradation by capability.
-run "25 operation events declined by capability" 0 "no 'events.task' capability" -- hello --events
+# Operation events on the direct in-daemon path: the build runs as a no-model BuildModelAction with a
+# TASK subscription, so the daemon's own event pipeline forwards task events, mapped onto the wire.
+run "25 operation events (direct mode)" 0 "[task] :hello" -- hello --events
 
 # Parameterized model: the client packs an IdeModelQuery(include_plugins=false) into the request Any.
 # The plugin's ParameterizedToolingModelBuilder unpacks it and omits the plugin list, so the same
