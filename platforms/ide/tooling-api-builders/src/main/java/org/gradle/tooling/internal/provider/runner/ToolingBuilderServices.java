@@ -32,6 +32,7 @@ public class ToolingBuilderServices extends AbstractGradleModuleServices {
         registration.add(FetchFailureConverter.class);
         registration.add(BuildControllerFactory.class);
         registration.add(BuildActionRunner.class, BuildModelActionRunner.class);
+        registration.add(BuildActionRunner.class, GrpcModelQueryActionRunner.class);
         registration.add(BuildActionRunner.class, TestExecutionRequestActionRunner.class);
         registration.add(BuildActionRunner.class, ClientProvidedBuildActionRunner.class);
         registration.add(BuildActionRunner.class, ClientProvidedPhasedActionRunner.class);

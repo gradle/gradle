@@ -68,8 +68,8 @@ import org.gradle.tooling.internal.grpc.proto.OutputLine;
 import org.gradle.tooling.internal.grpc.proto.Span;
 import org.gradle.tooling.internal.grpc.proto.StyledOutput;
 import org.gradle.tooling.internal.grpc.proto.ToolingGrpc;
-import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
+import org.gradle.tooling.internal.provider.action.GrpcModelQueryAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.util.GradleVersion;
@@ -200,7 +200,10 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         File projectDir = new File(request.getProjectDir());
         StartParameterInternal startParameter = toStartParameter(Collections.<String>emptyList(), projectDir);
 
-        BuildAction action = new BuildModelAction(startParameter, request.getModelName(), false, new BuildEventSubscriptions(Collections.emptySet()));
+        // Target a specific project by its logical path (e.g. ":app") when the client asks for one,
+        // the way a Tooling API BuildController.getModel(project, type) call does. The client stays
+        // connected to the build root; it does not point its connection at the subproject directory.
+        BuildAction action = new GrpcModelQueryAction(startParameter, request.getModelName(), projectDir, request.getProjectPath(), new BuildEventSubscriptions(Collections.emptySet()));
         BuildActionParameters parameters = new DefaultBuildActionParameters(
             System.getProperties(),
             System.getenv(),

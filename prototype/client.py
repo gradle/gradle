@@ -115,7 +115,7 @@ def run_build(stub, pb, tasks, project_dir, token):
     return 0 if success else 1
 
 
-def query_model(stub, pb, model, project_dir, token):
+def query_model(stub, pb, model, project_dir, token, project_path=""):
     metadata = [("x-gradle-daemon-token", token)]
     if model == "env":
         request = pb.ModelRequest(project_dir=project_dir, type=pb.MODEL_BUILD_ENVIRONMENT)
@@ -134,7 +134,10 @@ def query_model(stub, pb, model, project_dir, token):
         # whose schema Gradle does not know; we decode it with the vendor proto the client shares
         # with the daemon-side plugin.
         import ide_model_pb2 as ide
-        request = pb.ModelRequest(project_dir=project_dir, model_name="com.example.ide.IdeProjectModel")
+        # The client stays connected to the build root and names the target project by its logical
+        # path (e.g. ":app"); the daemon resolves it via BuildTreeModelTarget.ofProject. An empty
+        # project_path targets the default (root) project.
+        request = pb.ModelRequest(project_dir=project_dir, model_name="com.example.ide.IdeProjectModel", project_path=project_path)
         response = stub.QueryModel(request, metadata=metadata)
         if not response.success:
             print("[query] failed: %s" % response.error, file=sys.stderr)
@@ -173,10 +176,9 @@ def main():
     import tooling_pb2_grpc as pb_grpc
 
     project_dir = os.path.abspath(args.project_dir)
-    # Per-project targeting: point the query at a subproject dir so the daemon's default project
-    # (and thus the model it builds) is that subproject.
-    if args.query == "project" and args.target != "root":
-        project_dir = os.path.join(project_dir, args.target)
+    # Per-project targeting by logical path: stay connected to the build root and pass the target
+    # project's path (":app"/":lib"). "root" targets the default project (empty path).
+    project_path = "" if args.target == "root" else ":" + args.target
 
     print("[helper] gradle --grpc-endpoint ...", file=sys.stderr)
     endpoint, token = get_endpoint(args.gradle, project_dir)
@@ -186,7 +188,7 @@ def main():
     stub = pb_grpc.ToolingStub(channel)
 
     if args.query:
-        sys.exit(query_model(stub, pb, args.query, project_dir, token))
+        sys.exit(query_model(stub, pb, args.query, project_dir, token, project_path))
     build_args = (args.tasks or []) + extra
     if not build_args:
         build_args = ["help"]

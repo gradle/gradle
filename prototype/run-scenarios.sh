@@ -67,8 +67,10 @@ run "11 styled task (built-in tasks)" 0 "BUILD SUCCESSFUL" -- tasks
 cli "12 CLI over gRPC (--grpc hello)" 0 "Hello from the gRPC-driven build!" -- --grpc hello
 cli "13 CLI over gRPC (--grpc boom)"  1 "Intentional failure for the prototype demo" -- --grpc boom
 
-# Plugin-contributed model over Any, with per-project targeting. The client decodes IdeProjectModel
-# (a type Gradle does not know) from the response Any, and each project yields a distinct model.
+# Plugin-contributed model over Any, targeted per project by logical path. The client stays connected
+# to the build root and names the target project (":app"/":lib"); the daemon resolves it via
+# BuildTreeModelTarget.ofProject. It decodes IdeProjectModel (a type Gradle does not know) from the
+# response Any, and each project yields a distinct model.
 run "14 plugin model (root project)"  0 "type.googleapis.com/com.example.ide.IdeProjectModel" -- --query project
 run "15 plugin model (:app project)"  0 "project path: :app" -- --query project --target app
 run "16 plugin model (:lib project)"  0 "project path: :lib" -- --query project --target lib
