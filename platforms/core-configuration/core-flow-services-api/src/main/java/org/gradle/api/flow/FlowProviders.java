@@ -88,13 +88,11 @@ public interface FlowProviders {
      * The returned {@link Provider#get() provider's value} becomes available after the scheduled work
      * has completed, so it can only be used as an input to {@link FlowAction dataflow actions}.
      * When the configuration cache is not enabled, the value is
-     * {@link ConfigurationCacheOutcome#NOT_ENABLED}.
+     * {@link ConfigurationCacheOutcome.NotEnabled}.
      * </p>
      * <p>
      * There is a single outcome per build invocation: in a composite build, dataflow actions of all
-     * builds observe the outcome of the invocation as a whole. A nested build started by a
-     * {@code GradleBuild} task is a separate invocation without configuration caching, so its dataflow
-     * actions observe {@link ConfigurationCacheOutcome#NOT_ENABLED}.
+     * builds observe the outcome of the invocation as a whole.
      * </p>
      * <p>
      * <b>IMPORTANT:</b> trying to access the provider's value before the scheduled work has finished

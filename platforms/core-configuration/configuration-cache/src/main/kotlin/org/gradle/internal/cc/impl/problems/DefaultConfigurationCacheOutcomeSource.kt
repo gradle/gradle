@@ -20,7 +20,6 @@ import org.gradle.api.configuration.ConfigurationCacheOutcome
 import org.gradle.internal.flow.services.ConfigurationCacheOutcomeSource
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.operations.configuration.ConfigurationCacheEntryOutcomeBuildOperationType.Outcome
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -30,15 +29,10 @@ class DefaultConfigurationCacheOutcomeSource(
 ) : ConfigurationCacheOutcomeSource {
 
     override fun outcome(): ConfigurationCacheOutcome =
-        problems.queryEntryOutcome().toPublicOutcome()
-
-    private
-    fun Outcome.toPublicOutcome(): ConfigurationCacheOutcome = when (this) {
-        Outcome.STORED -> ConfigurationCacheOutcome.STORED
-        Outcome.REUSED -> ConfigurationCacheOutcome.REUSED
-        Outcome.UPDATED -> ConfigurationCacheOutcome.UPDATED
-        Outcome.DISCARDED -> ConfigurationCacheOutcome.DISCARDED
-        Outcome.NOT_STORED -> ConfigurationCacheOutcome.NOT_STORED
-        Outcome.UNDETERMINED -> ConfigurationCacheOutcome.UNDETERMINED
-    }
+        when (problems.queryEntryOutcomeKind()) {
+            EntryOutcomeKind.REUSED -> ConfigurationCacheOutcome.reused()
+            EntryOutcomeKind.STORED -> ConfigurationCacheOutcome.stored()
+            EntryOutcomeKind.STORE_SKIPPED -> ConfigurationCacheOutcome.storeSkipped()
+            EntryOutcomeKind.STORE_FAILED -> ConfigurationCacheOutcome.storeFailed()
+        }
 }

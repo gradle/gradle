@@ -17,6 +17,7 @@
 package org.gradle.api.configuration;
 
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The outcome of configuration caching for a build invocation.
@@ -24,67 +25,151 @@ import org.gradle.api.Incubating;
  * Exposed to build logic via {@link org.gradle.api.flow.FlowProviders#getConfigurationCacheOutcome()},
  * whose value only becomes available once the scheduled work of the build has completed.
  * <p>
- * TestKit exposes the same information to plugin tests via
- * {@code org.gradle.testkit.runner.ConfigurationCacheOutcome}, which additionally reports
- * outcomes across Gradle versions.
+ * The concrete outcome is expressed by the subtype of this class. More subtypes may be added
+ * in future Gradle versions.
+ * <p>
+ * TestKit exposes similar information to plugin tests via
+ * {@code org.gradle.testkit.runner.ConfigurationCacheOutcome}.
  *
  * @see org.gradle.api.flow.FlowProviders#getConfigurationCacheOutcome()
  * @since 9.8.0
  */
 @Incubating
-public enum ConfigurationCacheOutcome {
+public abstract class ConfigurationCacheOutcome {
+
+    private ConfigurationCacheOutcome() {
+    }
 
     /**
      * The configuration cache was not enabled for the build.
      *
      * @since 9.8.0
      */
-    NOT_ENABLED,
+    @Incubating
+    public static final class NotEnabled extends ConfigurationCacheOutcome {
+        private static final NotEnabled INSTANCE = new NotEnabled();
+
+        private NotEnabled() {
+        }
+    }
+
+    /**
+     * Returns the outcome representing a build for which the configuration cache was not enabled.
+     *
+     * @return the outcome
+     * @since 9.8.0
+     */
+    public static NotEnabled notEnabled() {
+        return NotEnabled.INSTANCE;
+    }
 
     /**
      * No reusable configuration cache entry was found and a new entry was stored.
      *
      * @since 9.8.0
      */
-    STORED,
+    @Incubating
+    public static final class Stored extends ConfigurationCacheOutcome {
+        private static final Stored INSTANCE = new Stored();
+
+        private Stored() {
+        }
+    }
 
     /**
-     * A configuration cache entry was found and fully reused.
+     * Returns the outcome representing a stored configuration cache entry.
+     *
+     * @return the outcome
+     * @since 9.8.0
+     */
+    public static Stored stored() {
+        return Stored.INSTANCE;
+    }
+
+    /**
+     * A configuration cache entry was found and reused.
      *
      * @since 9.8.0
      */
-    REUSED,
+    @Incubating
+    public static final class Reused extends ConfigurationCacheOutcome {
+        private static final Reused INSTANCE = new Reused();
+
+        private Reused() {
+        }
+    }
 
     /**
-     * A configuration cache entry was found and partially reused; the invalidated projects were
-     * re-configured and the entry was updated.
+     * Returns the outcome representing a reused configuration cache entry.
+     *
+     * @return the outcome
+     * @since 9.8.0
+     */
+    public static Reused reused() {
+        return Reused.INSTANCE;
+    }
+
+    /**
+     * Storing a configuration cache entry failed, e.g. because of configuration cache problems,
+     * a serialization error, or because the build failed before the entry could be stored.
      *
      * @since 9.8.0
      */
-    UPDATED,
+    @Incubating
+    public static final class StoreFailed extends ConfigurationCacheOutcome {
+        private static final StoreFailed INSTANCE = new StoreFailed();
+
+        private StoreFailed() {
+        }
+    }
 
     /**
-     * A configuration cache entry was written but discarded at the end of the build,
-     * e.g. because of problems, a serialization error or incompatible tasks.
+     * Returns the outcome representing a failure to store a configuration cache entry.
+     *
+     * @return the outcome
+     * @since 9.8.0
+     */
+    public static StoreFailed storeFailed() {
+        return StoreFailed.INSTANCE;
+    }
+
+    /**
+     * Storing a configuration cache entry was deliberately skipped, e.g. because an incompatible
+     * task was scheduled, configuration caching was degraded gracefully, or no reusable entry was
+     * found while the cache is in read-only mode.
      *
      * @since 9.8.0
      */
-    DISCARDED,
+    @Incubating
+    public static final class StoreSkipped extends ConfigurationCacheOutcome {
+        private static final StoreSkipped INSTANCE = new StoreSkipped();
+
+        private StoreSkipped() {
+        }
+    }
 
     /**
-     * No configuration cache entry was stored on purpose: no reusable entry was found while the cache
-     * is in read-only mode, or configuration caching was degraded gracefully because incompatible
-     * tasks were scheduled.
+     * Returns the outcome representing a deliberately skipped configuration cache entry store.
      *
+     * @return the outcome
      * @since 9.8.0
      */
-    NOT_STORED,
+    public static StoreSkipped storeSkipped() {
+        return StoreSkipped.INSTANCE;
+    }
 
-    /**
-     * The configuration cache was enabled, but the build finished before the outcome was
-     * determined, e.g. because it failed early.
-     *
-     * @since 9.8.0
-     */
-    UNDETERMINED
+    @Override
+    public final boolean equals(@Nullable Object rhs) {
+        return rhs != null && getClass().equals(rhs.getClass());
+    }
+
+    @Override
+    public final int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public final String toString() {
+        return getClass().getSimpleName();
+    }
 }

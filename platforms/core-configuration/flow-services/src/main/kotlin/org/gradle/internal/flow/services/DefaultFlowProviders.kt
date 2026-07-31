@@ -91,7 +91,7 @@ class ConfigurationCacheOutcomeProvider(
     private
     val outcome by lazy {
         val source = services.find(ConfigurationCacheOutcomeSource::class.java) as ConfigurationCacheOutcomeSource?
-        source?.outcome() ?: ConfigurationCacheOutcome.NOT_ENABLED
+        source?.outcome() ?: ConfigurationCacheOutcome.notEnabled()
     }
 
     fun markAvailable() {

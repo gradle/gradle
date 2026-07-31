@@ -54,7 +54,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
             apply plugin: OutcomePrintingPlugin
         """
 
-    def "flow action observes NOT_ENABLED when the configuration cache is not used"() {
+    def "flow action observes NotEnabled when the configuration cache is not used"() {
         given:
         settingsFile OUTCOME_PRINTING_PLUGIN
 
@@ -62,10 +62,10 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         run DISABLE_CLI_OPT, 'help'
 
         then:
-        outputContains 'CC outcome: NOT_ENABLED'
+        outputContains 'CC outcome: NotEnabled'
     }
 
-    def "flow action observes STORED on a cache miss and REUSED on a cache hit"() {
+    def "flow action observes Stored on a cache miss and Reused on a cache hit"() {
         given:
         def configCache = newConfigurationCacheFixture()
         settingsFile OUTCOME_PRINTING_PLUGIN
@@ -75,17 +75,17 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
 
         then: 'the store-then-reload run reports STORED, not REUSED'
         configCache.assertStateStored()
-        outputContains 'CC outcome: STORED'
+        outputContains 'CC outcome: Stored'
 
         when: 'second run reuses the entry, restoring the flow action from the cache'
         configurationCacheRun 'help'
 
         then:
         configCache.assertStateLoaded()
-        outputContains 'CC outcome: REUSED'
+        outputContains 'CC outcome: Reused'
     }
 
-    def "flow action observes DISCARDED when an incompatible task is scheduled"() {
+    def "flow action observes StoreSkipped when an incompatible task is scheduled"() {
         given:
         settingsFile OUTCOME_PRINTING_PLUGIN
         buildFile '''
@@ -99,10 +99,10 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         configurationCacheRun 'incompatible'
 
         then:
-        outputContains 'CC outcome: DISCARDED'
+        outputContains 'CC outcome: StoreSkipped'
     }
 
-    def "flow action observes NOT_STORED on a cache miss in read-only mode"() {
+    def "flow action observes StoreSkipped on a cache miss in read-only mode"() {
         given:
         settingsFile OUTCOME_PRINTING_PLUGIN
 
@@ -110,7 +110,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         configurationCacheRun ENABLE_READ_ONLY_CACHE, 'help'
 
         then:
-        outputContains 'CC outcome: NOT_STORED'
+        outputContains 'CC outcome: StoreSkipped'
     }
 
     def "flow action observes the outcome when the build fails"() {
@@ -126,13 +126,13 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         configurationCacheFails 'broken'
 
         then:
-        outputContains 'CC outcome: STORED'
+        outputContains 'CC outcome: Stored'
 
         when:
         configurationCacheFails 'broken'
 
         then:
-        outputContains 'CC outcome: REUSED'
+        outputContains 'CC outcome: Reused'
     }
 
     def "accessing the outcome at configuration time fails"() {
@@ -184,26 +184,6 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         failureCauseContains "Cannot access the value of 'ConfigurationCacheOutcome' before it becomes available!"
     }
 
-    def "flow action observes UPDATED when the entry is partially reused"() {
-        given:
-        settingsFile OUTCOME_PRINTING_PLUGIN
-
-        when:
-        configurationCacheRun 'help'
-
-        then:
-        outputContains 'CC outcome: STORED'
-
-        when: 'a project build script changes, invalidating only that project'
-        buildFile '''
-            tasks.register('other')
-        '''
-        configurationCacheRun 'help'
-
-        then:
-        outputContains 'CC outcome: UPDATED'
-    }
-
     def "flow action of an included build observes the outcome of the whole invocation"() {
         given:
         settingsFile """
@@ -225,13 +205,13 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         configurationCacheRun 'ok'
 
         then:
-        outputContains 'CC outcome: STORED'
+        outputContains 'CC outcome: Stored'
 
         when:
         configurationCacheRun 'ok'
 
         then:
-        outputContains 'CC outcome: REUSED'
+        outputContains 'CC outcome: Reused'
     }
 
     def "init script flow action can enforce configuration cache reuse"() {
@@ -273,7 +253,7 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
                     // neither becomes a configuration input nor gets baked into the cache entry.
                     if (System.getenv('VERIFY_CC_REUSE') != null) {
                         def outcome = parameters.outcome.get()
-                        if (outcome != ConfigurationCacheOutcome.REUSED) {
+                        if (outcome != ConfigurationCacheOutcome.reused()) {
                             throw new GradleException("Expected the configuration cache entry to be reused but the outcome was: \$outcome")
                         }
                     }
@@ -304,10 +284,10 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         configurationCacheFails '-I', initScript.name, 'help'
 
         then:
-        failureDescriptionContains 'Expected the configuration cache entry to be reused but the outcome was: STORED'
+        failureDescriptionContains 'Expected the configuration cache entry to be reused but the outcome was: Stored'
     }
 
-    def "flow action of a GradleBuild nested build observes NOT_ENABLED"() {
+    def "flow action of a GradleBuild nested build observes NotEnabled"() {
         given:
         file('nested/settings.gradle') << OUTCOME_PRINTING_PLUGIN
         file('nested/build.gradle') << ''
@@ -320,10 +300,87 @@ class FlowProvidersConfigurationCacheOutcomeIntegrationTest extends AbstractConf
         """
 
         when:
-        configurationCacheRunLenient 'nested'
+        configurationCacheRun 'nested'
 
         then: 'the nested invocation has no configuration cache of its own'
-        outputContains 'CC outcome: NOT_ENABLED'
+        outputContains 'CC outcome: NotEnabled'
     }
 
+    def "flow action observes StoreFailed when problems fail the build"() {
+        given:
+        settingsFile OUTCOME_PRINTING_PLUGIN
+        buildFile '''
+            gradle.buildFinished { }
+            tasks.register('broken')
+        '''
+
+        when:
+        configurationCacheFails 'broken'
+
+        then:
+        outputContains 'CC outcome: StoreFailed'
+    }
+
+    def "flow action observes StoreFailed when the build fails before the entry can be stored"() {
+        given: 'a flow action registered from an init script, before the failing settings script'
+        def initScript = file('outcome.init.gradle')
+        initScript << """
+            import org.gradle.api.flow.*
+            import org.gradle.api.configuration.ConfigurationCacheOutcome
+
+            class OutcomeGradlePlugin implements Plugin<Gradle> {
+                private final FlowScope flowScope
+                private final FlowProviders flowProviders
+
+                @Inject
+                OutcomeGradlePlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+
+                void apply(Gradle target) {
+                    flowScope.always(PrintOutcomeFromInit) {
+                        parameters.outcome = flowProviders.configurationCacheOutcome
+                    }
+                }
+            }
+
+            class PrintOutcomeFromInit implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input Property<ConfigurationCacheOutcome> getOutcome()
+                }
+                void execute(Parameters parameters) {
+                    println('CC outcome: ' + parameters.outcome.get())
+                }
+            }
+
+            apply plugin: OutcomeGradlePlugin
+        """
+        settingsFile '''
+            throw new GradleException('boom in settings')
+        '''
+
+        when:
+        configurationCacheFails '-I', initScript.name, 'help'
+
+        then: 'nothing was stored, which is a failed store, not a successful one'
+        outputContains 'CC outcome: StoreFailed'
+    }
+
+    def "flow action observes the outcome under isolated projects"() {
+        given:
+        settingsFile OUTCOME_PRINTING_PLUGIN
+
+        when:
+        configurationCacheRun '-Dorg.gradle.unsafe.isolated-projects=true', 'help'
+
+        then:
+        outputContains 'CC outcome: Stored'
+
+        when:
+        configurationCacheRun '-Dorg.gradle.unsafe.isolated-projects=true', 'help'
+
+        then:
+        outputContains 'CC outcome: Reused'
+    }
 }
