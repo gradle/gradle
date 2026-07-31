@@ -204,6 +204,9 @@ def main():
     parser.add_argument("--endpoint", default=None, metavar="HOST:PORT",
                         help="Dial this gRPC endpoint directly (e.g. the cross-version bridge) instead "
                              "of starting/finding a daemon via `gradle --grpc-endpoint`")
+    parser.add_argument("--discover", action="store_true",
+                        help="Discover an endpoint for the project: a find-or-started bridge for the "
+                             "version its wrapper declares, else the direct in-daemon path")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -224,6 +227,15 @@ def main():
         # bridge). No JVM bootstrap helper, no daemon token.
         endpoint, token = args.endpoint, ""
         print("[direct] endpoint=%s" % endpoint, file=sys.stderr)
+    elif args.discover:
+        # Version-blind discovery: read the project's target Gradle version and get an endpoint that
+        # serves it (a find-or-started bridge for a released version, else the direct daemon path).
+        import discover as discovery
+        endpoint, token, mode, version = discovery.discover(
+            project_dir, args.gradle, get_endpoint, HERE,
+            log=lambda m: print("[discover] " + m, file=sys.stderr))
+        print("[discover] project targets %s -> %s endpoint %s" % (
+            version or "the provided gradle", mode, endpoint), file=sys.stderr)
     else:
         print("[helper] gradle --grpc-endpoint ...", file=sys.stderr)
         endpoint, token = get_endpoint(args.gradle, project_dir)

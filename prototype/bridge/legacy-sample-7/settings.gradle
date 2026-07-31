@@ -1,0 +1,3 @@
+// A second trivial build, declaring an older Gradle (7.6.4) via its wrapper, so discovery routes it
+// to its own bridge - demonstrating per-version routing alongside the 8.5 legacy-sample.
+rootProject.name = 'bridge-legacy-sample-7'

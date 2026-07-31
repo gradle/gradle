@@ -1,0 +1,6 @@
+// Same trivial tasks as the 8.5 legacy-sample; only the wrapper-declared version differs.
+tasks.register('hello') {
+    doLast {
+        println 'Hello from the bridged build!'
+    }
+}

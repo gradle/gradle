@@ -2,4 +2,6 @@
 build/
 .bridge.out
 .bridge.err
+.discovery-registry/
 legacy-sample/.gradle/
+legacy-sample-7/.gradle/
