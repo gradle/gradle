@@ -63,6 +63,8 @@ import org.gradle.tooling.internal.grpc.proto.BuildRequest;
 import org.gradle.tooling.internal.grpc.proto.BuildResult;
 import org.gradle.tooling.internal.grpc.proto.CancelRequest;
 import org.gradle.tooling.internal.grpc.proto.CancelResponse;
+import org.gradle.tooling.internal.grpc.proto.ConnectRequest;
+import org.gradle.tooling.internal.grpc.proto.ConnectResponse;
 import org.gradle.tooling.internal.grpc.proto.ModelRequest;
 import org.gradle.tooling.internal.grpc.proto.ModelResponse;
 import org.gradle.tooling.internal.grpc.proto.ModelType;
@@ -78,6 +80,7 @@ import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -92,6 +95,18 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
     private static final Logger LOGGER = Logging.getLogger(ToolingServiceImpl.class);
     private static final BuildEventConsumer NO_OP_EVENT_CONSUMER = event -> {
     };
+
+    // The contract version this endpoint speaks, and the capability flags it advertises. The in-daemon
+    // server offers the full surface; the cross-version bridge advertises a subset for old daemons.
+    private static final int CONTRACT_VERSION = 1;
+    private static final List<String> CAPABILITIES = Collections.unmodifiableList(Arrays.asList(
+        "build.run",
+        "control.cancel",
+        "models.build_environment",
+        "models.plugin",
+        "models.project_targeting",
+        "models.parameterized"
+    ));
 
     private final BuildExecutor buildExecutor;
     private final LoggingOutputInternal loggingOutput;
@@ -108,6 +123,18 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         this.stateControl = stateControl;
         this.buildLayoutFactory = buildLayoutFactory;
         this.userHomeServiceRegistry = userHomeServiceRegistry;
+    }
+
+    @Override
+    public void connect(ConnectRequest request, StreamObserver<ConnectResponse> responseObserver) {
+        // Direct mode: the server is in the daemon, so it speaks for this exact Gradle version and
+        // offers the full capability set.
+        responseObserver.onNext(ConnectResponse.newBuilder()
+            .setGradleVersion(GradleVersion.current().getVersion())
+            .setContractVersion(CONTRACT_VERSION)
+            .addAllCapabilities(CAPABILITIES)
+            .build());
+        responseObserver.onCompleted();
     }
 
     @Override

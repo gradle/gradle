@@ -31,6 +31,8 @@ import org.gradle.tooling.internal.grpc.proto.BuildEvent
 import org.gradle.tooling.internal.grpc.proto.BuildRequest
 import org.gradle.tooling.internal.grpc.proto.CancelRequest
 import org.gradle.tooling.internal.grpc.proto.CancelResponse
+import org.gradle.tooling.internal.grpc.proto.ConnectRequest
+import org.gradle.tooling.internal.grpc.proto.ConnectResponse
 import org.gradle.tooling.internal.grpc.proto.ModelRequest
 import org.gradle.tooling.internal.grpc.proto.ModelResponse
 import org.gradle.tooling.internal.grpc.proto.ModelType
@@ -160,6 +162,20 @@ class ToolingServiceImplTest extends Specification {
         observer.value.buildEnvironment.gradleVersion
     }
 
+    def "connect advertises the contract version and the direct-mode capabilities"() {
+        given:
+        def observer = new CapturingConnectObserver()
+
+        when:
+        service.connect(ConnectRequest.newBuilder().setClientName("test").build(), observer)
+
+        then:
+        observer.completed
+        observer.value.contractVersion == 1
+        observer.value.gradleVersion
+        observer.value.capabilitiesList.containsAll(["build.run", "control.cancel", "models.plugin", "models.parameterized"])
+    }
+
     def "reports not cancelled when no build with the id is running"() {
         given:
         def observer = new CapturingCancelObserver()
@@ -229,6 +245,25 @@ class ToolingServiceImplTest extends Specification {
         @Override
         void onError(Throwable t) {
             error = t
+        }
+
+        @Override
+        void onCompleted() {
+            completed = true
+        }
+    }
+
+    static class CapturingConnectObserver implements StreamObserver<ConnectResponse> {
+        ConnectResponse value
+        boolean completed
+
+        @Override
+        void onNext(ConnectResponse response) {
+            value = response
+        }
+
+        @Override
+        void onError(Throwable t) {
         }
 
         @Override

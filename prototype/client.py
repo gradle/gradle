@@ -85,6 +85,20 @@ def ansi_for(pb, style):
     return table.get(style, "")
 
 
+def connect(stub, pb, token):
+    """Handshake: learn the endpoint's Gradle version, contract version, and capability flags. The
+    same call works against the in-daemon server and the cross-version bridge; the client gates on the
+    returned capabilities rather than on the version."""
+    metadata = [("x-gradle-daemon-token", token)]
+    resp = stub.Connect(
+        pb.ConnectRequest(client_name="grpc-prototype-client", min_contract_version=1, max_contract_version=1),
+        metadata=metadata)
+    print("[connect] gradle %s, contract v%d, capabilities: %s" % (
+        resp.gradle_version, resp.contract_version, ", ".join(resp.capabilities) or "(none)"),
+        file=sys.stderr)
+    return resp
+
+
 def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=None):
     request = pb.BuildRequest(args=tasks, project_dir=project_dir, build_id=build_id)
     metadata = [("x-gradle-daemon-token", token)]
@@ -217,6 +231,15 @@ def main():
 
     channel = grpc.insecure_channel(endpoint)
     stub = pb_grpc.ToolingStub(channel)
+
+    # Handshake first, then adapt to what the endpoint advertises.
+    capabilities = set(connect(stub, pb, token).capabilities)
+
+    if args.query == "project" and "models.plugin" not in capabilities:
+        print("[client] this endpoint has no 'models.plugin' capability (has: %s); plugin models are "
+              "served only in direct mode, not through the bridge" % ", ".join(sorted(capabilities)),
+              file=sys.stderr)
+        sys.exit(3)
 
     if args.query:
         sys.exit(query_model(stub, pb, args.query, project_dir, token, project_path, args.exclude_plugins))

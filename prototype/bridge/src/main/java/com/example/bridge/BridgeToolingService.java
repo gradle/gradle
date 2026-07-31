@@ -26,6 +26,8 @@ import org.gradle.tooling.internal.grpc.proto.BuildRequest;
 import org.gradle.tooling.internal.grpc.proto.BuildResult;
 import org.gradle.tooling.internal.grpc.proto.CancelRequest;
 import org.gradle.tooling.internal.grpc.proto.CancelResponse;
+import org.gradle.tooling.internal.grpc.proto.ConnectRequest;
+import org.gradle.tooling.internal.grpc.proto.ConnectResponse;
 import org.gradle.tooling.internal.grpc.proto.LogLevel;
 import org.gradle.tooling.internal.grpc.proto.ModelRequest;
 import org.gradle.tooling.internal.grpc.proto.ModelResponse;
@@ -55,9 +57,26 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
     // build_id -> cancellation source for the build currently running under it, so Cancel can reach it.
     private final ConcurrentHashMap<String, CancellationTokenSource> running = new ConcurrentHashMap<>();
 
+    // The bridge speaks the same contract version but advertises only the subset it can deliver by
+    // driving an old daemon through the classic Tooling API - no plugin-model projection, no logical
+    // project targeting or parameters. The client sees fewer flags and degrades gracefully.
+    private static final int CONTRACT_VERSION = 1;
+
     public BridgeToolingService(String gradleVersion, String gradleInstallation) {
         this.gradleVersion = gradleVersion;
         this.gradleInstallation = gradleInstallation;
+    }
+
+    @Override
+    public void connect(ConnectRequest request, StreamObserver<ConnectResponse> responseObserver) {
+        responseObserver.onNext(ConnectResponse.newBuilder()
+            .setGradleVersion(gradleVersion.isEmpty() ? "(target project's wrapper)" : gradleVersion)
+            .setContractVersion(CONTRACT_VERSION)
+            .addCapabilities("build.run")
+            .addCapabilities("control.cancel")
+            .addCapabilities("models.build_environment")
+            .build());
+        responseObserver.onCompleted();
     }
 
     @Override

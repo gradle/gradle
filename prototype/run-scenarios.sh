@@ -75,6 +75,9 @@ run "14 plugin model (root project)"  0 "type.googleapis.com/com.example.ide.Ide
 run "15 plugin model (:app project)"  0 "project path: :app" -- --query project --target app
 run "16 plugin model (:lib project)"  0 "project path: :lib" -- --query project --target lib
 
+# Handshake: the in-daemon server advertises the full direct-mode capability set (incl. plugin models).
+run "21 handshake (direct capabilities)" 0 "models.plugin" -- --query env
+
 # Parameterized model: the client packs an IdeModelQuery(include_plugins=false) into the request Any.
 # The plugin's ParameterizedToolingModelBuilder unpacks it and omits the plugin list, so the same
 # :app model that lists plugins in scenario 15 now reports "(none)". Proves a typed request parameter

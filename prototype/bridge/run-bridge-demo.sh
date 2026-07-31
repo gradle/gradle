@@ -51,6 +51,10 @@ check "B1 run a task (hello)"           0 "Hello from the bridged build!"       
 check "B2 failing task (-> exit 1)"     1 "Intentional failure for the bridge demo" -- boom
 check "B3 query build environment"      0 "gradle version: $TARGET"                 -- --query env
 check "B4 cancel a running build"       1 "BUILD CANCELLED"                         -- sleeper --cancel-after 3
+# Handshake: the bridge advertises a reduced capability set (no plugin models), so the client refuses
+# a plugin-model query up front instead of failing mid-request - the same client, degrading gracefully.
+check "B5 handshake (reduced capabilities)" 0 "capabilities: build.run, control.cancel, models.build_environment" -- --query env
+check "B6 plugin model refused by capability" 3 "no 'models.plugin' capability" -- --query project
 
 echo
 echo "=== $PASS passed, $FAIL failed (target Gradle $TARGET, no in-daemon gRPC server) ==="

@@ -26,6 +26,11 @@ option java_package = "org.gradle.tooling.internal.grpc.proto";
 option java_outer_classname = "ToolingProto";
 
 service Tooling {
+  // Handshake: the client calls this first to learn the endpoint's Gradle version, the contract
+  // version it speaks, and its capability flags, then adapts. Both the in-daemon server and the
+  // cross-version bridge answer it, so the client negotiates the same way against either.
+  rpc Connect(ConnectRequest) returns (ConnectResponse);
+
   // Run a build. Output streams as it happens; the final BuildEvent is the result.
   rpc RunBuild(BuildRequest) returns (stream BuildEvent);
 
@@ -35,6 +40,21 @@ service Tooling {
   // Cancel a running build, identified by the build_id set on its BuildRequest. Maps to a Tooling
   // API CancellationTokenSource.cancel(). Safe to call when no matching build is running.
   rpc Cancel(CancelRequest) returns (CancelResponse);
+}
+
+// ---- Connect (handshake) ----
+
+message ConnectRequest {
+  string client_name = 1;          // for logging/telemetry, e.g. "acme-ide/3.2"
+  int32 min_contract_version = 2;  // lowest contract the client can work with (0 = unset)
+  int32 max_contract_version = 3;  // highest contract the client understands (0 = unset)
+}
+
+message ConnectResponse {
+  string gradle_version = 1;       // the Gradle version the client will build against
+  int32 contract_version = 2;      // the single contract version this endpoint speaks
+  repeated string capabilities = 3;// granular feature flags; the client gates on these, not the version
+  string session_token = 4;        // opaque; reserved for auth (empty in this prototype)
 }
 
 // ---- RunBuild ----

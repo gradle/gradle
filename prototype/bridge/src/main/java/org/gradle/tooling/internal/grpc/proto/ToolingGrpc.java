@@ -12,6 +12,37 @@ public final class ToolingGrpc {
   public static final String SERVICE_NAME = "gradle.tooling.grpc.Tooling";
 
   // Static method descriptors that strictly reflect the proto.
+  private static volatile io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.ConnectRequest,
+      org.gradle.tooling.internal.grpc.proto.ConnectResponse> getConnectMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Connect",
+      requestType = org.gradle.tooling.internal.grpc.proto.ConnectRequest.class,
+      responseType = org.gradle.tooling.internal.grpc.proto.ConnectResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.ConnectRequest,
+      org.gradle.tooling.internal.grpc.proto.ConnectResponse> getConnectMethod() {
+    io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.ConnectRequest, org.gradle.tooling.internal.grpc.proto.ConnectResponse> getConnectMethod;
+    if ((getConnectMethod = ToolingGrpc.getConnectMethod) == null) {
+      synchronized (ToolingGrpc.class) {
+        if ((getConnectMethod = ToolingGrpc.getConnectMethod) == null) {
+          ToolingGrpc.getConnectMethod = getConnectMethod =
+              io.grpc.MethodDescriptor.<org.gradle.tooling.internal.grpc.proto.ConnectRequest, org.gradle.tooling.internal.grpc.proto.ConnectResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Connect"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  org.gradle.tooling.internal.grpc.proto.ConnectRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  org.gradle.tooling.internal.grpc.proto.ConnectResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new ToolingMethodDescriptorSupplier("Connect"))
+              .build();
+        }
+      }
+    }
+    return getConnectMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<org.gradle.tooling.internal.grpc.proto.BuildRequest,
       org.gradle.tooling.internal.grpc.proto.BuildEvent> getRunBuildMethod;
 
@@ -155,6 +186,18 @@ public final class ToolingGrpc {
 
     /**
      * <pre>
+     * Handshake: the client calls this first to learn the endpoint's Gradle version, the contract
+     * version it speaks, and its capability flags, then adapts. Both the in-daemon server and the
+     * cross-version bridge answer it, so the client negotiates the same way against either.
+     * </pre>
+     */
+    public void connect(org.gradle.tooling.internal.grpc.proto.ConnectRequest request,
+        io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.ConnectResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getConnectMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
      * Run a build. Output streams as it happens; the final BuildEvent is the result.
      * </pre>
      */
@@ -186,6 +229,13 @@ public final class ToolingGrpc {
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
+          .addMethod(
+            getConnectMethod(),
+            io.grpc.stub.ServerCalls.asyncUnaryCall(
+              new MethodHandlers<
+                org.gradle.tooling.internal.grpc.proto.ConnectRequest,
+                org.gradle.tooling.internal.grpc.proto.ConnectResponse>(
+                  this, METHODID_CONNECT)))
           .addMethod(
             getRunBuildMethod(),
             io.grpc.stub.ServerCalls.asyncServerStreamingCall(
@@ -223,6 +273,19 @@ public final class ToolingGrpc {
     protected ToolingStub build(
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new ToolingStub(channel, callOptions);
+    }
+
+    /**
+     * <pre>
+     * Handshake: the client calls this first to learn the endpoint's Gradle version, the contract
+     * version it speaks, and its capability flags, then adapts. Both the in-daemon server and the
+     * cross-version bridge answer it, so the client negotiates the same way against either.
+     * </pre>
+     */
+    public void connect(org.gradle.tooling.internal.grpc.proto.ConnectRequest request,
+        io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.ConnectResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getConnectMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -276,6 +339,18 @@ public final class ToolingGrpc {
 
     /**
      * <pre>
+     * Handshake: the client calls this first to learn the endpoint's Gradle version, the contract
+     * version it speaks, and its capability flags, then adapts. Both the in-daemon server and the
+     * cross-version bridge answer it, so the client negotiates the same way against either.
+     * </pre>
+     */
+    public org.gradle.tooling.internal.grpc.proto.ConnectResponse connect(org.gradle.tooling.internal.grpc.proto.ConnectRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getConnectMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
      * Run a build. Output streams as it happens; the final BuildEvent is the result.
      * </pre>
      */
@@ -323,6 +398,19 @@ public final class ToolingGrpc {
 
     /**
      * <pre>
+     * Handshake: the client calls this first to learn the endpoint's Gradle version, the contract
+     * version it speaks, and its capability flags, then adapts. Both the in-daemon server and the
+     * cross-version bridge answer it, so the client negotiates the same way against either.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<org.gradle.tooling.internal.grpc.proto.ConnectResponse> connect(
+        org.gradle.tooling.internal.grpc.proto.ConnectRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getConnectMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
      * Query information about a build (the "C" slice). Unary request/response.
      * </pre>
      */
@@ -345,9 +433,10 @@ public final class ToolingGrpc {
     }
   }
 
-  private static final int METHODID_RUN_BUILD = 0;
-  private static final int METHODID_QUERY_MODEL = 1;
-  private static final int METHODID_CANCEL = 2;
+  private static final int METHODID_CONNECT = 0;
+  private static final int METHODID_RUN_BUILD = 1;
+  private static final int METHODID_QUERY_MODEL = 2;
+  private static final int METHODID_CANCEL = 3;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -366,6 +455,10 @@ public final class ToolingGrpc {
     @java.lang.SuppressWarnings("unchecked")
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
+        case METHODID_CONNECT:
+          serviceImpl.connect((org.gradle.tooling.internal.grpc.proto.ConnectRequest) request,
+              (io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.ConnectResponse>) responseObserver);
+          break;
         case METHODID_RUN_BUILD:
           serviceImpl.runBuild((org.gradle.tooling.internal.grpc.proto.BuildRequest) request,
               (io.grpc.stub.StreamObserver<org.gradle.tooling.internal.grpc.proto.BuildEvent>) responseObserver);
@@ -439,6 +532,7 @@ public final class ToolingGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new ToolingFileDescriptorSupplier())
+              .addMethod(getConnectMethod())
               .addMethod(getRunBuildMethod())
               .addMethod(getQueryModelMethod())
               .addMethod(getCancelMethod())
