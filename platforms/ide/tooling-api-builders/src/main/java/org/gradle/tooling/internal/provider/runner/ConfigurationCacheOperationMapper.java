@@ -19,12 +19,11 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultConfigurationCacheDescriptor;
-import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryDiscardedResult;
-import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryNotStoredResult;
+import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryStoreFailedResult;
+import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryStoreSkippedResult;
 import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryReusedResult;
 import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryStoredResult;
 import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryUndeterminedResult;
-import org.gradle.internal.build.event.types.DefaultConfigurationCacheEntryUpdatedResult;
 import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.DefaultFailureResult;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
@@ -83,12 +82,10 @@ public class ConfigurationCacheOperationMapper implements BuildOperationMapper<C
                 return new DefaultConfigurationCacheEntryStoredResult(startTime, endTime, problemCount);
             case REUSED:
                 return new DefaultConfigurationCacheEntryReusedResult(startTime, endTime, problemCount);
-            case UPDATED:
-                return new DefaultConfigurationCacheEntryUpdatedResult(startTime, endTime, problemCount);
-            case DISCARDED:
-                return new DefaultConfigurationCacheEntryDiscardedResult(startTime, endTime, problemCount);
-            case NOT_STORED:
-                return new DefaultConfigurationCacheEntryNotStoredResult(startTime, endTime, problemCount);
+            case STORE_FAILED:
+                return new DefaultConfigurationCacheEntryStoreFailedResult(startTime, endTime, problemCount);
+            case STORE_SKIPPED:
+                return new DefaultConfigurationCacheEntryStoreSkippedResult(startTime, endTime, problemCount);
             case UNDETERMINED:
                 return new DefaultConfigurationCacheEntryUndeterminedResult(startTime, endTime, problemCount);
             default:

@@ -21,10 +21,10 @@ import org.jspecify.annotations.NullMarked;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * No configuration cache entry was stored on purpose: no reusable entry was found while the cache is in read-only mode, or configuration caching was degraded gracefully because incompatible tasks were scheduled.
+ * Storing a configuration cache entry was deliberately skipped, e.g. because an incompatible task was scheduled, configuration caching was degraded gracefully, or no reusable entry was found while the cache is in read-only mode.
  *
  * @since 9.8.0
  */
 @NullMarked
-public interface InternalConfigurationCacheEntryNotStoredResult extends InternalConfigurationCacheEntryOutcomeResult {
+public interface InternalConfigurationCacheEntryStoreSkippedResult extends InternalConfigurationCacheEntryOutcomeResult {
 }

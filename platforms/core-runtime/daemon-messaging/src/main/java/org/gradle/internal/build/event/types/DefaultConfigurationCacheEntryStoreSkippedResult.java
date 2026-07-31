@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.configuration.internal;
+package org.gradle.internal.build.event.types;
 
-import org.gradle.tooling.events.configuration.ConfigurationCacheEntryNotStoredResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryStoreSkippedResult;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class DefaultConfigurationCacheEntryNotStoredResult extends AbstractConfigurationCacheEntryOutcomeResult implements ConfigurationCacheEntryNotStoredResult {
-    public DefaultConfigurationCacheEntryNotStoredResult(long startTime, long endTime, int problemCount) {
+public class DefaultConfigurationCacheEntryStoreSkippedResult extends AbstractConfigurationCacheEntryOutcomeResult implements InternalConfigurationCacheEntryStoreSkippedResult {
+    public DefaultConfigurationCacheEntryStoreSkippedResult(long startTime, long endTime, int problemCount) {
         super(startTime, endTime, problemCount);
     }
 }

@@ -23,7 +23,7 @@ class IsolatedProjectsEntryOutcomeBuildOperationIntegrationTest extends Abstract
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "emits UPDATED when a model build partially reuses the cache entry"() {
+    def "emits STORED when a model build partially reuses the cache entry"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         includeProjects("a", "b")
@@ -51,7 +51,8 @@ class IsolatedProjectsEntryOutcomeBuildOperationIntegrationTest extends Abstract
         then:
         postBuildOutputContains("Configuration cache entry updated")
         with(operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result) {
-            outcome == "UPDATED"
+            // Partial updates report STORED until the entry fate for Isolated Projects gets more coverage
+            outcome == "STORED"
             problemCount == 0
         }
     }

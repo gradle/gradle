@@ -262,7 +262,7 @@ include::sample[dir="snippets/reference/plugin-development/testKitFunctionalTest
 <1> First run primes the Configuration Cache.
 <2> Second run reuses the Configuration Cache.
 
-See link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html[`ConfigurationCacheOutcome`] for all possible outcomes, including link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html#DISCARDED[`DISCARDED`], which indicates that the entry was not kept, for example because of Configuration Cache problems, a serialization error, or an incompatible task.
+See link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html[`ConfigurationCacheOutcome`] for all possible outcomes, including link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html#STORE_FAILED[`STORE_FAILED`], which indicates that storing an entry failed, for example because of Configuration Cache problems, and link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html#STORE_SKIPPED[`STORE_SKIPPED`], which indicates that storing was deliberately skipped, for example because an incompatible task was scheduled.
 
 Inspecting the outcome requires the build under test to run with Gradle 9.8 or later.
 For older Gradle versions selected via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion-java.lang.String-[`GradleRunner.withGradleVersion(java.lang.String)`], calling `getConfigurationCacheOutcome()` throws link:{javadocPath}/org/gradle/testkit/runner/UnsupportedFeatureException.html[`UnsupportedFeatureException`].

@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 
-import static org.gradle.testkit.runner.ConfigurationCacheOutcome.DISCARDED
+import static org.gradle.testkit.runner.ConfigurationCacheOutcome.STORE_FAILED
 import static org.gradle.testkit.runner.ConfigurationCacheOutcome.NOT_ENABLED
-import static org.gradle.testkit.runner.ConfigurationCacheOutcome.NOT_STORED
+import static org.gradle.testkit.runner.ConfigurationCacheOutcome.STORE_SKIPPED
 import static org.gradle.testkit.runner.ConfigurationCacheOutcome.REUSED
 import static org.gradle.testkit.runner.ConfigurationCacheOutcome.STORED
 
@@ -70,7 +70,7 @@ class GradleRunnerConfigurationCacheOutcomeIntegrationTest extends BaseGradleRun
         output.empty || !output.contains("Configuration cache entry stored.")
     }
 
-    def "reports DISCARDED when an incompatible task is scheduled"() {
+    def "reports STORE_SKIPPED when an incompatible task is scheduled"() {
         given:
         buildFile << """
             task incompatible {
@@ -83,10 +83,10 @@ class GradleRunnerConfigurationCacheOutcomeIntegrationTest extends BaseGradleRun
         def result = runner('incompatible', '--configuration-cache').build()
 
         then:
-        result.configurationCacheOutcome == DISCARDED
+        result.configurationCacheOutcome == STORE_SKIPPED
     }
 
-    def "reports DISCARDED when problems fail the build"() {
+    def "reports STORE_FAILED when problems fail the build"() {
         given:
         buildFile << """
             gradle.buildFinished { }
@@ -97,10 +97,10 @@ class GradleRunnerConfigurationCacheOutcomeIntegrationTest extends BaseGradleRun
         def result = runner('broken', '--configuration-cache').buildAndFail()
 
         then:
-        result.configurationCacheOutcome == DISCARDED
+        result.configurationCacheOutcome == STORE_FAILED
     }
 
-    def "reports NOT_STORED on a cache miss in read-only mode"() {
+    def "reports STORE_SKIPPED on a cache miss in read-only mode"() {
         given:
         buildFile << helloWorldTask()
 
@@ -108,7 +108,7 @@ class GradleRunnerConfigurationCacheOutcomeIntegrationTest extends BaseGradleRun
         def result = runner('helloWorld', '--configuration-cache', '-Dorg.gradle.configuration-cache.read-only=true').build()
 
         then:
-        result.configurationCacheOutcome == NOT_STORED
+        result.configurationCacheOutcome == STORE_SKIPPED
     }
 
     def "fails informatively when trying to inspect the configuration cache outcome with unsupported gradle version"() {
