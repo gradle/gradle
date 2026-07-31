@@ -76,31 +76,26 @@ public final class ConfigurationCacheEntryOutcomeBuildOperationType implements B
          */
         STORED,
         /**
-         * An entry was found and fully reused.
+         * An entry was found and reused.
          *
          * @since 9.8.0
          */
         REUSED,
         /**
-         * An entry was found and partially reused; the invalidated projects were re-configured and the entry was updated.
+         * Storing an entry failed, e.g. because of problems, too many problems, a serialization
+         * error, or because the build failed before the entry could be stored.
          *
          * @since 9.8.0
          */
-        UPDATED,
+        STORE_FAILED,
         /**
-         * An entry was written but discarded at the end of the build, e.g. because of problems, too many problems,
-         * a serialization error or incompatible tasks.
+         * Storing an entry was deliberately skipped, e.g. because incompatible tasks were
+         * scheduled, configuration caching was degraded gracefully, or no reusable entry was
+         * found while the cache is in read-only mode.
          *
          * @since 9.8.0
          */
-        DISCARDED,
-        /**
-         * No entry was stored on purpose: no reusable entry was found while the cache is in read-only mode,
-         * or configuration caching was degraded gracefully because incompatible tasks were scheduled.
-         *
-         * @since 9.8.0
-         */
-        NOT_STORED,
+        STORE_SKIPPED,
         /**
          * The build finished before the configuration cache outcome was determined, e.g. because it failed early.
          *

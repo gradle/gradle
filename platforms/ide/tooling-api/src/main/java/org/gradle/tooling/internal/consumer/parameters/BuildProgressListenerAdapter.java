@@ -44,12 +44,11 @@ import org.gradle.tooling.events.configuration.ConfigurationCacheFinishEvent;
 import org.gradle.tooling.events.configuration.ConfigurationCacheOperationDescriptor;
 import org.gradle.tooling.events.configuration.ConfigurationCacheProgressEvent;
 import org.gradle.tooling.events.configuration.ConfigurationCacheStartEvent;
-import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryDiscardedResult;
-import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryNotStoredResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryStoreFailedResult;
+import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryStoreSkippedResult;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryReusedResult;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryStoredResult;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryUndeterminedResult;
-import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheEntryUpdatedResult;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheFinishEvent;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheOperationDescriptor;
 import org.gradle.tooling.events.configuration.internal.DefaultConfigurationCacheStartEvent;
@@ -208,13 +207,12 @@ import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifie
 import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryDiscardedResult;
-import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryNotStoredResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryStoreFailedResult;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryStoreSkippedResult;
 import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryOutcomeResult;
 import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryReusedResult;
 import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryStoredResult;
 import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryUndeterminedResult;
-import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryUpdatedResult;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
 import org.gradle.tooling.internal.protocol.events.InternalFilePosition;
@@ -592,12 +590,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultConfigurationCacheEntryStoredResult(startTime, endTime, problemCount);
         } else if (result instanceof InternalConfigurationCacheEntryReusedResult) {
             return new DefaultConfigurationCacheEntryReusedResult(startTime, endTime, problemCount);
-        } else if (result instanceof InternalConfigurationCacheEntryUpdatedResult) {
-            return new DefaultConfigurationCacheEntryUpdatedResult(startTime, endTime, problemCount);
-        } else if (result instanceof InternalConfigurationCacheEntryDiscardedResult) {
-            return new DefaultConfigurationCacheEntryDiscardedResult(startTime, endTime, problemCount);
-        } else if (result instanceof InternalConfigurationCacheEntryNotStoredResult) {
-            return new DefaultConfigurationCacheEntryNotStoredResult(startTime, endTime, problemCount);
+        } else if (result instanceof InternalConfigurationCacheEntryStoreFailedResult) {
+            return new DefaultConfigurationCacheEntryStoreFailedResult(startTime, endTime, problemCount);
+        } else if (result instanceof InternalConfigurationCacheEntryStoreSkippedResult) {
+            return new DefaultConfigurationCacheEntryStoreSkippedResult(startTime, endTime, problemCount);
         } else if (result instanceof InternalConfigurationCacheEntryUndeterminedResult) {
             return new DefaultConfigurationCacheEntryUndeterminedResult(startTime, endTime, problemCount);
         } else {

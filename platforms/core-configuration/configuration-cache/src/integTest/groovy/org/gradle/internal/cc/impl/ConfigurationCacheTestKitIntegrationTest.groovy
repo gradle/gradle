@@ -214,7 +214,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         then:
         def output = result.output
         output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
-        result.configurationCacheOutcome == ConfigurationCacheOutcome.DISCARDED
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORE_FAILED
     }
 
     def "third-party Java agent with Gradle's instrumentation agent disabled without CC succeeds [#mode]"() {
