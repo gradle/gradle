@@ -63,6 +63,30 @@ class DefaultProblemReporterTest extends Specification {
         }
     }
 
+    def "discarded problem message contains the origin location"() {
+        given:
+        def problem = new DefaultProblem(
+            new DefaultProblemDefinition(
+                ProblemId.create('message', "displayName", ProblemGroup.create("generic", "Generic")),
+                Severity.ERROR,
+                Documentation.userManual('id'),
+            ),
+            null,
+            [],
+            [new DefaultStackTraceLocation(DefaultLineInFileLocation.from("/path/to/build.gradle", 14), [])],
+            [],
+            'description',
+            new RuntimeException('cause'),
+            null
+        )
+
+        expect:
+        with(DefaultProblemReporter.discardedProblemMessage(problem)) {
+            it.contains("/path/to/build.gradle")
+            it.contains("line 14")
+        }
+    }
+
     def "problem reported with an explicit operation id is emitted with that id"() {
         given:
         def reporter = reporter { null }
