@@ -16,7 +16,6 @@
 package com.example.ide;
 
 import com.example.ide.proto.IdeProjectModel;
-import com.google.protobuf.Any;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -33,7 +32,9 @@ import java.util.List;
  */
 public class IdeProjectModelBuilder implements ToolingModelBuilder {
 
-    // The model name the client asks for; matches the Java type name of the model by convention.
+    // The stable model identifier both clients ask for. The native gRPC client sends this string;
+    // the JVM Tooling API client requests getModel(<its interface named this>.class). It is the
+    // protobuf message's full name, which is also the Any type-url the native client unpacks.
     public static final String MODEL_NAME = "com.example.ide.IdeProjectModel";
 
     @Override
@@ -47,12 +48,15 @@ public class IdeProjectModelBuilder implements ToolingModelBuilder {
         for (Plugin<?> plugin : project.getPlugins()) {
             pluginIds.add(plugin.getClass().getName());
         }
-        IdeProjectModel model = IdeProjectModel.newBuilder()
+        // Return the protobuf message directly. A JVM Tooling API client receives it via the normal
+        // serialize/adapt path; the daemon-side gRPC layer packs it into an Any for native clients.
+        // Both work because the plugin and the daemon share one com.google.protobuf.Message class
+        // (protobuf-java is exported to plugins - see DefaultGradleApiSpecProvider).
+        return IdeProjectModel.newBuilder()
             .setProjectPath(project.getPath())
             .setProjectName(project.getName())
             .setBuildDir(project.getLayout().getBuildDirectory().getAsFile().get().getAbsolutePath())
             .addAllPluginIds(pluginIds)
             .build();
-        return Any.pack(model).toByteArray();
     }
 }

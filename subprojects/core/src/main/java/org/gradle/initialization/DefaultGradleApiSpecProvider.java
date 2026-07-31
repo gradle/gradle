@@ -47,7 +47,10 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
             "org.apache.log4j",
             "org.jspecify.annotations",
             "javax.annotation",
-            "javax.inject");
+            "javax.inject",
+            // Prototype: exported so a plugin's protobuf tooling model shares one Message class with
+            // the daemon-hosted gRPC server (see GrpcDaemonServer / ToolingServiceImpl).
+            "com.google.protobuf");
     }
 
     @Override

@@ -226,12 +226,21 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
         }
 
         Object model = deserializeResult(startParameter, result.getResult());
-        if (!(model instanceof byte[])) {
+        Any any;
+        if (model instanceof com.google.protobuf.Message) {
+            // The builder returned a protobuf message directly. This works because the plugin and the
+            // daemon share one com.google.protobuf.Message class (protobuf-java is exported to
+            // plugins), so the same builder also serves a JVM Tooling API client that receives the
+            // message via the normal serialize/adapt path.
+            any = Any.pack((com.google.protobuf.Message) model);
+        } else if (model instanceof byte[]) {
+            // The builder returned the serialized bytes of a google.protobuf.Any (no shared protobuf).
+            any = Any.parseFrom((byte[]) model);
+        } else {
             return ModelResponse.newBuilder().setSuccess(false)
-                .setError("Model '" + request.getModelName() + "' did not return protobuf Any bytes (got "
+                .setError("Model '" + request.getModelName() + "' did not return a protobuf message or Any bytes (got "
                     + (model == null ? "null" : model.getClass().getName()) + ").").build();
         }
-        Any any = Any.parseFrom((byte[]) model);
         return ModelResponse.newBuilder().setSuccess(true).setModelAny(any).build();
     }
 

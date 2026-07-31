@@ -80,6 +80,27 @@ class ToolingServiceImplTest extends Specification {
         observer.value.modelAny.unpack(BuildEnvironment).gradleVersion == "9.9-test"
     }
 
+    def "packs a plugin model returned as a protobuf message into an Any"() {
+        given:
+        // With protobuf-java shared between the plugin and the daemon, the builder returns the
+        // protobuf message directly and the daemon packs it into an Any for the native client.
+        def model = BuildEnvironment.newBuilder().setGradleVersion("9.9-msg").build()
+        def observer = new CapturingObserver()
+
+        when:
+        service.queryModel(modelRequest("com.example.SomeModel"), observer)
+
+        then:
+        1 * buildExecutor.execute(_, _, _) >> BuildActionResult.of(Mock(SerializedPayload))
+        1 * payloadSerializer.deserialize(_) >> model
+
+        and:
+        observer.completed
+        observer.value.success
+        observer.value.hasModelAny()
+        observer.value.modelAny.unpack(BuildEnvironment).gradleVersion == "9.9-msg"
+    }
+
     def "reports an error when the model result is not protobuf Any bytes"() {
         given:
         def observer = new CapturingObserver()
@@ -94,7 +115,7 @@ class ToolingServiceImplTest extends Specification {
         and:
         observer.completed
         !observer.value.success
-        observer.value.error.contains("did not return protobuf Any bytes")
+        observer.value.error.contains("did not return a protobuf message or Any bytes")
     }
 
     def "reports the build failure when the model query build fails"() {

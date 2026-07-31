@@ -12,5 +12,8 @@ repositories {
 
 dependencies {
     compileOnly gradleApi()
-    implementation 'com.google.protobuf:protobuf-java:3.21.12'
+    // protobuf-java is provided by the Gradle runtime (exported to plugins), so the plugin's
+    // generated model shares one com.google.protobuf.Message class with the daemon. compileOnly,
+    // not implementation, so the plugin does not bundle its own copy.
+    compileOnly 'com.google.protobuf:protobuf-java:3.21.12'
 }

@@ -29,6 +29,15 @@ cli() {
     check "$desc" "$exp_exit" "$exp_sub" "$ec" "$out"
 }
 
+# jvm <desc> <expected_exit> <expected_substring> -- <projectDir>   (classic JVM Tooling API client)
+jvm() {
+    local desc="$1" exp_exit="$2" exp_sub="$3"; shift 3
+    [ "$1" = "--" ] && shift
+    local out ec
+    out="$(GRADLE_BIN="$GRADLE_BIN" "$HERE/jvm-client/run.sh" "$@" 2>&1)"; ec=$?
+    check "$desc" "$exp_exit" "$exp_sub" "$ec" "$out"
+}
+
 check() {
     local desc="$1" exp_exit="$2" exp_sub="$3" ec="$4" out="$5"
     if [ "$ec" -eq "$exp_exit" ] && printf '%s' "$out" | grep -qF -- "$exp_sub"; then
@@ -63,6 +72,12 @@ cli "13 CLI over gRPC (--grpc boom)"  1 "Intentional failure for the prototype d
 run "14 plugin model (root project)"  0 "type.googleapis.com/com.example.ide.IdeProjectModel" -- --query project
 run "15 plugin model (:app project)"  0 "project path: :app" -- --query project --target app
 run "16 plugin model (:lib project)"  0 "project path: :lib" -- --query project --target lib
+
+# JVM parity: the SAME plugin model fetched over the classic JVM Tooling API (no gRPC). The builder
+# returns a protobuf message; the Tooling API adapts it to the client's view interface. Same data as
+# the native gRPC client returns above (scenarios 15/16) - one builder serves both clients.
+jvm "17 JVM Tooling API parity (:app)" 0 "project path: :app" -- "$HERE/sample/app"
+jvm "18 JVM Tooling API parity (:lib)" 0 "project path: :lib" -- "$HERE/sample/lib"
 
 echo "=== $PASS passed, $FAIL failed ==="
 [ "$FAIL" -eq 0 ]
