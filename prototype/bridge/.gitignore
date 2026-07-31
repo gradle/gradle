@@ -1,0 +1,5 @@
+.gradle/
+build/
+.bridge.out
+.bridge.err
+legacy-sample/.gradle/

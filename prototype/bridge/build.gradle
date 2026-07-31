@@ -1,0 +1,41 @@
+// The cross-version gRPC Tooling API bridge.
+//
+// It stands up the SAME gRPC contract the in-daemon server speaks, but implements it by delegating to
+// the classic Tooling API (gradle-tooling-api). That lets a non-JVM client drive a released Gradle
+// version - one with no in-daemon gRPC server - through this JVM process: "one wire, every version".
+//
+// The generated protobuf/gRPC stubs are checked in under src/main/java (regenerated from the same
+// tooling.proto the daemon uses, via prototype/bridge/regenerate-stubs.sh), so this build is plain
+// Java with no protobuf Gradle plugin to keep it robust across Gradle versions.
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+    // gradle-tooling-api is published to the Gradle artifact repository, not Maven Central.
+    maven { url = uri('https://repo.gradle.org/gradle/libs-releases') }
+}
+
+// Built and run on the invoking JVM (Java 17 here), which also launches the old target daemon, so the
+// target Gradle version must support that Java. No toolchain block, to keep the build self-contained.
+
+dependencies {
+    // The classic Tooling API: the cross-version engine we re-expose over gRPC.
+    implementation 'org.gradle:gradle-tooling-api:8.14.3'
+
+    // The gRPC runtime + protobuf, matching the versions the daemon-side stubs were generated against.
+    implementation 'io.grpc:grpc-netty-shaded:1.53.0'
+    implementation 'io.grpc:grpc-protobuf:1.53.0'
+    implementation 'io.grpc:grpc-stub:1.53.0'
+    implementation 'com.google.protobuf:protobuf-java:3.21.12'
+    implementation 'com.google.guava:guava:31.1-jre'
+
+    // Tooling API logs through slf4j; give it a simple backend so it does not warn.
+    runtimeOnly 'org.slf4j:slf4j-simple:1.7.36'
+}
+
+application {
+    mainClass = 'com.example.bridge.BridgeMain'
+}

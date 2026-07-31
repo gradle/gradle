@@ -1,0 +1,21 @@
+// Tasks the bridge demo drives over gRPC against an old Gradle version.
+tasks.register('hello') {
+    doLast {
+        println 'Hello from the bridged build!'
+    }
+}
+
+tasks.register('boom') {
+    doLast {
+        throw new GradleException('Intentional failure for the bridge demo')
+    }
+}
+
+tasks.register('sleeper') {
+    doLast {
+        println 'sleeper: running, waiting to be cancelled'
+        // Classic Tooling API cancellation interrupts the build thread, so a plain sleep is enough.
+        Thread.sleep(60000)
+        println 'sleeper: finished without cancellation'
+    }
+}

@@ -1,0 +1,3 @@
+// Standalone project: the cross-version gRPC bridge. Built independently of the Gradle repo so it
+// can depend on a published gradle-tooling-api and the gRPC runtime.
+rootProject.name = 'grpc-tapi-bridge'

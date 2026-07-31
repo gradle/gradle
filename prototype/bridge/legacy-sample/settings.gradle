@@ -1,0 +1,3 @@
+// A trivial build the bridge runs against an OLD Gradle version. Deliberately has no buildSrc and no
+// protobuf, so it configures and runs on any Gradle release (which have no in-daemon gRPC server).
+rootProject.name = 'bridge-legacy-sample'

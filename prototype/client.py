@@ -187,6 +187,9 @@ def main():
                         help="For --query project: send an IdeModelQuery parameter that omits the plugin list")
     parser.add_argument("--cancel-after", type=float, default=None, metavar="SECONDS",
                         help="Cancel the build this many seconds after it starts (via a Cancel RPC)")
+    parser.add_argument("--endpoint", default=None, metavar="HOST:PORT",
+                        help="Dial this gRPC endpoint directly (e.g. the cross-version bridge) instead "
+                             "of starting/finding a daemon via `gradle --grpc-endpoint`")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -202,9 +205,15 @@ def main():
     # project's path (":app"/":lib"). "root" targets the default project (empty path).
     project_path = "" if args.target == "root" else ":" + args.target
 
-    print("[helper] gradle --grpc-endpoint ...", file=sys.stderr)
-    endpoint, token = get_endpoint(args.gradle, project_dir)
-    print("[helper] endpoint=%s token=%s..." % (endpoint, token[:8]), file=sys.stderr)
+    if args.endpoint:
+        # Direct dial: talk to a gRPC endpoint that is already listening (e.g. the cross-version
+        # bridge). No JVM bootstrap helper, no daemon token.
+        endpoint, token = args.endpoint, ""
+        print("[direct] endpoint=%s" % endpoint, file=sys.stderr)
+    else:
+        print("[helper] gradle --grpc-endpoint ...", file=sys.stderr)
+        endpoint, token = get_endpoint(args.gradle, project_dir)
+        print("[helper] endpoint=%s token=%s..." % (endpoint, token[:8]), file=sys.stderr)
 
     channel = grpc.insecure_channel(endpoint)
     stub = pb_grpc.ToolingStub(channel)
