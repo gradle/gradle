@@ -63,6 +63,7 @@ dependencies {
 
     testImplementation(projects.fileCollections)
     testImplementation(projects.enterpriseOperations)
+    testImplementation(projects.problemsReporting)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))

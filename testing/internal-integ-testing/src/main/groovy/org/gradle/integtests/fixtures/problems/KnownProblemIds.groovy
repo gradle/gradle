@@ -80,6 +80,7 @@ class KnownProblemIds {
 
         // groups from integration tests
         'generic': 'Generic',
+        'issues': 'issues',
         'sample-problems': 'Sample Problems',
         'scripts': 'Scripts',
         'root': 'root',
@@ -226,7 +227,9 @@ class KnownProblemIds {
         'deprecation:typed-task': ['Typed task has been deprecated.'],
         'deprecation:type-invalidtask-property-inputfile-test-problem-.*' : ['.*'],
         'generic:deprecation:plugin': ['DisplayName'],
+        'generic:spawned': ['problem from spawned thread'],
         'generic:type': ['label'],
+        'issues:finished': ['task finished'],
         'generic:type0': ['This is the heading problem text0'],
         'generic:type1': ['This is the heading problem text1'],
         'generic:type2': ['This is the heading problem text2'],
