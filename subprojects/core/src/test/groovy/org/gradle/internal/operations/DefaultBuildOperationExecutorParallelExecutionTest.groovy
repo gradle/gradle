@@ -44,9 +44,13 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
     def setupBuildOperationExecutor(int maxWorkers) {
         def workerLimits = new DefaultWorkerLimits(maxWorkers)
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits, ResourceLockStatistics.NO_OP)
+        def coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, workerLimits, ResourceLockStatistics.NO_OP)
         workerRegistry.startProjectExecution(true)
-        buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits).withWorkerLeaseService(workerRegistry).build()
+        buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits)
+            .withCoordinationService(coordinationService)
+            .withWorkerLeaseService(workerRegistry)
+            .build()
     }
 
     static class SimpleWorker implements BuildOperationWorker<DefaultBuildOperationQueueTest.TestBuildOperation> {
@@ -373,9 +377,11 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         // stays counted but never starts to drain the queue. That is what leaves the main thread
         // looking like an "extra" worker.
         def workerLimits = new DefaultWorkerLimits(2)
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits, ResourceLockStatistics.NO_OP)
+        def coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, workerLimits, ResourceLockStatistics.NO_OP)
         workerRegistry.startProjectExecution(true)
         buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits)
+            .withCoordinationService(coordinationService)
             .withWorkerLeaseService(workerRegistry)
             .withExecutorFactory(new SingleThreadExecutorFactory())
             .build()

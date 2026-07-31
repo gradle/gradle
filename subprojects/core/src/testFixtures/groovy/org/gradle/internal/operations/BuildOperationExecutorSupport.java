@@ -19,6 +19,7 @@ package org.gradle.internal.operations;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultWorkerLimits;
@@ -40,6 +41,7 @@ public class BuildOperationExecutorSupport {
         private final WorkerLimits workerLimits;
         private Clock clock;
         private BuildOperationRunner runner;
+        private ResourceLockCoordinationService coordinationService;
         private WorkerLeaseService workerLeaseService;
         private BuildOperationQueueFactory queueFactory;
         private DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory executionListenerFactory;
@@ -56,6 +58,20 @@ public class BuildOperationExecutorSupport {
 
         public Builder withRunner(BuildOperationRunner runner) {
             this.runner = runner;
+            return this;
+        }
+
+        /**
+         * Use the given coordination service to wake workers that are waiting for a lease.
+         *
+         * <p>This must be the coordination service that the worker lease service passed to
+         * {@link #withWorkerLeaseService(WorkerLeaseService)} holds its leases in. Workers waiting on a
+         * different one are never woken and the executor cannot be stopped.
+         *
+         * @param coordinationService the coordination service backing the worker lease service
+         */
+        public Builder withCoordinationService(ResourceLockCoordinationService coordinationService) {
+            this.coordinationService = coordinationService;
             return this;
         }
 
@@ -80,6 +96,11 @@ public class BuildOperationExecutorSupport {
         }
 
         public BuildOperationExecutor build() {
+            // The default TestWorkerLeaseService never makes a thread wait for a lease, so any
+            // coordination service will do when the caller has not supplied one of their own.
+            ResourceLockCoordinationService coordinationService = this.coordinationService != null
+                ? this.coordinationService
+                : new DefaultResourceLockCoordinationService();
             WorkerLeaseService workerLeaseService = this.workerLeaseService != null
                 ? this.workerLeaseService
                 : new TestWorkerLeaseService();
@@ -95,7 +116,7 @@ public class BuildOperationExecutorSupport {
                 CurrentBuildOperationRef.instance(),
                 queueFactory,
                 executorFactory,
-                new DefaultResourceLockCoordinationService(),
+                coordinationService,
                 workerLeaseService,
                 workerLimits);
         }
