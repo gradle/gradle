@@ -19,6 +19,7 @@ private static final long serialVersionUID = 0L;
     args_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     projectDir_ = "";
     buildId_ = "";
+    subscriptions_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -230,6 +231,84 @@ private static final long serialVersionUID = 0L;
     return configuration_ == null ? org.gradle.tooling.internal.grpc.proto.BuildConfiguration.getDefaultInstance() : configuration_;
   }
 
+  public static final int SUBSCRIPTIONS_FIELD_NUMBER = 5;
+  @SuppressWarnings("serial")
+  private java.util.List<java.lang.Integer> subscriptions_;
+  private static final com.google.protobuf.Internal.ListAdapter.Converter<
+      java.lang.Integer, org.gradle.tooling.internal.grpc.proto.OperationType> subscriptions_converter_ =
+          new com.google.protobuf.Internal.ListAdapter.Converter<
+              java.lang.Integer, org.gradle.tooling.internal.grpc.proto.OperationType>() {
+            public org.gradle.tooling.internal.grpc.proto.OperationType convert(java.lang.Integer from) {
+              org.gradle.tooling.internal.grpc.proto.OperationType result = org.gradle.tooling.internal.grpc.proto.OperationType.forNumber(from);
+              return result == null ? org.gradle.tooling.internal.grpc.proto.OperationType.UNRECOGNIZED : result;
+            }
+          };
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @return A list containing the subscriptions.
+   */
+  @java.lang.Override
+  public java.util.List<org.gradle.tooling.internal.grpc.proto.OperationType> getSubscriptionsList() {
+    return new com.google.protobuf.Internal.ListAdapter<
+        java.lang.Integer, org.gradle.tooling.internal.grpc.proto.OperationType>(subscriptions_, subscriptions_converter_);
+  }
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @return The count of subscriptions.
+   */
+  @java.lang.Override
+  public int getSubscriptionsCount() {
+    return subscriptions_.size();
+  }
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @param index The index of the element to return.
+   * @return The subscriptions at the given index.
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.OperationType getSubscriptions(int index) {
+    return subscriptions_converter_.convert(subscriptions_.get(index));
+  }
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @return A list containing the enum numeric values on the wire for subscriptions.
+   */
+  @java.lang.Override
+  public java.util.List<java.lang.Integer>
+  getSubscriptionsValueList() {
+    return subscriptions_;
+  }
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @param index The index of the value to return.
+   * @return The enum numeric value on the wire of subscriptions at the given index.
+   */
+  @java.lang.Override
+  public int getSubscriptionsValue(int index) {
+    return subscriptions_.get(index);
+  }
+  private int subscriptionsMemoizedSerializedSize;
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -244,6 +323,7 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
+    getSerializedSize();
     for (int i = 0; i < args_.size(); i++) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, args_.getRaw(i));
     }
@@ -255,6 +335,13 @@ private static final long serialVersionUID = 0L;
     }
     if (configuration_ != null) {
       output.writeMessage(4, getConfiguration());
+    }
+    if (getSubscriptionsList().size() > 0) {
+      output.writeUInt32NoTag(42);
+      output.writeUInt32NoTag(subscriptionsMemoizedSerializedSize);
+    }
+    for (int i = 0; i < subscriptions_.size(); i++) {
+      output.writeEnumNoTag(subscriptions_.get(i));
     }
     getUnknownFields().writeTo(output);
   }
@@ -283,6 +370,18 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(4, getConfiguration());
     }
+    {
+      int dataSize = 0;
+      for (int i = 0; i < subscriptions_.size(); i++) {
+        dataSize += com.google.protobuf.CodedOutputStream
+          .computeEnumSizeNoTag(subscriptions_.get(i));
+      }
+      size += dataSize;
+      if (!getSubscriptionsList().isEmpty()) {  size += 1;
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32SizeNoTag(dataSize);
+      }subscriptionsMemoizedSerializedSize = dataSize;
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -309,6 +408,7 @@ private static final long serialVersionUID = 0L;
       if (!getConfiguration()
           .equals(other.getConfiguration())) return false;
     }
+    if (!subscriptions_.equals(other.subscriptions_)) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -331,6 +431,10 @@ private static final long serialVersionUID = 0L;
     if (hasConfiguration()) {
       hash = (37 * hash) + CONFIGURATION_FIELD_NUMBER;
       hash = (53 * hash) + getConfiguration().hashCode();
+    }
+    if (getSubscriptionsCount() > 0) {
+      hash = (37 * hash) + SUBSCRIPTIONS_FIELD_NUMBER;
+      hash = (53 * hash) + subscriptions_.hashCode();
     }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
@@ -470,6 +574,8 @@ private static final long serialVersionUID = 0L;
         configurationBuilder_.dispose();
         configurationBuilder_ = null;
       }
+      subscriptions_ = java.util.Collections.emptyList();
+      bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
 
@@ -508,6 +614,11 @@ private static final long serialVersionUID = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
       }
       result.args_ = args_;
+      if (((bitField0_ & 0x00000010) != 0)) {
+        subscriptions_ = java.util.Collections.unmodifiableList(subscriptions_);
+        bitField0_ = (bitField0_ & ~0x00000010);
+      }
+      result.subscriptions_ = subscriptions_;
     }
 
     private void buildPartial0(org.gradle.tooling.internal.grpc.proto.BuildRequest result) {
@@ -592,6 +703,16 @@ private static final long serialVersionUID = 0L;
       if (other.hasConfiguration()) {
         mergeConfiguration(other.getConfiguration());
       }
+      if (!other.subscriptions_.isEmpty()) {
+        if (subscriptions_.isEmpty()) {
+          subscriptions_ = other.subscriptions_;
+          bitField0_ = (bitField0_ & ~0x00000010);
+        } else {
+          ensureSubscriptionsIsMutable();
+          subscriptions_.addAll(other.subscriptions_);
+        }
+        onChanged();
+      }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -641,6 +762,23 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000008;
               break;
             } // case 34
+            case 40: {
+              int tmpRaw = input.readEnum();
+              ensureSubscriptionsIsMutable();
+              subscriptions_.add(tmpRaw);
+              break;
+            } // case 40
+            case 42: {
+              int length = input.readRawVarint32();
+              int oldLimit = input.pushLimit(length);
+              while(input.getBytesUntilLimit() > 0) {
+                int tmpRaw = input.readEnum();
+                ensureSubscriptionsIsMutable();
+                subscriptions_.add(tmpRaw);
+              }
+              input.popLimit(oldLimit);
+              break;
+            } // case 42
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -1135,6 +1273,194 @@ private static final long serialVersionUID = 0L;
         configuration_ = null;
       }
       return configurationBuilder_;
+    }
+
+    private java.util.List<java.lang.Integer> subscriptions_ =
+      java.util.Collections.emptyList();
+    private void ensureSubscriptionsIsMutable() {
+      if (!((bitField0_ & 0x00000010) != 0)) {
+        subscriptions_ = new java.util.ArrayList<java.lang.Integer>(subscriptions_);
+        bitField0_ |= 0x00000010;
+      }
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @return A list containing the subscriptions.
+     */
+    public java.util.List<org.gradle.tooling.internal.grpc.proto.OperationType> getSubscriptionsList() {
+      return new com.google.protobuf.Internal.ListAdapter<
+          java.lang.Integer, org.gradle.tooling.internal.grpc.proto.OperationType>(subscriptions_, subscriptions_converter_);
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @return The count of subscriptions.
+     */
+    public int getSubscriptionsCount() {
+      return subscriptions_.size();
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @param index The index of the element to return.
+     * @return The subscriptions at the given index.
+     */
+    public org.gradle.tooling.internal.grpc.proto.OperationType getSubscriptions(int index) {
+      return subscriptions_converter_.convert(subscriptions_.get(index));
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @param index The index to set the value at.
+     * @param value The subscriptions to set.
+     * @return This builder for chaining.
+     */
+    public Builder setSubscriptions(
+        int index, org.gradle.tooling.internal.grpc.proto.OperationType value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      ensureSubscriptionsIsMutable();
+      subscriptions_.set(index, value.getNumber());
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @param value The subscriptions to add.
+     * @return This builder for chaining.
+     */
+    public Builder addSubscriptions(org.gradle.tooling.internal.grpc.proto.OperationType value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      ensureSubscriptionsIsMutable();
+      subscriptions_.add(value.getNumber());
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @param values The subscriptions to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllSubscriptions(
+        java.lang.Iterable<? extends org.gradle.tooling.internal.grpc.proto.OperationType> values) {
+      ensureSubscriptionsIsMutable();
+      for (org.gradle.tooling.internal.grpc.proto.OperationType value : values) {
+        subscriptions_.add(value.getNumber());
+      }
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearSubscriptions() {
+      subscriptions_ = java.util.Collections.emptyList();
+      bitField0_ = (bitField0_ & ~0x00000010);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @return A list containing the enum numeric values on the wire for subscriptions.
+     */
+    public java.util.List<java.lang.Integer>
+    getSubscriptionsValueList() {
+      return java.util.Collections.unmodifiableList(subscriptions_);
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of subscriptions at the given index.
+     */
+    public int getSubscriptionsValue(int index) {
+      return subscriptions_.get(index);
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @param index The index to set the value at.
+     * @param value The enum numeric value on the wire for subscriptions to set.
+     * @return This builder for chaining.
+     */
+    public Builder setSubscriptionsValue(
+        int index, int value) {
+      ensureSubscriptionsIsMutable();
+      subscriptions_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @param value The enum numeric value on the wire for subscriptions to add.
+     * @return This builder for chaining.
+     */
+    public Builder addSubscriptionsValue(int value) {
+      ensureSubscriptionsIsMutable();
+      subscriptions_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation kinds the client wants streamed
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+     * @param values The enum numeric values on the wire for subscriptions to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllSubscriptionsValue(
+        java.lang.Iterable<java.lang.Integer> values) {
+      ensureSubscriptionsIsMutable();
+      for (int value : values) {
+        subscriptions_.add(value);
+      }
+      onChanged();
+      return this;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

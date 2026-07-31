@@ -85,7 +85,7 @@ public enum ModelType
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(3);
+    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(5);
   }
 
   private static final ModelType[] VALUES = values();

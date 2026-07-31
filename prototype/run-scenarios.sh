@@ -88,6 +88,13 @@ run "22 build config (system property)" 0 "demo.sys=direct-cfg" -- printConfig -
 # graceful-degradation the bridge path exercises for stdin end to end (see the bridge demo).
 run "23 stdin declined by capability" 0 "no 'build.stdin' capability" -- hello --stdin
 
+# Structured failures: a failed build reports an outcome + a failure tree (deserialized from the
+# daemon's serialized failure), not just a message. Works in both modes.
+run "24 structured failure (boom)" 1 "[failure]" -- boom
+# Operation events are bridge-only in this cut (direct-mode wiring of the daemon event pipeline is a
+# follow-up), so the client declines the subscription up front - graceful degradation by capability.
+run "25 operation events declined by capability" 0 "no 'events.task' capability" -- hello --events
+
 # Parameterized model: the client packs an IdeModelQuery(include_plugins=false) into the request Any.
 # The plugin's ParameterizedToolingModelBuilder unpacks it and omits the plugin list, so the same
 # :app model that lists plugins in scenario 15 now reports "(none)". Proves a typed request parameter

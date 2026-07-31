@@ -94,7 +94,7 @@ public enum ProgressType
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(0);
+    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(2);
   }
 
   private static final ProgressType[] VALUES = values();

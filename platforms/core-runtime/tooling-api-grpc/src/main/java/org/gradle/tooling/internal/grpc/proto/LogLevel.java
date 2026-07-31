@@ -130,7 +130,7 @@ public enum LogLevel
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(1);
+    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(3);
   }
 
   private static final LogLevel[] VALUES = values();

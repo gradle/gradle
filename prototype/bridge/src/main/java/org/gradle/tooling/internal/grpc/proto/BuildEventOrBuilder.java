@@ -90,7 +90,7 @@ public interface BuildEventOrBuilder extends
 
   /**
    * <pre>
-   * progress start/status/complete
+   * coarse progress start/status/complete (console)
    * </pre>
    *
    * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -99,7 +99,7 @@ public interface BuildEventOrBuilder extends
   boolean hasProgress();
   /**
    * <pre>
-   * progress start/status/complete
+   * coarse progress start/status/complete (console)
    * </pre>
    *
    * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -108,12 +108,66 @@ public interface BuildEventOrBuilder extends
   org.gradle.tooling.internal.grpc.proto.ProgressEvent getProgress();
   /**
    * <pre>
-   * progress start/status/complete
+   * coarse progress start/status/complete (console)
    * </pre>
    *
    * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
    */
   org.gradle.tooling.internal.grpc.proto.ProgressEventOrBuilder getProgressOrBuilder();
+
+  /**
+   * <pre>
+   * structured operation (task/test/...) start
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+   * @return Whether the operationStarted field is set.
+   */
+  boolean hasOperationStarted();
+  /**
+   * <pre>
+   * structured operation (task/test/...) start
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+   * @return The operationStarted.
+   */
+  org.gradle.tooling.internal.grpc.proto.OperationStarted getOperationStarted();
+  /**
+   * <pre>
+   * structured operation (task/test/...) start
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+   */
+  org.gradle.tooling.internal.grpc.proto.OperationStartedOrBuilder getOperationStartedOrBuilder();
+
+  /**
+   * <pre>
+   * structured operation finish, with outcome
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+   * @return Whether the operationFinished field is set.
+   */
+  boolean hasOperationFinished();
+  /**
+   * <pre>
+   * structured operation finish, with outcome
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+   * @return The operationFinished.
+   */
+  org.gradle.tooling.internal.grpc.proto.OperationFinished getOperationFinished();
+  /**
+   * <pre>
+   * structured operation finish, with outcome
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+   */
+  org.gradle.tooling.internal.grpc.proto.OperationFinishedOrBuilder getOperationFinishedOrBuilder();
 
   public org.gradle.tooling.internal.grpc.proto.BuildEvent.KindCase getKindCase();
 }

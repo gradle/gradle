@@ -29,12 +29,20 @@ import org.gradle.tooling.internal.grpc.proto.CancelRequest;
 import org.gradle.tooling.internal.grpc.proto.CancelResponse;
 import org.gradle.tooling.internal.grpc.proto.ConnectRequest;
 import org.gradle.tooling.internal.grpc.proto.ConnectResponse;
+import org.gradle.tooling.internal.grpc.proto.Failure;
 import org.gradle.tooling.internal.grpc.proto.InputAck;
 import org.gradle.tooling.internal.grpc.proto.InputChunk;
 import org.gradle.tooling.internal.grpc.proto.LogLevel;
 import org.gradle.tooling.internal.grpc.proto.ModelRequest;
 import org.gradle.tooling.internal.grpc.proto.ModelResponse;
+import org.gradle.tooling.internal.grpc.proto.OperationDescriptor;
+import org.gradle.tooling.internal.grpc.proto.OperationFinished;
+import org.gradle.tooling.internal.grpc.proto.OperationResult;
+import org.gradle.tooling.internal.grpc.proto.OperationStarted;
+import org.gradle.tooling.internal.grpc.proto.OperationType;
+import org.gradle.tooling.internal.grpc.proto.Outcome;
 import org.gradle.tooling.internal.grpc.proto.OutputLine;
+import org.gradle.tooling.internal.grpc.proto.TaskOperationDetails;
 import org.gradle.tooling.internal.grpc.proto.ProgressEvent;
 import org.gradle.tooling.internal.grpc.proto.ProgressType;
 import org.gradle.tooling.internal.grpc.proto.ToolingGrpc;
@@ -86,6 +94,7 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
             .addCapabilities("control.cancel")
             .addCapabilities("models.build_environment")
             .addCapabilities("build.stdin")
+            .addCapabilities("events.task")
             .build());
         responseObserver.onCompleted();
     }
@@ -204,12 +213,27 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
                 }
             });
 
+            // Structured operation events: when the client subscribes to TASK, map the Tooling API's
+            // typed task events onto the wire's OperationStarted/Finished tree.
+            if (request.getSubscriptionsList().contains(OperationType.OPERATION_TYPE_TASK)) {
+                launcher.addProgressListener(
+                    (org.gradle.tooling.events.ProgressListener) event -> {
+                        BuildEvent operationEvent = toOperationEvent(event);
+                        if (operationEvent != null) {
+                            synchronized (lock) {
+                                responseObserver.onNext(operationEvent);
+                            }
+                        }
+                    },
+                    org.gradle.tooling.events.OperationType.TASK);
+            }
+
             launcher.run();
-            emitResult(responseObserver, lock, true, "BUILD SUCCESSFUL");
+            emitResult(responseObserver, lock, true, Outcome.OUTCOME_SUCCESS, "BUILD SUCCESSFUL", null);
         } catch (BuildCancelledException e) {
-            emitResult(responseObserver, lock, false, "BUILD CANCELLED");
+            emitResult(responseObserver, lock, false, Outcome.OUTCOME_CANCELLED, "BUILD CANCELLED", null);
         } catch (Exception e) {
-            emitResult(responseObserver, lock, false, "BUILD FAILED: " + rootMessage(e));
+            emitResult(responseObserver, lock, false, Outcome.OUTCOME_FAILED, "BUILD FAILED: " + rootMessage(e), e);
         } finally {
             if (!buildId.isEmpty()) {
                 running.remove(buildId);
@@ -286,12 +310,84 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
         return connector;
     }
 
-    private static void emitResult(StreamObserver<BuildEvent> observer, Object lock, boolean success, String message) {
-        synchronized (lock) {
-            observer.onNext(BuildEvent.newBuilder()
-                .setResult(BuildResult.newBuilder().setSuccess(success).setMessage(message).build())
-                .build());
+    private static void emitResult(StreamObserver<BuildEvent> observer, Object lock, boolean success, Outcome outcome, String message, Throwable failure) {
+        BuildResult.Builder result = BuildResult.newBuilder()
+            .setSuccess(success)
+            .setMessage(message)
+            .setOutcome(outcome);
+        if (failure != null) {
+            result.addFailures(toFailure(failure));
         }
+        synchronized (lock) {
+            observer.onNext(BuildEvent.newBuilder().setResult(result).build());
+        }
+    }
+
+    private static Failure toFailure(Throwable t) {
+        Failure.Builder failure = Failure.newBuilder()
+            .setMessage(t.getMessage() != null ? t.getMessage() : "")
+            .setExceptionClass(t.getClass().getName());
+        Throwable cause = t.getCause();
+        if (cause != null && cause != t) {
+            failure.addCauses(toFailure(cause));
+        }
+        return failure.build();
+    }
+
+    private static BuildEvent toOperationEvent(org.gradle.tooling.events.ProgressEvent event) {
+        org.gradle.tooling.events.OperationDescriptor descriptor = event.getDescriptor();
+        if (!(descriptor instanceof org.gradle.tooling.events.task.TaskOperationDescriptor)) {
+            return null;
+        }
+        OperationDescriptor.Builder desc = OperationDescriptor.newBuilder()
+            .setId(descriptor.getDisplayName())
+            .setParentId(descriptor.getParent() != null ? descriptor.getParent().getDisplayName() : "")
+            .setDisplayName(descriptor.getDisplayName())
+            .setType(OperationType.OPERATION_TYPE_TASK)
+            .setTask(TaskOperationDetails.newBuilder()
+                .setTaskPath(((org.gradle.tooling.events.task.TaskOperationDescriptor) descriptor).getTaskPath()));
+
+        if (event instanceof org.gradle.tooling.events.StartEvent) {
+            return BuildEvent.newBuilder().setOperationStarted(OperationStarted.newBuilder().setOperation(desc)).build();
+        }
+        if (event instanceof org.gradle.tooling.events.FinishEvent) {
+            org.gradle.tooling.events.OperationResult result = ((org.gradle.tooling.events.FinishEvent) event).getResult();
+            OperationResult.Builder outcome = OperationResult.newBuilder().setOutcome(outcomeOf(result));
+            if (result instanceof org.gradle.tooling.events.FailureResult) {
+                List<? extends org.gradle.tooling.Failure> failures = ((org.gradle.tooling.events.FailureResult) result).getFailures();
+                if (!failures.isEmpty() && failures.get(0).getMessage() != null) {
+                    outcome.setFailureMessage(failures.get(0).getMessage());
+                }
+            }
+            long duration = result.getEndTime() - result.getStartTime();
+            return BuildEvent.newBuilder()
+                .setOperationFinished(OperationFinished.newBuilder().setOperation(desc).setResult(outcome).setDurationMillis(duration))
+                .build();
+        }
+        return null;
+    }
+
+    private static Outcome outcomeOf(org.gradle.tooling.events.OperationResult result) {
+        if (result instanceof org.gradle.tooling.events.task.TaskSuccessResult) {
+            org.gradle.tooling.events.task.TaskSuccessResult success = (org.gradle.tooling.events.task.TaskSuccessResult) result;
+            if (success.isFromCache()) {
+                return Outcome.OUTCOME_FROM_CACHE;
+            }
+            if (success.isUpToDate()) {
+                return Outcome.OUTCOME_UP_TO_DATE;
+            }
+            return Outcome.OUTCOME_SUCCESS;
+        }
+        if (result instanceof org.gradle.tooling.events.task.TaskSkippedResult) {
+            return Outcome.OUTCOME_SKIPPED;
+        }
+        if (result instanceof org.gradle.tooling.events.FailureResult) {
+            return Outcome.OUTCOME_FAILED;
+        }
+        if (result instanceof org.gradle.tooling.events.SuccessResult) {
+            return Outcome.OUTCOME_SUCCESS;
+        }
+        return Outcome.OUTCOME_UNSPECIFIED;
     }
 
     private static String rootMessage(Throwable t) {

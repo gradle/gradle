@@ -66,6 +66,8 @@ import org.gradle.tooling.internal.grpc.proto.CancelRequest;
 import org.gradle.tooling.internal.grpc.proto.CancelResponse;
 import org.gradle.tooling.internal.grpc.proto.ConnectRequest;
 import org.gradle.tooling.internal.grpc.proto.ConnectResponse;
+import org.gradle.tooling.internal.grpc.proto.Failure;
+import org.gradle.tooling.internal.grpc.proto.Outcome;
 import org.gradle.tooling.internal.grpc.proto.ModelRequest;
 import org.gradle.tooling.internal.grpc.proto.ModelResponse;
 import org.gradle.tooling.internal.grpc.proto.ModelType;
@@ -163,6 +165,8 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
 
         boolean success;
         String message;
+        Outcome outcome = Outcome.OUTCOME_UNSPECIFIED;
+        Throwable buildFailure = null;
         try {
             // Apply structured build configuration. System properties and the Gradle user home ride
             // Gradle's own CLI converter (-D / --gradle-user-home) and take effect here. Environment
@@ -203,10 +207,24 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
             success = result != null && !result.hasFailure() && !result.wasCancelled();
             boolean cancelled = result != null && result.wasCancelled();
             message = success ? "BUILD SUCCESSFUL" : cancelled ? "BUILD CANCELLED" : "BUILD FAILED";
+            outcome = success ? Outcome.OUTCOME_SUCCESS : cancelled ? Outcome.OUTCOME_CANCELLED : Outcome.OUTCOME_FAILED;
+            if (!success && !cancelled && result != null) {
+                // The build failure is usually serialized (getException() is null); deserialize it the
+                // same way a model result is, to recover the exception tree.
+                buildFailure = result.getException();
+                if (buildFailure == null && result.getFailure() != null) {
+                    Object deserialized = deserializeResult(startParameter, result.getFailure());
+                    if (deserialized instanceof Throwable) {
+                        buildFailure = (Throwable) deserialized;
+                    }
+                }
+            }
         } catch (Throwable t) {
             LOGGER.warn("gRPC tooling API build failed to execute", t);
             success = false;
             message = "Build failed to run: " + t.getMessage();
+            outcome = Outcome.OUTCOME_FAILED;
+            buildFailure = t;
         } finally {
             loggingOutput.removeOutputEventListener(listener);
             if (!buildId.isEmpty()) {
@@ -214,12 +232,25 @@ public class ToolingServiceImpl extends ToolingGrpc.ToolingImplBase {
             }
         }
 
+        BuildResult.Builder result = BuildResult.newBuilder().setSuccess(success).setMessage(message).setOutcome(outcome);
+        if (buildFailure != null) {
+            result.addFailures(toFailure(buildFailure));
+        }
         synchronized (responseLock) {
-            responseObserver.onNext(BuildEvent.newBuilder()
-                .setResult(BuildResult.newBuilder().setSuccess(success).setMessage(message).build())
-                .build());
+            responseObserver.onNext(BuildEvent.newBuilder().setResult(result).build());
             responseObserver.onCompleted();
         }
+    }
+
+    private static Failure toFailure(Throwable t) {
+        Failure.Builder failure = Failure.newBuilder()
+            .setMessage(t.getMessage() != null ? t.getMessage() : "")
+            .setExceptionClass(t.getClass().getName());
+        Throwable cause = t.getCause();
+        if (cause != null && cause != t) {
+            failure.addCauses(toFailure(cause));
+        }
+        return failure.build();
     }
 
     @Override

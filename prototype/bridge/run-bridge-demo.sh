@@ -68,6 +68,12 @@ else
     echo "FAIL  B8 forward standard input (exit=$STDIN_EC)"; printf '%s\n' "$STDIN_OUT" | sed 's/^/      | /' | tail -8; FAIL=$((FAIL+1))
 fi
 
+# Structured operation events: subscribe to TASK and the bridge maps the Tooling API's typed task
+# events onto the wire's operation tree (start/finish + outcome). And a failed build reports a
+# structured failure tree, not just a message.
+check "B9 task operation events"  0 "[task] :hello" -- hello --events
+check "B10 structured failure tree" 1 "[failure]"    -- boom
+
 echo
 echo "=== $PASS passed, $FAIL failed (target Gradle $TARGET, no in-daemon gRPC server) ==="
 [ "$FAIL" -eq 0 ]

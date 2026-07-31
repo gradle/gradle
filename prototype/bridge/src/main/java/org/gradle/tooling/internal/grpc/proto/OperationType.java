@@ -4,69 +4,53 @@
 package org.gradle.tooling.internal.grpc.proto;
 
 /**
- * Protobuf enum {@code gradle.tooling.grpc.LogLevel}
+ * Protobuf enum {@code gradle.tooling.grpc.OperationType}
  */
-public enum LogLevel
+public enum OperationType
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>LOG_LEVEL_UNSPECIFIED = 0;</code>
+   * <code>OPERATION_TYPE_UNSPECIFIED = 0;</code>
    */
-  LOG_LEVEL_UNSPECIFIED(0),
+  OPERATION_TYPE_UNSPECIFIED(0),
   /**
-   * <code>QUIET = 1;</code>
+   * <code>OPERATION_TYPE_GENERIC = 1;</code>
    */
-  QUIET(1),
+  OPERATION_TYPE_GENERIC(1),
   /**
-   * <code>WARN = 2;</code>
+   * <code>OPERATION_TYPE_TASK = 2;</code>
    */
-  WARN(2),
+  OPERATION_TYPE_TASK(2),
   /**
-   * <code>LIFECYCLE = 3;</code>
+   * <code>OPERATION_TYPE_TEST = 3;</code>
    */
-  LIFECYCLE(3),
+  OPERATION_TYPE_TEST(3),
   /**
-   * <code>INFO = 4;</code>
+   * <code>OPERATION_TYPE_PROJECT_CONFIGURATION = 4;</code>
    */
-  INFO(4),
-  /**
-   * <code>DEBUG = 5;</code>
-   */
-  DEBUG(5),
-  /**
-   * <code>ERROR = 6;</code>
-   */
-  ERROR(6),
+  OPERATION_TYPE_PROJECT_CONFIGURATION(4),
   UNRECOGNIZED(-1),
   ;
 
   /**
-   * <code>LOG_LEVEL_UNSPECIFIED = 0;</code>
+   * <code>OPERATION_TYPE_UNSPECIFIED = 0;</code>
    */
-  public static final int LOG_LEVEL_UNSPECIFIED_VALUE = 0;
+  public static final int OPERATION_TYPE_UNSPECIFIED_VALUE = 0;
   /**
-   * <code>QUIET = 1;</code>
+   * <code>OPERATION_TYPE_GENERIC = 1;</code>
    */
-  public static final int QUIET_VALUE = 1;
+  public static final int OPERATION_TYPE_GENERIC_VALUE = 1;
   /**
-   * <code>WARN = 2;</code>
+   * <code>OPERATION_TYPE_TASK = 2;</code>
    */
-  public static final int WARN_VALUE = 2;
+  public static final int OPERATION_TYPE_TASK_VALUE = 2;
   /**
-   * <code>LIFECYCLE = 3;</code>
+   * <code>OPERATION_TYPE_TEST = 3;</code>
    */
-  public static final int LIFECYCLE_VALUE = 3;
+  public static final int OPERATION_TYPE_TEST_VALUE = 3;
   /**
-   * <code>INFO = 4;</code>
+   * <code>OPERATION_TYPE_PROJECT_CONFIGURATION = 4;</code>
    */
-  public static final int INFO_VALUE = 4;
-  /**
-   * <code>DEBUG = 5;</code>
-   */
-  public static final int DEBUG_VALUE = 5;
-  /**
-   * <code>ERROR = 6;</code>
-   */
-  public static final int ERROR_VALUE = 6;
+  public static final int OPERATION_TYPE_PROJECT_CONFIGURATION_VALUE = 4;
 
 
   public final int getNumber() {
@@ -83,7 +67,7 @@ public enum LogLevel
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static LogLevel valueOf(int value) {
+  public static OperationType valueOf(int value) {
     return forNumber(value);
   }
 
@@ -91,28 +75,26 @@ public enum LogLevel
    * @param value The numeric wire value of the corresponding enum entry.
    * @return The enum associated with the given numeric wire value.
    */
-  public static LogLevel forNumber(int value) {
+  public static OperationType forNumber(int value) {
     switch (value) {
-      case 0: return LOG_LEVEL_UNSPECIFIED;
-      case 1: return QUIET;
-      case 2: return WARN;
-      case 3: return LIFECYCLE;
-      case 4: return INFO;
-      case 5: return DEBUG;
-      case 6: return ERROR;
+      case 0: return OPERATION_TYPE_UNSPECIFIED;
+      case 1: return OPERATION_TYPE_GENERIC;
+      case 2: return OPERATION_TYPE_TASK;
+      case 3: return OPERATION_TYPE_TEST;
+      case 4: return OPERATION_TYPE_PROJECT_CONFIGURATION;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<LogLevel>
+  public static com.google.protobuf.Internal.EnumLiteMap<OperationType>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      LogLevel> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<LogLevel>() {
-          public LogLevel findValueByNumber(int number) {
-            return LogLevel.forNumber(number);
+      OperationType> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<OperationType>() {
+          public OperationType findValueByNumber(int number) {
+            return OperationType.forNumber(number);
           }
         };
 
@@ -130,12 +112,12 @@ public enum LogLevel
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(3);
+    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(0);
   }
 
-  private static final LogLevel[] VALUES = values();
+  private static final OperationType[] VALUES = values();
 
-  public static LogLevel valueOf(
+  public static OperationType valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -149,10 +131,10 @@ public enum LogLevel
 
   private final int value;
 
-  private LogLevel(int value) {
+  private OperationType(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:gradle.tooling.grpc.LogLevel)
+  // @@protoc_insertion_point(enum_scope:gradle.tooling.grpc.OperationType)
 }
 

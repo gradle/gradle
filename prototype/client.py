@@ -100,8 +100,9 @@ def connect(stub, pb, token):
     return resp
 
 
-def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=None, config=None, forward_stdin=False):
-    request = pb.BuildRequest(args=tasks, project_dir=project_dir, build_id=build_id, configuration=config)
+def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=None, config=None, forward_stdin=False, subscriptions=None):
+    request = pb.BuildRequest(args=tasks, project_dir=project_dir, build_id=build_id, configuration=config,
+                              subscriptions=subscriptions or [])
     metadata = [("x-gradle-daemon-token", token)]
     use_color = sys.stdout.isatty()
     print("[gRPC] RunBuild(args=%s)" % tasks, file=sys.stderr)
@@ -145,9 +146,22 @@ def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=Non
             # render progress to stderr (dim) so it doesn't pollute build stdout
             if p.type == pb.PROGRESS_START and p.description:
                 sys.stderr.write("\033[2m> %s\033[0m\n" % p.description)
+        elif kind == "operation_started":
+            d = event.operation_started.operation
+            print("[task] %s STARTED" % d.task.task_path, file=sys.stderr)
+        elif kind == "operation_finished":
+            d = event.operation_finished.operation
+            r = event.operation_finished.result
+            outcome = pb.Outcome.Name(r.outcome).replace("OUTCOME_", "")
+            print("[task] %s %s (%dms)" % (d.task.task_path, outcome, event.operation_finished.duration_millis),
+                  file=sys.stderr)
         elif kind == "result":
             success = event.result.success
             message = event.result.message
+            for failure in event.result.failures:
+                print("[failure] %s: %s" % (failure.exception_class, failure.message), file=sys.stderr)
+                for cause in failure.causes:
+                    print("[failure]   caused by %s: %s" % (cause.exception_class, cause.message), file=sys.stderr)
         sys.stdout.flush()
 
     print("[result] %s (success=%s)" % (message, success), file=sys.stderr)
@@ -236,6 +250,8 @@ def main():
                         help="Build JVM argument (honoured by the bridge; repeatable)")
     parser.add_argument("--stdin", action="store_true",
                         help="Forward this process's standard input to the build (bridge only)")
+    parser.add_argument("--events", action="store_true",
+                        help="Subscribe to structured task operation events (bridge)")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -306,8 +322,18 @@ def main():
         print("[client] this endpoint has no 'build.stdin' capability; standard input is forwarded "
               "only by the bridge, not the in-daemon path", file=sys.stderr)
         forward_stdin = False
+
+    subscriptions = []
+    if args.events:
+        if "events.task" in capabilities:
+            subscriptions = [pb.OPERATION_TYPE_TASK]
+        else:
+            print("[client] this endpoint has no 'events.task' capability; structured operation events "
+                  "are emitted only by the bridge", file=sys.stderr)
+
     build_id = uuid.uuid4().hex
-    sys.exit(run_build(stub, pb, build_args, project_dir, token, build_id, args.cancel_after, config, forward_stdin))
+    sys.exit(run_build(stub, pb, build_args, project_dir, token, build_id, args.cancel_after, config,
+                       forward_stdin, subscriptions))
 
 
 if __name__ == "__main__":

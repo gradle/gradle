@@ -114,4 +114,53 @@ public interface BuildRequestOrBuilder extends
    * <code>.gradle.tooling.grpc.BuildConfiguration configuration = 4;</code>
    */
   org.gradle.tooling.internal.grpc.proto.BuildConfigurationOrBuilder getConfigurationOrBuilder();
+
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @return A list containing the subscriptions.
+   */
+  java.util.List<org.gradle.tooling.internal.grpc.proto.OperationType> getSubscriptionsList();
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @return The count of subscriptions.
+   */
+  int getSubscriptionsCount();
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @param index The index of the element to return.
+   * @return The subscriptions at the given index.
+   */
+  org.gradle.tooling.internal.grpc.proto.OperationType getSubscriptions(int index);
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @return A list containing the enum numeric values on the wire for subscriptions.
+   */
+  java.util.List<java.lang.Integer>
+  getSubscriptionsValueList();
+  /**
+   * <pre>
+   * structured operation kinds the client wants streamed
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.OperationType subscriptions = 5;</code>
+   * @param index The index of the value to return.
+   * @return The enum numeric value on the wire of subscriptions at the given index.
+   */
+  int getSubscriptionsValue(int index);
 }

@@ -179,7 +179,7 @@ public enum Style
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(2);
+    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(4);
   }
 
   private static final Style[] VALUES = values();

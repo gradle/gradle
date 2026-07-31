@@ -69,6 +69,7 @@ message BuildRequest {
   string project_dir = 2;     // build root; drives build layout
   string build_id = 3;        // client-generated id, used to target this build for cancellation
   BuildConfiguration configuration = 4;  // structured build config beyond what args express
+  repeated OperationType subscriptions = 5;  // structured operation kinds the client wants streamed
 }
 
 // Structured build configuration, mirroring the Tooling API LongRunningOperation surface. Some fields
@@ -103,11 +104,63 @@ message InputAck {
 
 message BuildEvent {
   oneof kind {
-    OutputLine output = 1;       // plain log line (LogEvent)
-    BuildResult result = 2;      // terminal event
-    StyledOutput styled = 3;     // styled text (StyledTextOutputEvent)
-    ProgressEvent progress = 4;  // progress start/status/complete
+    OutputLine output = 1;                    // plain log line (LogEvent)
+    BuildResult result = 2;                   // terminal event
+    StyledOutput styled = 3;                  // styled text (StyledTextOutputEvent)
+    ProgressEvent progress = 4;               // coarse progress start/status/complete (console)
+    OperationStarted operation_started = 5;   // structured operation (task/test/...) start
+    OperationFinished operation_finished = 6; // structured operation finish, with outcome
   }
+}
+
+// Structured operation events, mirroring org.gradle.tooling.events: a generic operation descriptor
+// plus kind-specific detail, so new operation kinds are additive. The client subscribes to the kinds
+// it wants (BuildRequest.subscriptions), so cost matches need.
+message OperationStarted {
+  OperationDescriptor operation = 1;
+}
+
+message OperationFinished {
+  OperationDescriptor operation = 1;
+  OperationResult result = 2;
+  int64 duration_millis = 3;
+}
+
+message OperationDescriptor {
+  string id = 1;
+  string parent_id = 2;          // builds the operation tree
+  string display_name = 3;
+  OperationType type = 4;
+  oneof details {                // kind-specific, additive
+    TaskOperationDetails task = 10;
+  }
+}
+
+message TaskOperationDetails {
+  string task_path = 1;
+}
+
+message OperationResult {
+  Outcome outcome = 1;
+  string failure_message = 2;    // set when outcome is FAILED
+}
+
+enum OperationType {
+  OPERATION_TYPE_UNSPECIFIED = 0;
+  OPERATION_TYPE_GENERIC = 1;
+  OPERATION_TYPE_TASK = 2;
+  OPERATION_TYPE_TEST = 3;
+  OPERATION_TYPE_PROJECT_CONFIGURATION = 4;
+}
+
+enum Outcome {
+  OUTCOME_UNSPECIFIED = 0;
+  OUTCOME_SUCCESS = 1;
+  OUTCOME_FAILED = 2;
+  OUTCOME_SKIPPED = 3;
+  OUTCOME_UP_TO_DATE = 4;
+  OUTCOME_FROM_CACHE = 5;
+  OUTCOME_CANCELLED = 6;   // build-level: distinguishes cancellation from failure
 }
 
 message ProgressEvent {
@@ -140,6 +193,15 @@ message Span {
 message BuildResult {
   bool success = 1;
   string message = 2;
+  Outcome outcome = 3;            // SUCCESS / FAILED / ... - distinguishes cancellation from failure
+  repeated Failure failures = 4;  // structured failure tree (causes), not just a message
+}
+
+message Failure {
+  string message = 1;
+  string description = 2;         // often the rendered coordinates/stack
+  string exception_class = 3;
+  repeated Failure causes = 4;    // multi-cause tree
 }
 
 enum LogLevel {

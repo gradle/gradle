@@ -24,4 +24,67 @@ public interface BuildResultOrBuilder extends
    */
   com.google.protobuf.ByteString
       getMessageBytes();
+
+  /**
+   * <pre>
+   * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+   * @return The enum numeric value on the wire for outcome.
+   */
+  int getOutcomeValue();
+  /**
+   * <pre>
+   * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+   * @return The outcome.
+   */
+  org.gradle.tooling.internal.grpc.proto.Outcome getOutcome();
+
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  java.util.List<org.gradle.tooling.internal.grpc.proto.Failure> 
+      getFailuresList();
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  org.gradle.tooling.internal.grpc.proto.Failure getFailures(int index);
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  int getFailuresCount();
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  java.util.List<? extends org.gradle.tooling.internal.grpc.proto.FailureOrBuilder> 
+      getFailuresOrBuilderList();
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  org.gradle.tooling.internal.grpc.proto.FailureOrBuilder getFailuresOrBuilder(
+      int index);
 }

@@ -17,6 +17,8 @@ private static final long serialVersionUID = 0L;
   }
   private BuildResult() {
     message_ = "";
+    outcome_ = 0;
+    failures_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -94,6 +96,93 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int OUTCOME_FIELD_NUMBER = 3;
+  private int outcome_ = 0;
+  /**
+   * <pre>
+   * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+   * @return The enum numeric value on the wire for outcome.
+   */
+  @java.lang.Override public int getOutcomeValue() {
+    return outcome_;
+  }
+  /**
+   * <pre>
+   * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+   * @return The outcome.
+   */
+  @java.lang.Override public org.gradle.tooling.internal.grpc.proto.Outcome getOutcome() {
+    org.gradle.tooling.internal.grpc.proto.Outcome result = org.gradle.tooling.internal.grpc.proto.Outcome.forNumber(outcome_);
+    return result == null ? org.gradle.tooling.internal.grpc.proto.Outcome.UNRECOGNIZED : result;
+  }
+
+  public static final int FAILURES_FIELD_NUMBER = 4;
+  @SuppressWarnings("serial")
+  private java.util.List<org.gradle.tooling.internal.grpc.proto.Failure> failures_;
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  @java.lang.Override
+  public java.util.List<org.gradle.tooling.internal.grpc.proto.Failure> getFailuresList() {
+    return failures_;
+  }
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  @java.lang.Override
+  public java.util.List<? extends org.gradle.tooling.internal.grpc.proto.FailureOrBuilder> 
+      getFailuresOrBuilderList() {
+    return failures_;
+  }
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  @java.lang.Override
+  public int getFailuresCount() {
+    return failures_.size();
+  }
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.Failure getFailures(int index) {
+    return failures_.get(index);
+  }
+  /**
+   * <pre>
+   * structured failure tree (causes), not just a message
+   * </pre>
+   *
+   * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.FailureOrBuilder getFailuresOrBuilder(
+      int index) {
+    return failures_.get(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -114,6 +203,12 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(message_)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, message_);
     }
+    if (outcome_ != org.gradle.tooling.internal.grpc.proto.Outcome.OUTCOME_UNSPECIFIED.getNumber()) {
+      output.writeEnum(3, outcome_);
+    }
+    for (int i = 0; i < failures_.size(); i++) {
+      output.writeMessage(4, failures_.get(i));
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -129,6 +224,14 @@ private static final long serialVersionUID = 0L;
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(message_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, message_);
+    }
+    if (outcome_ != org.gradle.tooling.internal.grpc.proto.Outcome.OUTCOME_UNSPECIFIED.getNumber()) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(3, outcome_);
+    }
+    for (int i = 0; i < failures_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, failures_.get(i));
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -149,6 +252,9 @@ private static final long serialVersionUID = 0L;
         != other.getSuccess()) return false;
     if (!getMessage()
         .equals(other.getMessage())) return false;
+    if (outcome_ != other.outcome_) return false;
+    if (!getFailuresList()
+        .equals(other.getFailuresList())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -165,6 +271,12 @@ private static final long serialVersionUID = 0L;
         getSuccess());
     hash = (37 * hash) + MESSAGE_FIELD_NUMBER;
     hash = (53 * hash) + getMessage().hashCode();
+    hash = (37 * hash) + OUTCOME_FIELD_NUMBER;
+    hash = (53 * hash) + outcome_;
+    if (getFailuresCount() > 0) {
+      hash = (37 * hash) + FAILURES_FIELD_NUMBER;
+      hash = (53 * hash) + getFailuresList().hashCode();
+    }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -296,6 +408,14 @@ private static final long serialVersionUID = 0L;
       bitField0_ = 0;
       success_ = false;
       message_ = "";
+      outcome_ = 0;
+      if (failuresBuilder_ == null) {
+        failures_ = java.util.Collections.emptyList();
+      } else {
+        failures_ = null;
+        failuresBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -322,9 +442,22 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public org.gradle.tooling.internal.grpc.proto.BuildResult buildPartial() {
       org.gradle.tooling.internal.grpc.proto.BuildResult result = new org.gradle.tooling.internal.grpc.proto.BuildResult(this);
+      buildPartialRepeatedFields(result);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
+    }
+
+    private void buildPartialRepeatedFields(org.gradle.tooling.internal.grpc.proto.BuildResult result) {
+      if (failuresBuilder_ == null) {
+        if (((bitField0_ & 0x00000008) != 0)) {
+          failures_ = java.util.Collections.unmodifiableList(failures_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.failures_ = failures_;
+      } else {
+        result.failures_ = failuresBuilder_.build();
+      }
     }
 
     private void buildPartial0(org.gradle.tooling.internal.grpc.proto.BuildResult result) {
@@ -334,6 +467,9 @@ private static final long serialVersionUID = 0L;
       }
       if (((from_bitField0_ & 0x00000002) != 0)) {
         result.message_ = message_;
+      }
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.outcome_ = outcome_;
       }
     }
 
@@ -389,6 +525,35 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00000002;
         onChanged();
       }
+      if (other.outcome_ != 0) {
+        setOutcomeValue(other.getOutcomeValue());
+      }
+      if (failuresBuilder_ == null) {
+        if (!other.failures_.isEmpty()) {
+          if (failures_.isEmpty()) {
+            failures_ = other.failures_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureFailuresIsMutable();
+            failures_.addAll(other.failures_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.failures_.isEmpty()) {
+          if (failuresBuilder_.isEmpty()) {
+            failuresBuilder_.dispose();
+            failuresBuilder_ = null;
+            failures_ = other.failures_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+            failuresBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getFailuresFieldBuilder() : null;
+          } else {
+            failuresBuilder_.addAllMessages(other.failures_);
+          }
+        }
+      }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -425,6 +590,24 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000002;
               break;
             } // case 18
+            case 24: {
+              outcome_ = input.readEnum();
+              bitField0_ |= 0x00000004;
+              break;
+            } // case 24
+            case 34: {
+              org.gradle.tooling.internal.grpc.proto.Failure m =
+                  input.readMessage(
+                      org.gradle.tooling.internal.grpc.proto.Failure.parser(),
+                      extensionRegistry);
+              if (failuresBuilder_ == null) {
+                ensureFailuresIsMutable();
+                failures_.add(m);
+              } else {
+                failuresBuilder_.addMessage(m);
+              }
+              break;
+            } // case 34
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -544,6 +727,391 @@ private static final long serialVersionUID = 0L;
       bitField0_ |= 0x00000002;
       onChanged();
       return this;
+    }
+
+    private int outcome_ = 0;
+    /**
+     * <pre>
+     * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+     * @return The enum numeric value on the wire for outcome.
+     */
+    @java.lang.Override public int getOutcomeValue() {
+      return outcome_;
+    }
+    /**
+     * <pre>
+     * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+     * @param value The enum numeric value on the wire for outcome to set.
+     * @return This builder for chaining.
+     */
+    public Builder setOutcomeValue(int value) {
+      outcome_ = value;
+      bitField0_ |= 0x00000004;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+     * @return The outcome.
+     */
+    @java.lang.Override
+    public org.gradle.tooling.internal.grpc.proto.Outcome getOutcome() {
+      org.gradle.tooling.internal.grpc.proto.Outcome result = org.gradle.tooling.internal.grpc.proto.Outcome.forNumber(outcome_);
+      return result == null ? org.gradle.tooling.internal.grpc.proto.Outcome.UNRECOGNIZED : result;
+    }
+    /**
+     * <pre>
+     * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+     * @param value The outcome to set.
+     * @return This builder for chaining.
+     */
+    public Builder setOutcome(org.gradle.tooling.internal.grpc.proto.Outcome value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      bitField0_ |= 0x00000004;
+      outcome_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * SUCCESS / FAILED / ... - distinguishes cancellation from failure
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.Outcome outcome = 3;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearOutcome() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      outcome_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private java.util.List<org.gradle.tooling.internal.grpc.proto.Failure> failures_ =
+      java.util.Collections.emptyList();
+    private void ensureFailuresIsMutable() {
+      if (!((bitField0_ & 0x00000008) != 0)) {
+        failures_ = new java.util.ArrayList<org.gradle.tooling.internal.grpc.proto.Failure>(failures_);
+        bitField0_ |= 0x00000008;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.Failure, org.gradle.tooling.internal.grpc.proto.Failure.Builder, org.gradle.tooling.internal.grpc.proto.FailureOrBuilder> failuresBuilder_;
+
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public java.util.List<org.gradle.tooling.internal.grpc.proto.Failure> getFailuresList() {
+      if (failuresBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(failures_);
+      } else {
+        return failuresBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public int getFailuresCount() {
+      if (failuresBuilder_ == null) {
+        return failures_.size();
+      } else {
+        return failuresBuilder_.getCount();
+      }
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.Failure getFailures(int index) {
+      if (failuresBuilder_ == null) {
+        return failures_.get(index);
+      } else {
+        return failuresBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder setFailures(
+        int index, org.gradle.tooling.internal.grpc.proto.Failure value) {
+      if (failuresBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureFailuresIsMutable();
+        failures_.set(index, value);
+        onChanged();
+      } else {
+        failuresBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder setFailures(
+        int index, org.gradle.tooling.internal.grpc.proto.Failure.Builder builderForValue) {
+      if (failuresBuilder_ == null) {
+        ensureFailuresIsMutable();
+        failures_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        failuresBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder addFailures(org.gradle.tooling.internal.grpc.proto.Failure value) {
+      if (failuresBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureFailuresIsMutable();
+        failures_.add(value);
+        onChanged();
+      } else {
+        failuresBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder addFailures(
+        int index, org.gradle.tooling.internal.grpc.proto.Failure value) {
+      if (failuresBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureFailuresIsMutable();
+        failures_.add(index, value);
+        onChanged();
+      } else {
+        failuresBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder addFailures(
+        org.gradle.tooling.internal.grpc.proto.Failure.Builder builderForValue) {
+      if (failuresBuilder_ == null) {
+        ensureFailuresIsMutable();
+        failures_.add(builderForValue.build());
+        onChanged();
+      } else {
+        failuresBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder addFailures(
+        int index, org.gradle.tooling.internal.grpc.proto.Failure.Builder builderForValue) {
+      if (failuresBuilder_ == null) {
+        ensureFailuresIsMutable();
+        failures_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        failuresBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder addAllFailures(
+        java.lang.Iterable<? extends org.gradle.tooling.internal.grpc.proto.Failure> values) {
+      if (failuresBuilder_ == null) {
+        ensureFailuresIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, failures_);
+        onChanged();
+      } else {
+        failuresBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder clearFailures() {
+      if (failuresBuilder_ == null) {
+        failures_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+      } else {
+        failuresBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public Builder removeFailures(int index) {
+      if (failuresBuilder_ == null) {
+        ensureFailuresIsMutable();
+        failures_.remove(index);
+        onChanged();
+      } else {
+        failuresBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.Failure.Builder getFailuresBuilder(
+        int index) {
+      return getFailuresFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.FailureOrBuilder getFailuresOrBuilder(
+        int index) {
+      if (failuresBuilder_ == null) {
+        return failures_.get(index);  } else {
+        return failuresBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public java.util.List<? extends org.gradle.tooling.internal.grpc.proto.FailureOrBuilder> 
+         getFailuresOrBuilderList() {
+      if (failuresBuilder_ != null) {
+        return failuresBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(failures_);
+      }
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.Failure.Builder addFailuresBuilder() {
+      return getFailuresFieldBuilder().addBuilder(
+          org.gradle.tooling.internal.grpc.proto.Failure.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.Failure.Builder addFailuresBuilder(
+        int index) {
+      return getFailuresFieldBuilder().addBuilder(
+          index, org.gradle.tooling.internal.grpc.proto.Failure.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     * structured failure tree (causes), not just a message
+     * </pre>
+     *
+     * <code>repeated .gradle.tooling.grpc.Failure failures = 4;</code>
+     */
+    public java.util.List<org.gradle.tooling.internal.grpc.proto.Failure.Builder> 
+         getFailuresBuilderList() {
+      return getFailuresFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.Failure, org.gradle.tooling.internal.grpc.proto.Failure.Builder, org.gradle.tooling.internal.grpc.proto.FailureOrBuilder> 
+        getFailuresFieldBuilder() {
+      if (failuresBuilder_ == null) {
+        failuresBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            org.gradle.tooling.internal.grpc.proto.Failure, org.gradle.tooling.internal.grpc.proto.Failure.Builder, org.gradle.tooling.internal.grpc.proto.FailureOrBuilder>(
+                failures_,
+                ((bitField0_ & 0x00000008) != 0),
+                getParentForChildren(),
+                isClean());
+        failures_ = null;
+      }
+      return failuresBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

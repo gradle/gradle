@@ -52,6 +52,8 @@ private static final long serialVersionUID = 0L;
     RESULT(2),
     STYLED(3),
     PROGRESS(4),
+    OPERATION_STARTED(5),
+    OPERATION_FINISHED(6),
     KIND_NOT_SET(0);
     private final int value;
     private KindCase(int value) {
@@ -73,6 +75,8 @@ private static final long serialVersionUID = 0L;
         case 2: return RESULT;
         case 3: return STYLED;
         case 4: return PROGRESS;
+        case 5: return OPERATION_STARTED;
+        case 6: return OPERATION_FINISHED;
         case 0: return KIND_NOT_SET;
         default: return null;
       }
@@ -220,7 +224,7 @@ private static final long serialVersionUID = 0L;
   public static final int PROGRESS_FIELD_NUMBER = 4;
   /**
    * <pre>
-   * progress start/status/complete
+   * coarse progress start/status/complete (console)
    * </pre>
    *
    * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -232,7 +236,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * progress start/status/complete
+   * coarse progress start/status/complete (console)
    * </pre>
    *
    * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -247,7 +251,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * progress start/status/complete
+   * coarse progress start/status/complete (console)
    * </pre>
    *
    * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -258,6 +262,92 @@ private static final long serialVersionUID = 0L;
        return (org.gradle.tooling.internal.grpc.proto.ProgressEvent) kind_;
     }
     return org.gradle.tooling.internal.grpc.proto.ProgressEvent.getDefaultInstance();
+  }
+
+  public static final int OPERATION_STARTED_FIELD_NUMBER = 5;
+  /**
+   * <pre>
+   * structured operation (task/test/...) start
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+   * @return Whether the operationStarted field is set.
+   */
+  @java.lang.Override
+  public boolean hasOperationStarted() {
+    return kindCase_ == 5;
+  }
+  /**
+   * <pre>
+   * structured operation (task/test/...) start
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+   * @return The operationStarted.
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.OperationStarted getOperationStarted() {
+    if (kindCase_ == 5) {
+       return (org.gradle.tooling.internal.grpc.proto.OperationStarted) kind_;
+    }
+    return org.gradle.tooling.internal.grpc.proto.OperationStarted.getDefaultInstance();
+  }
+  /**
+   * <pre>
+   * structured operation (task/test/...) start
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.OperationStartedOrBuilder getOperationStartedOrBuilder() {
+    if (kindCase_ == 5) {
+       return (org.gradle.tooling.internal.grpc.proto.OperationStarted) kind_;
+    }
+    return org.gradle.tooling.internal.grpc.proto.OperationStarted.getDefaultInstance();
+  }
+
+  public static final int OPERATION_FINISHED_FIELD_NUMBER = 6;
+  /**
+   * <pre>
+   * structured operation finish, with outcome
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+   * @return Whether the operationFinished field is set.
+   */
+  @java.lang.Override
+  public boolean hasOperationFinished() {
+    return kindCase_ == 6;
+  }
+  /**
+   * <pre>
+   * structured operation finish, with outcome
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+   * @return The operationFinished.
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.OperationFinished getOperationFinished() {
+    if (kindCase_ == 6) {
+       return (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_;
+    }
+    return org.gradle.tooling.internal.grpc.proto.OperationFinished.getDefaultInstance();
+  }
+  /**
+   * <pre>
+   * structured operation finish, with outcome
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.OperationFinishedOrBuilder getOperationFinishedOrBuilder() {
+    if (kindCase_ == 6) {
+       return (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_;
+    }
+    return org.gradle.tooling.internal.grpc.proto.OperationFinished.getDefaultInstance();
   }
 
   private byte memoizedIsInitialized = -1;
@@ -286,6 +376,12 @@ private static final long serialVersionUID = 0L;
     if (kindCase_ == 4) {
       output.writeMessage(4, (org.gradle.tooling.internal.grpc.proto.ProgressEvent) kind_);
     }
+    if (kindCase_ == 5) {
+      output.writeMessage(5, (org.gradle.tooling.internal.grpc.proto.OperationStarted) kind_);
+    }
+    if (kindCase_ == 6) {
+      output.writeMessage(6, (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_);
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -310,6 +406,14 @@ private static final long serialVersionUID = 0L;
     if (kindCase_ == 4) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(4, (org.gradle.tooling.internal.grpc.proto.ProgressEvent) kind_);
+    }
+    if (kindCase_ == 5) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(5, (org.gradle.tooling.internal.grpc.proto.OperationStarted) kind_);
+    }
+    if (kindCase_ == 6) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(6, (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -344,6 +448,14 @@ private static final long serialVersionUID = 0L;
         if (!getProgress()
             .equals(other.getProgress())) return false;
         break;
+      case 5:
+        if (!getOperationStarted()
+            .equals(other.getOperationStarted())) return false;
+        break;
+      case 6:
+        if (!getOperationFinished()
+            .equals(other.getOperationFinished())) return false;
+        break;
       case 0:
       default:
     }
@@ -374,6 +486,14 @@ private static final long serialVersionUID = 0L;
       case 4:
         hash = (37 * hash) + PROGRESS_FIELD_NUMBER;
         hash = (53 * hash) + getProgress().hashCode();
+        break;
+      case 5:
+        hash = (37 * hash) + OPERATION_STARTED_FIELD_NUMBER;
+        hash = (53 * hash) + getOperationStarted().hashCode();
+        break;
+      case 6:
+        hash = (37 * hash) + OPERATION_FINISHED_FIELD_NUMBER;
+        hash = (53 * hash) + getOperationFinished().hashCode();
         break;
       case 0:
       default:
@@ -519,6 +639,12 @@ private static final long serialVersionUID = 0L;
       if (progressBuilder_ != null) {
         progressBuilder_.clear();
       }
+      if (operationStartedBuilder_ != null) {
+        operationStartedBuilder_.clear();
+      }
+      if (operationFinishedBuilder_ != null) {
+        operationFinishedBuilder_.clear();
+      }
       kindCase_ = 0;
       kind_ = null;
       return this;
@@ -575,6 +701,14 @@ private static final long serialVersionUID = 0L;
       if (kindCase_ == 4 &&
           progressBuilder_ != null) {
         result.kind_ = progressBuilder_.build();
+      }
+      if (kindCase_ == 5 &&
+          operationStartedBuilder_ != null) {
+        result.kind_ = operationStartedBuilder_.build();
+      }
+      if (kindCase_ == 6 &&
+          operationFinishedBuilder_ != null) {
+        result.kind_ = operationFinishedBuilder_.build();
       }
     }
 
@@ -639,6 +773,14 @@ private static final long serialVersionUID = 0L;
           mergeProgress(other.getProgress());
           break;
         }
+        case OPERATION_STARTED: {
+          mergeOperationStarted(other.getOperationStarted());
+          break;
+        }
+        case OPERATION_FINISHED: {
+          mergeOperationFinished(other.getOperationFinished());
+          break;
+        }
         case KIND_NOT_SET: {
           break;
         }
@@ -697,6 +839,20 @@ private static final long serialVersionUID = 0L;
               kindCase_ = 4;
               break;
             } // case 34
+            case 42: {
+              input.readMessage(
+                  getOperationStartedFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              kindCase_ = 5;
+              break;
+            } // case 42
+            case 50: {
+              input.readMessage(
+                  getOperationFinishedFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              kindCase_ = 6;
+              break;
+            } // case 50
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -1267,7 +1423,7 @@ private static final long serialVersionUID = 0L;
         org.gradle.tooling.internal.grpc.proto.ProgressEvent, org.gradle.tooling.internal.grpc.proto.ProgressEvent.Builder, org.gradle.tooling.internal.grpc.proto.ProgressEventOrBuilder> progressBuilder_;
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1279,7 +1435,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1301,7 +1457,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1321,7 +1477,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1339,7 +1495,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1366,7 +1522,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1389,7 +1545,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1399,7 +1555,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1417,7 +1573,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * progress start/status/complete
+     * coarse progress start/status/complete (console)
      * </pre>
      *
      * <code>.gradle.tooling.grpc.ProgressEvent progress = 4;</code>
@@ -1439,6 +1595,362 @@ private static final long serialVersionUID = 0L;
       kindCase_ = 4;
       onChanged();
       return progressBuilder_;
+    }
+
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.OperationStarted, org.gradle.tooling.internal.grpc.proto.OperationStarted.Builder, org.gradle.tooling.internal.grpc.proto.OperationStartedOrBuilder> operationStartedBuilder_;
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     * @return Whether the operationStarted field is set.
+     */
+    @java.lang.Override
+    public boolean hasOperationStarted() {
+      return kindCase_ == 5;
+    }
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     * @return The operationStarted.
+     */
+    @java.lang.Override
+    public org.gradle.tooling.internal.grpc.proto.OperationStarted getOperationStarted() {
+      if (operationStartedBuilder_ == null) {
+        if (kindCase_ == 5) {
+          return (org.gradle.tooling.internal.grpc.proto.OperationStarted) kind_;
+        }
+        return org.gradle.tooling.internal.grpc.proto.OperationStarted.getDefaultInstance();
+      } else {
+        if (kindCase_ == 5) {
+          return operationStartedBuilder_.getMessage();
+        }
+        return org.gradle.tooling.internal.grpc.proto.OperationStarted.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     */
+    public Builder setOperationStarted(org.gradle.tooling.internal.grpc.proto.OperationStarted value) {
+      if (operationStartedBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        kind_ = value;
+        onChanged();
+      } else {
+        operationStartedBuilder_.setMessage(value);
+      }
+      kindCase_ = 5;
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     */
+    public Builder setOperationStarted(
+        org.gradle.tooling.internal.grpc.proto.OperationStarted.Builder builderForValue) {
+      if (operationStartedBuilder_ == null) {
+        kind_ = builderForValue.build();
+        onChanged();
+      } else {
+        operationStartedBuilder_.setMessage(builderForValue.build());
+      }
+      kindCase_ = 5;
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     */
+    public Builder mergeOperationStarted(org.gradle.tooling.internal.grpc.proto.OperationStarted value) {
+      if (operationStartedBuilder_ == null) {
+        if (kindCase_ == 5 &&
+            kind_ != org.gradle.tooling.internal.grpc.proto.OperationStarted.getDefaultInstance()) {
+          kind_ = org.gradle.tooling.internal.grpc.proto.OperationStarted.newBuilder((org.gradle.tooling.internal.grpc.proto.OperationStarted) kind_)
+              .mergeFrom(value).buildPartial();
+        } else {
+          kind_ = value;
+        }
+        onChanged();
+      } else {
+        if (kindCase_ == 5) {
+          operationStartedBuilder_.mergeFrom(value);
+        } else {
+          operationStartedBuilder_.setMessage(value);
+        }
+      }
+      kindCase_ = 5;
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     */
+    public Builder clearOperationStarted() {
+      if (operationStartedBuilder_ == null) {
+        if (kindCase_ == 5) {
+          kindCase_ = 0;
+          kind_ = null;
+          onChanged();
+        }
+      } else {
+        if (kindCase_ == 5) {
+          kindCase_ = 0;
+          kind_ = null;
+        }
+        operationStartedBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.OperationStarted.Builder getOperationStartedBuilder() {
+      return getOperationStartedFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     */
+    @java.lang.Override
+    public org.gradle.tooling.internal.grpc.proto.OperationStartedOrBuilder getOperationStartedOrBuilder() {
+      if ((kindCase_ == 5) && (operationStartedBuilder_ != null)) {
+        return operationStartedBuilder_.getMessageOrBuilder();
+      } else {
+        if (kindCase_ == 5) {
+          return (org.gradle.tooling.internal.grpc.proto.OperationStarted) kind_;
+        }
+        return org.gradle.tooling.internal.grpc.proto.OperationStarted.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * structured operation (task/test/...) start
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationStarted operation_started = 5;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.OperationStarted, org.gradle.tooling.internal.grpc.proto.OperationStarted.Builder, org.gradle.tooling.internal.grpc.proto.OperationStartedOrBuilder> 
+        getOperationStartedFieldBuilder() {
+      if (operationStartedBuilder_ == null) {
+        if (!(kindCase_ == 5)) {
+          kind_ = org.gradle.tooling.internal.grpc.proto.OperationStarted.getDefaultInstance();
+        }
+        operationStartedBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.gradle.tooling.internal.grpc.proto.OperationStarted, org.gradle.tooling.internal.grpc.proto.OperationStarted.Builder, org.gradle.tooling.internal.grpc.proto.OperationStartedOrBuilder>(
+                (org.gradle.tooling.internal.grpc.proto.OperationStarted) kind_,
+                getParentForChildren(),
+                isClean());
+        kind_ = null;
+      }
+      kindCase_ = 5;
+      onChanged();
+      return operationStartedBuilder_;
+    }
+
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.OperationFinished, org.gradle.tooling.internal.grpc.proto.OperationFinished.Builder, org.gradle.tooling.internal.grpc.proto.OperationFinishedOrBuilder> operationFinishedBuilder_;
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     * @return Whether the operationFinished field is set.
+     */
+    @java.lang.Override
+    public boolean hasOperationFinished() {
+      return kindCase_ == 6;
+    }
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     * @return The operationFinished.
+     */
+    @java.lang.Override
+    public org.gradle.tooling.internal.grpc.proto.OperationFinished getOperationFinished() {
+      if (operationFinishedBuilder_ == null) {
+        if (kindCase_ == 6) {
+          return (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_;
+        }
+        return org.gradle.tooling.internal.grpc.proto.OperationFinished.getDefaultInstance();
+      } else {
+        if (kindCase_ == 6) {
+          return operationFinishedBuilder_.getMessage();
+        }
+        return org.gradle.tooling.internal.grpc.proto.OperationFinished.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     */
+    public Builder setOperationFinished(org.gradle.tooling.internal.grpc.proto.OperationFinished value) {
+      if (operationFinishedBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        kind_ = value;
+        onChanged();
+      } else {
+        operationFinishedBuilder_.setMessage(value);
+      }
+      kindCase_ = 6;
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     */
+    public Builder setOperationFinished(
+        org.gradle.tooling.internal.grpc.proto.OperationFinished.Builder builderForValue) {
+      if (operationFinishedBuilder_ == null) {
+        kind_ = builderForValue.build();
+        onChanged();
+      } else {
+        operationFinishedBuilder_.setMessage(builderForValue.build());
+      }
+      kindCase_ = 6;
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     */
+    public Builder mergeOperationFinished(org.gradle.tooling.internal.grpc.proto.OperationFinished value) {
+      if (operationFinishedBuilder_ == null) {
+        if (kindCase_ == 6 &&
+            kind_ != org.gradle.tooling.internal.grpc.proto.OperationFinished.getDefaultInstance()) {
+          kind_ = org.gradle.tooling.internal.grpc.proto.OperationFinished.newBuilder((org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_)
+              .mergeFrom(value).buildPartial();
+        } else {
+          kind_ = value;
+        }
+        onChanged();
+      } else {
+        if (kindCase_ == 6) {
+          operationFinishedBuilder_.mergeFrom(value);
+        } else {
+          operationFinishedBuilder_.setMessage(value);
+        }
+      }
+      kindCase_ = 6;
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     */
+    public Builder clearOperationFinished() {
+      if (operationFinishedBuilder_ == null) {
+        if (kindCase_ == 6) {
+          kindCase_ = 0;
+          kind_ = null;
+          onChanged();
+        }
+      } else {
+        if (kindCase_ == 6) {
+          kindCase_ = 0;
+          kind_ = null;
+        }
+        operationFinishedBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.OperationFinished.Builder getOperationFinishedBuilder() {
+      return getOperationFinishedFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     */
+    @java.lang.Override
+    public org.gradle.tooling.internal.grpc.proto.OperationFinishedOrBuilder getOperationFinishedOrBuilder() {
+      if ((kindCase_ == 6) && (operationFinishedBuilder_ != null)) {
+        return operationFinishedBuilder_.getMessageOrBuilder();
+      } else {
+        if (kindCase_ == 6) {
+          return (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_;
+        }
+        return org.gradle.tooling.internal.grpc.proto.OperationFinished.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * structured operation finish, with outcome
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.OperationFinished operation_finished = 6;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.OperationFinished, org.gradle.tooling.internal.grpc.proto.OperationFinished.Builder, org.gradle.tooling.internal.grpc.proto.OperationFinishedOrBuilder> 
+        getOperationFinishedFieldBuilder() {
+      if (operationFinishedBuilder_ == null) {
+        if (!(kindCase_ == 6)) {
+          kind_ = org.gradle.tooling.internal.grpc.proto.OperationFinished.getDefaultInstance();
+        }
+        operationFinishedBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.gradle.tooling.internal.grpc.proto.OperationFinished, org.gradle.tooling.internal.grpc.proto.OperationFinished.Builder, org.gradle.tooling.internal.grpc.proto.OperationFinishedOrBuilder>(
+                (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_,
+                getParentForChildren(),
+                isClean());
+        kind_ = null;
+      }
+      kindCase_ = 6;
+      onChanged();
+      return operationFinishedBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(
