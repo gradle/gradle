@@ -206,6 +206,28 @@ class ConfigurationCacheProblems(
         cacheActionDescription = actionDescription
     }
 
+    /**
+     * Records the actual fate of the entry as decided when the entry was finalized.
+     * The last recorded value wins: an entry committed before the execution phase can
+     * still be discarded when the entry is finalized again at the end of the build.
+     */
+    fun entryCommitted() {
+        entryFinalizeResult = EntryFinalizeResult.COMMITTED
+    }
+
+    fun entryDiscarded() {
+        entryFinalizeResult = EntryFinalizeResult.DISCARDED
+    }
+
+    private
+    enum class EntryFinalizeResult {
+        NONE, COMMITTED, DISCARDED
+    }
+
+    @Volatile
+    private
+    var entryFinalizeResult = EntryFinalizeResult.NONE
+
     fun onStoreSerializationError() {
         seenSerializationErrorOnStore = true
     }
@@ -528,7 +550,7 @@ class ConfigurationCacheProblems(
     data class FateOfEntryInBuild(val outcome: Outcome, val message: String?)
 
     private
-    data class FateAndProblemCount(val fate: FateOfEntryInBuild, val consoleProblemCount: Int)
+    data class FateAndProblemCount(val fate: FateOfEntryInBuild, val consoleProblemCount: Int, val entryOutcomeKind: EntryOutcomeKind?)
 
     /**
      * The fate is computed once, from the problem summary at the time of the first query, and every
@@ -539,17 +561,42 @@ class ConfigurationCacheProblems(
     private
     val memoizedFateOfEntryInBuild: FateAndProblemCount by lazy {
         val summary = summarizer.get()
-        FateAndProblemCount(fateOfEntryInBuild(summary), summary.consoleProblemCount)
+        FateAndProblemCount(fateOfEntryInBuild(summary), summary.consoleProblemCount, entryOutcomeKindOf(summary))
     }
 
     /**
-     * The outcome for the configuration cache entry of this build invocation.
+     * The outcome for the configuration cache entry of this build invocation, as exposed to
+     * build logic.
+     *
+     * Unlike [fateOfEntryInBuild], this classifies the outcome along user-facing lines,
+     * consuming the actual commit/discard decision recorded when the entry was finalized:
+     * a deliberately skipped store (incompatible tasks, graceful degradation, read-only miss)
+     * is distinguished from a failed one (problems, serialization error, build failure before
+     * the entry could be stored).
      *
      * Must only be queried once the scheduled work of the build has completed. Querying memoizes
      * the fate, so the console message and the entry outcome build operation report the same value.
      */
     internal
-    fun queryEntryOutcome(): Outcome = memoizedFateOfEntryInBuild.fate.outcome
+    fun queryEntryOutcomeKind(): EntryOutcomeKind = checkNotNull(memoizedFateOfEntryInBuild.entryOutcomeKind) {
+        // Unreachable from build logic: the cache action is determined before any user code runs,
+        // so a build in which a flow action was registered always has one.
+        "The configuration cache outcome is not available because the cache action was never determined."
+    }
+
+    private
+    fun entryOutcomeKindOf(summary: Summary): EntryOutcomeKind? = when {
+        !::cacheAction.isInitialized -> null
+        cacheAction is Load -> EntryOutcomeKind.REUSED
+        cacheAction == SkipStore -> EntryOutcomeKind.STORE_SKIPPED
+        // Store or Update from here on
+        entryFinalizeResult == EntryFinalizeResult.COMMITTED -> EntryOutcomeKind.STORED
+        seenSerializationErrorOnStore -> EntryOutcomeKind.STORE_FAILED
+        shouldDegradeGracefully() -> EntryOutcomeKind.STORE_SKIPPED
+        incompatibleTasks.isNotEmpty() && summary.consoleProblemCount == 0 -> EntryOutcomeKind.STORE_SKIPPED
+        // Discarded due to problems, too many problems, or never stored because the build failed early
+        else -> EntryOutcomeKind.STORE_FAILED
+    }
 
     @Suppress("CyclomaticComplexMethod")
     private fun fateOfEntryInBuild(summary: Summary): FateOfEntryInBuild {

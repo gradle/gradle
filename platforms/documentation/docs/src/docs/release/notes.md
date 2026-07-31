@@ -120,7 +120,7 @@ flowScope.always(VerifyConfigurationCacheReuse) {
 ```
 
 This makes it possible, for example, to fail a CI build when an expected Configuration Cache hit did not happen, without parsing console output.
-When the Configuration Cache is not enabled, the provider reports [`NOT_ENABLED`](javadoc/org/gradle/api/configuration/ConfigurationCacheOutcome.html#NOT_ENABLED).
+When the Configuration Cache is not enabled, the provider reports [`ConfigurationCacheOutcome.NotEnabled`](javadoc/org/gradle/api/configuration/ConfigurationCacheOutcome.NotEnabled.html).
 
 For more information, see the [dedicated section](userguide/dataflow_actions.html#verifying_configuration_cache_reuse) in the user manual.
 

@@ -97,9 +97,9 @@ WARNING: If you're not using a lifecycle event provider as an input to the dataf
 [[verifying_configuration_cache_reuse]]
 == Verifying configuration cache reuse
 
-The link:{javadocPath}/org/gradle/api/flow/FlowProviders.html#getConfigurationCacheOutcome--[`configurationCacheOutcome`] lifecycle event provider carries the outcome of <<configuration_cache.adoc#config_cache,configuration caching>> for the build invocation: whether a cache entry was stored, reused, updated or discarded, expressed as a
+The link:{javadocPath}/org/gradle/api/flow/FlowProviders.html#getConfigurationCacheOutcome--[`configurationCacheOutcome`] lifecycle event provider carries the outcome of <<configuration_cache.adoc#config_cache,configuration caching>> for the build invocation: whether a cache entry was stored, reused, or storing it failed or was deliberately skipped, expressed as a subtype of
 link:{javadocPath}/org/gradle/api/configuration/ConfigurationCacheOutcome.html[`ConfigurationCacheOutcome`].
-When the configuration cache is not enabled, the value is `NOT_ENABLED`, so the provider is safe to use unconditionally.
+When the configuration cache is not enabled, the value is `ConfigurationCacheOutcome.NotEnabled`, so the provider is safe to use unconditionally.
 
 This makes it possible to enforce configuration cache reuse from build logic, for example on a CI setup that runs the same build twice and expects the second invocation to reuse the entry stored by the first:
 
@@ -116,7 +116,7 @@ class VerifyConfigurationCacheReuse implements FlowAction<Parameters> {
         // time would make it a configuration input and invalidate the very entry to verify.
         if (System.getenv('VERIFY_CC_REUSE') != null) {
             def outcome = parameters.outcome.get()
-            if (outcome != ConfigurationCacheOutcome.REUSED) {
+            if (outcome != ConfigurationCacheOutcome.reused()) {
                 throw new GradleException("Expected the configuration cache entry to be reused but the outcome was: $outcome")
             }
         }
@@ -124,7 +124,7 @@ class VerifyConfigurationCacheReuse implements FlowAction<Parameters> {
 }
 ----
 
-NOTE: A partially reused entry — possible for example with the parallel configuration cache or under <<isolated_projects.adoc#isolated_projects,isolated projects>> — is reported as `UPDATED`, not `REUSED`. A strict reuse check like the one above should only accept `REUSED`.
+NOTE: Only `ConfigurationCacheOutcome.Reused` means the entry was fully reused. A strict reuse check like the one above should accept nothing else.
 
 Plugin authors can make equivalent assertions in their tests via the TestKit API, see <<test_kit.adoc#sub:test-kit-configuration-cache,Testing with the Configuration Cache>>.
 
