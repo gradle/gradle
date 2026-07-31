@@ -25,6 +25,8 @@ import org.gradle.util.Path
 import org.jspecify.annotations.NullMarked
 import org.jspecify.annotations.Nullable
 
+import java.util.function.BooleanSupplier
+
 @NullMarked
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
@@ -91,8 +93,8 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
-        return Optional.of(action.create())
+    void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue) {
+        action.run()
     }
 
     @Override
