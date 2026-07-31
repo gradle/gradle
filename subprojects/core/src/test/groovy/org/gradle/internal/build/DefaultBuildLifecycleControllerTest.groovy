@@ -64,7 +64,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     }
 
     DefaultBuildLifecycleController controller() {
-        return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildListener,
+        return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser,
                 buildModelLifecycleListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory(Mock(BuildOperationsParameters)))
     }
 
