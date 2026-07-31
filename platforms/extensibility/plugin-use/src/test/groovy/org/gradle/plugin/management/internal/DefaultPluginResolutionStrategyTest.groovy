@@ -18,7 +18,6 @@ package org.gradle.plugin.management.internal
 
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.InternalBuildAdapter
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.event.ListenerManager
 import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
@@ -26,7 +25,6 @@ import spock.lang.Specification
 class DefaultPluginResolutionStrategyTest extends Specification {
 
     def listenerManager = Mock(ListenerManager)
-    def problems = Mock(IsolatedProjectsProblemsReporter)
     InternalBuildAdapter listener
     DefaultPluginResolutionStrategy strategy
 
@@ -35,7 +33,7 @@ class DefaultPluginResolutionStrategyTest extends Specification {
         // capture it so the tests can simulate that lifecycle event. Stub before constructing, since
         // the constructor registers the listener.
         listenerManager.addListener(_) >> { InternalBuildAdapter l -> listener = l }
-        strategy = new DefaultPluginResolutionStrategy(listenerManager, problems)
+        strategy = new DefaultPluginResolutionStrategy(listenerManager)
     }
 
     private void lockStrategy() {
@@ -46,18 +44,15 @@ class DefaultPluginResolutionStrategyTest extends Specification {
         new DefaultPluginRequest(DefaultPluginId.of(id), true, PluginRequestInternal.Origin.OTHER, "test", 1, version, null, null, null)
     }
 
-    def "applies a default version set before projects are loaded without reporting a problem"() {
+    def "applies a default version set before projects are loaded"() {
         when:
         strategy.setDefaultPluginVersion(DefaultPluginId.of("org.example"), "1.0")
 
-        then:
-        0 * problems.report(_)
-
-        and: "the version is applied to requests without an explicit version"
+        then: "the version is applied to requests without an explicit version"
         strategy.applyTo(request("org.example")).version == "1.0"
     }
 
-    def "reports an Isolated Projects problem and ignores the version when set after projects are loaded"() {
+    def "throws when a default version is set after projects are loaded"() {
         given:
         lockStrategy()
 
@@ -65,7 +60,8 @@ class DefaultPluginResolutionStrategyTest extends Specification {
         strategy.setDefaultPluginVersion(DefaultPluginId.of("org.example"), "1.0")
 
         then:
-        1 * problems.report(_)
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot set a default plugin version for plugin 'org.example' after projects have been loaded."
 
         and: "the late version is not applied"
         strategy.applyTo(request("org.example")).version == null
@@ -81,6 +77,5 @@ class DefaultPluginResolutionStrategyTest extends Specification {
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Cannot provide multiple default versions for the same plugin."
-        0 * problems.report(_)
     }
 }

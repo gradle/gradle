@@ -39,7 +39,6 @@ import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -172,8 +171,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager, IsolatedProjectsProblemsReporter problems) {
-            return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager, problems);
+        PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {
+            return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 
         @Provides
