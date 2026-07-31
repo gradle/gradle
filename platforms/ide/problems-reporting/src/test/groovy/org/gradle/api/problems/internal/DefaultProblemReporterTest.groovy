@@ -54,6 +54,15 @@ class DefaultProblemReporterTest extends Specification {
         0 * summarizer.emit(_, _)
     }
 
+    def "discarded problem message renders the problem"() {
+        expect:
+        with(DefaultProblemReporter.discardedProblemMessage(createTestProblem())) {
+            it.startsWith("Discarding problem, no build operation is available to attribute it to on this thread:")
+            it.contains("displayName")
+            it.contains("generic:message")
+        }
+    }
+
     def "problem reported with an explicit operation id is emitted with that id"() {
         given:
         def reporter = reporter { null }

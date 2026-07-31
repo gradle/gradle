@@ -17,20 +17,19 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.FileLocation;
-import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.BuildOperationIdRef;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.StringWriter;
 import java.util.Collection;
 
 public class DefaultProblemReporter implements ProblemReporterInternal {
@@ -153,34 +152,15 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
         if (id != null) {
             report(problem, id);
         } else {
-            ProblemInternal problemInternal = (ProblemInternal) problem;
-            ProblemId problemId = problemInternal.getDefinition().getId();
-            LOGGER.warn(
-                "Discarding problem '{}' ({}){}: no build operation is available to attribute it to on this thread",
-                problemId.getDisplayName(),
-                problemId,
-                describeOrigin(problemInternal)
-            );
+            LOGGER.warn(discardedProblemMessage((ProblemInternal) problem));
         }
     }
 
-    private static String describeOrigin(ProblemInternal problem) {
-        for (ProblemLocation location : problem.getOriginLocations()) {
-            FileLocation fileLocation = null;
-            if (location instanceof StackTraceLocation) {
-                fileLocation = ((StackTraceLocation) location).getFileLocation();
-            } else if (location instanceof FileLocation) {
-                fileLocation = (FileLocation) location;
-            }
-            if (fileLocation != null) {
-                StringBuilder origin = new StringBuilder(" reported at ").append(fileLocation.getPath());
-                if (fileLocation instanceof LineInFileLocation && ((LineInFileLocation) fileLocation).getLine() >= 0) {
-                    origin.append(':').append(((LineInFileLocation) fileLocation).getLine());
-                }
-                return origin.toString();
-            }
-        }
-        return "";
+    static String discardedProblemMessage(ProblemInternal problem) {
+        StringWriter message = new StringWriter();
+        message.append("Discarding problem, no build operation is available to attribute it to on this thread:").append(System.lineSeparator());
+        ProblemWriter.simple().write(problem, message);
+        return message.toString();
     }
 
     @Override
