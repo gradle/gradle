@@ -23,19 +23,25 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
-class Slf4jLoggingConfigurerTest extends Specification {
+class Slf4JLoggingSystemTest extends Specification {
+
     Logger logger = LoggerFactory.getLogger("cat1")
     OutputEventListener listener = Mock()
-    Slf4jLoggingConfigurer configurer = new Slf4jLoggingConfigurer(listener)
+    Slf4jLoggingSystem loggingSystem = new Slf4jLoggingSystem(listener)
 
     def cleanup() {
         def context = (OutputEventListenerBackedLoggerContext) LoggerFactory.getILoggerFactory()
         context.reset()
     }
 
+    private void startAtLevel(LogLevel logLevel) {
+        loggingSystem.setLevel(logLevel)
+        loggingSystem.startCapture()
+    }
+
     def routesSlf4jLogEventsToOutputEventListener() {
         when:
-        configurer.configure(LogLevel.INFO)
+        startAtLevel(LogLevel.INFO)
         logger.info('message')
 
         then:
@@ -43,11 +49,24 @@ class Slf4jLoggingConfigurerTest extends Specification {
         0 * listener._
     }
 
+    def "does not route slf4j events until capture is started"() {
+        given:
+        def context = (OutputEventListenerBackedLoggerContext) LoggerFactory.getILoggerFactory()
+        context.setOutputEventListener(Stub(OutputEventListener))
+
+        when:
+        loggingSystem.setLevel(LogLevel.INFO)
+        logger.info('message')
+
+        then:
+        0 * listener._
+    }
+
     def includesThrowableInLogEvent() {
         def failure = new RuntimeException()
 
         when:
-        configurer.configure(LogLevel.INFO)
+        startAtLevel(LogLevel.INFO)
         logger.info('message', failure)
 
         then:
@@ -57,7 +76,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
 
     def mapsSlf4jLogLevelsToGradleLogLevels() {
         when:
-        configurer.configure(LogLevel.DEBUG)
+        startAtLevel(LogLevel.DEBUG)
 
         logger.debug('debug')
         logger.info('info')
@@ -78,7 +97,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
 
     def formatsLogMessage() {
         when:
-        configurer.configure(LogLevel.INFO)
+        startAtLevel(LogLevel.INFO)
         logger.info('message {} {}', 'arg1', 'arg2')
 
         then:
@@ -88,7 +107,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
 
     def attachesATimestamp() {
         when:
-        configurer.configure(LogLevel.INFO)
+        startAtLevel(LogLevel.INFO)
         logger.info('message')
 
         then:
@@ -98,7 +117,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
 
     def filtersLifecycleAndLowerWhenConfiguredAtQuietLevel() {
         when:
-        configurer.configure(LogLevel.QUIET)
+        startAtLevel(LogLevel.QUIET)
 
         logger.trace('trace')
         logger.debug('debug')
@@ -116,7 +135,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
 
     def filtersInfoAndLowerWhenConfiguredAtLifecycleLevel() {
         when:
-        configurer.configure(LogLevel.LIFECYCLE)
+        startAtLevel(LogLevel.LIFECYCLE)
 
         logger.trace('trace')
         logger.debug('debug')
@@ -136,7 +155,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
 
     def filtersDebugAndLowerWhenConfiguredAtInfoLevel() {
         when:
-        configurer.configure(LogLevel.INFO)
+        startAtLevel(LogLevel.INFO)
 
         logger.trace('trace')
         logger.debug('debug')
@@ -157,7 +176,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
 
     def filtersTraceWhenConfiguredAtDebugLevel() {
         when:
-        configurer.configure(LogLevel.DEBUG)
+        startAtLevel(LogLevel.DEBUG)
 
         logger.trace('trace')
         logger.debug('debug')
@@ -176,4 +195,105 @@ class Slf4jLoggingConfigurerTest extends Specification {
         1 * listener.onOutput({ it.message == 'error' && it.logLevel == LogLevel.ERROR })
         0 * listener._
     }
+
+    def "changing the level of a started system takes effect immediately"() {
+        when:
+        startAtLevel(LogLevel.INFO)
+        loggingSystem.setLevel(LogLevel.QUIET)
+        logger.info('filtered')
+
+        then:
+        0 * listener._
+    }
+
+    def "restore returns the slf4j routing to the previous owner"() {
+        // Two logging scopes in one process, each with its own adapter sharing the JVM-wide
+        // slf4j binding
+        def outerListener = Mock(OutputEventListener)
+        def outerScope = new Slf4jLoggingSystem(outerListener)
+
+        given:
+        outerScope.setLevel(LogLevel.INFO)
+        outerScope.startCapture()
+
+        when: "a nested scope takes over the slf4j routing"
+        def snapshot = loggingSystem.snapshot()
+        loggingSystem.setLevel(LogLevel.DEBUG)
+        loggingSystem.startCapture()
+        logger.info('nested')
+
+        then:
+        1 * listener.onOutput({ it.message == 'nested' })
+        0 * outerListener._
+
+        when: "the nested scope is restored"
+        loggingSystem.restore(snapshot)
+        logger.info('outer')
+
+        then:
+        1 * outerListener.onOutput({ it.message == 'outer' })
+        0 * listener._
+    }
+
+    def "restore returns the log level of the previous owner"() {
+        def outerScope = new Slf4jLoggingSystem(Stub(OutputEventListener))
+        def context = (OutputEventListenerBackedLoggerContext) LoggerFactory.getILoggerFactory()
+
+        given:
+        outerScope.setLevel(LogLevel.WARN)
+        outerScope.startCapture()
+
+        when:
+        def snapshot = loggingSystem.snapshot()
+        loggingSystem.setLevel(LogLevel.DEBUG)
+        loggingSystem.startCapture()
+
+        then:
+        context.level == LogLevel.DEBUG
+
+        when:
+        loggingSystem.restore(snapshot)
+
+        then:
+        context.level == LogLevel.WARN
+    }
+
+    def "scope re-establishes its listener when started again after a restore"() {
+        def otherScope = new Slf4jLoggingSystem(Mock(OutputEventListener))
+
+        given: "the scope has been started and stopped once"
+        otherScope.setLevel(LogLevel.INFO)
+        otherScope.startCapture()
+        def snapshot = loggingSystem.snapshot()
+        loggingSystem.setLevel(LogLevel.INFO)
+        loggingSystem.startCapture()
+        loggingSystem.restore(snapshot)
+
+        when: "the scope is started a second time at the same level"
+        loggingSystem.setLevel(LogLevel.INFO)
+        loggingSystem.startCapture()
+        logger.info('message')
+
+        then:
+        1 * listener.onOutput({ it.message == 'message' })
+    }
+
+    def "setLevel does nothing until started"() {
+        given:
+        def context = (OutputEventListenerBackedLoggerContext) LoggerFactory.getILoggerFactory()
+        context.setLevel(LogLevel.LIFECYCLE)
+
+        when:
+        loggingSystem.setLevel(LogLevel.DEBUG)
+
+        then:
+        context.level == LogLevel.LIFECYCLE
+
+        when:
+        loggingSystem.startCapture()
+
+        then:
+        context.level == LogLevel.DEBUG
+    }
+
 }
