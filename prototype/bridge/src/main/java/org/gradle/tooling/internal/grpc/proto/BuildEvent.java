@@ -54,6 +54,7 @@ private static final long serialVersionUID = 0L;
     PROGRESS(4),
     OPERATION_STARTED(5),
     OPERATION_FINISHED(6),
+    PROBLEM(7),
     KIND_NOT_SET(0);
     private final int value;
     private KindCase(int value) {
@@ -77,6 +78,7 @@ private static final long serialVersionUID = 0L;
         case 4: return PROGRESS;
         case 5: return OPERATION_STARTED;
         case 6: return OPERATION_FINISHED;
+        case 7: return PROBLEM;
         case 0: return KIND_NOT_SET;
         default: return null;
       }
@@ -350,6 +352,49 @@ private static final long serialVersionUID = 0L;
     return org.gradle.tooling.internal.grpc.proto.OperationFinished.getDefaultInstance();
   }
 
+  public static final int PROBLEM_FIELD_NUMBER = 7;
+  /**
+   * <pre>
+   * a Problems API report
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+   * @return Whether the problem field is set.
+   */
+  @java.lang.Override
+  public boolean hasProblem() {
+    return kindCase_ == 7;
+  }
+  /**
+   * <pre>
+   * a Problems API report
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+   * @return The problem.
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.ProblemEvent getProblem() {
+    if (kindCase_ == 7) {
+       return (org.gradle.tooling.internal.grpc.proto.ProblemEvent) kind_;
+    }
+    return org.gradle.tooling.internal.grpc.proto.ProblemEvent.getDefaultInstance();
+  }
+  /**
+   * <pre>
+   * a Problems API report
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+   */
+  @java.lang.Override
+  public org.gradle.tooling.internal.grpc.proto.ProblemEventOrBuilder getProblemOrBuilder() {
+    if (kindCase_ == 7) {
+       return (org.gradle.tooling.internal.grpc.proto.ProblemEvent) kind_;
+    }
+    return org.gradle.tooling.internal.grpc.proto.ProblemEvent.getDefaultInstance();
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -381,6 +426,9 @@ private static final long serialVersionUID = 0L;
     }
     if (kindCase_ == 6) {
       output.writeMessage(6, (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_);
+    }
+    if (kindCase_ == 7) {
+      output.writeMessage(7, (org.gradle.tooling.internal.grpc.proto.ProblemEvent) kind_);
     }
     getUnknownFields().writeTo(output);
   }
@@ -414,6 +462,10 @@ private static final long serialVersionUID = 0L;
     if (kindCase_ == 6) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(6, (org.gradle.tooling.internal.grpc.proto.OperationFinished) kind_);
+    }
+    if (kindCase_ == 7) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(7, (org.gradle.tooling.internal.grpc.proto.ProblemEvent) kind_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -456,6 +508,10 @@ private static final long serialVersionUID = 0L;
         if (!getOperationFinished()
             .equals(other.getOperationFinished())) return false;
         break;
+      case 7:
+        if (!getProblem()
+            .equals(other.getProblem())) return false;
+        break;
       case 0:
       default:
     }
@@ -494,6 +550,10 @@ private static final long serialVersionUID = 0L;
       case 6:
         hash = (37 * hash) + OPERATION_FINISHED_FIELD_NUMBER;
         hash = (53 * hash) + getOperationFinished().hashCode();
+        break;
+      case 7:
+        hash = (37 * hash) + PROBLEM_FIELD_NUMBER;
+        hash = (53 * hash) + getProblem().hashCode();
         break;
       case 0:
       default:
@@ -645,6 +705,9 @@ private static final long serialVersionUID = 0L;
       if (operationFinishedBuilder_ != null) {
         operationFinishedBuilder_.clear();
       }
+      if (problemBuilder_ != null) {
+        problemBuilder_.clear();
+      }
       kindCase_ = 0;
       kind_ = null;
       return this;
@@ -709,6 +772,10 @@ private static final long serialVersionUID = 0L;
       if (kindCase_ == 6 &&
           operationFinishedBuilder_ != null) {
         result.kind_ = operationFinishedBuilder_.build();
+      }
+      if (kindCase_ == 7 &&
+          problemBuilder_ != null) {
+        result.kind_ = problemBuilder_.build();
       }
     }
 
@@ -779,6 +846,10 @@ private static final long serialVersionUID = 0L;
         }
         case OPERATION_FINISHED: {
           mergeOperationFinished(other.getOperationFinished());
+          break;
+        }
+        case PROBLEM: {
+          mergeProblem(other.getProblem());
           break;
         }
         case KIND_NOT_SET: {
@@ -853,6 +924,13 @@ private static final long serialVersionUID = 0L;
               kindCase_ = 6;
               break;
             } // case 50
+            case 58: {
+              input.readMessage(
+                  getProblemFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              kindCase_ = 7;
+              break;
+            } // case 58
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -1951,6 +2029,184 @@ private static final long serialVersionUID = 0L;
       kindCase_ = 6;
       onChanged();
       return operationFinishedBuilder_;
+    }
+
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.ProblemEvent, org.gradle.tooling.internal.grpc.proto.ProblemEvent.Builder, org.gradle.tooling.internal.grpc.proto.ProblemEventOrBuilder> problemBuilder_;
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     * @return Whether the problem field is set.
+     */
+    @java.lang.Override
+    public boolean hasProblem() {
+      return kindCase_ == 7;
+    }
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     * @return The problem.
+     */
+    @java.lang.Override
+    public org.gradle.tooling.internal.grpc.proto.ProblemEvent getProblem() {
+      if (problemBuilder_ == null) {
+        if (kindCase_ == 7) {
+          return (org.gradle.tooling.internal.grpc.proto.ProblemEvent) kind_;
+        }
+        return org.gradle.tooling.internal.grpc.proto.ProblemEvent.getDefaultInstance();
+      } else {
+        if (kindCase_ == 7) {
+          return problemBuilder_.getMessage();
+        }
+        return org.gradle.tooling.internal.grpc.proto.ProblemEvent.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     */
+    public Builder setProblem(org.gradle.tooling.internal.grpc.proto.ProblemEvent value) {
+      if (problemBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        kind_ = value;
+        onChanged();
+      } else {
+        problemBuilder_.setMessage(value);
+      }
+      kindCase_ = 7;
+      return this;
+    }
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     */
+    public Builder setProblem(
+        org.gradle.tooling.internal.grpc.proto.ProblemEvent.Builder builderForValue) {
+      if (problemBuilder_ == null) {
+        kind_ = builderForValue.build();
+        onChanged();
+      } else {
+        problemBuilder_.setMessage(builderForValue.build());
+      }
+      kindCase_ = 7;
+      return this;
+    }
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     */
+    public Builder mergeProblem(org.gradle.tooling.internal.grpc.proto.ProblemEvent value) {
+      if (problemBuilder_ == null) {
+        if (kindCase_ == 7 &&
+            kind_ != org.gradle.tooling.internal.grpc.proto.ProblemEvent.getDefaultInstance()) {
+          kind_ = org.gradle.tooling.internal.grpc.proto.ProblemEvent.newBuilder((org.gradle.tooling.internal.grpc.proto.ProblemEvent) kind_)
+              .mergeFrom(value).buildPartial();
+        } else {
+          kind_ = value;
+        }
+        onChanged();
+      } else {
+        if (kindCase_ == 7) {
+          problemBuilder_.mergeFrom(value);
+        } else {
+          problemBuilder_.setMessage(value);
+        }
+      }
+      kindCase_ = 7;
+      return this;
+    }
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     */
+    public Builder clearProblem() {
+      if (problemBuilder_ == null) {
+        if (kindCase_ == 7) {
+          kindCase_ = 0;
+          kind_ = null;
+          onChanged();
+        }
+      } else {
+        if (kindCase_ == 7) {
+          kindCase_ = 0;
+          kind_ = null;
+        }
+        problemBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     */
+    public org.gradle.tooling.internal.grpc.proto.ProblemEvent.Builder getProblemBuilder() {
+      return getProblemFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     */
+    @java.lang.Override
+    public org.gradle.tooling.internal.grpc.proto.ProblemEventOrBuilder getProblemOrBuilder() {
+      if ((kindCase_ == 7) && (problemBuilder_ != null)) {
+        return problemBuilder_.getMessageOrBuilder();
+      } else {
+        if (kindCase_ == 7) {
+          return (org.gradle.tooling.internal.grpc.proto.ProblemEvent) kind_;
+        }
+        return org.gradle.tooling.internal.grpc.proto.ProblemEvent.getDefaultInstance();
+      }
+    }
+    /**
+     * <pre>
+     * a Problems API report
+     * </pre>
+     *
+     * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.gradle.tooling.internal.grpc.proto.ProblemEvent, org.gradle.tooling.internal.grpc.proto.ProblemEvent.Builder, org.gradle.tooling.internal.grpc.proto.ProblemEventOrBuilder> 
+        getProblemFieldBuilder() {
+      if (problemBuilder_ == null) {
+        if (!(kindCase_ == 7)) {
+          kind_ = org.gradle.tooling.internal.grpc.proto.ProblemEvent.getDefaultInstance();
+        }
+        problemBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.gradle.tooling.internal.grpc.proto.ProblemEvent, org.gradle.tooling.internal.grpc.proto.ProblemEvent.Builder, org.gradle.tooling.internal.grpc.proto.ProblemEventOrBuilder>(
+                (org.gradle.tooling.internal.grpc.proto.ProblemEvent) kind_,
+                getParentForChildren(),
+                isClean());
+        kind_ = null;
+      }
+      kindCase_ = 7;
+      onChanged();
+      return problemBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

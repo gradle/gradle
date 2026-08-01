@@ -94,6 +94,10 @@ run "24 structured failure (boom)" 1 "[failure]" -- boom
 # Operation events on the direct in-daemon path: the build runs as a no-model BuildModelAction with a
 # TASK subscription, so the daemon's own event pipeline forwards task events, mapped onto the wire.
 run "25 operation events (direct mode)" 0 "[task] :hello" -- hello --events
+# Problems: the in-daemon path does not advertise events.problems in this cut (mapping the versioned
+# internal problem-event protocol is a follow-up; the bridge maps the version-adapted typed API), so
+# the client declines the subscription up front.
+run "26 problems declined by capability" 0 "no 'events.problems' capability" -- hello --problems
 
 # Parameterized model: the client packs an IdeModelQuery(include_plugins=false) into the request Any.
 # The plugin's ParameterizedToolingModelBuilder unpacks it and omits the plugin list, so the same

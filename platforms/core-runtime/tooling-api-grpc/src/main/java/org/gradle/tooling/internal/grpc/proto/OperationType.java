@@ -28,6 +28,10 @@ public enum OperationType
    * <code>OPERATION_TYPE_PROJECT_CONFIGURATION = 4;</code>
    */
   OPERATION_TYPE_PROJECT_CONFIGURATION(4),
+  /**
+   * <code>OPERATION_TYPE_PROBLEMS = 5;</code>
+   */
+  OPERATION_TYPE_PROBLEMS(5),
   UNRECOGNIZED(-1),
   ;
 
@@ -51,6 +55,10 @@ public enum OperationType
    * <code>OPERATION_TYPE_PROJECT_CONFIGURATION = 4;</code>
    */
   public static final int OPERATION_TYPE_PROJECT_CONFIGURATION_VALUE = 4;
+  /**
+   * <code>OPERATION_TYPE_PROBLEMS = 5;</code>
+   */
+  public static final int OPERATION_TYPE_PROBLEMS_VALUE = 5;
 
 
   public final int getNumber() {
@@ -82,6 +90,7 @@ public enum OperationType
       case 2: return OPERATION_TYPE_TASK;
       case 3: return OPERATION_TYPE_TEST;
       case 4: return OPERATION_TYPE_PROJECT_CONFIGURATION;
+      case 5: return OPERATION_TYPE_PROBLEMS;
       default: return null;
     }
   }
@@ -112,7 +121,7 @@ public enum OperationType
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(0);
+    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(1);
   }
 
   private static final OperationType[] VALUES = values();

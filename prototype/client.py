@@ -155,6 +155,15 @@ def run_build(stub, pb, tasks, project_dir, token, build_id="", cancel_after=Non
             outcome = pb.Outcome.Name(r.outcome).replace("OUTCOME_", "")
             print("[task] %s %s (%dms)" % (d.task.task_path, outcome, event.operation_finished.duration_millis),
                   file=sys.stderr)
+        elif kind == "problem":
+            p = event.problem
+            severity = pb.Severity.Name(p.severity).replace("SEVERITY_", "")
+            label = p.label or p.category
+            print("[problem] %s %s: %s" % (severity, p.category, label), file=sys.stderr)
+            if p.details:
+                print("[problem]   details: %s" % p.details, file=sys.stderr)
+            for sol in p.solutions:
+                print("[problem]   solution: %s" % sol, file=sys.stderr)
         elif kind == "result":
             success = event.result.success
             message = event.result.message
@@ -251,7 +260,9 @@ def main():
     parser.add_argument("--stdin", action="store_true",
                         help="Forward this process's standard input to the build (bridge only)")
     parser.add_argument("--events", action="store_true",
-                        help="Subscribe to structured task operation events (bridge)")
+                        help="Subscribe to structured task operation events")
+    parser.add_argument("--problems", action="store_true",
+                        help="Subscribe to Problems API reports (bridge)")
     parser.add_argument("tasks", nargs="*", help="Tasks/flags to run (default: help)")
     # parse_known_args so build flags like -q, -x, -P, --info pass through to Gradle
     # instead of being claimed by the client's own argument parser.
@@ -326,10 +337,15 @@ def main():
     subscriptions = []
     if args.events:
         if "events.task" in capabilities:
-            subscriptions = [pb.OPERATION_TYPE_TASK]
+            subscriptions.append(pb.OPERATION_TYPE_TASK)
         else:
-            print("[client] this endpoint has no 'events.task' capability; structured operation events "
-                  "are emitted only by the bridge", file=sys.stderr)
+            print("[client] this endpoint has no 'events.task' capability", file=sys.stderr)
+    if args.problems:
+        if "events.problems" in capabilities:
+            subscriptions.append(pb.OPERATION_TYPE_PROBLEMS)
+        else:
+            print("[client] this endpoint has no 'events.problems' capability; problems are emitted "
+                  "only by the bridge in this cut", file=sys.stderr)
 
     build_id = uuid.uuid4().hex
     sys.exit(run_build(stub, pb, build_args, project_dir, token, build_id, args.cancel_after, config,

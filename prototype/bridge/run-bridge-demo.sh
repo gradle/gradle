@@ -74,6 +74,15 @@ fi
 check "B9 task operation events"  0 "[task] :hello" -- hello --events
 check "B10 structured failure tree" 1 "[failure]"    -- boom
 
+# Problems channel (version-dependent): recent daemons surface deprecations through the Problems API,
+# older ones do not - so this PASSes on a recent target and is SKIPPED (not failed) on an old one.
+PROB_OUT="$("$PY" "$PROTO_ROOT/client.py" --endpoint "$ENDPOINT" --project-dir "$SAMPLE" deprecated --problems 2>&1)"
+if printf '%s' "$PROB_OUT" | grep -qF '[problem]'; then
+    echo "PASS  B11 problem events (Gradle $TARGET surfaces the Problems API)"; PASS=$((PASS+1))
+else
+    echo "SKIP  B11 problem events (Gradle $TARGET does not surface Problems API events; try TARGET_GRADLE=8.14.3)"
+fi
+
 echo
 echo "=== $PASS passed, $FAIL failed (target Gradle $TARGET, no in-daemon gRPC server) ==="
 [ "$FAIL" -eq 0 ]

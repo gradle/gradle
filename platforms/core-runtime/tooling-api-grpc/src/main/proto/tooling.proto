@@ -110,7 +110,27 @@ message BuildEvent {
     ProgressEvent progress = 4;               // coarse progress start/status/complete (console)
     OperationStarted operation_started = 5;   // structured operation (task/test/...) start
     OperationFinished operation_finished = 6; // structured operation finish, with outcome
+    ProblemEvent problem = 7;                 // a Problems API report
   }
+}
+
+// A problem reported during the build (the Problems API), streamed as it is reported. Mirrors
+// org.gradle.api.problems. Advertised via the events.problems capability.
+message ProblemEvent {
+  string category = 1;             // the problem id's display name
+  Severity severity = 2;
+  string label = 3;                // contextual label
+  string details = 4;
+  repeated string solutions = 5;
+  repeated string locations = 6;   // rendered location strings (file:line, task path, ...)
+  string documentation_link = 7;
+}
+
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_ADVICE = 1;
+  SEVERITY_WARNING = 2;
+  SEVERITY_ERROR = 3;
 }
 
 // Structured operation events, mirroring org.gradle.tooling.events: a generic operation descriptor
@@ -151,6 +171,7 @@ enum OperationType {
   OPERATION_TYPE_TASK = 2;
   OPERATION_TYPE_TEST = 3;
   OPERATION_TYPE_PROJECT_CONFIGURATION = 4;
+  OPERATION_TYPE_PROBLEMS = 5;
 }
 
 enum Outcome {

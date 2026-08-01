@@ -169,5 +169,32 @@ public interface BuildEventOrBuilder extends
    */
   org.gradle.tooling.internal.grpc.proto.OperationFinishedOrBuilder getOperationFinishedOrBuilder();
 
+  /**
+   * <pre>
+   * a Problems API report
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+   * @return Whether the problem field is set.
+   */
+  boolean hasProblem();
+  /**
+   * <pre>
+   * a Problems API report
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+   * @return The problem.
+   */
+  org.gradle.tooling.internal.grpc.proto.ProblemEvent getProblem();
+  /**
+   * <pre>
+   * a Problems API report
+   * </pre>
+   *
+   * <code>.gradle.tooling.grpc.ProblemEvent problem = 7;</code>
+   */
+  org.gradle.tooling.internal.grpc.proto.ProblemEventOrBuilder getProblemOrBuilder();
+
   public org.gradle.tooling.internal.grpc.proto.BuildEvent.KindCase getKindCase();
 }

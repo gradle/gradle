@@ -42,6 +42,8 @@ import org.gradle.tooling.internal.grpc.proto.OperationStarted;
 import org.gradle.tooling.internal.grpc.proto.OperationType;
 import org.gradle.tooling.internal.grpc.proto.Outcome;
 import org.gradle.tooling.internal.grpc.proto.OutputLine;
+import org.gradle.tooling.internal.grpc.proto.ProblemEvent;
+import org.gradle.tooling.internal.grpc.proto.Severity;
 import org.gradle.tooling.internal.grpc.proto.TaskOperationDetails;
 import org.gradle.tooling.internal.grpc.proto.ProgressEvent;
 import org.gradle.tooling.internal.grpc.proto.ProgressType;
@@ -95,6 +97,7 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
             .addCapabilities("models.build_environment")
             .addCapabilities("build.stdin")
             .addCapabilities("events.task")
+            .addCapabilities("events.problems")
             .build());
         responseObserver.onCompleted();
     }
@@ -213,19 +216,26 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
                 }
             });
 
-            // Structured operation events: when the client subscribes to TASK, map the Tooling API's
-            // typed task events onto the wire's OperationStarted/Finished tree.
+            // Structured events: subscribe to the requested kinds and map the Tooling API's typed
+            // task events onto the wire operation tree, and Problems API reports onto ProblemEvents.
+            java.util.Set<org.gradle.tooling.events.OperationType> eventTypes = java.util.EnumSet.noneOf(org.gradle.tooling.events.OperationType.class);
             if (request.getSubscriptionsList().contains(OperationType.OPERATION_TYPE_TASK)) {
+                eventTypes.add(org.gradle.tooling.events.OperationType.TASK);
+            }
+            if (request.getSubscriptionsList().contains(OperationType.OPERATION_TYPE_PROBLEMS)) {
+                eventTypes.add(org.gradle.tooling.events.OperationType.PROBLEMS);
+            }
+            if (!eventTypes.isEmpty()) {
                 launcher.addProgressListener(
                     (org.gradle.tooling.events.ProgressListener) event -> {
-                        BuildEvent operationEvent = toOperationEvent(event);
-                        if (operationEvent != null) {
+                        BuildEvent mapped = toWireEvent(event);
+                        if (mapped != null) {
                             synchronized (lock) {
-                                responseObserver.onNext(operationEvent);
+                                responseObserver.onNext(mapped);
                             }
                         }
                     },
-                    org.gradle.tooling.events.OperationType.TASK);
+                    eventTypes);
             }
 
             launcher.run();
@@ -334,7 +344,10 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
         return failure.build();
     }
 
-    private static BuildEvent toOperationEvent(org.gradle.tooling.events.ProgressEvent event) {
+    private static BuildEvent toWireEvent(org.gradle.tooling.events.ProgressEvent event) {
+        if (event instanceof org.gradle.tooling.events.problems.SingleProblemEvent) {
+            return toProblemEvent((org.gradle.tooling.events.problems.SingleProblemEvent) event);
+        }
         org.gradle.tooling.events.OperationDescriptor descriptor = event.getDescriptor();
         if (!(descriptor instanceof org.gradle.tooling.events.task.TaskOperationDescriptor)) {
             return null;
@@ -388,6 +401,43 @@ public class BridgeToolingService extends ToolingGrpc.ToolingImplBase {
             return Outcome.OUTCOME_SUCCESS;
         }
         return Outcome.OUTCOME_UNSPECIFIED;
+    }
+
+    private static BuildEvent toProblemEvent(org.gradle.tooling.events.problems.SingleProblemEvent event) {
+        org.gradle.tooling.events.problems.Problem problem = event.getProblem();
+        org.gradle.tooling.events.problems.ProblemDefinition definition = problem.getDefinition();
+        ProblemEvent.Builder builder = ProblemEvent.newBuilder()
+            .setCategory(definition.getId().getDisplayName())
+            .setSeverity(severityOf(definition.getSeverity()));
+        if (problem.getContextualLabel() != null && problem.getContextualLabel().getContextualLabel() != null) {
+            builder.setLabel(problem.getContextualLabel().getContextualLabel());
+        }
+        if (problem.getDetails() != null && problem.getDetails().getDetails() != null) {
+            builder.setDetails(problem.getDetails().getDetails());
+        }
+        for (org.gradle.tooling.events.problems.Solution solution : problem.getSolutions()) {
+            builder.addSolutions(solution.getSolution());
+        }
+        for (org.gradle.tooling.events.problems.Location location : problem.getOriginLocations()) {
+            builder.addLocations(location.toString());
+        }
+        if (definition.getDocumentationLink() != null && definition.getDocumentationLink().getUrl() != null) {
+            builder.setDocumentationLink(definition.getDocumentationLink().getUrl());
+        }
+        return BuildEvent.newBuilder().setProblem(builder).build();
+    }
+
+    private static Severity severityOf(org.gradle.tooling.events.problems.Severity severity) {
+        switch (severity.getSeverity()) {
+            case 0:
+                return Severity.SEVERITY_ADVICE;
+            case 1:
+                return Severity.SEVERITY_WARNING;
+            case 2:
+                return Severity.SEVERITY_ERROR;
+            default:
+                return Severity.SEVERITY_UNSPECIFIED;
+        }
     }
 
     private static String rootMessage(Throwable t) {

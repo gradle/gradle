@@ -38,3 +38,11 @@ tasks.register('readInput') {
         println 'read: ' + line
     }
 }
+
+// Touches a deprecated API so Gradle reports a deprecation, which recent versions surface through the
+// Problems API - letting a client see a ProblemEvent stream over gRPC.
+tasks.register('deprecated') {
+    doLast {
+        println 'buildDir=' + project.buildDir
+    }
+}

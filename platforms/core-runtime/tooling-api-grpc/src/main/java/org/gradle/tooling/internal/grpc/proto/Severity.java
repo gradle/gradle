@@ -4,37 +4,45 @@
 package org.gradle.tooling.internal.grpc.proto;
 
 /**
- * Protobuf enum {@code gradle.tooling.grpc.ProgressType}
+ * Protobuf enum {@code gradle.tooling.grpc.Severity}
  */
-public enum ProgressType
+public enum Severity
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>PROGRESS_START = 0;</code>
+   * <code>SEVERITY_UNSPECIFIED = 0;</code>
    */
-  PROGRESS_START(0),
+  SEVERITY_UNSPECIFIED(0),
   /**
-   * <code>PROGRESS_STATUS = 1;</code>
+   * <code>SEVERITY_ADVICE = 1;</code>
    */
-  PROGRESS_STATUS(1),
+  SEVERITY_ADVICE(1),
   /**
-   * <code>PROGRESS_COMPLETE = 2;</code>
+   * <code>SEVERITY_WARNING = 2;</code>
    */
-  PROGRESS_COMPLETE(2),
+  SEVERITY_WARNING(2),
+  /**
+   * <code>SEVERITY_ERROR = 3;</code>
+   */
+  SEVERITY_ERROR(3),
   UNRECOGNIZED(-1),
   ;
 
   /**
-   * <code>PROGRESS_START = 0;</code>
+   * <code>SEVERITY_UNSPECIFIED = 0;</code>
    */
-  public static final int PROGRESS_START_VALUE = 0;
+  public static final int SEVERITY_UNSPECIFIED_VALUE = 0;
   /**
-   * <code>PROGRESS_STATUS = 1;</code>
+   * <code>SEVERITY_ADVICE = 1;</code>
    */
-  public static final int PROGRESS_STATUS_VALUE = 1;
+  public static final int SEVERITY_ADVICE_VALUE = 1;
   /**
-   * <code>PROGRESS_COMPLETE = 2;</code>
+   * <code>SEVERITY_WARNING = 2;</code>
    */
-  public static final int PROGRESS_COMPLETE_VALUE = 2;
+  public static final int SEVERITY_WARNING_VALUE = 2;
+  /**
+   * <code>SEVERITY_ERROR = 3;</code>
+   */
+  public static final int SEVERITY_ERROR_VALUE = 3;
 
 
   public final int getNumber() {
@@ -51,7 +59,7 @@ public enum ProgressType
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static ProgressType valueOf(int value) {
+  public static Severity valueOf(int value) {
     return forNumber(value);
   }
 
@@ -59,24 +67,25 @@ public enum ProgressType
    * @param value The numeric wire value of the corresponding enum entry.
    * @return The enum associated with the given numeric wire value.
    */
-  public static ProgressType forNumber(int value) {
+  public static Severity forNumber(int value) {
     switch (value) {
-      case 0: return PROGRESS_START;
-      case 1: return PROGRESS_STATUS;
-      case 2: return PROGRESS_COMPLETE;
+      case 0: return SEVERITY_UNSPECIFIED;
+      case 1: return SEVERITY_ADVICE;
+      case 2: return SEVERITY_WARNING;
+      case 3: return SEVERITY_ERROR;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<ProgressType>
+  public static com.google.protobuf.Internal.EnumLiteMap<Severity>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      ProgressType> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<ProgressType>() {
-          public ProgressType findValueByNumber(int number) {
-            return ProgressType.forNumber(number);
+      Severity> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<Severity>() {
+          public Severity findValueByNumber(int number) {
+            return Severity.forNumber(number);
           }
         };
 
@@ -94,12 +103,12 @@ public enum ProgressType
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(3);
+    return org.gradle.tooling.internal.grpc.proto.ToolingProto.getDescriptor().getEnumTypes().get(0);
   }
 
-  private static final ProgressType[] VALUES = values();
+  private static final Severity[] VALUES = values();
 
-  public static ProgressType valueOf(
+  public static Severity valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -113,10 +122,10 @@ public enum ProgressType
 
   private final int value;
 
-  private ProgressType(int value) {
+  private Severity(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:gradle.tooling.grpc.ProgressType)
+  // @@protoc_insertion_point(enum_scope:gradle.tooling.grpc.Severity)
 }
 

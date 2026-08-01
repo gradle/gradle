@@ -70,6 +70,11 @@ public final class ToolingProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_gradle_tooling_grpc_BuildEvent_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_gradle_tooling_grpc_ProblemEvent_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_gradle_tooling_grpc_ProblemEvent_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_gradle_tooling_grpc_OperationStarted_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -184,7 +189,7 @@ public final class ToolingProto {
       "\021\n\tcancelled\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\";\n\nI" +
       "nputChunk\022\020\n\010build_id\030\001 \001(\t\022\014\n\004data\030\002 \001(" +
       "\014\022\r\n\005close\030\003 \001(\010\"\"\n\010InputAck\022\026\n\016bytes_re" +
-      "ceived\030\001 \001(\003\"\362\002\n\nBuildEvent\0221\n\006output\030\001 " +
+      "ceived\030\001 \001(\003\"\250\003\n\nBuildEvent\0221\n\006output\030\001 " +
       "\001(\0132\037.gradle.tooling.grpc.OutputLineH\000\0222" +
       "\n\006result\030\002 \001(\0132 .gradle.tooling.grpc.Bui" +
       "ldResultH\000\0223\n\006styled\030\003 \001(\0132!.gradle.tool" +
@@ -193,86 +198,95 @@ public final class ToolingProto {
       "B\n\021operation_started\030\005 \001(\0132%.gradle.tool" +
       "ing.grpc.OperationStartedH\000\022D\n\022operation" +
       "_finished\030\006 \001(\0132&.gradle.tooling.grpc.Op" +
-      "erationFinishedH\000B\006\n\004kind\"O\n\020OperationSt" +
-      "arted\022;\n\toperation\030\001 \001(\0132(.gradle.toolin" +
-      "g.grpc.OperationDescriptor\"\237\001\n\021Operation" +
-      "Finished\022;\n\toperation\030\001 \001(\0132(.gradle.too" +
-      "ling.grpc.OperationDescriptor\0224\n\006result\030" +
-      "\002 \001(\0132$.gradle.tooling.grpc.OperationRes" +
-      "ult\022\027\n\017duration_millis\030\003 \001(\003\"\302\001\n\023Operati" +
-      "onDescriptor\022\n\n\002id\030\001 \001(\t\022\021\n\tparent_id\030\002 " +
-      "\001(\t\022\024\n\014display_name\030\003 \001(\t\0220\n\004type\030\004 \001(\0162" +
-      "\".gradle.tooling.grpc.OperationType\0229\n\004t" +
-      "ask\030\n \001(\0132).gradle.tooling.grpc.TaskOper" +
-      "ationDetailsH\000B\t\n\007details\")\n\024TaskOperati" +
-      "onDetails\022\021\n\ttask_path\030\001 \001(\t\"Y\n\017Operatio" +
-      "nResult\022-\n\007outcome\030\001 \001(\0162\034.gradle.toolin" +
-      "g.grpc.Outcome\022\027\n\017failure_message\030\002 \001(\t\"" +
-      "e\n\rProgressEvent\022/\n\004type\030\001 \001(\0162!.gradle." +
-      "tooling.grpc.ProgressType\022\023\n\013description" +
-      "\030\002 \001(\t\022\016\n\006status\030\003 \001(\t\"H\n\nOutputLine\022\014\n\004" +
-      "text\030\001 \001(\t\022,\n\005level\030\002 \001(\0162\035.gradle.tooli" +
-      "ng.grpc.LogLevel\"f\n\014StyledOutput\022(\n\005span" +
-      "s\030\001 \003(\0132\031.gradle.tooling.grpc.Span\022,\n\005le" +
-      "vel\030\002 \001(\0162\035.gradle.tooling.grpc.LogLevel" +
-      "\"?\n\004Span\022\014\n\004text\030\001 \001(\t\022)\n\005style\030\002 \001(\0162\032." +
-      "gradle.tooling.grpc.Style\"\216\001\n\013BuildResul" +
-      "t\022\017\n\007success\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\022-\n\007o" +
-      "utcome\030\003 \001(\0162\034.gradle.tooling.grpc.Outco" +
-      "me\022.\n\010failures\030\004 \003(\0132\034.gradle.tooling.gr" +
-      "pc.Failure\"v\n\007Failure\022\017\n\007message\030\001 \001(\t\022\023" +
-      "\n\013description\030\002 \001(\t\022\027\n\017exception_class\030\003" +
-      " \001(\t\022,\n\006causes\030\004 \003(\0132\034.gradle.tooling.gr" +
-      "pc.Failure\"\244\001\n\014ModelRequest\022\023\n\013project_d" +
-      "ir\030\001 \001(\t\022,\n\004type\030\002 \001(\0162\036.gradle.tooling." +
-      "grpc.ModelType\022\022\n\nmodel_name\030\003 \001(\t\022\024\n\014pr" +
-      "oject_path\030\004 \001(\t\022\'\n\tparameter\030\005 \001(\0132\024.go" +
-      "ogle.protobuf.Any\"\327\001\n\rModelResponse\022\017\n\007s" +
-      "uccess\030\001 \001(\010\022\r\n\005error\030\002 \001(\t\022B\n\021build_env" +
-      "ironment\030\003 \001(\0132%.gradle.tooling.grpc.Bui" +
-      "ldEnvironmentH\000\022.\n\005tasks\030\004 \001(\0132\035.gradle." +
-      "tooling.grpc.TaskListH\000\022)\n\tmodel_any\030\005 \001" +
-      "(\0132\024.google.protobuf.AnyH\000B\007\n\005model\"S\n\020B" +
-      "uildEnvironment\022\026\n\016gradle_version\030\001 \001(\t\022" +
-      "\021\n\tjava_home\030\002 \001(\t\022\024\n\014java_version\030\003 \001(\005" +
-      "\"N\n\010TaskList\022\024\n\014project_path\030\001 \001(\t\022,\n\005ta" +
-      "sks\030\002 \003(\0132\035.gradle.tooling.grpc.TaskInfo" +
-      "\"J\n\010TaskInfo\022\014\n\004name\030\001 \001(\t\022\014\n\004path\030\002 \001(\t" +
-      "\022\r\n\005group\030\003 \001(\t\022\023\n\013description\030\004 \001(\t*\247\001\n" +
-      "\rOperationType\022\036\n\032OPERATION_TYPE_UNSPECI" +
-      "FIED\020\000\022\032\n\026OPERATION_TYPE_GENERIC\020\001\022\027\n\023OP" +
-      "ERATION_TYPE_TASK\020\002\022\027\n\023OPERATION_TYPE_TE" +
-      "ST\020\003\022(\n$OPERATION_TYPE_PROJECT_CONFIGURA" +
-      "TION\020\004*\247\001\n\007Outcome\022\027\n\023OUTCOME_UNSPECIFIE" +
-      "D\020\000\022\023\n\017OUTCOME_SUCCESS\020\001\022\022\n\016OUTCOME_FAIL" +
-      "ED\020\002\022\023\n\017OUTCOME_SKIPPED\020\003\022\026\n\022OUTCOME_UP_" +
-      "TO_DATE\020\004\022\026\n\022OUTCOME_FROM_CACHE\020\005\022\025\n\021OUT" +
-      "COME_CANCELLED\020\006*N\n\014ProgressType\022\022\n\016PROG" +
-      "RESS_START\020\000\022\023\n\017PROGRESS_STATUS\020\001\022\025\n\021PRO" +
-      "GRESS_COMPLETE\020\002*i\n\010LogLevel\022\031\n\025LOG_LEVE" +
-      "L_UNSPECIFIED\020\000\022\t\n\005QUIET\020\001\022\010\n\004WARN\020\002\022\r\n\t" +
-      "LIFECYCLE\020\003\022\010\n\004INFO\020\004\022\t\n\005DEBUG\020\005\022\t\n\005ERRO" +
-      "R\020\006*\204\002\n\005Style\022\020\n\014STYLE_NORMAL\020\000\022\020\n\014STYLE" +
-      "_HEADER\020\001\022\024\n\020STYLE_USER_INPUT\020\002\022\024\n\020STYLE" +
-      "_IDENTIFIER\020\003\022\025\n\021STYLE_DESCRIPTION\020\004\022\031\n\025" +
-      "STYLE_PROGRESS_STATUS\020\005\022\021\n\rSTYLE_SUCCESS" +
-      "\020\006\022\030\n\024STYLE_SUCCESS_HEADER\020\007\022\021\n\rSTYLE_FA" +
-      "ILURE\020\010\022\030\n\024STYLE_FAILURE_HEADER\020\t\022\016\n\nSTY" +
-      "LE_INFO\020\n\022\017\n\013STYLE_ERROR\020\013*9\n\tModelType\022" +
-      "\033\n\027MODEL_BUILD_ENVIRONMENT\020\000\022\017\n\013MODEL_TA" +
-      "SKS\020\0012\260\003\n\007Tooling\022T\n\007Connect\022#.gradle.to" +
-      "oling.grpc.ConnectRequest\032$.gradle.tooli" +
-      "ng.grpc.ConnectResponse\022P\n\010RunBuild\022!.gr" +
-      "adle.tooling.grpc.BuildRequest\032\037.gradle." +
-      "tooling.grpc.BuildEvent0\001\022S\n\nQueryModel\022" +
-      "!.gradle.tooling.grpc.ModelRequest\032\".gra" +
-      "dle.tooling.grpc.ModelResponse\022Q\n\006Cancel" +
-      "\022\".gradle.tooling.grpc.CancelRequest\032#.g" +
-      "radle.tooling.grpc.CancelResponse\022U\n\021Sen" +
-      "dStandardInput\022\037.gradle.tooling.grpc.Inp" +
-      "utChunk\032\035.gradle.tooling.grpc.InputAck(\001" +
-      "B8\n&org.gradle.tooling.internal.grpc.pro" +
-      "toB\014ToolingProtoP\001b\006proto3"
+      "erationFinishedH\000\0224\n\007problem\030\007 \001(\0132!.gra" +
+      "dle.tooling.grpc.ProblemEventH\000B\006\n\004kind\"" +
+      "\263\001\n\014ProblemEvent\022\020\n\010category\030\001 \001(\t\022/\n\010se" +
+      "verity\030\002 \001(\0162\035.gradle.tooling.grpc.Sever" +
+      "ity\022\r\n\005label\030\003 \001(\t\022\017\n\007details\030\004 \001(\t\022\021\n\ts" +
+      "olutions\030\005 \003(\t\022\021\n\tlocations\030\006 \003(\t\022\032\n\022doc" +
+      "umentation_link\030\007 \001(\t\"O\n\020OperationStarte" +
+      "d\022;\n\toperation\030\001 \001(\0132(.gradle.tooling.gr" +
+      "pc.OperationDescriptor\"\237\001\n\021OperationFini" +
+      "shed\022;\n\toperation\030\001 \001(\0132(.gradle.tooling" +
+      ".grpc.OperationDescriptor\0224\n\006result\030\002 \001(" +
+      "\0132$.gradle.tooling.grpc.OperationResult\022" +
+      "\027\n\017duration_millis\030\003 \001(\003\"\302\001\n\023OperationDe" +
+      "scriptor\022\n\n\002id\030\001 \001(\t\022\021\n\tparent_id\030\002 \001(\t\022" +
+      "\024\n\014display_name\030\003 \001(\t\0220\n\004type\030\004 \001(\0162\".gr" +
+      "adle.tooling.grpc.OperationType\0229\n\004task\030" +
+      "\n \001(\0132).gradle.tooling.grpc.TaskOperatio" +
+      "nDetailsH\000B\t\n\007details\")\n\024TaskOperationDe" +
+      "tails\022\021\n\ttask_path\030\001 \001(\t\"Y\n\017OperationRes" +
+      "ult\022-\n\007outcome\030\001 \001(\0162\034.gradle.tooling.gr" +
+      "pc.Outcome\022\027\n\017failure_message\030\002 \001(\t\"e\n\rP" +
+      "rogressEvent\022/\n\004type\030\001 \001(\0162!.gradle.tool" +
+      "ing.grpc.ProgressType\022\023\n\013description\030\002 \001" +
+      "(\t\022\016\n\006status\030\003 \001(\t\"H\n\nOutputLine\022\014\n\004text" +
+      "\030\001 \001(\t\022,\n\005level\030\002 \001(\0162\035.gradle.tooling.g" +
+      "rpc.LogLevel\"f\n\014StyledOutput\022(\n\005spans\030\001 " +
+      "\003(\0132\031.gradle.tooling.grpc.Span\022,\n\005level\030" +
+      "\002 \001(\0162\035.gradle.tooling.grpc.LogLevel\"?\n\004" +
+      "Span\022\014\n\004text\030\001 \001(\t\022)\n\005style\030\002 \001(\0162\032.grad" +
+      "le.tooling.grpc.Style\"\216\001\n\013BuildResult\022\017\n" +
+      "\007success\030\001 \001(\010\022\017\n\007message\030\002 \001(\t\022-\n\007outco" +
+      "me\030\003 \001(\0162\034.gradle.tooling.grpc.Outcome\022." +
+      "\n\010failures\030\004 \003(\0132\034.gradle.tooling.grpc.F" +
+      "ailure\"v\n\007Failure\022\017\n\007message\030\001 \001(\t\022\023\n\013de" +
+      "scription\030\002 \001(\t\022\027\n\017exception_class\030\003 \001(\t" +
+      "\022,\n\006causes\030\004 \003(\0132\034.gradle.tooling.grpc.F" +
+      "ailure\"\244\001\n\014ModelRequest\022\023\n\013project_dir\030\001" +
+      " \001(\t\022,\n\004type\030\002 \001(\0162\036.gradle.tooling.grpc" +
+      ".ModelType\022\022\n\nmodel_name\030\003 \001(\t\022\024\n\014projec" +
+      "t_path\030\004 \001(\t\022\'\n\tparameter\030\005 \001(\0132\024.google" +
+      ".protobuf.Any\"\327\001\n\rModelResponse\022\017\n\007succe" +
+      "ss\030\001 \001(\010\022\r\n\005error\030\002 \001(\t\022B\n\021build_environ" +
+      "ment\030\003 \001(\0132%.gradle.tooling.grpc.BuildEn" +
+      "vironmentH\000\022.\n\005tasks\030\004 \001(\0132\035.gradle.tool" +
+      "ing.grpc.TaskListH\000\022)\n\tmodel_any\030\005 \001(\0132\024" +
+      ".google.protobuf.AnyH\000B\007\n\005model\"S\n\020Build" +
+      "Environment\022\026\n\016gradle_version\030\001 \001(\t\022\021\n\tj" +
+      "ava_home\030\002 \001(\t\022\024\n\014java_version\030\003 \001(\005\"N\n\010" +
+      "TaskList\022\024\n\014project_path\030\001 \001(\t\022,\n\005tasks\030" +
+      "\002 \003(\0132\035.gradle.tooling.grpc.TaskInfo\"J\n\010" +
+      "TaskInfo\022\014\n\004name\030\001 \001(\t\022\014\n\004path\030\002 \001(\t\022\r\n\005" +
+      "group\030\003 \001(\t\022\023\n\013description\030\004 \001(\t*c\n\010Seve" +
+      "rity\022\030\n\024SEVERITY_UNSPECIFIED\020\000\022\023\n\017SEVERI" +
+      "TY_ADVICE\020\001\022\024\n\020SEVERITY_WARNING\020\002\022\022\n\016SEV" +
+      "ERITY_ERROR\020\003*\304\001\n\rOperationType\022\036\n\032OPERA" +
+      "TION_TYPE_UNSPECIFIED\020\000\022\032\n\026OPERATION_TYP" +
+      "E_GENERIC\020\001\022\027\n\023OPERATION_TYPE_TASK\020\002\022\027\n\023" +
+      "OPERATION_TYPE_TEST\020\003\022(\n$OPERATION_TYPE_" +
+      "PROJECT_CONFIGURATION\020\004\022\033\n\027OPERATION_TYP" +
+      "E_PROBLEMS\020\005*\247\001\n\007Outcome\022\027\n\023OUTCOME_UNSP" +
+      "ECIFIED\020\000\022\023\n\017OUTCOME_SUCCESS\020\001\022\022\n\016OUTCOM" +
+      "E_FAILED\020\002\022\023\n\017OUTCOME_SKIPPED\020\003\022\026\n\022OUTCO" +
+      "ME_UP_TO_DATE\020\004\022\026\n\022OUTCOME_FROM_CACHE\020\005\022" +
+      "\025\n\021OUTCOME_CANCELLED\020\006*N\n\014ProgressType\022\022" +
+      "\n\016PROGRESS_START\020\000\022\023\n\017PROGRESS_STATUS\020\001\022" +
+      "\025\n\021PROGRESS_COMPLETE\020\002*i\n\010LogLevel\022\031\n\025LO" +
+      "G_LEVEL_UNSPECIFIED\020\000\022\t\n\005QUIET\020\001\022\010\n\004WARN" +
+      "\020\002\022\r\n\tLIFECYCLE\020\003\022\010\n\004INFO\020\004\022\t\n\005DEBUG\020\005\022\t" +
+      "\n\005ERROR\020\006*\204\002\n\005Style\022\020\n\014STYLE_NORMAL\020\000\022\020\n" +
+      "\014STYLE_HEADER\020\001\022\024\n\020STYLE_USER_INPUT\020\002\022\024\n" +
+      "\020STYLE_IDENTIFIER\020\003\022\025\n\021STYLE_DESCRIPTION" +
+      "\020\004\022\031\n\025STYLE_PROGRESS_STATUS\020\005\022\021\n\rSTYLE_S" +
+      "UCCESS\020\006\022\030\n\024STYLE_SUCCESS_HEADER\020\007\022\021\n\rST" +
+      "YLE_FAILURE\020\010\022\030\n\024STYLE_FAILURE_HEADER\020\t\022" +
+      "\016\n\nSTYLE_INFO\020\n\022\017\n\013STYLE_ERROR\020\013*9\n\tMode" +
+      "lType\022\033\n\027MODEL_BUILD_ENVIRONMENT\020\000\022\017\n\013MO" +
+      "DEL_TASKS\020\0012\260\003\n\007Tooling\022T\n\007Connect\022#.gra" +
+      "dle.tooling.grpc.ConnectRequest\032$.gradle" +
+      ".tooling.grpc.ConnectResponse\022P\n\010RunBuil" +
+      "d\022!.gradle.tooling.grpc.BuildRequest\032\037.g" +
+      "radle.tooling.grpc.BuildEvent0\001\022S\n\nQuery" +
+      "Model\022!.gradle.tooling.grpc.ModelRequest" +
+      "\032\".gradle.tooling.grpc.ModelResponse\022Q\n\006" +
+      "Cancel\022\".gradle.tooling.grpc.CancelReque" +
+      "st\032#.gradle.tooling.grpc.CancelResponse\022" +
+      "U\n\021SendStandardInput\022\037.gradle.tooling.gr" +
+      "pc.InputChunk\032\035.gradle.tooling.grpc.Inpu" +
+      "tAck(\001B8\n&org.gradle.tooling.internal.gr" +
+      "pc.protoB\014ToolingProtoP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -344,99 +358,105 @@ public final class ToolingProto {
     internal_static_gradle_tooling_grpc_BuildEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_BuildEvent_descriptor,
-        new java.lang.String[] { "Output", "Result", "Styled", "Progress", "OperationStarted", "OperationFinished", "Kind", });
-    internal_static_gradle_tooling_grpc_OperationStarted_descriptor =
+        new java.lang.String[] { "Output", "Result", "Styled", "Progress", "OperationStarted", "OperationFinished", "Problem", "Kind", });
+    internal_static_gradle_tooling_grpc_ProblemEvent_descriptor =
       getDescriptor().getMessageTypes().get(9);
+    internal_static_gradle_tooling_grpc_ProblemEvent_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_gradle_tooling_grpc_ProblemEvent_descriptor,
+        new java.lang.String[] { "Category", "Severity", "Label", "Details", "Solutions", "Locations", "DocumentationLink", });
+    internal_static_gradle_tooling_grpc_OperationStarted_descriptor =
+      getDescriptor().getMessageTypes().get(10);
     internal_static_gradle_tooling_grpc_OperationStarted_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_OperationStarted_descriptor,
         new java.lang.String[] { "Operation", });
     internal_static_gradle_tooling_grpc_OperationFinished_descriptor =
-      getDescriptor().getMessageTypes().get(10);
+      getDescriptor().getMessageTypes().get(11);
     internal_static_gradle_tooling_grpc_OperationFinished_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_OperationFinished_descriptor,
         new java.lang.String[] { "Operation", "Result", "DurationMillis", });
     internal_static_gradle_tooling_grpc_OperationDescriptor_descriptor =
-      getDescriptor().getMessageTypes().get(11);
+      getDescriptor().getMessageTypes().get(12);
     internal_static_gradle_tooling_grpc_OperationDescriptor_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_OperationDescriptor_descriptor,
         new java.lang.String[] { "Id", "ParentId", "DisplayName", "Type", "Task", "Details", });
     internal_static_gradle_tooling_grpc_TaskOperationDetails_descriptor =
-      getDescriptor().getMessageTypes().get(12);
+      getDescriptor().getMessageTypes().get(13);
     internal_static_gradle_tooling_grpc_TaskOperationDetails_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_TaskOperationDetails_descriptor,
         new java.lang.String[] { "TaskPath", });
     internal_static_gradle_tooling_grpc_OperationResult_descriptor =
-      getDescriptor().getMessageTypes().get(13);
+      getDescriptor().getMessageTypes().get(14);
     internal_static_gradle_tooling_grpc_OperationResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_OperationResult_descriptor,
         new java.lang.String[] { "Outcome", "FailureMessage", });
     internal_static_gradle_tooling_grpc_ProgressEvent_descriptor =
-      getDescriptor().getMessageTypes().get(14);
+      getDescriptor().getMessageTypes().get(15);
     internal_static_gradle_tooling_grpc_ProgressEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_ProgressEvent_descriptor,
         new java.lang.String[] { "Type", "Description", "Status", });
     internal_static_gradle_tooling_grpc_OutputLine_descriptor =
-      getDescriptor().getMessageTypes().get(15);
+      getDescriptor().getMessageTypes().get(16);
     internal_static_gradle_tooling_grpc_OutputLine_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_OutputLine_descriptor,
         new java.lang.String[] { "Text", "Level", });
     internal_static_gradle_tooling_grpc_StyledOutput_descriptor =
-      getDescriptor().getMessageTypes().get(16);
+      getDescriptor().getMessageTypes().get(17);
     internal_static_gradle_tooling_grpc_StyledOutput_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_StyledOutput_descriptor,
         new java.lang.String[] { "Spans", "Level", });
     internal_static_gradle_tooling_grpc_Span_descriptor =
-      getDescriptor().getMessageTypes().get(17);
+      getDescriptor().getMessageTypes().get(18);
     internal_static_gradle_tooling_grpc_Span_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_Span_descriptor,
         new java.lang.String[] { "Text", "Style", });
     internal_static_gradle_tooling_grpc_BuildResult_descriptor =
-      getDescriptor().getMessageTypes().get(18);
+      getDescriptor().getMessageTypes().get(19);
     internal_static_gradle_tooling_grpc_BuildResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_BuildResult_descriptor,
         new java.lang.String[] { "Success", "Message", "Outcome", "Failures", });
     internal_static_gradle_tooling_grpc_Failure_descriptor =
-      getDescriptor().getMessageTypes().get(19);
+      getDescriptor().getMessageTypes().get(20);
     internal_static_gradle_tooling_grpc_Failure_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_Failure_descriptor,
         new java.lang.String[] { "Message", "Description", "ExceptionClass", "Causes", });
     internal_static_gradle_tooling_grpc_ModelRequest_descriptor =
-      getDescriptor().getMessageTypes().get(20);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_gradle_tooling_grpc_ModelRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_ModelRequest_descriptor,
         new java.lang.String[] { "ProjectDir", "Type", "ModelName", "ProjectPath", "Parameter", });
     internal_static_gradle_tooling_grpc_ModelResponse_descriptor =
-      getDescriptor().getMessageTypes().get(21);
+      getDescriptor().getMessageTypes().get(22);
     internal_static_gradle_tooling_grpc_ModelResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_ModelResponse_descriptor,
         new java.lang.String[] { "Success", "Error", "BuildEnvironment", "Tasks", "ModelAny", "Model", });
     internal_static_gradle_tooling_grpc_BuildEnvironment_descriptor =
-      getDescriptor().getMessageTypes().get(22);
+      getDescriptor().getMessageTypes().get(23);
     internal_static_gradle_tooling_grpc_BuildEnvironment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_BuildEnvironment_descriptor,
         new java.lang.String[] { "GradleVersion", "JavaHome", "JavaVersion", });
     internal_static_gradle_tooling_grpc_TaskList_descriptor =
-      getDescriptor().getMessageTypes().get(23);
+      getDescriptor().getMessageTypes().get(24);
     internal_static_gradle_tooling_grpc_TaskList_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_TaskList_descriptor,
         new java.lang.String[] { "ProjectPath", "Tasks", });
     internal_static_gradle_tooling_grpc_TaskInfo_descriptor =
-      getDescriptor().getMessageTypes().get(24);
+      getDescriptor().getMessageTypes().get(25);
     internal_static_gradle_tooling_grpc_TaskInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_gradle_tooling_grpc_TaskInfo_descriptor,
