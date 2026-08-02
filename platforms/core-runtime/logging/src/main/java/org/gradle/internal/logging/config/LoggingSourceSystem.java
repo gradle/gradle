@@ -39,4 +39,17 @@ public interface LoggingSourceSystem extends LoggingSystem {
      * @return the state of this logging system immediately before the changes are applied.
      */
     Snapshot startCapture();
+
+    /**
+     * Releases one capture previously acquired by {@link #startCapture()}.
+     *
+     * <p>Logging systems that mutate process-global state are shared by many scopes which may be started and
+     * stopped concurrently — for example one scope per project during Isolated Projects parallel configuration.
+     * Such systems must keep capture active until every scope that started it has ended it, rather than letting
+     * whichever scope finishes first restore its own snapshot and disable capture for the others.</p>
+     *
+     * <p>Implementations that hold no process-global state need not do anything.</p>
+     */
+    default void endCapture() {
+    }
 }

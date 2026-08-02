@@ -381,6 +381,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         public void stop() {
             try {
                 if (originalState != null) {
+                    if (enabled) {
+                        // Release the capture this scope acquired in start()/enableCapture(). Restoring the
+                        // snapshot alone is not enough for logging systems backed by process-global state, since
+                        // sibling scopes configured in parallel may still be capturing.
+                        loggingSystem.endCapture();
+                    }
                     loggingSystem.restore(originalState);
                 }
             } finally {

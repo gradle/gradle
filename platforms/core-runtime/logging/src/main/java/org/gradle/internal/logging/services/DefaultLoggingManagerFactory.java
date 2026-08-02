@@ -45,7 +45,7 @@ public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     }
 
     @Override
-    public LoggingManagerInternal createLoggingManager() {
+    public synchronized LoggingManagerInternal createLoggingManager() {
         if (!created) {
             created = true;
             return getRoot();

@@ -57,6 +57,7 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream != originalStream
 
         when:
+        loggingSystem.endCapture()
         loggingSystem.restore(snapshot)
 
         then:
@@ -67,7 +68,7 @@ class PrintStreamLoggingSystemTest extends Specification {
         def stream2 = new PrintStream(new ByteArrayOutputStream())
 
         given:
-        loggingSystem.restore(loggingSystem.startCapture())
+        endCapture(loggingSystem.startCapture())
         stream = stream2
 
         when:
@@ -77,10 +78,94 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream != stream2
 
         when:
-        loggingSystem.restore(snapshot)
+        endCapture(snapshot)
 
         then:
         stream == stream2
+    }
+
+    def "capture stays installed until every scope that started it has ended it"() {
+        given: 'two scopes start capture, as sibling projects configured in parallel do'
+        def outer = loggingSystem.startCapture()
+        def inner = loggingSystem.startCapture()
+        def capturing = stream
+
+        when: 'the inner scope finishes'
+        endCapture(inner)
+
+        then: 'capture is still installed, so the outer scope keeps being captured'
+        stream == capturing
+        stream != originalStream
+
+        when:
+        endCapture(outer)
+
+        then: 'the last scope to leave tears capture down'
+        stream == originalStream
+    }
+
+    def "a scope that never started capture does not tear down capture held by another scope"() {
+        given:
+        def capturingScope = loggingSystem.startCapture()
+        def capturing = stream
+
+        and: 'a second scope only snapshots and restores, without capturing'
+        def nonCapturingScope = loggingSystem.snapshot()
+
+        when:
+        loggingSystem.restore(nonCapturingScope)
+
+        then:
+        stream == capturing
+        stream != originalStream
+
+        cleanup:
+        endCapture(capturingScope)
+    }
+
+    def "concurrent scopes never lose output"() {
+        given:
+        def threads = 8
+        def iterations = 200
+        def start = new java.util.concurrent.CountDownLatch(1)
+        def done = new java.util.concurrent.CountDownLatch(threads)
+        def failure = new java.util.concurrent.atomic.AtomicReference<Throwable>()
+        // Hold capture open for the whole run, as the build-level scope does.
+        def buildScope = loggingSystem.startCapture()
+
+        when:
+        (1..threads).each { t ->
+            Thread.start {
+                try {
+                    start.await()
+                    iterations.times {
+                        def scope = loggingSystem.startCapture()
+                        stream.println("out")
+                        loggingSystem.endCapture()
+                        loggingSystem.restore(scope)
+                    }
+                } catch (Throwable e) {
+                    failure.compareAndSet(null, e)
+                } finally {
+                    done.countDown()
+                }
+            }
+        }
+        start.countDown()
+        done.await()
+
+        then:
+        failure.get() == null
+        and: 'capture was never torn down while the build scope held it, so nothing reached the original stream'
+        original.toString() == ''
+
+        cleanup:
+        endCapture(buildScope)
+    }
+
+    private void endCapture(snapshot) {
+        loggingSystem.endCapture()
+        loggingSystem.restore(snapshot)
     }
 
     def onStartsCapturingWhenNotAlreadyCapturing() {
@@ -156,7 +241,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         when:
         stream.print("info")
-        loggingSystem.restore(snapshot)
+        endCapture(snapshot)
 
         then:
         1 * listener.onOutput({ it instanceof StyledTextOutputEvent && it.spans[0].text == 'info' })
@@ -171,7 +256,7 @@ class PrintStreamLoggingSystemTest extends Specification {
         def capturing = stream
 
         when:
-        loggingSystem.restore(snapshot)
+        endCapture(snapshot)
         capturing.println("info-1")
         stream.println('info-2')
 
@@ -187,14 +272,14 @@ info-2
         def off = loggingSystem.snapshot()
         loggingSystem.setLevel(LogLevel.INFO)
         loggingSystem.startCapture()
-        loggingSystem.restore(off)
+        endCapture(off)
         def snapshot = loggingSystem.snapshot()
         loggingSystem.setLevel(LogLevel.ERROR)
         loggingSystem.startCapture()
         def capturing = stream
 
         when:
-        loggingSystem.restore(snapshot)
+        endCapture(snapshot)
         capturing.println("info-1")
         stream.println('info-2')
 
@@ -206,11 +291,13 @@ info-2
         0 * listener._
     }
 
-    def restoreStartsCapturingWhenCapturingWasOnWhenSnapshotTaken() {
+    def restoreKeepsCapturingWhileTheScopeStillHoldsCapture() {
         def off = loggingSystem.snapshot()
         loggingSystem.setLevel(LogLevel.WARN)
         loggingSystem.startCapture()
         def snapshot = loggingSystem.snapshot()
+        // Restoring a snapshot taken before capture started must not disable capture, because this scope has
+        // not released it yet.
         loggingSystem.restore(off)
 
         when:

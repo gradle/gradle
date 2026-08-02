@@ -36,6 +36,20 @@ import java.util.concurrent.atomic.AtomicReference;
  * A {@link LoggingSourceSystem} which routes content written to a {@code PrintStream} to a {@link OutputEventListener}.
  * Generates a {@link StyledTextOutputEvent} instance when a line of text is written to the {@code PrintStream}.
  * Generates a {@link LogLevelChangeEvent} when the log level for this {@code LoggingSystem} is changed.
+ *
+ * <p>This type mutates process-global state ({@code System.out} / {@code System.err}) on behalf of many
+ * independent scopes, and those scopes are started and stopped concurrently: under Isolated Projects each
+ * project is configured on its own build operation worker thread, and each project script is wrapped in a
+ * {@code start()}/{@code stop()} pair by {@code DefaultScriptRunnerFactory}. The same is true of parallel task
+ * execution. Two properties are therefore required, and both are implemented here:</p>
+ *
+ * <ul>
+ *     <li>All state transitions are guarded by a single monitor, so a snapshot/mutate/restore sequence on one
+ *     thread cannot interleave with another thread's.</li>
+ *     <li>Capture is reference counted, so one scope ending cannot tear down capture while sibling scopes are
+ *     still active. Previously the last scope to restore its snapshot won, which silently dropped everything
+ *     written to {@code System.out} by projects that were still being configured.</li>
+ * </ul>
  */
 abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     private final AtomicReference<StandardOutputListener> destination = new AtomicReference<StandardOutputListener>();
@@ -49,8 +63,13 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         public void endOfStream(@Nullable Throwable failure) {
         }
     });
+    private final Object lock = new Object();
     private PrintStreamDestination original;
-    private boolean enabled;
+    /**
+     * The number of scopes that currently have capture enabled. Capture is installed while this is positive.
+     */
+    private int captureCount;
+    private boolean installed;
     private LogLevel logLevel;
     private final StandardOutputListener listener;
     private final OutputEventListener outputEventListener;
@@ -72,64 +91,106 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
 
     @Override
     public Snapshot snapshot() {
-        return new SnapshotImpl(enabled, logLevel);
+        synchronized (lock) {
+            return new SnapshotImpl(logLevel);
+        }
     }
 
     @Override
     public void restore(Snapshot state) {
         SnapshotImpl snapshot = (SnapshotImpl) state;
-        enabled = snapshot.enabled;
-        logLevel = snapshot.logLevel;
-        if (enabled) {
+        synchronized (lock) {
+            boolean levelChanged = snapshot.logLevel != logLevel;
+            logLevel = snapshot.logLevel;
+            boolean wasInstalled = installed;
+            // Capture is driven purely by the reference count. Restoring the snapshot's `enabled` flag here would
+            // let a scope that finishes early uninstall capture out from under sibling scopes that are still
+            // running. Scopes release their own capture via endCapture().
+            reconcileCapture();
+            if (levelChanged && installed && wasInstalled) {
+                // install() emits this itself when it newly installs, so only do it when capture was already up.
+                outstr.flush();
+                outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
+            }
+        }
+    }
+
+    @Override
+    public Snapshot setLevel(LogLevel logLevel) {
+        synchronized (lock) {
+            Snapshot snapshot = new SnapshotImpl(this.logLevel);
+            if (logLevel != this.logLevel) {
+                this.logLevel = logLevel;
+                if (captureCount > 0) {
+                    outstr.flush();
+                    outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
+                }
+            }
+            return snapshot;
+        }
+    }
+
+    @Override
+    public Snapshot startCapture() {
+        synchronized (lock) {
+            Snapshot snapshot = new SnapshotImpl(logLevel);
+            captureCount++;
+            reconcileCapture();
+            return snapshot;
+        }
+    }
+
+    @Override
+    public void endCapture() {
+        synchronized (lock) {
+            if (captureCount > 0) {
+                captureCount--;
+            }
+            reconcileCapture();
+        }
+    }
+
+    private void reconcileCapture() {
+        if (captureCount > 0) {
             install();
         } else {
             uninstall();
         }
     }
 
-    @Override
-    public Snapshot setLevel(LogLevel logLevel) {
-        Snapshot snapshot = snapshot();
-        if (logLevel != this.logLevel) {
-            this.logLevel = logLevel;
-            if (enabled) {
-                outstr.flush();
-                outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
-            }
-        }
-        return snapshot;
-    }
-
-    @Override
-    public Snapshot startCapture() {
-        Snapshot snapshot = snapshot();
-        if (!enabled) {
-            install();
-        }
-        return snapshot;
-    }
-
     private void uninstall() {
+        if (!installed) {
+            return;
+        }
+        outstr.flush();
         if (original != null) {
-            outstr.flush();
             destination.set(original);
             set(original.originalStream);
             original = null;
         }
+        installed = false;
     }
 
     private void install() {
+        if (installed) {
+            return;
+        }
         if (original == null) {
             PrintStream originalStream = get();
-            original = new PrintStreamDestination(originalStream);
+            // Never snapshot our own capture stream as the stream to restore later: that would make
+            // uninstall() point System.out at outstr with `destination` writing back into outstr, a
+            // self-referential sink that silently discards everything written to it.
+            if (originalStream != outstr) {
+                original = new PrintStreamDestination(originalStream);
+            }
         }
-        enabled = true;
         outstr.flush();
         outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
         destination.set(listener);
         if (get() != outstr) {
             set(outstr);
         }
+        installed = true;
     }
 
     private static class PrintStreamDestination implements StandardOutputListener {
@@ -146,11 +207,9 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     }
 
     private static class SnapshotImpl implements Snapshot {
-        private final boolean enabled;
         private final LogLevel logLevel;
 
-        public SnapshotImpl(boolean enabled, LogLevel logLevel) {
-            this.enabled = enabled;
+        public SnapshotImpl(LogLevel logLevel) {
             this.logLevel = logLevel;
         }
     }

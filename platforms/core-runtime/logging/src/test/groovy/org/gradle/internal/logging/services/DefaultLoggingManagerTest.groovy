@@ -145,6 +145,7 @@ class DefaultLoggingManagerTest extends Specification {
         loggingManager.stop()
 
         then:
+        1 * slf4jLoggingSystem.endCapture()
         1 * slf4jLoggingSystem.restore(slf4jSnapshot)
         1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
         1 * loggingRouter.restore(routerSnapshot)
@@ -174,6 +175,7 @@ class DefaultLoggingManagerTest extends Specification {
         loggingManager.stop()
 
         then:
+        1 * slf4jLoggingSystem.endCapture()
         1 * loggingRouter.restore(routerSnapshot)
         1 * slf4jLoggingSystem.restore(slf4jSnapshot)
         1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
@@ -244,6 +246,7 @@ class DefaultLoggingManagerTest extends Specification {
         loggingManager.stop()
 
         then:
+        1 * slf4jLoggingSystem.endCapture()
         1 * slf4jLoggingSystem.restore(slf4jSnapshot)
         1 * javaUtilLoggingSystem.restore(javaUtilSnapshot)
         1 * loggingRouter.restore(routerSnapshot)
