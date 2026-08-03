@@ -150,9 +150,11 @@ class CompositeDynamicObjectTest extends Specification {
         obj.invokeMethod("m", "value")
 
         then:
-        def className = CompositeDynamicObject.name
+        // Asserted structurally because the wording of MissingMethodException varies between Groovy versions.
         def e = thrown MissingMethodException
-        e.message.startsWith("No signature of method: ${className}.m() is applicable for argument types: (String) values: [value]")
+        e.method == "m"
+        e.type == CompositeDynamicObject
+        e.arguments.toList() == ["value"]
     }
 
     CompositeDynamicObject create(DynamicObject... objects) {
