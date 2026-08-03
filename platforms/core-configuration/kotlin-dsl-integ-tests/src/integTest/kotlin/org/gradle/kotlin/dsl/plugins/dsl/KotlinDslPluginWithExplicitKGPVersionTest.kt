@@ -161,7 +161,7 @@ class KotlinDslPluginWithExplicitKGPVersionTest(
     class SyntheticKgpRepo(
         private val syntheticVersion: String,
         private val realVersion: String,
-        private val upstreamBaseUrl: String = RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()
+        private val upstreamBaseUrl: String = RepoScriptBlockUtil.kotlinDevRepositoryUrl()
     ) : Closeable {
 
         private val httpClient = OkHttpClient()

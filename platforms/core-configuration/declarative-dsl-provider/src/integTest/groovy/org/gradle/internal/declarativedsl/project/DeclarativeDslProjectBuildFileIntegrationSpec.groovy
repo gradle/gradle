@@ -24,6 +24,7 @@ import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.intellij.lang.annotations.Language
 
 class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSpec {
@@ -168,6 +169,16 @@ secondaryAccess { three, true, true, [USER, GROUP, ALL] }"""
 
 
     def simpleDeclarativePlugin(String language = "kotlin") {
+        if (language == "kotlin") {
+            file("build-logic/settings.gradle.kts") << """
+                pluginManagement {
+                    repositories {
+                        gradlePluginPortal()
+                        ${kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
+                    }
+                }
+            """
+        }
         file("build-logic/build.gradle.kts") << defineCustomPluginBuild(language)
         file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
         file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPlugin()
@@ -263,7 +274,7 @@ secondaryAccess { three, true, true, [USER, GROUP, ALL] }"""
                 `java-gradle-plugin`
                 ${if (language == "kotlin") { "`kotlin-dsl`" } else { "" }}
             }
-            ${if (language == "kotlin") { "repositories { mavenCentral() }" } else { "" }}
+            ${if (language == "kotlin") { "repositories { mavenCentral()\n${kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)} }" } else { "" }}
             gradlePlugin {
                 plugins {
                     create("restrictedPlugin") {

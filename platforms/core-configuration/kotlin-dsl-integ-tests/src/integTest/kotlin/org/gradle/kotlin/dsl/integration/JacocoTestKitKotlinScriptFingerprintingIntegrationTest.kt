@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -33,8 +34,9 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
         withSettings("""
             rootProject.name = "reproducer"
             
-            dependencyResolutionManagement { 
+            dependencyResolutionManagement {
                 ${mavenCentralRepository(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.kotlinDevRepository(GradleDsl.KOTLIN)}
             }
         """.trimIndent())
 

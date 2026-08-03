@@ -57,6 +57,7 @@ class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractIntegrat
     def "problem is reported for Kotlin lambda expression with develocity plugin"() {
         given:
         createDir('dv-conventions') {
+            file('settings.gradle.kts') << KotlinDslTestUtil.kotlinDslSettingsPluginManagement
             file('src/main/kotlin/my/DvConventionsPlugin.kt') << """
                 package my
 
@@ -107,6 +108,7 @@ class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractIntegrat
     def "precompiled script plugin can use lambda expression with develocity plugin"() {
         given:
         createDir('dv-conventions') {
+            file('settings.gradle.kts') << KotlinDslTestUtil.kotlinDslSettingsPluginManagement
             file('src/main/kotlin/dv-conventions.settings.gradle.kts') << '''
                 plugins {
                     com.gradle.develocity

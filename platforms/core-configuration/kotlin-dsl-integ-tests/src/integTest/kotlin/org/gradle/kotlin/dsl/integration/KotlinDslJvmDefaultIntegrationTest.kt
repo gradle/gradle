@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinDevRepository
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -109,7 +110,7 @@ class KotlinDslJvmDefaultIntegrationTest : AbstractKotlinIntegrationTest() {
             include("groovy-consumer")
             """
         )
-        withBuildScript("subprojects { ${mavenCentralRepository(KOTLIN)} }")
+        withBuildScript("subprojects { ${mavenCentralRepository(KOTLIN)} ${kotlinDevRepository(KOTLIN)} }")
 
         withBuildScriptIn("kotlin-dsl-producer", "plugins { `kotlin-dsl` }")
         withFile(

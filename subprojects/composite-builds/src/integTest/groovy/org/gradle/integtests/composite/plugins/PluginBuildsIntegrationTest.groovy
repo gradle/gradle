@@ -18,6 +18,7 @@ package org.gradle.integtests.composite.plugins
 
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
@@ -359,6 +360,10 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         commonsPluginBuild.settingsFile.text = """
             pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    ${kotlinDevRepositoryDefinition(dsl == 'Kotlin' ? GradleDsl.KOTLIN : GradleDsl.GROOVY)}
+                }
                 includeBuild("../${mainPluginBuild.buildName}")
             }
         """
@@ -370,6 +375,10 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         mainPluginBuild.settingsFile.text = """
             pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    ${kotlinDevRepositoryDefinition(GradleDsl.GROOVY)}
+                }
                 includeBuild("../${commonsPluginBuild.buildName}")
             }
         """
@@ -594,6 +603,10 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
 
         buildLogicBuild.settingsFile.text = """
             pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    ${kotlinDevRepositoryDefinition(dsl == 'Kotlin' ? GradleDsl.KOTLIN : GradleDsl.GROOVY)}
+                }
                 includeBuild("../${settingsPluginBuild.buildName}")
             }
             plugins {

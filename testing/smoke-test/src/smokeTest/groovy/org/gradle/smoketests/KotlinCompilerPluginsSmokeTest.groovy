@@ -16,6 +16,8 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+
 class KotlinCompilerPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
@@ -23,6 +25,24 @@ class KotlinCompilerPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
             'org.jetbrains.kotlin.plugin.allopen': TestedVersions.kotlin,
             'org.jetbrains.kotlin.plugin.spring': TestedVersions.kotlin
         ]
+    }
+
+    @Override
+    void configureValidation(String testedPluginId, String version) {
+        super.configureValidation(testedPluginId, version)
+        settingsFile << settingsPluginManagement
+    }
+
+    @Override
+    protected String getSettingsPluginManagement() {
+        return """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    ${KotlinGradlePluginVersions.kotlinDevRepositoryDeclaration}
+                }
+            }
+        """
     }
 
     @Override

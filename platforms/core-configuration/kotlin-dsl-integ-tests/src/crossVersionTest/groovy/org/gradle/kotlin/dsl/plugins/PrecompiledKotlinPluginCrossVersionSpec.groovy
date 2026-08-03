@@ -17,13 +17,13 @@
 package org.gradle.kotlin.dsl.plugins
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.GradleVersion
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
@@ -99,6 +99,12 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
     private void precompiledKotlinPluginsBuiltWith(GradleDistribution distribution, String kotlinVersion = null) {
 
         file("plugin/settings.gradle.kts").text = """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(KOTLIN)}
+                    ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(KOTLIN)}
+                }
+            }
             println("Publishing plugin with ${'$'}{org.gradle.util.GradleVersion.current()}")
         """
         def pluginBuildScript = file("plugin/build.gradle.kts")
@@ -111,7 +117,10 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
             }
             group = "com.example"
             version = "1.0"
-            ${mavenCentralRepository(KOTLIN)}
+            repositories {
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(KOTLIN)}
+                ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(KOTLIN)}
+            }
             publishing {
                 repositories {
                     maven { url = uri("${mavenRepo.uri}") }

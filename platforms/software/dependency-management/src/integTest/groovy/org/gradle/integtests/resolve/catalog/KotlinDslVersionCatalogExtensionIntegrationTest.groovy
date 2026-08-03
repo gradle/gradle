@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
@@ -95,6 +96,14 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        file("buildSrc/settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    ${kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+        """
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
@@ -102,6 +111,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
 
             repositories {
                 gradlePluginPortal()
+                ${kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         file("buildSrc/src/main/kotlin/my.plugin.gradle.kts") << """

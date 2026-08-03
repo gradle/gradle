@@ -19,7 +19,9 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -102,6 +104,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
     @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "task action defined in latest Kotlin can be tracked when using language version #kotlinLanguageVersion"() {
+        file("buildSrc/settings.gradle.kts") << KotlinDslTestUtil.kotlinDslSettingsPluginManagement
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 kotlin("jvm") version("${new KotlinGradlePluginVersions().latestStableOrRC}")
@@ -113,6 +116,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
             repositories {
                 mavenCentral()
+                ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             gradlePlugin {
@@ -205,7 +209,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {
         projectDir.with {
-            file('buildSrc/settings.gradle.kts') << ""
+            file('buildSrc/settings.gradle.kts') << KotlinDslTestUtil.kotlinDslSettingsPluginManagement
             file('buildSrc/build.gradle.kts') << KotlinDslTestUtil.kotlinDslBuildSrcScript
             file("buildSrc/src/main/kotlin/TaskWithNestedAction.kt") << """
                 import org.gradle.api.DefaultTask

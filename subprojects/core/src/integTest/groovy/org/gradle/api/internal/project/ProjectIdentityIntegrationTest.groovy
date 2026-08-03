@@ -18,6 +18,7 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -35,12 +36,14 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
                 println("New project added: \${project.name}")
             }
         """
+        file("buildSrc/settings.gradle.kts") << KotlinDslTestUtil.kotlinDslSettingsPluginManagement
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
             }
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
+            ${kotlinDevRepository(GradleDsl.KOTLIN)}
         """
     }
 

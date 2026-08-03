@@ -282,6 +282,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
             ${mavenCentralRepository()}
+            ${kotlinDevRepository()}
             testing {
                 suites {
                     integTest(JvmTestSuite) {

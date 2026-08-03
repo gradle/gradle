@@ -143,9 +143,7 @@ class DclModelDefaultsScopingIntegrationTest : AbstractKotlinIntegrationTest() {
                     `kotlin-dsl`
                 }
 
-                repositories {
-                    mavenCentral()
-                }
+                $repositoriesBlock
 
                 gradlePlugin {
                     plugins {
