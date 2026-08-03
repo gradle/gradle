@@ -99,9 +99,9 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         }
 
         return workGraph.withNewWorkGraph { graph ->
-            val finalizedGraph = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
+            val (finalizedGraph, workGraphRestorationFailed) = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
             maybeDumpHeap("cc-miss-load")
-            if (cache.workGraphRestorationFailed) {
+            if (workGraphRestorationFailed) {
                 // The just-stored graph could not be fully restored, so its state is unreliable and must not be executed.
                 // No tasks run, hence no execution-phase failures here; the restoration problem fails the build through
                 // the configuration cache problem report at the end of the build (ConfigurationCacheProblems.report).
