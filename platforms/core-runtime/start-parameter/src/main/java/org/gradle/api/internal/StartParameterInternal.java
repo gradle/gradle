@@ -108,11 +108,25 @@ public class StartParameterInternal extends StartParameter {
     }
 
     /**
+     * Runs the action with the mutation listener detached, so internal machinery can go through the public
+     * setters without its own mutations being reported as violations.
+     */
+    private void withoutMutationListener(Runnable action) {
+        Consumer<String> previous = this.mutationListener;
+        this.mutationListener = null;
+        try {
+            action.run();
+        } finally {
+            this.mutationListener = previous;
+        }
+    }
+
+    /**
      * Sets build cache enablement from a source other than user build logic
      */
     @SuppressWarnings("deprecation")
     public void setBuildCacheEnabledInternal(boolean buildCacheEnabled, boolean configuredByBuildLogic) {
-        this.buildCacheEnabled = buildCacheEnabled;
+        withoutMutationListener(() -> super.setBuildCacheEnabled(buildCacheEnabled));
         this.buildCacheEnabledConfiguredByBuildLogic = configuredByBuildLogic;
     }
 
