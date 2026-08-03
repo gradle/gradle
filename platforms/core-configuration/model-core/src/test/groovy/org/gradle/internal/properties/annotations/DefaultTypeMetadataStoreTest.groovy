@@ -82,6 +82,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         TaskAction
     ]
 
+    /**
+     * Values for required annotation members.
+     */
+    static final ANNOTATION_ARGUMENTS = [
+        (ReplacedBy): "'getOther'"
+    ]
+
     @Shared
     GroovyClassLoader groovyClassLoader
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
@@ -270,13 +277,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     def "can override @#parentAnnotation.simpleName property type with @#childAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
-                @$parentAnnotation.name Object getValue() { null }
+                ${annotationUsage(parentAnnotation)} Object getValue() { null }
             }
         """
 
         def childTask = groovyClassLoader.parseClass """
             class ChildTask extends ParentTask {
-                @Override @$childAnnotation.name Object getValue() { null }
+                @Override ${annotationUsage(childAnnotation)} Object getValue() { null }
             }
         """
 
@@ -299,13 +306,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     def "can override @#processedAnnotation.simpleName property type with @#unprocessedAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
-                @$processedAnnotation.name Object getValue() { null }
+                ${annotationUsage(processedAnnotation)} Object getValue() { null }
             }
         """
 
         def childTask = groovyClassLoader.parseClass """
             class ChildTask extends ParentTask {
-                @Override @$unprocessedAnnotation.name Object getValue() { null }
+                @Override ${annotationUsage(unprocessedAnnotation)} Object getValue() { null }
             }
         """
 
@@ -327,13 +334,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     def "can override @#unprocessedAnnotation.simpleName property type with @#processedAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
-                @$unprocessedAnnotation.name Object getValue() { null }
+                ${annotationUsage(unprocessedAnnotation)} Object getValue() { null }
             }
         """
 
         def childTask = groovyClassLoader.parseClass """
             class ChildTask extends ParentTask {
-                @Override @$processedAnnotation.name Object getValue() { null }
+                @Override ${annotationUsage(processedAnnotation)} Object getValue() { null }
             }
         """
 
@@ -540,5 +547,16 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
         metadata.propertyType == type
+    }
+
+    /**
+     * Renders the given annotation for use in generated source.
+     */
+    private static String annotationUsage(Class<? extends Annotation> annotation) {
+        def arguments = ANNOTATION_ARGUMENTS[annotation]
+        if (arguments == null) {
+            return "@$annotation.name"
+        }
+        return "@$annotation.name($arguments)"
     }
 }
