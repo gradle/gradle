@@ -23,6 +23,7 @@ import java.io.File;
  * A {@link NativeLibrary} that has been compiled and linked as a shared library.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @Deprecated
@@ -30,11 +31,13 @@ public interface SharedLibraryBinary extends NativeLibraryBinary {
 
     /**
      * The shared library file.
+     * @since 2.2
      */
     File getSharedLibraryFile();
 
     /**
      * The shared library link file.
+     * @since 2.2
      */
     File getSharedLibraryLinkFile();
 }

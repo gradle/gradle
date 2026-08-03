@@ -15,7 +15,7 @@
 [[jvm_test_suite_plugin]]
 = The JVM Test Suite Plugin
 
-The JVM Test Suite plugin (plugin id: `jvm-test-suite`) provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.  Tests suites are intended to grouped by their purpose and can have separate dependencies and use different testing frameworks.
+The JVM Test Suite plugin (plugin id: `jvm-test-suite`) provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.  Test suites are intended to be grouped by their purpose and can have separate dependencies and use different testing frameworks.
 
 For instance, this plugin can be used to define a group of Integration Tests, which might run much longer than unit tests and have different environmental requirements.
 
@@ -31,7 +31,7 @@ include::sample[dir="snippets/reference/platforms/jvm/test-suite-plugin/kotlin",
 include::sample[dir="snippets/reference/platforms/jvm/test-suite-plugin/groovy",files="build.gradle[tags=apply-jvm-test-suite]"]
 ====
 
-The plugins adds the following objects to the project:
+The plugin adds the following objects to the project:
 
  * A `testing` extension (type: link:{groovyDslPath}/org.gradle.testing.base.TestingExtension.html[TestingExtension]) to the project used to configure test suites.
 
@@ -74,9 +74,9 @@ A test suite is a collection of JVM-based tests.
 [[sec:test_suite_target]]
 ==== Test Suite Target
 
-For the initial release of this plugin, each test suite has a single target.  This results in a 1:1:1 relationship between test suite, test suite target and a matching link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task.  The name of the `Test` task is derived from the suite name.  Future iterations of the plugin will allow defining multiple targets based other attributes, such as a particular JDK/JRE runtime.
+For the initial release of this plugin, each test suite has a single target.  This results in a 1:1:1 relationship between test suite, test suite target and a matching link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task.  The name of the `Test` task is derived from the suite name.  Future iterations of the plugin will allow defining multiple targets based on other attributes, such as a particular JDK/JRE runtime.
 
-Each test suite has some configuration that is common across for all tests contained in the suite:
+Each test suite has some configuration that is common to all tests contained in the suite:
 
 * Testing framework
 * Sources

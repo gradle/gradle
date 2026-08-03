@@ -104,4 +104,37 @@ class BinaryCompatibilityHelper {
             }
         }
     }
+
+    /**
+     * Rules for the non-public API {@code @since} check: only {@link SinceAnnotationRule} runs, treating {@code @since}
+     * as optional.
+     * There is no accepted-changes opt-out list, so no accepted-regressions/upgraded-properties rules are needed.
+     */
+    static setupSinceForNonPublicApiReportRules(
+        JapicmpTask japicmpTask,
+        Project project,
+        FileCollection sourceRoots,
+        String currentVersion,
+        Action<RichReport> configureReport
+    ) {
+        japicmpTask.tap {
+            addExcludeFilter(AnonymousClassesFilter)
+            addExcludeFilter(KotlinBridgeMethodsFilter)
+            addExcludeFilter(BridgeForBytecodeUpgradeAdapterClassFilter)
+
+            richReport = project.provider {
+                RichReport richReport = project.objects.newInstance(RichReport.class, new Object[0])
+                richReport.getDestinationDir().convention(project.layout.buildDirectory.dir("reports"))
+                configureReport.execute(richReport)
+                richReport.tap {
+                    addRule(JApiChangeStatus.NEW, SinceAnnotationRule, [sinceRequired: false])
+                    addSetupRule(SinceAnnotationRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
+                    addSetupRule(BinaryCompatibilityRepositorySetupRule, [
+                        (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set
+                    ])
+                    addPostProcessRule(BinaryCompatibilityRepositoryPostProcessRule)
+                }
+            }
+        }
+    }
 }

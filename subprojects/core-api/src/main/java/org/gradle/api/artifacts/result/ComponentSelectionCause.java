@@ -27,41 +27,49 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 public enum ComponentSelectionCause {
     /**
      * This component was selected because it's the root component.
+     * @since 4.6
      */
     ROOT("root"),
 
     /**
      * This component was selected because it was requested directly.
+     * @since 4.6
      */
     REQUESTED("requested"),
 
     /**
      * This component was selected by a rule.
+     * @since 4.6
      */
     SELECTED_BY_RULE("selected by rule"),
 
     /**
      * This component was selected because selection was forced on this version.
+     * @since 4.6
      */
     FORCED("forced"),
 
     /**
      * This component was selected between several candidates during conflict resolution.
+     * @since 4.6
      */
     CONFLICT_RESOLUTION("conflict resolution"),
 
     /**
      * This component was selected as a participant of a composite.
+     * @since 4.6
      */
     COMPOSITE_BUILD("composite build substitution"),
 
     /**
      * This component was selected because another version was rejected by a rule
+     * @since 4.6
      */
     REJECTION("rejection"),
 
     /**
      * This component was selected because of a dependency constraint
+     * @since 4.6
      */
     CONSTRAINT("constraint"),
 
@@ -79,6 +87,11 @@ public enum ComponentSelectionCause {
         this.defaultReason = defaultReason;
     }
 
+    /**
+     * Returns the default reason.
+     *
+     * @since 4.6
+     */
     public String getDefaultReason() {
         return defaultReason;
     }

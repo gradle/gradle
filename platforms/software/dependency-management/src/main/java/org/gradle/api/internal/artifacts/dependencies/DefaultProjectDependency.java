@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
@@ -120,7 +120,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
      * project, and should not retain any reference to the actual project instance.
      */
     @Deprecated
-    private ProjectInternal unsafeGetProject() {
+    private Project unsafeGetProject() {
         return projectState.getMutableModel();
     }
 

@@ -58,7 +58,7 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
                 failures.add(transform(projectConfigurationException));
             }
         } else if (exception instanceof ServiceCreationException) {
-            failures.add(transform(new InitializationException(exception)));
+            failures.add(transform(new InitializationException("Gradle could not start your build.", exception)));
         } else {
             failures.add(transform(exception));
         }

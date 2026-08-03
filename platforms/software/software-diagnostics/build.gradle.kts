@@ -78,11 +78,6 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
-    excludePatterns.add("org/gradle/api/plugins/internal/*")
-}
-
 val reportResources = tasks.register<Copy>("reportResources") {
     from(implementationResources)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/api/tasks/diagnostics/htmldependencyreport"))
@@ -98,5 +93,3 @@ tasks.processResources.configure {
 sourceSets.main {
     output.dir(layout.buildDirectory.file("generated-resources/report-resources"))
 }
-
-

@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.
+ * @since 1.0
  */
 @HasInternalProtocol
 public interface ExtensionContainer {
@@ -80,6 +81,7 @@ public interface ExtensionContainer {
      * @param name The name for the extension
      * @param extension Any object
      * @throws IllegalArgumentException When an extension with the given name already exists
+     * @since 1.0
      */
     void add(String name, Object extension);
 
@@ -134,6 +136,7 @@ public interface ExtensionContainer {
      * @return The created instance
      * @throws IllegalArgumentException When an extension with the given name already exists.
      * @see #add(String, Object)
+     * @since 1.0
      */
     <T> T create(String name, Class<T> type, Object... constructionArguments);
 
@@ -150,6 +153,7 @@ public interface ExtensionContainer {
      * @param type extension type
      * @return extension, never null
      * @throws UnknownDomainObjectException When the given extension is not found.
+     * @since 1.0
      */
     <T> T getByType(Class<T> type) throws UnknownDomainObjectException;
 
@@ -168,6 +172,7 @@ public interface ExtensionContainer {
      *
      * @param type extension type
      * @return extension or null
+     * @since 1.0
      */
     @Nullable
     <T> T findByType(Class<T> type);
@@ -188,6 +193,7 @@ public interface ExtensionContainer {
      * @param name extension name
      * @return extension, never null
      * @throws UnknownDomainObjectException When the given extension is not found.
+     * @since 1.0
      */
     Object getByName(String name) throws UnknownDomainObjectException;
 
@@ -196,6 +202,7 @@ public interface ExtensionContainer {
      *
      * @param name extension name
      * @return extension or null
+     * @since 1.0
      */
     @Nullable
     Object findByName(String name);
@@ -206,6 +213,7 @@ public interface ExtensionContainer {
      * @param type extension type
      * @param action the configure action
      * @throws UnknownDomainObjectException if no extension is found.
+     * @since 1.5
      */
     <T> void configure(Class<T> type, Action<? super T> action);
 
@@ -240,6 +248,7 @@ public interface ExtensionContainer {
      * @return The extra properties extension in this extension container.
      * @see ExtraPropertiesExtension
      * @see org.gradle.api.Project#findProperty(String)
+     * @since 1.0
      */
     ExtraPropertiesExtension getExtraProperties();
 }

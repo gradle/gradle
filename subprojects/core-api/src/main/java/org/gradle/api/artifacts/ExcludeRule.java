@@ -18,18 +18,31 @@ package org.gradle.api.artifacts;
 /**
  * An {@code ExcludeRule} is used to describe transitive dependencies that should be excluded when resolving
  * dependencies.
+ * @since 0.7
  */
 public interface ExcludeRule {
+    /**
+     * The group key.
+     *
+     * @since 0.7
+     */
     String GROUP_KEY = "group";
+    /**
+     * The module key.
+     *
+     * @since 0.7
+     */
     String MODULE_KEY = "module";
 
     /**
      * The exact name of the organization or group that should be excluded.
+      * @since 1.0
       */
     String getGroup();
 
     /**
      * The exact name of the module that should be excluded.
+     * @since 1.0
      */
     String getModule();
 }

@@ -19,7 +19,7 @@ package org.gradle.tooling;
  * A handler for an asynchronous operation which returns an object of type T.
  *
  * @param <T> The result type.
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public interface ResultHandler<T> {
 
@@ -27,7 +27,7 @@ public interface ResultHandler<T> {
      * Handles successful completion of the operation.
      *
      * @param result the result
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     void onComplete(T result);
 
@@ -35,7 +35,7 @@ public interface ResultHandler<T> {
      * Handles a failed operation. This method is invoked once only for a given operation.
      *
      * @param failure the failure
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     void onFailure(GradleConnectionException failure);
 }

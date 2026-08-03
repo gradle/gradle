@@ -19,6 +19,7 @@ package org.gradle.performance.results.report;
 import com.google.common.collect.ImmutableList;
 import org.gradle.performance.results.CrossBuildPerformanceTestHistory;
 import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
@@ -34,6 +35,7 @@ import java.util.TreeSet;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.gradle.performance.results.PerformanceTestExecutionResult.FLAKINESS_DETECTION_THRESHOLD;
 
 class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
@@ -67,11 +69,16 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
         List<? extends PerformanceTestExecution> currentExecutions = executionsOfSameCommit.isEmpty()
             ? history.getExecutions().stream().limit(3).collect(toList())
             : executionsOfSameCommit;
+        // Flakiness detection has already selected the executions it treats as "current" above; key the scenario on
+        // their own build IDs so exactly those count as current, keeping behaviour unchanged.
+        List<PerformanceReportScenarioHistoryExecution> currentHistory = removeEmptyExecution(currentExecutions);
+        Set<String> currentBuildIds = currentHistory.stream().map(PerformanceReportScenarioHistoryExecution::getTeamCityBuildId).collect(toSet());
         return new PerformanceReportScenario(
             Collections.singletonList(execution),
-            removeEmptyExecution(currentExecutions),
+            currentHistory,
             history instanceof CrossBuildPerformanceTestHistory,
-            false
+            currentBuildIds,
+            commitId
         );
     }
 

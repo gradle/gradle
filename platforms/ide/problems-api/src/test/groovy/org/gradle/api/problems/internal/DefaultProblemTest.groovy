@@ -22,8 +22,6 @@ import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.operations.CurrentBuildOperationRef
-import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
@@ -71,48 +69,6 @@ class DefaultProblemTest extends Specification {
         "details"     | { it.details("details") }
     }
 
-
-    def "unbound builder result with a change and check report"() {
-        given:
-        def emitter = Mock(ProblemSummarizer)
-        def problemReporter = new DefaultProblemReporter(
-            emitter,
-            CurrentBuildOperationRef.instance(),
-            new ExceptionProblemRegistry(),
-            null,
-            new ProblemsInfrastructure(
-                new AdditionalDataBuilderFactory(),
-                Mock(Instantiator),
-                Mock(PayloadSerializer),
-                Mock(IsolatableFactory),
-                Mock(IsolatableToBytesSerializer),
-                Mock(ProblemStream)
-            )
-        )
-        def problem = createTestProblem()
-        def builder = toBuilder(problem)
-        def newProblem = builder
-            .solution("solution")
-            .build()
-        def operationId = new OperationIdentifier(1000L)
-
-        when:
-        problemReporter.report(newProblem, operationId)
-
-        then:
-        // We are not running this test as an integration test, so we won't have a BuildOperationId available,
-        // i.e. the OperationId will be null
-        1 * emitter.emit(newProblem, operationId)
-        newProblem.definition.id.name == problem.definition.id.name
-        newProblem.definition.id.displayName == problem.definition.id.displayName
-        newProblem.additionalData == problem.additionalData
-        newProblem.details == problem.details
-        newProblem.exception == problem.exception
-        newProblem.originLocations == problem.originLocations
-        newProblem.definition.severity == problem.definition.severity
-        newProblem.solutions == ["solution"]
-        newProblem.class == DefaultProblem
-    }
 
     private static createTestProblem(AdditionalData additionalData = null) {
         new DefaultProblem(

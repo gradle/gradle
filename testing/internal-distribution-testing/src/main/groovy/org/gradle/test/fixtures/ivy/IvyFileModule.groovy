@@ -58,6 +58,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL
     boolean writeGradleMetadataRedirection = false
+    private boolean withExtraChecksums = true
 
     int publishCount = 1
     XmlTransformer transformer = new XmlTransformer()
@@ -270,6 +271,17 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    @Override
+    IvyModule withoutExtraChecksums() {
+        withExtraChecksums = false
+        this
+    }
+
+    @Override
+    IvyModule withExtraChecksums() {
+        withExtraChecksums = true
+        this
+    }
 
     IvyFileModule nonTransitive(String config) {
         configurations[config].transitive = false
@@ -631,15 +643,29 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     void assertArtifactsPublished(String... names) {
         def expectedArtifacts = [] as Set
         for (name in names) {
-            expectedArtifacts.addAll([name, "${name}.sha1"])
+            if (isSignatureFile(name)) {
+                // Signature files are not published with checksums
+                expectedArtifacts.add(name)
+            } else {
+                expectedArtifacts.addAll([name, "${name}.sha1"])
+                if (withExtraChecksums) {
+                    expectedArtifacts.addAll(["${name}.sha256", "${name}.sha512"])
+                }
+            }
         }
 
         List<String> publishedArtifacts = moduleDir.list().sort()
         expectedArtifacts = (expectedArtifacts as List).sort()
         assert publishedArtifacts == expectedArtifacts
         for (name in names) {
-            assertChecksumPublishedFor(moduleDir.file(name))
+            if (!isSignatureFile(name)) {
+                assertChecksumPublishedFor(moduleDir.file(name))
+            }
         }
+    }
+
+    private static boolean isSignatureFile(String name) {
+        return name.endsWith(".asc") || name.endsWith(".sig")
     }
 
     void assertChecksumPublishedFor(TestFile testFile) {

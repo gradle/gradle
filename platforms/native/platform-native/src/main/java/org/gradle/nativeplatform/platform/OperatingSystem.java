@@ -49,6 +49,7 @@ import org.gradle.api.tasks.Internal;
  *         <td>"freebsd"</td>
  *     </tr>
  * </table>
+ * @since 2.2
  */
 public interface OperatingSystem extends Named {
     @Input
@@ -57,42 +58,49 @@ public interface OperatingSystem extends Named {
 
     /**
      * Returns a human-consumable display name for this operating system.
+     * @since 2.2
      */
     @Internal
     String getDisplayName();
 
     /**
      * Is this the current OS?
+     * @since 2.2
      */
     @Internal
     boolean isCurrent();
 
     /**
      * Is it Windows?
+     * @since 2.2
      */
     @Internal
     boolean isWindows();
 
     /**
      * Is it macOS?
+     * @since 2.2
      */
     @Internal
     boolean isMacOsX();
 
     /**
      * Is it Linux?
+     * @since 2.2
      */
     @Internal
     boolean isLinux();
 
     /**
      * Is it Solaris?
+     * @since 2.2
      */
     @Internal
     boolean isSolaris();
 
     /**
      * Is it FreeBSD?
+     * @since 2.2
      */
     @Internal
     boolean isFreeBSD();

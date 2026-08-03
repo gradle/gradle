@@ -44,9 +44,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     void canCreateAndDeleteMetaData() {
         when:
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
-        expectTaskTypeDeprecations(
-                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
-        )
         executer.withTasks("eclipse").run()
 
         assertHasExpectedContents(getClasspathFile(project:"api"), "apiClasspath.xml")
@@ -90,9 +87,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         assertHasExpectedProperties(getJdtPropertiesFile(project:"webservice"), "webserviceJdt.properties")
 
         expectTaskDeprecations("cleanEclipse", "cleanEclipseClasspath", "cleanEclipseJdt", "cleanEclipseProject", "cleanEclipseWtp", "cleanEclipseWtpComponent", "cleanEclipseWtpFacet")
-        expectTaskTypeDeprecations(
-                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
-        )
         executer.withTasks("cleanEclipse").run()
     }
 
@@ -172,9 +166,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     void canConfigureTargetRuntimeName() {
 
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
-        expectTaskTypeDeprecations(
-                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
-        )
         runEclipseTask """
             apply plugin: "java"
             apply plugin: "eclipse"

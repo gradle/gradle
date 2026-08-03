@@ -35,6 +35,7 @@ public interface ComponentResult {
      * </ul>
      *
      * @return the identifier of this component
+     * @since 2.0
      */
     ComponentIdentifier getId();
 }

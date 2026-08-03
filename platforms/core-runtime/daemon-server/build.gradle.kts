@@ -30,12 +30,11 @@ dependencies {
 
     implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.loggingApi)
     implementation(projects.native)
-    implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.processServicesBase)
+    implementation(projects.daemonMessaging)
     implementation(projects.daemonProtocol)
     implementation(projects.daemonLogging)
 }

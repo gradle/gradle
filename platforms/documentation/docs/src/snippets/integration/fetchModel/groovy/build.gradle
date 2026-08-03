@@ -1,0 +1,8 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation fileTree(dir: "${gradle.gradleHomeDir}/lib", include: 'gradle-tooling-api-*.jar')
+}

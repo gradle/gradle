@@ -23,6 +23,7 @@ import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
+import org.gradle.api.services.ProjectService
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -70,7 +71,6 @@ import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.metaobject.HierarchicalDynamicObject
-import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -313,6 +313,11 @@ class ProblemReportingCrossProjectModelAccess(
             return super.getObjects()
         }
 
+        override fun <T : ProjectService> service(serviceType: Class<T>): T {
+            onIsolationViolation("service")
+            return delegate.service(serviceType)
+        }
+
         override fun mkdir(path: Any): File {
             onIsolationViolation("mkdir")
             return super.mkdir(path)
@@ -396,34 +401,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getGradle(): GradleInternal {
             onIsolationViolation("gradle")
             return super.getGradle()
-        }
-
-        override fun identityPath(name: String): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun projectPath(name: String): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun getModel(): ModelContainer<*> {
-            shouldNotBeUsed()
-        }
-
-        override fun getBuildPath(): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun isScript(): Boolean {
-            shouldNotBeUsed()
-        }
-
-        override fun isRootScript(): Boolean {
-            shouldNotBeUsed()
-        }
-
-        override fun isPluginContext(): Boolean {
-            shouldNotBeUsed()
         }
 
         override fun getFileOperations(): FileOperations {

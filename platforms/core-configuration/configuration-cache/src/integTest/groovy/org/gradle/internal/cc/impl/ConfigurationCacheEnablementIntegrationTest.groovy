@@ -18,8 +18,10 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import spock.lang.Issue
 
 import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.WARN
+import org.gradle.api.problems.Severity
 
 
 class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -63,6 +65,19 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         fixture.assertStateLoaded()
     }
 
+    def "configuration cache warn mode is reported through the Problems API"() {
+        given:
+        enableProblemsApiCheck()
+
+        when:
+        run("help", "--configuration-cache", "--configuration-cache-problems=warn")
+
+        then:
+        verifyAll(consumeWarnModeProblem()) {
+            definition.severity == Severity.WARNING
+        }
+    }
+
     def "can enable with a property in gradle user home gradle.properties"() {
         given:
         executer.requireOwnGradleUserHomeDir()
@@ -99,6 +114,24 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         cliOrigin         | cliArgument
         "long option"     | DISABLE_CLI_OPT
         "system property" | DISABLE_SYS_PROP
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38598")
+    def "deprecated property set to false does not disable configuration cache enabled via gradle.properties"() {
+        // Characterization test: for Configuration Cache the stable property name deliberately wins over
+        // the deprecated spelling regardless of value, unchanged since Gradle 8.1. The Isolated Projects
+        // options resolve the same situation as a conjunction (explicit disable wins) since issue 38598;
+        // flipping this test is a conscious decision to migrate CC to those semantics.
+        given:
+        file('gradle.properties') << """
+            $ENABLE_GRADLE_PROP
+        """
+
+        when:
+        run 'help', "-D${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=false"
+
+        then:
+        fixture.assertStateStored()
     }
 
     def "can enable configuration cache using incubating and final property variants"() {

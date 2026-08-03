@@ -54,8 +54,14 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * source files.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/groovy_plugin.html">Groovy plugin reference</a>
+ * @since 0.9
  */
 public abstract class GroovyBasePlugin implements Plugin<Project> {
+    /**
+     * The groovy runtime extension name.
+     *
+     * @since 1.6
+     */
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
     private final ObjectFactory objectFactory;

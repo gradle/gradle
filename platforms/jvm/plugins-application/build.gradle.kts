@@ -71,8 +71,4 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/api/plugins/**")
-}
-
 testFilesCleanup.reportOnly = true

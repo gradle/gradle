@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import org.gradle.api.GradleException;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 
 import java.io.IOException;
@@ -63,6 +64,9 @@ class PayloadSerializerObjectInputStream extends ExceptionReplacingObjectInputSt
             return super.lookupClass(className);
         }
         ClassLoaderDetails classLoader = classLoaderDetails.get(id);
+        if (classLoader == null) {
+            throw new GradleException(String.format("Could not find class loader details for id %d.", id));
+        }
         return map.resolveClass(classLoader, className);
     }
 

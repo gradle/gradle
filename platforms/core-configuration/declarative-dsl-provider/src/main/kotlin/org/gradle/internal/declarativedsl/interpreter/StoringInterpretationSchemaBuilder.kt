@@ -32,12 +32,12 @@ import java.io.File
 
 /**
  * In addition to creating the interpretation schema by delegating to [schemaBuilder],
- * stores the produced serialized schema in the file system (under `.gradle/declarative-schema/...` in the project).
+ * stores the produced serialized schema in the file system (under `declarative-schema/...` in the project cache dir).
  */
 internal
 class StoringInterpretationSchemaBuilder(
     private val schemaBuilder: InterpretationSchemaBuilder,
-    private val settingsDir: File
+    private val projectCacheDir: File
 ) : InterpretationSchemaBuilder {
 
     override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult =
@@ -72,10 +72,8 @@ class StoringInterpretationSchemaBuilder(
         schemaStoreLocationFor().resolve("$identifier.dcl.schema")
 
     private
-    fun schemaStoreLocationFor(): File {
-        val suffix = ".gradle/declarative-schema"
-        return settingsDir.resolve(suffix)
-    }
+    fun schemaStoreLocationFor(): File =
+        projectCacheDir.resolve("declarative-schema")
 
     private
     open class SchemaHandlingInterpretationSequenceStep(

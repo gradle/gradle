@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @since 2.7-rc-1
+ * Provider internal test execution request.
+ *
+ * @since 2.7
  */
 public interface ProviderInternalTestExecutionRequest {
     Collection<InternalTestDescriptor> getTestExecutionDescriptors();
@@ -34,21 +36,29 @@ public interface ProviderInternalTestExecutionRequest {
     Collection<InternalJvmTestRequest> getInternalJvmTestRequests(Collection<InternalJvmTestRequest> defaults);
 
     /**
+     * Returns the debug options.
+     *
      * @since 5.6
      */
     InternalDebugOptions getDebugOptions(InternalDebugOptions defaults);
 
     /**
+     * Returns the task and tests.
+     *
      * @since 6.1
      */
     Map<String, List<InternalJvmTestRequest>> getTaskAndTests(Map<String, List<InternalJvmTestRequest>> defaults);
 
     /**
+     * Returns whether run default tasks is set.
+     *
      * @since 7.6
      */
     boolean isRunDefaultTasks(boolean defaults);
 
     /**
+     * Returns the task specs.
+     *
      * @since 7.6
      */
     List<InternalTaskSpec> getTaskSpecs(List<InternalTaskSpec> defaults);

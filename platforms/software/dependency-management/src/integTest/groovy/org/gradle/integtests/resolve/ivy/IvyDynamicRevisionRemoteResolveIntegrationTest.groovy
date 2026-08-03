@@ -1252,7 +1252,8 @@ dependencies {
         fails "checkDeps"
         failure.assertHasCause("Could not resolve group:projectA:2.+")
         failure.assertHasCause("Could not list versions using Ivy pattern '${ivyHttpRepo.ivyPattern}'.")
-        failure.assertHasCause("Could not GET '${directoryList.uri}'. Received status code 500 from server")
+        failure.assertHasCause("Could not GET '${directoryList.uri}'.")
+        failure.assertHasCause("Received status code 500 from server")
 
         when:
         def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
@@ -1318,7 +1319,8 @@ dependencies {
         then:
         fails "checkDeps"
         failure.assertHasCause("Could not resolve group:projectA:latest.release")
-        failure.assertHasCause("Could not GET '${projectA.ivy.uri}'. Received status code 500 from server: Internal Server Error")
+        failure.assertHasCause("Could not GET '${projectA.ivy.uri}'.")
+        failure.assertHasCause("Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()
@@ -1328,7 +1330,8 @@ dependencies {
         then:
         fails "checkDeps"
         failure.assertHasCause("Could not download projectA-1.2.jar (group:projectA:1.2)")
-        failure.assertHasCause("Could not GET '${projectA.jar.uri}'. Received status code 500 from server: Internal Server Error")
+        failure.assertHasCause("Could not GET '${projectA.jar.uri}'.")
+        failure.assertHasCause("Received status code 500 from server: Internal Server Error")
 
         when:
         server.resetExpectations()

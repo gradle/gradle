@@ -189,7 +189,8 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     }
 
     private void maybeExpectJavaRuntimeNameDeprecation() {
-        if (targetVersion >= GradleVersion.version("9.6.0")) {
+        // javaRuntimeName was deprecated in 9.6 and un-deprecated in 9.7
+        if (targetVersion.baseVersion >= GradleVersion.version("9.6") && targetVersion.baseVersion < GradleVersion.version("9.7")) {
             expectDocumentedDeprecationWarning("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName). This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#ide_task_deprecation")
         }
     }

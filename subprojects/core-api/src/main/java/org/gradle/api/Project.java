@@ -47,6 +47,7 @@ import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
@@ -214,6 +215,7 @@ import java.util.concurrent.Callable;
  * The property is located as described above.</li>
  *
  * </ul>
+ * @since 0.7
  */
 @HasInternalProtocol
 @NotToBeMigratedToLazy
@@ -222,25 +224,48 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * The default project build file name.
      *
      * @implNote Must be kept in sync with {@code BuildLogicFiles.DEFAULT_BUILD_FILE}.
+     * @since 0.7
      */
     String DEFAULT_BUILD_FILE = "build.gradle";
 
     /**
      * The hierarchy separator for project and task path names.
+     * @since 0.7
      */
     String PATH_SEPARATOR = ":";
 
     /**
      * The default build directory name.
+     * @since 0.7
      */
     String DEFAULT_BUILD_DIR_NAME = "build";
 
+    /**
+     * The gradle properties.
+     *
+     * @since 0.7
+     */
     String GRADLE_PROPERTIES = "gradle.properties";
 
+    /**
+     * The system prop prefix.
+     *
+     * @since 0.7
+     */
     String SYSTEM_PROP_PREFIX = "systemProp";
 
+    /**
+     * The default version.
+     *
+     * @since 0.7
+     */
     String DEFAULT_VERSION = "unspecified";
 
+    /**
+     * The default status.
+     *
+     * @since 0.7
+     */
     String DEFAULT_STATUS = "release";
 
     /**
@@ -248,6 +273,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * build, this method returns this project.</p>
      *
      * @return The root project. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     Project getRootProject();
@@ -257,6 +283,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * project.</p>
      *
      * @return The root directory. Never returns null.
+     * @since 0.7
      */
     File getRootDir();
 
@@ -266,6 +293,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The build directory. Never returns null.
      * @deprecated Use {@code getLayout().getBuildDirectory()} instead
+     * @since 0.7
      */
     @Deprecated
     File getBuildDir();
@@ -289,6 +317,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The build directory. This is evaluated as per {@link #file(Object)}
      * @deprecated Use {@code getLayout().getBuildDirectory()} and set the {@link org.gradle.api.file.DirectoryProperty}
+     * @since 0.9
      */
     @HiddenInDefinition
     @Deprecated
@@ -300,6 +329,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * If the file exists, it will be evaluated against this project when this project is configured.
      *
      * @return the build script for this project.
+     * @since 0.7
      */
     @HiddenInDefinition
     File getBuildFile();
@@ -315,6 +345,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </ul>
      *
      * @return The parent project, or {@code null} if this is the root project or a nested project without a parent.
+     * @since 0.7
      */
     @Nullable
     @HiddenInDefinition
@@ -327,12 +358,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </p>
      *
      * @return The name of this project. Never return null.
+     * @since 0.7
      */
     @HiddenInDefinition
     String getName();
 
     /**
      * Returns a human-consumable display name for this project.
+     * @since 3.3
      */
     @HiddenInDefinition
     String getDisplayName();
@@ -341,6 +374,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Returns the description of this project, if any.
      *
      * @return the description. May return null.
+     * @since 0.9
      */
     @Nullable
     @HiddenInDefinition
@@ -350,6 +384,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Sets a description for this project.
      *
      * @param description The description of the project. Might be null.
+     * @since 0.9
      */
     @HiddenInDefinition
     void setDescription(@Nullable String description);
@@ -359,6 +394,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * defaults to the path with dots as separators.</p>
      *
      * @return The group of this project. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     Object getGroup();
@@ -367,6 +403,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Sets the group of this project.</p>
      *
      * @param group The group of this project. Must not be null.
+     * @since 0.9
      */
     @HiddenInDefinition
     void setGroup(Object group);
@@ -376,6 +413,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * version defaults to {@value #DEFAULT_VERSION}.</p>
      *
      * @return The version of this project. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     Object getVersion();
@@ -384,6 +422,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Sets the version of this project.</p>
      *
      * @param version The version of this project. Must not be null.
+     * @since 0.9
      */
     @HiddenInDefinition
     void setVersion(Object version);
@@ -396,6 +435,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * status specified here, will be part of this module descriptor.</p>
      *
      * @return The status of this project. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     Object getStatus();
@@ -404,6 +444,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Sets the status of this project.
      *
      * @param status The status. Must not be null.
+     * @since 0.9
      */
     @HiddenInDefinition
     void setStatus(Object status);
@@ -413,6 +454,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return A map from child project name to child project. Returns an empty map if this project does not have
      * any children.
+     * @since 0.7
      */
     @HiddenInDefinition
     Map<String, Project> getChildProjects();
@@ -433,6 +475,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param name The name of the property
      * @param value The value of the property
+     * @since 0.7
      */
     @HiddenInDefinition
     void setProperty(String name, @Nullable Object value) throws MissingPropertyException;
@@ -444,6 +487,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * be hidden, such as, for example, from a method or closure. </p>
      *
      * @return This project. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     Project getProject();
@@ -462,6 +506,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns the set containing this project and its subprojects.</p>
      *
      * @return The set of projects.
+     * @since 0.7
      */
     @HiddenInDefinition
     Set<Project> getAllprojects();
@@ -470,6 +515,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns the set containing the subprojects of this project.</p>
      *
      * @return The set of projects.  Returns an empty set if this project has no subprojects.
+     * @since 0.7
      */
     @HiddenInDefinition
     Set<Project> getSubprojects();
@@ -488,6 +534,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      *
      * @deprecated Use {@link TaskContainer#register(String) tasks.register(String)} instead
+     * @since 0.8
      */
     @HiddenInDefinition
     @Deprecated
@@ -535,6 +582,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      *
      * @deprecated Use a {@link TaskContainer#register(String, Class, Action) tasks.register} variant instead
+     * @since 0.8
      */
     @HiddenInDefinition
     @Deprecated
@@ -558,6 +606,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      *
      * @deprecated Use a {@link TaskContainer#register(String, Class, Action) tasks.register} variant instead
+     * @since 0.8
      */
     @HiddenInDefinition
     @Deprecated
@@ -575,6 +624,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      *
      * @deprecated Use {@link TaskContainer#register(String, Action) tasks.register(String, Action)} instead
+     * @since 0.8
      */
     @HiddenInDefinition
     @Deprecated
@@ -604,6 +654,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * for more information about project paths.</p>
      *
      * @return The path. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     String getPath();
@@ -623,6 +674,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * starting the build.</p>
      *
      * @return The default task names. Returns an empty list if this project has no default tasks.
+     * @since 0.7
      */
     @HiddenInDefinition
     List<String> getDefaultTasks();
@@ -632,6 +684,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * starting the build.</p>
      *
      * @param defaultTasks The default task names.
+     * @since 0.7
      */
     @HiddenInDefinition
     void setDefaultTasks(List<String> defaultTasks);
@@ -641,6 +694,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * starting the build.</p>
      *
      * @param defaultTasks The default task names.
+     * @since 0.7
      */
     @HiddenInDefinition
     void defaultTasks(String... defaultTasks);
@@ -651,12 +705,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param path The path of the project which this project depends on.
      * @return The project which this project depends on.
      * @throws UnknownProjectException If no project with the given path exists.
+     * @since 0.7
      */
     @HiddenInDefinition
     Project evaluationDependsOn(String path) throws UnknownProjectException;
 
     /**
      * <p>Declares that this project has an evaluation dependency on each of its child projects.</p>
+     * @since 1.0
      */
     @HiddenInDefinition
     void evaluationDependsOnChildren();
@@ -666,6 +722,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The path.
      * @return The project with the given path. Returns null if no such project exists.
+     * @since 0.7
      */
     @HiddenInDefinition
     @Nullable
@@ -677,6 +734,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param path The path.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     * @since 0.7
      */
     @HiddenInDefinition
     Project project(String path) throws UnknownProjectException;
@@ -689,6 +747,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the project.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     * @since 0.7
      */
     @HiddenInDefinition
     Project project(String path,
@@ -715,6 +774,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param recursive If true, returns the tasks of this project and its subprojects.  If false, returns the tasks of
      * just this project.
      * @return A map from project to a set of tasks.
+     * @since 0.7
      */
     @HiddenInDefinition
     Map<Project, Set<Task>> getAllTasks(boolean recursive);
@@ -729,6 +789,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param recursive If true, returns the tasks of this project and its subprojects. If false, returns the tasks of
      * just this project.
      * @return The set of tasks. Returns an empty set if no such tasks exist in this project.
+     * @since 0.7
      */
     @HiddenInDefinition
     Set<Task> getTasksByName(String name, boolean recursive);
@@ -737,6 +798,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>The directory containing the project build file.</p>
      *
      * @return The project directory. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     File getProjectDir();
@@ -771,6 +833,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The object to resolve as a File.
      * @return The resolved file. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     File file(Object path);
@@ -783,6 +846,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param validation The validation to perform on the file.
      * @return The resolved file. Never returns null.
      * @throws InvalidUserDataException When the file does not meet the given validation constraint.
+     * @since 0.7
      */
     @HiddenInDefinition
     File file(Object path, PathValidation validation) throws InvalidUserDataException;
@@ -794,6 +858,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The object to resolve as a URI.
      * @return The resolved URI. Never returns null.
+     * @since 0.9
      */
     @HiddenInDefinition
     URI uri(Object path);
@@ -805,6 +870,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param path The path to convert to a relative path.
      * @return The relative path. Never returns null.
      * @throws IllegalArgumentException If the given path cannot be relativized against the project directory.
+     * @since 0.7
      */
     @HiddenInDefinition
     String relativePath(Object path);
@@ -855,6 +921,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param paths The paths to the files. May be empty. {@code null} values are ignored.
      * @return The file collection. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     ConfigurableFileCollection files(@Nullable Object... paths);
@@ -875,6 +942,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
+     * @since 0.8
      */
     @HiddenInDefinition
     ConfigurableFileCollection files(Object paths, @DelegatesTo(ConfigurableFileCollection.class) Closure configureClosure);
@@ -921,6 +989,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @return the file tree. Never returns null.
+     * @since 0.8
      */
     @HiddenInDefinition
     ConfigurableFileTree fileTree(Object baseDir);
@@ -950,6 +1019,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
+     * @since 1.0
      */
     @HiddenInDefinition
     ConfigurableFileTree fileTree(Object baseDir, @DelegatesTo(ConfigurableFileTree.class) Closure configureClosure);
@@ -1003,6 +1073,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param args map of property assignments to {@code ConfigurableFileTree} object
      * @return the configured file tree. Never returns null.
+     * @since 0.8
      */
     @HiddenInDefinition
     ConfigurableFileTree fileTree(Map<String, ?> args);
@@ -1018,6 +1089,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param zipPath The ZIP file. Evaluated as per {@link #file(Object)}.
      * @return the file tree. Never returns null.
+     * @since 0.9
      */
     @HiddenInDefinition
     FileTree zipTree(Object zipPath);
@@ -1056,6 +1128,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param tarPath The TAR file or an instance of {@link org.gradle.api.resources.Resource}.
      * @return the file tree. Never returns null.
+     * @since 0.9
      */
     @HiddenInDefinition
     FileTree tarTree(Object tarPath);
@@ -1113,11 +1186,35 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ProjectLayout getLayout();
 
     /**
+     * Looks up a service provided by Gradle for use in this project.
+     *
+     * <p>The services available for lookup are the Gradle types that implement {@link ProjectService}.</p>
+     *
+     * <p>Perform this lookup at configuration time. The returned instance may be captured and used later
+     * from a task action, and is safe to store in the configuration cache. To look a service up from
+     * within a task action, use {@link Task#service(Class)} instead.</p>
+     *
+     * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
+     * use {@link org.gradle.api.services.ServiceReference} or {@link org.gradle.api.invocation.Gradle#getSharedServices()}
+     * to access those.</p>
+     *
+     * @param serviceType the type of the service to look up
+     * @param <T> the service type
+     * @return the service instance. Never returns null.
+     * @throws InvalidUserDataException when the given type is not one of the services available in this scope
+     * @since 9.8.0
+     */
+    @Incubating
+    @HiddenInDefinition
+    <T extends ProjectService> T service(Class<T> serviceType);
+
+    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
      * @return the created directory
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     * @since 0.9
      */
     @HiddenInDefinition
     File mkdir(Object path);
@@ -1129,6 +1226,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
+     * @since 0.9
      */
     @HiddenInDefinition
     boolean delete(@Nullable Object... paths);
@@ -1146,6 +1244,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param action Action to configure the DeleteSpec
      * @return {@link WorkResult} that can be used to check if delete did any work.
+     * @since 2.13
      */
     @HiddenInDefinition
     WorkResult delete(Action<? super DeleteSpec> action);
@@ -1155,6 +1254,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The path to convert.
      * @return The absolute path.
+     * @since 0.9
      */
     @HiddenInDefinition
     String absoluteProjectPath(String path);
@@ -1164,6 +1264,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The path to convert.
      * @return The relative path.
+     * @since 0.9
      */
     @HiddenInDefinition
     String relativeProjectPath(String path);
@@ -1217,6 +1318,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </pre>
      *
      * @return The <code>AntBuilder</code> for this project. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     AntBuilder getAnt();
@@ -1227,6 +1329,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return Creates an <code>AntBuilder</code> for this project. Never returns null.
      * @see #getAnt()
+     * @since 0.7
      */
     @HiddenInDefinition
     AntBuilder createAntBuilder();
@@ -1238,6 +1341,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     AntBuilder ant(@DelegatesTo(AntBuilder.class) Closure configureClosure);
@@ -1259,6 +1363,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Examples: See docs for {@link ConfigurationContainer}
      *
      * @return The configuration of this project.
+     * @since 0.7
      */
     @HiddenInDefinition
     ConfigurationContainer getConfigurations();
@@ -1272,6 +1377,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Examples: See docs for {@link ConfigurationContainer}
      *
      * @param configureClosure the closure to use to configure the dependency configurations.
+     * @since 0.7
      */
     @HiddenInDefinition
     void configurations(Closure configureClosure);
@@ -1280,6 +1386,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Returns a handler for assigning artifacts produced by the project to configurations.
      * <p>
      * Examples: See docs for {@link ArtifactHandler}
+     * @since 0.7
      */
     @HiddenInDefinition
     ArtifactHandler getArtifacts();
@@ -1309,6 +1416,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </pre>
      *
      * @param configureClosure the closure to use to configure the published artifacts.
+     * @since 0.7
      */
     @HiddenInDefinition
     void artifacts(@DelegatesTo(ArtifactHandler.class)
@@ -1351,6 +1459,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return a negative integer, zero, or a positive integer as this project has a nesting level less than, equal to,
      * or greater than the specified object.
      * @see #getDepth()
+     * @since 0.7
      */
     @HiddenInDefinition
     int depthCompare(Project otherProject);
@@ -1358,6 +1467,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Returns the nesting level of a project in a multi-project hierarchy. For single project builds this is always
      * 0. In a multi-project hierarchy 0 is returned for the root project.</p>
+     * @since 0.7
      */
     @HiddenInDefinition
     int getDepth();
@@ -1366,6 +1476,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns the tasks of this project.</p>
      *
      * @return the tasks of this project.
+     * @since 0.7
      */
     @HiddenInDefinition
     TaskContainer getTasks();
@@ -1376,6 +1487,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>This method executes the given {@link Action} against the sub-projects of this project.</p>
      *
      * @param action The action to execute.
+     * @since 0.7
      */
     @HiddenInDefinition
     void subprojects(Action<? super Project> action);
@@ -1387,6 +1499,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Project} is passed to the closure as the closure's delegate.</p>
      *
      * @param configureClosure The closure to execute.
+     * @since 0.7
      */
     @HiddenInDefinition
     void subprojects(@DelegatesTo(Project.class)
@@ -1399,6 +1512,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>This method executes the given {@link Action} against this project and each of its sub-projects.</p>
      *
      * @param action The action to execute.
+     * @since 0.7
      */
     @HiddenInDefinition
     void allprojects(Action<? super Project> action);
@@ -1410,6 +1524,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * is passed to the closure as the closure's delegate.</p>
      *
      * @param configureClosure The closure to execute.
+     * @since 0.7
      */
     @HiddenInDefinition
     void allprojects(@DelegatesTo(Project.class)
@@ -1425,6 +1540,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>If you call this method within a <code>beforeEvaluate</code> action, the passed action never executes.</p>
      *
      * @param action the action to execute.
+     * @since 0.7
      */
     @HiddenInDefinition
     void beforeEvaluate(Action<? super Project> action);
@@ -1441,6 +1557,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * previously added <code>afterEvaluate</code> actions finish executing.</p>
      *
      * @param action the action to execute.
+     * @since 0.7
      */
     @HiddenInDefinition
     void afterEvaluate(Action<? super Project> action);
@@ -1450,6 +1567,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure to call.
      * @see Project#beforeEvaluate(Action)
+     * @since 0.7
      */
     @HiddenInDefinition
     void beforeEvaluate(@DelegatesTo(Project.class)
@@ -1461,6 +1579,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure to call.
      * @see Project#afterEvaluate(Action)
+     * @since 0.7
      */
     @HiddenInDefinition
     void afterEvaluate(@DelegatesTo(Project.class)
@@ -1473,6 +1592,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param propertyName The name of the property to locate.
      * @return True if this project has the given property, false otherwise.
+     * @since 0.7
      */
     @HiddenInDefinition
     boolean hasProperty(String propertyName);
@@ -1485,6 +1605,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @deprecated This method will be removed in Gradle 10.0.0. Use {@link #findProperty(String)} or
      * {@link org.gradle.api.provider.ProviderFactory#gradleProperty(String)} instead.
      * See the <a href="https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties">upgrade guide</a> for more details.
+     * @since 0.7
      */
     @Deprecated
     @HiddenInDefinition
@@ -1514,6 +1635,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The value of the property, possibly null.
      * @throws MissingPropertyException When the given property is unknown.
      * @see Project#findProperty(String)
+     * @since 0.7
      */
     @Nullable
     @HiddenInDefinition
@@ -1553,6 +1675,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns the logger for this project. You can use this in your build file to write log messages.</p>
      *
      * @return The logger. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     Logger getLogger();
@@ -1561,6 +1684,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns the {@link org.gradle.api.invocation.Gradle} invocation which this project belongs to.</p>
      *
      * @return The Gradle object. Never returns null.
+     * @since 0.8
      */
     @HiddenInDefinition
     Gradle getGradle();
@@ -1571,6 +1695,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * logging system at the QUIET log level, and System.err is redirected at the ERROR log level.
      *
      * @return the LoggingManager. Never returns null.
+     * @since 0.9
      */
     @HiddenInDefinition
     LoggingManager getLogging();
@@ -1600,6 +1725,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param object The object to configure
      * @param configureClosure The closure with configure statements
      * @return The configured object
+     * @since 0.7
      */
     @HiddenInDefinition
     Object configure(Object object, Closure configureClosure);
@@ -1611,6 +1737,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param objects The objects to configure
      * @param configureClosure The closure with configure statements
      * @return The configured objects.
+     * @since 0.7
      */
     @HiddenInDefinition
     Iterable<?> configure(Iterable<?> objects, Closure configureClosure);
@@ -1621,6 +1748,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param objects The objects to configure
      * @param configureAction The action to apply to each object
      * @return The configured objects.
+     * @since 0.9
      */
     @HiddenInDefinition
     <T> Iterable<T> configure(Iterable<T> objects, Action<? super T> configureAction);
@@ -1630,6 +1758,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * produced by the project.
      *
      * @return the repository handler. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     RepositoryHandler getRepositories();
@@ -1641,6 +1770,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * RepositoryHandler} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the repositories.
+     * @since 0.7
      */
     @HiddenInDefinition
     void repositories(Closure configureClosure);
@@ -1653,6 +1783,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return the dependency handler. Never returns null.
      * @see #getConfigurations()
+     * @since 0.7
      */
     @HiddenInDefinition
     DependencyHandler getDependencies();
@@ -1666,6 +1797,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Examples: See docs for {@link DependencyHandler}
      *
      * @param configureClosure the closure to use to configure the dependencies.
+     * @since 0.7
      */
     @HiddenInDefinition
     void dependencies(Closure configureClosure);
@@ -1684,6 +1816,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * script for this project, and manage the classpath used to compile and execute the project's build script.
      *
      * @return the classpath handler. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     ScriptHandler getBuildscript();
@@ -1695,6 +1828,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the build script classpath.
+     * @since 0.7
      */
     @HiddenInDefinition
     void buildscript(Closure configureClosure);
@@ -1725,6 +1859,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure Closure to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
+     * @since 0.8
      */
     @HiddenInDefinition
     WorkResult copy(@DelegatesTo(CopySpec.class)
@@ -1738,6 +1873,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param action Action to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
      * @see #copy(Closure)
+     * @since 2.5
      */
     @HiddenInDefinition
     WorkResult copy(Action<? super CopySpec> action);
@@ -1760,6 +1896,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
+     * @since 0.9
      */
     @HiddenInDefinition
     CopySpec copySpec(@DelegatesTo(CopySpec.class)
@@ -1773,6 +1910,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param action Action to configure the CopySpec
      * @return The CopySpec
      * @see #copySpec(Closure)
+     * @since 2.5
      */
     @HiddenInDefinition
     CopySpec copySpec(Action<? super CopySpec> action);
@@ -1781,6 +1919,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
      *
      * @return a newly created copy spec
+     * @since 2.5
      */
     @HiddenInDefinition
     CopySpec copySpec();
@@ -1827,6 +1966,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * project, such as whether it has failed.
      *
      * @return the project state. Never returns null.
+     * @since 0.9
      */
     @HiddenInDefinition
     ProjectState getState();
@@ -1841,6 +1981,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The container.
      *
      * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class)} instead.
+     * @since 0.9.2
      */
     @HiddenInDefinition
     @Deprecated
@@ -1857,6 +1998,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The container.
      *
      * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class, NamedDomainObjectFactory)} instead.
+     * @since 0.9.2
      */
     @HiddenInDefinition
     @Deprecated
@@ -1874,6 +2016,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The container.
      *
      * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class, NamedDomainObjectFactory)} instead.
+     * @since 0.9.2
      */
     @HiddenInDefinition
     @Deprecated
@@ -1892,6 +2035,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
      *
      * @return Returned instance contains various resource-specific utility methods.
+     * @since 1.0
      */
     @HiddenInDefinition
     ResourceHandler getResources();
@@ -1900,6 +2044,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Returns the software components produced by this project.
      *
      * @return The components for this project.
+     * @since 1.4
      */
     @HiddenInDefinition
     SoftwareComponentContainer getComponents();

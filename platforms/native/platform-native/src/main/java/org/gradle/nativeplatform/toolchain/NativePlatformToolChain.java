@@ -21,11 +21,13 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 
 /**
  * A platform specific configurable tool chain.
+ * @since 2.2
  */
 @Incubating
 public interface NativePlatformToolChain {
     /**
      * Returns the platform which this tool chain builds for.
+     * @since 2.2
      */
     NativePlatform getPlatform();
 }

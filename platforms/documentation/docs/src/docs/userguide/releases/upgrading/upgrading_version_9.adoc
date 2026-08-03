@@ -41,6 +41,30 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[kotlin_2_4_10]]
+==== Upgrade to Kotlin 2.4.10
+
+The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.10[Kotlin 2.4.10].
+
+[[service_method_added_to_project_settings_gradle_task]]
+==== New `service(Class)` method on `Project`, `Settings`, `Gradle`, and `Task`
+
+Gradle 9.8.0 adds an incubating `service(Class)` method to link:{javadocPath}/org/gradle/api/Project.html[`Project`], link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`], link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`], and link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with reified `service<T>()` extensions in the Kotlin DSL.
+See <<service_injection.adoc#looking_up_services,Looking up services in scripts>> for details.
+
+If your build, plugin, or convention already exposes a member called `service` on one of these types (for example a user-defined extension, a Groovy dynamic property, or a Kotlin extension function), the new built-in member may shadow it or make calls ambiguous.
+Rename your member (for example to `myService`) to disambiguate:
+
+[source,kotlin]
+.build.gradle.kts
+----
+// Before: shadowed by the new built-in Project.service(Class)
+fun Project.service(name: String): MyService = extensions.getByName(name) as MyService
+
+// After: rename to avoid the conflict
+fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
+----
+
 [[task_logging_listeners_are_now_stored_in_the_configuration_cache]]
 ==== Task logging listeners are now stored in the Configuration Cache
 
@@ -93,21 +117,45 @@ Additionally, the transitional system property `org.gradle.tooling.parallel.igno
 Once `org.gradle.parallel` and `org.gradle.tooling.parallel` are independent, the flag is redundant, so Gradle 10 simply ignores it.
 No action is required in Gradle 9.x; if you set it explicitly, you can remove it when upgrading to Gradle 10.
 
+[[config_time_external_processes]]
+==== Deprecation of starting external processes at configuration time with `ExecOperations` and Java/Groovy standard APIs
+
+Starting an external process at configuration time with link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] or the Java and Groovy standard APIs directly is now deprecated.
+This includes:
+
+- `ExecOperations.exec` and `ExecOperations.javaexec`.
+- `java.lang.ProcessBuilder.start()` and `ProcessBuilder.startPipeline(...)`.
+- `java.lang.Runtime.exec(...)` (all overloads).
+- The Groovy process helpers `String.execute(...)`, `String[].execute(...)`, and `List.execute(...)`.
+
+This does *not* affect uses of the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] providers (`providers.exec` / `providers.javaexec`) or a <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, `ValueSource`>> that runs a process inside — those remain the supported way to run a process at configuration time.
+
+Starting an external process at configuration time in any of the deprecated ways is already an error when the Configuration Cache is enabled.
+To simplify preparation for the Configuration Cache being enabled by default in Gradle 10, and to open the way to it becoming the only mode of execution, Gradle now unconditionally deprecates behaviors that are unsupported with the Configuration Cache.
+
+Migrate to one of the following, in order of preference:
+
+1. *Move the process execution into a task*, so it runs at execution time and benefits from build caching, up-to-date checks, and work avoidance.
+Use an link:{javadocPath}/org/gradle/api/tasks/Exec.html[`Exec`] or link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[`JavaExec`] task, or a custom task that injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] and runs the process in its task action.
+2. For simple cases, use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`providers.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`providers.javaexec`].
+Prefer wiring the returned provider lazily to task inputs, and call `get()` only as a last resort.
+3. For more complex output processing, use a <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, `ValueSource`>> that injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] (or uses `java.lang.ProcessBuilder` directly).
+The same guidance about wiring the provider lazily to task inputs applies.
+
+This behavior will become an error in Gradle 11.
+
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
 
 === Potential breaking changes
 
-[[publish_no_sha256_sha512_checksums]]
-==== SHA-256 and SHA-512 checksums are no longer published
+[[publish_no_checksums_for_signature_files]]
+==== Checksum files are no longer published for signature files
 
-When publishing to Maven or Ivy repositories, Gradle no longer publishes `.sha256` and `.sha512` checksum files alongside each artifact.
-Only universally supported checksums are published: `.sha1` and `.md5` for Maven and `.sha1` for Ivy.
+When publishing to Maven or Ivy repositories, Gradle no longer publishes checksum files (such as `.sha1` and `.md5`) for signature files like `.asc` and `.sig`.
 
-These extra checksums were rarely consumed and frequently rejected by repositories that do not recognize them.
-Consuming builds are unaffected as Gradle has never required SHA-256 or SHA-512 checksums to be present in order to resolve or verify artifacts.
-
-The internal, undocumented `org.gradle.internal.publish.checksums.insecure` system property, which previously suppressed these extra checksums, no longer has any effect and can be removed.
+A signature is itself an integrity artifact, so a checksum of a signature provides no additional protection, and the standard Maven publishing tooling does not publish these files either.
+The signature files themselves continue to be published unchanged; only their checksum files are no longer produced.
 
 [[project_cache_dir_no_longer_watched]]
 ==== The project cache directory is no longer watched
@@ -251,6 +299,9 @@ The legacy `org.gradle.unsafe.*` names are now deprecated and will be removed in
 They continue to be accepted as aliases for now and currently emit no warning.
 Update your `gradle.properties` and command-line invocations to the new names.
 
+When both the legacy and the new name of a property are set — for example, the new name in `gradle.properties` and the legacy name injected by a plugin or CI script on the command line — an explicit `false` from either one disables the feature.
+This guarantees that tooling which still opts out via a legacy property name keeps working after a build migrates to the new names.
+
 See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
 [[deprecated_custom_collection_types_with_cc]]
@@ -278,6 +329,86 @@ The following have been deprecated for removal:
 - link:{javadocPath}/org/gradle/StartParameter.html#newBuild()[`StartParameter.newBuild()`]
 
 The existing `StartParameter` instance for a build may be obtained via link:{javadocPath}/org/gradle/api/invocation/Gradle.html#getStartParameter()[`Gradle.getStartParameter()`] instead of constructing or copying one.
+
+[[deprecate_signature_as_artifact]]
+==== Deprecation of `Signature` as a Configuration artifact
+
+Starting in Gradle 10, link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] will no longer implement link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[`PublishArtifact`].
+The following methods inherited from `PublishArtifact` have been deprecated and will be removed in Gradle 10:
+
+- `getName()` / `setName(String)`
+- `getExtension()` / `setExtension(String)`
+- `getType()` / `setType(String)`
+- `getClassifier()` / `setClassifier(String)`
+- `getDate()` / `setDate(Date)`
+- `getBuildDependencies()`
+- `builtBy(Object...)`
+
+Furthermore, `Signature` will no longer extend the internal `AbstractPublishArtifact` class or implement the internal `PublishArtifactInternal` interface.
+Code that dereferenced these internal types via `Signature` must be updated.
+The `shouldBePublished()` method inherited from `PublishArtifactInternal` has also been deprecated for removal.
+
+As a result, a `Signature` will no longer be permitted directly as an artifact of a `Configuration`.
+Starting in Gradle 10, the <<signing_plugin.adoc#signing_plugin,Signing Plugin>> will no longer create the `signatures` configuration or automatically add `Signature` instances to it.
+
+The `getConfiguration()` and `setConfiguration(Configuration)` methods on link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html[`SigningExtension`] have been deprecated and will be removed in Gradle 10.
+Creating a configuration named `signatures` before the signing plugin is applied is now also deprecated.
+
+[[deprecate_signature_constructors]]
+==== Deprecation of constructing `Signature` instances
+
+Starting in Gradle 10, manually constructing a link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] instance will no longer be permitted.
+All public constructors for this type have been deprecated for removal.
+
+To sign files, use the `sign` methods on the link:{javadocPath}/org/gradle/plugins/signing/Sign.html[`Sign`] task, or use the `sign` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`].
+
+[[deprecate_sign_operation_signatures]]
+==== Deprecation of `getSignatures()` and `getSingleSignature()` on `SignOperation`
+
+The `getSignatures()` and `getSingleSignature()` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`] have been deprecated and will be removed in Gradle 10.
+
+Use `getFilesToSign()` and `getSignatureFiles()` instead.
+
+[[deprecate_sign_classifier]]
+==== Deprecation of signing files with a classifier
+
+The following methods that accept a classifier alongside files to sign have been deprecated and will be removed in Gradle 10:
+
+- `Sign.sign(String, File...)`
+- `SignOperation.sign(String, File...)`
+- `SigningExtension.sign(String, File...)`
+
+The classifier argument is ignored during signing and does not influence the resulting signature file.
+Use the `sign(File...)` overloads instead.
+
+[[unsupported_attribute_value_type]]
+==== Deprecation of unsupported attribute value types
+
+Attribute value types are limited to: `String`, `Boolean`, any subtype of `Number`, and any type that implements `org.gradle.api.Named`.
+
+Passing any other type to link:{javadocPath}/org/gradle/api/attributes/Attribute.html#of(java.lang.String,java.lang.Class)[`Attribute.of(String, Class)`] — or declaring an unsupported type as the type parameter of an `AttributeCompatibilityRule` or `AttributeDisambiguationRule` — now emits a deprecation warning and will become an error in Gradle 10.
+
+The most common case is a plain Java `Enum` that does not implement `Named`.
+Such types often work at first but fail later during dependency resolution, publishing, or configuration cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
+
+To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
+For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
+
+See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
+
+[[kgp_native_bundle_attribute_enum]]
+==== Deprecation of using `KotlinNativeBundleArtifactsTypes` as an attribute value type
+
+The Kotlin Gradle Plugin (KGP) 2.0.x line registers an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
+
+This deprecation is a specialized variant of the general <<#unsupported_attribute_value_type, unsupported attribute value type>> deprecation, called out separately so users can identify KGP as the source and remediate by upgrading the plugin.
+
+To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.1.0 or later.
+KGP 2.1.0 and newer do not use a plain enum for this attribute and are unaffected.
+
+Like the general case, this deprecation will become an error in Gradle 10.
+
+See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
 
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier

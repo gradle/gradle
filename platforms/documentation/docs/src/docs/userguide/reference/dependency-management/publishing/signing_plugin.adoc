@@ -248,3 +248,6 @@ When signing <<#sec:signing_publications,publications>>, the resultant signature
 Thus, when publishing to a repository, e.g. by executing the `publish` task, your signatures will be distributed along with the other artifacts without any additional configuration.
 
 When signing <<#sec:signing_configurations,configurations>> and <<#sec:signing_tasks,tasks>>, the resultant signature artifacts are automatically added to the `signatures` dependency configuration.
+
+NOTE: This automatic wiring is deprecated and will be removed in Gradle 10.
+See <<upgrading_version_9.adoc#deprecate_signature_as_artifact, Deprecation of `Signature` as a Configuration artifact>> for details and migration guidance.

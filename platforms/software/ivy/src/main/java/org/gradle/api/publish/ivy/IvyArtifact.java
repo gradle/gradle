@@ -22,11 +22,13 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * An artifact published as part of a {@link IvyPublication}.
+ * @since 1.5
  */
 public interface IvyArtifact extends PublicationArtifact {
     /**
      * The name used to publish the artifact file, never <code>null</code>.
      * Defaults to the name of the module that this artifact belongs to.
+     * @since 1.5
      */
     @ToBeReplacedByLazyProperty
     String getName();
@@ -34,11 +36,13 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * Sets the name used to publish the artifact file.
      * @param name The name.
+     * @since 1.5
      */
     void setName(String name);
 
     /**
      * The type used to publish the artifact file, never <code>null</code>.
+     * @since 1.5
      */
     @ToBeReplacedByLazyProperty
     String getType();
@@ -46,12 +50,14 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * Sets the type used to publish the artifact file.
      * @param type The type.
+     * @since 1.5
      */
     void setType(String type);
 
     /**
      * The extension used to publish the artifact file, never <code>null</code>.
      * For an artifact without an extension, this value will be an empty String.
+     * @since 1.5
      */
     @ToBeReplacedByLazyProperty
     String getExtension();
@@ -59,12 +65,14 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
+     * @since 1.5
      */
     void setExtension(String extension);
 
     /**
      * The classifier used to publish the artifact file.
      * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
+     * @since 1.5
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -73,6 +81,7 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
+     * @since 1.5
      */
     void setClassifier(@Nullable String classifier);
 
@@ -81,6 +90,7 @@ public interface IvyArtifact extends PublicationArtifact {
      * The '*' wildcard is used to designate that the artifact is published in all public configurations.
      * A <code>null</code> value (the default) indicates that this artifact will be published without a conf attribute.
      * @return The value of 'conf' for this artifact.
+     * @since 1.5
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -90,6 +100,7 @@ public interface IvyArtifact extends PublicationArtifact {
      * Sets a comma separated list of public configurations in which this artifact is published.
      * The '*' wildcard can be used to designate that the artifact is published in all public configurations.
      * @param conf The value of 'conf' for this artifact.
+     * @since 1.5
      */
     void setConf(@Nullable String conf);
 }

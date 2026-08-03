@@ -43,21 +43,38 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PluginUnderTestMetadata extends DefaultTask {
 
+    /**
+     * The implementation classpath prop key.
+     *
+     * @since 2.13
+     */
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
+    /**
+     * The metadata file name.
+     *
+     * @since 2.13
+     */
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
 
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
+     * @since 2.13
      */
     @Classpath
     public abstract ConfigurableFileCollection getPluginClasspath();
 
     /**
      * The target output directory used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name"}.
+     * @since 2.13
      */
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
+    /**
+     * Generate.
+     *
+     * @since 2.13
+     */
     @TaskAction
     public void generate() {
         Properties properties = new Properties();
@@ -84,6 +101,11 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
         }
     }
 
+    /**
+     * Returns the paths.
+     *
+     * @since 4.4
+     */
     @Input
     protected List<String> getPaths() {
         return collect(getPluginClasspath(), file -> file.getAbsolutePath().replaceAll("\\\\", "/"));

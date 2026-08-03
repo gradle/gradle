@@ -26,10 +26,20 @@ import org.gradle.tooling.UnsupportedVersionException;
  * @since 1.0
  */
 public class UnsupportedOperationConfigurationException extends UnsupportedVersionException {
+    /**
+     * Creates a new {@code UnsupportedOperationConfigurationException}.
+     *
+     * @since 1.0
+     */
     public UnsupportedOperationConfigurationException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code UnsupportedOperationConfigurationException}.
+     *
+     * @since 1.0
+     */
     public UnsupportedOperationConfigurationException(String message, Throwable cause) {
         super(message, cause);
     }

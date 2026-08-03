@@ -68,6 +68,11 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     private final Transient.Var<DefaultIvyArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
 
+    /**
+     * Creates a new {@code PublishToIvyRepository}.
+     *
+     * @since 1.3
+     */
     @SuppressWarnings("this-escape")
     public PublishToIvyRepository() {
 
@@ -90,6 +95,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      * The publication to be published.
      *
      * @return The publication to be published
+     * @since 1.3
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -101,6 +107,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      * Sets the publication to be published.
      *
      * @param publication The publication to be published
+     * @since 1.3
      */
     public void setPublication(IvyPublication publication) {
         this.publication.set(toPublicationInternal(publication));
@@ -130,6 +137,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      * The repository to publish to.
      *
      * @return The repository to publish to
+     * @since 1.3
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -145,12 +153,18 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      * Sets the repository to publish to.
      *
      * @param repository The repository to publish to
+     * @since 1.3
      */
     public void setRepository(IvyArtifactRepository repository) {
         this.repository.set((DefaultIvyArtifactRepository) repository);
         this.getCredentials().set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
     }
 
+    /**
+     * Publish.
+     *
+     * @since 1.3
+     */
     @TaskAction
     public void publish() {
         PublishSpec spec = this.spec.get();

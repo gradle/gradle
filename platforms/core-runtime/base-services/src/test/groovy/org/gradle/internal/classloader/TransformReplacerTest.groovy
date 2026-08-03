@@ -268,7 +268,9 @@ class TransformReplacerTest extends Specification {
 
     private static TransformedClassPath classPath(Map<File, File> originalToTransformed) {
         def builder = TransformedClassPath.builderWithExactSize(originalToTransformed.size())
-        originalToTransformed.forEach(builder::add)
+        originalToTransformed.forEach { original, transformed ->
+            builder.add(original, new TransformedClassPath.TransformedEntry(transformed, null, TransformedClassPath.InstrumentationKind.UNKNOWN))
+        }
         return builder.build()
     }
 

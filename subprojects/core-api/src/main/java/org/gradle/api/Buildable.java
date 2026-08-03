@@ -21,6 +21,7 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 /**
  * A {@code Buildable} represents an artifact or set of artifacts which are built by one or more {@link Task}
  * instances.
+ * @since 0.8
  */
 @HiddenInDefinition
 public interface Buildable {
@@ -31,6 +32,7 @@ public interface Buildable {
      *
      * @return The dependency. Never returns null. Returns an empty dependency when this artifact is not built by any
      *         tasks.
+     * @since 0.8
      */
     TaskDependency getBuildDependencies();
 }

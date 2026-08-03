@@ -65,6 +65,8 @@ import java.util.stream.Stream;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Generates a single bytecode rewriter class.
  */
@@ -86,6 +88,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     @Override
+    @Nullable
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
             .map(RequestExtra.InterceptJvmCalls::getImplementationClassName)
@@ -333,7 +336,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             try {
                 generateCodeForRequest(
                     request,
-                    implTypeFields.get(request.getImplementationInfo().getOwner()),
+                    requireNonNull(implTypeFields.get(request.getImplementationInfo().getOwner())),
                     nested,
                     invocationMatcher,
                     interceptStandard,

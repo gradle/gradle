@@ -28,6 +28,7 @@ import java.util.Set;
  * A project-level IDEA library.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.5
  */
 @Deprecated
 public class ProjectLibrary {
@@ -41,39 +42,58 @@ public class ProjectLibrary {
 
     /**
      * The name of the library.
+     * @since 1.5
      */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name.
+     *
+     * @since 1.5
+     */
     public void setName(String name) {
         this.name = name;
     }
 
     /**
      * The type of the library.
+     * @since 2.12
      */
     public String getType() {
         return type;
     }
 
+    /**
+     * Sets the type.
+     *
+     * @since 2.12
+     */
     public void setType(String type) {
         this.type = type;
     }
 
     /**
      * A set of Jar files containing compiler classes.
+     * @since 2.12
      */
     public Set<File> getCompilerClasspath() {
         return compilerClasspath;
     }
 
+    /**
+     * Sets the compiler classpath.
+     *
+     * @since 2.12
+     */
     public void setCompilerClasspath(Set<File> compilerClasspath) {
         this.compilerClasspath = compilerClasspath;
     }
 
     /**
      * A set of Jar files or directories containing compiled code.
+     * @since 1.5
      */
     public Set<File> getClasses() {
         return classes;
@@ -81,6 +101,7 @@ public class ProjectLibrary {
 
     /**
      * A set of Jar files or directories containing source code.
+     * @since 1.5
      */
     public void setClasses(Set<File> classes) {
         this.classes = classes;
@@ -88,26 +109,43 @@ public class ProjectLibrary {
 
     /**
      * A set of Jar files or directories containing javadoc.
+     * @since 1.5
      */
     public Set<File> getJavadoc() {
         return javadoc;
     }
 
+    /**
+     * Sets the javadoc.
+     *
+     * @since 1.5
+     */
     public void setJavadoc(Set<File> javadoc) {
         this.javadoc = javadoc;
     }
 
     /**
      * A set of directories containing sources.
+     * @since 1.5
      */
     public Set<File> getSources() {
         return sources;
     }
 
+    /**
+     * Sets the sources.
+     *
+     * @since 1.5
+     */
     public void setSources(Set<File> sources) {
         this.sources = sources;
     }
 
+    /**
+     * Add to node.
+     *
+     * @since 1.5
+     */
     public void addToNode(Node parentNode, PathFactory pathFactory) {
         Map<String, Object> libraryAttributes = new LinkedHashMap<>();
         libraryAttributes.put("name", name);

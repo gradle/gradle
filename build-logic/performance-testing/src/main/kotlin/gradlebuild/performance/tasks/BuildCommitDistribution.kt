@@ -192,6 +192,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
         return listOfNotNull(
             "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
+            "--no-daemon",
             if (gradleModeCompatibility == null) "--no-configuration-cache" else null,
             // TODO:isolated https://github.com/gradle/gradle/issues/36771
             if (gradleModeCompatibility == "IP") null else "-Dorg.gradle.unsafe.isolated-projects=false",

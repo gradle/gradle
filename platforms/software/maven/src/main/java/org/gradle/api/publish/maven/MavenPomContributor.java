@@ -31,41 +31,49 @@ public interface MavenPomContributor {
 
     /**
      * The name of this contributor.
+     * @since 4.8
      */
     Property<String> getName();
 
     /**
      * The email
+     * @since 4.8
      */
     Property<String> getEmail();
 
     /**
      * The URL of this contributor.
+     * @since 4.8
      */
     Property<String> getUrl();
 
     /**
      * The organization name of this contributor.
+     * @since 4.8
      */
     Property<String> getOrganization();
 
     /**
      * The organization's URL of this contributor.
+     * @since 4.8
      */
     Property<String> getOrganizationUrl();
 
     /**
      * The roles of this contributor.
+     * @since 4.8
      */
     SetProperty<String> getRoles();
 
     /**
      * The timezone of this contributor.
+     * @since 4.8
      */
     Property<String> getTimezone();
 
     /**
      * The properties of this contributor.
+     * @since 4.8
      */
     MapProperty<String, String> getProperties();
 

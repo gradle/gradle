@@ -26,11 +26,13 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  * The JUnit XML files, commonly used to communicate results to CI servers.
  *
  * @see TestTaskReports#getJunitXml()
+ * @since 1.7
  */
 public interface JUnitXmlReport extends DirectoryReport {
 
     /**
      * Should the output be associated with individual test cases instead of at the suite level.
+     * @since 1.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -38,6 +40,7 @@ public interface JUnitXmlReport extends DirectoryReport {
 
     /**
      * Should the output be associated with individual test cases instead of at the suite level.
+     * @since 1.7
      */
     void setOutputPerTestCase(boolean outputPerTestCase);
 

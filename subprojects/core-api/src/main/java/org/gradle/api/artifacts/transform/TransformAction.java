@@ -57,7 +57,7 @@ import javax.inject.Inject;
  *  </ul>
  *
  * @param <T> Parameter type for the transform action. Should be {@link TransformParameters.None} if the action does not have parameters.
- * @since 5.3
+ * @since 5.2
  */
 public interface TransformAction<T extends TransformParameters> {
 
@@ -78,6 +78,7 @@ public interface TransformAction<T extends TransformParameters> {
      * <p>This method must be implemented in the subclass.</p>
      *
      * @param outputs Receives the outputs of the transform.
+     * @since 5.3
      */
     void transform(TransformOutputs outputs);
 }

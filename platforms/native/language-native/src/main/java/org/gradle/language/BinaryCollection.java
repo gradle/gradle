@@ -41,6 +41,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      * @param spec specification to satisfy. The spec is applied to each binary <em>prior</em> to configuration.
      * @param <S> type of the binary to return
      * @return a binary from the collection in a finalized state
+     * @since 4.5
      */
     <S> BinaryProvider<S> get(Class<S> type, Spec<? super S> spec);
 
@@ -51,6 +52,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      *
      * @param name The name of the binary
      * @return a binary from the collection in a finalized state
+     * @since 4.5
      */
     BinaryProvider<T> getByName(String name);
 
@@ -61,6 +63,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      *
      * @param spec specification to satisfy. The spec is applied to each binary prior to configuration.
      * @return a binary from the collection in a finalized state
+     * @since 4.5
      */
     BinaryProvider<T> get(Spec<? super T> spec);
 
@@ -68,6 +71,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      * Registers an action to execute when an element becomes known. The action is only executed for those elements that are required. Fails if any element has already been finalized.
      *
      * @param action The action to execute for each element becomes known.
+     * @since 4.5
      */
     void whenElementKnown(Action<? super T> action);
 
@@ -76,6 +80,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      *
      * @param type The type of element to select.
      * @param action The action to execute for each element becomes known.
+     * @since 4.5
      */
     <S> void whenElementKnown(Class<S> type, Action<? super S> action);
 
@@ -83,6 +88,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      * Registers an action to execute when an element is finalized. The action is only executed for those elements that are required. Fails if any element has already been finalized.
      *
      * @param action The action to execute for each element when finalized.
+     * @since 4.5
      */
     void whenElementFinalized(Action<? super T> action);
 
@@ -91,6 +97,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      *
      * @param type The type of element to select.
      * @param action The action to execute for each element when finalized.
+     * @since 4.5
      */
     <S> void whenElementFinalized(Class<S> type, Action<? super S> action);
 
@@ -98,6 +105,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      * Registers an action to execute to configure each element in the collection. The action is only executed for those elements that are required. Fails if any element has already been finalized.
      *
      * @param action The action to execute on each element for configuration.
+     * @since 4.5
      */
     void configureEach(Action<? super T> action);
 
@@ -106,11 +114,13 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      *
      * @param type The type of element to select.
      * @param action The action to execute on each element for configuration.
+     * @since 4.5
      */
     <S> void configureEach(Class<S> type, Action<? super S> action);
 
     /**
      * Returns the set of binaries from this collection. Elements are in a finalized state.
+     * @since 4.5
      */
     Set<T> get();
 }

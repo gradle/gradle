@@ -34,6 +34,8 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.RootBuildOperationRef;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.problems.failure.Failure;
@@ -62,6 +64,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
     private final BuildOperationRunner buildOperationRunner;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
+    private final RootBuildOperationRef rootBuildOperationRef;
 
     public DefaultBuildTreeActionExecutor(
         BuildModelParametersFactory modelParametersFactory,
@@ -71,7 +74,8 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
         WorkerLeaseService workerLeaseService,
         BuildOperationRunner buildOperationRunner,
         LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-        BuildOperationNotificationValve buildOperationNotificationValve
+        BuildOperationNotificationValve buildOperationNotificationValve,
+        RootBuildOperationRef rootBuildOperationRef
     ) {
         this.buildModelParametersFactory = modelParametersFactory;
         this.buildLayoutValidator = buildLayoutValidator;
@@ -81,6 +85,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
         this.buildOperationRunner = buildOperationRunner;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
+        this.rootBuildOperationRef = rootBuildOperationRef;
     }
 
     @Override
@@ -95,6 +100,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
                 @Override
                 public BuildActionRunner.Result call(BuildOperationContext buildOperationContext) {
                     loggingBuildOperationProgressBroadcaster.rootBuildOperationStarted();
+                    rootBuildOperationRef.set(CurrentBuildOperationRef.instance().getId());
                     BuildActionRunner.Result result = runBuildTreeLifecycle(action, buildSessionServices);
                     buildOperationContext.setResult(new DefaultRunBuildResult(result));
                     if (result.getBuildFailure() != null) {

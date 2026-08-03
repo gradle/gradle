@@ -21,6 +21,7 @@ import org.gradle.util.internal.DefaultGradleVersion;
 
 /**
  * Represents a Gradle version.
+ * @since 0.7
  */
 public abstract class GradleVersion implements Comparable<GradleVersion> {
 
@@ -28,6 +29,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      * Returns the current Gradle version.
      *
      * @return The current Gradle version.
+     * @since 1.0
      */
     public static GradleVersion current() {
         return DefaultGradleVersion.current();
@@ -37,6 +39,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      * Parses the given string into a GradleVersion.
      *
      * @throws IllegalArgumentException On unrecognized version string.
+     * @since 1.0
      */
     public static GradleVersion version(String version) throws IllegalArgumentException {
         return DefaultGradleVersion.version(version);
@@ -46,6 +49,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      * Returns the string that represents this version.
      *
      * @return this Gradle version in string format.
+     * @since 0.7
      */
     public abstract String getVersion();
 
@@ -64,6 +68,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      * Returns {@code true} if this instance represent a snapshot version (e.g. 7.0-20210406233629+0000).
      *
      * @return Whether the current instance is a snapshot version
+     * @since 0.9.1
      */
     public abstract boolean isSnapshot();
 
@@ -73,6 +78,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      * For example, the version base of '7.1-rc-1' is '7.1'.
      *
      * @return The version base
+     * @since 1.8
      */
     public abstract GradleVersion getBaseVersion();
 

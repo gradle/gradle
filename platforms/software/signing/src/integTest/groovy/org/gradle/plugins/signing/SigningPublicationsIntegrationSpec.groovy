@@ -302,6 +302,16 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}-sources.jar.asc").assertExists()
         m2RepoFile("$artifactId-${version}.module").assertExists()
         m2RepoFile("$artifactId-${version}.module.asc").assertExists()
+
+        and: "checksums are published for regular artifacts but not for signature files"
+        m2RepoFile("${jarFileName}.sha1").assertExists()
+        m2RepoFile("${jarFileName}.md5").assertExists()
+        m2RepoFile("${jarFileName}.asc.sha1").assertDoesNotExist()
+        m2RepoFile("${jarFileName}.asc.md5").assertDoesNotExist()
+        m2RepoFile("$artifactId-${version}-sources.jar.asc.sha1").assertDoesNotExist()
+        m2RepoFile("$artifactId-${version}.module.asc.sha1").assertDoesNotExist()
+        m2RepoFile("$artifactId-${version}.pom.asc.sha1").assertDoesNotExist()
+        m2RepoFile("$artifactId-${version}.pom.asc.md5").assertDoesNotExist()
     }
 
     def "publishes signature files for Ivy publication with #layout pattern layout"() {
@@ -350,7 +360,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
         where:
         layout     | declaration | expectedFiles                               | unexpectedFiles
-        "standard" | ""          | this.&expectedFilesIvyPublishStandardLayout | { [] }
+        "standard" | ""          | this.&expectedFilesIvyPublishStandardLayout | this.&unexpectedFilesIvyPublishStandardLayout
         "custom"   | """
                      patternLayout {
                        artifact "[artifact]-[revision](-[classifier])(.[ext])"
@@ -380,6 +390,20 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         ]
     }
 
+    private static List<TestFile> unexpectedFilesIvyPublishStandardLayout(SigningPublicationsIntegrationSpec spec) {
+        def standardIvyRepoFile = { String... path ->
+            spec.file("build", "ivyRepo", "sign", *path)
+        }
+
+        // Signature files must not get their own checksum files
+        [
+            standardIvyRepoFile(spec.artifactId, spec.version, "${spec.jarFileName}.asc.sha1"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "ivy-${spec.version}.xml.asc.sha1"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "$spec.artifactId-${spec.version}-source.jar.asc.sha1"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "$spec.artifactId-${spec.version}.module.asc.sha1")
+        ]
+    }
+
     private static List<TestFile> expectedFilesIvyPublishCustomLayout(SigningPublicationsIntegrationSpec spec) {
         [
             spec.ivyRepoFile(spec.jarFileName),
@@ -394,7 +418,11 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
     private static List<TestFile> unexpectedFilesIvyPublishCustomLayout(SigningPublicationsIntegrationSpec spec) {
         [
             spec.ivyRepoFile("$spec.artifactId-${spec.version}.module"),
-            spec.ivyRepoFile("$spec.artifactId-${spec.version}.module.asc")
+            spec.ivyRepoFile("$spec.artifactId-${spec.version}.module.asc"),
+            // Signature files must not get their own checksum files
+            spec.ivyRepoFile("${spec.jarFileName}.asc.sha1"),
+            spec.ivyRepoFile("ivy-${spec.version}.xml.asc.sha1"),
+            spec.ivyRepoFile("$spec.artifactId-${spec.version}-source.jar.asc.sha1")
         ]
     }
 

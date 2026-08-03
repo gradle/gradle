@@ -59,6 +59,10 @@ public interface IvyModule extends Module {
 
     IvyModule withoutGradleMetadataRedirection();
 
+    IvyModule withoutExtraChecksums();
+
+    IvyModule withExtraChecksums();
+
     /**
      * Attributes:
      *  organisation

@@ -30,12 +30,14 @@ public interface ComponentMetadataBuilder {
     /**
      * Sets the status of this component
      * @param status the component status
+     * @since 4.0
      */
     void setStatus(String status);
 
     /**
      * Sets the status scheme of this component
      * @param scheme the status scheme
+     * @since 4.0
      */
     void setStatusScheme(List<String> scheme);
 

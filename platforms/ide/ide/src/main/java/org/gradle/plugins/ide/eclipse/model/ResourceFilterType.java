@@ -21,6 +21,12 @@ package org.gradle.plugins.ide.eclipse.model;
  * @since 3.5
  */
 public enum ResourceFilterType {
+    /**
+     * @since 3.5
+     */
     INCLUDE_ONLY,
+    /**
+     * @since 3.5
+     */
     EXCLUDE_ALL;
 }

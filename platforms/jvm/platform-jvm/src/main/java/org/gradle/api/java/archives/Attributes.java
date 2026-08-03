@@ -19,6 +19,7 @@ import java.util.Map;
 
 /**
  * Represent the attributes of a manifest section.
+ * @since 0.9
  */
 public interface Attributes extends Map<String, Object> {
 

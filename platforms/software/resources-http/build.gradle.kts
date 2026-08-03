@@ -23,12 +23,15 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.jacksonDatabind)
     implementation(libs.jcifs)
     implementation(libs.jsoup)
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.core)
     runtimeOnly(projects.coreApi)
+
+    runtimeOnly(libs.jacksonCore)
 
     testImplementation(projects.internalIntegTesting)
     testImplementation(testFixtures(projects.core))

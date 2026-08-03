@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
+    implementation(projects.workerShared)
 
     implementation(libs.guava)
     implementation(libs.asm)
@@ -78,10 +79,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
-    excludePatterns.add("org/gradle/api/tasks/javadoc/**")
-}
-
-

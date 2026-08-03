@@ -21,11 +21,8 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.project.IsolatedProject;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.model.CalculatedModelValue;
-import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -39,7 +36,6 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -286,83 +282,8 @@ class DefaultProjectState implements ProjectState, Closeable {
     }
 
     @Override
-    public <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue) {
-        return new CalculatedModelValueImpl<>(this, workerLeaseService, initialValue);
-    }
-
-    @Override
     public void close() {
         controller.close();
     }
 
-    private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
-        private final ProjectLeaseRegistry projectLeaseRegistry;
-        private final ModelContainer<?> owner;
-        private final ReentrantLock lock = new ReentrantLock();
-        private volatile @Nullable T value;
-
-        public CalculatedModelValueImpl(DefaultProjectState owner, WorkerLeaseService projectLeaseRegistry, @Nullable T initialValue) {
-            this.projectLeaseRegistry = projectLeaseRegistry;
-            this.value = initialValue;
-            this.owner = owner;
-        }
-
-        @Override
-        public T get() throws IllegalStateException {
-            T currentValue = getOrNull();
-            if (currentValue == null) {
-                throw new IllegalStateException("No calculated value is available for " + owner);
-            }
-            return currentValue;
-        }
-
-        @Override
-        public @Nullable T getOrNull() {
-            // Grab the current value, ignore updates that may be happening
-            return value;
-        }
-
-        @Override
-        public void set(T newValue) {
-            assertCanMutate();
-            value = newValue;
-        }
-
-        @Override
-        public T update(Function<T, T> updateFunction) {
-            acquireUpdateLock();
-            try {
-                T newValue = updateFunction.apply(value);
-                value = newValue;
-                return newValue;
-            } finally {
-                releaseUpdateLock();
-            }
-        }
-
-        private void acquireUpdateLock() {
-            // It's important that we do not block waiting for the lock while holding the project mutation lock.
-            // Doing so can lead to deadlocks.
-
-            assertCanMutate();
-
-            if (lock.tryLock()) {
-                // Update lock was not contended, can keep holding the project locks
-                return;
-            }
-
-            // Another thread holds the update lock, release the project locks and wait for the other thread to finish the update
-            projectLeaseRegistry.blocking(lock::lock);
-        }
-
-        private void assertCanMutate() {
-            if (!owner.hasMutableState()) {
-                throw new IllegalStateException("Current thread does not hold the state lock for " + owner);
-            }
-        }
-
-        private void releaseUpdateLock() {
-            lock.unlock();
-        }
-    }
 }

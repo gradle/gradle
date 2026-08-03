@@ -259,7 +259,7 @@ public class ModuleResolveState implements CandidateModule {
 
         if (oldSelected != null && oldSelected != newSelection) {
             for (NodeState node : oldSelected.getNodes()) {
-                node.maybeResolveReplacement().restartIncomingEdges();
+                node.maybeResolveCapabilityReplacement().restartIncomingEdges();
             }
         }
         for (SelectorState selector : selectors) {

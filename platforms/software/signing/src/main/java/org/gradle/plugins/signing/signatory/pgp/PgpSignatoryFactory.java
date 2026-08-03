@@ -37,6 +37,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * Creates {@link PgpSignatory} instances.
+ * @since 1.0
  */
 public class PgpSignatoryFactory {
 
@@ -44,34 +45,74 @@ public class PgpSignatoryFactory {
 
     // Most of these methods are here because they once leaked into Public API.
 
+    /**
+     * Create signatory.
+     *
+     * @since 1.0
+     */
     public PgpSignatory createSignatory(Project project, boolean required) {
         return readProperties(project, null, "default", required);
     }
 
+    /**
+     * Create signatory.
+     *
+     * @since 1.0
+     */
     public PgpSignatory createSignatory(Project project) {
         return createSignatory(project, false);
     }
 
+    /**
+     * Create signatory.
+     *
+     * @since 1.0
+     */
     public PgpSignatory createSignatory(Project project, String propertyPrefix, boolean required) {
         return readProperties(project, propertyPrefix, propertyPrefix, required);
     }
 
+    /**
+     * Create signatory.
+     *
+     * @since 1.0
+     */
     public PgpSignatory createSignatory(Project project, String propertyPrefix) {
         return createSignatory(project, propertyPrefix, false);
     }
 
+    /**
+     * Create signatory.
+     *
+     * @since 1.0
+     */
     public PgpSignatory createSignatory(Project project, String propertyPrefix, String name, boolean required) {
         return readProperties(project, propertyPrefix, name, required);
     }
 
+    /**
+     * Create signatory.
+     *
+     * @since 1.0
+     */
     public PgpSignatory createSignatory(Project project, String propertyPrefix, String name) {
         return createSignatory(project, propertyPrefix, name, false);
     }
 
+    /**
+     * Create signatory.
+     *
+     * @since 1.0
+     */
     public PgpSignatory createSignatory(String name, String keyId, File keyRing, String password) {
         return createSignatory(name, readSecretKey(keyId, keyRing), password);
     }
 
+    /**
+     * Create signatory.
+     *
+     * @since 1.0
+     */
     public PgpSignatory createSignatory(String name, PGPSecretKey secretKey, String password) {
         return new PgpSignatory(name, secretKey, password);
     }
@@ -114,22 +155,47 @@ public class PgpSignatoryFactory {
         return createLazySignatory(project, name, keyId, key, password);
     }
 
+    /**
+     * Read properties.
+     *
+     * @since 1.0
+     */
     protected PgpSignatory readProperties(Project project, String prefix, String name) {
         return readProperties(project, prefix, name, false);
     }
 
+    /**
+     * Read secret key.
+     *
+     * @since 1.0
+     */
     public PGPSecretKey readSecretKey(final String keyId, final File file) {
         return PgpSignatoryUtil.readSecretKey(keyId, file);
     }
 
+    /**
+     * Read secret key.
+     *
+     * @since 1.0
+     */
     protected PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
         return PgpSignatoryUtil.readSecretKey(input, keyId, sourceDescription);
     }
 
+    /**
+     * Read secret key.
+     *
+     * @since 1.0
+     */
     protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, final PgpKeyId keyId, String sourceDescription) {
         return PgpSignatoryUtil.readSecretKey(keyRings, keyId, sourceDescription);
     }
 
+    /**
+     * Normalize key id.
+     *
+     * @since 1.0
+     */
     protected PgpKeyId normalizeKeyId(String keyId) {
         return PgpSignatoryUtil.normalizeKeyId(keyId);
     }
@@ -160,6 +226,11 @@ public class PgpSignatoryFactory {
         );
     }
 
+    /**
+     * Read properties.
+     *
+     * @since 1.0
+     */
     protected PgpSignatory readProperties(Project project, String prefix, String name, boolean required) {
         ArrayList<Object> values = new ArrayList<>();
         for (String property : PROPERTIES) {
@@ -196,6 +267,11 @@ public class PgpSignatoryFactory {
         return null;
     }
 
+    /**
+     * Returns the qualified property name.
+     *
+     * @since 1.0
+     */
     protected Object getQualifiedPropertyName(final String propertyPrefix, final String name) {
         return "signing." + (propertyPrefix != null ? propertyPrefix + "." : "") + name;
     }

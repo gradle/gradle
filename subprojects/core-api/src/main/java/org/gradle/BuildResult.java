@@ -21,27 +21,48 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A {@code BuildResult} packages up the result of a build.</p>
+ * @since 0.7
  */
 public class BuildResult {
     private final String action;
     private final Throwable failure;
     private final Gradle gradle;
 
+    /**
+     * Creates a new {@code BuildResult}.
+     *
+     * @since 0.8
+     */
     public BuildResult(@Nullable Gradle gradle, @Nullable Throwable failure) {
         this("Build", gradle, failure);
     }
 
+    /**
+     * Creates a new {@code BuildResult}.
+     *
+     * @since 2.14
+     */
     public BuildResult(String action, @Nullable Gradle gradle, @Nullable Throwable failure) {
         this.action = action;
         this.gradle = gradle;
         this.failure = failure;
     }
 
+    /**
+     * Returns the gradle.
+     *
+     * @since 0.8
+     */
     @Nullable
     public Gradle getGradle() {
         return gradle;
     }
 
+    /**
+     * Returns the failure.
+     *
+     * @since 0.7
+     */
     @Nullable
     public Throwable getFailure() {
         return failure;
@@ -49,6 +70,7 @@ public class BuildResult {
 
     /**
      * The action performed by this build. Either `Build` or `Configure`.
+     * @since 2.14
      */
     public String getAction() {
         return action;
@@ -56,6 +78,7 @@ public class BuildResult {
 
     /**
      * <p>Rethrows the build failure. Does nothing if there was no build failure.</p>
+     * @since 0.7
      */
     public BuildResult rethrowFailure() {
         if (failure instanceof GradleException) {

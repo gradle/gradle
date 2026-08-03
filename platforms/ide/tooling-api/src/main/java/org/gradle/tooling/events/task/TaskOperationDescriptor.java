@@ -31,6 +31,7 @@ public interface TaskOperationDescriptor extends OperationDescriptor {
 
     /**
      * Returns the path of the task.
+     * @since 2.5
      */
     String getTaskPath();
 

@@ -32,11 +32,32 @@ import org.gradle.configuration.Help;
  * Adds various reporting tasks that provide information about the project.
  *
  * @see <a href="https://gradle.org/help/">Getting additional help with Gradle</a>
+ * @since 1.3
  */
 public abstract class HelpTasksPlugin implements Plugin<Project> {
+    /**
+     * The help group.
+     *
+     * @since 2.2
+     */
     public static final String HELP_GROUP = DiagnosticsTaskNames.HELP_GROUP;
+    /**
+     * The properties task.
+     *
+     * @since 2.2
+     */
     public static final String PROPERTIES_TASK = DiagnosticsTaskNames.PROPERTIES_TASK;
+    /**
+     * The dependencies task.
+     *
+     * @since 2.2
+     */
     public static final String DEPENDENCIES_TASK = DiagnosticsTaskNames.DEPENDENCIES_TASK;
+    /**
+     * The dependency insight task.
+     *
+     * @since 2.2
+     */
     public static final String DEPENDENCY_INSIGHT_TASK = DiagnosticsTaskNames.DEPENDENCY_INSIGHT_TASK;
 
     /**
@@ -62,6 +83,11 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
     @Incubating
     public static final String ARTIFACT_TRANSFORMS_TASK = DiagnosticsTaskNames.ARTIFACT_TRANSFORMS_TASK;
 
+    /**
+     * The model task.
+     *
+     * @since 2.4
+     */
     public static final String MODEL_TASK = DiagnosticsTaskNames.MODEL_TASK;
 
 

@@ -13,6 +13,9 @@ dependencies {
     compileOnly(projects.internalInstrumentationApi)  // @NotToBeMigratedToLazy annotation — compile-time only
     compileOnly(libs.jspecify)
     compileOnly(libs.jetbrainsAnnotations)
+
+    // Javadoc-only: needed to resolve {@link Project ...} references in AntBuilder and package-info
+    javadocReferences(projects.coreApi)
 }
 
 gradleModule {

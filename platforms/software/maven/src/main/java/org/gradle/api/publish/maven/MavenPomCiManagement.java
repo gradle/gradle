@@ -28,11 +28,13 @@ public interface MavenPomCiManagement {
 
     /**
      * The name of this CI management system.
+     * @since 4.8
      */
     Property<String> getSystem();
 
     /**
      * The URL of this CI management system.
+     * @since 4.8
      */
     Property<String> getUrl();
 

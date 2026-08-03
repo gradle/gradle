@@ -27,16 +27,27 @@ import java.util.List;
  * A {@link org.gradle.api.specs.Spec} which aggregates a sequence of other {@code Spec} instances.
  *
  * @param <T> The target type for this Spec
+ * @since 0.7
  */
 public abstract class CompositeSpec<T> implements Spec<T> {
     private static final Spec<?>[] EMPTY = new Spec<?>[0];
 
     private final Spec<? super T>[] specs;
 
+    /**
+     * Creates a new {@code CompositeSpec}.
+     *
+     * @since 3.0
+     */
     protected CompositeSpec() {
         this.specs = uncheckedCast(EMPTY);
     }
 
+    /**
+     * Creates a new {@code CompositeSpec}.
+     *
+     * @since 0.7
+     */
     @SuppressWarnings("unchecked")
     protected CompositeSpec(Spec<? super T>... specs) {
         if (specs.length == 0) {
@@ -46,6 +57,11 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         }
     }
 
+    /**
+     * Creates a new {@code CompositeSpec}.
+     *
+     * @since 0.9
+     */
     protected CompositeSpec(Iterable<? extends Spec<? super T>> specs) {
         if (specs instanceof Collection) {
             Collection<Spec<? super T>> specCollection = uncheckedCast(specs);
@@ -74,10 +90,20 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         return specs;
     }
 
+    /**
+     * Returns the specs.
+     *
+     * @since 0.7
+     */
     public List<Spec<? super T>> getSpecs() {
         return Collections.unmodifiableList(Arrays.asList(specs));
     }
 
+    /**
+     * Returns whether empty is set.
+     *
+     * @since 3.0
+     */
     public boolean isEmpty() {
         return specs.length == 0;
     }

@@ -50,6 +50,8 @@ import kotlin.reflect.KProperty
 
 /**
  * Configures the build script classpath for this project.
+ *
+ * @since 4.7
  */
 fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
     ScriptHandlerScopeInternal(project, buildscript).action()
@@ -58,6 +60,8 @@ fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
 /**
  * Sets the default tasks of this project. These are used when no tasks names are provided when
  * starting the build.
+ *
+ * @since 4.1
  */
 @Suppress("nothing_to_inline", "SpreadOperator")
 inline fun Project.defaultTasks(vararg tasks: Task) {
@@ -73,6 +77,8 @@ inline fun Project.defaultTasks(vararg tasks: Task) {
  *
  * @param T the plugin type.
  * @see [PluginAware.apply]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Plugin<Project>> Project.apply() =
     (this as PluginAware).apply<T>()
@@ -85,6 +91,8 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
  * @param T the project extension type.
  * @param configuration the configuration block.
  * @see [org.gradle.api.plugins.ExtensionAware]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
     typeOf<T>().let { type -> extensions.configure(type, configuration) }
@@ -95,6 +103,8 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
  *
  * @param T the project extension type.
  * @see [org.gradle.api.plugins.ExtensionAware]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Any> Project.the(): T =
     typeOf<T>().let { type -> extensions.getByType(type) }
@@ -105,6 +115,8 @@ inline fun <reified T : Any> Project.the(): T =
  *
  * @param T the project extension type.
  * @see [org.gradle.api.plugins.ExtensionAware]
+ *
+ * @since 4.1
  */
 fun <T : Any> Project.the(extensionType: KClass<T>): T =
     extensions.getByType(extensionType.java)
@@ -113,6 +125,8 @@ fun <T : Any> Project.the(extensionType: KClass<T>): T =
 /**
  * Creates a [Task] with the given [name] and [type], configures it with the given [configuration] action,
  * and adds it to this project tasks container.
+ *
+ * @since 4.1
  */
 @Deprecated("Use tasks.register instead", ReplaceWith("tasks.register<type>(name, configuration)"))
 inline fun <reified type : Task> Project.task(name: String, noinline configuration: type.() -> Unit) =
@@ -125,12 +139,17 @@ inline fun <reified type : Task> Project.task(name: String, noinline configurati
  *
  * @see [Project.getTasks]
  * @see [TaskContainer.create]
+ *
+ * @since 5.6
  */
 @Deprecated("Use tasks.register instead", ReplaceWith("tasks.register<type>(name)"))
 @Suppress("extension_shadowed_by_member", "DEPRECATION")
 inline fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 
+/**
+ * @since 4.1
+ */
 @Deprecated("Use tasks.register instead", ReplaceWith("tasks.register(name, type, configuration)"))
 @Suppress("DEPRECATION")
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
@@ -144,6 +163,8 @@ fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -
  * project.
  *
  * @param configuration the configuration block.
+ *
+ * @since 4.1
  */
 fun Project.repositories(configuration: RepositoryHandler.() -> Unit) =
     repositories.configuration()
@@ -151,6 +172,8 @@ fun Project.repositories(configuration: RepositoryHandler.() -> Unit) =
 
 /**
  * Configures the repositories for the script dependencies.
+ *
+ * @since 4.1
  */
 fun ScriptHandler.repositories(configuration: RepositoryHandler.() -> Unit) =
     repositories.configuration()
@@ -163,6 +186,8 @@ fun ScriptHandler.repositories(configuration: RepositoryHandler.() -> Unit) =
  * project.
  *
  * @param configuration the configuration block.
+ *
+ * @since 4.1
  */
 fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
     DependencyHandlerScope.of(dependencies).configuration()
@@ -175,6 +200,8 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
  * project.
  *
  * @param configuration the configuration block.
+ *
+ * @since 5.1
  */
 fun Project.artifacts(configuration: ArtifactHandlerScope.() -> Unit) =
     ArtifactHandlerScope.of(artifacts).configuration()
@@ -182,6 +209,8 @@ fun Project.artifacts(configuration: ArtifactHandlerScope.() -> Unit) =
 
 /**
  * Locates a property on [Project].
+ *
+ * @since 4.7
  */
 @Deprecated("Use 'val property = project.property(name)' or 'val property = project.findProperty(name)' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -215,6 +244,8 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
  * @return The container.
  *
  * @see [Project.container]
+ *
+ * @since 5.6
  */
 @Suppress("DEPRECATION")
 @Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(T::class.java)"))
@@ -235,6 +266,8 @@ inline fun <reified T : Any> Project.container(): NamedDomainObjectContainer<T> 
  * @return The container.
  *
  * @see [Project.container]
+ *
+ * @since 5.6
  */
 @Suppress("DEPRECATION")
 @Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(T::class.java, factory)"))
@@ -248,6 +281,8 @@ inline fun <reified T : Any> Project.container(noinline factory: (String) -> T):
  * Includes the Kotlin and Gradle APIs.
  *
  * @return The dependency.
+ *
+ * @since 4.1
  */
 fun Project.gradleKotlinDsl(): Dependency =
     DefaultFileCollectionDependency(

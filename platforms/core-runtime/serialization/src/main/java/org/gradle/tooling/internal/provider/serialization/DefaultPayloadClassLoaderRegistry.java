@@ -22,6 +22,7 @@ import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -138,7 +140,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     private static class ClassLoaderSpecVisitor extends ClassLoaderVisitor {
 
         final List<ClassLoader> parents = new ArrayList<ClassLoader>();
-        ClassLoaderSpec spec;
+        @Nullable ClassLoaderSpec spec;
 
         @Override
         public void visitParent(ClassLoader classLoader) {
@@ -175,7 +177,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
             visitor.visit(classLoader);
 
             UUID uuid = UUID.randomUUID();
-            ClassLoaderDetails details = new ClassLoaderDetails(uuid, visitor.spec);
+            ClassLoaderDetails details = new ClassLoaderDetails(uuid, Objects.requireNonNull(visitor.spec));
             for (ClassLoader parent : visitor.parents) {
                 details.parents.add(getDetails(parent));
             }

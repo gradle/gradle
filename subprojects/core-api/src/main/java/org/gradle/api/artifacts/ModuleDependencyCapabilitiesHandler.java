@@ -34,6 +34,7 @@ public interface ModuleDependencyCapabilitiesHandler {
      * Requires a single capability.
      *
      * @param capabilityNotation the capability {@linkplain ConfigurationPublications#capability(Object) notation} (e.g. group:name:version), {@linkplain Provider Providers} of any notation are also accepted
+     * @since 5.3
      */
     void requireCapability(Object capabilityNotation);
 
@@ -42,6 +43,7 @@ public interface ModuleDependencyCapabilitiesHandler {
      * to be selected.
      *
      * @param capabilityNotations the capability {@linkplain ConfigurationPublications#capability(Object) notations} (e.g. group:name:version), {@linkplain Provider Providers} of any notation are also accepted
+     * @since 5.3
      */
     void requireCapabilities(Object... capabilityNotations);
 

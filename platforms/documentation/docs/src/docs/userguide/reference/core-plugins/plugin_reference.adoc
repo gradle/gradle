@@ -99,7 +99,7 @@ Performs quality checks on your project’s Java source files using https://chec
 Performs quality checks on your project’s Java source files using http://pmd.github.io/[PMD] and generates associated reports.
 
 <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>::
-Provides code coverage metrics for your Java project using http://www.eclemma.org/jacoco/[JaCoCo].
+Provides code coverage metrics for your Java project using https://www.jacoco.org/jacoco/[JaCoCo].
 
 <<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>>::
 Aggregates the results of multiple JaCoCo code coverage reports (potentially spanning multiple Gradle projects) into a single HTML report.

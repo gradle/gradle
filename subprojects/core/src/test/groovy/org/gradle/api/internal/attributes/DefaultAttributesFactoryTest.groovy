@@ -23,7 +23,8 @@ import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAR
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAZ
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BOOLEAN_BAR
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.FOO
-import static org.gradle.api.internal.attributes.immutable.TestAttributes.OBJECT_BAR
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.INTEGER_BAR
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.NUMBER_BAR
 
 /**
  * Unit tests for {@link DefaultAttributesFactory}.
@@ -221,7 +222,7 @@ class DefaultAttributesFactoryTest extends Specification {
 
     def "safeConcat can detect incompatible attributes with different types when merging; different value and different compatible types"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OBJECT_BAR, "bar1")) // Object-typed bar
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(NUMBER_BAR, 1)) // Number-typed bar
         def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2")) // String-typed bar
 
         when:
@@ -229,22 +230,22 @@ class DefaultAttributesFactoryTest extends Specification {
 
         then:
         AttributeMergingException e = thrown()
-        e.attribute == OBJECT_BAR
-        e.leftValue == "bar1"
+        e.attribute == NUMBER_BAR
+        e.leftValue == 1
         e.rightValue == "bar2"
-        e.message == "An attribute named 'bar' of type 'java.lang.Object' already exists in this container"
+        e.message == "An attribute named 'bar' of type 'java.lang.Number' already exists in this container"
     }
 
     def "safeConcat can detect incompatible attributes with different types when merging; same value and different compatible types"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OBJECT_BAR, "bar1")) // Object-typed bar
-        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1")) // String-typed bar
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(NUMBER_BAR, 1)) // Number-typed bar
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(INTEGER_BAR, 1)) // Integer-typed bar
 
         when:
         factory.safeConcat(set1, set2)
 
         then:
         Exception e = thrown()
-        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Object'"
+        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.Integer' and you are trying to store another one of type 'java.lang.Number'"
     }
 }

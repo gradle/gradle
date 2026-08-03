@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.internal;
 import com.google.common.io.ByteSource;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.ConfigurationCacheOutcome;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
@@ -35,13 +36,20 @@ public class DefaultBuildResult implements BuildResult {
 
     private final List<BuildTask> tasks;
 
+    private final ConfigurationCacheOutcome configurationCacheOutcome;
+
     public DefaultBuildResult(String output, List<BuildTask> tasks) {
         this(ByteSource.wrap(output.getBytes(Charset.defaultCharset())), tasks);
     }
 
     public DefaultBuildResult(ByteSource outputSource, List<BuildTask> tasks) {
+        this(outputSource, tasks, null);
+    }
+
+    public DefaultBuildResult(ByteSource outputSource, List<BuildTask> tasks, @Nullable ConfigurationCacheOutcome configurationCacheOutcome) {
         this.outputSource = outputSource;
         this.tasks = tasks;
+        this.configurationCacheOutcome = configurationCacheOutcome == null ? ConfigurationCacheOutcome.NOT_ENABLED : configurationCacheOutcome;
     }
 
     @Override
@@ -87,6 +95,11 @@ public class DefaultBuildResult implements BuildResult {
         }
 
         return null;
+    }
+
+    @Override
+    public ConfigurationCacheOutcome getConfigurationCacheOutcome() {
+        return configurationCacheOutcome;
     }
 
 }

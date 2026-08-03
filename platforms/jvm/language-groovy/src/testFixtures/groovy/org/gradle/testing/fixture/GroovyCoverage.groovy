@@ -107,22 +107,31 @@ class GroovyCoverage {
     private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
         def allVersions = allVersions()
 
+        def supported
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
-            return VersionCoverage.versionsAtLeast(allVersions, '4.0.29')
+            supported = VersionCoverage.versionsAtLeast(allVersions, '4.0.29')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
-            return VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
+            supported = VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             // Latest 3.0.x patches support Java 15+
-            return VersionCoverage.versionsAtLeast(allVersions, '3.0.0')
+            supported = VersionCoverage.versionsAtLeast(allVersions, '3.0.0')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_14)) {
-            return VersionCoverage.versionsBetweenInclusive(allVersions, '2.2.2', '2.5.10')
+            supported = VersionCoverage.versionsBetweenInclusive(allVersions, '2.2.2', '2.5.10')
         } else if (javaVersion < JavaVersion.VERSION_11) {
             // 5.0.0 requires Java 11+
             // Using 4.99.99 as a placeholder because beta versions aren't properly handled by VersionCoverage
-            return VersionCoverage.versionsBelow(allVersions, "4.99.99")
+            supported = VersionCoverage.versionsBelow(allVersions, "4.99.99")
         } else {
-            return allVersions
+            supported = allVersions
         }
+
+        // 6.0.0 requires Java 17+
+        // Using 5.99.99 as a placeholder because beta versions aren't properly handled by VersionCoverage
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            supported = VersionCoverage.versionsBelow(supported, "5.99.99")
+        }
+
+        return supported
     }
 
     static Map<String, Jvm> groovyVersionsSupportedByAvailableJdks(Set<String> groovyVersions) {

@@ -26,6 +26,8 @@ import kotlin.reflect.KProperty
  * Property delegate for [Property] instances.
  *
  * Example: `val someProperty by somePropertyState`
+ *
+ * @since 4.3
  */
 @Deprecated("Use 'val value = property.get()' instead. See the Gradle 9.6 upgrading guide.")
 operator fun <T : Any> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T {
@@ -42,6 +44,8 @@ operator fun <T : Any> Property<T>.getValue(receiver: Any?, property: KProperty<
  * Property delegate for [Property] instances.
  *
  * Example: `var someProperty by somePropertyState`
+ *
+ * @since 4.3
  */
 @Deprecated("Use 'property.set(value)' instead. See the Gradle 9.6 upgrading guide.")
 operator fun <T : Any> Property<T>.setValue(receiver: Any?, property: KProperty<*>, value: T) {

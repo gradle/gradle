@@ -52,17 +52,43 @@ import java.io.File;
  * </ul>
  *
  * @param <T> The domain object for the configuration file.
+ * @since 1.0
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class GeneratorTask<T> extends ConventionTask {
     private File inputFile;
     private File outputFile;
+    /**
+     * The before configured.
+     *
+     * @since 1.0
+     */
     protected final MutableActionSet<T> beforeConfigured = new MutableActionSet<T>();
+    /**
+     * The after configured.
+     *
+     * @since 1.0
+     */
     protected final MutableActionSet<T> afterConfigured = new MutableActionSet<T>();
+    /**
+     * The generator.
+     *
+     * @since 1.0
+     */
     protected Generator<T> generator;
 
+    /**
+     * The domain object.
+     *
+     * @since 1.0
+     */
     protected T domainObject;
 
+    /**
+     * Creates a new {@code GeneratorTask}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public GeneratorTask() {
         if (!getIncremental()) {
@@ -80,6 +106,11 @@ public abstract class GeneratorTask<T> extends ConventionTask {
         return false;
     }
 
+    /**
+     * Generate.
+     *
+     * @since 9.6.0
+     */
     @SuppressWarnings("UnusedDeclaration")
     @TaskAction
     protected void generate() {
@@ -110,6 +141,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
      * does not exist, this task uses some default initial configuration.
      *
      * @return The input file.
+     * @since 1.0
      */
     @Internal("Covered by inputFileIfExists")
     public File getInputFile() {
@@ -117,6 +149,11 @@ public abstract class GeneratorTask<T> extends ConventionTask {
     }
 
     // Workaround for when the task is given an input file that doesn't exist
+    /**
+     * Returns the input file if exists.
+     *
+     * @since 3.0
+     */
     @Nullable
     @Optional
     @PathSensitive(PathSensitivity.NONE)
@@ -134,6 +171,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
      * Sets the input file to load the initial configuration from.
      *
      * @param inputFile The input file. Use null to use the output file.
+     * @since 1.0
      */
     public void setInputFile(@Nullable File inputFile) {
         this.inputFile = inputFile;
@@ -143,6 +181,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
      * The output file to write the final configuration to.
      *
      * @return The output file.
+     * @since 1.0
      */
     @OutputFile
     public File getOutputFile() {
@@ -153,6 +192,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
      * Sets the output file to write the final configuration to.
      *
      * @param outputFile The output file.
+     * @since 1.0
      */
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;

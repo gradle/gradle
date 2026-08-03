@@ -24,16 +24,19 @@ package org.gradle.nativeplatform;
 public interface TargetMachineBuilder extends TargetMachine {
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the x86 32-bit architecture
+     * @since 5.2
      */
     TargetMachine getX86();
 
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the x86 64-bit architecture
+     * @since 5.2
      */
     TargetMachine getX86_64();
 
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the specified architecture.
+     * @since 5.2
      */
     TargetMachine architecture(String architecture);
 }

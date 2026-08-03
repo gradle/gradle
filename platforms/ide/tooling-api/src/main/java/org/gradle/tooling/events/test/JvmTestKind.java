@@ -22,8 +22,17 @@ package org.gradle.tooling.events.test;
  */
 public enum JvmTestKind {
 
+    /**
+     * @since 2.4
+     */
     SUITE("Test suite"),
+    /**
+     * @since 2.4
+     */
     ATOMIC("Atomic test"),
+    /**
+     * @since 2.4
+     */
     UNKNOWN("Unknown test kind");
 
     private final String label;
@@ -36,6 +45,7 @@ public enum JvmTestKind {
      * Returns a label for the test kind. The label can be used to generate a prettified version of the test descriptor.
      *
      * @return a label corresponding to the test kind
+     * @since 2.4
      */
     public String getLabel() {
         return label;

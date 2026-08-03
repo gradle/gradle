@@ -31,7 +31,7 @@ jobs:
             BOT_GRADLE_GITHUB_TOKEN, gha/gradle/_all/BOT_GRADLE_GITHUB_TOKEN
             TEAMCITY_ACCESS_TOKEN, gha/gradle/_all/TEAMCITY_ACCESS_TOKEN
       - name: Setup java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: temurin
           java-version: 25

@@ -50,6 +50,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
+import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -60,11 +61,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
+import org.gradle.api.internal.services.PublicServiceLookups;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
@@ -78,6 +79,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -89,8 +91,10 @@ import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -106,7 +110,6 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
-import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
@@ -135,6 +138,7 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -148,9 +152,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.inject.Inject;
 
-import org.gradle.internal.build.BuildState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
@@ -634,11 +636,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Path identityPath(String name) {
-        return getIdentityPath().child(name);
-    }
-
-    @Override
     public Path getProjectPath() {
         return owner.getProjectPath();
     }
@@ -649,38 +646,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public ModelContainer<ProjectInternal> getModel() {
-        return getOwner();
-    }
-
-    @Override
     public PluginContainer getPlugins() {
         return super.getPlugins();
-    }
-
-    @Override
-    public Path getBuildPath() {
-        return getBuildState().getIdentityPath();
-    }
-
-    @Override
-    public Path projectPath(String name) {
-        return getProjectPath().child(name);
-    }
-
-    @Override
-    public boolean isScript() {
-        return false;
-    }
-
-    @Override
-    public boolean isRootScript() {
-        return false;
-    }
-
-    @Override
-    public boolean isPluginContext() {
-        return false;
     }
 
     @Override
@@ -961,6 +928,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     public abstract ProjectLayout getLayout();
+
+    @Override
+    public <T extends ProjectService> T service(Class<T> serviceType) {
+        return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.PROJECT, getServices());
+    }
 
     @Override
     public File file(Object path) {
@@ -1580,7 +1552,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         DependencyResolutionServices resolver = dms.newDetachedResolver(
             services.get(FileResolver.class),
             services.get(FileCollectionFactory.class),
-            StandaloneDomainObjectContext.detachedFrom(this)
+            new DependencyManagementParameters(Describables.of("detached context for", owner.getDisplayName()), null, true, true, true)
         );
 
         return new LocalDetachedResolver(resolver);

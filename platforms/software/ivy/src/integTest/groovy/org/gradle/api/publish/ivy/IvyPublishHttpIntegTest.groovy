@@ -59,17 +59,34 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         settingsFile << "rootProject.name = '$name'"
     }
 
-    def "can publish to unauthenticated HTTP repository"() {
+    def "can publish to unauthenticated HTTP repository (extra checksums = #extraChecksums)"() {
         given:
         buildFile << publicationBuildWithoutCredentials(version, group, ivyHttpRepo.uri)
+
+        if (!extraChecksums) {
+            executer.withArgument("-Dorg.gradle.internal.publish.checksums.insecure=true")
+            module.withoutExtraChecksums()
+        }
 
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        if (extraChecksums) {
+            module.jar.sha256.expectPut()
+            module.jar.sha512.expectPut()
+        }
         module.ivy.expectPut(201)
         module.ivy.sha1.expectPut(201)
+        if (extraChecksums) {
+            module.ivy.sha256.expectPut(201)
+            module.ivy.sha512.expectPut(201)
+        }
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        if (extraChecksums) {
+            module.moduleMetadata.sha256.expectPut()
+            module.moduleMetadata.sha512.expectPut()
+        }
 
         when:
         succeeds 'publish'
@@ -82,6 +99,36 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         progressLogging.uploadProgressLogged(module.moduleMetadata.uri)
         progressLogging.uploadProgressLogged(module.ivy.uri)
         progressLogging.uploadProgressLogged(module.jar.uri)
+
+        where:
+        extraChecksums << [true, false]
+    }
+
+    def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
+        given:
+        buildFile << publicationBuildWithoutCredentials(version, group, ivyHttpRepo.uri)
+
+        and:
+        maxUploadAttempts = 1
+
+        when:
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.sha256.expectPutBroken()
+        module.artifact.sha512.expectPutBroken()
+        module.ivy.expectPut()
+        module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPutBroken()
+        module.ivy.sha512.expectPutBroken()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPutBroken()
+        module.moduleMetadata.sha512.expectPutBroken()
+
+        then:
+        succeeds 'publish'
+        outputContains("remote repository doesn't support sha-256. This will not fail the build.")
+        outputContains("remote repository doesn't support sha-512. This will not fail the build.")
     }
 
     def "can publish to authenticated repository using #authScheme auth"() {
@@ -245,8 +292,12 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPut()
+        module.ivy.sha512.expectPut()
 
         when:
         run 'publish'
@@ -297,8 +348,12 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         and:
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
         run 'publish'
@@ -369,14 +424,20 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         module.jar.expectPutBroken()
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
 
         module.ivy.expectPutBroken()
         module.ivy.expectPut(201)
         module.ivy.sha1.expectPut(201)
+        module.ivy.sha256.expectPut(201)
+        module.ivy.sha512.expectPut(201)
 
         module.moduleMetadata.expectPutBroken()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
 
         when:
         succeeds 'publish'
@@ -556,9 +617,15 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     private static void expectPublishModuleWithCredentials(IvyHttpModule module, HttpServer.PasswordCredentials credentials) {
         module.jar.expectPut(credentials)
         module.jar.sha1.expectPut(credentials)
+        module.jar.sha256.expectPut(credentials)
+        module.jar.sha512.expectPut(credentials)
         module.ivy.expectPut(credentials)
         module.ivy.sha1.expectPut(credentials)
+        module.ivy.sha256.expectPut(credentials)
+        module.ivy.sha512.expectPut(credentials)
         module.moduleMetadata.expectPut(credentials)
         module.moduleMetadata.sha1.expectPut(credentials)
+        module.moduleMetadata.sha256.expectPut(credentials)
+        module.moduleMetadata.sha512.expectPut(credentials)
     }
 }

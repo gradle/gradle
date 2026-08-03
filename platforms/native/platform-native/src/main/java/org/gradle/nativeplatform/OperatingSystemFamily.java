@@ -25,9 +25,14 @@ import org.gradle.api.tasks.Input;
  * Represents the operating system of a configuration. Typical operating system include Windows, Linux, and macOS.
  * This interface allows the user to customize operating systems by implementing this interface.
  *
- * @since 5.1
+ * @since 4.7
  */
 public abstract class OperatingSystemFamily implements Named {
+    /**
+     * Of.
+     *
+     * @since 4.7
+     */
     public static final Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
 
     /**
@@ -40,12 +45,14 @@ public abstract class OperatingSystemFamily implements Named {
     /**
      * The Windows operating system family.
      *
+     * @since 4.7
      */
     public static final String WINDOWS = "windows";
 
     /**
      * Is this the Windows operating system family?
      *
+     * @since 4.8
      */
     public boolean isWindows() {
         return is(WINDOWS);
@@ -54,12 +61,14 @@ public abstract class OperatingSystemFamily implements Named {
     /**
      * The Linux operating system family.
      *
+     * @since 4.7
      */
     public static final String LINUX = "linux";
 
     /**
      * Is this the Linux operating system family?
      *
+     * @since 4.8
      */
     public boolean isLinux() {
         return is(LINUX);
@@ -86,12 +95,14 @@ public abstract class OperatingSystemFamily implements Named {
     /**
      * The macOS operating system family.
      *
+     * @since 4.8
      */
     public static final String MACOS = "macos";
 
     /**
      * Is this the macOS operating system family?
      *
+     * @since 4.8
      */
     public boolean isMacOs() {
         return is(MACOS);

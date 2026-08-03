@@ -321,11 +321,39 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
 
     private void put(File src, ExternalResourceName destination) {
         repository.withProgressLogging().resource(destination).put(new FileReadableContent(src));
-        publishChecksums(destination, src);
+        if (!isSignatureFile(destination)) {
+            publishChecksums(destination, src);
+        }
+    }
+
+    /**
+     * Signature files (e.g. {@code .asc}, {@code .sig}) are themselves integrity artifacts, so we do not
+     * publish checksums for them.
+     */
+    private static boolean isSignatureFile(ExternalResourceName destination) {
+        String path = destination.getPath();
+        return path.endsWith(".asc") || path.endsWith(".sig");
     }
 
     private void publishChecksums(ExternalResourceName destination, File content) {
         publishChecksum(destination, content, "sha1");
+
+        if (!ExternalResourceResolver.disableExtraChecksums()) {
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-256");
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-512");
+        }
+    }
+
+    private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm) {
+        try {
+            publishChecksum(destination, content, algorithm);
+        } catch (Exception ex) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.", ex);
+            } else {
+                LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.");
+            }
+        }
     }
 
     private void publishChecksum(ExternalResourceName destination, File content, String algorithm) {
@@ -535,6 +563,10 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         public void listed(List<String> versions) {
             result.listed(versions);
         }
+    }
+
+    public static boolean disableExtraChecksums() {
+        return Boolean.getBoolean("org.gradle.internal.publish.checksums.insecure");
     }
 
 }

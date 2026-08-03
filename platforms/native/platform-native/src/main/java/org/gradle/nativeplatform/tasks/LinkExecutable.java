@@ -21,6 +21,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Links a binary executable from object files and libraries.
+ * @since 2.2
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class LinkExecutable extends AbstractLinkTask {

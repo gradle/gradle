@@ -75,6 +75,7 @@ public interface TransformOutputs {
      *
      * @param path path of the output directory
      * @return determined location of the output
+     * @since 5.3
      */
     File dir(Object path);
 
@@ -127,6 +128,7 @@ public interface TransformOutputs {
      *
      * @param path path of the output file
      * @return determined location of the output
+     * @since 5.3
      */
     File file(Object path);
 }

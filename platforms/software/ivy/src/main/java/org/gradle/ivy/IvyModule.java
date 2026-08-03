@@ -20,6 +20,7 @@ import org.gradle.api.component.Component;
 
 /**
  * An Ivy Module component.
+ * @since 2.3
  */
 public interface IvyModule extends Component {
 }

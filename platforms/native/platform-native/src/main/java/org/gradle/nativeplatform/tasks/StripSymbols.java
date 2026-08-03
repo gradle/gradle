@@ -51,6 +51,7 @@ public abstract class StripSymbols extends DefaultTask {
     /**
      * The file that debug symbols should be stripped from.  Note that this file remains unchanged
      * and a new stripped binary will be written to the file specified by {{@link #getOutputFile()}}.
+     * @since 4.5
      */
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
@@ -58,6 +59,7 @@ public abstract class StripSymbols extends DefaultTask {
 
     /**
      * The destination to write the stripped binary to.
+     * @since 4.5
      */
     @OutputFile
     public abstract RegularFileProperty getOutputFile();
@@ -80,6 +82,11 @@ public abstract class StripSymbols extends DefaultTask {
 
     // TODO: Need to track version/implementation of symbol strip tool.
 
+    /**
+     * Strip symbols.
+     *
+     * @since 4.5
+     */
     @TaskAction
     protected void stripSymbols() {
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());

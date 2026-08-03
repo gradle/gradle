@@ -370,7 +370,10 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             ${resolve.configureSettings("_compileFree", "_compilePaid")}
         """
         buildFile << """
-            enum SomeEnum { free, paid }
+            enum SomeEnum implements Named {
+                free, paid
+                @Override String getName() { return name() }
+            }
             interface Thing extends Named { }
             @groovy.transform.EqualsAndHashCode
             class OtherThing implements Thing, Serializable { String name }
@@ -405,7 +408,10 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         """
 
         file('includedBuild/build.gradle') << """
-            enum SomeEnum { free, paid }
+            enum SomeEnum implements Named {
+                free, paid
+                @Override String getName() { return name() }
+            }
             interface Thing extends Named { }
             @groovy.transform.EqualsAndHashCode
             class OtherThing implements Thing, Serializable { String name }
@@ -1012,8 +1018,20 @@ All of them match the consumer attributes:
                     groovy {
                         com {
                             acme {
-                                'Flavor.groovy'('package com.acme; enum Flavor { free, paid }')
-                                'BuildType.groovy'('package com.acme; enum BuildType { debug {}, release {} }')
+                                'Flavor.groovy'('''package com.acme
+                                    import org.gradle.api.Named
+                                    enum Flavor implements Named {
+                                        free, paid
+                                        @Override String getName() { return name() }
+                                    }
+                                ''')
+                                'BuildType.groovy'('''package com.acme
+                                    import org.gradle.api.Named
+                                    enum BuildType implements Named {
+                                        debug {}, release {}
+                                        @Override String getName() { return name() }
+                                    }
+                                ''')
                                 'TypedAttributesPlugin.groovy'('''package com.acme
 
                                     import org.gradle.api.Plugin

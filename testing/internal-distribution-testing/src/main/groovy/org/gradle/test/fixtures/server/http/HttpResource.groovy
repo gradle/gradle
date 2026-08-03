@@ -44,6 +44,22 @@ abstract class HttpResource extends AbstractHttpResource {
         server.expectGetBroken(getPath())
     }
 
+    /**
+     * Expects one GET request, which fails with the given status code and an
+     * RFC 9457 Problem Details body auto-built from the supplied detail message.
+     */
+    void expectGetBroken(int statusCode, String rfc9457Detail) {
+        server.expectGetBroken(getPath(), statusCode, rfc9457Detail)
+    }
+
+    /**
+     * Expects one GET request, which fails with the given status code and the
+     * supplied RFC 9457 Problem Details JSON body (as a map).
+     */
+    void expectGetBroken(int statusCode, Map<String, ?> rfc9457ProblemJson) {
+        server.expectGetBroken(getPath(), statusCode, rfc9457ProblemJson)
+    }
+
     void expectGetUnauthorized() {
         server.expectGetUnauthorized(getPath())
     }

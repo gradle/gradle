@@ -29,21 +29,25 @@ public interface MavenPomLicense {
 
     /**
      * The name of this license.
+     * @since 4.8
      */
     Property<String> getName();
 
     /**
      * The URL of this license.
+     * @since 4.8
      */
     Property<String> getUrl();
 
     /**
      * The distribution of this license.
+     * @since 4.8
      */
     Property<String> getDistribution();
 
     /**
      * The comments of this license.
+     * @since 4.8
      */
     Property<String> getComments();
 

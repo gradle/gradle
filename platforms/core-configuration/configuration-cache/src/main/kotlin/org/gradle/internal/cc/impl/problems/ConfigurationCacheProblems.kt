@@ -42,6 +42,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.operations.emitConfigurationCacheEntryOutcomeOperation
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
@@ -57,9 +58,11 @@ import org.gradle.internal.deprecation.DeprecationMessageBuilder
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.operations.configuration.ConfigurationCacheEntryOutcomeBuildOperationType.Outcome
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
@@ -78,6 +81,14 @@ val isolatedProjectsDangerouslyIgnoreProblemsSentences = listOf(
     "Isolated Projects violations are being ignored.",
     "Build outputs may be incorrect and the build may crash unexpectedly.",
     "Use this only to evaluate performance.",
+    "Do not use this to produce artifacts."
+)
+
+val configurationCacheWarnModeSentences = listOf(
+    "Configuration Cache warn mode is ENABLED.",
+    "Configuration Cache constraint violations are being ignored.",
+    "Build outputs may be incorrect and the build may crash unexpectedly.",
+    "Use this only to discover configuration cache incompatibilities.",
     "Do not use this to produce artifacts."
 )
 
@@ -125,7 +136,10 @@ class ConfigurationCacheProblems(
     val buildStateRegistry: BuildStateRegistry,
 
     private
-    val degradationController: DefaultConfigurationCacheDegradationController
+    val degradationController: DefaultConfigurationCacheDegradationController,
+
+    private
+    val buildOperationRunner: BuildOperationRunner
 ) : AbstractProblemsListener(), IsolatedProjectsProblemsListener, ProblemReporter, AutoCloseable {
 
     private
@@ -351,6 +365,21 @@ class ConfigurationCacheProblems(
     }
 
     private
+    fun reportConfigurationCacheWarnMode() {
+        val message = configurationCacheWarnModeSentences.joinToString(" ")
+        problemsService.internalReporter.internalCreate {
+            id(
+                "configuration-cache-warn-mode",
+                "Configuration Cache warn mode is enabled",
+                configCacheValidation
+            )
+            contextualLabel(message)
+        }.also {
+            problemsService.internalReporter.report(it)
+        }
+    }
+
+    private
     fun ProblemSpec.documentOfProblem(problem: PropertyProblem) {
         problem.documentationSection?.let {
             documentedAt(Documentation.userManual(it.page, it.anchor).url)
@@ -475,39 +504,69 @@ class ConfigurationCacheProblems(
                 logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
                 reportDangerouslyIgnoringProblems()
             }
+
+            if (isWarningMode) {
+                reportConfigurationCacheWarnMode()
+            }
         }
 
-        @Suppress("CyclomaticComplexMethod")
         override fun beforeComplete(failure: Throwable?) {
             val summary = summarizer.get()
-            val consoleProblemCount = summary.consoleProblemCount
-            val deferredProblemCount = summary.deferredProblemCount
-            val hasProblems = consoleProblemCount > 0
-            val discardStateDueToProblems = discardStateDueToProblems(summary)
-            val hasTooManyProblems = hasTooManyProblems(summary)
-            val problemCountString = consoleProblemCount.counter("problem")
-            val reusedProjectsString = reusedProjects.counter("project")
-            val updatedProjectsString = updatedProjects.counter("project")
-            when {
-                seenSerializationErrorOnStore && deferredProblemCount == 0 -> log("Configuration cache entry discarded due to serialization error.")
-                seenSerializationErrorOnStore -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && shouldDegradeGracefully() -> log("Configuration cache disabled${degradationSummary()}")
-                cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
-                cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
-                cacheAction == Store && !hasProblems -> log("Configuration cache entry stored.")
-                cacheAction == Store -> log("Configuration cache entry stored with {}.", problemCountString)
-                cacheAction is Update && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
-                cacheAction is Update -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
-                cacheAction is Load && !hasProblems -> log("Configuration cache entry reused.")
-                cacheAction is Load -> log("Configuration cache entry reused with {}.", problemCountString)
-                cacheAction == SkipStore -> log("Configuration cache disabled as cache is in read-only mode.")
-                hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
-                hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
-                // else not storing or loading and no problems to report
-            }
+
+            val fateOfEntryInBuild = fateOfEntryInBuild(summary)
+            fateOfEntryInBuild.message?.let { log(it) }
+            buildOperationRunner.emitConfigurationCacheEntryOutcomeOperation(fateOfEntryInBuild.outcome, summary.consoleProblemCount)
+
             if (isIsolatedProjectsDangerouslyIgnoreProblems) {
                 logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
+            }
+        }
+    }
+
+    /**
+     * The final fate of a configuration caching entry for this build invocation, and the console message reporting it.
+     */
+    private
+    data class FateOfEntryInBuild(val outcome: Outcome, val message: String?)
+
+    @Suppress("CyclomaticComplexMethod")
+    private fun fateOfEntryInBuild(summary: Summary): FateOfEntryInBuild {
+        val consoleProblemCount = summary.consoleProblemCount
+        val deferredProblemCount = summary.deferredProblemCount
+        val hasProblems = consoleProblemCount > 0
+        val discardStateDueToProblems = discardStateDueToProblems(summary)
+        val hasTooManyProblems = hasTooManyProblems(summary)
+        val problemCountString = consoleProblemCount.counter("problem")
+        val reusedProjectsString = reusedProjects.counter("project")
+        val updatedProjectsString = updatedProjects.counter("project")
+        return when {
+            // The build finished before the cache action was determined, e.g. because it failed early.
+            !::cacheAction.isInitialized -> FateOfEntryInBuild(
+                Outcome.UNDETERMINED,
+                when {
+                    hasTooManyProblems -> "Too many configuration cache problems found ($problemCountString)."
+                    hasProblems -> "Configuration cache problems found ($problemCountString)."
+                    else -> null
+                }
+            )
+            seenSerializationErrorOnStore && deferredProblemCount == 0 -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded due to serialization error.")
+            seenSerializationErrorOnStore -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded with $problemCountString.")
+            else -> when (cacheAction) {
+                Store -> when {
+                    shouldDegradeGracefully() -> FateOfEntryInBuild(Outcome.NOT_STORED, "Configuration cache disabled${degradationSummary()}")
+                    discardStateDueToProblems && !hasProblems -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded${incompatibleTasksSummary()}")
+                    discardStateDueToProblems -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded with $problemCountString.")
+                    hasTooManyProblems -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded with too many problems ($problemCountString).")
+                    !hasProblems -> FateOfEntryInBuild(Outcome.STORED, "Configuration cache entry stored.")
+                    else -> FateOfEntryInBuild(Outcome.STORED, "Configuration cache entry stored with $problemCountString.")
+                }
+                is Update ->
+                    if (!hasProblems) FateOfEntryInBuild(Outcome.UPDATED, "Configuration cache entry updated for $updatedProjectsString, $reusedProjectsString up-to-date.")
+                    else FateOfEntryInBuild(Outcome.UPDATED, "Configuration cache entry updated for $updatedProjectsString with $problemCountString, $reusedProjectsString up-to-date.")
+                is Load ->
+                    if (!hasProblems) FateOfEntryInBuild(Outcome.REUSED, "Configuration cache entry reused.")
+                    else FateOfEntryInBuild(Outcome.REUSED, "Configuration cache entry reused with $problemCountString.")
+                SkipStore -> FateOfEntryInBuild(Outcome.NOT_STORED, "Configuration cache disabled as cache is in read-only mode.")
             }
         }
     }
@@ -553,8 +612,8 @@ class ConfigurationCacheProblems(
         summary.deferredProblemCount > startParameter.maxProblems
 
     private
-    fun log(msg: String, vararg args: Any = emptyArray()) {
-        logger.warn(msg, *args)
+    fun log(msg: String) {
+        logger.warn(msg)
     }
 
     private

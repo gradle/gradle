@@ -28,6 +28,7 @@ public interface TaskSuccessResult extends TaskExecutionResult, SuccessResult {
      * Returns whether this task was up-to-date.
      *
      * @return {@code true} if this task was up-to-date
+     * @since 2.5
      */
     boolean isUpToDate();
 

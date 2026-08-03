@@ -30,6 +30,7 @@ public interface EclipseJavaSourceSettings {
      * Returns the Java source language level.
      *
      * @return The source language level. Never returns {@code null}.
+     * @since 2.11
      */
     JavaVersion getSourceLanguageLevel();
 
