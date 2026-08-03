@@ -68,7 +68,7 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
             // The deprecation warning is expected until https://github.com/palantir/gradle-consistent-versions/issues/1700 is fixed
             .expectDeprecationWarning(
                 "The Configuration.setVisible(boolean) method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 10. " +
+                    "This is scheduled to be removed in Gradle 11. " +
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property",
                 "https://github.com/palantir/gradle-consistent-versions/issues/1700"

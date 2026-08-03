@@ -34,7 +34,7 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     private static final String PROTOBUF_SET_VISIBLE_FOLLOWUP = "https://github.com/google/protobuf-gradle-plugin/issues/815"
     private static final String SET_VISIBLE_DEPRECATION =
         "The Configuration.setVisible(boolean) method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 10. " +
+            "This is scheduled to be removed in Gradle 11. " +
             "Consult the upgrading guide for further information: " +
             "${DOCS.getDocumentationFor("upgrading_version_9", "deprecate-visible-property")}"
 

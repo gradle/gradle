@@ -44,7 +44,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     // The Kotlin plugin calls the deprecated Configuration.setVisible(boolean) method until KT-78754 was fixed in Kotlin 2.3.20 / 2.4.0
     private static final String SET_VISIBLE_DEPRECATION =
         "The Configuration.setVisible(boolean) method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 10. " +
+            "This is scheduled to be removed in Gradle 11. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property"
 

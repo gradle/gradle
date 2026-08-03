@@ -253,7 +253,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def deprecations = [parentMethodInvocationDeprecation('kotlin')]
         if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_20) {
             // The Kotlin plugin calls the deprecated Configuration.setVisible(boolean) method until KT-78754 was fixed in Kotlin 2.3.20 / 2.4.0
-            deprecations << "The Configuration.setVisible(boolean) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate-visible-property".toString()
+            deprecations << "The Configuration.setVisible(boolean) method has been deprecated. This is scheduled to be removed in Gradle 11. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate-visible-property".toString()
         }
         if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_20) {
             deprecations << "Declaring a Usage attribute with a legacy value has been deprecated. This will fail with an error in Gradle 10. A Usage attribute was declared with value 'java-api-jars'. Declare a Usage attribute with value 'java-api' and a LibraryElements attribute with value 'jar' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate_legacy_usage_values".toString()
