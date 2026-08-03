@@ -15,7 +15,7 @@
 [[xcode_plugin]]
 = Xcode
 
-The Xcode Plugin generate files that are used by the https://developer.apple.com/xcode/[Xcode IDE] to open Gradle projects into Xcode (`File` - `Open...`). The generated Xcode project delegates build actions to Gradle.
+The Xcode Plugin generates files that are used by the https://developer.apple.com/xcode/[Xcode IDE] to open Gradle projects into Xcode (`File` - `Open...`). The generated Xcode project delegates build actions to Gradle.
 
 What exactly the `xcode` plugin generates depends on which other plugins are used:
 
@@ -25,7 +25,7 @@ What exactly the `xcode` plugin generates depends on which other plugins are use
 | Plugin | Description
 
 | None
-| Generates minimal solution file.
+| Generates minimal workspace file.
 
 | <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application>>
 | Adds a target representing the {cpp} application to the project file.
@@ -78,16 +78,16 @@ Removes all Xcode configuration files.
 `openXcode` - link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: `xcode`
 +
-Open the Xcode workspace inside the IDE.
+Opens the Xcode workspace inside the IDE.
 
 [[sec:xcode_workspace_tasks]]
 === IDE Workspace Tasks
 
 `xcodeWorkspaceWorkspaceSettings` - link:{groovyDslPath}/org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask.html[GenerateWorkspaceSettingsFileTask]::
 +
-Generates the `__projectName__.xcworkspace` file. This task is only available on the root project.
+Generates the `__projectName__.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings` file. This task is only available on the root project.
 
-`xcodeWorkspace` - link:{groovyDslPath}/org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask.html[GenerateXcodeProjectFileTask]::
+`xcodeWorkspace` - link:{groovyDslPath}/org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask.html[GenerateXcodeWorkspaceFileTask]::
 _Depends on_: `xcodeWorkspaceWorkspaceSettings`
 +
 Generates the `__projectName__.xcworkspace` file. This task is only available on the root project.
@@ -113,4 +113,4 @@ Generates the `__projectName__.xcodeproj/project.pbxproj` file.
 [[sec:xcode_configuration]]
 == Configuration
 
-The Xcode Plugin doesn't allows any customization of the generated files.
+The Xcode Plugin doesn't allow any customization of the generated files.
