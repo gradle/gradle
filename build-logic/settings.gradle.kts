@@ -29,7 +29,7 @@ plugins {
 
 // The XDCL ecosystem conventions apply the org.xdcl `xdcl-gradle-plugin` codegen plugin, so build-logic
 // must be able to resolve it — sourced from the sibling checkout, matching the main build's includeBuild.
-includeBuild("../../xdcl-scripting-language")
+includeBuild("../../xdcl")
 
 dependencyResolutionManagement {
     repositories {
