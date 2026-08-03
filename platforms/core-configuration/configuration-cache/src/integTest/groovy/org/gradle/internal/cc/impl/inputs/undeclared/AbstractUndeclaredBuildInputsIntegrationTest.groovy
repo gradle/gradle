@@ -25,7 +25,10 @@ import static org.gradle.internal.cc.impl.inputs.undeclared.FileUtils.testFilePa
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    private static String sysProp = 'BUILD_MOJO' // using something unlikely to be used by libraries, to avoid conflicts
+    // Not private: Groovy 5 resolves it dynamically from the closures in the assertion blocks below,
+    // and a private field is invisible to that lookup.
+    // Using something unlikely to be used by libraries, to avoid conflicts.
+    protected static final String SYS_PROP = 'BUILD_MOJO'
 
     abstract void buildLogicApplication(BuildInputRead read)
 
@@ -40,19 +43,19 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRunLenient "thing", "-D$sysProp=$value"
+        configurationCacheRunLenient "thing", "-D$SYS_PROP=$value"
 
         then:
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withInput("$location: system property '$sysProp'")
+            withInput("$location: system property '$SYS_PROP'")
             ignoringUnexpectedInputs()
         }
         outputContains("apply = $value")
         outputContains("task = $value")
 
         when:
-        configurationCacheRunLenient "thing", "-D$sysProp=$value"
+        configurationCacheRunLenient "thing", "-D$SYS_PROP=$value"
 
         then:
         configurationCache.assertStateLoaded()
@@ -60,7 +63,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         outputContains("task = $value")
 
         when:
-        configurationCacheRun("thing", "-D$sysProp=$newValue")
+        configurationCacheRun("thing", "-D$SYS_PROP=$newValue")
 
         then: 'undeclared properties are considered build inputs'
         configurationCache.assertStateStored()
@@ -69,18 +72,18 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         where:
         propertyRead                                                                        | value  | newValue
-        SystemPropertyRead.systemGetProperty(sysProp)                                    | "true" | "false"
-        SystemPropertyRead.systemGetPropertyWithDefault(sysProp, "default")              | "true" | "false"
-        SystemPropertyRead.systemGetPropertiesGet(sysProp)                               | "true" | "false"
-        SystemPropertyRead.systemGetPropertiesGetProperty(sysProp)                       | "true" | "false"
-        SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault(sysProp, "default") | "true" | "false"
-        SystemPropertyRead.integerGetInteger(sysProp)                                    | "12"   | "45"
-        SystemPropertyRead.integerGetIntegerWithPrimitiveDefault(sysProp, 123)           | "12"   | "45"
-        SystemPropertyRead.integerGetIntegerWithIntegerDefault(sysProp, 123)             | "12"   | "45"
-        SystemPropertyRead.longGetLong(sysProp)                                          | "12"   | "45"
-        SystemPropertyRead.longGetLongWithPrimitiveDefault(sysProp, 123)                 | "12"   | "45"
-        SystemPropertyRead.longGetLongWithLongDefault(sysProp, 123)                      | "12"   | "45"
-        SystemPropertyRead.booleanGetBoolean(sysProp)                                    | "true" | "false"
+        SystemPropertyRead.systemGetProperty(SYS_PROP)                                    | "true" | "false"
+        SystemPropertyRead.systemGetPropertyWithDefault(SYS_PROP, "default")              | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGet(SYS_PROP)                               | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGetProperty(SYS_PROP)                       | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault(SYS_PROP, "default") | "true" | "false"
+        SystemPropertyRead.integerGetInteger(SYS_PROP)                                    | "12"   | "45"
+        SystemPropertyRead.integerGetIntegerWithPrimitiveDefault(SYS_PROP, 123)           | "12"   | "45"
+        SystemPropertyRead.integerGetIntegerWithIntegerDefault(SYS_PROP, 123)             | "12"   | "45"
+        SystemPropertyRead.longGetLong(SYS_PROP)                                          | "12"   | "45"
+        SystemPropertyRead.longGetLongWithPrimitiveDefault(SYS_PROP, 123)                 | "12"   | "45"
+        SystemPropertyRead.longGetLongWithLongDefault(SYS_PROP, 123)                      | "12"   | "45"
+        SystemPropertyRead.booleanGetBoolean(SYS_PROP)                                    | "true" | "false"
     }
 
     def "reports undeclared system property read using when iterating over system properties"() {
@@ -88,12 +91,12 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("thing", "-D$sysProp=$value")
+        configurationCacheRun("thing", "-D$SYS_PROP=$value")
 
         then:
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withInput("$location: system property '$sysProp'")
+            withInput("$location: system property '$SYS_PROP'")
             ignoringUnexpectedInputs()
         }
         outputContains("apply = $value")
@@ -101,7 +104,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         where:
         propertyRead                                                    | value  | newValue
-        SystemPropertyRead.systemGetPropertiesFilterEntries(sysProp) | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesFilterEntries(SYS_PROP) | "true" | "false"
     }
 
     def "reports undeclared environment variable read using #envVarRead.groovyExpression prior to task execution from plugin"() {
@@ -109,20 +112,20 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        EnvVariableInjection.environmentVariable(sysProp, value).setup(this)
+        EnvVariableInjection.environmentVariable(SYS_PROP, value).setup(this)
         configurationCacheRunLenient "thing"
 
         then:
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withInput("$location: environment variable '$sysProp'")
+            withInput("$location: environment variable '$SYS_PROP'")
             ignoringUnexpectedInputs()
         }
         outputContains("apply = $value")
         outputContains("task = $value")
 
         when:
-        EnvVariableInjection.environmentVariable(sysProp, value).setup(this)
+        EnvVariableInjection.environmentVariable(SYS_PROP, value).setup(this)
         configurationCacheRunLenient "thing"
 
         then:
@@ -131,7 +134,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         outputContains("task = $value")
 
         when:
-        EnvVariableInjection.environmentVariable(sysProp, newValue).setup(this)
+        EnvVariableInjection.environmentVariable(SYS_PROP, newValue).setup(this)
         configurationCacheRun("thing")
 
         then: 'undeclared properties are considered build inputs'
@@ -141,9 +144,9 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         where:
         envVarRead                                              | value  | newValue
-        EnvVariableRead.getEnv(sysProp)                        | "true" | "false"
-        EnvVariableRead.getEnvGet(sysProp)                     | "true" | "false"
-        EnvVariableRead.getEnvGetOrDefault(sysProp, "default") | "true" | "false"
+        EnvVariableRead.getEnv(SYS_PROP)                        | "true" | "false"
+        EnvVariableRead.getEnvGet(SYS_PROP)                     | "true" | "false"
+        EnvVariableRead.getEnvGetOrDefault(SYS_PROP, "default") | "true" | "false"
     }
 
     def "reports undeclared file system entry check for File.#kind"() {
