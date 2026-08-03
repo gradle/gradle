@@ -18,7 +18,6 @@ package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.ImportNode;
-import org.codehaus.groovy.ast.InnerClassNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.control.CompilationFailedException;
@@ -92,13 +91,9 @@ public class SubsetScriptTransformer extends AbstractScriptTransformer {
         // Remove all the classes other than the main class
         source.getAST().getClasses().removeIf(classNode -> classNode != scriptClass);
 
-        // Remove all the inner classes and methods from the main class
+        // Strip the inner classes type references and remove the methods from the main class
         if (scriptClass != null) {
-            Iterator<InnerClassNode> innerClasses = scriptClass.getInnerClasses();
-            while (innerClasses.hasNext()) {
-                innerClasses.next();
-                innerClasses.remove();
-            }
+            AstUtils.stripInnerClassTypeReferences(scriptClass);
 
             for (MethodNode methodNode : new ArrayList<>(scriptClass.getMethods())) {
                 if (!methodNode.getName().equals("run")) {

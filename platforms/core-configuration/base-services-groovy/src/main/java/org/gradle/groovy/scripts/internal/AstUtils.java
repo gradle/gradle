@@ -20,6 +20,7 @@ import com.google.common.base.Predicate;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.GroovyCodeVisitor;
+import org.codehaus.groovy.ast.InnerClassNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ClassExpression;
@@ -42,6 +43,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -83,6 +85,26 @@ public abstract class AstUtils {
     public static void removeMethod(ClassNode declaringClass, MethodNode methodNode) {
         declaringClass.getMethods().remove(methodNode);
         declaringClass.getDeclaredMethods(methodNode.getName()).clear();
+    }
+
+    /**
+     * Removes class references from inner classes of the given node.
+     */
+    public static void stripInnerClassTypeReferences(ClassNode declaringClass) {
+        Iterator<InnerClassNode> innerClasses = declaringClass.getInnerClasses();
+        while (innerClasses.hasNext()) {
+            stripTypeReferences(innerClasses.next());
+        }
+    }
+
+    private static void stripTypeReferences(InnerClassNode innerClass) {
+        Iterator<InnerClassNode> nested = innerClass.getInnerClasses();
+        while (nested.hasNext()) {
+            stripTypeReferences(nested.next());
+        }
+        innerClass.setSuperClass(ClassHelper.OBJECT_TYPE);
+        innerClass.setInterfaces(ClassNode.EMPTY_ARRAY);
+        innerClass.setGenericsTypes(null);
     }
 
     public static void filterAndTransformStatements(SourceUnit source, StatementTransformer transformer) {
