@@ -15,7 +15,7 @@
 [[cpp_application_plugin]]
 = {cpp} Application
 
-The {cpp} Application Plugin provides the tasks, configurations and conventions for a building {cpp} application.
+The {cpp} Application Plugin provides the tasks, configurations and conventions for building a {cpp} application.
 
 [[sec:cpp_application_usage]]
 == Usage
