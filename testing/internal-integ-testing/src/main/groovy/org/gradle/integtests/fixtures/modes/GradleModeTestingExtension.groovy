@@ -30,6 +30,7 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.Field
 
 import static org.gradle.integtests.fixtures.modes.GradleModeTesting.CONFIGURATION_CACHE
+import static org.gradle.integtests.fixtures.modes.GradleModeTesting.GROOVY_5
 import static org.gradle.integtests.fixtures.modes.GradleModeTesting.ISOLATED_PROJECTS
 import static org.gradle.integtests.fixtures.modes.GradleModeTesting.bottomSpecMatches
 import static org.gradle.integtests.fixtures.modes.GradleModeTesting.iterationAlwaysMatches
@@ -184,6 +185,13 @@ abstract class GradleModeTestingExtension<A extends Annotation> implements IAnno
         @Override
         protected void visitSpecOrFeature(UnsupportedWithIsolatedProjects a, SpecElementInfo specOrFeature) {
             visitSpecOrFeature(ISOLATED_PROJECTS, specOrFeature, a.bottomSpecs(), a.iterationMatchers(), unsupportedSkipReason(a.because()))
+        }
+    }
+
+    static class ToBeFixedForG5 extends GradleModeTestingExtension<ToBeFixedForGroovy5> {
+        @Override
+        protected void visitSpecOrFeature(ToBeFixedForGroovy5 a, SpecElementInfo specOrFeature) {
+            visitSpecOrFeature(GROOVY_5, specOrFeature, a.bottomSpecs(), a.iterationMatchers(), a.skipBecause())
         }
     }
 }

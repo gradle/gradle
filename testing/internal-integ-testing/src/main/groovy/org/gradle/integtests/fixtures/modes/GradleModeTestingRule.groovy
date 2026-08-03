@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation
 import java.util.function.Function
 
 import static org.gradle.integtests.fixtures.modes.GradleModeTesting.CONFIGURATION_CACHE
+import static org.gradle.integtests.fixtures.modes.GradleModeTesting.GROOVY_5
 import static org.gradle.integtests.fixtures.modes.GradleModeTesting.ISOLATED_PROJECTS
 import static org.gradle.integtests.fixtures.modes.GradleModeTesting.bottomSpecMatches
 import static org.gradle.integtests.fixtures.modes.GradleModeTesting.iterationMatches
@@ -43,6 +44,7 @@ class GradleModeTestingRule implements TestRule {
         next = apply(next, description, CONFIGURATION_CACHE, UnsupportedWithConfigurationCache.class, it -> unsupportedSkipReason(it.because()))
         next = apply(next, description, ISOLATED_PROJECTS, ToBeFixedForIsolatedProjects.class, it -> it.skipBecause())
         next = apply(next, description, ISOLATED_PROJECTS, UnsupportedWithIsolatedProjects.class, it -> unsupportedSkipReason(it.because()))
+        next = apply(next, description, GROOVY_5, ToBeFixedForGroovy5.class, it -> it.skipBecause())
         next
     }
 

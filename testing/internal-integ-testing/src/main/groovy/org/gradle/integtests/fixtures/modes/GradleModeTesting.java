@@ -16,21 +16,25 @@
 
 package org.gradle.integtests.fixtures.modes;
 
+import groovy.lang.GroovySystem;
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter;
+import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Arrays;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
-/// Gradle mode used for the integration test invocation.
+/// A variation of the Gradle build under test that some specs are known not to work under, either
+/// the mode the contextual executer runs in or the Groovy major the distribution bundles.
 ///
 /// @see GradleContextualExecuter
 @NullMarked
 public enum GradleModeTesting {
 
     CONFIGURATION_CACHE("Configuration Cache", GradleContextualExecuter::isConfigCache),
-    ISOLATED_PROJECTS("Isolated Projects", GradleContextualExecuter::isIsolatedProjects);
+    ISOLATED_PROJECTS("Isolated Projects", GradleContextualExecuter::isIsolatedProjects),
+    GROOVY_5("Groovy 5", () -> VersionNumber.parse(GroovySystem.getVersion()).getMajor() >= 5);
 
     private final String displayName;
     private final BooleanSupplier activeCheck;
