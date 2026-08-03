@@ -2092,6 +2092,31 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static abstract class AbstractPropertyBeanWithForwarderSetter {
+        public abstract Property<String> getProp();
+
+        // A concrete setter that forwards into the lazy property. There is no backing field
+        // for the abstract getter to read, so this setter cannot be managing one itself.
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
+    public interface BeanWithProviderProp {
+        Provider<String> getProp();
+    }
+
+    public static abstract class AbstractCovariantPropertyBeanWithForwarderSetter implements BeanWithProviderProp {
+        // The covariant override makes javac emit a concrete bridge getter.
+        // The bridge only delegates here, so it cannot be managing a backing field either.
+        @Override
+        public abstract Property<String> getProp();
+
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
     interface InterfaceWithTypeParameter<T> {
         @Inject
         T getThing();

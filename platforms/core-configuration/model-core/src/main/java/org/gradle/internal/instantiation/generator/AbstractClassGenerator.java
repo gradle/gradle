@@ -641,6 +641,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         public Type getGenericReturnType() {
             return returnType;
         }
+
+        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+            return method.isAnnotationPresent(annotationType);
+        }
     }
 
     protected static class PropertyMetadata {
@@ -1097,19 +1101,32 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         boolean claimPropertyImplementation(PropertyMetadata property) {
-            // Skip properties with non-abstract getter or setter implementations
+            boolean hasAbstractGetter = false;
             for (MethodMetadata getter : property.getters) {
-                if (getter.shouldImplement() && !getter.isAbstract()) {
+                if (!getter.shouldImplement()) {
+                    // A bridge getter cannot manage state: its compiler-generated body only delegates to the real getter
+                    continue;
+                }
+                if (!getter.isAbstract()) {
+                    // A concrete real getter reads user-managed state (e.g. a handwritten field), so the property is not ours to claim
                     return false;
                 }
+                hasAbstractGetter = true;
             }
-            for (Method setter : property.setters) {
-                if (!Modifier.isAbstract(setter.getModifiers())) {
-                    return false;
+
+            if (!hasAbstractGetter) {
+                for (Method setter : property.setters) {
+                    if (!Modifier.isAbstract(setter.getModifiers())) {
+                        // At this point we know that:
+                        //  - The property has no getter at all (write-only, e.g. Task.setOnlyIf): a concrete getter would have returned above, an abstract one would have set the flag.
+                        //  - This setter is concrete, and with no getter to work through, it can only be managing its own state.
+                        // So the property is not ours to claim.
+                        return false;
+                    }
                 }
             }
 
-            // Property is readable and all getters and setters are abstract
+            // Property has no user-managed state
             if (isManagedProperty(property)) {
                 // Abstract read-only property with managed type
                 readOnlyProperties.add(property);
