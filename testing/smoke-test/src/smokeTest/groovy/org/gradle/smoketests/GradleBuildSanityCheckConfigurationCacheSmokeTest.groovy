@@ -16,10 +16,15 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.testkit.runner.TaskOutcome
 
 class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 workers in the build under test cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "can run Gradle sanityCheck with configuration cache enabled"() {
         given:
         // This is an approximation, running the whole build lifecycle 'sanityCheck' is too expensive

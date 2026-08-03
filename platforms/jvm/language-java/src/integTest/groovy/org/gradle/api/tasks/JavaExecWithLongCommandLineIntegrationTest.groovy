@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
 import org.gradle.test.fixtures.Flaky
@@ -159,6 +160,10 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 toolchain worker cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "succeeds with long command line using Java 8 toolchain"() {
         def jdk8 = AvailableJavaHomes.getJdk8()
         buildFile << """

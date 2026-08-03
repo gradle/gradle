@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
@@ -104,6 +105,11 @@ class ScalaCompileJavaToolchainIntegrationTest1 extends AbstractScalaCompileJava
         "assigned tool"  | "over java extension"        | "other"  | "current"         | "other"
     }
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so a compile or test worker on an older JVM cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".*using Java (8|9|10) for Scala.*"]
+    )
     def "can compile source and run tests using Java #jdk.javaVersionMajor for Scala "() {
         Assume.assumeTrue(ScalaCoverage.scalaVersionsSupportedByJdk(jdk.javaVersion).contains(version))
 

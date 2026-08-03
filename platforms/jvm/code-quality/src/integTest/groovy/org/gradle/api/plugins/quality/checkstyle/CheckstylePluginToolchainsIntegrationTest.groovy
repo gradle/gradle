@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
@@ -189,6 +190,10 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
 
     @Issue("https://github.com/gradle/gradle/issues/34759")
     @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 worker cannot start and the expected Checkstyle error never appears",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "fails with helpful error when using incompatible Java 8 toolchain with Checkstyle 10.x"() {
         given:
         goodCode()

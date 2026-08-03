@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -149,6 +150,10 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
     abstract JavaVersion getClientJdkVersion()
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 toolchain compile of the project under test cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "tapi client can launch task with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         given:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
@@ -188,6 +193,10 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         JavaVersion.VERSION_17  | "8.14.4"
     }
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 toolchain compile of the project under test cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "tapi client can run build action with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         given:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
@@ -261,6 +270,10 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         """
     }
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 toolchain compile of the project under test cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "can fetch tooling models on client JDK from current Gradle"() {
         given:
         testProject.file("settings.gradle") << """

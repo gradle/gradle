@@ -26,6 +26,7 @@ import org.gradle.api.tasks.compile.fixtures.ProblematicClassGenerator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -353,6 +354,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
     @Issue("https://github.com/gradle/gradle/pull/29141")
     @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 compiler daemon cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "compiler warnings causes failure in problem mapping under JDK8"() {
         given:
         setupAnnotationProcessors(JavaVersion.VERSION_1_8)

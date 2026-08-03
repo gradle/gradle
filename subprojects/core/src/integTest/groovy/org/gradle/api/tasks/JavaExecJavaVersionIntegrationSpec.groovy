@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
@@ -32,7 +33,12 @@ import spock.lang.Issue
  */
 class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
-    def "up-to-date when executing JavaExec task twice in a row with the same java version"() {
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the toolchain compile of the project under test cannot start on an older JVM",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".*java version (8|9|10)"]
+    )
+    def "up-to-date when executing JavaExec task twice in a row with the same java version #jdk.javaVersionMajor"() {
         given:
         configureJavaExecTask()
 
@@ -109,7 +115,12 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
         jdks << AvailableJavaHomes.getAvailableJdksByVersion().values()
     }
 
-    def "can execute ExecOperations.javaexec on java #jvm"() {
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the toolchain compile of the project under test cannot start on an older JVM",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".* on java (8|9|10)"]
+    )
+    def "can execute ExecOperations.javaexec on java #jvm.javaVersionMajor"() {
         given:
         configureExecOperationTask()
 
@@ -124,7 +135,12 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
         jvm << AvailableJavaHomes.allJdkVersions
     }
 
-    def "can execute ProviderFactory.javaexec on java #jvm"() {
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the toolchain compile of the project under test cannot start on an older JVM",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".* on java (8|9|10)"]
+    )
+    def "can execute ProviderFactory.javaexec on java #jvm.javaVersionMajor"() {
         given:
         configureProviderFactoryTask()
 

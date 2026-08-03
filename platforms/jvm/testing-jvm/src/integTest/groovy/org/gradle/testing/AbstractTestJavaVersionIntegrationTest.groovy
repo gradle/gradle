@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.junit.Assume
@@ -32,6 +33,11 @@ import org.junit.Assume
 abstract class AbstractTestJavaVersionIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements JavaToolchainFixture {
     abstract List<Jvm> getSupportedJvms()
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so a test worker on an older JVM cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".* on java (8|9|10)( .*)?"]
+    )
     def "can run test on java #jdk.javaVersionMajor"() {
         Assume.assumeTrue(supportsJavaVersion(jdk.javaVersionMajor))
 

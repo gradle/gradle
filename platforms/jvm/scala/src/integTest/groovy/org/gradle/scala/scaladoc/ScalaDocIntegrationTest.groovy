@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
@@ -180,6 +181,10 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
         file("${docsPath}/Other.html").assertDoesNotExist()
     }
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 scaladoc worker cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "scaladoc is out of date when changing the java launcher"() {
         def jdk8 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_1_8))
         def jdk11 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_11))
