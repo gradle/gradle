@@ -226,9 +226,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                     `kotlin-dsl`
                 }
 
-                repositories {
-                    mavenCentral()
-                }
+                $repositoriesBlock
 
                 gradlePlugin {
                     plugins {

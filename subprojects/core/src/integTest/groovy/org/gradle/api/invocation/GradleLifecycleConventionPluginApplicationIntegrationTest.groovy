@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
+import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslSettingsPluginManagement
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 
@@ -43,6 +44,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
 
         // build-logic is the included plugin build that publishes my.convention.
         file("build-logic/settings.gradle.kts") << """
+            $kotlinDslSettingsPluginManagement
             rootProject.name = "build-logic"
         """
         file("build-logic/build.gradle.kts") << """

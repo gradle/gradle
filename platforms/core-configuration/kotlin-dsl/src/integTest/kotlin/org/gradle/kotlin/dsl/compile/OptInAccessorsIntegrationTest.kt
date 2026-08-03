@@ -528,9 +528,7 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 targetCompatibility = "1.8"
             }
 
-            repositories {
-                mavenCentral()
-            }
+            $repositoriesBlock
 
             gradlePlugin {
                 plugins {
@@ -562,9 +560,7 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 `kotlin-dsl`
             }
 
-            repositories {
-                gradlePluginPortal()
-            }
+            $repositoriesBlock
 
             dependencies {
                 implementation(project(":plugin"))

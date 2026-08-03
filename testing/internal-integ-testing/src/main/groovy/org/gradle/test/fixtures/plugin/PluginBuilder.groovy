@@ -22,7 +22,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.model.ModelMap
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
@@ -104,7 +106,25 @@ class PluginBuilder {
         buildFile.text = generateManagedBuildScript()
         additionalBuildScriptContent.each { buildFile << it + "\n" }
         buildFile << getPluginDescriptors(pluginIds)
-        projectDir.file('settings.gradle').write("")
+        def usesKotlinDevVersion = buildScriptPlugins.any { it.version != null && KotlinGradlePluginVersions.isKotlinDevVersion(it.version) }
+        if (usesKotlinDevVersion) {
+            buildFile << """
+                repositories {
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
+                    ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition()}
+                }
+            """
+            projectDir.file('settings.gradle').write("""
+                pluginManagement {
+                    repositories {
+                        gradlePluginPortal()
+                        ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition()}
+                    }
+                }
+            """)
+        } else {
+            projectDir.file('settings.gradle').write("")
+        }
     }
 
     void publishTo(GradleExecuter executer, TestFile testFile, String buildScript = "") {

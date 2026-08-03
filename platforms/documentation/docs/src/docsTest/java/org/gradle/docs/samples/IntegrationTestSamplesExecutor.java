@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -48,6 +49,11 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
     private static final String NO_STACKTRACE_CHECK = "-Dorg.gradle.sampletest.noStackTraceCheck=true";
 
     private static final String SAMPLE_ENV_PREFIX = "-Dorg.gradle.sampletest.env.";
+
+    private static final File KOTLIN_DEV_REPOSITORY_INIT_SCRIPT =
+        KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().getLatest())
+            ? KotlinGradlePluginVersions.createKotlinDevRepositoryInitScript()
+            : null;
 
     private final File workingDir;
     private final boolean expectFailure;
@@ -95,6 +101,10 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .withArguments(filteredFlags)
             .withArgument("--no-problems-report")
             .withTasks(args);
+
+        if (KOTLIN_DEV_REPOSITORY_INIT_SCRIPT != null) {
+            executer.usingInitScript(KOTLIN_DEV_REPOSITORY_INIT_SCRIPT);
+        }
 
         if (flags.contains("--build-cache")) {
             // > Failed to load cache entry b982a8cf9ce337cea7c2eacd8bb478fb for task ':bundle': Could not load from local cache:

@@ -28,6 +28,11 @@ class IsolatedProjectsToolingApiKotlinDslCompositeBuildIntegrationTest extends A
     def isolatedScriptsModel = "org.gradle.kotlin.dsl.tooling.builders.internal.IsolatedScriptsModel"
 
     def "can fetch KotlinDslScripts model for build with Kotlin extension from #buildLogicLocation"() {
+        withSettingsIn(buildLogicLocation, """
+            pluginManagement {
+                $repositoriesBlock
+            }
+        """)
         withBuildScriptIn(buildLogicLocation, """
             plugins {
                 `kotlin-dsl`
@@ -98,7 +103,15 @@ class IsolatedProjectsToolingApiKotlinDslCompositeBuildIntegrationTest extends A
             import org.gradle.api.Project
             fun Project.foo() {}
         """)
+        withSettingsIn("included", """
+            pluginManagement {
+                $repositoriesBlock
+            }
+        """)
         withSettingsIn("build-logic", """
+            pluginManagement {
+                $repositoriesBlock
+            }
             includeBuild("../included")
         """)
         withBuildScriptIn("build-logic", """
@@ -175,6 +188,11 @@ class IsolatedProjectsToolingApiKotlinDslCompositeBuildIntegrationTest extends A
     }
 
     def "can fetch KotlinDslScripts model for build with convention plugin from #buildLogicLocation"() {
+        withSettingsIn(buildLogicLocation, """
+            pluginManagement {
+                $repositoriesBlock
+            }
+        """)
         withBuildScriptIn(buildLogicLocation, """
             plugins {
                 `kotlin-dsl`

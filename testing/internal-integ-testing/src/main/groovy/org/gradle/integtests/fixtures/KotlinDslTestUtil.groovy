@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.dsl.GradleDsl
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinDevRepositoryDefinition
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 class KotlinDslTestUtil {
@@ -29,11 +30,23 @@ class KotlinDslTestUtil {
         """
     }
 
+    static String getKotlinDslSettingsPluginManagement() {
+        """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    ${kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+        """
+    }
+
     static String getKotlinDslBuildSrcConfig() {
         """
             allprojects {
                 repositories {
                     ${mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
         """

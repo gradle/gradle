@@ -58,6 +58,12 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             includeBuild("build-logic")
         """
 
+        file("build-logic/settings.gradle") << """
+            pluginManagement {
+                ${configurePluginRepositories()}
+            }
+        """
+
         file("build-logic/src/test/java/org/example/PublishedApiTestPluginTest.java") << pluginTestJava()
     }
 
@@ -249,6 +255,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                     url = uri("${apiJarRepoLocation.toURI()}")
                 }
                 mavenCentral()
+                ${kotlinDevRepositoryDefinition()}
             }
         """
     }

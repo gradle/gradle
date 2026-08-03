@@ -73,6 +73,11 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
             ${mavenCentralRepository()}
 
+            // useKotlinTest() defaults to the embedded Kotlin version
+            repositories {
+                ${KotlinGradlePluginVersions.kotlinDevRepositoryDeclaration}
+            }
+
             testing.suites.test {
                 useKotlinTest()
             }
