@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
@@ -71,7 +70,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final ResolvedVersionConstraint versionConstraint;
     private final boolean versionByAncestor;
     private final boolean isProjectSelector;
-    private final AttributeDesugaring attributeDesugaring;
 
     private @Nullable ComponentIdResolveResult preferResult;
     private @Nullable ComponentIdResolveResult requireResult;
@@ -103,8 +101,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.versionConstraint = versionByAncestor ?
             resolveState.resolveVersionConstraint(DefaultImmutableVersionConstraint.of()) :
             resolveState.resolveVersionConstraint(dependencyState.getDependency().getSelector());
-        this.isProjectSelector = getSelector() instanceof ProjectComponentSelector;
-        this.attributeDesugaring = resolveState.getAttributeDesugaring();
+        this.isProjectSelector = getComponentSelector() instanceof ProjectComponentSelector;
     }
 
     @Override
@@ -143,10 +140,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return dependencyState.getDependency().toString();
     }
 
-    @Override
-    public ComponentSelector getRequested() {
-        return attributeDesugaring.desugarSelector(dependencyState.getRequested());
-    }
 
     public ModuleResolveState getTargetModule() {
         return targetModule;
@@ -364,7 +357,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
-    public ComponentSelector getSelector() {
+    public ComponentSelector getComponentSelector() {
         return dependencyState.getDependency().getSelector();
     }
 

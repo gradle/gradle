@@ -27,7 +27,7 @@ public interface ResolvableSelectorState {
     /**
      * The raw component selector being resolved, after any substitution.
      */
-    ComponentSelector getSelector();
+    ComponentSelector getComponentSelector();
 
     /**
      * The version constraint that applies to this selector, if any.
@@ -68,6 +68,6 @@ public interface ResolvableSelectorState {
     boolean isChanging();
 
     default boolean isProject() {
-        return getSelector() instanceof ProjectComponentSelector;
+        return getComponentSelector() instanceof ProjectComponentSelector;
     }
 }

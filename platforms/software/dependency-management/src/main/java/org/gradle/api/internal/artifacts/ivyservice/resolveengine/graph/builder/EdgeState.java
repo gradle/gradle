@@ -207,7 +207,17 @@ class EdgeState implements DependencyGraphEdge {
      * end fail resolution.
      */
     void failWith(Throwable err) {
-        targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getSelector(), err);
+        ComponentSelector requested = dependencyState.getRequested();
+        ComponentSelector attempted = selector.getComponentSelector();
+        if (attempted.equals(requested)) {
+            targetNodeSelectionFailure = new ModuleVersionResolveException(attempted, err);
+        } else {
+            targetNodeSelectionFailure = new ModuleVersionResolveException(
+                attempted,
+                () -> String.format("Could not resolve %s (Requested: %s).", attempted.getDisplayName(), requested.getDisplayName()),
+                err
+            );
+        }
     }
 
     /**
@@ -292,7 +302,7 @@ class EdgeState implements DependencyGraphEdge {
         try {
             targetVariants = selectTargetVariants(targetComponentState);
         } catch (AttributeMergingException mergeError) {
-            targetNodeSelectionFailure = new ModuleVersionResolveException(getRequested(), () -> {
+            targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getComponentSelector(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
                 Object constraintValue = mergeError.getLeftValue();
                 Object dependencyValue = mergeError.getRightValue();
@@ -301,7 +311,7 @@ class EdgeState implements DependencyGraphEdge {
             return;
         } catch (Exception t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
-            targetNodeSelectionFailure = new ModuleVersionResolveException(getRequested(), t);
+            failWith(t);
             return;
         }
 

@@ -91,7 +91,7 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
     }
 
     private static @Nullable Object findRequestedAttributeValue(EdgeState edge, Attribute<?> attribute) {
-        ComponentSelector selector = edge.getSelector().getSelector();
+        ComponentSelector selector = edge.getSelector().getComponentSelector();
         if (selector instanceof ModuleComponentSelector) {
             return selector.getAttributes().getAttribute(attribute);
         }
@@ -100,7 +100,7 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
 
     private static String formatAttributeQuery(SelectorState state, Attribute<?> attribute, Object value, boolean isConstraint) {
         String verb = isConstraint ? "requires" : "depends on";
-        return verb + " '" + state.getRequested() + "' with attribute '" + attribute.getName() + "' = '" + value + "'";
+        return verb + " '" + state.getComponentSelector() + "' with attribute '" + attribute.getName() + "' = '" + value + "'";
     }
 
     private static List<String> buildResolutions(Attribute<?> attribute) {
