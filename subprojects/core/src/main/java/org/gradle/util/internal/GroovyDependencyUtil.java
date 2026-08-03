@@ -86,11 +86,11 @@ public class GroovyDependencyUtil {
     public static String spockModuleDependency(String module, VersionNumber version) {
         int major = version.getMajor();
         int minor = version.getMinor();
-        if (major > 4) {
-            // There is no Spock for Groovy 5.x yet, use 4.0 instead
-            major = 4;
+        if (major > 5) {
+            // Groovy 5 is the newest major Spock publishes a variant for
+            major = 5;
             minor = 0;
         }
-        return "org.spockframework:" + module + ":2.3-groovy-" + major + "." + minor;
+        return "org.spockframework:" + module + ":2.4-groovy-" + major + "." + minor;
     }
 }

@@ -17,9 +17,13 @@
 package org.gradle.testing.spock
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.GroovyDependencyUtil
 
 class Spock2IntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
+        // The Groovy constraint below overrides whatever Spock would bring in, so Spock has to be
+        // the variant built for that Groovy major.
+        def spockVersion = GroovyDependencyUtil.spockModuleDependency("spock-core", GroovySystem.version).tokenize(':').last()
         buildFile("""
             plugins {
                 id("groovy")
@@ -37,7 +41,7 @@ class Spock2IntegrationSpec extends AbstractIntegrationSpec {
             testing {
                 suites {
                     test {
-                        useSpock()
+                        useSpock("$spockVersion")
                     }
                 }
             }
