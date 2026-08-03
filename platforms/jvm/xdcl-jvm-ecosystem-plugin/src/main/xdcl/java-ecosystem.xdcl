@@ -1,8 +1,8 @@
 plugin {
   reactions [ :org.gradle.demos.java.JavaLibraryReaction ]
-  defaults {
-    for JavaComponent {
+  defaults [
+    JavaComponent {
       sources [ { name "main" }, { name "test" } ]
     }
-  }
+  ]
 }
