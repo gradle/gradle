@@ -105,7 +105,7 @@ class EdgeState implements DependencyGraphEdge {
         SelectorState newSelector = resolveState.computeSelectorFor(dependencyState, ignoreVersion);
         if (this.selector != newSelector) {
             clearSelector();
-            newSelector.use(deferSelection);
+            newSelector.use(deferSelection, isConstraint);
             this.selector = newSelector;
             return true;
         }
@@ -117,7 +117,7 @@ class EdgeState implements DependencyGraphEdge {
         if (this.selector != null) {
             SelectorState currentSelector = this.selector;
             this.selector = null;
-            return currentSelector.release();
+            return currentSelector.release(isConstraint);
         }
         return false;
     }

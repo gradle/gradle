@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -54,17 +53,18 @@ import java.util.function.Consumer;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 /**
- * Resolution state for a given module version selector.
- *
+ * Resolution state for a given component selector.
+ * <p>
  * There are 3 possible states:
  * 1. The selector has been newly added to a `ModuleResolveState`. In this case {@link #resolved} will be `false`.
  * 2. The selector failed to resolve. In this case {@link #failure} will be `!= null`.
- * 3. The selector was part of resolution to a particular module version.
+ * 3. The selector was part of resolution to a particular component.
+ * <p>
  * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#getSelected()} will point to the selected component.
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
 
-    private final DependencyState dependencyState;
+    private final ComponentSelector componentSelector;
     private final DependencyToComponentIdResolver resolver;
     private final ResolveState resolveState;
     private final ResolvedVersionConstraint versionConstraint;
@@ -90,18 +90,21 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     // outgoing edges pointing to them. If not, then it means the module was
     // evicted, but it can still be reintegrated later in a different path.
     private int outgoingEdgeCount;
+    private int outgoingConstraintEdgeCount;
 
-    SelectorState(DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
+    private @Nullable ModuleVersionResolveException dependencyFailure;
+    private @Nullable IvyArtifactName firstDependencyArtifact;
+
+    SelectorState(ComponentSelector componentSelector, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
         this.resolver = resolver;
         this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
         this.versionByAncestor = versionByAncestor;
-        update(dependencyState);
-        this.dependencyState = dependencyState;
+        this.componentSelector = componentSelector;
         this.versionConstraint = versionByAncestor ?
             resolveState.resolveVersionConstraint(DefaultImmutableVersionConstraint.of()) :
-            resolveState.resolveVersionConstraint(dependencyState.getDependency().getSelector());
-        this.isProjectSelector = getComponentSelector() instanceof ProjectComponentSelector;
+            resolveState.resolveVersionConstraint(componentSelector);
+        this.isProjectSelector = componentSelector instanceof ProjectComponentSelector;
     }
 
     @Override
@@ -110,10 +113,17 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return isProjectSelector;
     }
 
-    public void use(boolean deferSelection) {
+    public void use(boolean deferSelection, boolean constraint) {
         outgoingEdgeCount++;
         if (outgoingEdgeCount == 1) {
             targetModule.addSelector(this, deferSelection);
+        }
+
+        if (constraint) {
+            outgoingConstraintEdgeCount++;
+            if (outgoingConstraintEdgeCount == 1) {
+                targetModule.invalidateMergedConstraintAttributes();
+            }
         }
     }
 
@@ -123,7 +133,15 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      *
      * @return True if releasing this selector requires the target module to be reselected.
      */
-    public boolean release() {
+    public boolean release(boolean constraint) {
+        if (constraint) {
+            outgoingConstraintEdgeCount--;
+            assert outgoingConstraintEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': outgoing constraint edge count cannot be negative";
+            if (outgoingConstraintEdgeCount == 0) {
+                targetModule.invalidateMergedConstraintAttributes();
+            }
+        }
+
         outgoingEdgeCount--;
         assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
@@ -135,11 +153,17 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return false;
     }
 
-    @Override
-    public String toString() {
-        return dependencyState.getDependency().toString();
+    /**
+     * True if this selector is currently used by at least one constraint edge.
+     */
+    boolean isUsedByConstraint() {
+        return outgoingConstraintEdgeCount > 0;
     }
 
+    @Override
+    public String toString() {
+        return componentSelector.toString();
+    }
 
     public ModuleResolveState getTargetModule() {
         return targetModule;
@@ -179,13 +203,12 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             }
 
             BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-            if (dependencyState.getSubstitutionFailure() != null) {
-                idResolveResult.failed(dependencyState.getSubstitutionFailure());
+            if (dependencyFailure != null) {
+                idResolveResult.failed(dependencyFailure);
             } else {
-                IvyArtifactName firstArtifact = getFirstDependencyArtifact();
-                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact);
+                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstDependencyArtifact);
                 ImmutableAttributes requestAttributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), targetModule.getMergedConstraintAttributes());
-                resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult, requestAttributes);
+                resolver.resolve(componentSelector, overrideMetadata, selector, rejector, idResolveResult, requestAttributes);
             }
 
             if (idResolveResult.getFailure() != null) {
@@ -335,14 +358,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
-    public DependencyMetadata getDependencyMetadata() {
-        return dependencyState.getDependency();
-    }
-
     @Override
     public IvyArtifactName getFirstDependencyArtifact() {
-        List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
-        return artifacts.isEmpty() ? null : artifacts.get(0);
+        return firstDependencyArtifact;
     }
 
     @Override
@@ -358,7 +376,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public ComponentSelector getComponentSelector() {
-        return dependencyState.getDependency().getSelector();
+        return componentSelector;
     }
 
     @Override
@@ -382,21 +400,28 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     public void update(DependencyState dependencyState) {
-        if (dependencyState != this.dependencyState) {
-            if (!forced && dependencyState.isForced()) {
-                forced = true;
-                if (dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata) {
-                    softForced = true;
-                    targetModule.resolveOptimizations.declareForcedPlatformInUse();
-                }
-                resolved = false; // when a selector changes from non forced to forced, we must reselect
+        if (!forced && dependencyState.isForced()) {
+            forced = true;
+            if (dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata) {
+                softForced = true;
+                targetModule.resolveOptimizations.declareForcedPlatformInUse();
             }
-            if (!fromLock && dependencyState.isFromLock()) {
-                fromLock = true;
-                resolved = false; // when a selector changes from non lock to lock, we must reselect
-            }
+            resolved = false; // when a selector changes from non forced to forced, we must reselect
+        }
+        if (!fromLock && dependencyState.isFromLock()) {
+            fromLock = true;
+            resolved = false; // when a selector changes from non lock to lock, we must reselect
+        }
 
-            changing = changing || dependencyState.getDependency().isChanging();
+        changing = changing || dependencyState.getDependency().isChanging();
+
+        if (firstDependencyArtifact == null) {
+            List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
+            this.firstDependencyArtifact = artifacts.isEmpty() ? null : artifacts.get(0);
+        }
+
+        if (dependencyFailure == null && dependencyState.getSubstitutionFailure() != null) {
+            this.dependencyFailure = dependencyState.getSubstitutionFailure();
         }
     }
 

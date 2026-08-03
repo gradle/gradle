@@ -242,7 +242,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         boolean isVirtualPlatformEdge = dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata;
         SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(dependencyState.getRequested(), ignoreVersion, isVirtualPlatformEdge), req -> {
             ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier(getComponentSelectorConverter());
-            return new SelectorState(dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
+            return new SelectorState(dependencyState.getDependency().getSelector(), idResolver, this, moduleIdentifier, ignoreVersion);
         });
         selectorState.update(dependencyState);
         return selectorState;
