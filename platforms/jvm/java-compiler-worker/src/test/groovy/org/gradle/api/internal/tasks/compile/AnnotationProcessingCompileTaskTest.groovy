@@ -55,7 +55,7 @@ class AnnotationProcessingCompileTaskTest extends Specification {
 
     def createProcessingTask(AnnotationProcessorDeclaration proc) {
         def noopClassloader = Stub(ClassLoader)
-        return new AnnotationProcessingCompileTask(Stub(JavaCompiler.CompilationTask), [proc] as Set<AnnotationProcessorDeclaration>, [], Stub(AnnotationProcessingResult)) {
+        return new AnnotationProcessingCompileTask(Stub(JavaCompiler.CompilationTask), Collections.singleton(proc), [], Stub(AnnotationProcessingResult)) {
             ClassLoader createProcessorClassLoader() {
                 return new LimitedClassLoader(noopClassloader)
             }
