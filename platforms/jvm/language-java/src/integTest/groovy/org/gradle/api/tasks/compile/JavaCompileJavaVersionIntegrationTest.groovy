@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -70,7 +71,12 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec impl
         output.contains "Value of input property 'javaVersion' has changed for task ':compileJava'"
     }
 
-    def "not up-to-date when java version for forking changes"() {
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so a forking compile on an older JVM cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".*from java (8|9|10)"]
+    )
+    def "not up-to-date when java version for forking changes from java #jdk.javaVersionMajor"() {
         def otherJdk = AvailableJavaHomes.getDifferentVersion(jdk.javaVersion)
         Assume.assumeTrue(otherJdk != null)
 

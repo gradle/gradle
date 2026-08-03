@@ -1,3 +1,4 @@
+import gradlebuild.basics.bundleGroovyMajor
 import gradlebuild.basics.configurationCacheEnabledForDocsTests
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
@@ -220,6 +221,14 @@ tasks.named<Test>("docsTest") {
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-platforms-native-*")
+        }
+
+        if (bundleGroovyMajor >= 5) {
+            // Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8
+            // toolchain workers these samples configure cannot start.
+            // TODO Drop this exclusion together with https://github.com/gradle/gradle/issues/38735
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dsl-apis-jvm-multi-project-with-toolchains_*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-platforms-jvm-jvm-multi-project-with-toolchains_*")
         }
     }
 

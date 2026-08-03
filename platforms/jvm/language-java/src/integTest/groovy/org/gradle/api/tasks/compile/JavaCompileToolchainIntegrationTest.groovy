@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -410,6 +411,10 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 compile daemon cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735"
+    )
     def "can use compile daemon with tools jar"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
         assumeTrue(JavaVersion.current() != JavaVersion.VERSION_1_8)
@@ -433,6 +438,11 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(jdk.javaVersion)
     }
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so a compile daemon on an older JVM cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".* jdk version (8|9|10)"]
+    )
     def "can compile Java using jdk version #jdk.javaVersionMajor"() {
         buildFile << """
             plugins {
@@ -464,6 +474,11 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
      * somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
      */
     @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so the Java 8 compile daemon cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".*javaVersion: 1\\.8,.*"]
+    )
     def "Java deprecation messages with different JDKs"() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
 

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.modes.ToBeFixedForGroovy5
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -199,6 +200,11 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         'none' | 'none' | '21'      | '21'
     }
 
+    @ToBeFixedForGroovy5(
+        because = "Gradle workers carry Groovy on their classpath and Groovy 5 needs Java 11, so a compile or test worker on an older JVM cannot start",
+        issue = "https://github.com/gradle/gradle/issues/38735",
+        iterationMatchers = [".*using Java (1\\.8|9|10) for Groovy.*"]
+    )
     def "can compile source and run tests using Java #javaVersion for Groovy "() {
         // This condition can't be part of the `where` block because that is only evaluated for the first Groovy version
         Assume.assumeTrue(
