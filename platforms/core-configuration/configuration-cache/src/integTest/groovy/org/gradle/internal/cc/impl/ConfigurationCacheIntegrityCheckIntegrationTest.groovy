@@ -18,10 +18,13 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.internal.ToBeImplemented
+
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 
 class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    static final String DAEMON_COMMUNICATION_FAILURE = "Could not receive a message from the daemon"
     static final String INTEGRITY_CHECKS = StartParameterBuildOptions.ConfigurationCacheIntegrityCheckOption.PROPERTY_NAME
 
     def "enabling integrity check invalidates CC"() {
@@ -74,10 +77,12 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
             "The value cannot be decoded properly with 'JavaObjectSerializationCodec'."
         )
         failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
+
+        and:
+        failure.assertThatDescription(not(containsString(DAEMON_COMMUNICATION_FAILURE)))
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/32807")
-    def "integrity checks detect invalid serialization protocol implementation in fingerprint"() {
+    def "integrity checks detect invalid serialization protocol implementation in fingerprint when the broken value is #shape"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
         buildFile """
@@ -85,15 +90,17 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
 
             ${brokenSerializable()}
 
-            abstract class MyValueSource implements ValueSource<CustomSerializable, ValueSourceParameters.None> {
+            $extraClasses
+
+            abstract class MyValueSource implements ValueSource<$valueType, ValueSourceParameters.None> {
                 @Override
-                CustomSerializable obtain() {
-                    return new CustomSerializable("John", 23)
+                $valueType obtain() {
+                    return $valueExpression
                 }
             }
 
             tasks.register("showUser") {
-                def user = providers.of(MyValueSource) {}.get().name
+                def user = providers.of(MyValueSource) {}.get()$accessor
 
                 doLast {
                     println("Hello, \$user!")
@@ -113,18 +120,70 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
         configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
 
         then:
-        failureDescriptionStartsWith('Configuration cache state could not be cached: ' +
+        failureDescriptionContains(
             'field `value` of `org.gradle.internal.Try$Success` bean found in ' +
-            'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` bean found in ' +
-            'class `MyValueSource`' +
-            ": The value cannot be decoded properly with 'JavaObjectSerializationCodec'. " +
-            "It may have been written incorrectly or its data is corrupted.")
+                'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` bean found in ' +
+                'class `MyValueSource`' +
+                ": The value cannot be decoded properly with 'JavaObjectSerializationCodec'. " +
+                "It may have been written incorrectly or its data is corrupted.")
         failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
 
-        if (GradleContextualExecuter.isDaemon()) {
-            // TODO(https://github.com/gradle/gradle/issues/32807): this is an induced failure that shouldn't happen
-            failureDescriptionContains("Could not receive a message from the daemon")
-        }
+        and:
+        failure.assertThatDescription(not(containsString(DAEMON_COMMUNICATION_FAILURE)))
+
+        where:
+        shape                  | valueType            | accessor      | extraClasses                                                                                                                  | valueExpression
+        "the value itself"     | "CustomSerializable" | ".name"       | ""                                                                                                                            | "new CustomSerializable('John', 23)"
+        "nested in a bean"     | "Wrapper"            | ".inner.name" | "class Wrapper implements Serializable { CustomSerializable inner; Wrapper(CustomSerializable inner) { this.inner = inner } }" | "new Wrapper(new CustomSerializable('John', 23))"
+        "an element of a list" | "List"               | "[0].name"    | ""                                                                                                                            | "[new CustomSerializable('John', 23)]"
+    }
+
+    def "custom exception raised while reading the fingerprint is deserializable by the client"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        buildFile """
+            import org.gradle.api.provider.*
+
+            class BrokenFingerprintException extends RuntimeException {
+                BrokenFingerprintException(String message) { super(message) }
+            }
+
+            class ThrowsWhenRead implements Serializable {
+                private void readObject(ObjectInputStream input) throws IOException, ClassNotFoundException {
+                    input.defaultReadObject()
+                    throw new BrokenFingerprintException("failed to read fingerprint value")
+                }
+            }
+
+            abstract class MyValueSource implements ValueSource<ThrowsWhenRead, ValueSourceParameters.None> {
+                @Override
+                ThrowsWhenRead obtain() {
+                    return new ThrowsWhenRead()
+                }
+            }
+
+            tasks.register("showUser") {
+                providers.of(MyValueSource) {}.get()
+                doLast {
+                    println("Hello!")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("showUser", "-D${INTEGRITY_CHECKS}=true")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
+
+        then:
+        failureCauseContains("failed to read fingerprint value")
+
+        and:
+        failure.assertThatDescription(not(containsString(DAEMON_COMMUNICATION_FAILURE)))
     }
 
     def brokenSerializable() {
