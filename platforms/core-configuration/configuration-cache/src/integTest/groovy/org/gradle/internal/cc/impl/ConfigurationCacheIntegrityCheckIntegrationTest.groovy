@@ -78,55 +78,7 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
         )
         failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
 
-        and: "the error raised while storing state is wrapped so the client can deserialize it (contrast with the fingerprint path, issue 32807)"
-        failure.assertThatDescription(not(containsString(DAEMON_COMMUNICATION_FAILURE)))
-    }
-
-    def "integrity checks detect invalid serialization protocol implementation in fingerprint"() {
-        def configurationCache = new ConfigurationCacheFixture(this)
-
-        buildFile """
-            import org.gradle.api.provider.*
-
-            ${brokenSerializable()}
-
-            abstract class MyValueSource implements ValueSource<CustomSerializable, ValueSourceParameters.None> {
-                @Override
-                CustomSerializable obtain() {
-                    return new CustomSerializable("John", 23)
-                }
-            }
-
-            tasks.register("showUser") {
-                def user = providers.of(MyValueSource) {}.get().name
-
-                doLast {
-                    println("Hello, \$user!")
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun("showUser", "-D${INTEGRITY_CHECKS}=true")
-
-        then:
-        // We only read fingerprint when reusing the cache, it isn't part of load-after-store.
-        // Thus the first (store) run succeeds.
-        configurationCache.assertStateStored()
-
-        when:
-        configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
-
-        then:
-        failureDescriptionStartsWith('Configuration cache state could not be cached: ' +
-            'field `value` of `org.gradle.internal.Try$Success` bean found in ' +
-            'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` bean found in ' +
-            'class `MyValueSource`' +
-            ": The value cannot be decoded properly with 'JavaObjectSerializationCodec'. " +
-            "It may have been written incorrectly or its data is corrupted.")
-        failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
-
-        and: "the fingerprint read error is wrapped so the client can deserialize it"
+        and:
         failure.assertThatDescription(not(containsString(DAEMON_COMMUNICATION_FAILURE)))
     }
 
@@ -160,22 +112,30 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
         configurationCacheRun("showUser", "-D${INTEGRITY_CHECKS}=true")
 
         then:
+        // We only read fingerprint when reusing the cache, it isn't part of load-after-store.
+        // Thus the first (store) run succeeds.
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
 
         then:
-        failureDescriptionContains("The value cannot be decoded properly with 'JavaObjectSerializationCodec'.")
+        failureDescriptionContains(
+            'field `value` of `org.gradle.internal.Try$Success` bean found in ' +
+                'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` bean found in ' +
+                'class `MyValueSource`' +
+                ": The value cannot be decoded properly with 'JavaObjectSerializationCodec'. " +
+                "It may have been written incorrectly or its data is corrupted.")
         failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
 
-        and: "the fingerprint read error is wrapped so the client can deserialize it"
+        and:
         failure.assertThatDescription(not(containsString(DAEMON_COMMUNICATION_FAILURE)))
 
         where:
-        shape                  | valueType | accessor      | extraClasses                                                                                                                                                    | valueExpression
-        "nested in a bean"     | "Wrapper" | ".inner.name" | "class Wrapper implements Serializable { CustomSerializable inner; Wrapper(CustomSerializable inner) { this.inner = inner } }" | "new Wrapper(new CustomSerializable('John', 23))"
-        "an element of a list" | "List"    | "[0].name"    | ""                                                                                                                                                              | "[new CustomSerializable('John', 23)]"
+        shape                  | valueType            | accessor      | extraClasses                                                                                                                  | valueExpression
+        "the value itself"     | "CustomSerializable" | ".name"       | ""                                                                                                                            | "new CustomSerializable('John', 23)"
+        "nested in a bean"     | "Wrapper"            | ".inner.name" | "class Wrapper implements Serializable { CustomSerializable inner; Wrapper(CustomSerializable inner) { this.inner = inner } }" | "new Wrapper(new CustomSerializable('John', 23))"
+        "an element of a list" | "List"               | "[0].name"    | ""                                                                                                                            | "[new CustomSerializable('John', 23)]"
     }
 
     def "custom exception raised while reading the fingerprint is deserializable by the client"() {
@@ -211,18 +171,18 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
         """
 
         when:
-        configurationCacheRun("showUser")
+        configurationCacheRun("showUser", "-D${INTEGRITY_CHECKS}=true")
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheFails("showUser")
+        configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
 
         then:
         failureCauseContains("failed to read fingerprint value")
 
-        and: "the user-defined exception is wrapped so the client can deserialize it"
+        and:
         failure.assertThatDescription(not(containsString(DAEMON_COMMUNICATION_FAILURE)))
     }
 
