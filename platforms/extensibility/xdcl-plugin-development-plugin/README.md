@@ -7,7 +7,7 @@ and the bundled `xdcl-gradle-plugin` (which is itself a distribution module, so 
 
 The schema (and the generated facades) live in the published sibling `:xdcl-plugin-development`; this module is the
 distribution-only carrier binding `XdclGradlePluginReaction`. See `integrations/gradle/doc/builtin-ecosystem-schemas.md` in the
-`xdcl-scripting-language` repository for the built-in-ecosystem design this follows.
+`xdcl` (xdcl-scripting-language) repository for the built-in-ecosystem design this follows.
 
 ## Usage
 
