@@ -119,7 +119,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
             [],
             [cacheableOutputProperty],
             [spec({ true })],
-            [spec({ "throw new RuntimeException()" }, "Exception is thrown")]
+            [spec({ throw new RuntimeException() }, "Exception is thrown")]
         )
 
         then:
