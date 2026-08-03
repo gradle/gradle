@@ -74,7 +74,7 @@ Links executable from compiled object files using the selected linker.
 `installTest__Variant__` (e.g. `installTest`) - link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable]::
 Depends on: `linkTest__Variant__` and all tasks which contribute to the runtime of the executable, including `link__Variant__` tasks from projects that are resolved via project dependencies
 ::
-Installs the executable and all of it's runtime dependencies for easy execution.
+Installs the executable and all of its runtime dependencies for easy execution.
 
 `runTest__Variant__` (e.g. `runTest`) - link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable]::
 Depends on: `installTest__Variant__`
@@ -94,7 +94,7 @@ This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 `test` - Task (lifecycle)::
 Depends on: `runTest__Variant__` that most closely matches the build host
 ::
-Aggregate task of the variant that most closely match the build host for testing the component.
+Aggregate task of the variant that most closely matches the build host for testing the component.
 
 `check` - Task (lifecycle)::
 Depends on: `test`
@@ -106,7 +106,7 @@ This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 `build` - Task (lifecycle)::
 Depends on: `check`, `assemble`
 ::
-Aggregate tasks that perform a full build of the project.
+Aggregate task that performs a full build of the project.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `clean` - Delete::
@@ -116,7 +116,7 @@ This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 [[sec:cpp_unit_test_dependency_management]]
 == Dependency management
 
-Just like the tasks created by the {cpp} Unit Test Plugin, the configurations are created based on the variant of the application component.
+Just like the tasks created by the {cpp} Unit Test Plugin, the configurations are created based on the variant of the test component.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 The following graph describes the configurations added by the {cpp} Unit Test Plugin:
 
@@ -131,13 +131,13 @@ The following configurations are used to declare dependencies:
 `testImplementation`::
 Used for declaring implementation dependencies for all variants of the test component.
 This is where you should declare dependencies of any variants.
-Note this configuration inherit all dependencies declared on the tested component (library or application).
+Note this configuration inherits all dependencies declared on the tested component (library or application).
 
 `test__Variant__ExecutableImplementation` (e.g. `testExecutableImplementation`) extends `testImplementation`::
 Used for declaring implementation dependencies for a specific variant of the test component.
 This is where you should declare dependencies of the specific variant.
 
-There is no configurations that can be used by consumers for this plugin.
+There are no configurations that can be used by consumers for this plugin.
 
 The following configurations are used by the unit test itself:
 
@@ -162,7 +162,7 @@ The {cpp} Unit Test Plugin adds conventions for sources and tasks, shown below.
 === Project layout
 
 The {cpp} Unit Test Plugin assumes the project layout shown below.
-None of these directories needs to exist or have anything in them.
+None of these directories need to exist or have anything in them.
 The {cpp} Unit Test Plugin will compile whatever it finds, and handles anything which is missing.
 
 `src/test/cpp`::
