@@ -16,8 +16,16 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+
 abstract class AbstractSampleIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.withRepositoryMirrors()
+        if (KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().latest)) {
+            def kotlinDevRepoInitScript = KotlinGradlePluginVersions.createKotlinDevRepositoryInitScript()
+            executer.beforeExecute {
+                usingInitScript(kotlinDevRepoInitScript)
+            }
+        }
     }
 }

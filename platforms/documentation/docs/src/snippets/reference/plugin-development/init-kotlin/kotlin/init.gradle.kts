@@ -8,6 +8,7 @@ initscript {
         maven { url = uri("./baseline-init-plugin/build/repo") }
         mavenCentral()
         gradlePluginPortal()
+        maven { url = uri("https://packages.jetbrains.team/maven/p/kt/dev") }
     }
     // Either coordinates work; the ID form below relies on the classpath JAR containing the descriptor
     dependencies {

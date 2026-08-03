@@ -92,14 +92,17 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
             }
         """
 
+        file("buildSrc/settings.gradle.kts") << """
+            pluginManagement {
+                $repositoriesBlock
+            }
+        """
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
             }
 
-            repositories {
-                gradlePluginPortal()
-            }
+            $repositoriesBlock
         """
 
         file("buildSrc/src/main/kotlin/my-conventions.gradle.kts") << """

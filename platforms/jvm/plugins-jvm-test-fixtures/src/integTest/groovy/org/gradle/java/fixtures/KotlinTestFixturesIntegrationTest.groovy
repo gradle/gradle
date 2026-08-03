@@ -62,6 +62,10 @@ class KotlinTestFixturesIntegrationTest extends AbstractTestFixturesIntegrationT
         // which demonstrates that the test fixtures are exposed
         addPersonTestUsingTestFixtures()
 
+        if (KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().latest)) {
+            executer.usingInitScript(KotlinGradlePluginVersions.createKotlinDevRepositoryInitScript())
+        }
+
         when:
         succeeds ':build'
 

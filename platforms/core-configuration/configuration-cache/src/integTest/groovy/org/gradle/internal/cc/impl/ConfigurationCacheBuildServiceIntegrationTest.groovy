@@ -16,6 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
+
+import java.util.concurrent.atomic.AtomicInteger
+import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -42,15 +45,13 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import spock.lang.Issue
-
-import javax.inject.Inject
-import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements UndeclaredArtifactTransformInputDeprecation {
 
@@ -562,6 +563,10 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         createDir("included") {
             file("settings.gradle") << """
                 pluginManagement {
+                    repositories {
+                        gradlePluginPortal()
+                        ${kotlinDevRepositoryDefinition()}
+                    }
                     includeBuild '../probe-plugin'
                 }
                 include 'classloader1', 'boundary:classloader2'
@@ -571,6 +576,8 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             """
             file("boundary/build.gradle.kts") << """
                 plugins { `kotlin-dsl` } // put a boundary between classloader1 and classloader2
+                ${mavenCentralRepository(GradleDsl.KOTLIN)}
+                ${kotlinDevRepository(GradleDsl.KOTLIN)}
             """
             file("boundary/classloader2/build.gradle") << """
                 plugins { id 'probe-plugin' version '1.0' }

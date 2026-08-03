@@ -17,10 +17,12 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Before
 import java.io.File
 import java.util.Properties
@@ -60,6 +62,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
                     repositories {
                         $testRepositories
                         gradlePluginPortal()
+                        ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.GROOVY)}
                     }
                 }
             }
@@ -154,6 +157,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         get() = """
             repositories {
                 gradlePluginPortal()
+                ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
 
@@ -223,7 +227,16 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
     fun withKotlinBuildSrc() {
-        withDefaultSettingsIn("buildSrc")
+        // repositories go into the settings file too; TAPI requests bypass the injected init scripts
+        withSettingsIn(
+            "buildSrc",
+            """
+            pluginManagement {
+                $repositoriesBlock
+            }
+            $defaultSettingsScript
+            """
+        )
         withBuildScriptIn(
             "buildSrc",
             """

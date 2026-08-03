@@ -18,6 +18,8 @@ package org.gradle.internal.declarativedsl
 
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding
@@ -302,6 +304,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             }
             repositories {
                 mavenCentral()
+                ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
             }
             gradlePlugin {
                 plugins {

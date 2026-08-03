@@ -420,11 +420,20 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         given:
         // override setup
+        settingsFile.text = """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    ${kotlinDevRepositoryDefinition()}
+                }
+            }
+        """ + (settingsFile.exists() ? settingsFile.text : "")
         buildFile.text = """
             plugins {
                 id("org.jetbrains.kotlin.jvm") version "$kotlinPluginVersion"
             }
             ${mavenCentralRepository()}
+            ${kotlinDevRepository()}
             dependencies {
                 testImplementation 'junit:junit:4.13'
             }
