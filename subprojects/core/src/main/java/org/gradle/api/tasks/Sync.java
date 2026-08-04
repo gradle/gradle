@@ -88,16 +88,11 @@ public abstract class Sync extends AbstractCopyTask {
     @Override
     protected void copy() {
         File destinationDir = getDestinationDir();
-        if (destinationDir != null && !hasPreviousOutputFilesUnder(destinationDir)) {
-            // performance: check file system contents last
-            if (isSourceEmpty()) {
-                // Empty source and no record of a prior sync into this destination:
-                // possibly a misconfigured source pointing at an unrelated directory, so do nothing rather than
-                // wipe content this task never wrote. (Untracked tasks keep no history, so they always
-                // take this branch on an empty source.)
-                setDidWork(false);
-                return;
-            }
+        if (destinationDir != null && !hasPreviousOutputFilesUnder(destinationDir) && isSourceEmpty()) {
+            // Empty source without history: skip to avoid wiping external files.
+            // Untracked tasks have no history, so they always take this path when empty.
+            setDidWork(false);
+            return;
         }
         super.copy();
     }
@@ -109,18 +104,9 @@ public abstract class Sync extends AbstractCopyTask {
      */
     private boolean isSourceEmpty() {
         MutableBoolean found = new MutableBoolean();
-        getSource().getAsFileTree().visit(new EmptyFileVisitor() {
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                found.set(true);
-                fileDetails.stopVisiting();
-            }
-
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                found.set(true);
-                dirDetails.stopVisiting();
-            }
+        getSource().getAsFileTree().visit(fileDetails -> {
+            found.set(true);
+            fileDetails.stopVisiting();
         });
         return !found.get();
     }
