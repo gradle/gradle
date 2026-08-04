@@ -231,6 +231,7 @@ include::filtering_repository_content.adoc[leveloffset=+2]
 // Centralizing Dependencies
 include::platforms.adoc[leveloffset=+2]
 include::version_catalogs.adoc[leveloffset=+2]
+include::version_catalog_plugin.adoc[leveloffset=+2]
 include::centralizing_catalog_platform.adoc[leveloffset=+2]
 
 // Controlling Dependency Resolution
