@@ -24,7 +24,7 @@ import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.i
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     private static final String SET_BUILD_CACHE_ENABLED_DEPRECATION = "The StartParameter.setBuildCacheEnabled(boolean) method has been deprecated. " +
         "This is scheduled to be removed in Gradle 10. " +
-        "Use the 'org.gradle.caching' Gradle property to enable the build cache instead. " +
+        "Use the 'org.gradle.caching' Gradle property to enable or disable the build cache instead. " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecation_enabling_build_cache_from_build_logic"
 
     String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()

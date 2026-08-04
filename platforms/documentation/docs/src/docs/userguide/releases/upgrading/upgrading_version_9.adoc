@@ -151,7 +151,7 @@ Enabling the Build Cache from build logic by mutating the start parameter, for e
 
 Whether the Build Cache is enabled is determined by the Gradle invocation (`--build-cache` / `--no-build-cache`) and the `org.gradle.caching` Gradle property, and is not intended to be overridden by build logic.
 
-Enable the Build Cache with the `org.gradle.caching` Gradle property instead.
+Enable or disable the Build Cache with the `org.gradle.caching` Gradle property instead.
 See <<build_cache.adoc#sec:build_cache_enable,Enable the Build Cache>> for details.
 
 

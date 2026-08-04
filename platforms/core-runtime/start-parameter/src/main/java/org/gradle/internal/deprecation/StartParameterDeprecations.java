@@ -38,7 +38,7 @@ public class StartParameterDeprecations {
 
     public static void nagOnSetBuildCacheEnabled() {
         DeprecationLogger.deprecateMethod(StartParameter.class, "setBuildCacheEnabled(boolean)")
-            .withAdvice("Use the 'org.gradle.caching' Gradle property to enable the build cache instead.")
+            .withAdvice("Use the 'org.gradle.caching' Gradle property to enable or disable the build cache instead.")
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(9, "deprecation_enabling_build_cache_from_build_logic")
             .nagUser();
