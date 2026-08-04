@@ -512,6 +512,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_OBJECT_MODEL_OBJECT = getMethodDescriptor(VOID_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING = getMethodDescriptor(VOID_TYPE, DEFAULT_PROPERTY_TYPE, SERVICE_LOOKUP_TYPE, STRING_TYPE);
         private static final String RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME = getMethodDescriptor(VOID_TYPE, MODEL_OBJECT_TYPE, DISPLAY_NAME_TYPE);
+        private static final String RETURN_VOID_FROM_EXCEPTION_MODEL_OBJECT_STRING = getMethodDescriptor(VOID_TYPE, EXCEPTION_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
         private static final String RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE);
@@ -1244,14 +1245,19 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             /**
              * Same as {@link #attachProperty(AttachedProperty)}, but tolerates a getter that fails.
              *
-             * <p>The getter is invoked only to obtain the property so its owner can be re-attached, so a failure
+             * <p>The getter is invoked only to obtain the property so its owner can be re-attached, so an exception
              * here is not reported: the property is simply left without an owner. A later direct call to the
              * getter still fails as usual.</p>
              */
             protected void attachPropertyIfPossible(AttachedProperty attached) {
                 // GENERATE
                 //     <type> value;
-                //     try { value = get<prop>(); } catch (Exception ignored) { <skip this property> }
+                //     try {
+                //         value = get<prop>();
+                //     } catch (Exception e) {
+                //         ManagedObjectFactory.ignoreAttachOwnerFailure(e, this, <property-name>);
+                //         <skip this property>
+                //     }
                 //     ManagedObjectFactory.attachOwner(value, this, <property-name>);
                 Label tryStart = new Label();
                 Label tryEnd = new Label();
@@ -1266,8 +1272,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _POP();
                 _GOTO(done);
                 visitLabel(handler);
-                // Discard the ignored exception
-                _POP();
+                // The caught exception is on the stack, so pass it to the helper that reports it
+                _ALOAD(0);
+                _LDC(attached.property.getName());
+                _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "ignoreAttachOwnerFailure", RETURN_VOID_FROM_EXCEPTION_MODEL_OBJECT_STRING);
                 visitLabel(done);
             }
 

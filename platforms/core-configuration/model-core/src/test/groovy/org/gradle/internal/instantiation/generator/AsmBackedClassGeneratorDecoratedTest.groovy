@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.NonExtensible
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
@@ -28,9 +29,12 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
+import org.junit.Rule
 import spock.lang.Issue
 
 import java.lang.annotation.Annotation
@@ -49,6 +53,11 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
+
+    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def "mixes in toString() implementation for class"() {
         given:
@@ -188,6 +197,12 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         then: "the failure is ignored and the remaining properties are still attached"
         noExceptionThrown()
         field.get(bean).toString() == "<display name> property 'working'"
+
+        and: "the ignored failure is logged at debug level, naming the property so that a missing owner can still be diagnosed"
+        def events = outputEventListener.events.findAll { it.message.startsWith("Could not attach owner to <display name> property 'failing'") }
+        events.size() == 1
+        events[0].logLevel == LogLevel.DEBUG
+        events[0].throwable.message == "The value of this property has been discarded during serialization."
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37421")
