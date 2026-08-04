@@ -23,26 +23,27 @@ val QUICK_CROSS_VERSION_BUCKETS =
 
 /**
  * Buckets for AllVersionsCrossVersionTest on operating systems that use TestDistribution
- * (see [GradleVersionRangeCrossVersionTestBucket]). TestDistribution spreads the test classes of a
- * bucket over many executors, so a build's duration does not follow the amount of work in its range
- * and coarse buckets are good enough.
+ * (see [GradleVersionRangeCrossVersionTestBucket]). TestDistribution flattens every test task to a
+ * fixed floor, so a build's duration follows the number of test tasks in its range - one per version
+ * per subproject with cross-version tests - and not the test time of those versions. The ranges are
+ * therefore balanced by version count, weighted by how many subprojects test each version.
  */
 val ALL_CROSS_VERSION_BUCKETS =
     listOf(
         listOf("0.0", "5.0"), // 0.0 <= version < 5.0
         listOf("5.0", "6.0"), // 5.0 <=version < 6.0
-        listOf("6.0", "7.3"), // 6.0 <=version < 7.3
-        listOf("7.3", "7.6"), // 7.3 <=version < 7.6
-        listOf("7.6", "8.2"), // 7.6 <=version < 8.2
-        listOf("8.2", "8.4"), // 8.2 <=version < 8.4
-        listOf("8.4", "8.6"), // 8.4 <=version < 8.6
-        listOf("8.6", "8.8"), // 8.6 <=version < 8.8
-        listOf("8.8", "8.10"), // 8.8 <=version < 8.10
-        listOf("8.10", "8.12"), // 8.10 <=version < 8.12
-        listOf("8.12", "8.13"), // 8.12 <=version < 8.13
-        listOf("8.13", "9.0"), // 8.13 <=version < 9.0
+        listOf("6.0", "6.5"), // 6.0 <=version < 6.5
+        listOf("6.5", "7.0"), // 6.5 <=version < 7.0
+        listOf("7.0", "7.4"), // 7.0 <=version < 7.4
+        listOf("7.4", "8.0"), // 7.4 <=version < 8.0
+        listOf("8.0", "8.3"), // 8.0 <=version < 8.3
+        listOf("8.3", "8.6"), // 8.3 <=version < 8.6
+        listOf("8.6", "8.9"), // 8.6 <=version < 8.9
+        listOf("8.9", "8.12"), // 8.9 <=version < 8.12
+        listOf("8.12", "9.0"), // 8.12 <=version < 9.0
         listOf("9.0", "9.3"), // 9.0 <=version < 9.3
-        listOf("9.3", "99.0"), // 9.3 <=version < 99.0
+        listOf("9.3", "9.5"), // 9.3 <=version < 9.5
+        listOf("9.5", "99.0"), // 9.5 <=version < 99.0
     )
 
 /**
