@@ -42,7 +42,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -98,7 +97,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final SelectorStateResolver<ComponentState> selectorStateResolver;
     private final ResolveOptimizations resolveOptimizations;
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = new HashMap<>();
-    private final AttributeDesugaring attributeDesugaring;
     private final ModuleConflictHandler moduleConflictHandler;
     private final CapabilitiesConflictHandler capabilitiesConflictHandler;
     private final GraphVariantSelector variantSelector;
@@ -114,7 +112,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         ComponentSelectorConverter componentSelectorConverter,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        AttributeDesugaring attributeDesugaring,
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
         VersionSelectorScheme versionSelectorScheme,
         VersionComparator versionComparator,
@@ -140,7 +137,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionParser = versionParser;
         this.conflictResolution = conflictResolution;
         this.resolveOptimizations = new ResolveOptimizations();
-        this.attributeDesugaring = attributeDesugaring;
         this.variantSelector = variantSelector;
 
         this.moduleConflictHandler = new DefaultModuleConflictHandler(moduleConflictResolver, moduleReplacements, this);
@@ -321,14 +317,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     ResolvedVersionConstraint resolveVersionConstraint(VersionConstraint vc) {
         return resolvedVersionConstraints.computeIfAbsent(vc, key -> new DefaultResolvedVersionConstraint(key, versionSelectorScheme));
-    }
-
-    ComponentSelector desugarSelector(ComponentSelector requested) {
-        return attributeDesugaring.desugarSelector(requested);
-    }
-
-    AttributeDesugaring getAttributeDesugaring() {
-        return attributeDesugaring;
     }
 
     ResolveOptimizations getResolveOptimizations() {

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.SubstitutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -430,7 +429,7 @@ public class NodeState implements DependencyGraphNode {
             // Let's clear that state since it is no longer part of selection
             for (EdgeState edge : cachedFilteredEdges) {
                 if (edge.getDependencyMetadata().isConstraint()) {
-                    ModuleResolveState targetModule = resolveState.getModule(edge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter()));
+                    ModuleResolveState targetModule = resolveState.getModule(edge.getTargetModuleIdentifier());
                     if (targetModule.isPending()) {
                         targetModule.unregisterConstraintProvider(this);
                     }
@@ -475,7 +474,7 @@ public class NodeState implements DependencyGraphNode {
         EdgeState dependencyEdge
     ) {
         boolean constraint = dependencyEdge.getDependencyMetadata().isConstraint();
-        ModuleIdentifier moduleId = dependencyEdge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter());
+        ModuleIdentifier moduleId = dependencyEdge.getTargetModuleIdentifier();
         ModuleResolveState module = resolveState.getModule(moduleId);
 
         boolean deferSelection = false;
@@ -665,8 +664,7 @@ public class NodeState implements DependencyGraphNode {
             return false;
         }
 
-        ComponentSelectorConverter componentSelectorConverter = resolveState.getComponentSelectorConverter();
-        ModuleIdentifier targetModuleId = edgeState.getDependencyState().getModuleIdentifier(componentSelectorConverter);
+        ModuleIdentifier targetModuleId = edgeState.getTargetModuleIdentifier();
 
         if (excludeSpec.excludes(targetModuleId)) {
             LOGGER.debug("{} is excluded from {} by {}.", targetModuleId, this, excludeSpec);
@@ -674,9 +672,9 @@ public class NodeState implements DependencyGraphNode {
         }
 
         // If we were substituted, apply the exclusion to the original selector as well.
-        ComponentSelector requestedSelector = edgeState.getDependencyState().getRequested();
-        if (requestedSelector != edgeState.getDependencyState().getDependency().getSelector()) {
-            return excludeSpec.excludes(componentSelectorConverter.getModuleVersionId(requestedSelector).getModule());
+        ComponentSelector requestedSelector = edgeState.getRequested();
+        if (requestedSelector != edgeState.getDependencyMetadata().getSelector()) {
+            return excludeSpec.excludes(resolveState.getComponentSelectorConverter().getModuleVersionId(requestedSelector).getModule());
         }
 
         return false;

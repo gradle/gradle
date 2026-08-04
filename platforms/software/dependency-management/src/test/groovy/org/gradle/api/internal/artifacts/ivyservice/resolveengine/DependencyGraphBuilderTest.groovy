@@ -48,7 +48,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.specs.Spec
@@ -130,7 +129,6 @@ class DependencyGraphBuilderTest extends Specification {
 
     def versionComparator = new DefaultVersionComparator()
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
-    def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(
         new ComponentIdGenerator(),
         new DefaultLocalVariantGraphResolveStateBuilder(
@@ -147,7 +145,6 @@ class DependencyGraphBuilderTest extends Specification {
         moduleExclusions,
         AttributeTestUtil.attributesFactory(),
         AttributeTestUtil.services(),
-        desugaring,
         versionSelectorScheme,
         versionComparator,
         new ComponentIdGenerator(),
