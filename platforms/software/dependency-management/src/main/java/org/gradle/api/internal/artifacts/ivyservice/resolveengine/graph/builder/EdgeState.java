@@ -37,6 +37,7 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
@@ -102,10 +103,11 @@ class EdgeState implements DependencyGraphEdge {
 
     boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions, boolean deferSelection) {
         boolean ignoreVersion = !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
-        SelectorState newSelector = resolveState.computeSelectorFor(dependencyState, ignoreVersion);
+        ComponentSelector componentSelector = dependencyState.getDependency().getSelector();
+        SelectorState newSelector = resolveState.computeSelectorFor(componentSelector, ignoreVersion);
         if (this.selector != newSelector) {
             clearSelector();
-            newSelector.use(deferSelection, isConstraint);
+            newSelector.use(this, deferSelection);
             this.selector = newSelector;
             return true;
         }
@@ -117,9 +119,32 @@ class EdgeState implements DependencyGraphEdge {
         if (this.selector != null) {
             SelectorState currentSelector = this.selector;
             this.selector = null;
-            return currentSelector.release(isConstraint);
+            return currentSelector.release(this);
         }
         return false;
+    }
+
+    /**
+     * True if this edge forces the version of the component selector it resolves, excluding
+     * the lenient forcing applied by virtual platform alignment.
+     */
+    boolean isHardForcing() {
+        return dependencyState.isForced() && !(dependencyMetadata instanceof LenientPlatformDependencyMetadata);
+    }
+
+    /**
+     * True if this edge leniently forces the version of the component selector it resolves,
+     * as part of virtual platform alignment.
+     */
+    boolean isSoftForcing() {
+        return dependencyState.isForced() && dependencyMetadata instanceof LenientPlatformDependencyMetadata;
+    }
+
+    /**
+     * Get the artifacts that this edge explicitly requests from the target component.
+     */
+    ImmutableList<IvyArtifactName> getDependencyArtifacts() {
+        return dependencyMetadata.getArtifacts();
     }
 
     @Override
@@ -143,7 +168,7 @@ class EdgeState implements DependencyGraphEdge {
      */
     @Nullable
     ComponentState getTargetComponent() {
-        if (selector == null || !selector.isResolved() || selector.getFailure() != null) {
+        if (selector == null || selector.requiresSelection() || selector.getFailure() != null) {
             return null;
         }
         ModuleResolveState targetModule = selector.getTargetModule();
@@ -286,6 +311,9 @@ class EdgeState implements DependencyGraphEdge {
                         continue;
                     }
                     ModuleVersionResolveException targetNodeFailure = unattachedEdge.targetNodeSelectionFailure;
+                    if (targetNodeFailure == null) {
+                        targetNodeFailure = unattachedEdge.dependencyState.getSubstitutionFailure();
+                    }
                     if (targetNodeFailure == null && unattachedEdge.selector != null) {
                         targetNodeFailure = unattachedEdge.selector.getFailure();
                     }
@@ -435,6 +463,9 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public @Nullable ModuleVersionResolveException getFailure() {
+        if (dependencyState.getSubstitutionFailure() != null) {
+            return dependencyState.getSubstitutionFailure();
+        }
         if (targetNodeSelectionFailure != null) {
             return targetNodeSelectionFailure;
         }

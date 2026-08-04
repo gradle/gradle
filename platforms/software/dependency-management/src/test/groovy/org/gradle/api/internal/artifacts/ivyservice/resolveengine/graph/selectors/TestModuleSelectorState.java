@@ -92,7 +92,7 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     }
 
     @Override
-    public void markResolved() {
+    public void markSelectionCompleted() {
     }
 
     @Override

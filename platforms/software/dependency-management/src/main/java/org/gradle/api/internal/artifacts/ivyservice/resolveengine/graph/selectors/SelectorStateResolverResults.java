@@ -131,7 +131,7 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult discovered = registration.result;
             if (selectorAcceptsCandidate(selector, discovered, registration.selector.isFromLock())) {
                 found = discovered;
-                selector.markResolved();
+                selector.markSelectionCompleted();
                 break;
             }
         }

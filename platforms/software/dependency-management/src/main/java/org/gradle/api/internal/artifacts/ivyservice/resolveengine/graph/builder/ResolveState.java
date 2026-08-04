@@ -238,14 +238,18 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return selectors.values();
     }
 
-    public SelectorState computeSelectorFor(DependencyState dependencyState, boolean ignoreVersion) {
-        boolean isVirtualPlatformEdge = dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata;
-        SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(dependencyState.getRequested(), ignoreVersion, isVirtualPlatformEdge), req -> {
-            ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier(getComponentSelectorConverter());
-            return new SelectorState(dependencyState.getDependency().getSelector(), idResolver, this, moduleIdentifier, ignoreVersion);
+    public SelectorState computeSelectorFor(ComponentSelector selector, boolean ignoreVersion) {
+        return selectors.computeIfAbsent(new SelectorCacheKey(selector, ignoreVersion), req -> {
+            ModuleIdentifier moduleIdentifier = getModuleIdentifier(selector);
+            return new SelectorState(selector, idResolver, this, moduleIdentifier, ignoreVersion);
         });
-        selectorState.update(dependencyState);
-        return selectorState;
+    }
+
+    private ModuleIdentifier getModuleIdentifier(ComponentSelector selector) {
+        if (selector instanceof ModuleComponentSelector) {
+            return ((ModuleComponentSelector) selector).getModuleIdentifier();
+        }
+        return getComponentSelectorConverter().getModuleVersionId(selector).getModule();
     }
 
     @Nullable
@@ -339,28 +343,23 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
         private final ComponentSelector componentSelector;
         private final boolean ignoreVersion;
-        private final boolean virtualPlatformEdge;
         private final int hashCode;
 
         private SelectorCacheKey(
             ComponentSelector componentSelector,
-            boolean ignoreVersion,
-            boolean virtualPlatformEdge
+            boolean ignoreVersion
         ) {
             this.componentSelector = componentSelector;
             this.ignoreVersion = ignoreVersion;
-            this.virtualPlatformEdge = virtualPlatformEdge;
-            this.hashCode = computeHashCode(componentSelector, ignoreVersion, virtualPlatformEdge);
+            this.hashCode = computeHashCode(componentSelector, ignoreVersion);
         }
 
         private static int computeHashCode(
             ComponentSelector componentSelector,
-            boolean ignoreVersion,
-            boolean virtualPlatformEdge
+            boolean ignoreVersion
         ) {
             int result = componentSelector.hashCode();
             result = 31 * result + Boolean.hashCode(ignoreVersion);
-            result = 31 * result + Boolean.hashCode(virtualPlatformEdge);
             return result;
         }
 
@@ -374,7 +373,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
             }
             SelectorCacheKey that = (SelectorCacheKey) o;
             return ignoreVersion == that.ignoreVersion &&
-                virtualPlatformEdge == that.virtualPlatformEdge &&
                 componentSelector.equals(that.componentSelector);
         }
 

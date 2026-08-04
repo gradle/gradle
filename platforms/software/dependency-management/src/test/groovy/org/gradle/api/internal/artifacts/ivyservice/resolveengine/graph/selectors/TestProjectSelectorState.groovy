@@ -62,7 +62,7 @@ class TestProjectSelectorState implements ResolvableSelectorState {
     }
 
     @Override
-    void markResolved() {
+    void markSelectionCompleted() {
     }
 
     @Override
