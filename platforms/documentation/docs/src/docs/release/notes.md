@@ -67,12 +67,21 @@ You can extract the URL from YouTube by clicking the "Share" button.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a id="java-27"></a>
 ### Support for Java 27
 
 With this release, Gradle supports [Java 27](https://openjdk.org/projects/jdk/27/).
-This means you can now use Java 27 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
-Third-party tool compatibility with Java 27 may still be limited.
+
+You can now run the [Gradle daemon](userguide/gradle_daemon.html) on Java 27, in addition to using it via [toolchains](userguide/toolchains.html):
+
+```kotlin
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(27)
+    }
+}
+```
+
+Some third-party tools (for example, PMD) do not yet support Java 27.
 
 See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
 
