@@ -467,7 +467,7 @@ public class DependencyGraphBuilder {
         for (NodeState node : cs.getNodes()) {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
             for (EdgeState incomingEdge : incomingEdges) {
-                ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                ComponentSelector selector = incomingEdge.getSelector().getComponentSelector();
                 incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                     String.format("Could not resolve %s: Resolution strategy disallows usage of dynamic versions", selector)));
             }
@@ -481,7 +481,7 @@ public class DependencyGraphBuilder {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
             for (EdgeState incomingEdge : incomingEdges) {
                 if (moduleIsChanging || incomingEdge.getDependencyMetadata().isChanging()) {
-                    ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                    ComponentSelector selector = incomingEdge.getSelector().getComponentSelector();
                     incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                         String.format("Could not resolve %s: Resolution strategy disallows usage of changing versions", selector)));
                 }
@@ -583,7 +583,7 @@ public class DependencyGraphBuilder {
                     for (EdgeState incomingEdge : nodeState.getIncomingEdges()) {
                         SelectorState selector = incomingEdge.getSelector();
                         if (isPlatformForcedEdge(selector)) {
-                            ComponentSelector componentSelector = selector.getSelector();
+                            ComponentSelector componentSelector = selector.getComponentSelector();
                             if (componentSelector instanceof ModuleComponentSelector) {
                                 ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
                                 if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {

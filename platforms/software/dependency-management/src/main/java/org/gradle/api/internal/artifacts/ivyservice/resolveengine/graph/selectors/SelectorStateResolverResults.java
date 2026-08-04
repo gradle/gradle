@@ -131,7 +131,7 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult discovered = registration.result;
             if (selectorAcceptsCandidate(selector, discovered, registration.selector.isFromLock())) {
                 found = discovered;
-                selector.markResolved();
+                selector.markSelectionCompleted();
                 break;
             }
         }
@@ -195,7 +195,7 @@ class SelectorStateResolverResults {
         }
         ResolvedVersionConstraint versionConstraint = dep.getVersionConstraint();
         if (versionConstraint == null) {
-            return dep.getSelector().matchesStrictly(candidate.getId());
+            return dep.getComponentSelector().matchesStrictly(candidate.getId());
         }
         VersionSelector versionSelector = versionConstraint.getRequiredSelector();
         if (versionSelector != null &&
