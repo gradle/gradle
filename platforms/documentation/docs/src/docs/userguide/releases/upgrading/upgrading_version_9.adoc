@@ -2225,7 +2225,7 @@ tasks.named("assemble") {
 
 Prior to Gradle 9.0.0, any configuration with `isVisible()` returning `true` would implicitly trigger artifact creation when running the `assemble` task.
 This behavior was removed in Gradle 9.0.0, and the `Configuration.visible` property no longer has any effect.
-The property is now deprecated and will be removed in Gradle 10.0.0.
+The property is now deprecated and will be removed in Gradle 11.0.0.
 You can safely remove any usage of `visible`.
 
 If you want the artifacts of a configuration to be built when running the `assemble` task, add an explicit task dependency on `assemble`:
