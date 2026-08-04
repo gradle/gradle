@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class StartParameterInternal extends StartParameter {
+    private static final ThreadLocal<Boolean> LISTENER_SUPPRESSED = new ThreadLocal<>();
+
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
     private boolean vfsVerboseLogging;
 
@@ -102,22 +104,21 @@ public class StartParameterInternal extends StartParameter {
     @Override
     protected void onMutableCall(String methodSignature) {
         Consumer<String> listener = this.mutationListener;
-        if (listener != null) {
+        if (listener != null && LISTENER_SUPPRESSED.get() == null) {
             listener.accept(methodSignature);
         }
     }
 
     /**
-     * Runs the action with the mutation listener detached, so internal machinery can go through the public
-     * setters without its own mutations being reported as violations.
+     * Runs the action without notifying the mutation listener, so internal machinery can go through the
+     * public setters without its own mutations being reported as violations.
      */
-    private void withoutMutationListener(Runnable action) {
-        Consumer<String> previous = this.mutationListener;
-        this.mutationListener = null;
+    private static void withoutMutationListener(Runnable action) {
+        LISTENER_SUPPRESSED.set(Boolean.TRUE);
         try {
             action.run();
         } finally {
-            this.mutationListener = previous;
+            LISTENER_SUPPRESSED.remove();
         }
     }
 
