@@ -1729,10 +1729,94 @@
     "crossVersionTests": false
   },
   {
+    "name": "xdcl-common-ecosystem",
+    "path": "platforms/core-configuration/xdcl-common-ecosystem",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-ecosystem-support",
+    "path": "platforms/core-configuration/xdcl-ecosystem-support",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-groovy-ecosystem",
+    "path": "platforms/jvm/xdcl-groovy-ecosystem",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-groovy-ecosystem-plugin",
+    "path": "platforms/jvm/xdcl-groovy-ecosystem-plugin",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "xdcl-integ-tests",
     "path": "platforms/core-configuration/xdcl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-jvm-checkstyle",
+    "path": "platforms/jvm/xdcl-jvm-checkstyle",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-jvm-checkstyle-plugin",
+    "path": "platforms/jvm/xdcl-jvm-checkstyle-plugin",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-jvm-ecosystem",
+    "path": "platforms/jvm/xdcl-jvm-ecosystem",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-jvm-ecosystem-plugin",
+    "path": "platforms/jvm/xdcl-jvm-ecosystem-plugin",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-jvm-instrumentation",
+    "path": "platforms/jvm/xdcl-jvm-instrumentation",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-jvm-instrumentation-plugin",
+    "path": "platforms/jvm/xdcl-jvm-instrumentation-plugin",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-plugin-development",
+    "path": "platforms/extensibility/xdcl-plugin-development",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "xdcl-plugin-development-plugin",
+    "path": "platforms/extensibility/xdcl-plugin-development-plugin",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   }
 ]

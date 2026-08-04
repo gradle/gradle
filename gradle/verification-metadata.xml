@@ -265,6 +265,7 @@
          <trusted-key id="624B96CEB9896889C97B258F7DC3076FE22D4F88" group="org.nibor.autolink" name="autolink"/>
          <trusted-key id="635EE627345F3C1DD422B2E207D3516820BCF6B1" group="com.github.ben-manes.caffeine" name="caffeine"/>
          <trusted-key id="64EE0DF33CBEB345471E1233824B40F0D3D8E241" group="io.airlift" name="aircompressor"/>
+         <trusted-key id="66B1858E843E0723085C6D6C386F8FCD70E6AF64" group="org.eclipse.lsp4j"/>
          <trusted-key id="66CA61EA0FC7E9EA1216F83396B88EACD463B90B" group="com.diffplug.spotless"/>
          <trusted-key id="694621A7227D8D5289699830ABE9F3126BB741C1">
             <trusting group="com.google.guava"/>
@@ -704,6 +705,11 @@
       <component group="com.burgstaller" name="okhttp-digest" version="1.10">
          <artifact name="okhttp-digest-1.10.jar">
             <sha256 value="be46341a814e786c14c5d0e6cf5d470e55fff468b99509437c4014d8b2a20ce4" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.github.curious-odd-man" name="rgxgen" version="2.0">
+         <artifact name="rgxgen-2.0.jar">
+            <pgp value="90493B3B543CB717F9DD6EEE10C81B79DBFF09EA"/>
          </artifact>
       </component>
       <component group="com.google.android.studio" name="android-studio" version="2025.3.4.7">

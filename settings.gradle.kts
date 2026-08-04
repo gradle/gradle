@@ -144,6 +144,8 @@ val core = platform("core") {
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
         subproject("xdcl-integ-tests")
+        subproject("xdcl-common-ecosystem")
+        subproject("xdcl-ecosystem-support")
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
@@ -281,6 +283,14 @@ val jvm = platform("jvm") {
     subproject("toolchains-jvm")
     subproject("toolchains-jvm-shared")
     subproject("war")
+    subproject("xdcl-jvm-ecosystem")
+    subproject("xdcl-jvm-ecosystem-plugin")
+    subproject("xdcl-jvm-checkstyle")
+    subproject("xdcl-jvm-checkstyle-plugin")
+    subproject("xdcl-jvm-instrumentation")
+    subproject("xdcl-jvm-instrumentation-plugin")
+    subproject("xdcl-groovy-ecosystem")
+    subproject("xdcl-groovy-ecosystem-plugin")
 }
 
 // Extensibility Platform
@@ -291,6 +301,8 @@ platform("extensibility") {
     subproject("plugin-development")
     subproject("unit-test-fixtures")
     subproject("test-kit")
+    subproject("xdcl-plugin-development")
+    subproject("xdcl-plugin-development-plugin")
 }
 
 // Native Platform
