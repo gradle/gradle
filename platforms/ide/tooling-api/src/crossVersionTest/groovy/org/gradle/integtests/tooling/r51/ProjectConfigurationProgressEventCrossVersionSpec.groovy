@@ -136,12 +136,25 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        containsPluginApplicationResultsForJavaPlugin(":buildSrc")
-        doesNotContainPluginApplicationResultsForJavaPlugin(":buildSrc:a")
-        containsPluginApplicationResultsForJavaPlugin(":")
-        doesNotContainPluginApplicationResultsForJavaPlugin(":b")
-        containsPluginApplicationResultsForJavaPlugin(":included")
-        doesNotContainPluginApplicationResultsForJavaPlugin(":included:c")
+        if (targetVersion >= GradleVersion.version("9.8")) {
+            // Plugin applications are attributed to the project the plugin is applied to,
+            // rather than the project being configured when the application happens.
+            // The buildSrc root project has the java plugin applied by class (without a plugin id)
+            // before its build script runs, which is why the java application has no plugin ID.
+            containsPluginApplicationResultsForJavaPlugin(":buildSrc", null)
+            containsPluginApplicationResultsForJavaPlugin(":buildSrc:a")
+            containsPluginApplicationResultsForJavaPlugin(":")
+            containsPluginApplicationResultsForJavaPlugin(":b")
+            containsPluginApplicationResultsForJavaPlugin(":included")
+            containsPluginApplicationResultsForJavaPlugin(":included:c")
+        } else {
+            containsPluginApplicationResultsForJavaPlugin(":buildSrc")
+            doesNotContainPluginApplicationResultsForJavaPlugin(":buildSrc:a")
+            containsPluginApplicationResultsForJavaPlugin(":")
+            doesNotContainPluginApplicationResultsForJavaPlugin(":b")
+            containsPluginApplicationResultsForJavaPlugin(":included")
+            doesNotContainPluginApplicationResultsForJavaPlugin(":included:c")
+        }
     }
 
     def "reports plugin configuration results for script plugins"() {
@@ -170,12 +183,25 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":buildSrc", file("buildSrc"))
-        doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":buildSrc:a")
-        containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":", projectDir)
-        doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":b")
-        containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":included", file("included"))
-        doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":included:c")
+        if (targetVersion >= GradleVersion.version("9.8")) {
+            // Plugin applications are attributed to the project the plugin is applied to,
+            // rather than the project being configured when the application happens.
+            // Subprojects have no build script of their own, so they only contain results
+            // for the applied script plugin and the plugins it applies.
+            containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":buildSrc", file("buildSrc"), null)
+            containsScriptPluginApplicationResults(":buildSrc:a")
+            containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":", projectDir)
+            containsScriptPluginApplicationResults(":b")
+            containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":included", file("included"))
+            containsScriptPluginApplicationResults(":included:c")
+        } else {
+            containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":buildSrc", file("buildSrc"))
+            doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":buildSrc:a")
+            containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":", projectDir)
+            doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":b")
+            containsPluginApplicationResultsForJavaPluginAndScriptPlugins(":included", file("included"))
+            doesNotContainPluginApplicationResultsForJavaPluginAndScriptPlugins(":included:c")
+        }
     }
 
     def "reports plugin configuration results for subprojects"() {
@@ -424,8 +450,8 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         """
     }
 
-    void containsPluginApplicationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir) {
-        with(containsPluginApplicationResultsForJavaPlugin(displayName)) {
+    void containsPluginApplicationResultsForJavaPluginAndScriptPlugins(String displayName, File buildscriptDir, String expectedJavaPluginId = "org.gradle.java") {
+        with(containsPluginApplicationResultsForJavaPlugin(displayName, expectedJavaPluginId)) {
             def buildScript = pluginApplicationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(buildscriptDir, "build.gradle").toURI() }
             assert buildScript.totalConfigurationTime >= Duration.ZERO
             assert buildScript.plugin.displayName == "build.gradle"
@@ -435,12 +461,20 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         }
     }
 
-    ProjectConfigurationOperationResult containsPluginApplicationResultsForJavaPlugin(String displayName) {
+    void containsScriptPluginApplicationResults(String displayName) {
+        with(containsPluginApplicationResultsForJavaPlugin(displayName)) {
+            def scriptPlugin = pluginApplicationResults.find { it.plugin instanceof ScriptPluginIdentifier && it.plugin.uri == new File(projectDir, "script.gradle").toURI() }
+            assert scriptPlugin.plugin.displayName == "script.gradle"
+            assert scriptPlugin.totalConfigurationTime >= Duration.ZERO
+        }
+    }
+
+    ProjectConfigurationOperationResult containsPluginApplicationResultsForJavaPlugin(String displayName, String expectedJavaPluginId = "org.gradle.java") {
         def result = getPluginConfigurationOperationResult(displayName)
         with(result) {
             def javaPluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
-            assert javaPluginResult.plugin.pluginId == "org.gradle.java"
-            assert javaPluginResult.plugin.displayName == "org.gradle.java"
+            assert javaPluginResult.plugin.pluginId == expectedJavaPluginId
+            assert javaPluginResult.plugin.displayName == (expectedJavaPluginId ?: "org.gradle.api.plugins.JavaPlugin")
             assert javaPluginResult.totalConfigurationTime >= Duration.ZERO
             def basePluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
             assert basePluginResult.plugin.pluginId == null
