@@ -275,11 +275,42 @@ inline fun <T> redirecting(
     to: OutputStream,
     action: () -> T
 ): T = try {
-    set(PrintStream(to, true))
+    set(PrintStream(ThreadConfinedOutputStream(Thread.currentThread(), to, stream), true))
     action()
 } finally {
     set(stream)
     to.flush()
+}
+
+
+/**
+ * Routes writes made by [owner] to [redirected], and writes made by any other thread to [passthrough].
+ *
+ * [redirecting] mutates the process-global `System.out`/`System.err`. Under Isolated Projects, projects are
+ * configured — and their scripts compiled — concurrently, so another thread may be running a build script that
+ * writes to `System.out` while the redirect is installed. Redirecting unconditionally destroys that output:
+ * [ignoringOutputOf] points the target at a [NullOutputStream], so an unrelated `println` disappears without
+ * reaching either the console or the daemon log. Confining the redirect to the installing thread keeps the
+ * compiler's own output captured while leaving every other thread writing to the stream that was current before.
+ */
+private
+class ThreadConfinedOutputStream(
+    private val owner: Thread,
+    private val redirected: OutputStream,
+    private val passthrough: OutputStream
+) : OutputStream() {
+
+    private
+    fun target(): OutputStream =
+        if (Thread.currentThread() === owner) redirected else passthrough
+
+    override fun write(b: Int) = target().write(b)
+
+    override fun write(b: ByteArray) = target().write(b)
+
+    override fun write(b: ByteArray, off: Int, len: Int) = target().write(b, off, len)
+
+    override fun flush() = target().flush()
 }
 
 
