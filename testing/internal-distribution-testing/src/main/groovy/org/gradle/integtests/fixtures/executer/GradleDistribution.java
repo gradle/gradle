@@ -49,7 +49,7 @@ public interface GradleDistribution {
     /**
      * Checks that this distribution's daemon supports the JVM running the tests, skipping the test when it does not.
      */
-    default void requireDaemonWorksWithCurrentJvm() {
+    default void assumeDaemonWorksWithCurrentJvm() {
         int jvmVersion = Jvm.current().getJavaVersionMajor();
         Assume.assumeTrue(
             "Gradle " + getVersion().getVersion() + " cannot run its daemon on Java " + jvmVersion + ".",

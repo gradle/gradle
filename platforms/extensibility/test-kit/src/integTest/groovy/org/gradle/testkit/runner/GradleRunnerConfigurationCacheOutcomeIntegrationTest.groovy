@@ -115,7 +115,7 @@ class GradleRunnerConfigurationCacheOutcomeIntegrationTest extends BaseGradleRun
         def maxUnsupportedDistribution = new ReleasedVersionDistributions().all
             .findAll { it.version < TestKitFeature.CAPTURE_CONFIGURATION_CACHE_OUTCOME.since }
             .max { it.version }
-        maxUnsupportedDistribution.requireDaemonWorksWithCurrentJvm()
+        maxUnsupportedDistribution.assumeDaemonWorksWithCurrentJvm()
         def maxUnsupportedVersion = maxUnsupportedDistribution.version.version
         def minSupportedVersion = TestKitFeature.CAPTURE_CONFIGURATION_CACHE_OUTCOME.since.version
 
