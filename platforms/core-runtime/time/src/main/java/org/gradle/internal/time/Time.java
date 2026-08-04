@@ -110,6 +110,13 @@ public abstract class Time {
     }
 
     /**
+     * Replacement for System.nanoTime(), based on {@link #TIME_SOURCE}.
+     */
+    public static long nanoTime() {
+        return TIME_SOURCE.nanoTime();
+    }
+
+    /**
      * Measures elapsed time.
      *
      * Timers use the monotonic high-resolution time source to measure elapsed time,

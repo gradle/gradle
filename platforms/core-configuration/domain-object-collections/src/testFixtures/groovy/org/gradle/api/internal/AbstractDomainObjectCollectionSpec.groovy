@@ -33,6 +33,7 @@ import org.gradle.internal.code.UserCodeApplicationId
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.time.TimeSource
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.CoreMatchers
@@ -47,7 +48,7 @@ import static org.junit.Assume.assumeTrue
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
-    UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext()
+    UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext(System::nanoTime).tap { it.startRecording() }
     CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext)
 
     abstract boolean isSupportsBuildOperations()
@@ -1775,7 +1776,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         containerSupportsBuildOperations()
 
         UserCodeApplicationId id1 = null
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
             id1 = it
             container.whenObjectAdded {
                 assert userCodeApplicationContext.current().id == id1
@@ -1792,7 +1793,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         when:
         UserCodeApplicationId id2 = null
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
             id2 = it
             container.whenObjectAdded {
                 assert userCodeApplicationContext.current().id == id2
@@ -1812,8 +1813,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     def "does not fire build operation if callback is filtered out by type"() {
         given:
         containerSupportsBuildOperations()
-
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
             container.withType(otherType).whenObjectAdded {
                 throw new IllegalStateException()
             }
@@ -1830,7 +1830,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         containerSupportsBuildOperations()
 
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
             container.matching { !it.is(a) }.whenObjectAdded {
                 throw new IllegalStateException()
             }
@@ -1853,7 +1853,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         when:
         UserCodeApplicationId id = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
             id = it
             container.matching { !it.is(a) }.all {
                 ids << userCodeApplicationContext.current().id
@@ -1893,12 +1893,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         UserCodeApplicationId id1 = null
         UserCodeApplicationId id2 = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
             id1 = it
             container.all {
                 ids << userCodeApplicationContext.current()
                 if (it.is(a)) {
-                    userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+                    userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
                         id2 = it
                         container.all {
                             ids << userCodeApplicationContext.current()
