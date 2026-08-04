@@ -108,7 +108,7 @@ NOTE: The IDE file generation tasks that these plugins used to contribute (`ecli
 [[sec:eclipse_customizing_the_generated_files]]
 == Customizing the Eclipse model
 
-The Eclipse plugins provide a DSL for configuring model objects that model the Eclipse view of the project. Buildship consumes this model through the Tooling API when it imports or synchronizes the project. The model objects provide lower level hooks for working with the domain objects before and after they are populated from the Gradle build, for fine tuning that the Eclipse and Eclipse WTP plugins do not model.
+The Eclipse plugins provide a DSL for configuring model objects that model the Eclipse view of the project. Buildship consumes this model through the Tooling API when it imports or synchronizes the project. The model objects also expose lower-level `beforeMerged` and `whenMerged` hooks for working with the domain objects before and after they are populated, so you can adjust settings that the plugins do not model.
 
 [[sec:hooking_into_the_eclipse_generation_lifecycle]]
 === Hooking into the model assembly lifecycle
@@ -136,7 +136,7 @@ link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html[
 [[sec:eclipse_modify_domain_objects]]
 ==== Modifying the fully populated domain objects
 
-The `whenMerged` hook allows to manipulate the fully populated domain objects. Here is how you would export all the dependencies of an Eclipse project:
+The `whenMerged` hook lets you manipulate the fully populated domain objects. Here is how you would export all the dependencies of an Eclipse project:
 
 ====
 include::sample[dir="snippets/reference/core-plugins/eclipse/kotlin",files="build.gradle.kts[tags=module-when-merged]"]

@@ -15,7 +15,7 @@
 [[idea_plugin]]
 = The IDEA Plugin
 
-The IDEA plugin allows customizing how http://www.jetbrains.com/idea/[IntelliJ IDEA] understands your project. When IDEA imports a Gradle build via its https://www.jetbrains.com/help/idea/gradle.html#gradle_import[built-in Gradle integration], it takes the `idea { ... }` configuration into account. Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.
+The IDEA plugin lets you customize how http://www.jetbrains.com/idea/[IntelliJ IDEA] understands your project. When IDEA imports a Gradle build via its https://www.jetbrains.com/help/idea/gradle.html#gradle_import[built-in Gradle integration], it takes the `idea { ... }` configuration into account. The `idea { ... }` configuration covers both external dependencies (including their associated source and Javadoc files) and project dependencies.
 
 [NOTE]
 ====
@@ -38,7 +38,7 @@ NOTE: The IDE file generation tasks that this plugin used to contribute (`idea`,
 [[sec:idea_configuration]]
 == Configuration
 
-The plugin adds some configuration options that allow to customize how IDEA understands the project. For example, you can add source and resource directories. This configuration is honored by IDEA's import facility.
+The plugin adds configuration options that let you customize how IDEA understands the project. For example, you can add source and resource directories. This configuration is honored by IDEA's import facility.
 
 Here are the configuration properties you can use:
 
