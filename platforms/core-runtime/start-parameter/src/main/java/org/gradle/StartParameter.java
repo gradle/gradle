@@ -820,6 +820,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Enables/disables the build cache.
+     * <p>
+     * Calling this on the start parameter of a running build is deprecated: use the {@code org.gradle.caching}
+     * Gradle property instead. It is not annotated as deprecated because it remains the only way to configure the
+     * build a {@code GradleBuild} task runs.
      *
      * @since 3.5
      */

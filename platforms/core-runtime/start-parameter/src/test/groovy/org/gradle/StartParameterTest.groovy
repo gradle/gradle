@@ -88,7 +88,7 @@ class StartParameterTest extends Specification {
         parameter.refreshDependencies = true
         parameter.configureOnDemand = true
         parameter.parallelProjectExecutionEnabled = true
-        parameter.buildCacheEnabled = true
+        DeprecationLogger.whileDisabled({ parameter.buildCacheEnabled = true } as Runnable)
         parameter.writeDependencyLocks = true
         parameter.lockedDependenciesToUpdate = ['foo']
         parameter.includeBuild(new File('participant'))
@@ -245,7 +245,7 @@ class StartParameterTest extends Specification {
         parameter.rerunTasks = true
         parameter.refreshDependencies = true
         parameter.parallelProjectExecutionEnabled = true
-        parameter.buildCacheEnabled = true
+        DeprecationLogger.whileDisabled({ parameter.buildCacheEnabled = true } as Runnable)
         parameter.writeDependencyLocks = true
         parameter.lockedDependenciesToUpdate = ['foo']
 
