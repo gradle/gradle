@@ -190,25 +190,15 @@ It is not exhaustive; it covers the recurring ones.
 | <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, Disallowed types>>; keep the `ArtifactCollection` itself and fetch the provider at execution time.
 
 | `field 'X' of task ... cannot serialize object of type ...`
-| A non-serializable runtime object (HttpClient, Connection, Thread) is stored in a task field
+| A non-serializable runtime object (HttpClient, Connection, Thread, MyCustomNonSerializableType) is stored in a task field
 | Move the instantiation into `@TaskAction` instead of holding it in a field. See <<configuration_cache_adoption.adoc#config_cache:adoption_guide:step7, Fix Problems Iteratively>>.
 
-| `value.owner must not be null`
-| Kotlin DSL `KotlinClosure1` capturing build-script state
-| Restructure the closure so it only captures values, not the enclosing script object.
-
-| `Could not find build 'X'`
-| Composite-build CC reuse edge case
-| link:{gradle-issues}20945[gradle/gradle#20945].
-
 | `Unable to make field ... accessible: module java.base does not "opens" ...`
-| JPMS reflective-access blocked during CC serialization (typically lambdas, `SerializedLambda`).
-The CC report may show `0 problems` even though the build fails.
-| For the Gradle daemon, add `--add-opens` directives via `org.gradle.jvmargs` in `gradle.properties`.
-For TestKit, set them as `jvmArgs` on the test task — see <<config_cache:testing,Test your Build Logic>>.
+| JPMS reflective-access blocked during CC serialization (typically lambdas, `SerializedLambda`). The Gradle daemon supplies the required `--add-opens` directives automatically since Gradle 9.7.0, and TestKit's `GradleRunner` does the same in its default mode. This error is only encountered under `GradleRunner.withDebug(true)`, which runs the build in-process and bypasses TestKit's flag setup.
+| Set `--add-opens` directives as `jvmArgs` on the test task that runs the `withDebug(true)` tests — see <<config_cache:testing,Test your Build Logic>>.
 
-| `Cannot reference a Gradle script object from a Groovy closure`
-| Groovy closure captured a `Project`, `Gradle`, or script reference
+| `Cannot reference a Gradle script object from a Groovy closure` or `cannot serialize Gradle script object references as these are not supported`
+| A Groovy or Kotlin DSL closure captured a `Project`, `Gradle`, `Settings`, or other script-level reference
 | Extract the values you need at configuration time into local variables; reference those inside the closure.
 
 | Invalidation reason naming an env var, sys prop, or file you do not control
@@ -388,7 +378,7 @@ If Gradle encounters problems with the Configuration Cache, it will fail the bui
 
 [NOTE]
 ====
-**JPMS and `--add-opens` with TestKit.**
+**JPMS and `--add-opens` with `GradleRunner.withDebug(true)`.**
 When CC serializes lambdas or reflective state on JDK 17+, the module system may block reflective access with a message like:
 
 [source,text]
@@ -397,9 +387,14 @@ Unable to make field private final java.lang.Object[] java.lang.invoke.Serialize
 module java.base does not "opens java.lang.invoke" to unnamed module ...
 ----
 
-The Gradle daemon supplies the required `--add-opens` directives by default.
-TestKit's `GradleRunner` does not, so they have to be set explicitly on the test task that runs the functional tests:
+The Gradle daemon supplies the required `--add-opens` directives automatically (since Gradle 9.7.0), and TestKit's `GradleRunner` does the same when it starts a build normally.
+The one case where you have to set the directives yourself is `GradleRunner.withDebug(true)`, which runs the build in-process in the test JVM and bypasses TestKit's default flag setup.
+In that mode, set the directives on the test task that runs the functional tests:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
 [source,kotlin]
 ----
 tasks.named<Test>("test") {
@@ -411,8 +406,25 @@ tasks.named<Test>("test") {
     )
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.named('test', Test) {
+    jvmArgs(
+        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        '--add-opens=java.base/java.util=ALL-UNNAMED',
+        '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED',
+        '--add-opens=java.base/java.net=ALL-UNNAMED',
+    )
+}
+----
+=====
+====
 
-Without these, the CC report may show `0 problems` even though the build fails on a reflective-access error.
+Without these, a `withDebug(true)` test will fail with the reflective-access error shown above.
 ====
 
 [TIP]

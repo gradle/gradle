@@ -205,19 +205,23 @@ Gradle periodically checks (at most every 24 hours) whether cached entries are s
 Entries that have not been used for 7 days are automatically deleted.
 
 [[config_cache:usage:input_opt_outs]]
-== Opting Out of Configuration Input Detection
+== Temporary Opt-Outs for Configuration Cache Behavior
 
-Gradle releases continuously enhance the Configuration Cache by detecting more cases where configuration logic interacts with the environment.
-These improvements increase cache correctness by preventing false cache hits but also introduce stricter rules that plugins and build logic must follow for optimal caching.
+Gradle releases continuously tighten the Configuration Cache in two directions: detecting more cases where configuration logic interacts with the environment (so a value change correctly invalidates the cache) and expanding what must be serializable to survive across a cache hit.
+Both changes increase correctness, but both can also introduce stricter rules that plugins and build logic must follow for optimal caching.
 
-Some newly detected configuration inputs may not impact the configured tasks but can still cause cache invalidation.
-To minimize unnecessary cache misses, follow these steps:
+For adoption phases where a specific input tracker or serialization rule causes cache misses or errors in build logic you cannot immediately fix, Gradle provides opt-out properties that temporarily revert to earlier behavior.
+The steps to follow:
 
-* Identify problematic configuration inputs using the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>>.
-** Fix undeclared configuration inputs accessed by project build logic.
+* Identify the problem using the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>>.
+** Fix undeclared configuration inputs or non-serializable state accessed by project build logic.
 ** Report issues caused by third-party plugins to their maintainers and update plugins once they are fixed.
-* Use opt-out options for specific cases to temporarily revert to earlier behavior and prevent Gradle from tracking certain inputs.
-This can help mitigate performance issues caused by outdated plugins.
+* Use opt-out options for specific cases to temporarily revert to earlier behavior, most commonly to mitigate performance issues caused by outdated plugins.
+
+The remainder of this section is organized around the two categories: input-detection opt-outs first, then serialization-behavior opt-outs.
+
+[[config_cache:usage:input_opt_outs:input_detection]]
+=== Input-detection opt-outs
 
 It is possible to _temporarily_ opt out of configuration input detection in the following cases:
 
@@ -243,6 +247,9 @@ However, these changes did not invalidate the cache.
 Starting in Gradle 8.4, these undeclared inputs are correctly tracked and now cause cache invalidation.
 +
 To temporarily revert to the previous behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
+
+[[config_cache:usage:input_opt_outs:serialization_behavior]]
+=== Serialization-behavior opt-outs
 
 With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic.
 To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
