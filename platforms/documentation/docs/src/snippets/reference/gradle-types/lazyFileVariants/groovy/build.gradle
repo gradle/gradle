@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+// tag::lazy-javadoc-destination[]
+tasks.named('javadoc', Javadoc) {
+    // Lazy variant: wire from another provider without forcing eager evaluation.
+    destinationDirectory = layout.buildDirectory.dir('docs/javadoc')
+}
+// end::lazy-javadoc-destination[]
+
+abstract class VerifyJavadocDestination extends DefaultTask {
+    @Internal
+    abstract DirectoryProperty getDestination()
+
+    @Internal
+    abstract DirectoryProperty getProjectDirectory()
+
+    @TaskAction
+    void action() {
+        def dest = destination.get().asFile
+        def projDir = projectDirectory.get().asFile
+        println("javadoc destination: ${projDir.toPath().relativize(dest.toPath())}")
+    }
+}
+
+tasks.register('verifyJavadocDestination', VerifyJavadocDestination) {
+    destination = tasks.named('javadoc', Javadoc).flatMap { it.destinationDirectory }
+    projectDirectory = layout.projectDirectory
+}
