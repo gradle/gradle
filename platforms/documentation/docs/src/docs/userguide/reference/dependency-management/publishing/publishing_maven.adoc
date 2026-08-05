@@ -42,7 +42,7 @@ Creates a POM file for the publication named _PubName_, populating the known met
 `publish__PubName__PublicationTo__RepoName__Repository` — link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]::
 Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Maven".
 
-`publish__PubName__PublicationToMavenLocal` — link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]::
+`publish__PubName__PublicationToMavenLocal` — link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenLocal.html[PublishToMavenLocal]::
 Copies the _PubName_ publication to the local Maven cache — typically _<home directory of the current user>/.m2/repository_ — along with the publication's POM file and other metadata.
 
 `publish`::
@@ -167,6 +167,7 @@ This includes a wide range of Maven-compatible repositories, such as:
 * **Internal corporate Maven repositories**
 
 [[maven_central]]
+[[sec:publishing_to_maven_central]]
 === Publishing to Maven Central
 
 The service commonly known as *Maven Central* and hosted at link:https://central.sonatype.com/[central.sonatype.com] is a widely used repository for distributing Java and Kotlin libraries.
@@ -177,6 +178,15 @@ This change also marks the deprecation of the OSSRH (OSS Repository Hosting) ser
 Going forward, publishing to Maven Central **requires a dedicated plugin**.
 Several options are available.
 For guidance and recommendations, see the link:https://cookbook.gradle.org/integrations/maven-central/publishing/[Publishing to Maven Central] page in the Gradle Cookbook.
+
+++++
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/nd2ULXyBaV8?si=yymYVoqGawuYx6Hh&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+++++
 
 [[publishing_maven:snapshot_and_release_repositories]]
 === Snapshot and release repositories
@@ -202,18 +212,6 @@ include::sample[dir="snippets/reference/dependency-management/publishing/javaPro
 For integration with a local Maven installation, it is sometimes useful to publish the module into the Maven local repository (typically at _<home directory of the current user>/.m2/repository_), along with its POM file and other metadata. In Maven parlance, this is referred to as 'installing' the module.
 
 The Maven Publish Plugin makes this easy to do by automatically creating a link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal] task for each link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] in the `publishing.publications` container. The task name follows the pattern of `publish__PubName__PublicationToMavenLocal`. Each of these tasks is wired into the `publishToMavenLocal` aggregate task. You do not need to have `mavenLocal()` in your `publishing.repositories` section.
-
-[[sec:publishing_to_maven_central]]
-== Publishing to Maven Central
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/nd2ULXyBaV8?si=yymYVoqGawuYx6Hh&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
 
 [[publishing_maven:relocation]]
 == Publishing Maven relocation information
@@ -282,7 +280,7 @@ The result is that the following artifacts will be published:
 
 The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts (but not for signature files, since a signature is itself an integrity artifact).
 
-TIP: publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`.
+TIP: `publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`.
 If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<supported_repository_types.adoc#sec:maven-repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
 
 [[publishing_maven:deferred_configuration]]
