@@ -32,7 +32,22 @@ import org.jspecify.annotations.Nullable;
 public final class EvaluationContext {
     private static final EvaluationContext INSTANCE = new EvaluationContext();
 
-    private final ThreadLocal<PerThreadContext> threadLocalContext = ThreadLocal.withInitial(() -> new PerThreadContext(null));
+    /**
+     * Intentionally not using {@link ThreadLocal#withInitial}, for two reasons:
+     * <ul>
+     * <li>Threads that only query the current owner must not pay for instantiating and
+     * storing a context just to observe that nothing is being evaluated.</li>
+     * <li>Every {@code withInitial} thread local in the JVM invokes its supplier through a
+     * single call site inside {@code ThreadLocal.SuppliedThreadLocal}. The JIT sees many
+     * unrelated supplier implementations at that call site and cannot inline or devirtualize
+     * the dispatch, so initialization always goes through a slow virtual call, and heavy
+     * traffic from other suppliers can trigger deoptimization of code this call site was
+     * inlined into.</li>
+     * </ul>
+     * The context is instead created lazily by {@link #getContext()}, a call site this class
+     * owns exclusively.
+     */
+    private static final ThreadLocal<@Nullable PerThreadContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
 
     /**
      * Returns the current instance of EvaluationContext for this thread.
@@ -58,7 +73,8 @@ public final class EvaluationContext {
      */
     @Nullable
     public EvaluationOwner getOwner() {
-        return getContext().getOwner();
+        PerThreadContext context = THREAD_LOCAL_CONTEXT.get();
+        return context == null ? null : context.getOwner();
     }
 
     /**
@@ -127,11 +143,16 @@ public final class EvaluationContext {
     }
 
     private PerThreadContext getContext() {
-        return threadLocalContext.get();
+        PerThreadContext context = THREAD_LOCAL_CONTEXT.get();
+        if (context == null) {
+            context = new PerThreadContext(null);
+            THREAD_LOCAL_CONTEXT.set(context);
+        }
+        return context;
     }
 
     private PerThreadContext setContext(PerThreadContext newContext) {
-        threadLocalContext.set(newContext);
+        THREAD_LOCAL_CONTEXT.set(newContext);
 
         return newContext;
     }

@@ -17,13 +17,25 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.internal.exceptions.Contextual;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultMutationGuard implements MutationGuard {
 
-    private final ThreadLocal<Boolean> mutationGuardState = ThreadLocal.withInitial(SerializableLambdas.supplier(() -> true));
+    /**
+     * The mutation state of the current thread. Null means the default state: mutation is allowed.
+     * <p>
+     * Intentionally not using {@link ThreadLocal#withInitial} with the default value. There are many
+     * instances of this class (e.g. one per configuration), each with its own thread local, and reads
+     * are far more common than wrapped executions. Representing the default state as an absent entry
+     * means reads never write to the thread local map and an entry only exists on a thread while a
+     * wrapped action is executing on it. So, unused entries never accumulate in long-lived threads.
+     *
+     * See <a href="https://github.com/gradle/gradle/issues/13835">gradle/gradle#13835</a>.
+     */
+    @SuppressWarnings("ThreadLocalUsage")
+    private final ThreadLocal<@Nullable Boolean> mutationGuardState = new ThreadLocal<>();
 
     @Override
     public <T> Action<? super T> wrapLazyAction(Action<? super T> action) {
@@ -37,9 +49,8 @@ public class DefaultMutationGuard implements MutationGuard {
 
     @Override
     public boolean isLazyContext() {
-        boolean mutationAllowed = mutationGuardState.get();
-        removeThreadLocalStateIfMutationAllowed(mutationAllowed);
-        return !mutationAllowed;
+        Boolean mutationAllowed = mutationGuardState.get();
+        return mutationAllowed != null && !mutationAllowed;
     }
 
     @Override
@@ -60,42 +71,28 @@ public class DefaultMutationGuard implements MutationGuard {
         return new Action<T>() {
             @Override
             public void execute(T t) {
-                boolean oldIsMutationAllowed = mutationGuardState.get();
+                Boolean oldState = mutationGuardState.get();
                 mutationGuardState.set(allowMutationMethods);
                 try {
                     action.execute(t);
                 } finally {
-                    setMutationGuardState(oldIsMutationAllowed);
+                    if (oldState == null) {
+                        // Restore the default state by removing the entry rather than storing the
+                        // default value. There are many instances of this class in a Gradle invocation,
+                        // e.g., one for each configuration, each with its own thread local. Entries
+                        // left behind would accumulate in the thread local maps of long-lived
+                        // daemon threads until their guard becomes unreachable, and stale entries
+                        // are only cleaned up lazily, degrading all thread local access on those
+                        // threads. Removing here guarantees an entry exists only while a wrapped
+                        // action is executing.
+                        // See https://github.com/gradle/gradle/issues/13835.
+                        mutationGuardState.remove();
+                    } else {
+                        mutationGuardState.set(oldState);
+                    }
                 }
             }
         };
-    }
-
-    private void setMutationGuardState(boolean newState) {
-        if (newState) {
-            removeThreadLocalStateIfMutationAllowed(true);
-        } else {
-            mutationGuardState.set(false);
-        }
-    }
-
-    /**
-     * Removes the thread local for `mutationGuardState` if its value is the default value (true).
-     *
-     * There are many instances of `DefaultMutationGuard` in a Gradle run, e.g. one for each configuration.
-     * Each of those instances creates a new thread local for `Daemon worker`.
-     * After a build, those thread local instances should be removed from the ThreadLocalMap by garbage collection automatically.
-     * It looks like CMS does a good job for removing the unused entries from the ThreadLocalMap, though G1 does not.
-     * So if you are running builds in quick succession, e.g. for profiling, there can be a quick slowdown after some time.
-     *
-     * This methods removes the elements from the ThreadLocalMap when possible, thus avoiding the problem.
-     *
-     * See https://github.com/gradle/gradle/issues/13835.
-     */
-    private void removeThreadLocalStateIfMutationAllowed(boolean mutationAllowed) {
-        if (mutationAllowed) {
-            mutationGuardState.remove();
-        }
     }
 
     private static <T> IllegalStateException createIllegalStateException(Class<T> targetType, String methodName, T target) {
