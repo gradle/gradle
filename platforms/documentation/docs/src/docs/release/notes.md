@@ -370,6 +370,27 @@ tasks.named<Groovydoc>("groovydoc") {
 }
 ```
 
+#### Lazy variants of common `File`/`Dir` properties on built-in tasks
+
+Several built-in Gradle task types and extensions now expose [renamed lazy variants](userguide/working_with_files.html#sec:lazy_file_property_variants) of file and directory properties that were originally declared with eager `File` getters.
+
+Where previously you had to work around `Javadoc.getDestinationDir(): File`, `War.getWebXml(): File`, `CreateStartScripts.getOutputDir(): File`, and similar getters when composing lazy build logic, you can now configure `destinationDirectory`, `webXmlFile`, `outputDirectory`, and other lazy siblings directly.
+
+The original eager getters remain as backward-compatible bridges so that existing builds need no changes, and the two getters share the same underlying state, so a value set through one is observable through the other.
+
+```kotlin
+tasks.named<Javadoc>("javadoc") {
+    // New lazy variant: wire from another provider without forcing eager evaluation.
+    destinationDirectory = layout.buildDirectory.dir("docs/javadoc")
+}
+```
+
+Fourteen properties across `Javadoc`, `Groovydoc`, `ScalaDoc`, `War`, `CreateStartScripts`, `GenerateIvyDescriptor`, `GenerateMavenPom`, `GroovyCompileOptions`, `JacocoTaskExtension`, `CodeQualityExtension`, and `ProcessForkOptions` are covered.
+
+The new lazy getters are [incubating](userguide/feature_lifecycle.html#feature_preview) and their signatures may change in a future release.
+
+See the [Lazy file property variants on built-in tasks](userguide/working_with_files.html#sec:lazy_file_property_variants) section in the Gradle User Manual for the full list.
+
 ### Performance improvements
 Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
 
