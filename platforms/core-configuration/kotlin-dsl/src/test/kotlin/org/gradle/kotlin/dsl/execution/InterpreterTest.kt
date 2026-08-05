@@ -130,7 +130,6 @@ class InterpreterTest : TestWithTempFiles() {
 
         val buildOperationRunner = TestBuildOperationRunner()
         val testModuleRegistry = TestModuleRegistry()
-        val testClassLoaderFactory = DefaultClassLoaderFactory()
         val testFileSystemAccess = TestFiles.fileSystemAccess()
         val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
         val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
@@ -193,7 +192,6 @@ class InterpreterTest : TestWithTempFiles() {
             on { compilerOptions } doReturn KotlinCompilerOptions()
             on { buildTreeRootDir } doReturn root.toPath()
             on { moduleRegistry } doReturn testModuleRegistry
-            on { classLoaderFactory } doReturn testClassLoaderFactory
             on { fileSystemAccess } doReturn testFileSystemAccess
             on { classpathEntrySnapshotCache } doReturn testClasspathSnapshotCache
             on { incrementalCompilationCache } doReturn testIncrementalCompilationCache
@@ -434,7 +432,6 @@ class InterpreterTest : TestWithTempFiles() {
         }
 
         val testModuleRegistry = TestModuleRegistry()
-        val testClassLoaderFactory = DefaultClassLoaderFactory()
         val testFileSystemAccess = TestFiles.fileSystemAccess()
         val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
         val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
@@ -477,7 +474,6 @@ class InterpreterTest : TestWithTempFiles() {
             }
             on { buildTreeRootDir } doReturn root.toPath()
             on { moduleRegistry } doReturn testModuleRegistry
-            on { classLoaderFactory } doReturn testClassLoaderFactory
             on { fileSystemAccess } doReturn testFileSystemAccess
             on { classpathEntrySnapshotCache } doReturn testClasspathSnapshotCache
             on { incrementalCompilationCache } doReturn testIncrementalCompilationCache

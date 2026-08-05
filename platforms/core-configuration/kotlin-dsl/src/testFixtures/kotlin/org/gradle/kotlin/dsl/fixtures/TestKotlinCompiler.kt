@@ -57,14 +57,12 @@ fun compileToDirectory(
 }
 
 /**
- * Disposes the process-global compiler application environment and the compiler instances pinning it,
+ * Cleans up the shared Kotlin compiler instances once all scripts are compiled.
  * as [org.gradle.kotlin.dsl.provider.KotlinCompilerContextDisposer] does at the end of a build.
  * Call from an `@After` in tests that compile against jars inside the test directory: the environment
  * caches open jar handles, which on Windows prevent deleting the directory.
  */
-@OptIn(K1Deprecation::class, CoreEnvironmentDeprecation::class)
 fun disposeKotlinCompilerContext() {
-    KotlinCoreEnvironment.disposeApplicationEnvironment()
     cleanupKotlinCompilers()
 }
 

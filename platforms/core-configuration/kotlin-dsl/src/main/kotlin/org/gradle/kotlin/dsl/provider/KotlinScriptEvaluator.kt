@@ -31,7 +31,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
@@ -112,7 +111,6 @@ class StandardKotlinScriptEvaluator(
     private val progressLoggerFactory: ProgressLoggerFactory,
     private val buildOperationRunner: BuildOperationRunner,
     private val moduleRegistry: ModuleRegistry,
-    private val classLoaderFactory: ClassLoaderFactory,
     private val cachedClasspathTransformer: CachedClasspathTransformer,
     private val scriptExecutionListener: ScriptExecutionListener,
     private val executionEngine: ExecutionEngine,
@@ -175,7 +173,6 @@ class StandardKotlinScriptEvaluator(
             gradleProperties,
             buildTreeRootDir,
             moduleRegistry,
-            classLoaderFactory,
             fileSystemAccess,
             classpathSnapshotCache,
             incrementalCompilationCache
@@ -201,7 +198,6 @@ class StandardKotlinScriptEvaluator(
         gradleProperties: GradleProperties,
         override val buildTreeRootDir: Path,
         override val moduleRegistry: ModuleRegistry,
-        override val classLoaderFactory: ClassLoaderFactory,
         override val fileSystemAccess: FileSystemAccess,
         override val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         override val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,

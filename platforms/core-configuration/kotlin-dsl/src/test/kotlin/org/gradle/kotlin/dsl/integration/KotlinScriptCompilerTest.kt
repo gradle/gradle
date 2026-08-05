@@ -56,7 +56,6 @@ open class TheKotlinScriptTemplate(
 class KotlinScriptCompilerTest : TestWithTempFiles() {
 
     private val moduleRegistry = TestModuleRegistry()
-    private val classLoaderFactory = DefaultClassLoaderFactory()
 
     @Test
     fun canInjectImplicitReceiver() {
@@ -103,7 +102,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
         script: String,
         template: KClass<out Any>,
     ) {
-        kotlinCompiler(moduleRegistry, classLoaderFactory).compileKotlinScriptToDirectory(
+        kotlinCompiler(moduleRegistry).compileKotlinScriptToDirectory(
             outputDir,
             KotlinCompilerOptions(),
             file("script.kts").apply {
