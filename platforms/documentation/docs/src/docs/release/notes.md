@@ -39,7 +39,7 @@ We would like to thank the following community members for their contributions t
 [Ravi](https://github.com/rkdfx),
 [sk-reddy17](https://github.com/sk-reddy17),
 [Suvrat Acharya](https://github.com/Suvrat1629),
-[Yongshun Ye](https://github.com/ShreckYe)
+[Yongshun Ye](https://github.com/ShreckYe).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -475,13 +475,12 @@ The [Best Practices](userguide/best_practices.html) chapter grew significantly w
 - [Do not run `./gradlew` on untrusted projects](userguide/best_practices_security.html#run_gradle_on_external_projects).
 
 The [Configuration Cache](userguide/configuration_cache.html) chapter received a substantial pass this release, including a reorganised main page, expanded coverage of [warn mode](userguide/configuration_cache_enabling.html), refined guidance on [`BuildServiceParameters`](userguide/configuration_cache_requirements.html), a clearer explanation of how [dependency resolution types](userguide/configuration_cache_requirements.html) interact with the cache, and improved Javadoc on the Configuration Cache classes themselves.
-The [Build Services](userguide/build_services.html) page was also updated to reflect Isolated Projects compatibility.
 
 ### Training
 
 The following course is now available:
 
-- [Securing Gradle Builds](https://dpeuniversity.gradle.com/app/courses/130bcfec-3b08-42fb-b8e2-bc310626fc54) — a new DPE University course on protecting builds from supply-chain attacks with trusted repositories, dependency verification, and wrapper validation ([YouTube video](https://www.youtube.com/watch?v=L3OC8alxEJo)).
+- [Securing Gradle Builds](https://dpeuniversity.gradle.com/app/courses/130bcfec-3b08-42fb-b8e2-bc310626fc54) - a new DPE University course on protecting builds from supply-chain attacks with trusted repositories, dependency verification, and wrapper validation ([YouTube video](https://www.youtube.com/watch?v=L3OC8alxEJo)).
 
 ## Fixed issues
 
