@@ -54,6 +54,7 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
 
 /**
  * Main options for Java compilation.
+ * @since 0.7
  */
 public abstract class CompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
@@ -95,6 +96,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -104,6 +106,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
+     * @since 0.7
      */
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
@@ -111,6 +114,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
+     * @since 0.7
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -120,6 +124,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to produce verbose output. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
@@ -127,6 +132,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
+     * @since 0.7
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -136,6 +142,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to log the files to be compiled. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setListFiles(boolean listFiles) {
         this.listFiles = listFiles;
@@ -143,6 +150,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     * @since 0.7
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -152,6 +160,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setDeprecation(boolean deprecation) {
         this.deprecation = deprecation;
@@ -159,6 +168,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to log warning messages. The default is {@code true}.
+     * @since 0.7
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -168,6 +178,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to log warning messages. The default is {@code true}.
+     * @since 0.7
      */
     public void setWarnings(boolean warnings) {
         this.warnings = warnings;
@@ -176,6 +187,7 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
+     * @since 0.7
      */
     @Nullable
     @Optional
@@ -188,6 +200,7 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
+     * @since 0.7
      */
     public void setEncoding(@Nullable String encoding) {
         this.encoding = encoding;
@@ -196,6 +209,7 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -206,6 +220,7 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Sets whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     * @since 0.7
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -213,6 +228,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Returns options for generating debugging information.
+     * @since 0.7
      */
     @Nested
     public abstract DebugOptions getDebugOptions();
@@ -230,6 +246,7 @@ public abstract class CompileOptions implements Serializable {
      * Tells whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -241,6 +258,7 @@ public abstract class CompileOptions implements Serializable {
      * Sets whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
+     * @since 0.7
      */
     public void setFork(boolean fork) {
         this.fork = fork;
@@ -248,6 +266,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Returns options for running the compiler in a child process.
+     * @since 0.7
      */
     @Nested
     public abstract ForkOptions getForkOptions();
@@ -285,6 +304,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
+     * @since 0.7
      */
     @Nullable
     @Optional
@@ -296,6 +316,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
+     * @since 0.7
      */
     public void setExtensionDirs(@Nullable String extensionDirs) {
         this.extensionDirs = extensionDirs;
@@ -312,6 +333,7 @@ public abstract class CompileOptions implements Serializable {
      *
      * Note that if {@code --release} is added then {@code -target} and {@code -source}
      * are ignored.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -349,6 +371,7 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Sets any additional arguments to be passed to the compiler.
      * Defaults to the empty list.
+     * @since 0.7
      */
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
@@ -356,6 +379,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
+     * @since 1.12
      */
     public CompileOptions setIncremental(boolean incremental) {
         this.incremental = incremental;
@@ -364,6 +388,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
+     * @since 1.12
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -402,6 +427,7 @@ public abstract class CompileOptions implements Serializable {
      *
      * @return the source path
      * @see #setSourcepath(FileCollection)
+     * @since 2.4
      */
     @Optional
     @Nullable
@@ -417,6 +443,7 @@ public abstract class CompileOptions implements Serializable {
      * Sets the source path to use for the compilation.
      *
      * @param sourcepath the source path
+     * @since 2.4
      */
     public void setSourcepath(@Nullable FileCollection sourcepath) {
         this.sourcepath = sourcepath;

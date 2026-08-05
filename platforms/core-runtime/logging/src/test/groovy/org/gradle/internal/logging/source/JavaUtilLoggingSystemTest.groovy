@@ -23,7 +23,9 @@ import org.gradle.internal.logging.TestOutputEventListener
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.logging.Handler
 import java.util.logging.Level
+import java.util.logging.LogRecord
 import java.util.logging.Logger
 
 class JavaUtilLoggingSystemTest extends Specification {
@@ -120,4 +122,89 @@ class JavaUtilLoggingSystemTest extends Specification {
         then:
         Logger.getLogger("").getLevel() == Level.FINE
     }
+
+    def "restore reinstates the root logger handlers that capturing displaced"() {
+        given:
+        def rootLogger = Logger.getLogger("")
+        def originalHandler = new NoOpHandler()
+        rootLogger.addHandler(originalHandler)
+        def originalHandlers = rootLogger.handlers.toList()
+
+        when:
+        def snapshot = configurer.snapshot()
+        configurer.startCapture()
+
+        then:
+        !rootLogger.handlers.toList().contains(originalHandler)
+
+        when:
+        configurer.restore(snapshot)
+
+        then:
+        rootLogger.handlers.toList() == originalHandlers
+
+        cleanup:
+        rootLogger.removeHandler(originalHandler)
+    }
+
+    def "closes handlers installed during the capturing scope when restored, but not the reinstated handlers"() {
+        given:
+        def rootLogger = Logger.getLogger("")
+        def outerHandler = new NoOpHandler()
+        rootLogger.addHandler(outerHandler)
+
+        when:
+        def snapshot = configurer.snapshot()
+        configurer.startCapture()
+        def scopeHandler = new NoOpHandler()
+        rootLogger.addHandler(scopeHandler)
+        configurer.restore(snapshot)
+
+        then: "the handler installed during the scope is removed and closed"
+        scopeHandler.closed
+        !rootLogger.handlers.toList().contains(scopeHandler)
+
+        and: "the displaced outer handler is reinstated, still open"
+        !outerHandler.closed
+        rootLogger.handlers.toList().contains(outerHandler)
+
+        cleanup:
+        rootLogger.removeHandler(outerHandler)
+    }
+
+    def "a nested logging scope restores the outer scope's routing when restored"() {
+        given:
+        def outer = new JavaUtilLoggingSystem()
+        def inner = new JavaUtilLoggingSystem()
+
+        when:
+        outer.setLevel(LogLevel.INFO)
+        outer.startCapture()
+        def snapshot = inner.snapshot()
+        inner.setLevel(LogLevel.INFO)
+        inner.startCapture()
+        inner.restore(snapshot)
+        Logger.getLogger('test').info('info message')
+
+        then: "the outer scope's bridge handler is back in place and still routes"
+        outputEventListener.toString() == '[[INFO] [test] info message]'
+    }
+
+    private static class NoOpHandler extends Handler {
+
+        boolean closed
+
+        @Override
+        void publish(LogRecord record) {}
+
+        @Override
+        void flush() {}
+
+        @Override
+        void close() {
+            closed = true
+        }
+
+    }
+
 }

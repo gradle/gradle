@@ -32,6 +32,7 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
+    implementation(projects.logging)
     implementation(projects.problemsApi)
     implementation(projects.stdlibKotlinExtensions)
 

@@ -16,12 +16,9 @@
 
 package org.gradle.resolve
 
-import org.eclipse.jetty.http.HttpHeader
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.handler.AbstractHandler
-import org.eclipse.jetty.server.handler.HandlerCollection
+import com.sun.net.httpserver.HttpExchange
+import com.sun.net.httpserver.HttpHandler
+import com.sun.net.httpserver.HttpServer
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -34,9 +31,8 @@ import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Specification
 
-import javax.servlet.ServletException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -108,73 +104,66 @@ task check {
         private static final String HEAD_METHOD = 'HEAD'
         private static final String METADATA_FILE_PATH = '/org.gradle/changing/1.0/ivy-1.0.xml'
         private static final String JAR_FILE_PATH = '/org.gradle/changing/1.0/changing-1.0.jar'
-        private final Server server = new Server(0)
-        private final ServerConnector connector = new ServerConnector(server)
+        private HttpServer server
+        private ExecutorService executor
         private final Resources resources = new Resources()
 
         @Override
         protected void before() {
-            server.addConnector(connector)
-            def handler = new AbstractHandler() {
+            server = HttpServer.create(new InetSocketAddress(0), 0)
+            executor = Executors.newCachedThreadPool()
+            server.setExecutor(executor)
+            server.createContext("/", new HttpHandler() {
                 @Override
-                void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-                    println "* Handling $request.method $request.pathInfo"
-                    if (request.method == GET_METHOD && request.pathInfo == METADATA_FILE_PATH) {
-                        handleGetIvy(response)
-                        request.handled = true
-                    } else if (request.method == HEAD_METHOD && request.pathInfo == METADATA_FILE_PATH) {
-                        handleHeadIvy(response)
-                        request.handled = true
-                    } else if (request.method == GET_METHOD && request.pathInfo == JAR_FILE_PATH) {
-                        handleGetJar(response)
-                        request.handled = true
-                    } else if (request.method == HEAD_METHOD && request.pathInfo == JAR_FILE_PATH) {
-                        handleHeadJar(response)
-                        request.handled = true
+                void handle(HttpExchange exchange) throws IOException {
+                    try {
+                        String method = exchange.requestMethod
+                        String path = exchange.requestURI.path
+                        println "* Handling $method $path"
+                        if (method == GET_METHOD && path == METADATA_FILE_PATH) {
+                            writeResource(exchange, resources.ivy, true)
+                        } else if (method == HEAD_METHOD && path == METADATA_FILE_PATH) {
+                            writeResource(exchange, resources.ivy, false)
+                        } else if (method == GET_METHOD && path == JAR_FILE_PATH) {
+                            writeResource(exchange, resources.jar, true)
+                        } else if (method == HEAD_METHOD && path == JAR_FILE_PATH) {
+                            writeResource(exchange, resources.jar, false)
+                        } else {
+                            exchange.sendResponseHeaders(404, -1)
+                        }
+                    } finally {
+                        exchange.close()
                     }
                 }
-            }
-            server.setHandler(new HandlerCollection(false, handler))
+            })
             server.start()
         }
 
         @Override
         protected void after() {
-            server.stop()
+            server.stop(0)
+            executor.shutdownNow()
         }
 
-        private void handleGetIvy(HttpServletResponse response) {
-            println "* GET IVY FILE"
-            def ivy = resources.ivy
-            provideHeadersForResource(response, ivy)
-            ivy.writeContentTo(response.outputStream)
+        private static void writeResource(HttpExchange exchange, Resource resource, boolean includeBody) {
+            exchange.responseHeaders.set("Last-Modified", httpDate(resource.lastModified))
+            exchange.responseHeaders.set("Content-Type", resource.contentType)
+            exchange.sendResponseHeaders(200, resource.contentLength)
+            if (includeBody) {
+                OutputStream out = exchange.responseBody
+                resource.writeContentTo(out)
+                out.close()
+            }
         }
 
-        private void handleHeadIvy(HttpServletResponse response) {
-            println "* HEAD IVY FILE"
-            provideHeadersForResource(response, resources.ivy)
-        }
-
-        private void handleGetJar(HttpServletResponse response) {
-            println "* GET JAR"
-            def jar = resources.jar
-            provideHeadersForResource(response, jar)
-            jar.writeContentTo(response.outputStream)
-        }
-
-        private void handleHeadJar(HttpServletResponse response) {
-            println "* HEAD JAR"
-            provideHeadersForResource(response, resources.jar)
-        }
-
-        private static void provideHeadersForResource(HttpServletResponse response, Resource resource) {
-            response.setDateHeader(HttpHeader.LAST_MODIFIED.asString(), resource.lastModified)
-            response.setContentLength(resource.contentLength)
-            response.setContentType(resource.contentType)
+        private static String httpDate(long millis) {
+            def format = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US)
+            format.timeZone = TimeZone.getTimeZone("GMT")
+            return format.format(new Date(millis))
         }
 
         URI getUri() {
-            return new URI("http://127.0.0.1:${connector.localPort}/")
+            return new URI("http://127.0.0.1:${server.address.port}/")
         }
     }
 

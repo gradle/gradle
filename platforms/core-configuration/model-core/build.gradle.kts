@@ -70,6 +70,9 @@ dependencies {
     }
 
     jmhImplementation(platform(projects.distributionsDependencies))
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.core)
 }
 
 gradleModule {
@@ -92,16 +95,3 @@ jvmCompile {
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/model/internal/core/**")
-    excludePatterns.add("org/gradle/model/internal/inspect/**")
-    excludePatterns.add("org/gradle/api/internal/tasks/**")
-    excludePatterns.add("org/gradle/model/internal/manage/schema/**")
-    excludePatterns.add("org/gradle/model/internal/type/**")
-    excludePatterns.add("org/gradle/api/internal/plugins/*")
-    // cycle between org.gradle.api.internal.provider and org.gradle.util.internal
-    // (api.internal.provider -> ConfigureUtil, DeferredUtil -> api.internal.provider)
-    excludePatterns.add("org/gradle/util/internal/*")
-}
-

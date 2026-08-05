@@ -144,12 +144,15 @@ This only applies to plugins written in Groovy 3.x, from Gradle 8.x and earlier.
 [[plugins_written_with_the_kotlin_dsl_require_gradle_8_11]]
 === Plugins written with the Kotlin DSL require Gradle >= 8.11
 
-When building and publishing plugins using the Kotlin DSL on Gradle 9.x.x, those plugins will only be usable on Gradle 8.11 or newer.
+When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins are only usable on Gradle 8.11 or newer.
 This is because Gradle 8.11 is the first release that embeds Kotlin 2.0 or higher, which is required to interpret Kotlin metadata version 2.
 
-If you want your plugin to remain compatible with older Gradle versions, you must explicitly compile it against an earlier Kotlin version (1.x).
+If your plugin must support Gradle versions older than 8.11, build the plugin with Gradle 8.x.
 
-For example, to support Gradle 6.8 and newer, configure your plugin to target Kotlin 1.7 like this:
+*Downgrading the Kotlin target under Gradle 9.x is not a workaround*: Gradle 9.x embeds Kotlin 2.2, which rejects `languageVersion` and `apiVersion` values below 1.8 and always emits Kotlin metadata version 2.
+
+When building with Gradle 8.x, you can additionally target an earlier Kotlin language version to broaden consumer compatibility.
+For example, to support Gradle 6.8 and newer, target Kotlin 1.7:
 
 .build.gradle.kts
 [source,kotlin]
@@ -168,6 +171,12 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 ----
+
+[WARNING]
+====
+The example above must be built with Gradle 7.x or 8.x.
+On Gradle 9.x the build fails because Kotlin 2.2 rejects `languageVersion` values below 1.8.
+====
 
 Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for details on which Kotlin version is embedded in each Gradle release.
 

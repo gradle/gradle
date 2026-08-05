@@ -22,14 +22,29 @@ package org.gradle.api;
  * @since 2.1
  */
 public class BuildCancelledException extends GradleException {
+    /**
+     * Creates a new {@code BuildCancelledException}.
+     *
+     * @since 2.1
+     */
     public BuildCancelledException() {
         this("Build cancelled.");
     }
 
+    /**
+     * Creates a new {@code BuildCancelledException}.
+     *
+     * @since 2.1
+     */
     public BuildCancelledException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code BuildCancelledException}.
+     *
+     * @since 2.1
+     */
     public BuildCancelledException(String message, Throwable cause) {
         super(message, cause);
     }

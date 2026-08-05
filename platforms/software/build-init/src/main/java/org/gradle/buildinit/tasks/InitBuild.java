@@ -80,6 +80,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Generates a Gradle project structure.
+ * @since 1.9
  */
 @DisableCachingByDefault(because = "Not worth caching")
 @UntrackedTask(because = "This task will never be up-to-date")
@@ -136,6 +137,7 @@ public abstract class InitBuild extends DefaultTask {
      * and the existing project is converted to Gradle.
      * <p>
      * Possible values for the option are provided by {@link #getAvailableBuildTypes()}.
+     * @since 1.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -242,6 +244,7 @@ public abstract class InitBuild extends DefaultTask {
      * The test framework to be used in the generated project.
      *
      * This property can be set via command-line option '--test-framework'
+     * @since 2.11
      */
     @Nullable
     @Optional
@@ -275,6 +278,11 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "comments", description = "Include clarifying comments in files.")
     public abstract Property<Boolean> getComments();
 
+    /**
+     * Returns the project layout registry.
+     *
+     * @since 1.9
+     */
     @NotToBeReplacedByLazyProperty(because = "Injected service")
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
         if (projectLayoutRegistry == null) {
@@ -284,6 +292,11 @@ public abstract class InitBuild extends DefaultTask {
         return projectLayoutRegistry;
     }
 
+    /**
+     * Setup project layout.
+     *
+     * @since 1.9
+     */
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
@@ -620,11 +633,21 @@ public abstract class InitBuild extends DefaultTask {
         return generatorsByLanguage.get(language);
     }
 
+    /**
+     * Sets the type.
+     *
+     * @since 1.9
+     */
     @Option(option = "type", description = "Set the type of project to generate.")
     public void setType(String type) {
         this.type = type;
     }
 
+    /**
+     * Returns the available build types.
+     *
+     * @since 1.10
+     */
     @OptionValues("type")
     @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
     public List<String> getAvailableBuildTypes() {
@@ -654,6 +677,7 @@ public abstract class InitBuild extends DefaultTask {
 
     /**
      * Set the test framework to be used.
+     * @since 2.11
      */
     @Option(option = "test-framework", description = "Set the test framework to be used.")
     public void setTestFramework(@Nullable String testFramework) {
@@ -662,6 +686,7 @@ public abstract class InitBuild extends DefaultTask {
 
     /**
      * Available test frameworks.
+     * @since 2.11
      */
     @OptionValues("test-framework")
     @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
@@ -689,6 +714,11 @@ public abstract class InitBuild extends DefaultTask {
         this.packageName = packageName;
     }
 
+    /**
+     * Sets the project layout registry.
+     *
+     * @since 1.9
+     */
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
         this.projectLayoutRegistry = projectLayoutRegistry;
     }

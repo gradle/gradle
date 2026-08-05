@@ -83,7 +83,7 @@ public class DefaultInstrumentationAnalysisSerializer implements Instrumentation
                 readTypesMap(decoder, nameSerializer)
             );
         } catch (Exception e) {
-            throw new IllegalStateException("Could not serialize types map to a file: " + output, e);
+            throw new IllegalStateException("Could not deserialize analysis from a file: " + output, e);
         }
     }
 

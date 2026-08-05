@@ -263,6 +263,10 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     private void nagAboutUndeclaredResolution() {
         String taskPath = workExecutionTracker.getCurrentTask().map(Task::getPath).orElse(null);
         String configName = configurationNameOf();
+        // TODO: Note to whoever converts this deprecation into a failure:
+        // Once this deprecation turns into a failure, we will no longer need to call `forceAccessToMutableState`
+        // in DefaultTransform. That class is the only usage of `forceAccessToMutableState`. We should then remove
+        // that call, fail hard in that branch, and remove the `forceAccessToMutableState` method.
         DeprecationMessageBuilder<?> deprecation = DeprecationLogger.deprecate(
             "Querying the output of an artifact transform from a task action without declaring it as a task input"
         );

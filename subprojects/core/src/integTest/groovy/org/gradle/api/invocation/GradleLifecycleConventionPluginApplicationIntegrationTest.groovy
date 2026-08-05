@@ -86,7 +86,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
             "\nIf this plugin is provided by a build registered via `pluginManagement.includeBuild(...)`, " +
             "you can instead move the `gradle.lifecycle` callback registration into a settings convention plugin " +
             "published from that build (recommended).\n" +
-            documentationRegistry.getDocumentationRecommendationFor("information", "isolated_projects", "sec:lifecycle_callbacks_with_included_plugin_builds")
+            documentationRegistry.getDocumentationRecommendationFor("information", "isolated_projects", "sec:applying_plugins_from_a_lifecycle_callback")
         )
 
         where:
@@ -112,7 +112,7 @@ class GradleLifecycleConventionPluginApplicationIntegrationTest extends Abstract
         then:
         failureCauseContains("Plugin with id 'com.example.absent' not found.")
         failureCauseContains("Declare it in the settings `plugins {}` block with `apply false`")
-        failureCauseContains("userguide/isolated_projects.html#sec:lifecycle_callbacks_with_included_plugin_builds")
+        failureCauseContains("userguide/isolated_projects.html#sec:applying_plugins_from_a_lifecycle_callback")
         failure.assertThatCause(not(containsString("settings convention plugin")))
 
         where:

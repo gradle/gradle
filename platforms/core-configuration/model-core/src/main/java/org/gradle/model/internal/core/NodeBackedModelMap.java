@@ -29,10 +29,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
-import org.gradle.model.InvalidModelRuleException;
-import org.gradle.model.ModelMap;
-import org.gradle.model.ModelRuleBindingException;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ModelElementProjection;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
@@ -51,6 +47,7 @@ import static org.gradle.model.internal.core.NodeInitializerContext.forExtensibl
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 // TODO - mix Groovy DSL support in
+@SuppressWarnings("deprecation")
 public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements ManagedInstance {
 
     private static final ElementFilter NO_PARENT = new ElementFilter(ModelType.UNTYPED) {
@@ -380,7 +377,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     }
 
     @Override
-    public void named(String name, Class<? extends RuleSource> ruleSource) {
+    public void named(String name, Class<? extends org.gradle.model.RuleSource> ruleSource) {
         viewState.assertCanMutate();
         ModelRuleDescriptor descriptor = sourceDescriptor.append("named(%s, %s)", name, ruleSource.getName());
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
@@ -432,18 +429,18 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     }
 
     @Override
-    public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
+    public <S> void withType(Class<S> type, Class<? extends org.gradle.model.RuleSource> rules) {
         viewState.assertCanMutate();
         modelNode.applyTo(allLinks(elementFilter.withType(type)), rules);
     }
 
     @Override
-    public <S> ModelMap<S> withType(Class<S> typeClass) {
+    public <S> org.gradle.model.ModelMap<S> withType(Class<S> typeClass) {
         ModelType<S> type = ModelType.of(typeClass);
         return withType(type);
     }
 
-    public <S> ModelMap<S> withType(ModelType<S> type) {
+    public <S> org.gradle.model.ModelMap<S> withType(ModelType<S> type) {
         if (type.equals(elementType)) {
             return uncheckedCast(this);
         }
@@ -518,7 +515,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         public void validateCanBindAction(MutableModelNode node, ModelAction action) {
             node.ensureAtLeast(ModelNode.State.Discovered);
             if (!node.canBeViewedAs(elementType)) {
-                throw new InvalidModelRuleException(action.getDescriptor(), new ModelRuleBindingException(
+                throw new org.gradle.model.InvalidModelRuleException(action.getDescriptor(), new org.gradle.model.ModelRuleBindingException(
                     IncompatibleTypeReferenceReporter.of(node, elementType, action.getSubject().getDescription(), true).asString()
                 ));
             }
@@ -569,9 +566,9 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     }
 
     private static class ApplyRuleSource implements Action<MutableModelNode> {
-        private final ModelType<? extends RuleSource> rules;
+        private final ModelType<? extends org.gradle.model.RuleSource> rules;
 
-        public ApplyRuleSource(Class<? extends RuleSource> rules) {
+        public ApplyRuleSource(Class<? extends org.gradle.model.RuleSource> rules) {
             this.rules = ModelType.of(rules);
         }
 

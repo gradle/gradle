@@ -16,27 +16,25 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.NativeLibraryRequirement;
-import org.gradle.nativeplatform.NativeLibrarySpec;
-
-public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpec implements NativeLibrarySpec {
+@SuppressWarnings("deprecation")
+public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpec implements org.gradle.nativeplatform.NativeLibrarySpec {
     @Override
     protected String getTypeName() {
         return "native library";
     }
 
     @Override
-    public NativeLibraryRequirement getShared() {
+    public org.gradle.nativeplatform.NativeLibraryRequirement getShared() {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "shared");
     }
 
     @Override
-    public NativeLibraryRequirement getStatic() {
+    public org.gradle.nativeplatform.NativeLibraryRequirement getStatic() {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "static");
     }
 
     @Override
-    public NativeLibraryRequirement getApi() {
+    public org.gradle.nativeplatform.NativeLibraryRequirement getApi() {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "api");
     }
 

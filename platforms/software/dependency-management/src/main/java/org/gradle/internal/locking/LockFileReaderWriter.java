@@ -20,10 +20,12 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.resource.local.FileResourceListener;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -56,16 +58,25 @@ public class LockFileReaderWriter {
     static final Charset CHARSET = StandardCharsets.UTF_8;
     static final List<String> LOCKFILE_HEADER_LIST = ImmutableList.of("# This is a Gradle generated file for dependency locking.", "# Manual edits can break the build and are not advised.", "# This file is expected to be part of source control.");
     static final String EMPTY_RESOLUTIONS_ENTRY = "empty=";
-    static final String BUILD_SCRIPT_PREFIX = "buildscript-";
-    static final String SETTINGS_SCRIPT_PREFIX = "settings-";
 
     private final Path lockFilesRoot;
     private final DomainObjectContext context;
+    private final DependencyManagementInstanceIdentity instanceIdentity;
+    private final String prefix;
     private final RegularFileProperty lockFile;
     private final FileResourceListener listener;
 
-    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context, RegularFileProperty lockFile, FileResourceListener listener) {
+    public LockFileReaderWriter(
+        FileResolver fileResolver,
+        DomainObjectContext context,
+        DependencyManagementInstanceIdentity instanceIdentity,
+        String prefix,
+        RegularFileProperty lockFile,
+        FileResourceListener listener
+    ) {
         this.context = context;
+        this.instanceIdentity = instanceIdentity;
+        this.prefix = prefix;
         this.lockFile = lockFile;
         this.listener = listener;
         Path resolve = null;
@@ -100,19 +111,12 @@ public class LockFileReaderWriter {
     }
 
     private String decorate(String lockId) {
-        if (context.isScript()) {
-            if (context.isRootScript()) {
-                return SETTINGS_SCRIPT_PREFIX + lockId;
-            }
-            return BUILD_SCRIPT_PREFIX + lockId;
-        } else {
-            return lockId;
-        }
+        return prefix + lockId;
     }
 
     private void checkValidRoot() {
         if (lockFilesRoot == null) {
-            throw new IllegalStateException("Dependency locking cannot be used for " + context.getDisplayName() + ". " + LIMITATIONS_DOC_LINK);
+            throw new IllegalStateException("Dependency locking cannot be used for " + instanceIdentity.getDisplayName() + ". " + LIMITATIONS_DOC_LINK);
         }
     }
 
@@ -224,8 +228,13 @@ public class LockFileReaderWriter {
             .forEach(GFileUtils::deleteQuietly);
     }
 
-    private String buildRegenerationComment() {
-        return "# To regenerate this file, run: ./gradlew " + context.projectPath("dependencies") + " --write-locks";
+    private @Nullable String buildRegenerationComment() {
+        if (context instanceof ProjectDomainObjectContext pdoc) {
+            org.gradle.util.Path taskPath = pdoc.getModel().getIdentity().getBuildTreePath().child("dependencies");
+            return "# To regenerate this file, run: ./gradlew " + taskPath + " --write-locks";
+        }
+
+        return null;
     }
 
     private void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToLockId, List<String> emptyLockIds) {
@@ -233,7 +242,10 @@ public class LockFileReaderWriter {
             Files.createDirectories(lockfilePath.getParent());
             List<String> content = new ArrayList<>(50);
             content.addAll(LOCKFILE_HEADER_LIST);
-            content.add(buildRegenerationComment());
+            String regenerationMessage = buildRegenerationComment();
+            if (regenerationMessage != null) {
+                content.add(regenerationMessage);
+            }
             for (Map.Entry<String, List<String>> entry : dependencyToLockId.entrySet()) {
                 String builder = entry.getKey() + "=" + entry.getValue().stream().sorted().collect(Collectors.joining(","));
                 content.add(builder);

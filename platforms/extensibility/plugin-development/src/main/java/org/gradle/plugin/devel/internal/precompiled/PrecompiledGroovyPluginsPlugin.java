@@ -58,6 +58,7 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
         GradlePluginDevelopmentExtension pluginExtension = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
 
         SourceSet pluginSourceSet = pluginExtension.getPluginSourceSet();
+        SourceDirectorySet groovySource = pluginSourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
         Set<File> scriptPluginFiles = pluginSourceSet.getAllSource().matching(PrecompiledGroovyScript::filterPluginFiles).getFiles();
 
         List<PrecompiledGroovyScript> scriptPlugins = scriptPluginFiles.stream()
@@ -73,6 +74,10 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
         TaskProvider<ExtractPluginRequestsTask> extractPluginRequests = tasks.register("extractPluginRequests", ExtractPluginRequestsTask.class, task -> {
             task.getScriptPlugins().convention(scriptPlugins);
             task.getScriptFiles().from(scriptPluginFiles);
+            // Getting the files eagerly above drops the source's build dependencies, so carry them explicitly:
+            // this makes the task run after any task that generates script plugins into a Groovy srcDir.
+            // See https://github.com/gradle/gradle/issues/37135.
+            task.getScriptFiles().builtBy(groovySource);
             task.getExtractedPluginRequestsClassesDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-requests"));
             task.getExtractedPluginRequestsClassesStagingDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-requests-staging"));
         });
@@ -86,10 +91,10 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
         TaskProvider<CompileGroovyScriptPluginsTask> precompilePlugins = tasks.register("compileGroovyPlugins", CompileGroovyScriptPluginsTask.class, task -> {
             task.getScriptPlugins().convention(scriptPlugins);
             task.getScriptFiles().from(scriptPluginFiles);
+            task.getScriptFiles().builtBy(groovySource);
             task.getPrecompiledGroovyScriptsOutputDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-classes"));
 
             SourceDirectorySet javaSource = pluginSourceSet.getJava();
-            SourceDirectorySet groovySource = pluginSourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
             task.getClasspath().from(pluginSourceSet.getCompileClasspath(), javaSource.getClassesDirectory(), groovySource.getClassesDirectory());
         });
 

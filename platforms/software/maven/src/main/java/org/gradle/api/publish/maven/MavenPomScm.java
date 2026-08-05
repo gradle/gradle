@@ -28,21 +28,25 @@ public interface MavenPomScm {
 
     /**
      * The connection URL of this SCM.
+     * @since 4.8
      */
     Property<String> getConnection();
 
     /**
      * The developer connection URL of this SCM.
+     * @since 4.8
      */
     Property<String> getDeveloperConnection();
 
     /**
      * The browsable repository URL of this SCM.
+     * @since 4.8
      */
     Property<String> getUrl();
 
     /**
      * The tag of current code in this SCM.
+     * @since 4.8
      */
     Property<String> getTag();
 

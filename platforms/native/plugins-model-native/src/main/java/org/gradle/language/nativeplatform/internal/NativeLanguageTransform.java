@@ -16,25 +16,22 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.LanguageTransform;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.platform.base.BinarySpec;
 
-public abstract class NativeLanguageTransform<U extends LanguageSourceSet> implements LanguageTransform<U, ObjectFile> {
+@SuppressWarnings("deprecation")
+public abstract class NativeLanguageTransform<U extends org.gradle.language.base.LanguageSourceSet> implements LanguageTransform<U, org.gradle.nativeplatform.ObjectFile> {
 
     @Override
-    public boolean applyToBinary(BinarySpec binary) {
-        return binary instanceof NativeBinarySpec;
+    public boolean applyToBinary(org.gradle.platform.base.BinarySpec binary) {
+        return binary instanceof org.gradle.nativeplatform.NativeBinarySpec;
     }
 
     public abstract ToolType getToolType();
 
     @Override
-    public Class<ObjectFile> getOutputType() {
-        return ObjectFile.class;
+    public Class<org.gradle.nativeplatform.ObjectFile> getOutputType() {
+        return org.gradle.nativeplatform.ObjectFile.class;
     }
 
 }

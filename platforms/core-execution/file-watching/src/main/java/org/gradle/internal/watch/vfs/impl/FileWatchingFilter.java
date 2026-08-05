@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FileWatchingFilter implements FileSystemAccess.WriteListener {
     private final FileHierarchySet immutableLocations;
     private final AtomicReference<FileHierarchySet> currentSessionImmutableLocations = new AtomicReference<>(FileHierarchySet.empty());
+    private final AtomicReference<FileHierarchySet> watchableExemptions = new AtomicReference<>(FileHierarchySet.empty());
     private final AtomicReference<FileHierarchySet> locationsWrittenByCurrentBuild = new AtomicReference<>(FileHierarchySet.empty());
     private volatile boolean buildRunning;
 
@@ -49,7 +50,22 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
         currentSessionImmutableLocations.updateAndGet(locations -> locations.plus(location));
     }
 
+    /**
+     * Registers a location that sits within an immutable location but should nevertheless be watched.
+     *
+     * These are directories that Gradle manages but that hold contents which can change externally and
+     * therefore need watching, such as source-dependency build directories under the project cache dir.
+     * Registering an exemption makes {@link #isImmutableLocation(String)} return {@code false} for the
+     * location and everything below it.
+     */
+    public void addWatchableExemption(File location) {
+        watchableExemptions.updateAndGet(locations -> locations.plus(location));
+    }
+
     public boolean isImmutableLocation(String location) {
+        if (watchableExemptions.get().contains(location)) {
+            return false;
+        }
         return immutableLocations.contains(location) || currentSessionImmutableLocations.get().contains(location);
     }
 
@@ -83,6 +99,7 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
 
     public void sessionFinished() {
         currentSessionImmutableLocations.set(FileHierarchySet.empty());
+        watchableExemptions.set(FileHierarchySet.empty());
     }
 
     private void resetLocationsWritten() {

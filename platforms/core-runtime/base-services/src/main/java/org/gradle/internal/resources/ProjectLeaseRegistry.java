@@ -82,15 +82,6 @@ public interface ProjectLeaseRegistry extends BlockingNotifier {
     void runAsIsolatedTask(Runnable action);
 
     /**
-     * Allows the given code to access the mutable state of any project, regardless of which other threads may be accessing the project.
-     *
-     * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
-     */
-    <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory);
-
-    boolean isAllowedUncontrolledAccessToAnyProject();
-
-    /**
      * {@link #blocking(Factory)}, but returns no result.
      */
     @Override

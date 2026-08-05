@@ -16,8 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.Managed;
-
-@Managed
+@org.gradle.model.Managed
+@SuppressWarnings("deprecation")
 public interface ParameterizedManaged<T> {
 }

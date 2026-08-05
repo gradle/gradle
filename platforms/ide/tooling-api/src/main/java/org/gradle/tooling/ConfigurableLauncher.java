@@ -61,14 +61,14 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     @Override
     T setStandardOutput(OutputStream outputStream);
 
     /**
      * {@inheritDoc}
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     @Override
     T setStandardError(OutputStream outputStream);
@@ -82,21 +82,21 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
-     * @since 1.0-milestone-7
+     * @since 1.0
      */
     @Override
     T setStandardInput(InputStream inputStream);
 
     /**
      * {@inheritDoc}
-     * @since 1.0-milestone-8
+     * @since 1.0
      */
     @Override
     T setJavaHome(File javaHome);
 
     /**
      * {@inheritDoc}
-     * @since 1.0-milestone-9
+     * @since 1.0
      */
     @Override
     T setJvmArguments(String... jvmArguments);
@@ -138,7 +138,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     @Override
     T addProgressListener(ProgressListener listener);

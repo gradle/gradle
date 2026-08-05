@@ -30,6 +30,7 @@ public interface CacheResourceConfiguration {
     /**
      * Sets the interval (in days) after which unused entries will be considered stale and removed from the cache.
      * Any entries not used within this interval will be candidates for eviction.
+     * @since 8.0
      */
     void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays);
 }

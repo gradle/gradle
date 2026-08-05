@@ -25,11 +25,17 @@ import org.gradle.work.DisableCachingByDefault;
  * A convenience superclass for those tasks which generate XML configuration files from a domain object of type T.
  *
  * @param <T> The domain object type.
+ * @since 1.0
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject> extends GeneratorTask<T> {
     private final XmlTransformer xmlTransformer = new XmlTransformer();
 
+    /**
+     * Creates a new {@code XmlGeneratorTask}.
+     *
+     * @since 1.0
+     */
     public XmlGeneratorTask() {
         generator = new PersistableConfigurationObjectGenerator<T>() {
             @Override
@@ -44,13 +50,28 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
         };
     }
 
+    /**
+     * Returns the xml transformer.
+     *
+     * @since 1.0
+     */
     @Internal
     public XmlTransformer getXmlTransformer() {
         return xmlTransformer;
     }
 
+    /**
+     * Configure.
+     *
+     * @since 1.0
+     */
     protected abstract void configure(T object);
 
+    /**
+     * Create.
+     *
+     * @since 1.0
+     */
     protected abstract T create();
 
 }

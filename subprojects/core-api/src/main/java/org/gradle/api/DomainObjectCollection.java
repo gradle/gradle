@@ -36,6 +36,7 @@ import java.util.Collection;
  * </p>
  *
  * @param <T> The type of objects in this collection.
+ * @since 0.7
  */
 public interface DomainObjectCollection<T> extends Collection<T> {
     /**
@@ -92,6 +93,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * @param type The type of objects to find.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
+     * @since 0.7
      */
     <S extends T> DomainObjectCollection<S> withType(Class<S> type);
 
@@ -104,6 +106,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param type The type of objects to find.
      * @param configureAction The action to execute for each object in the resulting collection.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
+     * @since 0.9.2
      */
     <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction);
 
@@ -116,6 +119,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param type The type of objects to find.
      * @param configureClosure The closure to execute for each object in the resulting collection.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
+     * @since 0.9.2
      */
     <S extends T> DomainObjectCollection<S> withType(@DelegatesTo.Target Class<S> type, @DelegatesTo(genericTypeIndex = 0) Closure configureClosure);
 
@@ -129,6 +133,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param spec The specification to use.
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
+     * @since 0.7
      */
     DomainObjectCollection<T> matching(Spec<? super T> spec);
 
@@ -142,6 +147,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param spec The specification to use. The closure gets a collection element as an argument.
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
+     * @since 0.9
      */
     DomainObjectCollection<T> matching(Closure spec);
 
@@ -152,6 +158,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * @param action The action to be executed
      * @return the supplied action
+     * @since 0.7
      */
     Action<? super T> whenObjectAdded(Action<? super T> action);
 
@@ -163,6 +170,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * @param action The closure to be called
      * @see #whenObjectAdded(Action)
+     * @since 0.7
      */
     void whenObjectAdded(Closure action);
 
@@ -175,6 +183,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * @param action The action to be executed
      * @return the supplied action
+     * @since 0.7
      */
     Action<? super T> whenObjectRemoved(Action<? super T> action);
 
@@ -187,6 +196,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * All elements affected by this action will be realized.
      *
      * @param action The closure to be called
+     * @since 1.0
      */
     void whenObjectRemoved(Closure action);
 
@@ -197,6 +207,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * This method is a terminal eager operation. It will cause the realization of all elements of this collection.
      *
      * @param action The action to be executed
+     * @since 0.9.2
      */
     void all(Action<? super T> action);
 
@@ -207,6 +218,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * This method is a terminal eager operation. It will cause the realization of all elements of this collection.
      *
      * @param action The action to be executed
+     * @since 0.9.2
      */
     void all(Closure action);
 
@@ -229,6 +241,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
      * @deprecated Use {@link #matching(Spec)} or Collection APIs from the JDK.
+     * @since 1.0
      */
     @Deprecated
     Collection<T> findAll(Closure spec);

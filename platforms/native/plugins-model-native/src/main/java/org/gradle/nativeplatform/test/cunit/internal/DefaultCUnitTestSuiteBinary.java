@@ -16,18 +16,17 @@
 
 package org.gradle.nativeplatform.test.cunit.internal;
 
-import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
-import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 
-public class DefaultCUnitTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements CUnitTestSuiteBinarySpec {
+@SuppressWarnings("deprecation")
+public class DefaultCUnitTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec {
     @Override
-    public CUnitTestSuiteSpec getComponent() {
-        return getComponentAs(CUnitTestSuiteSpec.class);
+    public org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec getComponent() {
+        return getComponentAs(org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec.class);
     }
     
     @Override
-    public CUnitTestSuiteSpec getTestSuite() {
+    public org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec getTestSuite() {
         return getComponent();
     }
 }

@@ -21,10 +21,15 @@ import org.gradle.platform.base.BinaryTasksCollection;
 
 /**
  * Provides access to key tasks used by a test suite.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.11
  */
+@Deprecated
 public interface TestSuiteTaskCollection extends BinaryTasksCollection {
     /**
      * The run task.
+     * @since 2.11
      */
     Task getRun();
 }

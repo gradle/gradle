@@ -25,6 +25,7 @@ public interface ComponentSelector {
 
     /**
      * Returns a human-readable display name for this selector.
+     * @since 6.7
      */
     String getDisplayName();
 }

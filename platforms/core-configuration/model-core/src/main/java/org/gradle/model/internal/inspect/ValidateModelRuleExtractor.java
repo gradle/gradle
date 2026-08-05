@@ -17,11 +17,11 @@
 package org.gradle.model.internal.inspect;
 
 import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.model.Validate;
 import org.gradle.model.internal.core.ModelActionRole;
 
 @ThreadSafe
-public class ValidateModelRuleExtractor extends AbstractMutationModelRuleExtractor<Validate> {
+@SuppressWarnings("deprecation")
+public class ValidateModelRuleExtractor extends AbstractMutationModelRuleExtractor<org.gradle.model.Validate> {
     @Override
     protected ModelActionRole getMutationType() {
         return ModelActionRole.Validate;

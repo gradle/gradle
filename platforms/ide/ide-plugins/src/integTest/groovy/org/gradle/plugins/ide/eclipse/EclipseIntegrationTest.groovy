@@ -44,10 +44,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     void canCreateAndDeleteMetaData() {
         when:
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
-        expectTaskTypeDeprecations(
-                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
-                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
-        )
         executer.withTasks("eclipse").run()
 
         assertHasExpectedContents(getClasspathFile(project:"api"), "apiClasspath.xml")
@@ -91,10 +87,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         assertHasExpectedProperties(getJdtPropertiesFile(project:"webservice"), "webserviceJdt.properties")
 
         expectTaskDeprecations("cleanEclipse", "cleanEclipseClasspath", "cleanEclipseJdt", "cleanEclipseProject", "cleanEclipseWtp", "cleanEclipseWtpComponent", "cleanEclipseWtpFacet")
-        expectTaskTypeDeprecations(
-                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
-                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
-        )
         executer.withTasks("cleanEclipse").run()
     }
 
@@ -174,9 +166,6 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     void canConfigureTargetRuntimeName() {
 
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
-        expectTaskTypeDeprecations(
-                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
-        )
         runEclipseTask """
             apply plugin: "java"
             apply plugin: "eclipse"
@@ -199,7 +188,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     void eclipseFilesAreWrittenWithUtf8Encoding() {
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         expectTaskTypeDeprecations(
-                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp.facet"): 1,
         )
         runEclipseTask """
             apply plugin: "war"
@@ -235,6 +224,10 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         expectTaskTypeDeprecations(
                 ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.file"): 1,
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp.facet"): 1,
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.file"): 1,
+                ("org.gradle.plugins.ide.api.PropertiesFileContentMerger.beforeMerged"): 1,
+                ("org.gradle.plugins.ide.api.PropertiesFileContentMerger.whenMerged"): 1,
         )
         runEclipseTask('''
             apply plugin: 'java'
@@ -466,6 +459,9 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void dslAllowsShortForms() {
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.api.XmlFileContentMerger.withXml"): 3,
+        )
         runEclipseTask '''
             apply plugin: 'java'
             apply plugin: 'eclipse'

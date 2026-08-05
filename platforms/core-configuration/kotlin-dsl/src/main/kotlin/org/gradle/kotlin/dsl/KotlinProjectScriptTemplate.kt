@@ -31,6 +31,9 @@ import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
 
 
+/**
+ * @since 8.11
+ */
 class KotlinProjectScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
     filePathPattern.put(".*/.+(?<!(/|\\.)(init|settings))\\.gradle\\.kts")
     baseClass(KotlinProjectScriptTemplate::class)
@@ -58,6 +61,8 @@ abstract class KotlinProjectScriptTemplate(
 
     /**
      * The [ScriptHandler] for this script.
+     *
+     * @since 8.1
      */
     fun getBuildscript(): ScriptHandler =
         host.scriptHandler
@@ -66,6 +71,8 @@ abstract class KotlinProjectScriptTemplate(
      * Configures the build script classpath for this project.
      *
      * @see [Project.buildscript]
+     *
+     * @since 8.1
      */
     @Suppress("unused")
     open fun buildscript(block: ScriptHandlerScope.() -> Unit): Unit =
@@ -75,6 +82,8 @@ abstract class KotlinProjectScriptTemplate(
      * Configures the plugin dependencies for this project.
      *
      * @see [PluginDependenciesSpec]
+     *
+     * @since 8.1
      */
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =

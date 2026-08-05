@@ -29,6 +29,7 @@ import org.gradle.buildinit.tasks.InitBuild;
  * The build init plugin.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/build_init_plugin.html">Build Init plugin reference</a>
+ * @since 1.9
  */
 public abstract class BuildInitPlugin implements Plugin<Project> {
 

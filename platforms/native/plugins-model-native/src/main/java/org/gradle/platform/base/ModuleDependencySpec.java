@@ -21,14 +21,19 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A dependency onto a module.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.10
  */
 @Incubating
+@Deprecated
 public interface ModuleDependencySpec extends DependencySpec {
 
     /**
      * The group of the module this dependency specification refers to.
      *
      * @return the module group name
+     * @since 2.10
      */
     String getGroup();
 
@@ -36,6 +41,7 @@ public interface ModuleDependencySpec extends DependencySpec {
      * The name of the module this dependency specification refers to.
      *
      * @return the module name
+     * @since 2.10
      */
     String getName();
 
@@ -43,6 +49,7 @@ public interface ModuleDependencySpec extends DependencySpec {
      * The version range of the module this dependency specification refers to.
      *
      * @return the module version range
+     * @since 2.10
      */
     @Nullable
     String getVersion();

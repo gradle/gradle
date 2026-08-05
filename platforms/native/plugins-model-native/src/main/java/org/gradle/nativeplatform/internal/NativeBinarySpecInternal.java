@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryRequirementResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -32,6 +31,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
+@SuppressWarnings("deprecation")
 public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
 
     void setFlavor(Flavor flavor);
@@ -54,7 +54,7 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
 
     File getPrimaryOutput();
 
-    Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
+    Collection<NativeDependencySet> getLibs(org.gradle.language.nativeplatform.DependentSourceSet sourceSet);
 
     Collection<NativeLibraryBinary> getDependentBinaries();
 
@@ -67,5 +67,5 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
 
     Map<File, PreCompiledHeader> getPrefixFileToPCH();
 
-    void addPreCompiledHeaderFor(DependentSourceSet sourceSet);
+    void addPreCompiledHeaderFor(org.gradle.language.nativeplatform.DependentSourceSet sourceSet);
 }

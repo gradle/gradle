@@ -19,6 +19,9 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
@@ -37,7 +40,6 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -73,7 +75,9 @@ import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.file.PathToFileResolver;
@@ -140,7 +144,11 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices
     ) {
         registration.add(ProjectInternal.class, project);
-        dependencyManagementServices.addDslServices(registration, project);
+
+        ProjectDomainObjectContext domainObjectContext = new ProjectDomainObjectContext(project.getOwner());
+        registration.add(DomainObjectContext.class, domainObjectContext);
+
+        dependencyManagementServices.addDslServices(registration, new DependencyManagementParameters(project.getOwner().getDisplayName(), "", false, false, false));
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerProjectServices(registration);
         }
@@ -308,7 +316,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             project.getClassLoaderScope(),
             fileResolver,
             fileCollectionFactory,
-            StandaloneDomainObjectContext.forProjectBuildscript(project)
+            new DependencyManagementParameters(Describables.of("buildscript of", project.getOwner().getDisplayName()), "buildscript-", true, true, true)
         );
     }
 
@@ -320,6 +328,16 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected TypeConverter createTypeConverter(PathToFileResolver fileResolver) {
         return new DefaultTypeConverter(fileResolver);
+    }
+
+    @Provides
+    protected GradleInternal decorateGradle(GradleInternal gradle, CrossProjectModelAccess crossProjectModelAccess) {
+        return crossProjectModelAccess.gradleInstanceForProject(project.getProjectIdentity(), gradle);
+    }
+
+    @Provides
+    protected TaskExecutionGraphInternal decorateTaskExecutionGraph(TaskExecutionGraphInternal taskGraph, CrossProjectModelAccess crossProjectModelAccess) {
+        return crossProjectModelAccess.taskGraphForProject(project.getProjectIdentity(), taskGraph);
     }
 
     @Provides

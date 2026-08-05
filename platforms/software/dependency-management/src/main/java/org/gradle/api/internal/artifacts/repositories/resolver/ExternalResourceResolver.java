@@ -321,7 +321,18 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
 
     private void put(File src, ExternalResourceName destination) {
         repository.withProgressLogging().resource(destination).put(new FileReadableContent(src));
-        publishChecksums(destination, src);
+        if (!isSignatureFile(destination)) {
+            publishChecksums(destination, src);
+        }
+    }
+
+    /**
+     * Signature files (e.g. {@code .asc}, {@code .sig}) are themselves integrity artifacts, so we do not
+     * publish checksums for them.
+     */
+    private static boolean isSignatureFile(ExternalResourceName destination) {
+        String path = destination.getPath();
+        return path.endsWith(".asc") || path.endsWith(".sig");
     }
 
     private void publishChecksums(ExternalResourceName destination, File content) {

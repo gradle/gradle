@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.services.PublicServiceLookups;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
@@ -56,6 +57,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.services.BuildService;
+import org.gradle.api.services.TaskService;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
@@ -599,6 +601,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return loggingManager;
     }
 
+    @Nullable
+    @Override
+    public LoggingManagerInternal getLoggingManager() {
+        return loggingManager;
+    }
+
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
         assertDynamicObject();
@@ -683,6 +691,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     protected ServiceRegistry getServices() {
         return services;
+    }
+
+    @Override
+    public <T extends TaskService> T service(Class<T> serviceType) {
+        return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.TASK, getServices());
     }
 
     @Override

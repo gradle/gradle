@@ -39,9 +39,15 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * Checkstyle Plugin.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/checkstyle_plugin.html">Checkstyle plugin reference</a>
+ * @since 1.0
  */
 public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
+    /**
+     * The default checkstyle version.
+     *
+     * @since 2.4
+     */
     public static final String DEFAULT_CHECKSTYLE_VERSION = "10.24.0";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
 

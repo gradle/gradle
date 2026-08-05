@@ -27,13 +27,13 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.artifacts.DependencyManagementParameters
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -521,7 +521,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         // that would add some complexity when wiring GeneratePrecompiledScriptPluginAccessors task.
         val dependencyManagementServices = gradle.serviceOf<DependencyManagementServices>()
         val dependencyResolutionServices = dependencyManagementServices.newDetachedResolver(
-            StandaloneDomainObjectContext.PLUGINS
+            DependencyManagementParameters(Describables.of("script plugin accessors"), null, true, true, true)
         )
 
         val dependencies = dependencyResolutionServices.dependencyHandler

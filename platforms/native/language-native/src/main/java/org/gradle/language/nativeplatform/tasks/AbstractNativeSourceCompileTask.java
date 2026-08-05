@@ -38,6 +38,7 @@ import java.io.File;
 
 /**
  * Compiles native source files into object files.
+ * @since 2.5
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
@@ -55,6 +56,11 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
         }
     }
 
+    /**
+     * Creates a new {@code AbstractNativeSourceCompileTask}.
+     *
+     * @since 2.5
+     */
     @SuppressWarnings("this-escape")
     public AbstractNativeSourceCompileTask() {
         super();
@@ -75,6 +81,7 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
 
     /**
      * Returns the pre-compiled header to be used during compilation
+     * @since 2.5
      */
     @Nullable @Optional @Nested
     @Incubating
@@ -82,6 +89,11 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
         return preCompiledHeader;
     }
 
+    /**
+     * Sets the pre compiled header.
+     *
+     * @since 2.5
+     */
     @Incubating
     public void setPreCompiledHeader(@Nullable PreCompiledHeader preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;

@@ -17,9 +17,9 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.artifacts.DependencyManagementParameters
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep.StepIdentifier
@@ -107,7 +107,7 @@ class PluginsInterpretationSequenceStep(
                 )
             }
             with(targetServices) {
-                val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope, StandaloneDomainObjectContext.forScript(scriptSource))
+                val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope, DependencyManagementParameters(scriptSource.shortDisplayName, "settings-", true, true, true))
                 val pluginManager = get(PluginManagerInternal::class.java)
                 val pluginApplicator = get(PluginRequestApplicator::class.java)
                 val pluginHandler = get(PluginHandler::class.java)

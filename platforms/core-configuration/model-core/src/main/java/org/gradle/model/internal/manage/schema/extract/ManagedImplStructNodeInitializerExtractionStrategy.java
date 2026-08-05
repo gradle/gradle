@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.model.Managed;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerContext;
 import org.gradle.model.internal.inspect.StructNodeInitializer;
@@ -27,6 +26,7 @@ import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
+@SuppressWarnings("deprecation")
 public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeInitializerExtractionStrategy {
 
     private final StructBindingsStore bindingsStore;
@@ -36,7 +36,7 @@ public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeI
     }
 
     protected boolean isTarget(ModelType<?> type) {
-        return type.isAnnotationPresent(Managed.class);
+        return type.isAnnotationPresent(org.gradle.model.Managed.class);
     }
 
     @Override

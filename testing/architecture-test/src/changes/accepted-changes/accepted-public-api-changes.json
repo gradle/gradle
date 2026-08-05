@@ -1,41 +1,64 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.StartParameter",
-            "member": "Method org.gradle.StartParameter.onMutableCall(java.lang.String)",
-            "acceptation": "We don't want to advertise this new API. It can only be used if you derive from it and the only accepted derived class is \"StartParameterInternal\"",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.artifacts.result.ResolvedArtifactResult",
-            "member": "Method org.gradle.api.artifacts.result.ResolvedArtifactResult.getAttributes()",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.api.file.ArchiveOperations",
+            "member": "Class org.gradle.api.file.ArchiveOperations",
+            "acceptation": "Marked as injectable via the incubating service(Class) lookup markers (#13121)",
             "changes": [
-                "Method added to interface"
+                "org.gradle.api.services.GradleService",
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.SettingsService",
+                "org.gradle.api.services.TaskService"
             ]
         },
         {
-            "type": "org.gradle.api.artifacts.result.ResolvedArtifactResult",
-            "member": "Method org.gradle.api.artifacts.result.ResolvedArtifactResult.getCapabilities()",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.api.file.FileSystemOperations",
+            "member": "Class org.gradle.api.file.FileSystemOperations",
+            "acceptation": "Marked as injectable via the incubating service(Class) lookup markers (#13121)",
             "changes": [
-                "Method added to interface"
+                "org.gradle.api.services.GradleService",
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.SettingsService",
+                "org.gradle.api.services.TaskService"
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.ConfigurationContainerScope",
-            "member": "Method org.gradle.kotlin.dsl.ConfigurationContainerScope.getDelegate$kotlin_dsl()",
-            "acceptation": "Not a public API: this is the JVM name of an internal Kotlin member, which encodes the compiler module name as a mangling suffix. Kotlin changed how the default module name is computed (https://youtrack.jetbrains.com/issue/KT-69701), so this suffix is no longer generated.",
+            "type": "org.gradle.api.file.ProjectLayout",
+            "member": "Class org.gradle.api.file.ProjectLayout",
+            "acceptation": "Marked as injectable via the incubating service(Class) lookup markers (#13121)",
             "changes": [
-                "Method has been removed"
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.TaskService"
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.ConfigurationContainerScope",
-            "member": "Method org.gradle.kotlin.dsl.ConfigurationContainerScope.getDelegate$org_gradle_kotlin_dsl()",
-            "acceptation": "Not a public API: this is the JVM name of an internal Kotlin member, which encodes the compiler module name as a mangling suffix. Kotlin changed how the default module name is computed (https://youtrack.jetbrains.com/issue/KT-69701), so this is the newly generated suffix.",
+            "type": "org.gradle.api.model.ObjectFactory",
+            "member": "Class org.gradle.api.model.ObjectFactory",
+            "acceptation": "Marked as injectable via the incubating service(Class) lookup markers (#13121)",
             "changes": [
-                "Method added to public class"
+                "org.gradle.api.services.GradleService",
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.SettingsService",
+                "org.gradle.api.services.TaskService"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.ProviderFactory",
+            "member": "Class org.gradle.api.provider.ProviderFactory",
+            "acceptation": "Marked as injectable via the incubating service(Class) lookup markers (#13121)",
+            "changes": [
+                "org.gradle.api.services.GradleService",
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.SettingsService",
+                "org.gradle.api.services.TaskService"
+            ]
+        },
+        {
+            "type": "org.gradle.process.ExecOperations",
+            "member": "Class org.gradle.process.ExecOperations",
+            "acceptation": "Marked as injectable via the incubating service(Class) lookup markers (#13121)",
+            "changes": [
+                "org.gradle.api.services.TaskService"
             ]
         }
     ]

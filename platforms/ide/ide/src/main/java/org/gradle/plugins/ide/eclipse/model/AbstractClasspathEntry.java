@@ -35,17 +35,53 @@ import static java.util.stream.Collectors.toMap;
 
 /**
  * Common superclass for all {@link ClasspathEntry} instances.
+ * @since 1.0
  */
 public abstract class AbstractClasspathEntry implements ClasspathEntry {
     private static final String NATIVE_LIBRARY_ATTRIBUTE = "org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY";
+    /**
+     * The component non dependency attribute.
+     *
+     * @since 1.0
+     */
     public static final String COMPONENT_NON_DEPENDENCY_ATTRIBUTE = "org.eclipse.jst.component.nondependency";
+    /**
+     * The component dependency attribute.
+     *
+     * @since 1.0
+     */
     public static final String COMPONENT_DEPENDENCY_ATTRIBUTE = "org.eclipse.jst.component.dependency";
 
+    /**
+     * The path.
+     *
+     * @since 2.14
+     */
     protected String path;
+    /**
+     * The exported.
+     *
+     * @since 2.14
+     */
     protected boolean exported;
+    /**
+     * The access rules.
+     *
+     * @since 2.14
+     */
     protected Set<AccessRule> accessRules;
+    /**
+     * The entry attributes.
+     *
+     * @since 2.14
+     */
     protected final Map<String, Object> entryAttributes;
 
+    /**
+     * Creates a new {@code AbstractClasspathEntry}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public AbstractClasspathEntry(Node node) {
         path = normalizePath((String) node.attribute("path"));
@@ -67,6 +103,11 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         }
     }
 
+    /**
+     * Creates a new {@code AbstractClasspathEntry}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public AbstractClasspathEntry(String path) {
         Preconditions.checkNotNull(path);
@@ -76,38 +117,83 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         this.entryAttributes = new LinkedHashMap<>();
     }
 
+    /**
+     * Returns the path.
+     *
+     * @since 1.0
+     */
     public String getPath() {
         return path;
     }
 
+    /**
+     * Sets the path.
+     *
+     * @since 1.0
+     */
     public void setPath(String path) {
         this.path = path;
     }
 
+    /**
+     * Returns whether exported is set.
+     *
+     * @since 1.0
+     */
     public boolean isExported() {
         return exported;
     }
 
+    /**
+     * Sets the exported.
+     *
+     * @since 1.0
+     */
     public void setExported(boolean exported) {
         this.exported = exported;
     }
 
+    /**
+     * Returns the access rules.
+     *
+     * @since 1.0
+     */
     public Set<AccessRule> getAccessRules() {
         return accessRules;
     }
 
+    /**
+     * Sets the access rules.
+     *
+     * @since 1.0
+     */
     public void setAccessRules(Set<AccessRule> accessRules) {
         this.accessRules = accessRules;
     }
 
+    /**
+     * Returns the entry attributes.
+     *
+     * @since 1.0
+     */
     public Map<String, Object> getEntryAttributes() {
         return entryAttributes;
     }
 
+    /**
+     * Returns the native library location.
+     *
+     * @since 1.0
+     */
     public String getNativeLibraryLocation() {
         return (String) entryAttributes.get(NATIVE_LIBRARY_ATTRIBUTE);
     }
 
+    /**
+     * Sets the native library location.
+     *
+     * @since 1.0
+     */
     public void setNativeLibraryLocation(String location) {
         entryAttributes.put(NATIVE_LIBRARY_ATTRIBUTE, location);
     }
@@ -117,6 +203,11 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         addClasspathEntry(node, ImmutableMap.of());
     }
 
+    /**
+     * Add classpath entry.
+     *
+     * @since 1.0
+     */
     protected Node addClasspathEntry(Node node, Map<String, ?> attributes) {
         ImmutableMap.Builder<String, Object> allAttributes = ImmutableMap.builder();
         attributes.forEach((key, value) -> {
@@ -138,6 +229,11 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         return entryNode;
     }
 
+    /**
+     * Normalize path.
+     *
+     * @since 1.0
+     */
     protected String normalizePath(String path) {
         return PathUtil.normalizePath(path);
     }
@@ -181,6 +277,11 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         return attributes;
     }
 
+    /**
+     * Write entry attributes.
+     *
+     * @since 1.0
+     */
     public void writeEntryAttributes(Node node) {
         Map<String, Object> effectiveEntryAttrs = getEffectiveEntryAttrs();
 

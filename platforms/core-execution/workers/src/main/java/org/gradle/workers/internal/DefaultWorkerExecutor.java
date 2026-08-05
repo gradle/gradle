@@ -132,10 +132,12 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     @Override
     public WorkQueue processIsolation(Action<? super ProcessWorkerSpec> action) {
         DefaultProcessWorkerSpec spec = instantiator.newInstance(DefaultProcessWorkerSpec.class, forkOptionsFactory.newDecoratedJavaForkOptions());
-        // Setting the working directory of a worker is not supported, so we set it eagerly and disallow changes
-        spec.getForkOptions().getWorkingDirectory().set(workerDirectoryProvider.getWorkingDirectory());
-        spec.getForkOptions().getWorkingDirectory().disallowChanges();
+        File defaultWorkingDir = spec.getForkOptions().getWorkingDir();
         action.execute(spec);
+        if (!defaultWorkingDir.equals(spec.getForkOptions().getWorkingDir())) {
+            throw new IllegalArgumentException("Setting the working directory of a worker is not supported.");
+        }
+        spec.getForkOptions().getWorkingDirectory().set(workerDirectoryProvider.getWorkingDirectory());
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
     }

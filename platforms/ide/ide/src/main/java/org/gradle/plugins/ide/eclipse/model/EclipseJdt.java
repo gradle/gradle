@@ -62,6 +62,7 @@ import javax.inject.Inject;
  *   }
  * }
  * </pre>
+ * @since 1.0
  */
 public abstract class EclipseJdt {
 
@@ -71,9 +72,11 @@ public abstract class EclipseJdt {
 
     private String javaRuntimeName;
 
+    @SuppressWarnings("deprecation")
     private final PropertiesFileContentMerger file;
 
     @Inject
+    @SuppressWarnings("deprecation")
     public EclipseJdt(PropertiesFileContentMerger file) {
         this.file = file;
     }
@@ -82,6 +85,7 @@ public abstract class EclipseJdt {
      * The source Java language level.
      * <p>
      * For example see docs for {@link EclipseJdt}
+     * @since 1.0
      */
     public JavaVersion getSourceCompatibility() {
         return sourceCompatibility;
@@ -96,6 +100,11 @@ public abstract class EclipseJdt {
         setSourceCompatibility((Object) sourceCompatibility);
     }
 
+    /**
+     * Sets the source compatibility.
+     *
+     * @since 1.0
+     */
     public void setSourceCompatibility(Object sourceCompatibility) {
         JavaVersion version = JavaVersion.toVersion(sourceCompatibility);
         if (version != null) {
@@ -107,6 +116,7 @@ public abstract class EclipseJdt {
      * The target JVM to generate {@code .class} files for.
      * <p>
      * For example see docs for {@link EclipseJdt}
+     * @since 1.0
      */
     public JavaVersion getTargetCompatibility() {
         return targetCompatibility;
@@ -121,6 +131,11 @@ public abstract class EclipseJdt {
         setTargetCompatibility((Object) targetCompatibility);
     }
 
+    /**
+     * Sets the target compatibility.
+     *
+     * @since 1.0
+     */
     public void setTargetCompatibility(Object targetCompatibility) {
         JavaVersion version = JavaVersion.toVersion(targetCompatibility);
         if (version != null) {
@@ -133,33 +148,32 @@ public abstract class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      *
-     * @deprecated Will be removed in Gradle 10.
+     * @since 2.11
      */
-    @Deprecated
     public String getJavaRuntimeName() {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "javaRuntimeName");
         return javaRuntimeName;
     }
 
     /**
      * Set Java Runtime name.
      *
-     * @deprecated Will be removed in Gradle 10.
+     * @since 2.11
      */
-    @Deprecated
     public void setJavaRuntimeName(String javaRuntimeName) {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "javaRuntimeName");
         this.javaRuntimeName = javaRuntimeName;
     }
 
+    // The getter does not nag: Groovy's dynamic dispatch probes the `file` property for any
+    // unresolved `file(...)` call inside a `jdt { }` block, which would produce false-positive
+    // warnings. The file(Closure)/file(Action) hooks nag instead.
     /**
      * See {@link #file(Action) }
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public PropertiesFileContentMerger getFile() {
-        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
         return file;
     }
 
@@ -174,6 +188,7 @@ public abstract class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void file(@DelegatesTo(PropertiesFileContentMerger.class) Closure closure) {

@@ -74,6 +74,7 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
     }
 
     @Override
+    @Nullable
     public HashCode getClassLoaderHash() {
         return null;
     }

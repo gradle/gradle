@@ -24,7 +24,7 @@ import java.io.OutputStream;
 
 /**
  * A signatory is an object capable of providing a signature for an arbitrary stream of bytes.
- * @since 4.5
+ * @since 1.0
  */
 public interface Signatory {
 
@@ -32,6 +32,7 @@ public interface Signatory {
      * <p>An identifying name for this signatory.</p>
      *
      * <p>The name must be constant for the life of the signatory and should uniquely identify it within a project.</p>
+     * @since 1.0
      */
     @Internal
     String getName();
@@ -41,6 +42,7 @@ public interface Signatory {
      *
      * @param toSign The source of the data to be signed
      * @param destination Where the signature will be written to
+     * @since 1.0
      */
     void sign(InputStream toSign, OutputStream destination);
 
@@ -49,6 +51,7 @@ public interface Signatory {
      *
      * @param toSign The source of the data to be signed
      * @return The raw bytes of the signature
+     * @since 1.0
      */
     byte[] sign(InputStream toSign);
 
@@ -56,6 +59,7 @@ public interface Signatory {
      * Returns the id of the key that will be used for signing.
      *
      * @return The key id
+     * @since 4.5
      */
     @Input
     @Optional

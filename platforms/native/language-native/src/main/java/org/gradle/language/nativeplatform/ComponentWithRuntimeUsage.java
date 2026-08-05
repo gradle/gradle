@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider;
 public interface ComponentWithRuntimeUsage extends ComponentWithNativeRuntime {
     /**
      * Returns the outgoing runtime elements of this component.
+     * @since 4.5
      */
     Provider<Configuration> getRuntimeElements();
 }

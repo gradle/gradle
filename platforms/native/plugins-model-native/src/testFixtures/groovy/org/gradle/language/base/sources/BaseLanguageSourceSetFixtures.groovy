@@ -24,6 +24,7 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 import org.gradle.util.TestUtil
 
+@SuppressWarnings("deprecation")
 class BaseLanguageSourceSetFixtures {
     static <T extends LanguageSourceSet> T create(Class<T> publicType, Class<? extends BaseLanguageSourceSet> implType, String name) {
         return BaseInstanceFixtureSupport.create(publicType, LanguageSourceSetInternal, implType, name) { MutableModelNode node ->

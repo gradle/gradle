@@ -29,22 +29,28 @@ import java.io.File;
 /**
  * An executable which runs a suite of tests.
  *
- * @since 4.2
+ * @since 2.2
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating @HasInternalProtocol
+@Deprecated
 public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBinarySpec {
 
     /**
      * Provides access to key tasks used for building the binary.
+     * @since 2.3
      */
     interface TasksCollection extends TestSuiteTaskCollection {
         /**
          * The link task.
+         * @since 2.3
          */
         Task getLink();
 
         /**
          * The install task.
+         * @since 2.3
          */
         Task getInstall();
 
@@ -67,6 +73,7 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
 
     /**
      * The executable file.
+     * @since 2.2
      */
     File getExecutableFile();
 
@@ -76,7 +83,17 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
     @Override
     TasksCollection getTasks();
 
+    /**
+     * Returns the installation.
+     *
+     * @since 2.9
+     */
     NativeInstallationSpec getInstallation();
 
+    /**
+     * Returns the executable.
+     *
+     * @since 2.9
+     */
     NativeExecutableFileSpec getExecutable();
 }

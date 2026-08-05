@@ -23,6 +23,12 @@ import org.gradle.api.internal.project.ProjectInternal
 import java.io.File
 
 
+/**
+ * Looks up any service in the project scope service registry, including Gradle internal services.
+ *
+ * This function is not considered stable public API. For the publicly supported services,
+ * prefer [org.gradle.api.Project.service].
+ */
 inline fun <reified T : Any> Project.serviceOf(): T =
     (this as ProjectInternal).services.get()
 

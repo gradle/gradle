@@ -37,6 +37,7 @@ import spock.lang.Specification
 
 import javax.annotation.Nullable
 
+@SuppressWarnings("deprecation")
 abstract class RegistrySpec extends Specification {
     protected static class TestNode extends ModelNodeInternal {
         def links = []

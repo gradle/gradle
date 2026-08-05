@@ -26,7 +26,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
-@ServiceScope(Scope.Build.class)
+// Public `TaskExecutionGraph` service shadowed at the project scope by the IP reporting wrapper
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     /**
      * Adds the internal listener for task execution graph events.

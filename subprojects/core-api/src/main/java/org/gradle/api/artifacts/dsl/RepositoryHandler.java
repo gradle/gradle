@@ -36,6 +36,7 @@ import java.util.Map;
 
 /**
  * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
+ * @since 0.7
  */
 @HasInternalProtocol
 @ServiceScope(Scope.Project.class)
@@ -66,6 +67,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @throws org.gradle.api.InvalidUserDataException In the case neither rootDir nor rootDirs is specified of if both
      * are specified.
      * @deprecated This method is scheduled to be removed in Gradle 10. Use {@link #flatDir(Action)} instead.
+     * @since 0.7
      */
     @Deprecated
     @HiddenInDefinition
@@ -76,6 +78,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param configureClosure The closure to execute to configure the repository.
      * @return The repository.
+     * @since 1.0
      */
     @HiddenInDefinition
     FlatDirectoryArtifactRepository flatDir(@DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
@@ -85,6 +88,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param action The action to execute to configure the repository.
      * @return The repository.
+     * @since 1.0
      */
     @HiddenInDefinition
     FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action);
@@ -132,6 +136,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param args Configuration map for the Maven Central repository.
      * @return the added repository
      * @deprecated This method is scheduled to be removed in Gradle 10. Use {@link #mavenCentral(Action)} instead.
+     * @since 0.7
      */
     @Deprecated
     @HiddenInDefinition
@@ -151,6 +156,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @return the added resolver
      * @see #mavenCentral(Action)
+     * @since 0.7
      */
     @Adding
     MavenArtifactRepository mavenCentral();
@@ -195,6 +201,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </ol>
      *
      * @return the added resolver
+     * @since 0.9.1
      */
     @HiddenInDefinition
     MavenArtifactRepository mavenLocal();
@@ -268,6 +275,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
+     * @since 1.0
      */
     @HiddenInDefinition
     MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class)
@@ -279,6 +287,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param action The action to use to configure the repository.
      * @return The added repository.
+     * @since 1.0
      */
     @Adding
     MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action);
@@ -288,6 +297,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
+     * @since 1.0
      */
     @HiddenInDefinition
     IvyArtifactRepository ivy(@DelegatesTo(IvyArtifactRepository.class) Closure closure);
@@ -297,6 +307,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param action The action to use to configure the repository.
      * @return The added repository.
+     * @since 1.0
      */
     @HiddenInDefinition
     IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action);

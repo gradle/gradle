@@ -20,6 +20,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Provides access to the output of the Gradle logging system.
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface LoggingOutput {
@@ -27,6 +28,7 @@ public interface LoggingOutput {
      * Adds a listener which receives output written to standard output by the Gradle logging system.
      *
      * @param listener The listener to add.
+     * @since 0.9
      */
     void addStandardOutputListener(StandardOutputListener listener);
 
@@ -34,6 +36,7 @@ public interface LoggingOutput {
      * Removes a listener from standard output.
      *
      * @param listener The listener to remove.
+     * @since 0.9
      */
     void removeStandardOutputListener(StandardOutputListener listener);
 
@@ -41,6 +44,7 @@ public interface LoggingOutput {
      * Adds a listener which receives output written to standard error by the Gradle logging system.
      *
      * @param listener The listener to add.
+     * @since 0.9
      */
     void addStandardErrorListener(StandardOutputListener listener);
 
@@ -48,6 +52,7 @@ public interface LoggingOutput {
      * Removes a listener from standard error.
      *
      * @param listener The listener to remove.
+     * @since 0.9
      */
     void removeStandardErrorListener(StandardOutputListener listener);
 }

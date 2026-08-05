@@ -28,11 +28,13 @@ public interface MavenPomIssueManagement {
 
     /**
      * The name of this issue management system.
+     * @since 4.8
      */
     Property<String> getSystem();
 
     /**
      * The URL of this issue management system.
+     * @since 4.8
      */
     Property<String> getUrl();
 

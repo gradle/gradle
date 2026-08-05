@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.action
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.build.event.BuildEventSubscriptions
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions
@@ -48,7 +49,8 @@ class BuildActionSerializerTest extends SerializerSpec {
     def "serializes #buildOptionName boolean build option"() {
         def startParameter = new StartParameterInternal()
         boolean expectedValue = !startParameter."${buildOptionName}"
-        startParameter."${buildOptionName}" = expectedValue
+        // setBuildCacheEnabled is deprecated
+        DeprecationLogger.whileDisabled({ startParameter."${buildOptionName}" = expectedValue } as Runnable)
         def action = new ExecuteBuildAction(startParameter)
 
         expect:

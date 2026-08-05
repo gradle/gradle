@@ -77,4 +77,71 @@ class ConfigurationCacheDirIntegrationTest extends AbstractConfigurationCacheInt
         then:
         configurationCache.assertStateLoaded()
     }
+
+    def "entry is not reused when the build directory is copied to a new location"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile 'original/settings.gradle', """rootProject.name = 'relocated-build'"""
+        buildFile 'original/build.gradle', """task ok"""
+
+        when:
+        inDirectory 'original'
+        configurationCacheRun 'ok'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'running again in the original location'
+        inDirectory 'original'
+        configurationCacheRun 'ok'
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when: 'the build directory is copied, configuration cache included, and the original is kept'
+        file('original').copyTo(file('copy'))
+        inDirectory 'copy'
+        configurationCacheRun 'ok'
+
+        then:
+        outputContains("Calculating task graph as configuration cache cannot be reused because the location of the build has changed from '${file('original')}' to '${file('copy')}'.")
+        configurationCache.assertStateStored()
+
+        when: 'running again in the new location'
+        inDirectory 'copy'
+        configurationCacheRun 'ok'
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "entry is not reused when the build directory is moved to a new location"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile 'original/settings.gradle', """rootProject.name = 'relocated-build'"""
+        buildFile 'original/build.gradle', """task ok"""
+
+        when:
+        inDirectory 'original'
+        configurationCacheRun 'ok'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'the build directory is moved, configuration cache included'
+        file('original').renameTo(file('moved'))
+        inDirectory 'moved'
+        configurationCacheRun 'ok'
+
+        then:
+        outputContains("Calculating task graph as configuration cache cannot be reused because the location of the build has changed from '${file('original')}' to '${file('moved')}'.")
+        configurationCache.assertStateStored()
+
+        when: 'running again in the new location'
+        inDirectory 'moved'
+        configurationCacheRun 'ok'
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
 }

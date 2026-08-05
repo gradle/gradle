@@ -16,7 +16,9 @@
 
 package org.gradle.launcher.daemon.server.exec
 
+import net.rubygrapefruit.platform.NativeException
 import org.gradle.api.logging.Logger
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.EnvironmentModificationResult
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.protocol.Build
@@ -61,4 +63,37 @@ class ApplyClientEnvironmentVariablesTest extends Specification {
         then:
         0 * logger.warn(_)
     }
+
+    def "still applies the environment when the client environment matches this process"() {
+        given:
+        def matchingBuild = Mock(Build)
+        def matchingParameters = Mock(BuildActionParameters)
+        matchingBuild.parameters >> matchingParameters
+        def matchingEnv = Jvm.getInheritableEnvironmentVariables(System.getenv())
+        matchingParameters.envVariables >> matchingEnv
+
+        when:
+        action.doBuild(execution, matchingBuild)
+
+        then: "the per-process variables the client filtered out are still scrubbed for the build"
+        1 * execution.proceed()
+        // Applied before the build and restored after it
+        (1.._) * processEnvironment.maybeSetEnvironment(_) >> EnvironmentModificationResult.SUCCESS
+        0 * logger.warn(_)
+    }
+
+    def "logs WARN instead of failing the build when mutating the environment throws"() {
+        given:
+        processEnvironment.maybeSetEnvironment(_) >> { throw new NativeException("Unable to get mutable environment variable map.") }
+
+        when:
+        action.doBuild(execution, build)
+
+        then:
+        1 * execution.proceed()
+        1 * logger.warn({ String message ->
+            message.contains("Unable to set daemon's environment variables")
+        })
+    }
+
 }

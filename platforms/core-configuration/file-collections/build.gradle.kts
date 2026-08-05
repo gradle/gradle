@@ -60,9 +60,3 @@ gradleModule {
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
-
-packageCycles {
-    // Some cycles have been inherited from the time these classes were in :core
-    excludePatterns.add("org/gradle/api/internal/file/collections/**")
-}
-

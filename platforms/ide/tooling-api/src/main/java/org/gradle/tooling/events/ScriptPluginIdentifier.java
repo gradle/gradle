@@ -29,6 +29,7 @@ public interface ScriptPluginIdentifier extends PluginIdentifier {
      * Returns the URI of this script plugin.
      *
      * <p>The URI may point to the local file system or a remote server.
+     * @since 5.1
      */
     URI getUri();
 

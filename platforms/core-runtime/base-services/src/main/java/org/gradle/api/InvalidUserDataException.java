@@ -18,15 +18,31 @@ package org.gradle.api;
 
 /**
  * A <code>InvalidUserDataException</code> is thrown, if a user is providing illegal data for the build.
+ * @since 0.7
  */
 public class InvalidUserDataException extends GradleException {
+    /**
+     * Creates a new {@code InvalidUserDataException}.
+     *
+     * @since 0.7
+     */
     public InvalidUserDataException() {
     }
 
+    /**
+     * Creates a new {@code InvalidUserDataException}.
+     *
+     * @since 0.7
+     */
     public InvalidUserDataException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code InvalidUserDataException}.
+     *
+     * @since 0.7
+     */
     public InvalidUserDataException(String message, Throwable cause) {
         super(message, cause);
     }

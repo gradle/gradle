@@ -60,4 +60,37 @@ class FileWatchingFilterTest extends Specification {
         !filter.isImmutableLocation(cacheDir.absolutePath)
         filter.isImmutableLocation(globalCache.absolutePath)
     }
+
+    def "a watchable exemption keeps a location within an immutable location watchable, without affecting siblings"() {
+        def cacheDir = new File("project/.gradle").absoluteFile
+        def exemptedDir = new File(cacheDir, "vcs-1")
+        def exemptedChild = new File(exemptedDir, "abc123/repo")
+        def otherCacheChild = new File(cacheDir, "caches/modules")
+        filter.addCurrentSessionImmutableLocation(cacheDir)
+
+        when:
+        filter.addWatchableExemption(exemptedDir)
+
+        then:
+        // the exempted subtree is no longer immutable, so it will be watched
+        !filter.isImmutableLocation(exemptedDir.absolutePath)
+        !filter.isImmutableLocation(exemptedChild.absolutePath)
+        // everything else under the immutable location stays immutable
+        filter.isImmutableLocation(cacheDir.absolutePath)
+        filter.isImmutableLocation(otherCacheChild.absolutePath)
+    }
+
+    def "watchable exemptions are forgotten on session finish"() {
+        def cacheDir = new File("project/.gradle").absoluteFile
+        def exemptedDir = new File(cacheDir, "vcs-1")
+        filter.addCurrentSessionImmutableLocation(cacheDir)
+        filter.addWatchableExemption(exemptedDir)
+
+        when:
+        filter.sessionFinished()
+
+        then:
+        // with both the session immutable location and the exemption gone, the location is no longer tracked
+        !filter.isImmutableLocation(exemptedDir.absolutePath)
+    }
 }

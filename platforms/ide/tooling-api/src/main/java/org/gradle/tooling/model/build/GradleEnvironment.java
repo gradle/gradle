@@ -23,7 +23,7 @@ import java.io.File;
  * <p>
  * See example in {@link BuildEnvironment}
  *
- * @since 1.0-milestone-8
+ * @since 1.0
  */
 public interface GradleEnvironment {
 
@@ -37,7 +37,7 @@ public interface GradleEnvironment {
     /**
      * Informs about the Gradle version.
      *
-     * @since 1.0-milestone-8
+     * @since 1.0
      */
     String getGradleVersion();
 

@@ -49,7 +49,16 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
 
     def javaexec() {
         File testFile = tmpDir.file("someFile")
-        List files = ClasspathUtil.getClasspath(getClass().classLoader).asFiles
+        // Only put on the classpath what SomeMain actually needs to run: its own compiled
+        // classes, commons-io (FileUtils.touch), and the Groovy runtime (SomeMain is a Groovy
+        // class and dispatches the FileUtils call through Groovy's call site machinery).
+        // Passing the entire test classloader classpath (hundreds of jars) overflows the
+        // Windows command-line length limit and fails with CreateProcess error=206.
+        List files = [
+            ClasspathUtil.getClasspathForClass(SomeMain),
+            ClasspathUtil.getClasspathForClass(FileUtils),
+            ClasspathUtil.getClasspathForClass(GroovyObject)
+        ]
 
         when:
         ExecResult result = factory.javaexec { spec ->

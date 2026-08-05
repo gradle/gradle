@@ -145,7 +145,20 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_classifier]"]
 ====
 
-This keeps the catalog focused on coordinates while letting each consumer choose the appropriate classifier.
+For example, to depend on the sources or Javadoc JAR:
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/kotlin",files="build.gradle.kts[tags=use_classifier_sources]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_classifier_sources]"]
+====
+
+*Common use cases for classifiers*:
+
+* *Sources and Javadoc JARs*: use the `sources` or `javadoc` classifiers, for example when a code-analysis or documentation-generation task needs the artifact as an input.
+
+* *Platform-specific artifacts*: native libraries may publish separate artifacts for different operating systems or architectures (for example, `linux-x86_64`, `windows-x86_64`), as shown in the primary example above.
+
+* *Test fixtures*: prefer the dedicated `testFixtures(libs.my.lib)` API over declaring the `test-fixtures` classifier explicitly.
 
 For artifact types (common in Android projects needing `@aar`), use the `artifact` block:
 
@@ -384,6 +397,9 @@ These are explicit limitations the catalog TOML format does not support:
 * `exclude` rules
 * `capabilities` requirements
 
+*Workarounds*: for classifiers and artifact types, see <<#sec:classifiers_artifact_types_and_capabilities, Classifiers, artifact types, and capabilities>>.
+For excludes and capabilities, apply them at the dependency declaration site in your build script using the standard dependency configuration DSL.
+
 [[sec:programmatic-catalog-versions]]
 == Programming catalogs
 
@@ -520,7 +536,7 @@ Use naming conventions, such as alias prefixes, to logically separate groups of 
 .libs.versions.toml
 ----
 [versions]
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 junit = "5.12.0"
 
 [libraries]
@@ -679,7 +695,7 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-kotlinVersionSharing/groovy",files="settings.gradle[tags=kotlin_version_sharing]"]
 ====
 
-Both the plugin alias and the library aliases resolve to `2.4.0`, and updating requires changing only one line in `settings.gradle(.kts)`.
+Both the plugin alias and the library aliases resolve to `2.4.10`, and updating requires changing only one line in `settings.gradle(.kts)`.
 
 [[sec:using_catalog_entries_in_gradle_apis]]
 == Using catalog entries in Gradle APIs

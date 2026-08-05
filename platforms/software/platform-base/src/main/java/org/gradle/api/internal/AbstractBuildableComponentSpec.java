@@ -27,6 +27,7 @@ import org.gradle.platform.base.component.internal.AbstractComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
 
+@Deprecated
 public abstract class AbstractBuildableComponentSpec extends AbstractComponentSpec implements BuildableComponentSpec, CheckableComponentSpec {
     private final DefaultTaskDependency buildTaskDependencies = new DefaultTaskDependency();
     private Task buildTask;

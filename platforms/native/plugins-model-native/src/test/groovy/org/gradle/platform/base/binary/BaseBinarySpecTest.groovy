@@ -29,6 +29,7 @@ import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 
+@SuppressWarnings("deprecation")
 class BaseBinarySpecTest extends PlatformBaseSpecification {
     def "cannot instantiate directly"() {
         when:

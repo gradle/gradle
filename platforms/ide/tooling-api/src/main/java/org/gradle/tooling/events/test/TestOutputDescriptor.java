@@ -27,11 +27,13 @@ public interface TestOutputDescriptor extends OperationDescriptor {
 
     /**
      * Describes whether the content was printed to the standard output or the standard error.
+     * @since 6.0
      */
     Destination getDestination();
 
     /**
      * The text printed by the test.
+     * @since 6.0
      */
     String getMessage();
 }

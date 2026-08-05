@@ -65,6 +65,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface RuntimeClasspathNormalization extends InputNormalization {
     /**
      * Ignore resources in classpath entries matching {@code pattern}.
+     * @since 4.0
      */
     void ignore(String pattern);
 

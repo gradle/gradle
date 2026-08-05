@@ -19,25 +19,22 @@ package org.gradle.nativeplatform.internal.prebuilt;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBinary {
+@SuppressWarnings("deprecation")
+public abstract class AbstractPrebuiltLibraryBinary implements org.gradle.nativeplatform.NativeLibraryBinary {
     private final String name;
-    private final PrebuiltLibrary library;
-    private final BuildType buildType;
+    private final org.gradle.nativeplatform.PrebuiltLibrary library;
+    private final org.gradle.nativeplatform.BuildType buildType;
     private final NativePlatform targetPlatform;
-    private final Flavor flavor;
+    private final org.gradle.nativeplatform.Flavor flavor;
     protected final FileCollectionFactory fileCollectionFactory;
 
-    public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+    public AbstractPrebuiltLibraryBinary(String name, org.gradle.nativeplatform.PrebuiltLibrary library, org.gradle.nativeplatform.BuildType buildType, NativePlatform targetPlatform, org.gradle.nativeplatform.Flavor flavor, FileCollectionFactory fileCollectionFactory) {
         this.name = name;
         this.library = library;
         this.buildType = buildType;
@@ -55,17 +52,17 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
         return name;
     }
 
-    public PrebuiltLibrary getComponent() {
+    public org.gradle.nativeplatform.PrebuiltLibrary getComponent() {
         return library;
     }
 
     @Override
-    public BuildType getBuildType() {
+    public org.gradle.nativeplatform.BuildType getBuildType() {
         return buildType;
     }
 
     @Override
-    public Flavor getFlavor() {
+    public org.gradle.nativeplatform.Flavor getFlavor() {
         return flavor;
     }
 

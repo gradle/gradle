@@ -26,6 +26,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.execution.ExecutionAccessListener
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.Workarounds.canAccessTaskExtensions
 import org.gradle.internal.cc.impl.isSupportedListener
@@ -37,6 +38,7 @@ import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scope
@@ -53,7 +55,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val inputTrackingState: InputTrackingState
+    private val inputTrackingState: InputTrackingState,
+    private val buildModelParameters: BuildModelParameters
 ) : ConfigurationCacheProblemsListener {
 
     override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
@@ -96,6 +99,16 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .documentationSection(RequirementsExternalProcess)
             .build()
         problems.onProblem(problem)
+
+        // The configuration cache (implied by Isolated Projects) already reports the problem above as an
+        // error. When it is off the process runs silently, so deprecate it here to warn ahead of time.
+        if (!buildModelParameters.isConfigurationCache) {
+            DeprecationLogger.deprecateAction("Starting an external process at configuration time")
+                .withAdvice("Use ProviderFactory.exec/javaexec or a ValueSource to obtain the process output, or move the process execution into a task.")
+                .willBecomeAnErrorInGradle11()
+                .withUpgradeGuideSection(9, "config_time_external_processes")
+                .nagUser()
+        }
     }
 
     private

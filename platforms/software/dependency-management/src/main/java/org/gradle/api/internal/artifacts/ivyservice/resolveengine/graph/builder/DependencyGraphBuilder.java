@@ -59,7 +59,6 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -292,9 +291,10 @@ public class DependencyGraphBuilder {
             LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", toDownloadInParallel.size(), node);
             buildOperationExecutor.runAll(buildOperationQueue -> {
                 for (final ComponentState componentState : toDownloadInParallel) {
-                    buildOperationQueue.add(new DownloadMetadataOperation(componentState));
+                    // Downloading is IO bound, so allow more parallelism than there are worker leases.
+                    buildOperationQueue.addUnconstrained(new DownloadMetadataOperation(componentState));
                 }
-            }, BuildOperationConstraint.UNCONSTRAINED);
+            });
         }
     }
 
@@ -307,6 +307,7 @@ public class DependencyGraphBuilder {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private static void validateGraph(
         ResolveState resolveState,
         boolean denyDynamicSelectors,
@@ -325,7 +326,7 @@ public class DependencyGraphBuilder {
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
                     module.visitAllIncomingEdges(edge -> edge.failWith(error));
-                } else if (Iterables.any(selected.getNodes(), node -> node.getReplacement() == null)) {
+                } else if (Iterables.any(selected.getNodes(), node -> node.maybeResolveCapabilityReplacement() == node)) {
                     for (NodeState node : selected.getNodes()) {
                         if (node.isRejectedForCapabilityConflict()) {
                             GradleException error = resolutionFailureHandler.nodeRejectedDueToCapabilityConflict(node);
@@ -466,7 +467,7 @@ public class DependencyGraphBuilder {
         for (NodeState node : cs.getNodes()) {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
             for (EdgeState incomingEdge : incomingEdges) {
-                ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                ComponentSelector selector = incomingEdge.getSelector().getComponentSelector();
                 incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                     String.format("Could not resolve %s: Resolution strategy disallows usage of dynamic versions", selector)));
             }
@@ -480,7 +481,7 @@ public class DependencyGraphBuilder {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
             for (EdgeState incomingEdge : incomingEdges) {
                 if (moduleIsChanging || incomingEdge.getDependencyMetadata().isChanging()) {
-                    ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                    ComponentSelector selector = incomingEdge.getSelector().getComponentSelector();
                     incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                         String.format("Could not resolve %s: Resolution strategy disallows usage of changing versions", selector)));
                 }
@@ -582,7 +583,7 @@ public class DependencyGraphBuilder {
                     for (EdgeState incomingEdge : nodeState.getIncomingEdges()) {
                         SelectorState selector = incomingEdge.getSelector();
                         if (isPlatformForcedEdge(selector)) {
-                            ComponentSelector componentSelector = selector.getSelector();
+                            ComponentSelector componentSelector = selector.getComponentSelector();
                             if (componentSelector instanceof ModuleComponentSelector) {
                                 ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
                                 if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {

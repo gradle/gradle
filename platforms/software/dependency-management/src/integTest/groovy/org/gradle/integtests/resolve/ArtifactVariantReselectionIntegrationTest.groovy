@@ -253,6 +253,90 @@ class ArtifactVariantReselectionIntegrationTest extends AbstractIntegrationSpec 
         succeeds(":resolve")
     }
 
+    def "withVariantReselection does not traverse dependencies declared on the reselected variant, but a separate configuration does"() {
+        // 'foo:main:1.0' has a "main" variant with its own file and a "docs" variant that has its
+        // own file AND declares a dependency on 'foo:extra-docs:1.0'.
+        // 'foo:extra-docs:1.0' has a "docs" variant with its own file.
+        //
+        // A separate configuration whose request attributes already select the "docs" variant
+        // triggers full graph resolution. Graph resolution traverses the docs variant's
+        // dependency, adding foo:extra-docs:1.0 to the graph; both docs artifacts appear.
+        //
+        // An ArtifactView built on a configuration that requested the "main" variant and
+        // re-selects via withVariantReselection() does NOT re-run graph resolution. It re-picks a
+        // different variant of each component already in the graph. The "docs" variant of
+        // foo:main:1.0 is selected and its own artifact appears, but the docs variant's
+        // dependency on foo:extra-docs:1.0 is never traversed, so that component's artifact is
+        // absent from the view.
+        given:
+        mavenRepo.module("foo", "main", "1.0")
+            .withModuleMetadata()
+            .withoutDefaultVariants()
+            .variant("mainElements", [attr: "main"]) {
+                artifact("main-1.0.jar")
+            }
+            .variant("docsElements", [attr: "docs"]) {
+                artifact("main-1.0-docs.jar")
+                dependsOn("foo:extra-docs:1.0")
+            }
+            .publish()
+
+        mavenRepo.module("foo", "extra-docs", "1.0")
+            .withModuleMetadata()
+            .withoutDefaultVariants()
+            .variant("docsElements", [attr: "docs"]) {
+                artifact("extra-docs-1.0.jar")
+            }
+            .publish()
+
+        buildFile << """
+            def attr = Attribute.of("attr", String)
+
+            repositories { maven { url = "${mavenRepo.uri}" } }
+
+            configurations {
+                mainConf {
+                    canBeConsumed = false
+                    attributes { attribute(attr, "main") }
+                }
+                docsConf {
+                    canBeConsumed = false
+                    attributes { attribute(attr, "docs") }
+                }
+            }
+
+            dependencies {
+                mainConf "foo:main:1.0"
+                docsConf "foo:main:1.0"
+            }
+
+            task resolve {
+                def mainFiles = configurations.mainConf.incoming.files
+                def reselectedViewFiles = configurations.mainConf.incoming.artifactView {
+                    withVariantReselection()
+                    attributes { attribute(attr, "docs") }
+                }.files
+                def docsConfFiles = configurations.docsConf.incoming.files
+
+                doLast {
+                    // Baseline: the main variant's artifact.
+                    assert mainFiles*.name.toSet() == ["main-1.0.jar"].toSet()
+
+                    // Variant reselection picks the docs variant on foo:main:1.0 but does not
+                    // traverse the docs variant's dependency on foo:extra-docs:1.0.
+                    assert reselectedViewFiles*.name.toSet() == ["main-1.0-docs.jar"].toSet()
+
+                    // A separate configuration whose attributes already select the docs variant
+                    // runs full graph resolution and traverses the docs variant's dependency.
+                    assert docsConfFiles*.name.toSet() == ["main-1.0-docs.jar", "extra-docs-1.0.jar"].toSet()
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
+    }
+
     private static String multiFeatureProducer() {
         """
             plugins {

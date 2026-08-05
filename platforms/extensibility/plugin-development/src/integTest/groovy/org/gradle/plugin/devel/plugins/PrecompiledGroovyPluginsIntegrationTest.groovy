@@ -1102,6 +1102,27 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             .assertHasResolution(getDocLinkMessage())
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37135")
+    def "precompiled script plugin tasks depend on the task generating the script sources"() {
+        given:
+        file("templates/foo.gradle") << REGISTER_SAMPLE_TASK
+        buildFile << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+            def expandTemplates = tasks.register("expandTemplates", Copy) {
+                from("templates")
+                into(layout.buildDirectory.dir("generated/sources/templates"))
+                include("*.gradle")
+            }
+            sourceSets.main.groovy.srcDir(expandTemplates)
+        """
+
+        expect: "the second run does not fail with a missing task-dependency validation error on the generated sources"
+        succeeds("compileGroovyPlugins")
+        succeeds("compileGroovyPlugins")
+    }
+
     private getDocLinkMessage() {
         documentationRegistry.getDocumentationRecommendationFor("information", "custom_plugins", "sec:precompiled_plugins")
     }

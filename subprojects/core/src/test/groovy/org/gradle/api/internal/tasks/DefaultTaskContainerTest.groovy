@@ -62,23 +62,17 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     private buildState = Stub(BuildState) {
         getIdentityPath() >> Path.ROOT
     }
-    private projectIdentity = ProjectIdentity.forRootProject(
+    private projectIdentity = ProjectIdentity.forSubproject(
         Path.ROOT,
-        "project"
+        Path.path(":project")
     )
     private project = Mock(ProjectInternal, name: "<project>") {
-        identityPath(_) >> { String name ->
-            Path.path(":project").child(name)
-        }
-        projectPath(_) >> { String name ->
-            Path.path(":project").child(name)
-        }
+        getIdentityPath() >> projectIdentity.buildTreePath
         getGradle() >> Mock(GradleInternal) {
-            getIdentityPath() >> Path.path(":")
+            getIdentityPath() >> projectIdentity.buildPath
         }
         getOwner() >> Mock(ProjectState) {
-            getDepth() >> 0
-            getProjectPath() >> Path.path(":project")
+            getProjectPath() >> projectIdentity.projectPath
             getOwner() >> buildState
             getIdentity() >> projectIdentity
         }
@@ -489,7 +483,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     void "finds task by relative path"() {
         when:
         Task task = task("task")
-        expectTaskLookupInOtherProject(":sub", "task", task)
+        expectTaskLookupInOtherProject("::project:sub", "task", task)
 
         then:
         container.findByPath("sub:task") == task
@@ -500,7 +494,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         Task task = addTask("task")
 
         then:
-        container.findByPath(":task") == task
+        container.findByPath(":project:task") == task
     }
 
     void "finds tasks by absolute path in different project"() {
@@ -559,7 +553,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         Task task = addTask("task")
 
         then:
-        container.getByPath(":task") == task
+        container.getByPath(":project:task") == task
     }
 
     void "realizes task graph"() {

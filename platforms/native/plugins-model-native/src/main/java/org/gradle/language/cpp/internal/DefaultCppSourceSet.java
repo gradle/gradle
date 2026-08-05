@@ -16,10 +16,10 @@
 
 package org.gradle.language.cpp.internal;
 
-import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 
-public class DefaultCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements CppSourceSet {
+@SuppressWarnings("deprecation")
+public class DefaultCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements org.gradle.language.cpp.CppSourceSet {
     @Override
     protected String getLanguageName() {
         return "C++";
