@@ -34,7 +34,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal
@@ -189,8 +188,6 @@ class SimplifiedKotlinScriptEvaluator(
             get() = buildTreeRootDirFile.toPath()
 
         override val moduleRegistry = TestModuleRegistry()
-
-        override val classLoaderFactory = DefaultClassLoaderFactory()
 
         override val fileSystemAccess = TestFiles.fileSystemAccess()
 

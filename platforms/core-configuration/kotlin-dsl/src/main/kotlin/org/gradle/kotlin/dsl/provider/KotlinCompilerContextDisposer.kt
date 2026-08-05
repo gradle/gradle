@@ -23,16 +23,13 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.support.cleanupKotlinCompilers
-import org.jetbrains.kotlin.CoreEnvironmentDeprecation
-import org.jetbrains.kotlin.K1Deprecation
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 
 
 /**
- * Disposes Kotlin compiler environment once all scripts are compiled.
+ * Cleans up the shared Kotlin compiler instances once all scripts are compiled.
  *
- * BuildTree-scoped because disposal is process-global and ignores the compiler's in-use count:
- * disposing per build would tear the environment down under included builds' sibling compilations.
+ * BuildTree-scoped because the compiler instances are shared across the whole tree:
+ * cleaning up per build would close build sessions under included builds' sibling compilations.
  */
 @ServiceScope(Scope.BuildTree::class)
 internal
@@ -59,9 +56,7 @@ class KotlinCompilerContextDisposer(
         }
     }
 
-    @OptIn(K1Deprecation::class, CoreEnvironmentDeprecation::class)
     private fun cleanup() {
-        KotlinCoreEnvironment.disposeApplicationEnvironment()
         cleanupKotlinCompilers()
     }
 }

@@ -155,8 +155,6 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
 
         val moduleRegistry: ModuleRegistry
 
-        val classLoaderFactory: ClassLoaderFactory
-
         val fileSystemAccess: FileSystemAccess
 
         val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache
@@ -353,7 +351,6 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                     programTarget = programTarget,
                     implicitImports = host.implicitImports,
                     moduleRegistry = host.moduleRegistry,
-                    classLoaderFactory = host.classLoaderFactory,
                     metadataCompatibilityChecker = metadataCompatibilityChecker,
                     fileSystemAccess = host.fileSystemAccess,
                     classpathEntrySnapshotCache = host.classpathEntrySnapshotCache,
@@ -515,7 +512,6 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                                 programTarget = programTarget,
                                 implicitImports = host.implicitImports,
                                 moduleRegistry = host.moduleRegistry,
-                                classLoaderFactory = host.classLoaderFactory,
                                 metadataCompatibilityChecker = scriptHost.metadataCompatibilityChecker,
                                 fileSystemAccess = host.fileSystemAccess,
                                 classpathEntrySnapshotCache = host.classpathEntrySnapshotCache,
