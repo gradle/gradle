@@ -392,36 +392,8 @@ The one case where you have to set the directives yourself is `GradleRunner.with
 In that mode, set the directives on the test task that runs the functional tests:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-tasks.named<Test>("test") {
-    jvmArgs(
-        "--add-opens=java.base/java.lang=ALL-UNNAMED",
-        "--add-opens=java.base/java.util=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens=java.base/java.net=ALL-UNNAMED",
-    )
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-tasks.named('test', Test) {
-    jvmArgs(
-        '--add-opens=java.base/java.lang=ALL-UNNAMED',
-        '--add-opens=java.base/java.util=ALL-UNNAMED',
-        '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED',
-        '--add-opens=java.base/java.net=ALL-UNNAMED',
-    )
-}
-----
-=====
+include::sample[dir="snippets/optimizing-builds/configuration-cache/testKit-addOpens/kotlin",files="build.gradle.kts[tags=addOpens]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/testKit-addOpens/groovy",files="build.gradle[tags=addOpens]"]
 ====
 
 Without these, a `withDebug(true)` test will fail with the reflective-access error shown above.
