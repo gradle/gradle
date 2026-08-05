@@ -39,7 +39,7 @@ We would like to thank the following community members for their contributions t
 [Ravi](https://github.com/rkdfx),
 [sk-reddy17](https://github.com/sk-reddy17),
 [Suvrat Acharya](https://github.com/Suvrat1629),
-[Yongshun Ye](https://github.com/ShreckYe)
+[Yongshun Ye](https://github.com/ShreckYe).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -370,6 +370,27 @@ tasks.named<Groovydoc>("groovydoc") {
 }
 ```
 
+#### Lazy variants of common `File`/`Dir` properties on built-in tasks
+
+Several built-in Gradle task types and extensions now expose [renamed lazy variants](userguide/working_with_files.html#sec:lazy_file_property_variants) of file and directory properties that were originally declared with eager `File` getters.
+
+Where previously you had to work around `Javadoc.getDestinationDir(): File`, `War.getWebXml(): File`, `CreateStartScripts.getOutputDir(): File`, and similar getters when composing lazy build logic, you can now configure `destinationDirectory`, `webXmlFile`, `outputDirectory`, and other lazy siblings directly.
+
+The original eager getters remain as backward-compatible bridges so that existing builds need no changes, and the two getters share the same underlying state, so a value set through one is observable through the other.
+
+```kotlin
+tasks.named<Javadoc>("javadoc") {
+    // New lazy variant: wire from another provider without forcing eager evaluation.
+    destinationDirectory = layout.buildDirectory.dir("docs/javadoc")
+}
+```
+
+Fourteen properties across `Javadoc`, `Groovydoc`, `ScalaDoc`, `War`, `CreateStartScripts`, `GenerateIvyDescriptor`, `GenerateMavenPom`, `GroovyCompileOptions`, `JacocoTaskExtension`, `CodeQualityExtension`, and `ProcessForkOptions` are covered.
+
+The new lazy getters are [incubating](userguide/feature_lifecycle.html#feature_preview) and their signatures may change in a future release.
+
+See the [Lazy file property variants on built-in tasks](userguide/working_with_files.html#sec:lazy_file_property_variants) section in the Gradle User Manual for the full list.
+
 ### Performance improvements
 Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
 
@@ -454,7 +475,12 @@ The [Best Practices](userguide/best_practices.html) chapter grew significantly w
 - [Do not run `./gradlew` on untrusted projects](userguide/best_practices_security.html#run_gradle_on_external_projects).
 
 The [Configuration Cache](userguide/configuration_cache.html) chapter received a substantial pass this release, including a reorganised main page, expanded coverage of [warn mode](userguide/configuration_cache_enabling.html), refined guidance on [`BuildServiceParameters`](userguide/configuration_cache_requirements.html), a clearer explanation of how [dependency resolution types](userguide/configuration_cache_requirements.html) interact with the cache, and improved Javadoc on the Configuration Cache classes themselves.
-The [Build Services](userguide/build_services.html) page was also updated to reflect Isolated Projects compatibility.
+
+### Training
+
+The following course is now available:
+
+- [Securing Gradle Builds](https://dpeuniversity.gradle.com/app/courses/130bcfec-3b08-42fb-b8e2-bc310626fc54) - a new DPE University course on protecting builds from supply-chain attacks with trusted repositories, dependency verification, and wrapper validation ([YouTube video](https://www.youtube.com/watch?v=L3OC8alxEJo)).
 
 ## Fixed issues
 
