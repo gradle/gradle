@@ -477,6 +477,12 @@ The [Best Practices](userguide/best_practices.html) chapter grew significantly w
 The [Configuration Cache](userguide/configuration_cache.html) chapter received a substantial pass this release, including a reorganised main page, expanded coverage of [warn mode](userguide/configuration_cache_enabling.html), refined guidance on [`BuildServiceParameters`](userguide/configuration_cache_requirements.html), a clearer explanation of how [dependency resolution types](userguide/configuration_cache_requirements.html) interact with the cache, and improved Javadoc on the Configuration Cache classes themselves.
 The [Build Services](userguide/build_services.html) page was also updated to reflect Isolated Projects compatibility.
 
+### Training
+
+The following course is now available:
+
+- [Securing Gradle Builds](https://dpeuniversity.gradle.com/app/courses/130bcfec-3b08-42fb-b8e2-bc310626fc54) — a new DPE University course on protecting builds from supply-chain attacks with trusted repositories, dependency verification, and wrapper validation ([YouTube video](https://www.youtube.com/watch?v=L3OC8alxEJo)).
+
 ## Fixed issues
 
 <!--
