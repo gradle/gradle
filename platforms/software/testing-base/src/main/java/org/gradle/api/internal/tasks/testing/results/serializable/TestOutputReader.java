@@ -49,6 +49,7 @@ public final class TestOutputReader implements Closeable {
      * Channels that are currently open and can be reused. We limit the pool size to avoid excessive resource usage.
      */
     private final BlockingQueue<SeekableByteChannel> channelPool = new LinkedBlockingQueue<>(64);
+    private volatile boolean closed;
 
     TestOutputReader(Path outputEventsFile, Serializer<TestOutputEvent> testOutputEventSerializer) {
         this.outputEventsFile = outputEventsFile;
@@ -174,6 +175,9 @@ public final class TestOutputReader implements Closeable {
     }
 
     private SeekableByteChannel requestChannel() {
+        if (closed) {
+            throw new IllegalStateException("This reader has been closed: " + outputEventsFile);
+        }
         SeekableByteChannel open = channelPool.poll();
         if (open != null && open.isOpen()) {
             return open;
@@ -189,7 +193,7 @@ public final class TestOutputReader implements Closeable {
         // Return the channel to the pool for reuse
         boolean added;
         try {
-            added = channelPool.offer(channel);
+            added = !closed && channelPool.offer(channel);
         } catch (Throwable t) {
             // If we fail to return the channel to the pool, close it to avoid resource leaks
             try {
@@ -200,7 +204,7 @@ public final class TestOutputReader implements Closeable {
             throw t;
         }
         if (!added) {
-            // Pool is full, close the channel
+            // The reader was closed while this channel was in use, or the pool is full
             try {
                 channel.close();
             } catch (IOException e) {
@@ -211,6 +215,8 @@ public final class TestOutputReader implements Closeable {
 
     @Override
     public void close() throws IOException {
+        closed = true;
         CompositeStoppable.stoppable(channelPool).stop();
+        channelPool.clear();
     }
 }
