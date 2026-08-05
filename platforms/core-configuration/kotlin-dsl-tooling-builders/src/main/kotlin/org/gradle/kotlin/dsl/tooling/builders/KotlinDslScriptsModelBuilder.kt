@@ -70,10 +70,8 @@ abstract class AbstractKotlinDslScriptsModelBuilder : ToolingModelBuilder {
         val timer = Time.startTimer()
         val parameter = prepareParameter(project)
         try {
-            return project.leaseRegistry.allowUncontrolledAccessToAnyProject {
-                buildFor(parameter, project).also {
-                    log("$parameter => $it - took ${timer.elapsed}")
-                }
+            return buildFor(parameter, project).also {
+                log("$parameter => $it - took ${timer.elapsed}")
             }
         } catch (ex: Exception) {
             log("$parameter => $ex - took ${timer.elapsed}")

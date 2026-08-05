@@ -267,16 +267,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        return getRegistries().getProjectLockRegistry().allowUncontrolledAccessToAnyResource(factory);
-    }
-
-    @Override
-    public boolean isAllowedUncontrolledAccessToAnyProject() {
-        return getRegistries().getProjectLockRegistry().isAllowedUncontrolledAccessToAnyResource();
-    }
-
-    @Override
     public void withLocks(Collection<? extends ResourceLock> locks, Runnable runnable) {
         withLocks(locks, Factories.toFactory(runnable));
     }

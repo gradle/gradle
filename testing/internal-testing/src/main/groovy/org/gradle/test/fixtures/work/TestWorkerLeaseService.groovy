@@ -186,16 +186,6 @@ class TestWorkerLeaseService implements WorkerLeaseService {
         return action.create()
     }
 
-    @Override
-    <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        return factory.create()
-    }
-
-    @Override
-    boolean isAllowedUncontrolledAccessToAnyProject() {
-        return false
-    }
-
     private WorkerLease workerLease() {
         return new WorkerLease() {
             @Override

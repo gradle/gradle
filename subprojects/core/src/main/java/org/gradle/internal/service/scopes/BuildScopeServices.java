@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
@@ -65,7 +64,6 @@ import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -741,10 +739,9 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     protected DefaultToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(
         List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
         BuildOperationRunner buildOperationRunner,
-        ProjectStateRegistry projectStateRegistry,
         UserCodeApplicationContext userCodeApplicationContext
     ) {
-        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, projectStateRegistry, userCodeApplicationContext);
+        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, userCodeApplicationContext);
         // Services are created on demand, and this may happen while applying a plugin
         userCodeApplicationContext.gradleRuntime(() -> {
             for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
