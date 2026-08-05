@@ -134,6 +134,9 @@ Generates an Xcode workspace and per-component project files for the current C++
 <<base_plugin.adoc#base_plugin,Base>> — `base`::
 Provides the common `clean`, `assemble`, `check`, and `build` lifecycle tasks and the archive/distribution conventions reused by most other plugins. Applied transitively by any plugin that adds archives or lifecycle tasks (JVM, native, distribution), so it rarely needs to be applied directly.
 
+<<gradle_wrapper.adoc#gradle_wrapper,Wrapper>> — `wrapper`::
+Registers the `wrapper` task that generates the Gradle Wrapper scripts and `gradle-wrapper.properties` for a project. Applied automatically to the root project, so it never needs to be applied directly.
+
 <<build_init_plugin.adoc#build_init_plugin,Build Init>> — `build-init`::
 Generates a new Gradle build of a specified type (Java library, Kotlin application, and so on). Can also generate a build from a Maven POM — see <<migrating_from_maven.adoc#migrating_from_maven,Migrating from Maven to Gradle>>.
 
