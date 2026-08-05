@@ -44,11 +44,11 @@ Provides support for modeling and configuring multiple test suite invocations.
 <<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin,Test Report Aggregation>>::
 Aggregates the results of multiple link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task invocations (potentially spanning multiple Gradle projects) into a single HTML report.
 
-<<java_testing.adoc#sec:java_test_fixtures,Java Test Fixtures>>::
+<<java_test_fixtures_plugin.adoc#java_test_fixtures_plugin,Java Test Fixtures>>::
 Provides support for producing and consuming test fixtures with the `java-test-fixtures` plugin.
 
-<<toolchains.adoc#toolchains,JVM Toolchains>>::
-Provides support for selecting and provisioning the JDK used to build and test, via the `jvm-toolchains` plugin. Toolchain download repositories are configured in a settings script with the `jvm-toolchain-management` plugin — see <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>>.
+<<jvm_toolchains_plugins.adoc#jvm_toolchains_plugins,JVM Toolchains>>::
+Provides support for selecting and provisioning the JDK used to build and test, via the `jvm-toolchains` plugin (project) and `jvm-toolchain-management` plugin (settings).
 
 [[native_languages]]
 == Native languages
@@ -152,5 +152,5 @@ Generates a single HTML dashboard that provides a single point of access to all 
 <<version_catalog_plugin.adoc#version_catalog_plugin,Version Catalog>>::
 Provides support for generating and publishing a version catalog with the `version-catalog` plugin.
 
-<<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins,Precompiled Groovy DSL Script Plugins>>::
+<<groovy_gradle_plugin.adoc#groovy_gradle_plugin,Groovy Gradle Plugin>>::
 Provides support for authoring plugins as precompiled Groovy DSL scripts with the `groovy-gradle-plugin` plugin.
