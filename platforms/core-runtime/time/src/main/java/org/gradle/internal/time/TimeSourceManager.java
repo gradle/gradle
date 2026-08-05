@@ -219,10 +219,12 @@ public class TimeSourceManager implements Closeable {
         try {
             while (running) {
                 timeSource.tick();
-                // Thread.sleep rather than LockSupport.parkNanos: on Windows, the JVM raises
-                // the timer resolution (per-process, since Windows 10 2004) to 1ms around
-                // sub-10ms sleeps, while parkNanos waits on the default scheduler quantum
-                // and would achieve a ~15.6ms tick.
+                // Use Thread.sleep rather than LockSupport.parkNanos. On Windows, the JVM wraps the
+                // sleep in a HighResolutionInterval that calls timeBeginPeriod(1) whenever the
+                // requested duration is not a multiple of 10ms, raising the timer resolution to 1ms
+                // for the sleep. Our 1ms tick qualifies. parkNanos is not wrapped this way, so it
+                // waits on the default scheduler quantum and would achieve only a ~15.6ms tick.
+                // See: https://github.com/openjdk/jdk/blob/835c7b1be56316d6468335dffd2bd897f9519760/src/hotspot/os/windows/os_windows.cpp#L5738-L5762
                 Thread.sleep(tickIntervalMillis);
             }
         } catch (InterruptedException ignored) {
