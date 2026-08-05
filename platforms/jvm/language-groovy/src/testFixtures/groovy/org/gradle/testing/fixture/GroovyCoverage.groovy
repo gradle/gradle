@@ -25,7 +25,7 @@ import org.gradle.util.internal.VersionNumber
 class GroovyCoverage {
     // NOTE: Update compatibility.adoc when adding new versions of Groovy
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.25', '4.0.29']
-    private static final String[] FUTURE = ["5.0.2", "6.0.0-alpha-2"]
+    private static final String[] FUTURE = ["5.0.8", "6.0.0-alpha-2"]
 
     static final Set<String> SUPPORTED_BY_JDK
     static final Map<String, Jvm> ALL_VERSIONS_JVMS
@@ -83,11 +83,15 @@ class GroovyCoverage {
     }
 
     private static boolean supportsTargetingJavaVersion(VersionNumber groovyVersion, JavaVersion javaVersion) {
+        return javaVersion <= maxTargetJavaVersion(groovyVersion)
+    }
+
+    private static JavaVersion maxTargetJavaVersion(VersionNumber groovyVersion) {
         return switch (groovyVersion.major) {
-            case 6 -> javaVersion <= JavaVersion.VERSION_26
-            case 5 -> javaVersion <= JavaVersion.VERSION_26
-            case 4 -> javaVersion <= JavaVersion.VERSION_25
-            case 3 -> javaVersion <= JavaVersion.VERSION_17
+            case 6 -> JavaVersion.VERSION_27
+            case 5 -> JavaVersion.VERSION_27
+            case 4 -> groovyVersion >= VersionNumber.parse('4.0.33') ? JavaVersion.VERSION_27 : JavaVersion.VERSION_26
+            case 3 -> JavaVersion.VERSION_17
             default -> throw new IllegalArgumentException("Computing effective target for Groovy version $groovyVersion is not supported")
         }
     }
@@ -108,7 +112,9 @@ class GroovyCoverage {
         def allVersions = allVersions()
 
         def supported
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_27)) {
+            supported = VersionCoverage.versionsAtLeast(allVersions, '4.0.33')
+        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
             supported = VersionCoverage.versionsAtLeast(allVersions, '4.0.29')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
             supported = VersionCoverage.versionsAtLeast(allVersions, '3.0.25')

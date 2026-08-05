@@ -112,11 +112,11 @@ class GradleRunnerConfigurationCacheOutcomeIntegrationTest extends BaseGradleRun
     }
 
     def "fails informatively when trying to inspect the configuration cache outcome with unsupported gradle version"() {
-        def maxUnsupportedVersion = new ReleasedVersionDistributions().all
-            .collect { it.version }
-            .findAll { it < TestKitFeature.CAPTURE_CONFIGURATION_CACHE_OUTCOME.since }
-            .max()
-            .version
+        def maxUnsupportedDistribution = new ReleasedVersionDistributions().all
+            .findAll { it.version < TestKitFeature.CAPTURE_CONFIGURATION_CACHE_OUTCOME.since }
+            .max { it.version }
+        maxUnsupportedDistribution.assumeDaemonWorksWithCurrentJvm()
+        def maxUnsupportedVersion = maxUnsupportedDistribution.version.version
         def minSupportedVersion = TestKitFeature.CAPTURE_CONFIGURATION_CACHE_OUTCOME.since.version
 
         given:
