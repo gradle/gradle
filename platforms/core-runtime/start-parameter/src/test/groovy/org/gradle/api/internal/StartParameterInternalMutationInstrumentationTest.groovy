@@ -213,6 +213,7 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "newBuildInternal()",
         "newInstance()",
         "newInstanceInternal()",
+        "newNestedBuildInternal()",
         "toBuildLayoutConfiguration()",
         "toString()",
     ]

@@ -23,6 +23,7 @@ import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
@@ -170,6 +171,18 @@ public class StartParameterInternal extends StartParameter {
 
     public StartParameterInternal newBuildInternal() {
         return prepareNewBuild(new StartParameterInternal());
+    }
+
+    public StartParameterInternal newNestedBuildInternal() {
+        return prepareNewBuild(new NestedBuildStartParameter());
+    }
+
+    private static class NestedBuildStartParameter extends StartParameterInternal {
+        @SuppressWarnings("deprecation")
+        @Override
+        public void setBuildCacheEnabled(boolean buildCacheEnabled) {
+            DeprecationLogger.whileDisabled(() -> super.setBuildCacheEnabled(buildCacheEnabled));
+        }
     }
 
     @Override
