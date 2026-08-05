@@ -20,7 +20,6 @@ tasks.war {
     webAppDirectory = file("src/main/webapp")
     from("src/rootContent") // adds a file-set to the root of the archive
     webInf { from("src/additionalWebInf") } // adds a file-set to the WEB-INF dir.
-    // 'webXml' (File) is the older accessor, replaced by the 'webXmlFile' property since Gradle 9.7
-    webXmlFile = file("src/someWeb.xml") // copies a file to WEB-INF/web.xml
+    webXml = file("src/someWeb.xml") // copies a file to WEB-INF/web.xml
 }
 // end::customization[]

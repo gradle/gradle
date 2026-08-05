@@ -100,11 +100,16 @@ The `war` plugin sets the default value to `src/main/webapp`.
 `classpath` — link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
 The classpath to include in the archive.
 Directories on the classpath are added to `WEB-INF/classes` and JAR or ZIP files are added to `WEB-INF/lib`.
+The `war` plugin sets the default value to `sourceSets.main.runtimeClasspath` minus the `providedRuntime` configuration.
 
-`webXmlFile` — link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty]::
+`webXml` — `File`::
 The `web.xml` file to copy to `WEB-INF/web.xml`.
 When not set, no `web.xml` file is included in the archive.
-Introduced in Gradle 9.7.0 as the replacement for the older `webXml` accessor.
++
+[NOTE]
+====
+An incubating replacement, `webXmlFile` (a link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty]), was introduced in Gradle 9.7.0.
+====
 
 `webInf`::
 Adds a nested link:{groovyDslPath}/org.gradle.api.file.CopySpec.html[CopySpec] whose contents are copied into the `WEB-INF` directory of the archive.
