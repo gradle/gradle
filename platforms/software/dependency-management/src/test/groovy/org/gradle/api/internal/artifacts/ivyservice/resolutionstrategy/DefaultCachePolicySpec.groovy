@@ -31,6 +31,7 @@ import static java.util.Collections.emptySet
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 
 class DefaultCachePolicySpec extends Specification {
+
     private static final long SECOND = 1000;
     private static final long MINUTE = SECOND * 60;
     private static final long HOUR = MINUTE * 60;
@@ -245,13 +246,13 @@ class DefaultCachePolicySpec extends Specification {
         def copy = cachePolicy.copy()
 
         !copy.is(cachePolicy)
-        copy.dependencyCacheRules.is(cachePolicy.dependencyCacheRules)
-        copy.moduleCacheRules.is(cachePolicy.moduleCacheRules)
-        copy.artifactCacheRules.is(cachePolicy.artifactCacheRules)
+        copy.asImmutable().dependencyCacheRules.is(cachePolicy.asImmutable().dependencyCacheRules)
+        copy.asImmutable().moduleCacheRules.is(cachePolicy.asImmutable().moduleCacheRules)
+        copy.asImmutable().artifactCacheRules.is(cachePolicy.asImmutable().artifactCacheRules)
 
-        copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
-        copy.moduleCacheRules == cachePolicy.moduleCacheRules
-        copy.artifactCacheRules == cachePolicy.artifactCacheRules
+        copy.asImmutable().dependencyCacheRules == cachePolicy.asImmutable().dependencyCacheRules
+        copy.asImmutable().moduleCacheRules == cachePolicy.asImmutable().moduleCacheRules
+        copy.asImmutable().artifactCacheRules == cachePolicy.asImmutable().artifactCacheRules
     }
 
     def "when rules are not empty copy creates independent rules"() {
@@ -264,22 +265,22 @@ class DefaultCachePolicySpec extends Specification {
 
         then:
         !copy.is(cachePolicy)
-        !copy.dependencyCacheRules.is(cachePolicy.dependencyCacheRules)
-        !copy.moduleCacheRules.is(cachePolicy.moduleCacheRules)
-        !copy.artifactCacheRules.is(cachePolicy.artifactCacheRules)
+        !copy.asImmutable().dependencyCacheRules.is(cachePolicy.asImmutable().dependencyCacheRules)
+        !copy.asImmutable().moduleCacheRules.is(cachePolicy.asImmutable().moduleCacheRules)
+        !copy.asImmutable().artifactCacheRules.is(cachePolicy.asImmutable().artifactCacheRules)
 
-        copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
-        copy.moduleCacheRules == cachePolicy.moduleCacheRules
-        copy.artifactCacheRules == cachePolicy.artifactCacheRules
+        copy.asImmutable().dependencyCacheRules == cachePolicy.asImmutable().dependencyCacheRules
+        copy.asImmutable().moduleCacheRules == cachePolicy.asImmutable().moduleCacheRules
+        copy.asImmutable().artifactCacheRules == cachePolicy.asImmutable().artifactCacheRules
 
         when:
         copy.cacheDynamicVersionsFor(20, TimeUnit.SECONDS)
         copy.cacheChangingModulesFor(20, TimeUnit.SECONDS)
 
         then:
-        copy.dependencyCacheRules != cachePolicy.dependencyCacheRules
-        copy.moduleCacheRules != cachePolicy.moduleCacheRules
-        copy.artifactCacheRules != cachePolicy.artifactCacheRules
+        copy.asImmutable().dependencyCacheRules != cachePolicy.asImmutable().dependencyCacheRules
+        copy.asImmutable().moduleCacheRules != cachePolicy.asImmutable().moduleCacheRules
+        copy.asImmutable().artifactCacheRules != cachePolicy.asImmutable().artifactCacheRules
     }
 
     def "mutation is checked"() {

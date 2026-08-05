@@ -33,24 +33,13 @@ import java.util.concurrent.TimeUnit;
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultCachePolicy implements CachePolicy {
+
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
     private static final int MILLISECONDS_IN_DAY = SECONDS_IN_DAY * 1000;
 
-    private static final Action<DependencyResolutionControl> DEFAULT_DYNAMIC_VERSIONS_RULE = dependencyResolutionControl -> {
-        if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
-            dependencyResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-        }
-    };
-    private static final Action<ModuleResolutionControl> DEFAULT_CHANGING_MODULE_RULE = moduleResolutionControl -> {
-        if (moduleResolutionControl.isChanging()) {
-            moduleResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-        }
-    };
-    private static final Action<ArtifactResolutionControl> DEFAULT_CHANGING_MODULE_ARTIFACT_RULE = artifactResolutionControl -> {
-        if (artifactResolutionControl.belongsToChangingModule()) {
-            artifactResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-        }
-    };
+    private static final Action<DependencyResolutionControl> DEFAULT_DYNAMIC_VERSIONS_RULE = dependencyCacheRuleFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+    private static final Action<ModuleResolutionControl> DEFAULT_CHANGING_MODULE_RULE = moduleCacheRuleFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+    private static final Action<ArtifactResolutionControl> DEFAULT_CHANGING_MODULE_ARTIFACT_RULE = artifactCacheRuleFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     private static final Action<ArtifactResolutionControl> DEFAULT_MISSING_ARTIFACT_RULE = artifactResolutionControl -> {
         if (artifactResolutionControl.getCachedResult() == null) {
             artifactResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
@@ -61,12 +50,9 @@ public class DefaultCachePolicy implements CachePolicy {
     private static final ImmutableList<Action<? super ModuleResolutionControl>> DEFAULT_MODULE_CACHE_RULES = ImmutableList.of(DEFAULT_CHANGING_MODULE_RULE);
     private static final ImmutableList<Action<? super ArtifactResolutionControl>> DEFAULT_ARTIFACT_CACHE_RULES = ImmutableList.of(DEFAULT_MISSING_ARTIFACT_RULE, DEFAULT_CHANGING_MODULE_ARTIFACT_RULE);
 
-    @Nullable
-    List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
-    @Nullable
-    List<Action<? super ModuleResolutionControl>> moduleCacheRules;
-    @Nullable
-    List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
+    private @Nullable List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
+    private @Nullable List<Action<? super ModuleResolutionControl>> moduleCacheRules;
+    private @Nullable List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private long keepDynamicVersionsFor = MILLISECONDS_IN_DAY;
@@ -114,11 +100,15 @@ public class DefaultCachePolicy implements CachePolicy {
         if (dependencyCacheRules == null) {
             dependencyCacheRules = new ArrayList<>(1);
         }
-        dependencyCacheRules.add(0, dependencyResolutionControl -> {
+        dependencyCacheRules.add(0, dependencyCacheRuleFor(value, unit));
+    }
+
+    private static Action<DependencyResolutionControl> dependencyCacheRuleFor(int value, TimeUnit unit) {
+        return dependencyResolutionControl -> {
             if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
                 dependencyResolutionControl.cacheFor(value, unit);
             }
-        });
+        };
     }
 
     @Override
@@ -129,20 +119,28 @@ public class DefaultCachePolicy implements CachePolicy {
         if (moduleCacheRules == null) {
             moduleCacheRules = new ArrayList<>(1);
         }
-        moduleCacheRules.add(0, moduleResolutionControl -> {
-            if (moduleResolutionControl.isChanging()) {
-                moduleResolutionControl.cacheFor(value, units);
-            }
-        });
+        moduleCacheRules.add(0, moduleCacheRuleFor(value, units));
 
         if (artifactCacheRules == null) {
             artifactCacheRules = new ArrayList<>(1);
         }
-        artifactCacheRules.add(0, artifactResolutionControl -> {
+        artifactCacheRules.add(0, artifactCacheRuleFor(value, units));
+    }
+
+    private static Action<ArtifactResolutionControl> artifactCacheRuleFor(int value, TimeUnit units) {
+        return artifactResolutionControl -> {
             if (artifactResolutionControl.belongsToChangingModule()) {
                 artifactResolutionControl.cacheFor(value, units);
             }
-        });
+        };
+    }
+
+    private static Action<ModuleResolutionControl> moduleCacheRuleFor(int value, TimeUnit units) {
+        return moduleResolutionControl -> {
+            if (moduleResolutionControl.isChanging()) {
+                moduleResolutionControl.cacheFor(value, units);
+            }
+        };
     }
 
     @Override
@@ -171,7 +169,8 @@ public class DefaultCachePolicy implements CachePolicy {
         if (userRules == null) {
             return defaultRules;
         }
-        return ImmutableList.<Action<? super T>>builder()
+
+        return ImmutableList.<Action<? super T>>builderWithExpectedSize(userRules.size() + defaultRules.size())
             .addAll(userRules)
             .addAll(defaultRules)
             .build();
