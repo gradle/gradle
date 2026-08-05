@@ -68,7 +68,7 @@ Collects variants of direct and transitive project dependencies via the `testRep
 <2> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName--[TestSuite#getName()].
 <3> VerificationType attribute; value is fixed.
 
-More information about the variants produced by test execution are available in the <<jvm_test_suite_plugin#sec:outgoing_variants,Outgoing Variants>> section of the JVM Test Suite Plugin documentation.
+More information about the variants produced by test execution is available in the <<jvm_test_suite_plugin#sec:outgoing_variants,Outgoing Variants>> section of the JVM Test Suite Plugin documentation.
 
 [[sec:test_report_aggregation_reports]]
 == Reports
@@ -86,7 +86,7 @@ For more information, see <<command_line_interface.adoc#sec:continue_build_on_fa
 When the project also applies the `jvm-test-suite` plugin, the following reporting objects are added for each test suite:
 
 `__testSuite__AggregateTestReport` — link:{javadocPath}/org/gradle/api/tasks/testing/AggregateTestReport.html[AggregateTestReport]::
-Creates an aggregate Jacoco report aggregating all test suites with a given link:{javadocPath}/org/gradle/api/attributes/TestSuiteName.html[name] across all project dependencies.
+Creates an aggregate test report aggregating all test suites with a given link:{javadocPath}/org/gradle/api/attributes/TestSuiteName.html[name] across all project dependencies.
 
 [[sec:test_manual_report_creation]]
 === Manual report creation
