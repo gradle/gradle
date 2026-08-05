@@ -126,15 +126,12 @@ public class StartParameterInternal extends StartParameter {
     /**
      * Sets build cache enablement from a source other than user build logic
      */
-    @SuppressWarnings("deprecation")
     public void setBuildCacheEnabledInternal(boolean buildCacheEnabled, boolean configuredByBuildLogic) {
         withoutMutationListener(() -> super.setBuildCacheEnabled(buildCacheEnabled));
         this.buildCacheEnabledConfiguredByBuildLogic = configuredByBuildLogic;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    @Deprecated
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         super.setBuildCacheEnabled(buildCacheEnabled);
         this.buildCacheEnabledConfiguredByBuildLogic = true;
@@ -178,7 +175,6 @@ public class StartParameterInternal extends StartParameter {
     }
 
     private static class NestedBuildStartParameter extends StartParameterInternal {
-        @SuppressWarnings("deprecation")
         @Override
         public void setBuildCacheEnabled(boolean buildCacheEnabled) {
             DeprecationLogger.whileDisabled(() -> super.setBuildCacheEnabled(buildCacheEnabled));

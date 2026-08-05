@@ -66,14 +66,14 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "mutating the start parameter of a GradleBuild task should not issue a deprecation"() {
-        buildFile << """
+        buildFile """
             tasks.register('nested', GradleBuild) {
                 dir = file('other')
                 tasks = ['customTask']
                 startParameter.buildCacheEnabled = true
             }
         """
-        file("other/settings.gradle") << """
+        buildFile "other/settings.gradle", """
             buildCache {
                 local {
                     directory = '$cacheDir'
