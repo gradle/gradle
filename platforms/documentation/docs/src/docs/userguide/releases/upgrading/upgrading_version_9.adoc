@@ -111,9 +111,10 @@ If you relied on mutable state surviving a cache hit, move it into a task proper
 
 Previously, a link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] task with no source files was reported as `NO-SOURCE` and skipped, leaving any previously synced files in its destination directory in place indefinitely.
 
-`Sync` now always runs its copy action, even when its source is empty. Once a `Sync` task has successfully synced into a given destination directory at least once, a later run with an empty source deletes stale files from that destination — anything not matched by the task's `preserve { ... }` filter.
+`Sync` now always runs its copy action, even when its source is empty, and behaves the same way whether or not its destination is owned by Gradle.
+Once a `Sync` task has successfully synced into a given destination directory at least once, a later run with an empty source deletes stale files from that destination — anything not matched by the task's `preserve { ... }` filter.
 
-If you rely on the previous skip behavior for a `Sync` task that has already run against its destination, configure it to short-circuit explicitly:
+If you rely on the previous skip behavior for a `Sync` task that has already run against a destination not owned by Gradle, configure it to short-circuit explicitly:
 
 ====
 [.multi-language-sample]
