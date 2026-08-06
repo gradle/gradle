@@ -123,7 +123,7 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 Under the hood, `enforcedPlatform` converts every version constraint from the BOM into a <<dependency_versions.adoc#sec:strict-version,`strictly`>> declaration.
 This means that no dependency in the graph can be upgraded past the versions defined in the BOM.
 
-TIP: You can verify this on your own build with `./gradlew dependencies` or `./gradlew dependencyInsight --dependency <module>` — each converted constraint appears with a `{strictly <version>}` annotation in the report.
+TIP: You can verify this on your own build: `./gradlew dependencyInsight --dependency <module>` shows the enforced version with a `{strictly <version>}` annotation, and `./gradlew dependencies` shows the platform itself pinned with `{strictly <version>}`.
 
 [[sec:enforced-platform-vs-strictly]]
 == `enforcedPlatform` vs. `strictly`

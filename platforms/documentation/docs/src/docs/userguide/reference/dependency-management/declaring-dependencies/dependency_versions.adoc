@@ -304,7 +304,7 @@ Use the table below to pick the right declaration for a given scenario; each row
 
 | <<#sec:strictly-prevent-upgrades,Prevent a transitive upgrade past a known-good version>>
 | `strictly("[1.9, 1.10[")`
-| Strict ranges cannot be overridden by other participants in the graph.
+| Strict ranges cannot be overridden by transitive (deeper) participants in the graph.
 
 | <<#sec:reject-broken-version,Exclude a single known-broken version>>
 | `require("[1.0, 2.0[")` + `reject("1.4")`
@@ -340,8 +340,9 @@ include::sample[dir="snippets/dependencyManagement/richVersionsDirectDependencie
 
 Without `strictly`, Gradle's default conflict resolution would select `1.10` (the highest version), because a standard `require` declaration allows upgrades.
 
-NOTE: This downgrade works because most transitive dependencies declare their requirements as `require`, which is satisfied by any version meeting or exceeding the requested one, so the `strictly` constraint can pull the resolved version back to `1.9`.
-Even if a transitive dependency declared `strictly("1.10")` itself, the direct `strictly("1.9")` would take precedence.
+NOTE: This downgrade works because the transitive requirement on `commons-codec` is a plain `require`, which expresses a preference rather than a hard floor and does not reject lower versions.
+The direct `strictly '[1.9, 1.10['` actively rejects `1.10`, and because the `require` yields to it, resolution settles on `1.9`.
+Even if a transitive dependency declared its own `strictly` for a higher version, the direct `strictly` would take precedence.
 A direct `strictly` declaration wins over a transitive one.
 
 [[sec:reject-broken-version]]
