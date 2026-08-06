@@ -265,7 +265,7 @@ Rather than predicting the gain from the structure of your build, the most relia
 
 . Enable the feature
 +
-Make the build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, then enable Isolated Projects.
+Make the build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>> first, then enable Isolated Projects.
 
 . Get an early estimate before completing the migration
 +
