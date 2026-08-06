@@ -33,6 +33,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import kotlin.io.path.createDirectories
 
 
@@ -47,8 +48,9 @@ import kotlin.io.path.createDirectories
  * need none, being immutable and content-addressed and published lock-free via atomic rename.
  *
  * Cleanup is least-recently-used, scoped to `snapshots/` so the cache metadata at the root is left
- * alone: [fileAccessTracker] touches each file on use, and files unused past the retention period are
- * deleted. Hard-deleting immediately with no soft-delete grace window is safe here — unlike the
+ * alone: [fileAccessTracker] touches each file on use (journalled at most once per hour per daemon —
+ * every build reads the abi files, and per-build precision is wasted against a retention of days),
+ * and files unused past the retention period are deleted. Hard-deleting immediately with no soft-delete grace window is safe here — unlike the
  * mutable [KotlinDslIncrementalCompilationStore], entries are immutable and regenerable, and a
  * snapshot reclaimed mid-build is handled by the compiler's full-compile fallback. [close] is invoked
  * by the service registry on shutdown.
@@ -73,7 +75,10 @@ internal class KotlinDslClasspathEntrySnapshotStore(
         .withCleanupStrategy(cleanupStrategy(fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory))
         .open()
 
-    val fileAccessTracker: FileAccessTracker = SingleDepthFileAccessTracker(fileAccessTimeJournal, snapshotsDir, ENTRY_DEPTH)
+    val fileAccessTracker: FileAccessTracker = ThrottlingFileAccessTracker(
+        SingleDepthFileAccessTracker(fileAccessTimeJournal, snapshotsDir, ENTRY_DEPTH),
+        MARK_INTERVAL_MILLIS
+    )
 
     private fun cleanupStrategy(
         fileAccessTimeJournal: FileAccessTimeJournal,
@@ -102,3 +107,5 @@ internal class KotlinDslClasspathEntrySnapshotStore(
 private const val CACHE_KEY = "kotlin-dsl/classpath-snapshots"
 
 private const val ENTRY_DEPTH = 1
+
+private val MARK_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(1)
