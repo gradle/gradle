@@ -25,6 +25,15 @@ The pages in this section provide recipes and best practices for configuring pop
 The best configuration for a CI build depends on how the build agent is managed.
 The recommendations in this section assume that the build is invoked with the Gradle Wrapper and that the CI job is responsible for producing a reproducible result.
 
+[[gradle_on_ci_clean]]
+=== Do not run `clean` by default
+
+Running `clean` removes local outputs and prevents the build from benefiting from incremental execution in the same workspace.
+It is usually unnecessary to run an ordinary CI build when the workspace is isolated, and the build outputs are controlled by Gradle.
+
+Run `clean` when the job intentionally validates a clean checkout, when outputs from an earlier build are not trusted, or when the Build Cache workflow specifically requires a clean producer build.
+If a build requires `clean` to succeed, investigate undeclared inputs or outputs rather than treating `clean` as a general fix.
+
 [[gradle_on_ci_wrapper]]
 === Use the Gradle Wrapper
 
@@ -36,20 +45,21 @@ See <<gradle_wrapper.adoc#gradle_wrapper,The Gradle Wrapper>> for details.
 === Use the Gradle Daemon when it matches the agent lifecycle
 
 The Gradle Daemon is enabled by default and can reduce startup time by reusing a long-lived JVM and its caches.
-It is generally useful when an agent runs multiple Gradle invocations or when the agent is reused between jobs.
+It is generally useful when an agent runs multiple Gradle invocations or is reused between jobs.
 See <<gradle_daemon.adoc#gradle_daemon,The Gradle Daemon>> for configuration and troubleshooting.
 
-On a disposable agent, the Daemon process does not provide much benefit after the job ends.
-It is still safe to use the default behavior, but avoid relying on the Daemon to preserve state for a later job.
+On a disposable agent, the daemon process offers little benefit once the job ends.
+It is still safe to use the default behavior, but avoid relying on the daemon to preserve state for a later job.
 If a CI environment requires every process to exit before the job finishes, use `--no-daemon` for that job and verify the resulting performance and resource usage.
 
-Do not use a shared Gradle User Home concurrently from unrelated jobs.
-Gradle caches and Daemon state are designed to be used by compatible processes, not as a general-purpose shared workspace.
+Do not use a shared <<directory_layout.adoc#dir:gradle_user_home,`GRADLE_USER_HOME`>> concurrently from unrelated jobs.
+Gradle caches and daemon state are designed to be used by compatible processes, not as a general-purpose shared workspace.
+Prefer a CI cache action or a remote Build Cache to move state between jobs safely.
 
 [[gradle_on_ci_configuration_cache]]
 === Enable the Configuration Cache when the build is compatible
 
-The Configuration Cache can avoid repeating the configuration phase on subsequent invocations.
+The <<configuration_cache.adoc#config_cache,Configuration Cache>> can avoid repeating the configuration phase on subsequent invocations.
 Enable it for a CI build with:
 
 [source,bash]
@@ -57,19 +67,14 @@ Enable it for a CI build with:
 ./gradlew --configuration-cache <tasks>
 ----
 
-Before enabling it as a required CI setting, run the build with the default problem behavior and fix or explicitly isolate reported incompatibilities.
-The warning mode is useful during migration, but it should not be used as a permanent way to ignore problems because an entry containing problems can deserialize incomplete or unsafe state.
-See <<configuration_cache_enabling.adoc#config_cache:usage,Enabling and Configuring the Configuration Cache>> and <<configuration_cache_debugging.adoc#config_cache_debugging,Debugging the Configuration Cache>>.
-
-Configuration Cache entries are project-local and depend on the configuration inputs of the build.
-Do not assume that copying an entry between unrelated workspaces or builds is safe.
+To enable it successfully, follow the steps at <<configuration_cache_enabling.adoc#config_cache:usage,Enabling and Configuring the Configuration Cache>>.
 
 [[gradle_on_ci_build_cache]]
 === Use the Build Cache for reusable task outputs
 
-The Build Cache reuses task outputs when the task inputs and implementation are compatible.
-It is different from the Configuration Cache: the Build Cache reuses work produced by tasks, while the Configuration Cache reuses the configured build state.
-See <<build_cache.adoc#build_cache,Build Cache>> for the supported cache types and configuration options.
+The <<build_cache.adoc#build_cache, Build Cache>> reuses task outputs when the task inputs and implementation are compatible.
+It differs from the Configuration Cache.
+The Build Cache reuses work produced by tasks, whereas the Configuration Cache reuses the configured build state.
 
 For a shared remote Build Cache, a common pattern is:
 
@@ -77,54 +82,63 @@ For a shared remote Build Cache, a common pattern is:
 * Other CI jobs and developer builds read from the remote cache.
 * Cache writes are restricted to trusted jobs when the cache is shared across teams.
 
-Enable the cache for a job with `--build-cache` or configure `org.gradle.caching=true` in `gradle.properties`.
-Use the cache only when the build is already correct and incremental: tasks should produce correct outputs when run twice without a clean build.
-See <<build_cache_use_cases.adoc#use_cases_cache,Build Cache use cases>> and <<common_caching_problems.adoc#common-problems,Common caching problems>> before diagnosing a cache miss.
+Enable the cache for a job with `--build-cache` or configure `org.gradle.caching=true` in `gradle.properties`:
 
-[[gradle_on_ci_dependency_cache]]
-=== Cache downloaded dependencies deliberately
+[source,bash]
+----
+./gradlew --build-cache <tasks>
+----
 
-The Gradle User Home contains downloaded distributions, dependency metadata and artifacts, compiled build scripts, Daemon state, and other caches.
-The <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>> and <<directory_layout.adoc#dir:caches,cache layout>> pages describe the directory contents.
-
-When caching Gradle User Home in CI:
-
-* Key the cache by the operating system, architecture, relevant JDK, Gradle Wrapper version, and dependency/build configuration.
-* Prefer the CI provider's cache mechanism or a remote Build Cache over sharing one writable directory between concurrent jobs.
-* Treat `caches/modules-2` as downloaded dependency state and version-specific `caches/<version>/kotlin-dsl` and `caches/<version>/scripts` as compiled build-script state.
-* Do not cache credentials, initialization scripts, logs, Daemon state, or notification state unless the CI setup explicitly requires them and the security implications are understood.
-* Allow Gradle to clean or rotate old cache entries instead of assuming that the Gradle User Home can grow without limit.
-
-Sharing a cache between incompatible operating systems, JDKs, Gradle versions, or dependency inputs can reduce hit rates and can cause cache restoration or file-locking problems.
-
-[[gradle_on_ci_clean]]
-=== Do not run `clean` by default
-
-Running `clean` removes local outputs and prevents the build from benefiting from incremental execution in the same workspace.
-It is usually unnecessary for an ordinary CI build when the workspace is isolated and the build outputs are controlled by Gradle.
-
-Run `clean` when the job intentionally validates a clean checkout, when outputs from an earlier build are not trusted, or when the Build Cache workflow specifically requires a clean producer build.
-If a build requires `clean` to succeed, investigate undeclared inputs or outputs rather than treating `clean` as a general fix.
+To enable it successfully, follow the steps at <<build_cache.adoc#sec:build_cache_enable, Enabling the Build Cache>>.
+See <<build_cache_use_cases.adoc#use_cases_cache, Build Cache Use Cases>> for real-world CI scenarios and <<common_caching_problems.adoc#common-problems, Common Caching Problems>> before diagnosing a cache miss.
 
 [[gradle_on_ci_agent_types]]
 === Choose cache strategy by agent type
 
+Beyond the general recommendations above, the agent lifecycle determines which additional optimizations are available.
+CI agents fall into two broad categories: persistent (long-lived, shared across jobs) and ephemeral (fresh for every job).
+
+[[gradle_on_ci_persistent_agents]]
+==== Persistent (long-lived) agents
+
+Persistent agents run multiple jobs over time.
+They can benefit from the Daemon and local caches, but they need regular workspace cleanup, size limits on the Gradle User Home, and isolation between concurrent jobs.
+
+WARNING: Do not let one job's project properties, initialization scripts, credentials, or generated outputs affect another job.
+
+For persistent-agent optimizations, see:
+
+* <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup, Configuring cache cleanup>> — rely on Gradle's automatic cleanup to bound the Gradle User Home and rotate old entries, rather than letting it grow without limit.
+* <<file_system_watching.adoc#sec:daemon_watch_fs, File System Watching>> — a long-lived daemon can watch the filesystem to speed up input tracking.
+* <<performance.adoc#performance_gradle, Improving performance>> — general build performance guidance that persistent agents can carry across jobs.
+
+[[gradle_on_ci_ephemeral_agents]]
+==== Ephemeral agents
+
 Ephemeral agents are deleted after a job.
 They benefit from a CI cache restore, a remote Build Cache, and a correctly scoped Gradle User Home, but they cannot benefit from a Daemon or local task outputs after the job ends.
 
-Persistent agents run multiple jobs over time.
-They can benefit from the Daemon and local caches, but they need regular workspace cleanup, bounded Gradle User Homes, and isolation between concurrent jobs.
-Do not let one job's project properties, initialization scripts, credentials, or generated outputs affect another job.
+When configuring a CI provider's cache action to persist parts of the Gradle User Home between jobs, include only the paths that are safe to share and that improve reuse.
 
-[[gradle_on_ci_docker]]
-=== Use Docker images with explicit cache boundaries
+Include the following:
 
-Gradle publishes Docker images and provides guidance for running builds in containers in <<docker.adoc#docker,Docker Images>>.
-Pin the image/JDK and use the Gradle Wrapper so the container's operating system and the project's Gradle version are explicit.
+* `caches/modules-2` — downloaded dependency metadata and artifacts.
+* `caches/<gradle-version>/kotlin-dsl` and `caches/<gradle-version>/scripts` — compiled build-script state.
+* `wrapper/dists/<gradle-version>` — the Gradle distribution downloaded by the Wrapper, if the CI image does not already ship it.
 
-For faster container builds, cache only directories that are safe for the image and job, such as compatible dependency and compiled-script caches.
-Keep project outputs and configuration-cache state associated with the correct workspace.
-Do not copy a host Gradle User Home into a container when its paths, operating system, JDK, permissions, or Gradle version are incompatible.
+Exclude the following unless the CI setup explicitly requires them and the security and correctness implications are understood:
+
+* Credentials or any secret material Gradle reads from environment variables, `gradle.properties`, or an init script.
+* Initialization scripts (`init.d/`) — treat them as build inputs and provide them per-job.
+* Logs and notification state — job-local, not portable, and can leak information across jobs.
+* Daemon state (`daemon/`) — the Daemon does not resume across agent lifetimes.
+
+Key the cache by the axes that affect resolution and compilation: operating system, architecture, JDK, Gradle Wrapper version, and the files that describe your dependencies (`build.gradle*`, `settings.gradle*`, `gradle-wrapper.properties`, and any version catalog).
+Sharing a cache between incompatible operating systems, architectures, JDKs, or Gradle versions can reduce hit rates and cause cache restoration or file-locking problems.
+
+See <<directory_layout.adoc#dir:caches, Cache layout>> for the full directory structure.
+
+For more ephemeral-agent optimizations, see the link:https://blog.gradle.org/gradle-on-ephemeral-ci-1[Gradle on Ephemeral CI blog series].
 
 [[gradle_on_ci_diagnostics]]
 === Diagnose slow or unreliable CI builds
@@ -132,11 +146,11 @@ Do not copy a host Gradle User Home into a container when its paths, operating s
 When a CI build is slow, record whether the cause is Daemon startup, dependency downloads, build-script compilation, configuration, task execution, or cache misses.
 Useful starting points are:
 
-* `--info` for additional execution and cache information;
-* `--scan` when build scans are enabled for the project;
-* the Configuration Cache report when configuration-cache problems are reported;
-* the Build Cache debugging guidance when task outputs are not reused;
-* the CI provider's cache and workspace logs.
+* `--info` for additional execution and cache information
+* `--scan` when build scans are enabled for the project
+* the Configuration Cache report when configuration-cache problems are reported
+* the Build Cache debugging guidance when task outputs are not reused
+* the CI provider's cache and workspace logs
 
 Compare cold and warm runs separately.
 A cache restore can improve one phase while adding overhead to another, so measure the complete CI job rather than only the Gradle command.
