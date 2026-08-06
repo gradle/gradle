@@ -30,7 +30,7 @@ image::plugin-portal-page.png[]
 
 Before publishing, create a {portal} account and generate an API key:
 
-- Register at the link:https://plugins.gradle.org/user/register[Portal registration page].
+- Register at the link:https://plugins.gradle.org[Portal registration page].
 - Retrieve your API key from the “API Keys” tab in your profile.
 
 TIP: You can also retrieve your API key using the `login` task when the `plugin-publish` plugin is applied.

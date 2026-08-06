@@ -153,13 +153,13 @@ These are harmless notifications about changes to Gradle's caches and can be saf
 == Troubleshooting
 
 Gradle does not detect some changes::
-_Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack]._
+_Please https://gradle-community.slack.com/[let us know on the Gradle community Slack]._
 If a build declares its inputs and outputs correctly, this should not happen.
 So it's either a bug we must fix or your build lacks declaration for some inputs or outputs.
 
 VFS state dropped due to lost state::
 Did you receive a message that reads `Dropped VFS state due to lost state` during a build?
-_Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack]._
+_Please https://gradle-community.slack.com[let us know on the Gradle community Slack]._
 This means that your build cannot benefit from file system watching for one of the following reasons:
 
 * the Daemon received an unknown file system event
@@ -167,7 +167,6 @@ This means that your build cannot benefit from file system watching for one of t
 
 Too many open files on macOS::
 If you receive the `java.io.IOException: Too many open files` error on macOS, raise your open files limit.
-See https://superuser.com/a/443168/8117[this post] for more details.
 
 [[sec:inotify_watches_limit]]
 ===  Adjust inotify watches limit on Linux

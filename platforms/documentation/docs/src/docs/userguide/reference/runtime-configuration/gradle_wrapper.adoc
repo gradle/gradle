@@ -365,7 +365,7 @@ To specify the HTTP Basic Authentication credentials in `distributionUrl`, add t
 
 [source,properties]
 ----
-distributionUrl=https://username:password@somehost/path/to/gradle-distribution.zip
+distributionUrl=https://username:password@your.secure.repo/path/to/gradle-distribution.zip
 ----
 
 This can be used in conjunction with a proxy, authenticated or not.
@@ -544,7 +544,7 @@ First, import the Gradle public key (see link:https://gradle.org/keys/[Gradle Ke
 
 [source,bash]
 ----
-$ curl --location https://keys.openpgp.org/vks/v1/by-fingerprint/7B79310A0A3F8B081C8A0B4EE0A56BE8F025F892 | gpg --import
+$ curl --location https://keys.openpgp.org/vks/v1/by-fingerprint/<FINGERPRINT> | gpg --import
 ----
 
 Then download the signature file and verify:
