@@ -22,6 +22,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.persistentCache)
     api(projects.processServicesApi)
+    api(projects.providerApi)
     api(projects.resources)
     api(projects.startParameter)
     api(projects.stdlibJavaExtensions)

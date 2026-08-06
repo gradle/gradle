@@ -146,6 +146,7 @@ val core = platform("core") {
         subproject("project-features")
         subproject("project-features-api")
         subproject("project-features-demos")
+        subproject("provider-api")
     }
 
     // Core Execution Module
