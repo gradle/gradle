@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -42,11 +43,6 @@ import java.nio.file.Path;
  * This task is like the {@link Copy} task, except the destination directory will only contain the files
  * copied. All files that exist in the destination directory will be deleted before copying files, unless
  * a {@link #preserve(Action)} is specified.
- *
- * <p>
- * Since Gradle 9.8.0, an empty source no longer skips the task: the destination is cleared instead
- * (unless there is no record of a previous sync into that destination, in which case the task does nothing
- * to avoid wiping content it never wrote).
  *
  * <p>
  * Examples:
@@ -86,10 +82,14 @@ public abstract class Sync extends AbstractCopyTask {
     @Override
     protected void copy() {
         File destinationDir = getDestinationDir();
-        if (destinationDir != null && !hasPreviousOutputFilesUnder(destinationDir) && isSourceEmpty()) {
-            // Empty source without history: skip to avoid wiping external files.
-            // Untracked tasks have no history, so they always take this path when empty.
+        if (destinationDir != null
+            && !getBuildOutputCleanupRegistry().isOutputOwnedByBuild(destinationDir)
+            && !hasPreviousOutputFilesUnder(destinationDir)
+            && isSourceEmpty()) {
             setDidWork(false);
+            // we used to skip the task on empty input but no longer do, so, for the sake of safety,
+            // if there is no previous record of syncing into the destination, and it is not build-owned,
+            // don't do anything
             return;
         }
         super.copy();
@@ -191,4 +191,7 @@ public abstract class Sync extends AbstractCopyTask {
 
     @Inject
     protected abstract Deleter getDeleter();
+
+    @Inject
+    protected abstract BuildOutputCleanupRegistry getBuildOutputCleanupRegistry();
 }
