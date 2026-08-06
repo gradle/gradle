@@ -18,12 +18,14 @@ package org.gradle.internal.operations;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Runs build operations: the pieces of work that make up a build.
  * Build operations can be nested inside other build operations.
  */
+@NullMarked
 @ServiceScope(Scope.Global.class)
 public interface BuildOperationRunner {
     /**

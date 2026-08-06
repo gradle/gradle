@@ -17,8 +17,8 @@ dependencies {
     implementation(projects.testingJvm)
     implementation(projects.workers)
 
-    implementation(libs.commonsIo)
     implementation(libs.guava)
+    implementation(libs.inject)
 
     api(projects.baseServices)
     api(projects.buildOperations)
