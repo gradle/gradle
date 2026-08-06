@@ -258,6 +258,24 @@ Across depths, the root-most declaration takes complete precedence and any deepe
 This protects a project's right to control the versions of its direct dependencies without negotiation with the components it depends on.
 ====
 
+[[sec:strictly-override-resolution-strategy]]
+==== Overriding `strictly` from the resolution strategy
+
+The precedence rules above govern how competing `strictly` declarations resolve against one another within the graph.
+Sitting above all of them, a project keeps one final escape hatch: the configuration's resolution strategy.
+
+Both of the following override a `strictly` constraint outright, and can select a version *outside* its accepted range:
+
+* <<how_to_downgrade_transitive_dependencies.adoc#sec:forcing_version_configuration,`resolutionStrategy.force(...)`>> replaces the resolved version regardless of any `strictly` declaration in the graph.
+* A <<resolution_rules.adoc#sec:dependency-resolve-rules,dependency resolve rule>> (`resolutionStrategy.eachDependency { ... useVersion(...) }`) likewise wins over `strictly`.
+
+[NOTE]
+====
+This is why "a strict version cannot be overridden" holds only _within the dependency graph_.
+Other participants in the graph cannot override a project's `strictly`, but the consuming project can always override it through its own resolution strategy.
+Prefer `strictly` to express version intent — it is published in <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>> and participates in conflict resolution — and reserve `force` and resolve rules for local, last-resort overrides.
+====
+
 [[sec:strictly-from-platform]]
 === `strictly` constraints from platforms
 
