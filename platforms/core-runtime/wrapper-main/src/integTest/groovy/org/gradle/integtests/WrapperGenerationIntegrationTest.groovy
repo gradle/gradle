@@ -29,6 +29,7 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
+import java.nio.charset.StandardCharsets
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 
@@ -104,6 +105,37 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
+    }
+
+    // These are the byte offsets that 9.0-9.7 executions might land around, so the safety net
+    // must contain them.
+    private static final int MAX_SAFETY_NET_FILLER_START = 2486
+    private static final int MIN_SAFETY_NET_TERMINATOR_START = 2737
+
+    @Issue("https://github.com/gradle/gradle/issues/38082")
+    def "generated batch script contains the overwrite safety net"() {
+        when:
+        run "wrapper", "--no-validate-url"
+
+        then:
+        byte[] bytes = file("gradlew.bat").bytes
+        String text = new String(bytes, StandardCharsets.US_ASCII)
+        bytes.length == text.length()
+
+        and:
+        String skipLine = 'goto afterSafetyNet\r\n'
+        String net = skipLine +
+            (':' * 78 + '\r\n') * 20 +
+            'goto exitWithErrorLevel\r\n' +
+            ':afterSafetyNet\r\n'
+        int netStart = text.indexOf(net)
+        netStart > 0
+
+        and:
+        int fillerStart = netStart + skipLine.length()
+        int terminatorStart = text.indexOf('goto exitWithErrorLevel\r\n', fillerStart)
+        fillerStart <= MAX_SAFETY_NET_FILLER_START
+        terminatorStart >= MIN_SAFETY_NET_TERMINATOR_START
     }
 
     // NOTE: this test will fail on any changes to wrapper code
