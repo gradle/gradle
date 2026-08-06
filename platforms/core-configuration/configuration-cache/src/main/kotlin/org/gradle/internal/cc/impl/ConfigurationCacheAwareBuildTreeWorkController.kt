@@ -24,7 +24,6 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeWorkController
-import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 import org.gradle.internal.cc.impl.heap.HeapDumper
@@ -47,13 +46,13 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             "$path/${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}"
         }
 
-    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): TaskRunResult {
+    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
         val scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder? = taskSelector?.let { selector ->
             { rootBuildState ->
                 addFinalization(rootBuildState, selector::postProcessExecutionPlan)
             }
         }
-        val executionResult: TaskRunResult? = workGraph.withNewWorkGraph { graph ->
+        val executionResult: ExecutionResult<Void>? = workGraph.withNewWorkGraph { graph ->
             val result = Try.ofFailable {
                 cache.loadOrScheduleRequestedTasks(
                     graph = graph,
@@ -62,7 +61,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             }
 
             if (!result.isSuccessful) {
-                return@withNewWorkGraph TaskRunResult.ofScheduleFailure(result.failure.get())
+                return@withNewWorkGraph ExecutionResult.failed(result.failure.get())
             }
 
             // There are four outcomes:
@@ -79,7 +78,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 null
             } else {
                 maybeDumpHeap("cc-hit")
-                TaskRunResult.ofExecutionResult(workExecutor.execute(workGraph.graph))
+                workExecutor.execute(workGraph.graph)
             }
         }
         if (executionResult != null) {
@@ -105,9 +104,9 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 // The just-stored graph could not be fully restored, so its state is unreliable and must not be executed.
                 // No tasks run, hence no execution-phase failures here; the restoration problem fails the build through
                 // the configuration cache problem report at the end of the build (ConfigurationCacheProblems.report).
-                TaskRunResult.ofExecutionResult(ExecutionResult.succeeded())
+                ExecutionResult.succeeded()
             } else {
-                TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
+                workExecutor.execute(finalizedGraph)
             }
         }
     }
