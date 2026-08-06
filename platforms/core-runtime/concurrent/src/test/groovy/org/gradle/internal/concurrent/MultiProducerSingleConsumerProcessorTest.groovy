@@ -303,18 +303,19 @@ class MultiProducerSingleConsumerProcessorTest extends ConcurrentSpec {
         def failureInstance = new RuntimeException("failed")
         def processor = newProcessor { throw failureInstance }
         processor.start()
+        processor.submit(1)
+        // Joining the worker guarantees the failure is visible and the worker has
+        // finished unwinding, so start() reports the failure instead of racing
+        // against the worker still being marked as running.
+        stopQuietly(processor)
 
         when:
-        processor.submit(1)
+        processor.start()
 
         then:
-        def e = waitForFailure { processor.start() }
-        e instanceof IllegalStateException
+        def e = thrown(IllegalStateException)
         e.message == "Cannot restart processor after it failed."
         e.cause.is(failureInstance)
-
-        cleanup:
-        stopQuietly(processor)
     }
 
     def "processes more than batch size"() {
