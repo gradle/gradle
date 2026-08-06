@@ -76,7 +76,6 @@ public interface MavenPomContributor {
      * @since 4.8
      */
     @Input
-    @Optional
     SetProperty<String> getRoles();
 
     /**

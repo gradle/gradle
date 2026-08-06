@@ -629,4 +629,39 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
         then:
         TextUtil.convertLineSeparatorsToUnix(file("build/publications/maven/pom-default.xml").text.trim()) == expected.replace("<description>custom-description</description>", "<description>another-description</description>")
     }
+
+    // Eventually, we will want to serialize the XML action and allow the task to be be up-to-date
+    def "GenerateMavenPom with a withXml block is never up-to-date"() {
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                        pom {
+                            withXml {
+                                asNode().appendNode("description", "custom-description")
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        executedAndNotSkipped(":generatePomFileForMavenPublication")
+
+        when:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        executedAndNotSkipped(":generatePomFileForMavenPublication")
+    }
 }
