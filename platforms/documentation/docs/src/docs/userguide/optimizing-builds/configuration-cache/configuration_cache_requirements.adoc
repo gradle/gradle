@@ -722,9 +722,9 @@ When process isolation is used, the worker action is executed in a separate work
 
 In simple cases, when the libraries also provide command-line entry points (`public static void main()` method), you can also use the link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[`JavaExec`] task to isolate the library.
 
-The agent also affects hot-swapping build logic classes in a running build.
-It prevents Hot Code Replace of such classes: Gradle logs a warning and ignores the recompiled definition.
-You should not rely on Hot Code Replace when debugging build logic; restart the build to pick up such a change.
+Gradle's instrumentation agent also affects hot-swapping build logic classes in a running build.
+Gradle serves pre-instrumented bytecode for buildscript and plugin classes, so a Hot Code Replace of such a class is ignored: Gradle logs a warning and keeps the pre-instrumented definition.
+You should not rely on Hot Code Replace when debugging build logic; restart the build to pick up your edit.
 
 [[config_cache:secrets]]
 == Handling of Credentials and Secrets
@@ -791,6 +791,9 @@ $ export GRADLE_ENCRYPTION_KEY="your-generated-key-here"
 The Configuration Cache supports third-party `-javaagent:` attachments to the build JVM (for example a coverage agent such as Jacoco, IntelliJ's `idea_rt.jar`, or a custom user agent) in regular daemon builds and in <<test_kit#test_kit, TestKit>>'s default (daemon) mode.
 
 Only agents attached at JVM startup are supported. Agents attached dynamically via the Attach API after the JVM has started are not detected and may cause incorrect bytecode observation on classes loaded after attachment.
+
+The JDWP debug agent and async-profiler are recognized and do not trigger third-party agent handling, so a debugging or profiling session runs the same instrumentation path as a regular build.
+Note that debugger-initiated Hot Code Replace of instrumented buildscript or plugin classes is not honored, see <<config_cache:requirements:bytecode_modifications_and_isolation, Bytecode Modifications and Java Agent>> for details.
 
 It is not supported when TestKit runs in embedded mode (`withDebug(true)`). To use a third-party Java agent with the Configuration Cache from there, drop `withDebug(true)` and let TestKit use its daemon default.
 
