@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -36,8 +38,10 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
@@ -63,13 +67,37 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
  * 2. Attached: in this case the Edge has been connected to actual nodes in the target component. Only possible if the {@link SelectorState} did not fail to resolve.
  */
 class EdgeState implements DependencyGraphEdge {
-    private final DependencyState dependencyState;
+
+    /**
+     * The originally requested component, before substitution.
+     */
+    private final ComponentSelector requested;
+
+    /**
+     * The metadata of the declared dependency, after substitution.
+     */
     private final DependencyMetadata dependencyMetadata;
+
+    /**
+     * Describes the substitutions applied to this dependency, if any.
+     */
+    private final ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors;
+
+    /**
+     * If non-null, the failure that occurred while trying to substitute this dependency.
+     */
+    private final @Nullable ModuleVersionResolveException substitutionFailure;
+
     private final NodeState from;
     private final ResolveState resolveState;
     private final List<NodeState> targetNodes = new LinkedList<>();
     private final boolean isTransitive;
     private final boolean isConstraint;
+
+    /**
+     * The identifier of the module that this edge targets, after substitution.
+     */
+    private final ModuleIdentifier targetModuleIdentifier;
 
     private @Nullable SelectorState selector;
     private @Nullable ModuleVersionResolveException targetNodeSelectionFailure;
@@ -93,17 +121,30 @@ class EdgeState implements DependencyGraphEdge {
     ) {
         this.from = from;
         this.dependencyMetadata = metadata;
+        this.requested = requested;
+        this.ruleDescriptors = ruleDescriptors;
+        this.substitutionFailure = resolveFailure;
         this.resolveState = resolveState;
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
         this.isConstraint = dependencyMetadata.isConstraint();
+        this.targetModuleIdentifier = computeTargetModuleIdentifier(dependencyMetadata.getSelector(), resolveState);
+    }
 
-        // TODO: DependencyState should eventually be merged into EdgeState
-        this.dependencyState = new DependencyState(metadata, requested, ruleDescriptors, resolveFailure);
+    /**
+     * Determine the identifier of the module that this edge targets.
+     * <p>
+     * For non-module selectors, this may resolve the identity of the target component.
+     */
+    private static ModuleIdentifier computeTargetModuleIdentifier(ComponentSelector componentSelector, ResolveState resolveState) {
+        if (componentSelector instanceof ModuleComponentSelector) {
+            return ((ModuleComponentSelector) componentSelector).getModuleIdentifier();
+        }
+        return resolveState.getComponentSelectorConverter().getModuleVersionId(componentSelector).getModule();
     }
 
     boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions, boolean deferSelection) {
-        boolean ignoreVersion = !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
-        ComponentSelector componentSelector = dependencyState.getDependency().getSelector();
+        boolean ignoreVersion = !isForced() && ancestorsStrictVersions.contains(getTargetModuleIdentifier());
+        ComponentSelector componentSelector = dependencyMetadata.getSelector();
         SelectorState newSelector = resolveState.computeSelectorFor(componentSelector, ignoreVersion);
         if (this.selector != newSelector) {
             clearSelector();
@@ -129,7 +170,7 @@ class EdgeState implements DependencyGraphEdge {
      * the lenient forcing applied by virtual platform alignment.
      */
     boolean isHardForcing() {
-        return dependencyState.isForced() && !(dependencyMetadata instanceof LenientPlatformDependencyMetadata);
+        return isForced() && !(dependencyMetadata instanceof LenientPlatformDependencyMetadata);
     }
 
     /**
@@ -137,7 +178,26 @@ class EdgeState implements DependencyGraphEdge {
      * as part of virtual platform alignment.
      */
     boolean isSoftForcing() {
-        return dependencyState.isForced() && dependencyMetadata instanceof LenientPlatformDependencyMetadata;
+        return isForced() && dependencyMetadata instanceof LenientPlatformDependencyMetadata;
+    }
+
+    /**
+     * True if this edge forces the version of the component selector it resolves.
+     */
+    private boolean isForced() {
+        for (ComponentSelectionDescriptorInternal ruleDescriptor : ruleDescriptors) {
+            if (ruleDescriptor.isEquivalentToForce()) {
+                return true;
+            }
+        }
+        return dependencyMetadata instanceof ForcingDependencyMetadata && ((ForcingDependencyMetadata) dependencyMetadata).isForce();
+    }
+
+    /**
+     * The identifier of the module that this edge targets.
+     */
+    ModuleIdentifier getTargetModuleIdentifier() {
+        return targetModuleIdentifier;
     }
 
     /**
@@ -232,7 +292,6 @@ class EdgeState implements DependencyGraphEdge {
      * end fail resolution.
      */
     void failWith(Throwable err) {
-        ComponentSelector requested = dependencyState.getRequested();
         ComponentSelector attempted = selector.getComponentSelector();
         if (attempted.equals(requested)) {
             targetNodeSelectionFailure = new ModuleVersionResolveException(attempted, err);
@@ -312,7 +371,7 @@ class EdgeState implements DependencyGraphEdge {
                     }
                     ModuleVersionResolveException targetNodeFailure = unattachedEdge.targetNodeSelectionFailure;
                     if (targetNodeFailure == null) {
-                        targetNodeFailure = unattachedEdge.dependencyState.getSubstitutionFailure();
+                        targetNodeFailure = unattachedEdge.substitutionFailure;
                     }
                     if (targetNodeFailure == null && unattachedEdge.selector != null) {
                         targetNodeFailure = unattachedEdge.selector.getFailure();
@@ -398,7 +457,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public boolean isFromLock() {
-        return dependencyState.isFromLock();
+        return dependencyMetadata instanceof LocalOriginDependencyMetadata && ((LocalOriginDependencyMetadata) dependencyMetadata).isFromLock();
     }
 
     public static class GraphVariantSelectionResult {
@@ -458,13 +517,13 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ComponentSelector getRequested() {
-        return resolveState.desugarSelector(dependencyState.getRequested());
+        return requested;
     }
 
     @Override
     public @Nullable ModuleVersionResolveException getFailure() {
-        if (dependencyState.getSubstitutionFailure() != null) {
-            return dependencyState.getSubstitutionFailure();
+        if (substitutionFailure != null) {
+            return substitutionFailure;
         }
         if (targetNodeSelectionFailure != null) {
             return targetNodeSelectionFailure;
@@ -511,12 +570,11 @@ class EdgeState implements DependencyGraphEdge {
     public void visitSelectionReasons(Consumer<ComponentSelectionDescriptorInternal> visitor) {
         visitor.accept(getMainReason());
 
-        ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors = dependencyState.getRuleDescriptors();
         if (!ruleDescriptors.isEmpty()) {
             ruleDescriptors.forEach(visitor);
         }
 
-        if (dependencyState.isForced()) {
+        if (isForced()) {
             visitor.accept(FORCED);
         }
     }
@@ -524,7 +582,7 @@ class EdgeState implements DependencyGraphEdge {
     private ComponentSelectionDescriptorInternal getMainReason() {
         if (selector != null && selector.isVersionProvidedByAncestor()) {
             return withDependencyReason(BY_ANCESTOR);
-        } else if (dependencyState.getDependency().isConstraint()) {
+        } else if (isConstraint) {
             return withSelectorReason(withDependencyReason(CONSTRAINT));
         } else {
             return withSelectorReason(withDependencyReason(REQUESTED));
@@ -532,7 +590,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     private ComponentSelectionDescriptorInternal withDependencyReason(ComponentSelectionDescriptorInternal dependencyDescriptor) {
-        String reason = dependencyState.getDependency().getReason();
+        String reason = dependencyMetadata.getReason();
         if (reason != null) {
             dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
         }
@@ -546,10 +604,6 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public boolean isConstraint() {
         return isConstraint;
-    }
-
-    DependencyState getDependencyState() {
-        return dependencyState;
     }
 
     public void updateTransitiveExcludes(ExcludeSpec newResolutionFilter) {
