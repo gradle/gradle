@@ -76,6 +76,16 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
+// :provider-api compiles its file collection types against empty stubs of some core-api types
+// (see :file-api-stubs). Declaring the stubs capability here should make dependency resolution
+// prefer this project over the stubs if both ever end up in the same resolution graph.
+listOf(configurations.apiElements, configurations.runtimeElements).forEach { element ->
+    element.configure {
+        outgoing.capability(provider { "${project.group}:${project.name}:${project.version}" })
+        outgoing.capability(provider { "${project.group}:file-api-stubs:${project.version}" })
+    }
+}
+
 
 // AutoTestedSamplesCoreApiIntegrationTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
 integTest.generateDefaultAutoTestedSamplesTest = false

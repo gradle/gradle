@@ -95,6 +95,14 @@ fun applyAutomaticUpgradeOfCapabilities() {
         resolutionStrategy.capabilitiesResolution.all {
             selectHighestVersion()
         }
+        // :core-api declares the capability of :file-api-stubs, the empty stubs that :provider-api
+        // compiles against. Both provide the same version, so selectHighestVersion() cannot break
+        // the tie: always prefer the real classes from :core-api.
+        resolutionStrategy.capabilitiesResolution.withCapability("org.gradle", "file-api-stubs") {
+            candidates.firstOrNull { (it.id as? org.gradle.api.artifacts.component.ProjectComponentIdentifier)?.projectName == "core-api" }?.let {
+                select(it)
+            }
+        }
     }
 }
 
