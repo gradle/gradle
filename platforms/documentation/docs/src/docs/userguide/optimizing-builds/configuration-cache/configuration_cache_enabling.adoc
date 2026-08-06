@@ -156,7 +156,7 @@ The read-only configuration caching feature is _incubating_.
 Read-only mode is intended for environments where the cache directory is not preserved across builds.
 It is *not* a mechanism for catching Configuration Cache problems in build logic.
 On a cache miss, read-only mode skips serialization entirely so the build runs as fast as possible, which means any execution-time Configuration Cache violations in your build logic will not be detected.
-Use the default mode (with `org.gradle.configuration-cache.problems=fail`) if your goal is to verify that your build is Configuration Cache compatible.
+Use the default mode if your goal is to verify that your build is Configuration Cache compatible.
 ====
 
 [[config_cache:stable]]

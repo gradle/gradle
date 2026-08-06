@@ -13,7 +13,7 @@ abstract class StampBuildTask extends DefaultTask {
 }
 
 tasks.register('stampBuild', StampBuildTask) {
-    // BAD: reads the env var at configuration time
+    // Eager: reads the env var at configuration time; still tracked correctly, but re-runs configuration whenever the value changes
     buildNumber = System.getenv('BUILD_NUMBER') ?: 'local'
     output = layout.buildDirectory.file('build-stamp.txt')
 }

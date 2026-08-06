@@ -33,7 +33,7 @@ You have successfully adopted the Configuration Cache when:
 
 . `org.gradle.configuration-cache=true` is set in your `gradle.properties` (committed, not local-only).
 . Your everyday development tasks (the ones developers run dozens of times a day) hit the cache.
-. CI runs with `org.gradle.configuration-cache.problems=fail` (the default), so any change that breaks CC on a developer machine also fails the CI build. Ephemeral CI runners don't benefit from cache reuse across builds — the goal here is regression prevention, not runtime speedup. Individual jobs that legitimately cannot use CC (typically a specific publishing or release step in a plugin without CC support yet) opt out with `--no-configuration-cache`.
+. CI does not use warning mode, so any change that breaks CC on a developer machine also fails the CI build. Ephemeral CI runners don't benefit from cache reuse across builds — the goal here is regression prevention, not runtime speedup. Individual jobs that legitimately cannot use CC (typically a specific publishing or release step in a plugin without CC support yet) opt out with `--no-configuration-cache`.
 . Any task that genuinely cannot be CC-compatible is explicitly marked using <<configuration_cache_debugging.adoc#config_cache:task_opt_out, `notCompatibleWithConfigurationCache("reason")`>>.
 
 [[config_cache:adoption_guide:before_you_start]]
@@ -192,7 +192,7 @@ If you only have an error fragment to start from rather than a full report entry
 The configuration-time patterns most often surfaced at this stage fall into two categories:
 
 * **Hard failures that prevent storing a cache entry** — registering build listeners such as `Gradle.buildFinished`, `Gradle.projectsEvaluated`, or `TaskExecutionListener`. Replace with a `BuildService` implementing `OperationCompletionListener`.
-* **Excessive build inputs that survive but invalidate the cache too often** — reading the environment (`System.getenv` / `System.getProperty` → `providers.environmentVariable` / `providers.systemProperty`) or reading files at configuration time (`File.readText` / `file(...).exists()` → `providers.fileContents`). These do not fail the build; Gradle tracks them as inputs, but the tracking is coarser than the equivalent provider API, so a value change will invalidate more of the cache than necessary. Fix the hard failures first, then clean these up as a follow-up.
+* **Optional cleanups that improve cache hit rate** — reading the environment (`System.getenv` / `System.getProperty`) or reading files (`File.readText` / `file(...).exists()`) at configuration time. These do not fail the build; Gradle records them as build configuration inputs and the cache invalidates correctly when the value changes. Switching to `providers.environmentVariable` / `providers.systemProperty` / `providers.fileContents` defers the read to execution time, so the same value change re-runs only the affected task instead of the whole configuration phase. Worth doing when a specific input rotates often (e.g., `BUILD_NUMBER` on CI); otherwise optional.
 The full pattern catalog is in the <<configuration_cache_requirements.adoc#config_cache:requirements, Configuration Cache Requirements for your Build Logic>>.
 
 Iterate until `help` produces `Configuration cache entry stored.` with no problems reported.
@@ -285,10 +285,10 @@ The patterns fall into two groups.
 * <<configuration_cache_requirements.adoc#config_cache:requirements:task_extensions, Accessing Task Extensions or Conventions>>: reading `task.extensions[...]` or `task.ext` at execution time; expose the value as a typed task property.
 * <<configuration_cache_requirements.adoc#config_cache:requirements:gradle_model_types, Gradle Model Types>>: capturing `Project`, `Gradle`, `Settings`, or `SourceSet` references in task fields; capture the value you actually need into a typed `Property` at configuration time.
 
-**Excessive build inputs — these survive but track more coarsely than the equivalent provider API, so a value change will invalidate more of the cache than necessary. Clean these up after the hard failures are gone:**
+**Optional cleanups — these builds work under CC, but reading eagerly at configuration time forces the whole configuration phase to re-run whenever the value changes. If a specific input rotates often on CI, switching to the lazy provider is worth it. Otherwise leave them:**
 
-* <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, Reading System Properties and Environment Variables>>: `System.getenv` or `System.getProperty` at configuration time; replace with `providers.environmentVariable` or `providers.systemProperty`.
-* <<configuration_cache_requirements.adoc#config_cache:requirements:undeclared_file_read, Undeclared Reading of Files>>: direct `File.readText()` or `file().exists()` at configuration time; replace with `providers.fileContents`.
+* <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, Reading System Properties and Environment Variables>>: `System.getenv` or `System.getProperty` at configuration time → `providers.environmentVariable` or `providers.systemProperty`.
+* <<configuration_cache_requirements.adoc#config_cache:requirements:undeclared_file_read, Undeclared Reading of Files>>: direct `File.readText()` or `file().exists()` at configuration time → `providers.fileContents`.
 
 If you only have an error fragment to start from, use <<configuration_cache_debugging.adoc#config_cache:debugging:common_errors, Common Errors and Where to Look>> on the Debugging page to translate it to the underlying pattern and the fix.
 
@@ -447,15 +447,12 @@ Cache hits on CI *can* happen, but they require a specific setup: a `GRADLE_USER
 Ephemeral runners will always cache-miss, and that is expected.
 Even without hits, CC's parallel task execution recovers some of the overhead of storing the entry, so enabling CC on CI is rarely a net negative.
 
-Leave CI in the default **strict** problem mode (`org.gradle.configuration-cache.problems=fail`), not warning mode.
-CI is where regressions should fail visibly.
+Do not enable warning mode on CI. CI is where regressions should fail visibly.
 
 [source,properties]
 .gradle.properties (committed)
 ----
 org.gradle.configuration-cache=true
-# Leave the default; do NOT set this to "warn" on CI.
-# org.gradle.configuration-cache.problems=fail
 ----
 
 === Encryption Key on Shared CI Environments

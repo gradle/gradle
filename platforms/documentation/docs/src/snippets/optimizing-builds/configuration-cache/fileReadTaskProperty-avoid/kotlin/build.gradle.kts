@@ -13,7 +13,7 @@ abstract class GenerateReportTask : DefaultTask() {
 }
 
 tasks.register<GenerateReportTask>("generateReport") {
-    // BAD: file read happens during configuration
+    // Eager: file read happens during configuration; tracked correctly, but any change re-runs configuration
     title = file("config/title.txt").readText().trim()
     output = layout.buildDirectory.file("report.txt")
 }

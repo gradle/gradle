@@ -130,8 +130,6 @@ Instead, use lazy providers that defer resolution:
 
 IMPORTANT: The `Provider` returned by `getResolvedArtifacts()` is Configuration Cache-compatible, and the `ResolvedArtifactResult` type is itself serializable, so you can wire the provider directly into a `SetProperty<ResolvedArtifactResult>` task property. If you prefer, you can still use `Provider.map()` to extract only the data you need (artifact identifiers, variant information, files) into your own serializable types and wire those into your task's input properties. See <<artifact_resolution.adoc#sec:resolving_artifacts, Resolving artifacts>> for a complete example of this pattern.
 
-NOTE: There is a known edge case (link:{gradle-issues}27582[gradle/gradle#27582]) where `getResolvedArtifacts()` fails Configuration Cache serialization when the resolved configuration contains only external dependencies and no project dependencies. As a workaround, store the `ArtifactCollection` itself as a task field and call `getResolvedArtifacts()` at execution time.
-
 Some types, such as `Publication` or `Dependency`, are not serializable but could be made so in the future.
 Gradle may allow them as task inputs if necessary.
 
@@ -743,26 +741,25 @@ If the value changes then the cache is invalidated and the process will be run a
 [[config_cache:requirements:reading_sys_props_and_env_vars]]
 == Reading System Properties and Environment Variables
 
-Plugins and build scripts may read system properties and environment variables directly at configuration time with standard Java, Groovy, or Kotlin APIs or with the value supplier APIs.
-Doing so makes such variables or properties a build configuration input.
-Therefore, changing their value invalidates the Configuration Cache.
+Plugins and build scripts may read system properties and environment variables directly at configuration time with standard Java, Groovy, or Kotlin APIs, or lazily through the value supplier APIs.
+Both work with the Configuration Cache: the read is correctly recorded as a build configuration input, and changing the value invalidates the cache so the build sees the new value.
 
 The Configuration Cache report includes a list of these build configuration inputs to help track them.
 
-In general, you should avoid reading the value of system properties and environment variables at configuration time to avoid cache misses when these values change.
-Instead, you can connect the `Provider` returned by link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[`providers.systemProperty()`] or
-link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[`providers.environmentVariable()`] to task properties.
+The value supplier APIs — link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[`providers.systemProperty()`] and
+link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[`providers.environmentVariable()`] — return a `Provider` that resolves at execution time.
+Wiring the provider into a task property lets the value change without invalidating the cache, so the task simply re-runs with the new value instead of forcing a full configuration re-run.
 
-The most common pre-Configuration Cache pattern reads an environment variable directly at configuration time and assigns the resolved string to a task property:
+The eager pattern reads an environment variable directly at configuration time and assigns the resolved string to a task property:
 
 ====
 include::sample[dir="snippets/optimizing-builds/configuration-cache/envVarsSysProps-taskProperty-avoid/kotlin",files="build.gradle.kts[tags=avoid]"]
 include::sample[dir="snippets/optimizing-builds/configuration-cache/envVarsSysProps-taskProperty-avoid/groovy",files="build.gradle[tags=avoid]"]
 ====
 
-This works, but the env-var read happens during configuration, so changing `BUILD_NUMBER` invalidates the Configuration Cache and re-runs the configuration phase on every CI build.
+This is a valid build under the Configuration Cache. The env-var read happens during configuration and Gradle records `BUILD_NUMBER` as a build configuration input, so changing the value correctly invalidates the cache. The cost is that a value change re-runs the entire configuration phase, which is undesirable on CI builds where the value rotates frequently.
 
-The Configuration Cache-friendly version uses `providers.environmentVariable()` and pipes the lazy provider into the task property:
+The deferred version uses `providers.environmentVariable()` and pipes the lazy provider into the task property:
 
 ====
 include::sample[dir="snippets/optimizing-builds/configuration-cache/envVarsSysProps-taskProperty-do/kotlin",files="build.gradle.kts[tags=do]"]
@@ -816,34 +813,33 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/envVarsSysPr
 [[config_cache:requirements:undeclared_file_read]]
 == Undeclared Reading of Files
 
-Plugins and build scripts should not read files directly using the Java, Groovy or Kotlin APIs at configuration time.
-Instead, declare files as potential build configuration inputs using the value supplier APIs.
+Plugins and build scripts may read files directly at configuration time using standard Java, Groovy, or Kotlin APIs, or lazily through link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[`providers.fileContents()`].
+Both work with the Configuration Cache: Gradle tracks the read via bytecode instrumentation, records the file as a build configuration input, and invalidates the cache when its contents change.
 
-This problem is caused by build logic similar to this:
+The eager pattern looks like this:
 
 ====
 include::sample[dir="snippets/optimizing-builds/configuration-cache/fileContentsDont/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/optimizing-builds/configuration-cache/fileContentsDont/groovy",files="build.gradle[]"]
 ====
 
-To fix this problem, read files using link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[`providers.fileContents()`] instead:
+The deferred version reads the file through `providers.fileContents()`, so the read happens at execution time and the file becomes a task input rather than a build configuration input:
 
 ====
 include::sample[dir="snippets/optimizing-builds/configuration-cache/fileContentsDo/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/optimizing-builds/configuration-cache/fileContentsDo/groovy",files="build.gradle[]"]
 ====
 
-In general, you should avoid reading files at configuration time, to avoid invalidating Configuration Cache entries when the file content changes.
-Instead, you can connect the `Provider` returned by link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[`providers.fileContents()`] to task properties.
+Preferring the deferred form is a good idea when the file content changes often, because a change re-runs only the affected task instead of forcing a full configuration re-run.
 
-A typical pre-Configuration Cache pattern reads a config file at configuration time and uses its contents to compute a task input:
+Here is a more complete example that reads a config file and uses its contents to compute a task input:
 
 ====
 include::sample[dir="snippets/optimizing-builds/configuration-cache/fileReadTaskProperty-avoid/kotlin",files="build.gradle.kts[tags=avoid]"]
 include::sample[dir="snippets/optimizing-builds/configuration-cache/fileReadTaskProperty-avoid/groovy",files="build.gradle[tags=avoid]"]
 ====
 
-Gradle tracks this read via bytecode instrumentation, so the file's contents do become a build configuration input — changing `config/title.txt` will invalidate the CC entry and re-run the configuration phase. The problem is that the read happens at configuration time when it does not need to, so a value change forces a full CC entry rebuild instead of just re-running the affected task.
+Gradle tracks this read and records `config/title.txt` as a build configuration input, so a change correctly invalidates the CC entry. The cost is that a change re-runs the entire configuration phase, not just the affected task.
 
 The Configuration Cache-friendly version reads the file through `providers.fileContents()`:
 
