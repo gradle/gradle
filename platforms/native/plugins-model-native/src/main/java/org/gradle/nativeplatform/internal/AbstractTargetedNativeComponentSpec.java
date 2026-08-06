@@ -17,8 +17,6 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 
@@ -29,6 +27,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public abstract class AbstractTargetedNativeComponentSpec extends AbstractNativeComponentSpec implements TargetedNativeComponentInternal {
 
     private final List<PlatformRequirement> targetPlatforms = new ArrayList<>();
@@ -56,13 +55,13 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
     }
 
     @Override
-    public Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates) {
-        return chooseElements(Flavor.class, candidates, flavors);
+    public Set<org.gradle.nativeplatform.Flavor> chooseFlavors(Set<? extends org.gradle.nativeplatform.Flavor> candidates) {
+        return chooseElements(org.gradle.nativeplatform.Flavor.class, candidates, flavors);
     }
 
     @Override
-    public Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates) {
-        return chooseElements(BuildType.class, candidates, buildTypes);
+    public Set<org.gradle.nativeplatform.BuildType> chooseBuildTypes(Set<? extends org.gradle.nativeplatform.BuildType> candidates) {
+        return chooseElements(org.gradle.nativeplatform.BuildType.class, candidates, buildTypes);
     }
 
     protected <T extends Named> Set<T> chooseElements(Class<T> type, Set<? extends T> candidates, Set<String> names) {

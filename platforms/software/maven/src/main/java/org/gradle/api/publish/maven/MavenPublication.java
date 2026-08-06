@@ -112,6 +112,7 @@ public interface MavenPublication extends Publication {
      * The POM that will be published.
      *
      * @return The POM that will be published.
+     * @since 1.4
      */
     @Nested
     MavenPom getPom();
@@ -122,6 +123,7 @@ public interface MavenPublication extends Publication {
      * The supplied action will be executed against the {@link #getPom()} result. This method also accepts a closure argument, by type coercion.
      *
      * @param configure The configuration action.
+     * @since 1.4
      */
     void pom(Action<? super MavenPom> configure);
 
@@ -155,6 +157,7 @@ public interface MavenPublication extends Publication {
      * </pre>
      *
      * @param component The software component to publish.
+     * @since 1.5
      */
     void from(SoftwareComponent component);
 
@@ -193,6 +196,7 @@ public interface MavenPublication extends Publication {
      * </pre>
      *
      * @param source The source of the artifact content.
+     * @since 1.5
      */
     MavenArtifact artifact(Object source);
 
@@ -231,6 +235,7 @@ public interface MavenPublication extends Publication {
      *
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link MavenArtifact}.
+     * @since 1.5
      */
     MavenArtifact artifact(Object source, Action<? super MavenArtifact> config);
 
@@ -260,45 +265,53 @@ public interface MavenPublication extends Publication {
      * </pre>
      *
      * @param sources The set of artifacts for this publication.
+     * @since 1.5
      */
     void setArtifacts(Iterable<?> sources);
 
     /**
      * Returns the complete set of artifacts for this publication.
      * @return the artifacts.
+     * @since 1.5
      */
     MavenArtifactSet getArtifacts();
 
     /**
      * Returns the groupId for this publication.
+     * @since 1.7
      */
     @ToBeReplacedByLazyProperty
     String getGroupId();
 
     /**
      * Sets the groupId for this publication.
+     * @since 1.7
      */
     void setGroupId(String groupId);
 
     /**
      * Returns the artifactId for this publication.
+     * @since 1.7
      */
     @ToBeReplacedByLazyProperty
     String getArtifactId();
 
     /**
      * Sets the artifactId for this publication.
+     * @since 1.7
      */
     void setArtifactId(String artifactId);
 
     /**
      * Returns the version for this publication.
+     * @since 1.7
      */
     @ToBeReplacedByLazyProperty
     String getVersion();
 
     /**
      * Sets the version for this publication.
+     * @since 1.7
      */
     void setVersion(String version);
 

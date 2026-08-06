@@ -18,10 +18,13 @@ package org.gradle.api.execution;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 import java.util.Set;
 
+// Public `TaskExecutionGraph` service shadowed at the project scope by the IP reporting wrapper
 /**
  * <p>A <code>TaskExecutionGraph</code> is responsible for managing the execution of the {@link Task} instances which
  * are part of the build. The <code>TaskExecutionGraph</code> maintains an execution plan of tasks to be executed (or
@@ -33,12 +36,15 @@ import java.util.Set;
  * <p>The <code>TaskExecutionGraph</code> is populated only after all the projects in the build have been evaluated. It
  * is empty before then. You can receive a notification when the graph is populated, using {@link
  * #whenReady(groovy.lang.Closure)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
+ * @since 0.7
  */
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface TaskExecutionGraph {
     /**
      * <p>Adds a listener to this graph, to be notified when this graph is ready.</p>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
+     * @since 0.7
      */
     void addTaskExecutionGraphListener(TaskExecutionGraphListener listener);
 
@@ -46,6 +52,7 @@ public interface TaskExecutionGraph {
      * <p>Remove a listener from this graph.</p>
      *
      * @param listener The listener to remove. Does nothing if this listener was never added to this graph.
+     * @since 0.7
      */
     void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener);
 
@@ -54,6 +61,7 @@ public interface TaskExecutionGraph {
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @since 0.7
      */
     @Deprecated
     void addTaskExecutionListener(TaskExecutionListener listener);
@@ -63,6 +71,7 @@ public interface TaskExecutionGraph {
      *
      * @param listener The listener to remove. Does nothing if this listener was never added to this graph.
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @since 0.7
      */
     @Deprecated
     void removeTaskExecutionListener(TaskExecutionListener listener);
@@ -77,6 +86,7 @@ public interface TaskExecutionGraph {
      * invoked.
      *
      * @param closure The closure to execute when this graph has been populated.
+     * @since 0.7
      */
     void whenReady(Closure closure);
 
@@ -101,6 +111,7 @@ public interface TaskExecutionGraph {
      *
      * @param closure The closure to execute when a task is about to be executed.
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @since 0.7
      */
     @Deprecated
     void beforeTask(Closure closure);
@@ -124,6 +135,7 @@ public interface TaskExecutionGraph {
      *
      * @param closure The closure to execute when a task has been executed
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @since 0.7
      */
     @Deprecated
     void afterTask(Closure closure);
@@ -146,6 +158,7 @@ public interface TaskExecutionGraph {
      * @param path the <em>absolute</em> path of the task.
      * @return true if a task with the given path is included in the execution plan.
      * @throws IllegalStateException When this graph has not been populated.
+     * @since 0.7
      */
     boolean hasTask(String path);
 
@@ -155,6 +168,7 @@ public interface TaskExecutionGraph {
      * @param task the task
      * @return true if the given task is included in the execution plan.
      * @throws IllegalStateException When this graph has not been populated.
+     * @since 0.7
      */
     boolean hasTask(Task task);
 
@@ -165,6 +179,7 @@ public interface TaskExecutionGraph {
      * </p>
      *
      * @return The tasks. Returns an empty list if no tasks are to be executed.
+     * @since 0.7
      */
     List<Task> getAllTasks();
 

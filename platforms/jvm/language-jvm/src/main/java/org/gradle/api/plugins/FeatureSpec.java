@@ -29,6 +29,7 @@ public interface FeatureSpec {
     /**
      * Declares the source set which this feature is built from.
      * @param sourceSet the source set
+     * @since 5.3
      */
     void usingSourceSet(SourceSet sourceSet);
 
@@ -52,6 +53,7 @@ public interface FeatureSpec {
      * @param group the group of the capability
      * @param name the name of the capability
      * @param version the version of the capability
+     * @since 5.3
      */
     void capability(String group, String name, String version);
 

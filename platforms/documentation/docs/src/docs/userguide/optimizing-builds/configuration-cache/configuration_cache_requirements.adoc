@@ -144,6 +144,24 @@ Sometimes, a disallowed type is indirectly referenced through another type.
 For example, a task may reference an allowed type that, in turn, references a disallowed type.
 The hierarchical view in the HTML problem report can help you trace such issues and identify the offending reference.
 
+[[config_cache:requirements:custom_collection_types]]
+== Custom Collection and Map Types
+
+The Configuration Cache serializes a fixed set of standard collection, set, map, and queue implementations directly:
+
+* `List`: `ArrayList`, `LinkedList`, `CopyOnWriteArrayList`
+* `Set`: `HashSet`, `LinkedHashSet`, `TreeSet`, `CopyOnWriteArraySet`
+* `Map`: `HashMap`, `LinkedHashMap`, `TreeMap`, `ConcurrentHashMap`, `Properties`, `Hashtable`
+* `Queue`: `ArrayDeque`
+
+These types, and Guava's immutable collections (`ImmutableList`, `ImmutableSet`, `ImmutableMap`), are stored and restored faithfully.
+
+A _custom_ subtype of one of the standard types above (for example, `class MyList extends ArrayList<String> {}`) cannot be restored as its own type: it is restored as the nearest standard type instead.
+Any state or behavior added by the custom type — extra fields, overridden methods — is lost.
+
+Referencing a custom collection or map subtype from task fields or task actions is deprecated and will become an error in Gradle 10.
+Use a standard collection type (for example, a plain `ArrayList` or `LinkedHashMap`) and hold any extra data in separate, explicitly serialized fields.
+
 [[config_cache:requirements:use_project_during_execution]]
 == Using the `Project` Object at Execution Time
 
@@ -193,6 +211,8 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/projectAtExe
 <3> No more problem reported, the task action references `injected` that provides the `FileSystemOperations` service, supported as a replacement for `project.copy {}`
 
 Fixing ad-hoc tasks in scripts requires additional effort, making it a good opportunity to refactor them into proper task classes.
+
+TIP: Ad-hoc tasks and scripts can also obtain these services directly with the <<service_injection.adoc#looking_up_services,`service(...)` lookup>>, avoiding the extra injected type shown above.
 
 The table below lists recommended replacements for commonly used `Project` methods:
 
@@ -569,15 +589,17 @@ Because `obtain()` runs on every build, it is recommended to keep the implementa
 
 TIP: Plugin and build scripts should avoid running external processes at configuration time.
 
-You should avoid using these APIs for running processes during configuration:
+You must not use these APIs directly for running processes during configuration:
 
 - *Java/Kotlin*: `ProcessBuilder`, `Runtime.exec(...)`, etc...
 - *Groovy*: `*.execute()`, etc...
 - *Gradle*: `ExecOperations.exec`, `ExecOperations.javaexec`, etc...
 
-The flexibility of these methods prevent Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
+The flexibility of these methods prevents Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
+Therefore, Gradle reports a Configuration Cache problem when it detects such an invocation.
+Even when the Configuration Cache is disabled, calling these methods at configuration time still emits a deprecation warning and will become an error in a future Gradle version.
 
-However, if running processes is required at configuration time, you can use the configuration-cache-compatible APIs detailed below.
+If running processes is required at configuration time, you can use the configuration-cache-compatible APIs detailed below.
 
 For simpler cases, when grabbing the output of the process is enough,
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:exec(org.gradle.api.Action)[`providers.exec()`] and

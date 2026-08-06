@@ -17,16 +17,16 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Action;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelMapSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
 
-    private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
+    private static final ModelType<org.gradle.model.ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<org.gradle.model.ModelMap<?>>() {
     };
 
     // TODO extract common stuff from this and ModelSet and reuse
@@ -35,19 +35,19 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(type)) {
-            if (!type.getRawClass().equals(ModelMap.class)) {
-                extractionContext.add(String.format("subtyping %s is not supported.", ModelMap.class.getName()));
+            if (!type.getRawClass().equals(org.gradle.model.ModelMap.class)) {
+                extractionContext.add(String.format("subtyping %s is not supported.", org.gradle.model.ModelMap.class.getName()));
                 return;
             }
 
             if (type.isHasWildcardTypeVariables()) {
-                extractionContext.add(String.format("type parameter of %s cannot be a wildcard.", ModelMap.class.getName()));
+                extractionContext.add(String.format("type parameter of %s cannot be a wildcard.", org.gradle.model.ModelMap.class.getName()));
                 return;
             }
 
             List<ModelType<?>> typeVariables = type.getTypeVariables();
             if (typeVariables.isEmpty()) {
-                extractionContext.add(String.format("type parameter of %s has to be specified.", ModelMap.class.getName()));
+                extractionContext.add(String.format("type parameter of %s has to be specified.", org.gradle.model.ModelMap.class.getName()));
                 return;
             }
 

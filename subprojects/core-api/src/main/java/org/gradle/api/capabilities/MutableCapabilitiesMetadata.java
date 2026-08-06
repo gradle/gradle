@@ -31,6 +31,7 @@ public interface MutableCapabilitiesMetadata extends CapabilitiesMetadata {
      * @param group the group of the capability
      * @param name the name of the capability
      * @param version the version of the capability
+     * @since 4.7
      */
     void addCapability(String group, String name, String version);
 
@@ -38,12 +39,14 @@ public interface MutableCapabilitiesMetadata extends CapabilitiesMetadata {
      * Removes a capability.
      * @param group the group of the capability
      * @param name the name of the capability
+     * @since 4.7
      */
     void removeCapability(String group, String name);
 
     /**
      * Returns an immutable vew of the capabilities.
      * @return an immutable view of the capabilities
+     * @since 4.7
      */
     CapabilitiesMetadata asImmutable();
 }

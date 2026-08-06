@@ -25,12 +25,14 @@ import org.gradle.util.internal.VersionNumber
 class GroovyCoverage {
     // NOTE: Update compatibility.adoc when adding new versions of Groovy
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.25', '4.0.29']
-    private static final String[] FUTURE = ["5.0.2"]
+    private static final String[] FUTURE = ["5.0.8", "6.0.0-alpha-2"]
 
     static final Set<String> SUPPORTED_BY_JDK
     static final Map<String, Jvm> ALL_VERSIONS_JVMS
     static final Set<String> ALL_VERSIONS
     static final Set<String> SUPPORTS_GROOVYDOC
+    static final Set<String> SUPPORTS_GROOVYDOC_JAVA_VERSION
+    static final Set<String> SUPPORTS_GROOVYDOC_GROOVY6_OPTIONS
     static final Set<String> SUPPORTS_INDY
     static final Set<String> SUPPORTS_TIMESTAMP
     static final Set<String> SUPPORTS_PARAMETERS
@@ -48,6 +50,11 @@ class GroovyCoverage {
         ALL_VERSIONS = ALL_VERSIONS_JVMS.keySet()
         SUPPORTED_BY_JDK = groovyVersionsSupportedByJdk(JavaVersion.current())
         SUPPORTS_GROOVYDOC = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "1.6.9")
+        // The Groovydoc Ant task gained a javaVersion option (passed to JavaParser) in 4.0.27
+        SUPPORTS_GROOVYDOC_JAVA_VERSION = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "4.0.27")
+        // The Groovydoc Ant task gained showInternal/noIndex/noDeprecatedList/noHelp/syntaxHighlighter/theme/preLanguage/addStylesheet in 6.0.0.
+        // Bound is the first 6.0.0 pre-release so that alphas match while preserving the invariant that "6.0.0" > "6.0.0-alpha-*".
+        SUPPORTS_GROOVYDOC_GROOVY6_OPTIONS = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "6.0.0-alpha-1")
         // Indy compilation doesn't work in 2.2.2 and before
         SUPPORTS_INDY = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.3.0")
         SUPPORTS_TIMESTAMP = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.4.6")
@@ -76,10 +83,15 @@ class GroovyCoverage {
     }
 
     private static boolean supportsTargetingJavaVersion(VersionNumber groovyVersion, JavaVersion javaVersion) {
+        return javaVersion <= maxTargetJavaVersion(groovyVersion)
+    }
+
+    private static JavaVersion maxTargetJavaVersion(VersionNumber groovyVersion) {
         return switch (groovyVersion.major) {
-            case 5 -> javaVersion <= JavaVersion.VERSION_26
-            case 4 -> javaVersion <= JavaVersion.VERSION_25
-            case 3 -> javaVersion <= JavaVersion.VERSION_17
+            case 6 -> JavaVersion.VERSION_27
+            case 5 -> JavaVersion.VERSION_27
+            case 4 -> groovyVersion >= VersionNumber.parse('4.0.33') ? JavaVersion.VERSION_27 : JavaVersion.VERSION_26
+            case 3 -> JavaVersion.VERSION_17
             default -> throw new IllegalArgumentException("Computing effective target for Groovy version $groovyVersion is not supported")
         }
     }
@@ -99,22 +111,33 @@ class GroovyCoverage {
     private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
         def allVersions = allVersions()
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
-            return VersionCoverage.versionsAtLeast(allVersions, '4.0.29')
+        def supported
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_27)) {
+            supported = VersionCoverage.versionsAtLeast(allVersions, '4.0.33')
+        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
+            supported = VersionCoverage.versionsAtLeast(allVersions, '4.0.29')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
-            return VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
+            supported = VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             // Latest 3.0.x patches support Java 15+
-            return VersionCoverage.versionsAtLeast(allVersions, '3.0.0')
+            supported = VersionCoverage.versionsAtLeast(allVersions, '3.0.0')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_14)) {
-            return VersionCoverage.versionsBetweenInclusive(allVersions, '2.2.2', '2.5.10')
+            supported = VersionCoverage.versionsBetweenInclusive(allVersions, '2.2.2', '2.5.10')
         } else if (javaVersion < JavaVersion.VERSION_11) {
             // 5.0.0 requires Java 11+
             // Using 4.99.99 as a placeholder because beta versions aren't properly handled by VersionCoverage
-            return VersionCoverage.versionsBelow(allVersions, "4.99.99")
+            supported = VersionCoverage.versionsBelow(allVersions, "4.99.99")
         } else {
-            return allVersions
+            supported = allVersions
         }
+
+        // 6.0.0 requires Java 17+
+        // Using 5.99.99 as a placeholder because beta versions aren't properly handled by VersionCoverage
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            supported = VersionCoverage.versionsBelow(supported, "5.99.99")
+        }
+
+        return supported
     }
 
     static Map<String, Jvm> groovyVersionsSupportedByAvailableJdks(Set<String> groovyVersions) {

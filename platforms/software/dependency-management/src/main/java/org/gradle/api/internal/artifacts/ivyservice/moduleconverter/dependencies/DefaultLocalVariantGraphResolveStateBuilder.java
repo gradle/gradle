@@ -206,19 +206,15 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        return calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context -> {
-            if (sourceArtifacts.isEmpty()) {
-                return ImmutableList.of();
-            } else {
-                return model.fromMutableState(m -> {
-                    ImmutableList.Builder<LocalComponentArtifactMetadata> result = ImmutableList.builderWithExpectedSize(sourceArtifacts.size());
-                    for (PublishArtifact sourceArtifact : sourceArtifacts) {
-                        result.add(new PublishArtifactLocalArtifactMetadata(componentId, sourceArtifact));
-                    }
-                    return result.build();
-                });
+        return calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context ->
+            model.fromMutableState(m -> {
+                ImmutableList.Builder<LocalComponentArtifactMetadata> result = ImmutableList.builderWithExpectedSize(sourceArtifacts.size());
+                for (PublishArtifact sourceArtifact : sourceArtifacts) {
+                    result.add(new PublishArtifactLocalArtifactMetadata(componentId, sourceArtifact));
+                }
+                return result.build();
             }
-        });
+        ));
     }
 
     /**

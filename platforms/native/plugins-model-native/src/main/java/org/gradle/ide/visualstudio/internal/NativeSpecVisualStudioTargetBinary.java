@@ -24,18 +24,8 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
-import org.gradle.language.rc.WindowsResourceSet;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.PreprocessingTool;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.VersionNumber;
@@ -48,10 +38,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+@SuppressWarnings("deprecation")
 public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBinary {
     private final NativeBinarySpecInternal binary;
 
-    public NativeSpecVisualStudioTargetBinary(NativeBinarySpec binary) {
+    public NativeSpecVisualStudioTargetBinary(org.gradle.nativeplatform.NativeBinarySpec binary) {
         this.binary = (NativeBinarySpecInternal) binary;
     }
 
@@ -89,15 +80,15 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public FileCollection getSourceFiles() {
-        Spec<LanguageSourceSet> filter = new Spec<LanguageSourceSet>() {
+        Spec<org.gradle.language.base.LanguageSourceSet> filter = new Spec<org.gradle.language.base.LanguageSourceSet>() {
             @Override
-            public boolean isSatisfiedBy(LanguageSourceSet sourceSet) {
-                return !(sourceSet instanceof WindowsResourceSet);
+            public boolean isSatisfiedBy(org.gradle.language.base.LanguageSourceSet sourceSet) {
+                return !(sourceSet instanceof org.gradle.language.rc.WindowsResourceSet);
             }
         };
-        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
+        Transformer<FileCollection, org.gradle.language.base.LanguageSourceSet> transform = new Transformer<FileCollection, org.gradle.language.base.LanguageSourceSet>() {
             @Override
-            public FileCollection transform(LanguageSourceSet sourceSet) {
+            public FileCollection transform(org.gradle.language.base.LanguageSourceSet sourceSet) {
                 return sourceSet.getSource();
             }
         };
@@ -107,15 +98,15 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public FileCollection getResourceFiles() {
-        Spec<LanguageSourceSet> filter = new Spec<LanguageSourceSet>() {
+        Spec<org.gradle.language.base.LanguageSourceSet> filter = new Spec<org.gradle.language.base.LanguageSourceSet>() {
             @Override
-            public boolean isSatisfiedBy(LanguageSourceSet sourceSet) {
-                return sourceSet instanceof WindowsResourceSet;
+            public boolean isSatisfiedBy(org.gradle.language.base.LanguageSourceSet sourceSet) {
+                return sourceSet instanceof org.gradle.language.rc.WindowsResourceSet;
             }
         };
-        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
+        Transformer<FileCollection, org.gradle.language.base.LanguageSourceSet> transform = new Transformer<FileCollection, org.gradle.language.base.LanguageSourceSet>() {
             @Override
-            public FileCollection transform(LanguageSourceSet sourceSet) {
+            public FileCollection transform(org.gradle.language.base.LanguageSourceSet sourceSet) {
                 return sourceSet.getSource();
             }
         };
@@ -125,16 +116,16 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public FileCollection getHeaderFiles() {
-        Spec<LanguageSourceSet> filter = new Spec<LanguageSourceSet>() {
+        Spec<org.gradle.language.base.LanguageSourceSet> filter = new Spec<org.gradle.language.base.LanguageSourceSet>() {
             @Override
-            public boolean isSatisfiedBy(LanguageSourceSet sourceSet) {
-                return sourceSet instanceof HeaderExportingSourceSet;
+            public boolean isSatisfiedBy(org.gradle.language.base.LanguageSourceSet sourceSet) {
+                return sourceSet instanceof org.gradle.language.nativeplatform.HeaderExportingSourceSet;
             }
         };
-        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
+        Transformer<FileCollection, org.gradle.language.base.LanguageSourceSet> transform = new Transformer<FileCollection, org.gradle.language.base.LanguageSourceSet>() {
             @Override
-            public FileCollection transform(LanguageSourceSet sourceSet) {
-                HeaderExportingSourceSet exportingSourceSet = (HeaderExportingSourceSet) sourceSet;
+            public FileCollection transform(org.gradle.language.base.LanguageSourceSet sourceSet) {
+                org.gradle.language.nativeplatform.HeaderExportingSourceSet exportingSourceSet = (org.gradle.language.nativeplatform.HeaderExportingSourceSet) sourceSet;
                 return exportingSourceSet.getExportedHeaders().plus(exportingSourceSet.getImplicitHeaders());
             }
         };
@@ -144,15 +135,15 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public boolean isExecutable() {
-        return binary instanceof NativeExecutableBinarySpec || binary instanceof NativeTestSuiteBinarySpec;
+        return binary instanceof org.gradle.nativeplatform.NativeExecutableBinarySpec || binary instanceof org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
     }
 
     @Override
     public ProjectType getProjectType() {
-        return binary instanceof SharedLibraryBinarySpec ? ProjectType.DLL
-            : binary instanceof StaticLibraryBinarySpec ? ProjectType.LIB
-            : binary instanceof NativeExecutableBinarySpec ? ProjectType.EXE
-            : binary instanceof NativeTestSuiteBinarySpec ? ProjectType.EXE
+        return binary instanceof org.gradle.nativeplatform.SharedLibraryBinarySpec ? ProjectType.DLL
+            : binary instanceof org.gradle.nativeplatform.StaticLibraryBinarySpec ? ProjectType.LIB
+            : binary instanceof org.gradle.nativeplatform.NativeExecutableBinarySpec ? ProjectType.EXE
+            : binary instanceof org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec ? ProjectType.EXE
             : ProjectType.NONE;
     }
 
@@ -224,25 +215,25 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     }
 
     private List<String> getDefines(String tool) {
-        PreprocessingTool rcCompiler = findCompiler(tool);
+        org.gradle.nativeplatform.PreprocessingTool rcCompiler = findCompiler(tool);
         return rcCompiler == null ? new ArrayList<>() : new MacroArgsConverter().transform(rcCompiler.getMacros());
     }
 
-    private PreprocessingTool findCompiler(String tool) {
-        return (PreprocessingTool) binary.getToolByName(tool);
+    private org.gradle.nativeplatform.PreprocessingTool findCompiler(String tool) {
+        return (org.gradle.nativeplatform.PreprocessingTool) binary.getToolByName(tool);
     }
 
     @Override
     public Set<File> getIncludePaths() {
         Set<File> includes = new LinkedHashSet<File>();
 
-        for (LanguageSourceSet sourceSet : binary.getInputs()) {
-            if (sourceSet instanceof HeaderExportingSourceSet) {
-                includes.addAll(((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSrcDirs());
+        for (org.gradle.language.base.LanguageSourceSet sourceSet : binary.getInputs()) {
+            if (sourceSet instanceof org.gradle.language.nativeplatform.HeaderExportingSourceSet) {
+                includes.addAll(((org.gradle.language.nativeplatform.HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSrcDirs());
             }
         }
 
-        for (NativeDependencySet lib : binary.getLibs()) {
+        for (org.gradle.nativeplatform.NativeDependencySet lib : binary.getLibs()) {
             includes.addAll(lib.getIncludeRoots().getFiles());
         }
 
@@ -291,11 +282,11 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     private static class LanguageSourceSetCollectionAdapter extends CompositeFileCollection {
         private final String displayName;
-        private final Set<LanguageSourceSet> inputs;
-        private final Spec<LanguageSourceSet> filterSpec;
-        private final Transformer<FileCollection, LanguageSourceSet> transformer;
+        private final Set<org.gradle.language.base.LanguageSourceSet> inputs;
+        private final Spec<org.gradle.language.base.LanguageSourceSet> filterSpec;
+        private final Transformer<FileCollection, org.gradle.language.base.LanguageSourceSet> transformer;
 
-        public LanguageSourceSetCollectionAdapter(String displayName, Set<LanguageSourceSet> inputs, Spec<LanguageSourceSet> filterSpec, Transformer<FileCollection, LanguageSourceSet> transformer) {
+        public LanguageSourceSetCollectionAdapter(String displayName, Set<org.gradle.language.base.LanguageSourceSet> inputs, Spec<org.gradle.language.base.LanguageSourceSet> filterSpec, Transformer<FileCollection, org.gradle.language.base.LanguageSourceSet> transformer) {
             this.displayName = displayName;
             this.inputs = inputs;
             this.filterSpec = filterSpec;
@@ -304,15 +295,15 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            for (LanguageSourceSet input : inputs) {
+            for (org.gradle.language.base.LanguageSourceSet input : inputs) {
                 context.add(input);
             }
         }
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            Set<LanguageSourceSet> filtered = CollectionUtils.filter(inputs, filterSpec);
-            for (LanguageSourceSet languageSourceSet : filtered) {
+            Set<org.gradle.language.base.LanguageSourceSet> filtered = CollectionUtils.filter(inputs, filterSpec);
+            for (org.gradle.language.base.LanguageSourceSet languageSourceSet : filtered) {
                 visitor.accept((FileCollectionInternal) transformer.transform(languageSourceSet));
             }
         }

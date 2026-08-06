@@ -57,16 +57,51 @@ import java.util.Set;
  */
 public abstract class JavaPlatformPlugin implements Plugin<Project> {
     // Dependency scopes
+    /**
+     * The api configuration name.
+     *
+     * @since 5.2
+     */
     public static final String API_CONFIGURATION_NAME = "api";
+    /**
+     * The runtime configuration name.
+     *
+     * @since 5.2
+     */
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
 
     // Consumable configurations
+    /**
+     * The api elements configuration name.
+     *
+     * @since 5.2
+     */
     public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
+    /**
+     * The runtime elements configuration name.
+     *
+     * @since 5.2
+     */
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
+    /**
+     * The enforced api elements configuration name.
+     *
+     * @since 5.2
+     */
     public static final String ENFORCED_API_ELEMENTS_CONFIGURATION_NAME = "enforcedApiElements";
+    /**
+     * The enforced runtime elements configuration name.
+     *
+     * @since 5.2
+     */
     public static final String ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME = "enforcedRuntimeElements";
 
     // Resolvable configurations
+    /**
+     * The classpath configuration name.
+     *
+     * @since 5.2
+     */
     public static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
 
     private final SoftwareComponentFactory softwareComponentFactory;

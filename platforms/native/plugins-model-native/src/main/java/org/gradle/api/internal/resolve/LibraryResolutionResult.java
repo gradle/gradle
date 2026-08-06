@@ -22,8 +22,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.platform.base.Binary;
-import org.gradle.platform.base.VariantComponent;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,6 +31,7 @@ import java.util.Map;
 /**
  * Intermediate data structure used to store the result of a resolution and help at building an understandable error message in case resolution fails.
  */
+@SuppressWarnings("deprecation")
 public class LibraryResolutionResult {
     public static final Function<String, String> QUOTE_TRANSFORMER = new Function<String, String>() {
         @Override
@@ -40,22 +39,22 @@ public class LibraryResolutionResult {
             return "'" + input + "'";
         }
     };
-    private final Map<String, VariantComponent> libsMatchingRequirements;
-    private final Map<String, VariantComponent> libsNotMatchingRequirements;
-    private final Class<? extends Binary> binaryType;
+    private final Map<String, org.gradle.platform.base.VariantComponent> libsMatchingRequirements;
+    private final Map<String, org.gradle.platform.base.VariantComponent> libsNotMatchingRequirements;
+    private final Class<? extends org.gradle.platform.base.Binary> binaryType;
 
     private boolean projectNotFound;
 
-    private VariantComponent selectedLibrary;
-    private VariantComponent nonMatchingLibrary;
+    private org.gradle.platform.base.VariantComponent selectedLibrary;
+    private org.gradle.platform.base.VariantComponent nonMatchingLibrary;
 
-    private LibraryResolutionResult(Class<? extends Binary> binaryType) {
+    private LibraryResolutionResult(Class<? extends org.gradle.platform.base.Binary> binaryType) {
         this.binaryType = binaryType;
         this.libsMatchingRequirements = new HashMap<>();
         this.libsNotMatchingRequirements = new HashMap<>();
     }
 
-    private VariantComponent getSingleMatchingLibrary() {
+    private org.gradle.platform.base.VariantComponent getSingleMatchingLibrary() {
         if (libsMatchingRequirements.size() == 1) {
             return libsMatchingRequirements.values().iterator().next();
         }
@@ -64,7 +63,7 @@ public class LibraryResolutionResult {
 
     private void resolve(String libraryName) {
         if (libraryName == null) {
-            VariantComponent singleMatchingLibrary = getSingleMatchingLibrary();
+            org.gradle.platform.base.VariantComponent singleMatchingLibrary = getSingleMatchingLibrary();
             if (singleMatchingLibrary == null) {
                 return;
             }
@@ -83,11 +82,11 @@ public class LibraryResolutionResult {
         return !libsMatchingRequirements.isEmpty() || !libsNotMatchingRequirements.isEmpty();
     }
 
-    public VariantComponent getSelectedLibrary() {
+    public org.gradle.platform.base.VariantComponent getSelectedLibrary() {
         return selectedLibrary;
     }
 
-    public VariantComponent getNonMatchingLibrary() {
+    public org.gradle.platform.base.VariantComponent getNonMatchingLibrary() {
         return nonMatchingLibrary;
     }
 
@@ -112,7 +111,7 @@ public class LibraryResolutionResult {
                 Joiner.on(", ").appendTo(sb, candidateLibraries);
             }
         } else {
-            VariantComponent notMatchingRequirements = getNonMatchingLibrary();
+            org.gradle.platform.base.VariantComponent notMatchingRequirements = getNonMatchingLibrary();
             if (notMatchingRequirements != null) {
                 sb.append(" contains a library named '").append(libraryName)
                     .append("' but it doesn't have any binary of type ")
@@ -131,9 +130,9 @@ public class LibraryResolutionResult {
         return sb.toString();
     }
 
-    public static LibraryResolutionResult of(Class<? extends Binary> binaryType, Collection<? extends VariantComponent> libraries, String libraryName, Predicate<? super VariantComponent> libraryFilter) {
+    public static LibraryResolutionResult of(Class<? extends org.gradle.platform.base.Binary> binaryType, Collection<? extends org.gradle.platform.base.VariantComponent> libraries, String libraryName, Predicate<? super org.gradle.platform.base.VariantComponent> libraryFilter) {
         LibraryResolutionResult result = new LibraryResolutionResult(binaryType);
-        for (VariantComponent librarySpec : libraries) {
+        for (org.gradle.platform.base.VariantComponent librarySpec : libraries) {
             if (libraryFilter.apply(librarySpec)) {
                 result.libsMatchingRequirements.put(librarySpec.getName(), librarySpec);
             } else {
@@ -144,13 +143,13 @@ public class LibraryResolutionResult {
         return result;
     }
 
-    public static LibraryResolutionResult projectNotFound(Class<? extends Binary> binaryType) {
+    public static LibraryResolutionResult projectNotFound(Class<? extends org.gradle.platform.base.Binary> binaryType) {
         LibraryResolutionResult projectNotFoundResult = new LibraryResolutionResult(binaryType);
         projectNotFoundResult.projectNotFound = true;
         return projectNotFoundResult;
     }
 
-    public static LibraryResolutionResult emptyResolutionResult(Class<? extends Binary> binaryType) {
+    public static LibraryResolutionResult emptyResolutionResult(Class<? extends org.gradle.platform.base.Binary> binaryType) {
         return new LibraryResolutionResult(binaryType);
     }
 

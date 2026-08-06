@@ -23,16 +23,22 @@ import org.gradle.api.file.SourceDirectorySet;
 
 /**
  * A library component that is not built by gradle.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
+@Deprecated
 public interface PrebuiltLibrary extends Named, NativeLibrary {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
+     * @since 2.2
      */
     DomainObjectSet<NativeLibraryBinary> getBinaries();
 
     /**
      * The headers exported by this library. These headers will be added to all binaries for this library.
+     * @since 2.2
      */
     SourceDirectorySet getHeaders();
 }

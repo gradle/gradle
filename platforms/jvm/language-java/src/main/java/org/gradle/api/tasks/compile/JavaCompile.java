@@ -91,6 +91,7 @@ import java.util.concurrent.Callable;
  *         options.fork = true
  *     }
  * </pre>
+ * @since 1.2
  */
 @CacheableTask
 public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
@@ -99,6 +100,11 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     private final ModularitySpec modularity;
     private File previousCompilationDataFile;
 
+    /**
+     * Creates a new {@code JavaCompile}.
+     *
+     * @since 1.2
+     */
     @SuppressWarnings("this-escape")
     public JavaCompile() {
         ObjectFactory objectFactory = getObjectFactory();

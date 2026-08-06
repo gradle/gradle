@@ -63,6 +63,7 @@ public interface WorkAction<T extends WorkParameters> {
 
     /**
      * The work to perform when this work item executes.
+     * @since 5.6
      */
     void execute();
 }

@@ -19,11 +19,13 @@ import org.gradle.tooling.model.ProjectDependency;
 
 /**
  * Represents a dependency on another Eclipse project.
+ * @since 1.0
  */
 public interface EclipseProjectDependency extends ProjectDependency, EclipseClasspathEntry {
 
     /**
      * Returns the path to use for this project dependency.
+     * @since 1.0
      */
     String getPath();
 

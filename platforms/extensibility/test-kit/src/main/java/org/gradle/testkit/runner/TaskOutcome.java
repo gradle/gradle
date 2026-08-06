@@ -26,16 +26,19 @@ public enum TaskOutcome {
 
     /**
      * The task executed and performed its actions without failure.
+     * @since 2.6
      */
     SUCCESS,
 
     /**
      * The task attempted to execute, but did not complete successfully.
+     * @since 2.6
      */
     FAILED,
 
     /**
      * The task was not executed, as its output was up to date.
+     * @since 2.6
      */
     UP_TO_DATE,
 
@@ -43,6 +46,7 @@ public enum TaskOutcome {
      * The task was not executed due to some reason.
      *
      * For Gradle version &lt; 3.4, a task may be skipped if it had no work to do (e.g. no source to compile).
+     * @since 2.6
      */
     SKIPPED,
 

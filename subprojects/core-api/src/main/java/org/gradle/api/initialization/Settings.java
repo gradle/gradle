@@ -29,6 +29,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.SettingsService;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.declarative.dsl.model.annotations.Adding;
@@ -78,6 +79,7 @@ import java.util.Arrays;
  * <li>Provided on the command-line using the -P option.</li>
  *
  * </ul>
+ * @since 0.7
  */
 @HasInternalProtocol
 public interface Settings extends PluginAware, ExtensionAware {
@@ -85,6 +87,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>The default name for the settings file.</p>
      *
      * @implNote For internal purposes, prefer constants from {@code BuildLogicFiles}.
+     * @since 0.7
      */
     String DEFAULT_SETTINGS_FILE = "settings.gradle";
 
@@ -120,6 +123,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * </pre>
      *
      * @param projectPaths the projects to add.
+     * @since 0.7
      */
     @HiddenInDefinition
     default void include(String... projectPaths) {
@@ -175,6 +179,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * {@code $rootDir/../a}.</p>
      *
      * @param projectNames the projects to add.
+     * @since 0.7
      */
     @HiddenInDefinition
     default void includeFlat(String... projectNames) {
@@ -202,6 +207,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Returns this settings object.</p>
      *
      * @return This settings object. Never returns null.
+     * @since 0.8
      */
     @HiddenInDefinition
     Settings getSettings();
@@ -231,6 +237,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * file.</p>
      *
      * @return The settings directory. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     File getSettingsDir();
@@ -239,6 +246,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Returns the root directory of the build. The root directory is the project directory of the root project.</p>
      *
      * @return The root directory. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     File getRootDir();
@@ -247,6 +255,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Returns the root project of the build.</p>
      *
      * @return The root project. Never returns null.
+     * @since 0.7
      */
     ProjectDescriptor getRootProject();
 
@@ -256,6 +265,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @param path The path.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     * @since 0.7
      */
     @HiddenInDefinition
     ProjectDescriptor project(String path) throws UnknownProjectException;
@@ -265,6 +275,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @param path The path
      * @return The project with the given path. Returns null if no such project exists.
+     * @since 0.7
      */
     @Nullable
     @HiddenInDefinition
@@ -276,6 +287,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @param projectDir The project directory.
      * @return The project with the given project directory. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     * @since 0.7
      */
     @HiddenInDefinition
     ProjectDescriptor project(File projectDir) throws UnknownProjectException;
@@ -285,6 +297,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @param projectDir The project directory.
      * @return The project with the given project directory. Returns null if no such project exists.
+     * @since 0.7
      */
     @Nullable
     @HiddenInDefinition
@@ -294,6 +307,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Returns the set of parameters used to invoke this instance of Gradle.</p>
      *
      * @return The parameters. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     StartParameter getStartParameter();
@@ -307,9 +321,28 @@ public interface Settings extends PluginAware, ExtensionAware {
     ProviderFactory getProviders();
 
     /**
+     * Looks up a service provided by Gradle for use in this build.
+     *
+     * <p>The services available for lookup are the Gradle types that implement {@link SettingsService}.</p>
+     *
+     * <p>This method does not provide access to {@link org.gradle.api.services.BuildService shared build services};
+     * use {@link Gradle#getSharedServices()} to access those.</p>
+     *
+     * @param serviceType the type of the service to look up
+     * @param <T> the service type
+     * @return the service instance. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException when the given type is not one of the services available in this scope
+     * @since 9.8.0
+     */
+    @Incubating
+    @HiddenInDefinition
+    <T extends SettingsService> T service(Class<T> serviceType);
+
+    /**
      * Returns the {@link Gradle} instance for the current build.
      *
      * @return The Gradle instance. Never returns null.
+     * @since 0.9
      */
     @HiddenInDefinition
     Gradle getGradle();

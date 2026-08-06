@@ -45,11 +45,27 @@ import java.util.concurrent.Callable;
  * file.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/war_plugin.html">WAR plugin reference</a>
+ * @since 0.7
  */
 public abstract class WarPlugin implements Plugin<Project> {
 
+    /**
+     * The provided compile configuration name.
+     *
+     * @since 0.7
+     */
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
+    /**
+     * The provided runtime configuration name.
+     *
+     * @since 0.7
+     */
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
+    /**
+     * The war task name.
+     *
+     * @since 0.7
+     */
     public static final String WAR_TASK_NAME = "war";
 
     private final ObjectFactory objectFactory;

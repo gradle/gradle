@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -64,8 +64,6 @@ import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -176,11 +174,11 @@ import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcesso
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
-import org.gradle.initialization.internal.settings.StartParameterMutationReportingSettingsProcessor;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
+import org.gradle.initialization.internal.settings.StartParameterMutationReportingSettingsProcessor;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
@@ -190,6 +188,7 @@ import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.BuildWorkGraphController;
@@ -283,6 +282,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
         registration.add(BuildDefinition.class, buildDefinition);
         registration.add(BuildState.class, buildState);
+        registration.add(DomainObjectContext.class, new BuildDomainObjectContext(buildState));
 
         registration.addProvider(new BuildCacheServices());
 
@@ -322,6 +322,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
         return parent.createChild();
+    }
+
+    @Provides
+    BuildProjectRegistry createBuildProjectRegistry() {
+        return buildState.getProjects();
     }
 
     @Provides
@@ -398,9 +403,9 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @SuppressWarnings("deprecation")
     @UsedByScanPlugin("ImportJUnitXmlReports")
-    @Provides({ProjectRegistry.class, org.gradle.api.internal.project.DefaultProjectRegistry.class})
-    protected org.gradle.api.internal.project.DefaultProjectRegistry createProjectRegistry() {
-        return new org.gradle.api.internal.project.DefaultProjectRegistry();
+    @Provides({org.gradle.api.internal.project.ProjectRegistry.class, org.gradle.api.internal.project.DefaultProjectRegistry.class})
+    protected org.gradle.api.internal.project.DefaultProjectRegistry createProjectRegistry(BuildProjectRegistry delegate) {
+        return new org.gradle.api.internal.project.DefaultProjectRegistry(delegate);
     }
 
     @Provides
@@ -734,10 +739,9 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     protected DefaultToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(
         List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
         BuildOperationRunner buildOperationRunner,
-        ProjectStateRegistry projectStateRegistry,
         UserCodeApplicationContext userCodeApplicationContext
     ) {
-        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, projectStateRegistry, userCodeApplicationContext);
+        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, userCodeApplicationContext);
         // Services are created on demand, and this may happen while applying a plugin
         userCodeApplicationContext.gradleRuntime(() -> {
             for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {

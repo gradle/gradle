@@ -42,11 +42,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLockWhile;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectParallelExecutionController, Stoppable {
@@ -138,18 +139,22 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
-        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
-        if (!locks.isEmpty()) {
-            // Already a worker
-            return Optional.of(action.create());
+    public void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue) {
+        if (!workerLeaseLockRegistry.getResourceLocksByCurrentThread().isEmpty()) {
+            // This is technically something we could support to make this more similar to runAsWorkerThread
+            // But for now we don't need it, so we keep this stricter.
+            throw new IllegalStateException("Current thread already holds a worker lease.");
         }
-        DefaultWorkerLease lease = newWorkerLease();
-        boolean acquired = coordinationService.withStateLock(tryLock(lease));
-        if (!acquired) {
-            return Optional.empty();
+        Collection<? extends ResourceLock> locks = Collections.singletonList(newWorkerLease());
+        if (!coordinationService.withStateLock(tryLockWhile(shouldContinue, locks))) {
+            // The caller gave up waiting for a lease.
+            return;
         }
-        return Optional.of(runAndReleaseLocks(Collections.singletonList(lease), action));
+        Factory<@Nullable Void> factory = () -> {
+            action.run();
+            return null;
+        };
+        runAndReleaseLocks(locks, factory);
     }
 
     @Override
@@ -206,7 +211,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         return getRegistries().getProjectLockRegistry().getResourceLocksByCurrentThread();
     }
 
-    @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
     private Registries getRegistries() {
         return registries.get();
     }
@@ -263,16 +267,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        return getRegistries().getProjectLockRegistry().allowUncontrolledAccessToAnyResource(factory);
-    }
-
-    @Override
-    public boolean isAllowedUncontrolledAccessToAnyProject() {
-        return getRegistries().getProjectLockRegistry().isAllowedUncontrolledAccessToAnyResource();
-    }
-
-    @Override
     public void withLocks(Collection<? extends ResourceLock> locks, Runnable runnable) {
         withLocks(locks, Factories.toFactory(runnable));
     }
@@ -296,7 +290,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         return runAndReleaseLocks(locksToAcquire, factory);
     }
 
-    private <T> T runAndReleaseLocks(Collection<? extends ResourceLock> locksHeld, Factory<T> factory) {
+    private <T extends @Nullable Object> T runAndReleaseLocks(Collection<? extends ResourceLock> locksHeld, Factory<T> factory) {
         return resourceLockStatistics.measure("Acquired", locksHeld, () -> {
             try {
                 return factory.create();

@@ -42,7 +42,7 @@ include::sample[dir="snippets/reference/platforms/jvm/application/groovy",files=
 
 You can run the application by executing the `run` task (type: link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[JavaExec]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setDebug-boolean-[JavaExec.setDebug(boolean)]).
 
-Since Gradle 4.9, the command line arguments can be passed with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, you can use `gradle run --args="foo --bar"` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setArgsString-java.lang.String-[JavaExec.setArgsString(java.lang.String)].
+Since Gradle 4.9, the command line arguments can be passed with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, you can use `gradle run --args="foo --bar"` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setArgsString-java.lang.String-[JavaExec.setArgsString(java.lang.String)]).
 
 If your application requires a specific set of JVM settings or system properties, you can configure the `applicationDefaultJvmArgs` property. These JVM arguments are applied to the `run` task and also considered in the generated start scripts of your distribution.
 
@@ -183,15 +183,3 @@ include::sample[dir="snippets/reference/platforms/jvm/application/groovy",files=
 == License of start scripts
 
 The start scripts generated for the application are licensed under the https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0 Software License].
-
-[[sec:application_convention_properties]]
-== Convention properties (deprecated)
-
-This plugin also adds some convention properties to the project, which you can use to configure its behavior. These are *deprecated* and superseded by the extension described above. See the link:{groovyDslPath}/org.gradle.api.Project.html#N14FED[Project] DSL documentation for information on them.
-
-Unlike the extension properties, these properties appear as top-level project properties in the build script. For example, to change the application name you can just add the following to your build script:
-
-====
-include::sample[dir="snippets/reference/platforms/jvm/application/kotlin",files="build.gradle.kts[tags=applicationName-conf]"]
-include::sample[dir="snippets/reference/platforms/jvm/application/groovy",files="build.gradle[tags=applicationName-conf]"]
-====

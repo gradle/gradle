@@ -59,6 +59,7 @@ import java.util.function.Consumer;
 import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findOrCreateFirstChildNamed;
 import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findOrCreateFirstChildWithAttributeValue;
 
+@SuppressWarnings("deprecation")
 public class IdeaScalaConfigurer {
 
     // More information: http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/
@@ -103,7 +104,7 @@ public class IdeaScalaConfigurer {
                     @Override
                     public void execute(final Project project) {
                         IdeaModuleIml iml = DeprecationLogger.whileDisabled(() -> project.getExtensions().getByType(IdeaModel.class).getModule().getIml());
-                        iml.withXml(new Action<XmlProvider>() {
+                        DeprecationLogger.whileDisabled(() -> iml.withXml(new Action<XmlProvider>() {
                             @Override
                             public void execute(XmlProvider xmlProvider) {
                                 if (useScalaSdk) {
@@ -112,7 +113,7 @@ public class IdeaScalaConfigurer {
                                     declareScalaFacet(scalaCompilerLibraries.get(project.getPath()), xmlProvider.asNode());
                                 }
                             }
-                        });
+                        }));
                     }
                 });
             }
@@ -174,7 +175,8 @@ public class IdeaScalaConfigurer {
     }
 
     private void declareUniqueProjectLibraries(Set<ProjectLibrary> projectLibraries) {
-        Set<ProjectLibrary> existingLibraries = rootProject.getExtensions().getByType(IdeaModel.class).getProject().getProjectLibraries();
+        Set<ProjectLibrary> existingLibraries = DeprecationLogger.whileDisabled(() ->
+            rootProject.getExtensions().getByType(IdeaModel.class).getProject().getProjectLibraries());
         Set<ProjectLibrary> newLibraries = Sets.difference(projectLibraries, existingLibraries);
         for (ProjectLibrary newLibrary : newLibraries) {
             String originalName = newLibrary.getName();
@@ -235,7 +237,8 @@ public class IdeaScalaConfigurer {
 
     private VersionNumber findIdeaTargetVersion() {
         VersionNumber targetVersion = null;
-        String targetVersionString = rootProject.getExtensions().getByType(IdeaModel.class).getTargetVersion();
+        String targetVersionString = DeprecationLogger.whileDisabled(() ->
+            rootProject.getExtensions().getByType(IdeaModel.class).getTargetVersion());
         if (targetVersionString != null) {
             targetVersion = VersionNumber.parse(targetVersionString);
             if (targetVersion.equals(VersionNumber.UNKNOWN)) {

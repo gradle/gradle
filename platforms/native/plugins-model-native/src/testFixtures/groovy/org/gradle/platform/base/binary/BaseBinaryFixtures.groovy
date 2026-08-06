@@ -28,6 +28,7 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 import org.gradle.util.TestUtil
 
+@SuppressWarnings("deprecation")
 class BaseBinaryFixtures {
     static <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, MutableModelNode componentNode) {
         return BaseInstanceFixtureSupport.create(publicType, BinarySpecInternal, implType, name) { MutableModelNode node ->

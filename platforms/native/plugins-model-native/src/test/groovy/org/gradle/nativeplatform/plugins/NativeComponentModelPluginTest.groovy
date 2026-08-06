@@ -54,6 +54,7 @@ import spock.lang.Issue
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 import static org.gradle.util.internal.CollectionUtils.single
 
+@SuppressWarnings("deprecation")
 class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
     def setup() {
         project.pluginManager.apply(NativeComponentModelPlugin)

@@ -61,9 +61,11 @@ import static org.gradle.internal.instrumentation.processor.codegen.GradleRefere
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.callableKindForJavadoc;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptedCallableLink;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptorImplementationLink;
+import org.jspecify.annotations.Nullable;
 
 public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
     @Override
+    @Nullable
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class)
             .map(RequestExtra.InterceptGroovyCalls::getImplementationClassName)

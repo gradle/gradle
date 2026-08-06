@@ -16,14 +16,15 @@
 
 package org.gradle.internal.buildtree;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Responsible for creating a model from the build tree model.
+ * <p>
+ * Each phase returns a {@link BuildTreeModelCreatorResult} carrying the client model together with any failures that
+ * resilient model building held behind partial results. Those failures must still fail the build, even though partial
+ * models were returned to the client.
  */
 public interface BuildTreeModelCreator {
-    <T> void beforeTasks(BuildTreeModelAction<? extends T> action);
+    BuildTreeModelCreatorResult<Void> beforeTasks(BuildTreeModelAction<?> action);
 
-    @Nullable
-    <T> T fromBuildModel(BuildTreeModelAction<? extends T> action);
+    <T> BuildTreeModelCreatorResult<T> fromBuildModel(BuildTreeModelAction<? extends T> action);
 }

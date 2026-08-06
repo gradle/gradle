@@ -34,17 +34,17 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CopyOnWriteArraySet
 
 
-val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList(it) }
+val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec(ArrayList::class.java) { ArrayList(it) }
 
 
-val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec { LinkedList() }
+val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec(LinkedList::class.java) { LinkedList() }
 
 
-val arrayDequeCodec: Codec<ArrayDeque<Any?>> = collectionCodec { ArrayDeque(it) }
+val arrayDequeCodec: Codec<ArrayDeque<Any?>> = collectionCodec(ArrayDeque::class.java) { ArrayDeque(it) }
 
 
 val copyOnWriteArrayListCodec: Codec<CopyOnWriteArrayList<Any?>> = codec(
-    { writeCollection(it) },
+    { writeCollection(it, CopyOnWriteArrayList::class.java) },
     {
         // Avoid the overhead of copying the underlying array for each inserted element
         // by creating the COW data structure from a list.
@@ -56,7 +56,7 @@ val copyOnWriteArrayListCodec: Codec<CopyOnWriteArrayList<Any?>> = codec(
 val treeSetCodec: Codec<TreeSet<Any?>> = codec(
     {
         write(it.comparator())
-        writeCollection(it)
+        writeCollection(it, TreeSet::class.java)
     },
     {
         @Suppress("unchecked_cast")
@@ -67,7 +67,7 @@ val treeSetCodec: Codec<TreeSet<Any?>> = codec(
 
 
 val copyOnWriteArraySetCodec: Codec<CopyOnWriteArraySet<Any?>> = codec(
-    { writeCollection(it) },
+    { writeCollection(it, CopyOnWriteArraySet::class.java) },
     {
         // Avoid the overhead of copying the underlying array for each inserted element
         // by creating the COW data structure from a list.
@@ -76,8 +76,8 @@ val copyOnWriteArraySetCodec: Codec<CopyOnWriteArraySet<Any?>> = codec(
 )
 
 
-fun <T : MutableCollection<Any?>> collectionCodec(factory: (Int) -> T) = codec(
-    { writeCollection(it) },
+fun <T : MutableCollection<Any?>> collectionCodec(supportedType: Class<*>, factory: (Int) -> T) = codec(
+    { writeCollection(it, supportedType) },
     { readCollectionInto(factory) }
 )
 
@@ -85,32 +85,32 @@ fun <T : MutableCollection<Any?>> collectionCodec(factory: (Int) -> T) = codec(
 /**
  * Decodes HashMap instances as LinkedHashMap to preserve original iteration order.
  */
-val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { LinkedHashMap(it) }
+val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec(HashMap::class.java) { LinkedHashMap(it) }
 
 
-val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap(it) }
+val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec(LinkedHashMap::class.java) { LinkedHashMap(it) }
 
 
-val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> = mapCodec { ConcurrentHashMap<Any?, Any?>(it) }
+val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> = mapCodec(ConcurrentHashMap::class.java) { ConcurrentHashMap<Any?, Any?>(it) }
 
 
 /*
  * Cannot rely on Java serialization as
  * Hashtable's readObject() calls unsupported ObjectInputStream#readFields().
  */
-val hashtableCodec: Codec<Hashtable<Any?, Any?>> = mapCodec { Hashtable(it) }
+val hashtableCodec: Codec<Hashtable<Any?, Any?>> = mapCodec(Hashtable::class.java) { Hashtable(it) }
 
 
 /*
  * Decodes Properties as Properties instead of Hashtable.
  */
-val propertiesCodec: Codec<Properties> = mapCodec { Properties() }
+val propertiesCodec: Codec<Properties> = mapCodec(Properties::class.java) { Properties() }
 
 
 val treeMapCodec: Codec<TreeMap<Any?, Any?>> = codec(
     {
         write(it.comparator())
-        writeMap(it)
+        writeMap(it, TreeMap::class.java)
     },
     {
         @Suppress("unchecked_cast")
@@ -120,7 +120,7 @@ val treeMapCodec: Codec<TreeMap<Any?, Any?>> = codec(
 )
 
 
-fun <T : MutableMap<Any?, Any?>> mapCodec(factory: (Int) -> T): Codec<T> = codec(
-    { writeMap(it) },
+fun <T : MutableMap<Any?, Any?>> mapCodec(supportedType: Class<*>, factory: (Int) -> T): Codec<T> = codec(
+    { writeMap(it, supportedType) },
     { readMapInto(factory) }
 )

@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -33,6 +32,7 @@ import java.util.Map;
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
+@SuppressWarnings("deprecation")
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
     private static final ModelType<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY = ModelType.of(NodeInitializerRegistry.class);
 
@@ -70,7 +70,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         try {
             return nodeInitializerRegistry.getNodeInitializer(forType(modelSchema.getType()));
         } catch (ModelTypeInitializationException e) {
-            throw new InvalidModelRuleDeclarationException(descriptor, e);
+            throw new org.gradle.model.InvalidModelRuleDeclarationException(descriptor, e);
         }
     }
 
@@ -78,7 +78,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         try {
             return schemaStore.getSchema(managedType);
         } catch (InvalidManagedModelElementTypeException e) {
-            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), e);
+            throw new org.gradle.model.InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), e);
         }
     }
 

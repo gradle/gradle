@@ -25,21 +25,25 @@ package org.gradle.api.artifacts.dsl;
 public interface ExternalModuleDependencyVariantSpec {
     /**
      * Configures the dependency to select the "platform" variant.
+     * @since 6.8
      */
     void platform();
 
     /**
      * Configures the dependency to select the test fixtures capability.
+     * @since 6.8
      */
     void testFixtures();
 
     /**
      * Configures the classifier of this dependency
+     * @since 6.8
      */
     void classifier(String classifier);
 
     /**
      * Configures the artifact type of this dependency
+     * @since 6.8
      */
     void artifactType(String artifactType);
 

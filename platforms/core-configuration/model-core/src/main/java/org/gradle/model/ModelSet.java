@@ -31,14 +31,19 @@ import java.util.Set;
  * To add elements to the set, the {@link #create(Action)} method can be used.
  *
  * @param <T> the type of model object
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.5
  */
 @Incubating
+@Deprecated
 public interface ModelSet<T> extends Set<T>, ModelElement {
 
     /**
      * Declares a new set element, configured by the given action.
      *
      * @param action the object configuration
+     * @since 2.5
      */
     void create(Action<? super T> action);
 
@@ -48,6 +53,7 @@ public interface ModelSet<T> extends Set<T>, ModelElement {
      * The configuration action is equivalent in terms of lifecycle to {@link org.gradle.model.Defaults} rule methods.
      *
      * @param configAction the object configuration
+     * @since 2.5
      */
     void beforeEach(Action<? super T> configAction);
 
@@ -57,6 +63,7 @@ public interface ModelSet<T> extends Set<T>, ModelElement {
      * The configuration action is equivalent in terms of lifecycle to {@link org.gradle.model.Finalize} rule methods.
      *
      * @param configAction the object configuration
+     * @since 2.5
      */
     void afterEach(Action<? super T> configAction);
 }

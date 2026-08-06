@@ -21,13 +21,27 @@ import org.gradle.api.Incubating;
 
 /**
  * Thrown when a model element cannot be instantiated for some reason.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
+@Deprecated
 public class ModelInstantiationException extends GradleException {
+    /**
+     * Creates a new {@code ModelInstantiationException}.
+     *
+     * @since 2.2
+     */
     public ModelInstantiationException(String message) {
         this(message, null);
     }
 
+    /**
+     * Creates a new {@code ModelInstantiationException}.
+     *
+     * @since 2.2
+     */
     public ModelInstantiationException(String message, Throwable cause) {
         super(message, cause);
     }

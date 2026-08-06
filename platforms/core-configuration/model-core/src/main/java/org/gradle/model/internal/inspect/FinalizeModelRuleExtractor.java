@@ -17,11 +17,11 @@
 package org.gradle.model.internal.inspect;
 
 import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.model.Finalize;
 import org.gradle.model.internal.core.ModelActionRole;
 
 @ThreadSafe
-public class FinalizeModelRuleExtractor extends AbstractMutationModelRuleExtractor<Finalize> {
+@SuppressWarnings("deprecation")
+public class FinalizeModelRuleExtractor extends AbstractMutationModelRuleExtractor<org.gradle.model.Finalize> {
     @Override
     protected ModelActionRole getMutationType() {
         return ModelActionRole.Finalize;

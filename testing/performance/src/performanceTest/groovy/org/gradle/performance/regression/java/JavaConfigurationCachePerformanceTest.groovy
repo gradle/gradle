@@ -51,8 +51,10 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
     def "assemble #action configuration cache state with #daemon daemon"() {
         given:
         runner.tasksToRun = ["assemble"]
-        // use the deprecated property so it works with previous versions
-        runner.args = ["-D${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=true"]
+        // Pass the current property name too: it takes precedence over the deprecated one, so it cannot be
+        // shadowed by a value in the test project's gradle.properties. The deprecated property is kept for
+        // baseline versions older than 8.1.
+        runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true", "-D${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=true"]
 
         runner.addInterceptor { builder ->
             builder.invocation {

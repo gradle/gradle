@@ -44,6 +44,7 @@ import java.util.Set;
  * Be default symlinks will not be followed when deleting files. To change this behavior call
  * {@link Delete#setFollowSymlinks(boolean)} with true. On systems that do not support symlinks,
  * this will have no effect.
+ * @since 0.9
  */
 @DisableCachingByDefault(because = "Deletion cannot be cached")
 @SuppressWarnings("this-escape")
@@ -52,6 +53,11 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
 
     private boolean followSymlinks;
 
+    /**
+     * Clean.
+     *
+     * @since 0.9
+     */
     @TaskAction
     protected void clean() throws IOException {
         boolean didWork = false;
@@ -65,6 +71,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * Returns the resolved set of files which will be deleted by this task.
      *
      * @return The files. Never returns null.
+     * @since 0.9
      */
     @Destroys
     @ToBeReplacedByLazyProperty
@@ -76,6 +83,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * Returns the set of files which will be deleted by this task.
      *
      * @return The files. Never returns null.
+     * @since 0.9
      */
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Should be deprecated, users should use getTargetFiles()", willBeDeprecated = true)
@@ -97,6 +105,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * Sets the files to be deleted by this task.
      *
      * @param target Any type of object accepted by {@link Project#files(Object...)}
+     * @since 0.9
      */
     public void setDelete(Object target) {
         this.paths.setFrom(target);
@@ -106,6 +115,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * Returns if symlinks should be followed when doing a delete.
      *
      * @return true if symlinks will be followed.
+     * @since 2.13
      */
     @Input
     @ToBeReplacedByLazyProperty

@@ -172,6 +172,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  * <pre>
  * gradle someTestTask --debug-jvm
  * </pre>
+ * @since 0.7
  */
 @NullMarked
 @CacheableTask
@@ -193,6 +194,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
+    /**
+     * Creates a new {@code Test}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -1009,6 +1015,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return testFramework;
     }
 
+    /**
+     * Returns the test framework.
+     *
+     * @since 0.7
+     */
     @Internal
     @ToBeReplacedByLazyProperty(comment = "This will be removed")
     public TestFramework getTestFramework() {
@@ -1019,6 +1030,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Do not call this method.
      * @deprecated This will be removed in Gradle 10
+     * @since 0.7
      */
     @Deprecated
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
@@ -1034,6 +1046,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Returns test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
+     * @since 0.7
      */
     @Nested
     public TestFrameworkOptions getOptions() {
@@ -1047,6 +1060,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * If no test framework has been set, the task will assume JUnit4.
      *
      * @return The test framework options.
+     * @since 0.7
      */
     public TestFrameworkOptions options(@DelegatesTo(TestFrameworkOptions.class) Closure testFrameworkConfigure) {
         return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
@@ -1069,6 +1083,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Specifies that JUnit4 should be used to discover and execute the tests.
      *
      * @see #useJUnit(Action) Configure JUnit4 specific options.
+     * @since 0.7
      */
     public void useJUnit() {
         useTestFramework(getObjectFactory().newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
@@ -1080,6 +1095,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * The supplied action configures an instance of {@link JUnitOptions JUnit4 specific options}.
      *
      * @param testFrameworkConfigure A closure used to configure JUnit4 options.
+     * @since 0.7
      */
     public void useJUnit(@Nullable @DelegatesTo(JUnitOptions.class) Closure testFrameworkConfigure) {
         useJUnit(configureUsing(testFrameworkConfigure));
@@ -1135,6 +1151,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Specifies that TestNG should be used to discover and execute the tests.
      *
      * @see #useTestNG(Action) Configure TestNG specific options.
+     * @since 0.7
      */
     public void useTestNG() {
         useTestFramework(getObjectFactory().newInstance(TestNGTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun(), this.getReports().getHtml()));
@@ -1147,6 +1164,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * The supplied action configures an instance of {@link TestNGOptions TestNG specific options}.
      *
      * @param testFrameworkConfigure A closure used to configure TestNG options.
+     * @since 0.7
      */
     public void useTestNG(@DelegatesTo(TestNGOptions.class) Closure testFrameworkConfigure) {
         useTestNG(configureUsing(testFrameworkConfigure));
@@ -1171,6 +1189,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * If we are setting a framework to its existing value, no-op so as not to overwrite existing options here.
      * We need to allow this especially for the default test task, so that existing builds that configure options and
      * then call useJunit() don't clear out their options.
+     * @since 0.7
      */
     void useTestFramework(TestFramework testFramework) {
         Class<?> currentFramework = this.testFramework.get().getClass();
@@ -1198,6 +1217,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     /**
      * Returns the classpath to use to execute the tests.
+     * @since 0.7
      */
     @Internal("captured by stableClasspath")
     @ToBeReplacedByLazyProperty
@@ -1205,6 +1225,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return classpath;
     }
 
+    /**
+     * Sets the classpath.
+     *
+     * @since 0.8
+     */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
@@ -1212,6 +1237,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies whether test classes should be detected. When {@code true} the classes which match the include and exclude patterns are scanned for test classes, and any found are executed. When
      * {@code false} the classes which match the include and exclude patterns are executed.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -1219,6 +1245,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return scanForTestClasses;
     }
 
+    /**
+     * Sets the scan for test classes.
+     *
+     * @since 0.7
+     */
     public void setScanForTestClasses(boolean scanForTestClasses) {
         this.scanForTestClasses = scanForTestClasses;
     }
@@ -1236,6 +1267,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * This property can have a large impact on performance due to the cost of stopping and starting each test process. It is unusual for this property to be changed from the default.
      *
      * @return The maximum number of test classes to execute in a test process. Returns 0 when there is no maximum.
+     * @since 0.9
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -1272,6 +1304,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * This property cannot exceed the value of {@literal max-workers} for the current build. Gradle will also limit the number of started test processes across all {@link Test} tasks.
      *
      * @return The maximum number of forked test processes.
+     * @since 0.9
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -1286,6 +1319,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * </p>
      *
      * @param maxParallelForks The maximum number of forked test processes. Use 1 to disable parallel test execution for this task.
+     * @since 0.9
      */
     public void setMaxParallelForks(int maxParallelForks) {
         if (maxParallelForks < 1) {
@@ -1298,6 +1332,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Returns the classes files to scan for test classes.
      *
      * @return The candidate class files.
+     * @since 0.9
      */
     @InputFiles
     @SkipWhenEmpty
@@ -1312,7 +1347,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Executes the action against the {@link #getFilter()}.
      *
      * @param action configuration of the test filter
-     * @since 1.10
+     * @since 1.12
      */
     public void filter(Action<TestFilter> action) {
         action.execute(getFilter());

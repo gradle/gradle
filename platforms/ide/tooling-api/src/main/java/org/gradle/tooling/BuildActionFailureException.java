@@ -22,6 +22,11 @@ package org.gradle.tooling;
  * @since 1.8
  */
 public class BuildActionFailureException extends GradleConnectionException {
+    /**
+     * Creates a new {@code BuildActionFailureException}.
+     *
+     * @since 1.8
+     */
     public BuildActionFailureException(String message, Throwable throwable) {
         super(message, throwable);
     }

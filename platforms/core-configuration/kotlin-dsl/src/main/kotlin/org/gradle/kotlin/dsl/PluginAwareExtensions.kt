@@ -27,6 +27,8 @@ import org.gradle.api.plugins.PluginAware
  * @param plugin a id of the plugin to apply
  * @param to the plugin target object or collection of objects, target is self when null
  * @see [PluginAware.apply]
+ *
+ * @since 4.7
  */
 fun PluginAware.apply(from: Any? = null, plugin: String? = null, to: Any? = null) {
     require(from != null || plugin != null) { "At least one of 'from' or 'plugin' must be given." }
@@ -45,6 +47,8 @@ fun PluginAware.apply(from: Any? = null, plugin: String? = null, to: Any? = null
  *
  * @param T the plugin type.
  * @see [PluginAware.apply]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Plugin<*>> PluginAware.apply() {
     apply {
@@ -61,6 +65,8 @@ inline fun <reified T : Plugin<*>> PluginAware.apply() {
  * @param T the plugin type.
  * @param targets the plugin target objects or collections of objects
  * @see [PluginAware.apply]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Plugin<*>> PluginAware.applyTo(vararg targets: Any) {
     apply {

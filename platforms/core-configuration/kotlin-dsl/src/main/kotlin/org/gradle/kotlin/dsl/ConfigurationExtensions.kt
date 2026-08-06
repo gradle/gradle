@@ -29,6 +29,8 @@ import org.gradle.kotlin.dsl.support.excludeMapFor
  * @param group the optional group identifying the dependencies to be excluded.
  * @param module the optional module name identifying the dependencies to be excluded.
  * @return this
+ *
+ * @since 4.1
  */
 fun Configuration.exclude(group: String? = null, module: String? = null): Configuration =
     exclude(excludeMapFor(group, module))

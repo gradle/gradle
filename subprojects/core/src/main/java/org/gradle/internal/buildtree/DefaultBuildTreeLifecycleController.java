@@ -32,9 +32,13 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private enum State implements StateTransitionController.State {
@@ -79,23 +83,64 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     @Override
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
-            modelCreator.beforeTasks(action);
-            ExecutionResult<Void> taskRunResult = ExecutionResult.succeeded();
-            if (runTasks) {
-                taskRunResult = runTasks();
+            // Run before tasks (the projectsLoaded phase). If it throws, skip tasks and the model action and fail
+            // the build with the thrown failure.
+            ExecutionResult<BuildTreeModelCreatorResult<Void>> beforeTasksResult = runModelAction(() -> modelCreator.beforeTasks(action));
+            if (!beforeTasksResult.isSuccessful()) {
+                return beforeTasksResult.<T>asFailure();
             }
-            // Allow model action to run even if tasks failed
-            ExecutionResult<T> modelResult = runFromBuildModel(action);
-            return modelResult.withFailures(taskRunResult);
+
+            // Run tasks
+            ExecutionResult<Void> taskRunResult = runTasks ? runTasks() : ExecutionResult.succeeded();
+
+            // Allow the model action to run even if tasks failed
+            ExecutionResult<BuildTreeModelCreatorResult<T>> buildModelResult = runModelAction(() -> modelCreator.fromBuildModel(action));
+
+            // The held failures must still fail the build.
+            return attachCollectedFailures(beforeTasksResult.getValue(), buildModelResult, taskRunResult);
         });
     }
 
+    private static <T> ExecutionResult<T> attachCollectedFailures(
+        BuildTreeModelCreatorResult<Void> beforeTasksResult,
+        ExecutionResult<BuildTreeModelCreatorResult<T>> buildModelResult,
+        ExecutionResult<Void> taskRunResult
+    ) {
+        // The client model (or the action failure if fromBuildModel threw), plus task and model builder failures.
+        ExecutionResult<T> modelResult = buildModelResult.isSuccessful()
+            ? ExecutionResult.succeeded(buildModelResult.getValue().getModel())
+            : buildModelResult.asFailure();
+        ExecutionResult<T> buildResult = modelResult.withFailures(taskRunResult);
+
+        // Model builder failures held behind partial results always fail the build. They come from both phases, but
+        // from fromBuildModel only when it produced a result rather than throwing. Both phases can observe the same
+        // failure instance when a cached model is returned for both, so report it only once.
+        List<Throwable> modelBuilderFailures = new ArrayList<>(beforeTasksResult.getModelBuilderFailures());
+        if (buildModelResult.isSuccessful()) {
+            modelBuilderFailures.addAll(buildModelResult.getValue().getModelBuilderFailures());
+        }
+        ExecutionResult<T> result = buildResult.withFailures(ExecutionResult.maybeFailed(modelBuilderFailures.stream().distinct().collect(Collectors.toList())));
+
+        // A configuration failure is surfaced here only when the build isn't failing yet: if tasks were requested,
+        // and task execution fails the build, attaching the collected copy would very likely report the identical exception twice.
+        if (buildResult.isSuccessful()) {
+            List<Throwable> suppressedConfigurationFailures = new ArrayList<>(beforeTasksResult.getConfigurationFailures());
+            suppressedConfigurationFailures.addAll(buildModelResult.getValue().getConfigurationFailures());
+            result = result.withFailures(ExecutionResult.maybeFailed(suppressedConfigurationFailures.stream().distinct().collect(Collectors.toList())));
+        }
+        return result;
+    }
+
+    /**
+     * Runs a phase of the model action (beforeTasks or fromBuildModel), capturing a failure as a build action failure
+     * instead of throwing, so the caller can still fold in any failures collected before it.
+     */
     @SuppressWarnings("DataFlowIssue")
-    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action) {
-        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action));
-        return model.getFailure().isPresent()
-            ? ExecutionResult.failed(BuildActionExecutionException.wrap(model.getFailure().get()))
-            : ExecutionResult.succeeded(model.get());
+    private <T> ExecutionResult<T> runModelAction(Callable<T> phase) {
+        Try<T> result = Try.ofFailable(phase);
+        return result.getFailure().isPresent()
+            ? ExecutionResult.failed(BuildActionExecutionException.wrap(result.getFailure().get()))
+            : ExecutionResult.succeeded(result.get());
     }
 
     private ExecutionResult<Void> runTasks() {

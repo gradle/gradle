@@ -42,8 +42,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final IntList nodeIndices;
     private final ResolvedGraphResult graph;
 
-    private @Nullable ImmutableList<ResolvedVariantResult> variants;
-    private @Nullable ComponentDependencies dependencies;
+    private volatile @Nullable ImmutableList<ResolvedVariantResult> variants;
+    private volatile @Nullable ComponentDependencies dependencies;
 
     public DefaultResolvedComponentResult(
         int index,
@@ -107,11 +107,20 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public synchronized List<ResolvedVariantResult> getVariants() {
-        if (variants == null) {
-            variants = computeVariants(graph, nodeIndices);
+    public List<ResolvedVariantResult> getVariants() {
+        ImmutableList<ResolvedVariantResult> localVariants = this.variants;
+        if (localVariants == null) {
+            localVariants = computeVariants(graph, nodeIndices);
+            synchronized (this) {
+                ImmutableList<ResolvedVariantResult> published = this.variants;
+                if (published == null) {
+                    this.variants = localVariants;
+                } else {
+                    localVariants = published;
+                }
+            }
         }
-        return variants;
+        return localVariants;
     }
 
     private static ImmutableList<ResolvedVariantResult> computeVariants(
@@ -152,11 +161,20 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return getAllDependencies().variantDependencies().get(indexInComponent);
     }
 
-    private synchronized ComponentDependencies getAllDependencies() {
-        if (dependencies == null) {
-            dependencies = computeAllDependencies(graph, nodeIndices, this);
+    private ComponentDependencies getAllDependencies() {
+        ComponentDependencies localDependencies = this.dependencies;
+        if (localDependencies == null) {
+            localDependencies = computeAllDependencies(graph, nodeIndices, this);
+            synchronized (this) {
+                ComponentDependencies published = this.dependencies;
+                if (published == null) {
+                    this.dependencies = localDependencies;
+                } else {
+                    localDependencies = published;
+                }
+            }
         }
-        return dependencies;
+        return localDependencies;
     }
 
     private static ComponentDependencies computeAllDependencies(

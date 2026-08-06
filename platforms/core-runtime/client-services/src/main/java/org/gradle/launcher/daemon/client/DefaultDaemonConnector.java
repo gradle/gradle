@@ -33,7 +33,6 @@ import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -42,6 +41,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.registry.DaemonStopEvents;
 import org.gradle.launcher.daemon.server.api.DaemonState;
+import org.gradle.launcher.daemon.startup.DaemonStartupInfo;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;

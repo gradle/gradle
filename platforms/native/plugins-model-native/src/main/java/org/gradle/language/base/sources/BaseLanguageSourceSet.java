@@ -27,8 +27,12 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 /**
  * Base class that may be used for custom {@link LanguageSourceSet} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.4
  */
 @Incubating
+@Deprecated
 public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
     /**
      * This is here as a convenience for subclasses to create additional SourceDirectorySets
@@ -57,6 +61,11 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
         }
     }
 
+    /**
+     * Creates a new {@code BaseLanguageSourceSet}.
+     *
+     * @since 2.4
+     */
     public BaseLanguageSourceSet() {
         this(NEXT_SOURCE_SET_INFO.get());
     }

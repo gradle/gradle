@@ -35,6 +35,7 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class DefaultSharedLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

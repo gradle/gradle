@@ -47,7 +47,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
@@ -86,12 +85,33 @@ import java.util.concurrent.Callable;
  * <p>A plugin which generates Eclipse files.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
+ * @since 1.0
  */
 public abstract class EclipsePlugin extends IdePlugin {
 
+    /**
+     * The eclipse task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_TASK_NAME = "eclipse";
+    /**
+     * The eclipse project task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";
+    /**
+     * The eclipse cp task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath";
+    /**
+     * The eclipse jdt task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt";
 
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
@@ -263,7 +283,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                     public void execute(Project p) {
                         // keep the ordering we had in earlier gradle versions
                         Set<String> containers = new LinkedHashSet<>();
-                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + DeprecationLogger.whileDisabled(() -> model.getJdt().getJavaRuntimeName()) + "/");
+                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + model.getJdt().getJavaRuntimeName() + "/");
                         containers.addAll(model.getClasspath().getContainers());
                         model.getClasspath().setContainers(containers);
                     }

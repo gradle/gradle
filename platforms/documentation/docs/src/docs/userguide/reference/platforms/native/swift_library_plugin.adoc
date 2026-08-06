@@ -15,7 +15,7 @@
 [[swift_library_plugin]]
 = Swift Library
 
-The Swift Library Plugin provides the tasks, conventions and conventions for building a Swift library.
+The Swift Library Plugin provides the tasks, configurations and conventions for building a Swift library.
 In particular, a Swift library provides functionality that can be used by consumers (i.e., other projects using this plugin or the <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>).
 
 [[sec:swift_library_usage]]
@@ -34,7 +34,7 @@ Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,int
 
 Build types - always set to _debug_ and _release_::
 The build type controls the debuggability as well as the optimization of the generated binaries.
-- `debug` - Generate debug symbols and don’t optimized the binary
+- `debug` - Generate debug symbols and don’t optimize the binary
 - `release` - Generate debug symbols and optimize, but extract the debug symbols from the binary
 
 Linkages - default to _shared_::
@@ -117,13 +117,13 @@ This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 `check` - Task (lifecycle)::
 Aggregate task that performs verification tasks, such as running the tests.
 Some plugins add their own verification task to `check`.
- For example, the <<xctest_plugin.adoc#xctest_plugin,XCTest Plugin>> attach its test task to this lifecycle task.
+ For example, the <<xctest_plugin.adoc#xctest_plugin,XCTest Plugin>> attaches its test task to this lifecycle task.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `build` - Task (lifecycle)::
 Depends on: `check`, `assemble`
 ::
-Aggregate tasks that perform a full build of the project.
+Aggregate task that performs a full build of the project.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `clean` - Delete::
@@ -168,7 +168,7 @@ This configuration is meant to be used by consumers, to retrieve all the element
 Used for linking against the library.
 This configuration is meant to be used by consumers, to retrieve all the elements necessary to link against the library.
 
-`__variant__RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements) extends `main__Variant__Implementation`::
+`__variant__RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements`) extends `main__Variant__Implementation`::
 Used for executing the library.
 This configuration is meant to be used by consumers, to retrieve all the elements necessary to run against the library.
 
@@ -179,7 +179,7 @@ Used for compiling the library.
 This configuration contains the compile include roots of the library and is therefore used when invoking the Swift compiler to compile it.
 
 `nativeLink__Variant__` (e.g. `nativeLinkDebug` and `nativeLinkRelease`) extends `main__Variant__Implementation`::
-Used for linking the library the shared library only.
+Used for linking the shared library only.
 This configuration contains the libraries of the library and is therefore used when invoking the Swift linker to link it.
 
 `nativeRuntime__Variant__` (e.g. `nativeRuntimeDebug` and `nativeRuntimeRelease`) extends `main__Variant__Implementation`::
@@ -214,7 +214,7 @@ The Swift Library Plugin adds conventions for sources and tasks, shown below.
 === Project layout
 
 The Swift Library Plugin assumes the project layout shown below.
-None of these directories needs to exist or have anything in them.
+None of these directories need to exist or have anything in them.
 The Swift Library Plugin will compile whatever it finds and ignore anything missing.
 
 `src/main/swift`::
@@ -251,7 +251,7 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 [[sec:swift_library_link_task]]
 === `link__Variant__` Task
 
-The Swift Library Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
+The Swift Library Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
 Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
@@ -273,7 +273,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.
 [[sec:swift_library_create_task]]
 === `create__Variant__` Task
 
-The Swift Library Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
+The Swift Library Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
 Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 

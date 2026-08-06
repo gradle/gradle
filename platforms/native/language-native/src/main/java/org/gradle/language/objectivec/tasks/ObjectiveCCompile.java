@@ -23,6 +23,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Compiles Objective-C source files into object files.
+ * @since 2.2
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")

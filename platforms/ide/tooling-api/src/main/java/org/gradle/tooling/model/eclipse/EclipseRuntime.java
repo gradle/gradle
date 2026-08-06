@@ -29,10 +29,16 @@ import org.gradle.api.Action;
  * @since 5.5
  */
 public interface EclipseRuntime {
+    /**
+     * Returns the workspace.
+     *
+     * @since 5.5
+     */
     EclipseWorkspace getWorkspace();
 
     /**
      * The eclipse workspace
+     * @since 5.5
      */
     void setWorkspace(EclipseWorkspace eclipseWorkspace);
 

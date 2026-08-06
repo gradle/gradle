@@ -25,6 +25,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
@@ -93,6 +94,7 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -134,6 +136,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ResolverProviderFactories.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
         registration.add(RuntimeShadedJarFactory.class);
+        registration.add(DefaultComponentMetadataProcessor.Factory.class);
     }
 
     @Provides
@@ -142,13 +145,17 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         UserCodeApplicationContext context,
         DependencyManagementServices dependencyManagementServices,
         ObjectFactory objects,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        IsolatableFactory isolatableFactory
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
             objects,
-            collectionCallbackActionDecorator
+            collectionCallbackActionDecorator,
+            moduleIdentifierFactory,
+            isolatableFactory
         );
     }
 

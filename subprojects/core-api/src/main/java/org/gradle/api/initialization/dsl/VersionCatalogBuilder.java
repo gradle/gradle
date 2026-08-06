@@ -36,6 +36,7 @@ public interface VersionCatalogBuilder extends Named {
      * A description for the dependencies model, which will be used in
      * the generated sources as documentation.
      * @return the description for this model
+     * @since 7.0
      */
     Property<String> getDescription();
 
@@ -56,6 +57,7 @@ public interface VersionCatalogBuilder extends Named {
      * If the notation doesn't conform these constraints, an exception will be thrown at configuration time.
      *
      * @param dependencyNotation any notation supported by {@link org.gradle.api.artifacts.dsl.DependencyHandler}
+     * @since 7.0
      */
     void from(Object dependencyNotation);
 
@@ -66,6 +68,7 @@ public interface VersionCatalogBuilder extends Named {
      * @param alias an identifier for the version
      * @param versionSpec the dependency version spec
      * @return the version alias name
+     * @since 7.0
      */
     String version(String alias, Action<? super MutableVersionConstraint> versionSpec);
 
@@ -75,6 +78,7 @@ public interface VersionCatalogBuilder extends Named {
      *
      * @param alias an identifier for the version
      * @param version the version alias name
+     * @since 7.0
      */
     String version(String alias, String version);
 
@@ -122,11 +126,13 @@ public interface VersionCatalogBuilder extends Named {
      * @param aliases the aliases of the dependencies included in the bundle
      * @see #library(String, String, String)
      * @see #library(String, String)
+     * @since 7.0
      */
     void bundle(String alias, List<String> aliases);
 
     /**
      * Returns the name of the extension configured by this builder
+     * @since 7.0
      */
     String getLibrariesExtensionName();
 
@@ -138,11 +144,13 @@ public interface VersionCatalogBuilder extends Named {
     interface LibraryAliasBuilder {
         /**
          * Configures the version for this alias
+         * @since 7.0
          */
         void version(Action<? super MutableVersionConstraint> versionSpec);
 
         /**
          * Configures the required version for this alias
+         * @since 7.0
          */
         void version(String version);
 
@@ -151,6 +159,7 @@ public interface VersionCatalogBuilder extends Named {
          * via the {@link #version(String, Action)} method.
          *
          * @param versionRef the version reference
+         * @since 7.0
          */
         void versionRef(String versionRef);
 
@@ -158,6 +167,7 @@ public interface VersionCatalogBuilder extends Named {
          * Do not associate this alias to a particular version, in which
          * case the dependency notation will just have group and artifact.
          *
+         * @since 7.0
          */
         void withoutVersion();
     }
@@ -170,11 +180,13 @@ public interface VersionCatalogBuilder extends Named {
     interface PluginAliasBuilder {
         /**
          * Configures the version for this alias
+         * @since 7.2
          */
         void version(Action<? super MutableVersionConstraint> versionSpec);
 
         /**
          * Configures the required version for this alias
+         * @since 7.2
          */
         void version(String version);
 
@@ -183,6 +195,7 @@ public interface VersionCatalogBuilder extends Named {
          * via the {@link #version(String, Action)} method.
          *
          * @param versionRef the version reference
+         * @since 7.2
          */
         void versionRef(String versionRef);
     }

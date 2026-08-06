@@ -121,10 +121,15 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public synchronized IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition) {
+        return addImplicitIncludedBuild(buildDefinition, null);
+    }
+
+    @Override
+    public synchronized IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition, Path buildPath) {
         // TODO: synchronization with other methods
         IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
-            includedBuild = registerBuild(buildDefinition, true, null);
+            includedBuild = registerBuild(buildDefinition, true, buildPath);
         }
         return includedBuild;
     }

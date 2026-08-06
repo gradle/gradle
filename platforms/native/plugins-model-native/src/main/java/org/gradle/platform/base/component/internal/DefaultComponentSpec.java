@@ -19,20 +19,19 @@ package org.gradle.platform.base.component.internal;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
+@SuppressWarnings("deprecation")
 public class DefaultComponentSpec extends AbstractComponentSpec {
     private static final ThreadLocal<ComponentInfo> NEXT_COMPONENT_INFO = new ThreadLocal<ComponentInfo>();
 
-    public static <T extends DefaultComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
+    public static <T extends DefaultComponentSpec> T create(Class<? extends org.gradle.platform.base.ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
         NEXT_COMPONENT_INFO.set(new ComponentInfo(identifier, modelNode, publicType));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create component of type %s", publicType.getSimpleName()), e.getCause());
+                throw new org.gradle.platform.base.ModelInstantiationException(String.format("Could not create component of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
             NEXT_COMPONENT_INFO.set(null);
@@ -53,7 +52,7 @@ public class DefaultComponentSpec extends AbstractComponentSpec {
 
     private static ComponentInfo validate(ComponentInfo info) {
         if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead.");
+            throw new org.gradle.platform.base.ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead.");
         }
         return info;
     }

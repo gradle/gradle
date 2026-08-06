@@ -18,9 +18,8 @@ package org.gradle.nativeplatform.internal.pch;
 
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
-import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.nativeplatform.ObjectFile;
 
-public interface PchEnabledLanguageTransform<U extends DependentSourceSet> extends LanguageTransform<U, ObjectFile> {
+@SuppressWarnings("deprecation")
+public interface PchEnabledLanguageTransform<U extends org.gradle.language.nativeplatform.DependentSourceSet> extends LanguageTransform<U, org.gradle.nativeplatform.ObjectFile> {
     SourceTransformTaskConfig getPchTransformTask();
 }

@@ -28,6 +28,7 @@ import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
 import gradlebuild.basics.performanceChannel
+import gradlebuild.basics.performanceDependencyBuildIds
 import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceStage
 import gradlebuild.basics.performanceTestBuildOperationTrace
@@ -266,6 +267,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
         val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
             this.reportGeneratorClass = reportGeneratorClass
+            this.dependencyBuildIds = project.performanceDependencyBuildIds
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
         performanceTestReport {

@@ -25,6 +25,7 @@ import java.util.Objects;
 
 /**
  * A classpath entry representing a project dependency.
+ * @since 1.0
  */
 public class ProjectDependency extends AbstractClasspathEntry {
 
@@ -33,6 +34,11 @@ public class ProjectDependency extends AbstractClasspathEntry {
     private FileReference publicationJavadocPath;
     private DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
+    /**
+     * Creates a new {@code ProjectDependency}.
+     *
+     * @since 1.0
+     */
     public ProjectDependency(Node node) {
         super(node);
         assertPathIsValid();
@@ -42,6 +48,7 @@ public class ProjectDependency extends AbstractClasspathEntry {
      * Create a dependency on another Eclipse project.
      *
      * @param path The path to the Eclipse project, which is the name of the eclipse project preceded by "/".
+     * @since 3.1
      */
     public ProjectDependency(String path) {
         super(path);

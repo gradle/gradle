@@ -20,11 +20,12 @@ import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
+import org.gradle.internal.cc.impl.fixtures.ExternalProcessAtConfigurationTimeDeprecations
 import org.gradle.process.ShellScript
 
 import static org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer.PROMO_PREFIX
 
-class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ExternalProcessAtConfigurationTimeDeprecations {
     def "shows promo message when build succeeds without giving explicit CC state"() {
         given:
         buildFile """
@@ -201,6 +202,10 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
             tasks.register("greet") {}
         """
+
+        and:
+        expectExternalProcessAtConfigurationTimeDeprecation()
+
         when:
         run("greet")
 

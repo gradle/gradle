@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.initialization.transform.ClassLoadTimeInstrumentationComposer
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
@@ -112,6 +113,7 @@ class DefaultConfigurationCacheIO internal constructor(
     private val codecs: ConfigurationCacheCodecs,
     private val encryptionService: EncryptionService,
     private val buildInvocationScopeId: BuildInvocationScopeId,
+    private val instrumentationComposer: ClassLoadTimeInstrumentationComposer,
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     override fun writeCacheEntryDetailsTo(
@@ -615,6 +617,7 @@ class DefaultConfigurationCacheIO internal constructor(
         DefaultClassDecoder(
             classLoaderScopeRegistry.coreAndPluginsScope,
             instantiatorFactory.decorateScheme().deserializationInstantiator(),
+            instrumentationComposer,
             scopeSpecDecoder = classLoaderScopes.decoder()
         )
 

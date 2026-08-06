@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.artifacts.DependencyManagementParameters
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.problems.Problems
@@ -146,6 +146,10 @@ class DefaultConfigurationCacheHost internal constructor(
             return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
         }
 
+        override fun addImplicitIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild {
+            return DefaultConfigurationCacheBuild(buildStateRegistry.addImplicitIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
+        }
+
         override fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild {
             return DefaultConfigurationCacheBuild(buildStateRegistry.getBuildSrcNestedBuild(buildStateRegistry.getBuild(ownerId))!!, fileResolver, buildStateRegistry, null)
         }
@@ -168,7 +172,7 @@ class DefaultConfigurationCacheHost internal constructor(
                 gradle,
                 classLoaderScope,
                 baseClassLoaderScope,
-                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope, StandaloneDomainObjectContext.forScript(settingsSource)),
+                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope, DependencyManagementParameters(settingsSource.shortDisplayName, "settings-", true, true, true)),
                 settingsDir(),
                 settingsSource,
                 gradle.startParameter

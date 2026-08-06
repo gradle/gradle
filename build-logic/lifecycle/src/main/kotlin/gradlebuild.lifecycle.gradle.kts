@@ -104,12 +104,14 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
             ":docs:checkstyleApi",
             ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility",
+            ":architecture-test:checkSinceForNonPublicApi",
             ":docs:javadocAll",
             ":architecture-test:test",
             ":tooling-api:toolingApiShadedJar",
             ":performance:verifyPerformanceScenarioDefinitions",
             ":checkSubprojectsInfo",
-            ":checkTargetRuntimes"
+            ":checkTargetRuntimes",
+            ":checkIdeaJdkConfiguration"
         )
     }
 }

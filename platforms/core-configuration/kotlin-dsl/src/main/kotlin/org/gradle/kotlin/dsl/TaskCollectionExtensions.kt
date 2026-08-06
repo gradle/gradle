@@ -29,6 +29,8 @@ import org.gradle.api.tasks.TaskCollection
  * @return The matching objects. Returns an empty collection if there are no such objects
  * in this collection.
  * @see [TaskCollection.withType]
+ *
+ * @since 5.6
  */
 inline fun <reified S : Task> TaskCollection<in S>.withType(): TaskCollection<S> =
     withType(S::class.java)

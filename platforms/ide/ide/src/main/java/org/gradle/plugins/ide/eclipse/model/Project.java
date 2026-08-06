@@ -43,9 +43,15 @@ import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.INCLUDE_ON
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
+ * @since 1.0
  */
 public class Project extends XmlPersistableConfigurationObject {
 
+    /**
+     * The project file name.
+     *
+     * @since 1.0
+     */
     public static final String PROJECT_FILE_NAME = ".project";
 
     private String name;
@@ -56,6 +62,11 @@ public class Project extends XmlPersistableConfigurationObject {
     private Set<Link> linkedResources = new LinkedHashSet<>();
     private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 
+    /**
+     * Creates a new {@code Project}.
+     *
+     * @since 1.0
+     */
     public Project(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
     }
@@ -67,66 +78,102 @@ public class Project extends XmlPersistableConfigurationObject {
 
     /**
      * The name used for the name of the eclipse project
+     * @since 1.0
      */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name.
+     *
+     * @since 1.0
+     */
     public void setName(String name) {
         this.name = name;
     }
 
     /**
      * A comment used for the eclipse project
+     * @since 1.0
      */
     public String getComment() {
         return comment;
     }
 
+    /**
+     * Sets the comment.
+     *
+     * @since 1.0
+     */
     public void setComment(String comment) {
         this.comment = comment;
     }
 
     /**
      * The referenced projects of this Eclipse project.
+     * @since 1.0
      */
     public Set<String> getReferencedProjects() {
         return referencedProjects;
     }
 
+    /**
+     * Sets the referenced projects.
+     *
+     * @since 1.0
+     */
     public void setReferencedProjects(Set<String> referencedProjects) {
         this.referencedProjects = referencedProjects;
     }
 
     /**
      * The natures to be added to this Eclipse project.
+     * @since 1.0
      */
     public List<String> getNatures() {
         return natures;
     }
 
+    /**
+     * Sets the natures.
+     *
+     * @since 1.0
+     */
     public void setNatures(List<String> natures) {
         this.natures = natures;
     }
 
     /**
      * The build commands to be added to this Eclipse project.
+     * @since 1.0
      */
     public List<BuildCommand> getBuildCommands() {
         return buildCommands;
     }
 
+    /**
+     * Sets the build commands.
+     *
+     * @since 1.0
+     */
     public void setBuildCommands(List<BuildCommand> buildCommands) {
         this.buildCommands = buildCommands;
     }
 
     /**
      * The linkedResources to be added to this Eclipse project.
+     * @since 1.0
      */
     public Set<Link> getLinkedResources() {
         return linkedResources;
     }
 
+    /**
+     * Sets the linked resources.
+     *
+     * @since 1.0
+     */
     public void setLinkedResources(Set<Link> linkedResources) {
         this.linkedResources = linkedResources;
     }
@@ -149,6 +196,11 @@ public class Project extends XmlPersistableConfigurationObject {
         this.resourceFilters = resourceFilters;
     }
 
+    /**
+     * Configure.
+     *
+     * @since 1.0
+     */
     public Object configure(EclipseProject eclipseProject) {
         name = nullToEmpty(eclipseProject.getName());
         comment = nullToEmpty(eclipseProject.getComment());

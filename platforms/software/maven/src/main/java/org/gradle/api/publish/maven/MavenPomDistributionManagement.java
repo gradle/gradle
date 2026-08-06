@@ -32,11 +32,13 @@ public interface MavenPomDistributionManagement {
 
     /**
      * The download URL of the corresponding Maven publication.
+     * @since 4.8
      */
     Property<String> getDownloadUrl();
 
     /**
      * Configures the relocation information.
+     * @since 4.8
      */
     void relocation(Action<? super MavenPomRelocation> action);
 

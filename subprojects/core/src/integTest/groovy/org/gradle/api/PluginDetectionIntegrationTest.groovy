@@ -68,7 +68,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
-        pluginBuilder.addRuleSource("test-rule-source")
         pluginBuilder.publishTo(executer, file("plugin.jar"))
 
         buildFile << """
@@ -102,7 +101,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
                 getParameters().pluginJar.set(file("plugin.jar"))
             }.get()
             def pluginClass = loaderService.getLoader().loadClass("${pluginBuilder.packageName}.TestPlugin")
-            def ruleSourceClass = loaderService.getLoader().loadClass("${pluginBuilder.packageName}.TestRuleSource")
 
             plugins.withType(pluginClass) {
                 operations << 'withType'
@@ -112,18 +110,11 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
                 operations << 'withId'
             }
 
-            pluginManager.withPlugin("test-rule-source") {
-                // assert we are using our closure decoration and not closure coercion
-                assert delegate instanceof $AppliedPlugin.name
-                operations << 'withPlugin'
-            }
-
             operations << "applying"
             apply plugin: pluginClass
-            apply type: ruleSourceClass
             operations << "applied"
 
-            task verify { doLast { assert operations == ['applying', 'withType', 'withId', 'withPlugin', 'applied'] } }
+            task verify { doLast { assert operations == ['applying', 'withType', 'withId', 'applied'] } }
         """
 
         expect:

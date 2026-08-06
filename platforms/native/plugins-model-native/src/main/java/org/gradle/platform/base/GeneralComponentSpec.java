@@ -21,7 +21,11 @@ import org.gradle.api.Incubating;
 /**
  * A general purpose component specification, that can be used to represent some software component built from source and producing
  * multiple output variants.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.12
  */
 @Incubating
+@Deprecated
 public interface GeneralComponentSpec extends ComponentSpec, SourceComponentSpec, VariantComponentSpec {
 }

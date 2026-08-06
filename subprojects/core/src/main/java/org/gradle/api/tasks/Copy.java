@@ -67,6 +67,7 @@ import java.io.File;
  *     with dataContent
  * }
  * </pre>
+ * @since 0.7
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Copy extends AbstractCopyTask {
@@ -95,6 +96,7 @@ public abstract class Copy extends AbstractCopyTask {
      * Returns the directory to copy files into.
      *
      * @return The destination dir.
+     * @since 0.7
      */
     @OutputDirectory
     @ToBeReplacedByLazyProperty
@@ -106,6 +108,7 @@ public abstract class Copy extends AbstractCopyTask {
      * Sets the directory to copy files into. This is the same as calling {@link #into(Object)} on this task.
      *
      * @param destinationDir The destination directory. Must not be null.
+     * @since 0.7
      */
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);

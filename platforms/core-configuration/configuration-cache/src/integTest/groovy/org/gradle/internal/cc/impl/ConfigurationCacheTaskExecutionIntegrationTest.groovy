@@ -179,6 +179,37 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/35033")
+    def "task is not executed if its captured state could not be stored"() {
+        given:
+        settingsKotlinFile ""
+        buildKotlinFile """
+            plugins { java }
+
+            tasks.register("printDependencies") {
+                val classpath = configurations.compileClasspath
+                doLast { println(classpath.get().files) }
+            }
+        """
+
+        when:
+        configurationCacheFails("printDependencies")
+
+        then:
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            serializationProblem "Task `:printDependencies` of type `org.gradle.api.DefaultTask`: " +
+                "value 'fixed(class org.gradle.api.internal.file.DefaultFileCollectionFactory\$ResolvingFileCollection, file collection)' " +
+                "is not assignable to 'org.gradle.api.NamedDomainObjectProvider'"
+        }
+
+        and:
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Configuration cache problems found in this build.")
+        notExecuted("printDependencies")
+        outputDoesNotContain("NamedDomainObjectProvider.get()")
+    }
+
     def "tasks that access project through #providerChain emit no problems"() {
         given:
         buildFile """

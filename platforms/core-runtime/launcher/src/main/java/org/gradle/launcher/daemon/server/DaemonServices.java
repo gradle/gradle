@@ -34,7 +34,6 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
@@ -45,9 +44,9 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.HandleInvalidateVirtualFileSystem;
 import org.gradle.launcher.daemon.server.api.HandleReportStatus;
 import org.gradle.launcher.daemon.server.api.HandleStop;
+import org.gradle.launcher.daemon.server.exec.ApplyClientEnvironmentVariables;
 import org.gradle.launcher.daemon.server.exec.CleanUpVirtualFileSystemAfterBuild;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
-import org.gradle.launcher.daemon.server.exec.ApplyClientEnvironmentVariables;
 import org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment;
 import org.gradle.launcher.daemon.server.exec.ExecuteBuild;
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput;
@@ -66,6 +65,7 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStr
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
+import org.gradle.launcher.daemon.startup.DaemonServerConfiguration;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 

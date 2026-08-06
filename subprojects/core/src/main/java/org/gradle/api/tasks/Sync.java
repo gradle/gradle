@@ -65,6 +65,7 @@ import java.io.File;
  *     }
  * }
  * </pre>
+ * @since 0.9
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Sync extends AbstractCopyTask {
@@ -101,6 +102,7 @@ public abstract class Sync extends AbstractCopyTask {
      * Returns the directory to copy files into.
      *
      * @return The destination dir.
+     * @since 0.9
      */
     @OutputDirectory
     @ToBeReplacedByLazyProperty
@@ -112,6 +114,7 @@ public abstract class Sync extends AbstractCopyTask {
      * Sets the directory to copy files into. This is the same as calling {@link #into(Object)} on this task.
      *
      * @param destinationDir The destination directory. Must not be null.
+     * @since 0.9
      */
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);
@@ -122,6 +125,7 @@ public abstract class Sync extends AbstractCopyTask {
      *
      * @return the filter defining the files to preserve
      * @see #getDestinationDir()
+     * @since 3.1
      */
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
@@ -135,6 +139,7 @@ public abstract class Sync extends AbstractCopyTask {
      * @param action Action for configuring the preserve filter
      * @return this
      * @see #getDestinationDir()
+     * @since 3.1
      */
     public Sync preserve(Action<? super PatternFilterable> action) {
         action.execute(preserveInDestination);

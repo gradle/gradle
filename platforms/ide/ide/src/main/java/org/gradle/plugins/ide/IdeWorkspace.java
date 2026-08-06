@@ -28,6 +28,7 @@ import org.gradle.api.provider.Provider;
 public interface IdeWorkspace extends Describable {
     /**
      * Returns the location of the generated workspace.
+     * @since 4.7
      */
     Provider<? extends FileSystemLocation> getLocation();
 }

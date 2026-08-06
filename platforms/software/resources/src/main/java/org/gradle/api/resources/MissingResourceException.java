@@ -20,20 +20,41 @@ import java.net.URI;
 
 /**
  * Exception thrown when the resource does not exist
+ * @since 1.0
  */
 public class MissingResourceException extends ResourceException {
+    /**
+     * Creates a new {@code MissingResourceException}.
+     *
+     * @since 1.0
+     */
     public MissingResourceException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code MissingResourceException}.
+     *
+     * @since 2.13
+     */
     public MissingResourceException(String message, Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Creates a new {@code MissingResourceException}.
+     *
+     * @since 2.13
+     */
     public MissingResourceException(URI location, String message) {
         super(location, message);
     }
 
+    /**
+     * Creates a new {@code MissingResourceException}.
+     *
+     * @since 2.13
+     */
     public MissingResourceException(URI location, String message, Throwable cause) {
         super(location, message, cause);
     }

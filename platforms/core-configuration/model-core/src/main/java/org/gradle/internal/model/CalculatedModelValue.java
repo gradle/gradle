@@ -26,7 +26,7 @@ import java.util.function.Function;
  * be used by multiple threads.
  */
 @ThreadSafe
-public interface CalculatedModelValue<T> {
+public interface CalculatedModelValue<T extends @Nullable Object> {
     /**
      * Returns the current value, failing if not present.
      *
@@ -39,7 +39,6 @@ public interface CalculatedModelValue<T> {
      *
      * <p>May be called by any thread. This method returns immediately and does not block to wait for any currently running or pending calls to {@link #update(Function)} to complete.
      */
-    @Nullable
     T getOrNull();
 
     /**

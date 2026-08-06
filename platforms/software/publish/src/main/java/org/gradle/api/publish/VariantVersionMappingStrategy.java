@@ -28,6 +28,7 @@ public interface VariantVersionMappingStrategy {
     /**
      * Declares that this variant should use versions from the resolution
      * of a default configuration chosen by Gradle.
+     * @since 5.2
      */
     void fromResolutionResult();
 
@@ -36,6 +37,7 @@ public interface VariantVersionMappingStrategy {
      * of the configuration provided as an argument.
      *
      * @param configuration a resolvable configuration where to pick resolved version numbers
+     * @since 5.2
      */
     void fromResolutionOf(Configuration configuration);
 
@@ -45,6 +47,7 @@ public interface VariantVersionMappingStrategy {
      * of the configuration provided as an argument.
      *
      * @param configurationName a resolvable configuration name where to pick resolved version numbers
+     * @since 5.2
      */
     void fromResolutionOf(String configurationName);
 }

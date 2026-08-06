@@ -32,6 +32,7 @@ public interface JavadocTool {
      * Returns metadata information about this tool
      *
      * @return the tool metadata
+     * @since 6.7
      */
     @Nested
     JavaInstallationMetadata getMetadata();
@@ -40,6 +41,7 @@ public interface JavadocTool {
      * Returns the path to the executable for this tool
      *
      * @return the path to the executable
+     * @since 6.7
      */
     @Internal
     RegularFile getExecutablePath();

@@ -1,0 +1,51 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.work;
+
+import javax.annotation.concurrent.ThreadSafe;
+
+@ThreadSafe
+public interface SubmissionQueue {
+    /**
+     * Submit a task to be run by this queue.
+     *
+     * <p>
+     * Either the task is accepted or this throws; it never throws after taking ownership of the
+     * task. Callers that account for submitted work can therefore treat a failure here as "this
+     * task will never run".
+     *
+     * @param task the task to run
+     * @throws IllegalStateException if this queue can no longer accept work
+     */
+    void add(Runnable task);
+
+    /**
+     * Process work from this queue on the current thread until the queue is empty.
+     *
+     * <p>
+     * The caller must stop submitting to this queue before draining it, otherwise concurrent
+     * {@link #add(Runnable)} calls can keep the current thread here indefinitely. Work already
+     * submitted may still be running on other threads when this returns; this only guarantees
+     * that nothing is left queued.
+     *
+     * <p>
+     * Shutting the owning processor down does not stop this. A caller that counts its outstanding
+     * work can therefore drain and then wait for that count without the shutdown leaving it
+     * waiting on work nobody will run.
+     */
+    void processWorkUsingCurrentThreadUntilEmpty();
+}

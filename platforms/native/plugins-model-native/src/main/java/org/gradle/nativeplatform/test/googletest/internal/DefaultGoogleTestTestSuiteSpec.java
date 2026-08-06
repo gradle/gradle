@@ -15,13 +15,11 @@
  */
 package org.gradle.nativeplatform.test.googletest.internal;
 
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeComponentSpec;
-import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
-import org.gradle.platform.base.ComponentSpec;
 
-public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec implements GoogleTestTestSuiteSpec {
-    private NativeComponentSpec testedComponent;
+@SuppressWarnings("deprecation")
+public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec implements org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec {
+    private org.gradle.nativeplatform.NativeComponentSpec testedComponent;
 
     @Override
     protected String getTypeName() {
@@ -29,17 +27,17 @@ public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec 
     }
 
     @Override
-    public NativeComponentSpec getTestedComponent() {
+    public org.gradle.nativeplatform.NativeComponentSpec getTestedComponent() {
         return testedComponent;
     }
 
     @Override
-    public void setTestedComponent(ComponentSpec testedComponent) {
-        this.testedComponent = (NativeComponentSpec) testedComponent;
+    public void setTestedComponent(org.gradle.platform.base.ComponentSpec testedComponent) {
+        this.testedComponent = (org.gradle.nativeplatform.NativeComponentSpec) testedComponent;
     }
 
     @Override
-    public void testing(ComponentSpec testedComponent) {
-        this.testedComponent = (NativeComponentSpec) testedComponent;
+    public void testing(org.gradle.platform.base.ComponentSpec testedComponent) {
+        this.testedComponent = (org.gradle.nativeplatform.NativeComponentSpec) testedComponent;
     }
 }

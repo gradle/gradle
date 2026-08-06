@@ -526,7 +526,7 @@ This may impact Kotlin consumers where the return types of APIs are no longer nu
 [[v6_updates_to_default_tool_integration_versions_6_8]]
 ==== Updates to default tool integration versions
 
-- JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
+- JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
 - Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.37[Checkstyle 8.37].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v2.0.0/CHANGELOG.md[CodeNarc 2.0.0].
 

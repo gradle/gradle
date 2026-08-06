@@ -64,6 +64,8 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractReturnType;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
+import static java.util.Objects.requireNonNull;
+
 public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMethodReaderExtension {
 
     @Override
@@ -99,7 +101,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
 
     @NonNull
     private static ImplementationInfoImpl extractImplementationInfo(ExecutableElement input) {
-        Type implementationOwner = extractType(input.getEnclosingElement().asType());
+        Type implementationOwner = extractType(requireNonNull(input.getEnclosingElement()).asType());
         String implementationName = input.getSimpleName().toString();
         String implementationDescriptor = extractMethodDescriptor(input);
         return new ImplementationInfoImpl(implementationOwner, implementationName, implementationDescriptor);

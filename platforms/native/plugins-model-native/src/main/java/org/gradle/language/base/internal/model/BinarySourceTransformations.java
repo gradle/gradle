@@ -21,7 +21,6 @@ import com.google.common.primitives.Booleans;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.JointCompileTaskConfig;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -49,6 +48,7 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
  * - We have a language transform that supports joint-compilation
  * - Binary is flagged with {@link BinarySpecInternal#hasCodependentSources()}.
  */
+@SuppressWarnings("deprecation")
 public class BinarySourceTransformations {
     private final TaskContainer tasks;
     private final Iterable<LanguageTransform<?, ?>> prioritizedTransforms;
@@ -113,7 +113,7 @@ public class BinarySourceTransformations {
 
     private Set<LanguageSourceSetInternal> getSourcesToCompile(BinarySpecInternal binary) {
         LinkedHashSet<LanguageSourceSetInternal> sourceSets = new LinkedHashSet<>();
-        for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
+        for (org.gradle.language.base.LanguageSourceSet languageSourceSet : binary.getInputs()) {
             LanguageSourceSetInternal languageSourceSetInternal = (LanguageSourceSetInternal) languageSourceSet;
             if (languageSourceSetInternal.getMayHaveSources()) {
                 sourceSets.add(languageSourceSetInternal);

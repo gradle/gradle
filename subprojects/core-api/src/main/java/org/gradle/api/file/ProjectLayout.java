@@ -18,6 +18,8 @@ package org.gradle.api.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.ProjectService;
+import org.gradle.api.services.TaskService;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.declarative.dsl.model.annotations.ValueFactories;
 import org.gradle.internal.service.scopes.Scope;
@@ -35,15 +37,17 @@ import java.io.File;
  * @since 4.1
  */
 @ServiceScope(Scope.Project.class)
-public interface ProjectLayout {
+public interface ProjectLayout extends ProjectService, TaskService {
     /**
      * Returns the project directory.
+     * @since 4.1
      */
     @ValueFactories
     Directory getProjectDirectory();
 
     /**
      * Returns the build directory for the project.
+     * @since 4.1
      */
     @HiddenInDefinition
     DirectoryProperty getBuildDirectory();
@@ -64,6 +68,7 @@ public interface ProjectLayout {
      * <p>
      * File system locations based on relative paths will be
      * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
+     * @since 4.1
      */
     @HiddenInDefinition
     Provider<RegularFile> file(Provider<File> file);

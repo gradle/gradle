@@ -158,6 +158,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  *
  * </pre>
+ * @since 1.0
  */
 public abstract class IdeaModule {
 
@@ -177,7 +178,17 @@ public abstract class IdeaModule {
     private File testOutputDir;
     private Map<String, File> pathVariables = new LinkedHashMap<>();
     private String jdkName;
+    /**
+     * The language level.
+     *
+     * @since 8.6
+     */
     protected IdeaLanguageLevel languageLevel;
+    /**
+     * The target bytecode version.
+     *
+     * @since 8.6
+     */
     protected JavaVersion targetBytecodeVersion;
     @SuppressWarnings("deprecation")
     private final IdeaModuleIml iml;
@@ -217,11 +228,17 @@ public abstract class IdeaModule {
      * Basically, for non-trivial projects it is recommended to always run <code>gradle idea</code> from the root.
      * <p>
      * For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name.
+     *
+     * @since 1.0
+     */
     public void setName(String name) {
         this.name = name;
     }
@@ -230,11 +247,17 @@ public abstract class IdeaModule {
      * The directories containing the production sources.
      *
      * For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public Set<File> getSourceDirs() {
         return sourceDirs;
     }
 
+    /**
+     * Sets the source dirs.
+     *
+     * @since 1.0
+     */
     public void setSourceDirs(Set<File> sourceDirs) {
         this.sourceDirs = sourceDirs;
     }
@@ -243,11 +266,17 @@ public abstract class IdeaModule {
      * The directories containing the generated sources (both production and test sources).
      * <p>
      * For example see docs for {@link IdeaModule}
+     * @since 2.2
      */
     public Set<File> getGeneratedSourceDirs() {
         return generatedSourceDirs;
     }
 
+    /**
+     * Sets the generated source dirs.
+     *
+     * @since 2.2
+     */
     public void setGeneratedSourceDirs(Set<File> generatedSourceDirs) {
         this.generatedSourceDirs = generatedSourceDirs;
     }
@@ -279,44 +308,68 @@ public abstract class IdeaModule {
      *   }
      * }
      * </pre>
+     * @since 1.0
      */
     public Map<String, Map<String, Collection<Configuration>>> getScopes() {
         return scopes;
     }
 
+    /**
+     * Sets the scopes.
+     *
+     * @since 1.0
+     */
     public void setScopes(Map<String, Map<String, Collection<Configuration>>> scopes) {
         this.scopes = scopes;
     }
 
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true. <p> For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public boolean isDownloadSources() {
         return downloadSources;
     }
 
+    /**
+     * Sets the download sources.
+     *
+     * @since 1.0
+     */
     public void setDownloadSources(boolean downloadSources) {
         this.downloadSources = downloadSources;
     }
 
     /**
      * Whether to download and add javadoc associated with the dependency jars. Defaults to false. <p> For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public boolean isDownloadJavadoc() {
         return downloadJavadoc;
     }
 
+    /**
+     * Sets the download javadoc.
+     *
+     * @since 1.0
+     */
     public void setDownloadJavadoc(boolean downloadJavadoc) {
         this.downloadJavadoc = downloadJavadoc;
     }
 
     /**
      * The content root directory of the module. <p> For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public File getContentRoot() {
         return contentRoot;
     }
 
+    /**
+     * Sets the content root.
+     *
+     * @since 1.0
+     */
     public void setContentRoot(File contentRoot) {
         this.contentRoot = contentRoot;
     }
@@ -357,11 +410,17 @@ public abstract class IdeaModule {
 
     /**
      * Directories to be excluded. <p> For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public Set<File> getExcludeDirs() {
         return excludeDirs;
     }
 
+    /**
+     * Sets the exclude dirs.
+     *
+     * @since 1.0
+     */
     public void setExcludeDirs(Set<File> excludeDirs) {
         this.excludeDirs = excludeDirs;
     }
@@ -371,11 +430,17 @@ public abstract class IdeaModule {
      * otherwise, they will be set to the directories specified by {@link #getOutputDir()} and {@link #getTestOutputDir()}.
      * <p>
      * For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public Boolean getInheritOutputDirs() {
         return inheritOutputDirs;
     }
 
+    /**
+     * Sets the inherit output dirs.
+     *
+     * @since 1.0
+     */
     public void setInheritOutputDirs(Boolean inheritOutputDirs) {
         this.inheritOutputDirs = inheritOutputDirs;
     }
@@ -385,11 +450,17 @@ public abstract class IdeaModule {
      * If {@code null}, no entry will be created.
      * <p>
      * For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public File getOutputDir() {
         return outputDir;
     }
 
+    /**
+     * Sets the output dir.
+     *
+     * @since 1.0
+     */
     public void setOutputDir(File outputDir) {
         this.outputDir = outputDir;
     }
@@ -399,11 +470,17 @@ public abstract class IdeaModule {
      * If {@code null}, no entry will be created.
      * <p>
      * For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public File getTestOutputDir() {
         return testOutputDir;
     }
 
+    /**
+     * Sets the test output dir.
+     *
+     * @since 1.0
+     */
     public void setTestOutputDir(File testOutputDir) {
         this.testOutputDir = testOutputDir;
     }
@@ -413,12 +490,25 @@ public abstract class IdeaModule {
      * For example, you might add a {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
      * <p>
      * For example see docs for {@link IdeaModule}
+     *
+     * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
+    @Deprecated
     public Map<String, File> getPathVariables() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathVariables");
         return pathVariables;
     }
 
+    /**
+     * Sets the path variables.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
+     */
+    @Deprecated
     public void setPathVariables(Map<String, File> pathVariables) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathVariables");
         this.pathVariables = pathVariables;
     }
 
@@ -429,11 +519,17 @@ public abstract class IdeaModule {
      * Otherwise the SDK for the corresponding value of java version is used for this module.
      * <p>
      * For example see docs for {@link IdeaModule}
+     * @since 1.0
      */
     public String getJdkName() {
         return jdkName;
     }
 
+    /**
+     * Sets the jdk name.
+     *
+     * @since 1.0
+     */
     public void setJdkName(String jdkName) {
         this.jdkName = jdkName;
     }
@@ -443,11 +539,17 @@ public abstract class IdeaModule {
      * When {@code null}, the module will inherit the language level from the idea project.
      * <p>
      * The Idea module language level is based on the {@code sourceCompatibility} settings for the associated Gradle project.
+     * @since 2.11
      */
     public IdeaLanguageLevel getLanguageLevel() {
         return languageLevel;
     }
 
+    /**
+     * Sets the language level.
+     *
+     * @since 2.12
+     */
     public void setLanguageLevel(IdeaLanguageLevel languageLevel) {
         this.languageLevel = languageLevel;
     }
@@ -457,11 +559,17 @@ public abstract class IdeaModule {
      * When {@code null}, the module will inherit the bytecode version from the idea project.
      * <p>
      * The Idea module bytecode version is based on the {@code targetCompatibility} settings for the associated Gradle project.
+     * @since 2.11
      */
     public JavaVersion getTargetBytecodeVersion() {
         return targetBytecodeVersion;
     }
 
+    /**
+     * Sets the target bytecode version.
+     *
+     * @since 2.12
+     */
     public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
     }
@@ -470,6 +578,7 @@ public abstract class IdeaModule {
      * See {@link #iml(Action)}
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public IdeaModuleIml getIml() {
@@ -482,6 +591,7 @@ public abstract class IdeaModule {
      * <p>
      * If IdeaModule requires some information from gradle this field should not be used for this purpose.
      * IdeaModule instances should be configured with all necessary information by the plugin or user.
+     * @since 1.0
      */
     public Project getProject() {
         return project;
@@ -491,6 +601,7 @@ public abstract class IdeaModule {
      * Returns the path factory used to construct paths in the generated *.iml file.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public PathFactory getPathFactory() {
@@ -502,6 +613,7 @@ public abstract class IdeaModule {
      * Sets the path factory used to construct paths in the generated *.iml file.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setPathFactory(PathFactory pathFactory) {
@@ -511,19 +623,35 @@ public abstract class IdeaModule {
 
     /**
      * If true then external artifacts (e.g. those found in repositories) will not be included in the resulting classpath (only project and local file dependencies will be included).
+     * @since 1.0
      */
     public boolean isOffline() {
         return offline;
     }
 
+    /**
+     * Sets the offline.
+     *
+     * @since 1.0
+     */
     public void setOffline(boolean offline) {
         this.offline = offline;
     }
 
+    /**
+     * Returns the single entry libraries.
+     *
+     * @since 1.0
+     */
     public Map<String, Iterable<File>> getSingleEntryLibraries() {
         return singleEntryLibraries;
     }
 
+    /**
+     * Sets the single entry libraries.
+     *
+     * @since 1.0
+     */
     public void setSingleEntryLibraries(Map<String, Iterable<File>> singleEntryLibraries) {
         this.singleEntryLibraries = singleEntryLibraries;
     }
@@ -534,6 +662,7 @@ public abstract class IdeaModule {
      * For example see docs for {@link IdeaModule}.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void iml(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaModuleIml.class) Closure closure) {
@@ -561,11 +690,17 @@ public abstract class IdeaModule {
      * <p>
      * Please refer to documentation on <b>moduleName</b> property.
      * In IntelliJ IDEA the module name is the same as the name of the *.iml file.
+     * @since 1.0
      */
     public File getOutputFile() {
         return new File(iml.getGenerateTo(), getName() + ".iml");
     }
 
+    /**
+     * Sets the output file.
+     *
+     * @since 1.0
+     */
     public void setOutputFile(File newOutputFile) {
         setName(newOutputFile.getName().replaceFirst("\\.iml$", ""));
         getIml().setGenerateTo(newOutputFile.getParentFile());
@@ -575,6 +710,7 @@ public abstract class IdeaModule {
      * Resolves and returns the module's dependencies.
      *
      * @return dependencies
+     * @since 1.0
      */
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
@@ -587,6 +723,7 @@ public abstract class IdeaModule {
      * Merges the existing *.iml content with the configuration from this model.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     @SuppressWarnings("unchecked")

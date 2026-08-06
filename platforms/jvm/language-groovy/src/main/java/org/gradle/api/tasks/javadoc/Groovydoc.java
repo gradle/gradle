@@ -18,6 +18,7 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
@@ -31,6 +32,7 @@ import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -44,6 +46,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.JpmsConfiguration;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.workers.WorkerExecutor;
@@ -68,6 +71,7 @@ import java.util.stream.Collectors;
  * <p>This task uses Groovy's Groovydoc tool to generate the API documentation. Please note
  * that the Groovydoc tool has some limitations at the moment. The version of the Groovydoc
  * that is used, is the one from the Groovy dependency defined in the build script.
+ * @since 0.7
  */
 @CacheableTask
 public abstract class Groovydoc extends SourceTask {
@@ -127,6 +131,11 @@ public abstract class Groovydoc extends SourceTask {
     @Internal
     public abstract Property<String> getMaxMemory();
 
+    /**
+     * Generate.
+     *
+     * @since 0.8
+     */
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
@@ -163,6 +172,15 @@ public abstract class Groovydoc extends SourceTask {
             parameters.getDocTitle().convention(getDocTitle());
             parameters.getHeader().convention(getHeader());
             parameters.getFooter().convention(getFooter());
+            parameters.getJavaVersion().convention(getJavaVersion().map(version -> "JAVA_" + version.asInt()));
+            parameters.getShowInternal().convention(getShowInternal());
+            parameters.getNoIndex().convention(getNoIndex());
+            parameters.getNoDeprecatedList().convention(getNoDeprecatedList());
+            parameters.getNoHelp().convention(getNoHelp());
+            parameters.getSyntaxHighlighter().convention(getSyntaxHighlighter());
+            parameters.getTheme().convention(getTheme());
+            parameters.getPreLanguage().convention(getPreLanguage());
+            parameters.getAdditionalStylesheets().from(getAdditionalStylesheets());
             parameters.getOverview().convention(getPathToOverview());
             parameters.getAccess().convention(getAccess());
             parameters.getLinks().convention(
@@ -217,6 +235,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the directory to generate the documentation into.
      *
      * @return The directory to generate the documentation into
+     * @since 0.7
      */
     @ReplacedBy("destinationDirectory")
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationDirectory() instead", willBeDeprecated = true)
@@ -226,6 +245,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets the directory to generate the documentation into.
+     * @since 0.7
      */
     public void setDestinationDir(File destinationDir) {
         getDestinationDirectory().set(destinationDir);
@@ -236,6 +256,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the classpath containing the Groovy library to be used.
      *
      * @return The classpath containing the Groovy library to be used
+     * @since 0.7
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -245,6 +266,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets the classpath containing the Groovy library to be used.
+     * @since 0.7
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
@@ -254,6 +276,7 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the classpath used to locate classes referenced by the documented sources.
      *
      * @return The classpath used to locate classes referenced by the documented sources
+     * @since 1.0
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -263,6 +286,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets the classpath used to locate classes referenced by the documented sources.
+     * @since 1.0
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
@@ -270,6 +294,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to create class and package usage pages.
+     * @since 0.8
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -279,6 +304,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to create class and package usage pages.
+     * @since 0.8
      */
     public void setUse(boolean use) {
         this.use = use;
@@ -286,6 +312,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -295,6 +322,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     public void setNoTimestamp(boolean noTimestamp) {
         this.noTimestamp = noTimestamp;
@@ -302,6 +330,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -311,6 +340,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     public void setNoVersionStamp(boolean noVersionStamp) {
         this.noVersionStamp = noVersionStamp;
@@ -318,6 +348,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the browser window title for the documentation. Set to {@code null} when there is no window title.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -331,6 +362,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets the browser window title for the documentation.
      *
      * @param windowTitle A text for the windows title
+     * @since 0.8
      */
     public void setWindowTitle(@Nullable String windowTitle) {
         this.windowTitle = windowTitle;
@@ -338,6 +370,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the title for the package index(first) page. Set to {@code null} when there is no document title.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -351,6 +384,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets title for the package index(first) page (optional).
      *
      * @param docTitle the docTitle as HTML
+     * @since 0.8
      */
     public void setDocTitle(@Nullable String docTitle) {
         this.docTitle = docTitle;
@@ -358,6 +392,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the HTML header for each page. Set to {@code null} when there is no header.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -371,6 +406,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets header text for each page (optional).
      *
      * @param header the header as HTML
+     * @since 0.8
      */
     public void setHeader(@Nullable String header) {
         this.header = header;
@@ -378,6 +414,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns the HTML footer for each page. Set to {@code null} when there is no footer.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -391,6 +428,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets footer text for each page (optional).
      *
      * @param footer the footer as HTML
+     * @since 0.8
      */
     public void setFooter(@Nullable String footer) {
         this.footer = footer;
@@ -398,6 +436,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
+     * @since 2.14
      */
     @Nullable
     @Optional
@@ -410,6 +449,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets a HTML text to be used for overview documentation (optional).
      * <p>
      * <b>Example:</b> {@code overviewText = resources.text.fromFile("/overview.html")}
+     * @since 2.14
      */
     public void setOverviewText(@Nullable TextResource overviewText) {
         this.overview = overviewText;
@@ -453,7 +493,130 @@ public abstract class Groovydoc extends SourceTask {
     public abstract Property<Boolean> getIncludeMainForScripts();
 
     /**
+     * The Java language version used when parsing Java source files, e.g. {@link JavaLanguageVersion#of(int) JavaLanguageVersion.of(17)}.
+     * <p>
+     * Groovydoc uses the JavaParser library to read Java sources; this controls the source level it assumes,
+     * which is needed for parsing newer Java language constructs (for example, sealed classes require Java 17).
+     * When unset, Groovydoc uses the JavaParser library's own default.
+     * <p>
+     * Only has an effect with Groovy 4.0.27 or later; the option is silently ignored with earlier Groovy versions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @Optional
+    @Input
+    public abstract Property<JavaLanguageVersion> getJavaVersion();
+
+    /**
+     * Whether to include members annotated with {@code groovy.transform.Internal} (per GEP-17) in the generated documentation.
+     * <p>
+     * Defaults to {@code false}, so internal members are hidden. Only has an effect with Groovy 6.0.0 or later;
+     * the option is silently ignored with earlier Groovy versions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @Input
+    public abstract Property<Boolean> getShowInternal();
+
+    /**
+     * Whether to suppress generation of the alphabetical index page ({@code index-all.html}) and its nav-bar link.
+     * <p>
+     * Defaults to {@code false}. Only has an effect with Groovy 6.0.0 or later;
+     * the option is silently ignored with earlier Groovy versions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @Input
+    public abstract Property<Boolean> getNoIndex();
+
+    /**
+     * Whether to suppress generation of the deprecated-list page ({@code deprecated-list.html}) and its nav-bar link.
+     * <p>
+     * Defaults to {@code false}. Only has an effect with Groovy 6.0.0 or later;
+     * the option is silently ignored with earlier Groovy versions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @Input
+    public abstract Property<Boolean> getNoDeprecatedList();
+
+    /**
+     * Whether to suppress generation of the help page ({@code help-doc.html}) and its nav-bar link.
+     * <p>
+     * Defaults to {@code false}. Only has an effect with Groovy 6.0.0 or later;
+     * the option is silently ignored with earlier Groovy versions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @Input
+    public abstract Property<Boolean> getNoHelp();
+
+    /**
+     * The client-side syntax highlighter for {@code {@snippet}} and fenced Markdown code blocks.
+     * <p>
+     * Valid values are {@code "prism"} (bundled) or {@code "none"} (default); any other value is treated as {@code "none"}.
+     * Only has an effect with Groovy 6.0.0 or later; the option is silently ignored with earlier Groovy versions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @Input
+    public abstract Property<String> getSyntaxHighlighter();
+
+    /**
+     * The theme lock mode for the generated documentation.
+     *
+     * <ul>
+     *   <li>{@code "auto"} (default) — emit a {@code prefers-color-scheme} media query so each reader sees their OS preference.</li>
+     *   <li>{@code "light"} — lock the palette to light regardless of OS.</li>
+     *   <li>{@code "dark"} — lock the palette to dark regardless of OS.</li>
+     * </ul>
+     *
+     * Any other value is treated as {@code "auto"}. Only has an effect with Groovy 6.0.0 or later;
+     * the option is silently ignored with earlier Groovy versions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @Input
+    public abstract Property<String> getTheme();
+
+    /**
+     * The default language id applied to preformatted code blocks in rendered doc comments that carry no {@code class} attribute.
+     * <p>
+     * When set (for example, {@code "groovy"}), a post-pass adds {@code class="language-xxx"} to the opening tag of such
+     * blocks, enabling syntax highlighting for legacy doc-comment code blocks without touching source files. Blocks that
+     * already carry any {@code class} attribute are left alone.
+     * <p>
+     * Only has an effect with Groovy 6.0.0 or later; the option is silently ignored with earlier Groovy versions.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @Optional
+    @Input
+    public abstract Property<String> getPreLanguage();
+
+    /**
+     * Additional stylesheets to copy into the generated documentation alongside the default stylesheet, preserving each file's name.
+     *
+     * <p>Only has an effect with Groovy 6.0.0 or later; the stylesheets are silently ignored with earlier Groovy versions.</p>
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    public abstract ConfigurableFileCollection getAdditionalStylesheets();
+
+    /**
      * Returns the links to groovydoc/javadoc output at the given URL.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -466,6 +629,7 @@ public abstract class Groovydoc extends SourceTask {
      *
      * @param links The links to set
      * @see #link(String, String...)
+     * @since 0.9
      */
     public void setLinks(Set<Link> links) {
         this.links = links;
@@ -476,6 +640,7 @@ public abstract class Groovydoc extends SourceTask {
      *
      * @param url Base URL of external site
      * @param packages list of package prefixes
+     * @since 0.9
      */
     public void link(String url, String... packages) {
         links.add(new Link(url, packages));
@@ -483,6 +648,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * A Link class represent a link between groovydoc/javadoc output and url.
+     * @since 0.9
      */
     public static class Link implements Serializable {
         private List<String> packages = new ArrayList<String>();
@@ -493,6 +659,7 @@ public abstract class Groovydoc extends SourceTask {
          *
          * @param url Base URL of external site
          * @param packages list of package prefixes
+         * @since 0.9
          */
         public Link(String url, String... packages) {
             throwExceptionIfNull(url, "Url must not be null");
@@ -514,6 +681,7 @@ public abstract class Groovydoc extends SourceTask {
 
         /**
          * Returns a list of package prefixes to be linked with an external site.
+         * @since 0.9
          */
         public List<String> getPackages() {
             return Collections.unmodifiableList(packages);
@@ -521,6 +689,7 @@ public abstract class Groovydoc extends SourceTask {
 
         /**
          * Returns the base url for the external site.
+         * @since 0.9
          */
         public String getUrl() {
             return url;

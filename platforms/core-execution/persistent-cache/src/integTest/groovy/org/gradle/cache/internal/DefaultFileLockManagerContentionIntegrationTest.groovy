@@ -37,7 +37,6 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import java.util.function.Consumer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-import static org.gradle.util.internal.TextUtil.escapeString
 
 @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
@@ -220,105 +219,42 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         build3.waitForFinish()
     }
 
-    // This test simulates a long running Zinc compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
-    // if many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before
-    def "worker not timeout"() {
+    def "a lock request does not time out while the lock owner keeps changing"() {
         given:
-        def gradleUserHome = file("home").absoluteFile
-        buildFile << """
-            task doWorkInWorker(type: WorkerTask) {
-                gradleUserHome = file("${escapeString(gradleUserHome)}")
-            }
-        """
         buildFile """
-            import org.gradle.cache.scopes.ScopedCacheBuilderFactory
-            import org.gradle.cache.PersistentCache
-            import org.gradle.cache.FileLockManager
-            import org.gradle.api.internal.collections.DomainObjectCollectionServices
-            import org.gradle.internal.logging.events.OutputEventListener
-            import org.gradle.internal.nativeintegration.services.NativeServices
-            import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
-            import org.gradle.internal.service.DefaultServiceRegistry
-            import org.gradle.internal.service.scopes.GlobalScopeServices
-            import org.gradle.internal.service.ServiceRegistryBuilder
-            import org.gradle.internal.service.scopes.GradleUserHomeScopeServices
-            import org.gradle.workers.WorkParameters
-            import org.gradle.workers.WorkAction
-            import org.gradle.internal.instrumentation.agent.AgentStatus
-            import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
-            import org.gradle.internal.installation.CurrentGradleInstallation
-
-            abstract class WorkerTask extends DefaultTask {
+            abstract class HoldingFileLocker extends DefaultTask {
                 @Inject
-                abstract WorkerExecutor getWorkerExecutor()
+                abstract FileLockManager getFileLockManager()
 
-                @Internal
-                abstract DirectoryProperty getGradleUserHome()
+                @Inject
+                abstract ProjectLayout getProjectLayout()
 
                 @TaskAction
-                void doWork() {
-                    (1..8).each {
-                        workerExecutor.processIsolation().submit(ToolSetupWorkAction) {
-                            it.gradleUserHome = this.gradleUserHome
-                        }
-                    }
-                }
-            }
-
-            interface ToolSetupWorkParameters extends WorkParameters {
-                DirectoryProperty getGradleUserHome()
-            }
-
-            abstract class ToolSetupWorkAction implements WorkAction<ToolSetupWorkParameters> {
-                void execute() {
-                    ScopedCacheBuilderFactory cacheBuilderFactory = ZincCompilerServices.getInstance(parameters.gradleUserHome.get().asFile).get(GlobalScopedCacheBuilderFactory.class)
-                    println "Waiting for lock..."
-                    final PersistentCache zincCache = cacheBuilderFactory.createCacheBuilder("zinc-0.3.15")
-                            .withDisplayName("Zinc 0.3.15 compiler cache")
-                            .withInitialLockMode(FileLockManager.LockMode.Exclusive)
-                            .open()
-                    println "Starting work..."
+                void lockIt() {
+                    def lock
                     try {
-                        Thread.sleep(10000) //setup an external tool which can take some time
+                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), "task file lock")
+                        Thread.sleep(10000)
                     } finally {
-                        zincCache.close()
+                        lock?.close()
                     }
                 }
             }
 
-            class ZincCompilerServices {
-                private static def instance
-
-                static def getInstance(File gradleUserHome) {
-                    if (instance == null) {
-                        NativeServices.initializeOnWorker(gradleUserHome, NativeServicesMode.ENABLED)
-                        def nativeServices = NativeServices.getInstance()
-
-                        def global = ServiceRegistryBuilder.builder().displayName("test worker Global services")
-                            .parent(nativeServices)
-                            .provider {
-                                it.add(OutputEventListener.class, OutputEventListener.NO_OP)
-                                it.addProvider(new GlobalScopeServices(true, AgentStatus.disabled(), new CurrentGradleInstallation(null)))
-                                new DomainObjectCollectionServices().registerGlobalServices(it)
-                            }.build()
-
-                        def zincCompilerServices = ServiceRegistryBuilder.builder().displayName("test worker ZincCompiler services")
-                            .parent(global)
-                            .provider(new GradleUserHomeScopeServices(global))
-                            .build()
-
-                        instance = zincCompilerServices
-                    }
-                    return instance
-                }
-            }
+            tasks.register("holdLock", HoldingFileLocker)
         """
 
         when:
+        // If many processes wait for the same exclusive lock, a process must not time out just because it is "last in line".
+        // DefaultFileLockManager resets the acquisition timeout each time the lock owner changes so a process can wait through several
+        // owners for far longer than DEFAULT_LOCK_TIMEOUT (60s) without failing. Each process starts concurrently and holds the lock
+        // for 10 seconds. So, with 8 processes, the longest-waiting process should wait for longer (70s) than the default timeout, which
+        // would fail if we didn't reset the timeout on each ownership change.
         executer.withArguments()
+        def builds = (1..8).collect { executer.withTasks("holdLock").start() }
 
         then:
-        succeeds "doWorkInWorker"
+        builds.each { it.waitForFinish() }
     }
 
     void assertConfirmationCount(GradleHandle build, FileLock lock = receivingLock) {

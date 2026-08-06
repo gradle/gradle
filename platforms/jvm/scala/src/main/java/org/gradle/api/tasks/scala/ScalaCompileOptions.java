@@ -20,6 +20,7 @@ import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
 /**
  * Options for Scala Compilation.
+ * @since 0.8
  */
 public abstract class ScalaCompileOptions extends BaseScalaCompileOptions {
 }

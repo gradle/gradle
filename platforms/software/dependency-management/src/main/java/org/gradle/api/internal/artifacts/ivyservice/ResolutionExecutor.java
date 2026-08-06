@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.ResolverResults;
@@ -136,13 +136,13 @@ public class ResolutionExecutor {
     private final TransformedVariantFactory transformedVariantFactory;
     private final AttributesFactory attributesFactory;
     private final DomainObjectContext domainObjectContext;
+    private final DependencyManagementInstanceIdentity instanceIdentity;
     private final TaskDependencyFactory taskDependencyFactory;
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributeSchemaServices attributeSchemaServices;
     private final ResolutionFailureHandler resolutionFailureHandler;
     private final VariantArtifactSetCache variantArtifactSetCache;
     private final VariantTransformRegistry transformRegistry;
-    private final ComponentMetadataProcessorFactory componentMetadataProcessorFactory;
     private final AttributeDesugaring attributeDesugaring;
     private final NamedObjectInstantiator namedObjectInstantiator;
 
@@ -169,13 +169,13 @@ public class ResolutionExecutor {
         TransformedVariantFactory transformedVariantFactory,
         AttributesFactory attributesFactory,
         DomainObjectContext domainObjectContext,
+        DependencyManagementInstanceIdentity instanceIdentity,
         TaskDependencyFactory taskDependencyFactory,
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributeSchemaServices attributeSchemaServices,
         ResolutionFailureHandler resolutionFailureHandler,
         VariantArtifactSetCache variantArtifactSetCache,
         VariantTransformRegistry transformRegistry,
-        ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
         AttributeDesugaring attributeDesugaring,
         NamedObjectInstantiator namedObjectInstantiator
     ) {
@@ -200,13 +200,13 @@ public class ResolutionExecutor {
         this.transformedVariantFactory = transformedVariantFactory;
         this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
+        this.instanceIdentity = instanceIdentity;
         this.taskDependencyFactory = taskDependencyFactory;
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.attributeSchemaServices = attributeSchemaServices;
         this.resolutionFailureHandler = resolutionFailureHandler;
         this.variantArtifactSetCache = variantArtifactSetCache;
         this.transformRegistry = transformRegistry;
-        this.componentMetadataProcessorFactory = componentMetadataProcessorFactory;
         this.attributeDesugaring = attributeDesugaring;
         this.namedObjectInstantiator = namedObjectInstantiator;
     }
@@ -226,7 +226,7 @@ public class ResolutionExecutor {
         ResolutionParameters params,
         CalculatedValue<ResolverResults> futureCompleteResults
     ) {
-        ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, domainObjectContext);
+        ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, instanceIdentity);
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
 
         ComponentResolvers resolvers = getResolvers(params, legacyParams, Collections.emptyList());
@@ -289,7 +289,7 @@ public class ResolutionExecutor {
             params.getIncludeAllSelectableVariantResults()
         );
 
-        ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, domainObjectContext);
+        ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, instanceIdentity);
 
         ImmutableList.Builder<DependencyGraphVisitor> graphVisitors = ImmutableList.builder();
         graphVisitors.add(graphStructureBuilder);
@@ -456,7 +456,8 @@ public class ResolutionExecutor {
         // state to `createResolvers` that is specific to this resolution.
         resolvers.add(externalResolverFactory.createResolvers(
             repositories,
-            componentMetadataProcessorFactory,
+            params.getComponentMetadataRules(),
+            params.getVariantDerivationStrategy(),
             legacyParams.getComponentSelectionRules(),
             params.isDependencyVerificationEnabled(),
             params.getCacheExpirationControl(),

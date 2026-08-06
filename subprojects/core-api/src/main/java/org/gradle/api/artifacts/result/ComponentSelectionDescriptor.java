@@ -31,6 +31,7 @@ public interface ComponentSelectionDescriptor {
      * Returns the cause associated with this descriptor
      *
      * @return a component selection cause
+     * @since 4.6
      */
     ComponentSelectionCause getCause();
 
@@ -39,6 +40,7 @@ public interface ComponentSelectionDescriptor {
      * or a custom description provided typically through a rule.
      *
      * @return the description of this component selection
+     * @since 4.6
      */
     String getDescription();
 

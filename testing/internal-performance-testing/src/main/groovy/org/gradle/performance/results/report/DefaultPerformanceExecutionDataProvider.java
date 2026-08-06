@@ -17,7 +17,6 @@
 package org.gradle.performance.results.report;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang3.StringUtils;
 import org.gradle.performance.results.CrossBuildPerformanceTestHistory;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
@@ -27,6 +26,7 @@ import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +34,6 @@ import java.util.TreeSet;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 
 public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
     private static final int DEFAULT_RETRY_COUNT = 3;
@@ -64,19 +63,20 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
     }
 
     private PerformanceReportScenario queryAndSortExecutionData(List<PerformanceTestExecutionResult> teamCityExecutionsOfSameScenario) {
-        List<String> teamcityBuildIds = teamCityExecutionsOfSameScenario
-            .stream()
-            .map(PerformanceTestExecutionResult::getTeamCityBuildId)
-            .filter(StringUtils::isNotBlank)
-            .collect(toList());
-        PerformanceTestHistory history = resultsStore.getTestResults(teamCityExecutionsOfSameScenario.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannelPatterns(), teamcityBuildIds);
+        // Fetch this pipeline's own runs from the DB using the authoritative bucket build IDs when known. On a
+        // build-cache hit no DB row was written, so nothing spurious is pulled in. When the set is unknown (local runs)
+        // we fetch recent history for the experiment and PerformanceReportScenario identifies current executions by the
+        // commit under test instead.
+        List<String> buildIdsToFetch = new ArrayList<>(performanceTestBuildIds);
+        PerformanceTestHistory history = resultsStore.getTestResults(teamCityExecutionsOfSameScenario.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannelPatterns(), buildIdsToFetch);
 
         List<PerformanceReportScenarioHistoryExecution> historyExecutions = removeEmptyExecution(history.getExecutions());
         return new PerformanceReportScenario(
             teamCityExecutionsOfSameScenario,
             historyExecutions,
             history instanceof CrossBuildPerformanceTestHistory,
-            historyExecutions.stream().map(PerformanceReportScenarioHistoryExecution::getTeamCityBuildId).noneMatch(performanceTestBuildIds::contains)
+            performanceTestBuildIds,
+            commitId
         );
     }
 }

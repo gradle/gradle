@@ -21,13 +21,27 @@ import org.gradle.api.Incubating;
 
 /**
  * Thrown when a component model is declared in an invalid way.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.4
  */
 @Incubating
+@Deprecated
 public class InvalidModelException extends GradleException {
+    /**
+     * Creates a new {@code InvalidModelException}.
+     *
+     * @since 2.4
+     */
     public InvalidModelException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code InvalidModelException}.
+     *
+     * @since 2.4
+     */
     public InvalidModelException(String message, Exception cause) {
         super(message, cause);
     }

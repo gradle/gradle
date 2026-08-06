@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 
-public interface NativeTestSuiteBinarySpecInternal extends NativeTestSuiteBinarySpec, NativeBinarySpecInternal {
+@SuppressWarnings("deprecation")
+public interface NativeTestSuiteBinarySpecInternal extends org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec, NativeBinarySpecInternal {
     void setTestedBinary(NativeBinarySpecInternal testedBinary);
 }

@@ -16,9 +16,11 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
@@ -26,7 +28,6 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.process.ExecOperations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
@@ -132,6 +133,56 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "LocalDateTime"                      | "LocalDateTime.of(2024, 1, 1, 1, 1)"      | "2024-01-01T01:01"
     }
 
+    def "serializing a custom descendant #concreteType of supported type #baseType is deprecated but the cache is still stored and reused"() {
+        buildFile << """
+            class $concreteType extends $baseType {}
+
+            class SomeTask extends DefaultTask {
+                private final $baseType value = new ${concreteType}()
+
+                @TaskAction
+                void run() {
+                    println "value type = " + value.getClass().name
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(
+            "Serializing a custom $kind type '$concreteType', a subtype of '$baseType', which will be restored as a standard $kind, losing any custom state and behavior. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+                "For more information, please refer to https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements:custom_collection_types in the Gradle documentation."
+        )
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("value type = $restoredType")
+
+        when:
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("value type = $restoredType")
+
+        where:
+        concreteType              | baseType                                    | kind         | restoredType
+        "CustomArrayList"         | "java.util.ArrayList"                       | "collection" | "java.util.ArrayList"
+        "CustomLinkedList"        | "java.util.LinkedList"                      | "collection" | "java.util.LinkedList"
+        "CustomCopyOnWriteList"   | "java.util.concurrent.CopyOnWriteArrayList" | "collection" | "java.util.concurrent.CopyOnWriteArrayList"
+        "CustomHashSet"           | "java.util.HashSet"                         | "collection" | "java.util.LinkedHashSet"
+        "CustomTreeSet"           | "java.util.TreeSet"                         | "collection" | "java.util.TreeSet"
+        "CustomCopyOnWriteSet"    | "java.util.concurrent.CopyOnWriteArraySet"  | "collection" | "java.util.concurrent.CopyOnWriteArraySet"
+        "CustomArrayDeque"        | "java.util.ArrayDeque"                      | "collection" | "java.util.ArrayDeque"
+        "CustomHashMap"           | "java.util.HashMap"                         | "map"        | "java.util.LinkedHashMap"
+        "CustomLinkedHashMap"     | "java.util.LinkedHashMap"                   | "map"        | "java.util.LinkedHashMap"
+        "CustomTreeMap"           | "java.util.TreeMap"                         | "map"        | "java.util.TreeMap"
+        "CustomConcurrentHashMap" | "java.util.concurrent.ConcurrentHashMap"    | "map"        | "java.util.concurrent.ConcurrentHashMap"
+        "CustomProperties"        | "java.util.Properties"                      | "map"        | "java.util.Properties"
+        "CustomHashtable"         | "java.util.Hashtable"                       | "map"        | "java.util.Hashtable"
+    }
+
     private String integerArray() {
         "[Integer.MIN_VALUE, Integer.MAX_VALUE]"
     }
@@ -225,7 +276,87 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         type          | reference                         | output
         ImmutableList | "ImmutableList.of('a', 'b', 'c')" | "[a, b, c]"
         ImmutableSet  | "ImmutableSet.of('a', 'b', 'c')"  | "[a, b, c]"
-        ImmutableMap  | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
+        ImmutableMap | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
+    }
+
+    def "serializing a Guava #type.simpleName does not report a problem"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            import ${type.name}
+
+            buildscript {
+                ${mavenCentralRepository()}
+                dependencies {
+                    classpath 'com.google.guava:guava:28.0-jre'
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                private final ${type.simpleName} guavaValue = ${reference}
+
+                @TaskAction
+                void run() {
+                    println "guava value = " + guavaValue
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("guava value = ${output}")
+
+        where:
+        type               | reference                              | output
+        ImmutableList      | "ImmutableList.of('a', 'b', 'c')"      | "[a, b, c]"
+        ImmutableSet       | "ImmutableSet.of('a', 'b', 'c')"       | "[a, b, c]"
+        ImmutableMap       | "ImmutableMap.of(1, 'a', 2, 'b')"      | "[1:a, 2:b]"
+        ImmutableSortedSet | "ImmutableSortedSet.of('a', 'b', 'c')" | "[a, b, c]"
+        ImmutableBiMap     | "ImmutableBiMap.of(1, 'a', 2, 'b')"    | "[1:a, 2:b]"
+    }
+
+    def "a custom #iface implementation is serialized as a bean and survives the roundtrip"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            class MyColl implements $iface {
+                @Delegate final $iface delegate = $init
+            }
+
+            class SomeTask extends DefaultTask {
+                private final $iface value = new MyColl()
+
+                @TaskAction
+                void run() {
+                    println "value class = " + value.getClass().name + " content = " + value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("value class = MyColl content = $content")
+
+        when:
+        configurationCacheRun "ok"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("value class = MyColl content = $content")
+
+        where:
+        iface                  | init                     | content
+        "List<String>"         | "['a', 'b', 'c']"        | "[a, b, c]"
+        "Set<String>"          | "['a', 'b', 'c'] as Set" | "[a, b, c]"
+        "Map<String, Integer>" | "[a: 1, b: 2]"           | "[a:1, b:2]"
     }
 
     def "restores task fields whose value is service of type #type"() {
