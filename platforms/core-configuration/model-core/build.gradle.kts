@@ -57,6 +57,7 @@ dependencies {
     testImplementation(projects.resources)
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.languageGroovy))
+    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.modelReflect))
 
     integTestImplementation(projects.platformBase)
