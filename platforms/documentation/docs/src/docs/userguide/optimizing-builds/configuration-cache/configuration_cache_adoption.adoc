@@ -333,7 +333,7 @@ The typical pattern is to capture the project information those helpers actually
 
 If your task fits this pattern, plan for the following:
 
-* **The Gradle minimum version of your plugin may go up.** `Provider<ResolvedComponentResult>` (as returned from `ResolutionResult.getRootComponent()`) is a Gradle 7.5+ API. If your plugin currently supports older Gradle versions, the CC-safe rewrite makes those versions unsupportable.
+* **The Gradle minimum version of your plugin may go up.** `Provider<ResolvedComponentResult>` (as returned from `ResolutionResult.getRootComponent()`) is a Gradle 7.4+ API. If your plugin currently supports older Gradle versions, the CC-safe rewrite makes those versions unsupportable.
 * **Public APIs may need to change.** A `Spec<Configuration>` predicate that takes a live `Configuration` cannot be made CC-safe. Replacing it with a `Spec<String>` predicate that operates on the configuration's name (or another captured value at execution time) is a breaking source-level change for downstream users. There is rarely a fully source-compatible path.
 * **The whole object graph reachable from the task will need to be refactored together.** Removing `Project` from one class is usually not enough; every reporter, helper, or service the task holds a reference to (directly or transitively) has to be `Project`-free and serializable as well. Plan the work as a single refactoring effort rather than class-by-class.
 * **Some test fixtures may need updating.** Tests that assert on specific output ordering, on dependencies that no longer appear in your report, or on specific Gradle versions you no longer support, will need to be loosened or rewritten.

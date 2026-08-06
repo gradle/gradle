@@ -173,13 +173,7 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/stableFeatur
 
 Enabling the `STABLE_CONFIGURATION_CACHE` feature flag activates stricter validation and introduces the following behavior:
 
-Undeclared Shared Build Service Usage::
-If a task uses a <<build_services#build_services, shared Build Service>> without explicitly declaring the requirement using the `Task.usesService` method, Gradle will emit a deprecation warning.
-
-Deprecation Enforcement Without Configuration Cache::
-Even when the Configuration Cache is not enabled, Gradle will warn if the following deprecated features are used:
-- <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners, Registering build listeners>>
-- <<configuration_cache_requirements.adoc#config_cache:requirements:task_extensions, Using task extensions and conventions at execution time>>
+NOTE: Even when the Configuration Cache is not enabled, Gradle will warn if you <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners, register build listeners>>.
 
 We recommend enabling this flag early to detect and resolve potential issues before the stricter behavior becomes the default in a future release.
 

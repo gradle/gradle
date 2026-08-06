@@ -128,7 +128,7 @@ Instead, use lazy providers that defer resolution:
 * Alternatively, reference the link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`] directly. It is Configuration Cache-compatible, so it can be wired into a task input property (for example, a `Property<ResolutionResult>`) and accessed via its full API at execution time.
 * Use `ArtifactCollection.getResolvedArtifacts()`, which returns a `Provider<Set<ResolvedArtifactResult>>`, for artifact metadata and files.
 
-IMPORTANT: The `Provider` returned by `getResolvedArtifacts()` is Configuration Cache-compatible, but the `ResolvedArtifactResult` type itself is *not* serializable. You cannot wire the provider directly into a `SetProperty<ResolvedArtifactResult>` task property. Instead, use `Provider.map()` to extract the data you need (artifact identifiers, variant information, files) into serializable types, and wire those into your task's input properties. See <<artifact_resolution.adoc#sec:resolving_artifacts, Resolving artifacts>> for a complete example of this pattern.
+IMPORTANT: The `Provider` returned by `getResolvedArtifacts()` is Configuration Cache-compatible, and the `ResolvedArtifactResult` type is itself serializable, so you can wire the provider directly into a `SetProperty<ResolvedArtifactResult>` task property. If you prefer, you can still use `Provider.map()` to extract only the data you need (artifact identifiers, variant information, files) into your own serializable types and wire those into your task's input properties. See <<artifact_resolution.adoc#sec:resolving_artifacts, Resolving artifacts>> for a complete example of this pattern.
 
 NOTE: There is a known edge case (link:{gradle-issues}27582[gradle/gradle#27582]) where `getResolvedArtifacts()` fails Configuration Cache serialization when the resolved configuration contains only external dependencies and no project dependencies. As a workaround, store the `ArtifactCollection` itself as a task field and call `getResolvedArtifacts()` at execution time.
 
@@ -236,7 +236,7 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/projectAtExe
 include::sample[dir="snippets/optimizing-builds/configuration-cache/projectAtExecutionFixed/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 <1> Services can't be injected directly in scripts, we need an extra type to convey the injection point
-<2> Create an instance of the extra type using `project.object` outside the task action
+<2> Create an instance of the extra type using `project.objects` outside the task action
 <3> No more problem reported, the task action references `injected` that provides the `FileSystemOperations` service, supported as a replacement for `project.copy {}`
 
 Fixing ad-hoc tasks in scripts requires additional effort, making it a good opportunity to refactor them into proper task classes.
@@ -303,7 +303,7 @@ Use a task input or output property or a script variable to capture the result o
 | link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html#tarTree-java.lang.Object-[ArchiveOperations.tarTree(path)]
 
 | `project.resources`
-| A task input or output property or a script variable to capture the result of using `project.resource` to calculate the actual parameter.
+| A task input or output property or a script variable to capture the result of using `project.resources` to calculate the actual parameter.
 
 | `project.copySpec {}`
 | link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copySpec--[FileSystemOperations.copySpec {}]
@@ -483,6 +483,13 @@ To share objects across tasks, use a <<build_services#build_services, Build Serv
 Tasks must **not** access conventions, extensions, or extra properties at execution time.
 
 Instead, any value relevant to task execution should be explicitly modeled as a task property to ensure proper caching and reproducibility.
+
+[NOTE]
+====
+This restriction is enforced even when the Configuration Cache is *not* enabled.
+Whenever you run a build without the Configuration Cache, accessing a task's extensions or conventions at execution time triggers a deprecation warning.
+This warning is independent of the `STABLE_CONFIGURATION_CACHE` feature flag, and the deprecated usage will become an error in Gradle 10.
+====
 
 A common pre-Configuration Cache pattern stores configuration values on a task's `ExtraPropertiesExtension` (the `ext` block) and reads them from within a task action. Here a `release` task reads a banner from `ext.banner`:
 
@@ -880,7 +887,7 @@ In simple cases, when the libraries also provide command-line entry points (`pub
 [[config_cache:secrets]]
 == Handling of Credentials and Secrets
 
-The Configuration Cache serializes all non-transient fields reachable from scheduled tasks into the cache entry, which is stored under `.gradle/configuration-cache` in the project directory.
+The Configuration Cache serializes all non-transient fields reachable from scheduled tasks into the cache entry, which is stored under `.gradle/configuration-cache` in the root build directory.
 Sensitive values such as credentials, tokens, and API keys that are held in task state will be included in the entry.
 
 While Java's `transient` keyword can exclude individual fields from serialization, there is no Gradle-level API to selectively mark a property as "do not cache."
