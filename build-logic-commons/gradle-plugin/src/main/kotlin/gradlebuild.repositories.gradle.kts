@@ -43,4 +43,11 @@ repositories {
         }
     }
     mavenCentral()
+    maven {
+        name = "Kotlin dev repository"
+        url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
+        content {
+            includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..+)?")
+        }
+    }
 }

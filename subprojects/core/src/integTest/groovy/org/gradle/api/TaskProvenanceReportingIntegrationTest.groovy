@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 /**
@@ -327,12 +328,14 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
             }
         """)
 
+        kotlinFile("buildSrc/settings.gradle.kts", KotlinDslTestUtil.kotlinDslSettingsPluginManagement)
         kotlinFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
             }
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
+            ${kotlinDevRepository(GradleDsl.KOTLIN)}
         """)
 
         buildKotlinFile("""

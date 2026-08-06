@@ -65,7 +65,7 @@ public class GitUtility {
         try (Git git = Git.init().setDirectory(testDirectory).call()) {
             testDirectory.file("initial-commit").createNewFile();
             git.add().addFilepattern("initial-commit").call();
-            git.commit().setMessage("Initial commit").call();
+            git.commit().setMessage("Initial commit").setSign(false).call();
         } finally {
             cleanup();
         }

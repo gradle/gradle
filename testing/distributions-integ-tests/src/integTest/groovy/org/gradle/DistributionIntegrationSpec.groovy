@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    protected static final THIRD_PARTY_LIB_COUNT = 116
+    protected static final THIRD_PARTY_LIB_COUNT = 117
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -276,7 +276,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         //accept my sincere apologies that you have to manually bump the numbers here.
         assert jarLibEntries.size() == libJarsCount, """
             Expected ${libJarsCount} jars in lib directory but found ${jarLibEntries.size()}.
-            Please review the jar entries and update the expectation in the getPackagedPluginsJarCount() method.
+            Please review the jar entries and update the expectation.
             Jar entries found:
             ${jarLibEntries.collect { it.name }}
         """

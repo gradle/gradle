@@ -16,14 +16,14 @@
 
 package org.gradle.internal.cc.impl.inputs.process
 
+
+import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.dsl.GradleDsl
-
-import javax.inject.Inject
-
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.exec
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.javaexec
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.processBuilder
@@ -34,12 +34,14 @@ class ProcessInPluginIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in convention plugin #file is a problem"() {
         given:
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
+        testDirectory.file("buildSrc/settings.gradle.kts") << KotlinDslTestUtil.kotlinDslSettingsPluginManagement
         testDirectory.file("buildSrc/build.gradle.kts") << """
             plugins {
                 `$plugin`
             }
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
+            ${kotlinDevRepository(GradleDsl.KOTLIN)}
         """
         def conventionPluginFile = testDirectory.file(file)
         conventionPluginFile << """

@@ -576,9 +576,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
                     `kotlin-dsl`
                     id("java-library")
                 }
-                repositories {
-                    mavenCentral()
-                }
+                $repositoriesBlock
             """
         )
         val className = kotlinClassSourceFile(baseDir, classBody)

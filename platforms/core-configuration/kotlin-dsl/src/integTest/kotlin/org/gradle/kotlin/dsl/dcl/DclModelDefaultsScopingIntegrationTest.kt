@@ -50,7 +50,7 @@ class DclModelDefaultsScopingIntegrationTest : AbstractKotlinIntegrationTest() {
         buildAndFail("help").apply {
             assertHasErrorOutput("Script compilation error:")
             assertHasErrorOutput("onlyForFirst {}")
-            assertHasErrorOutput("Unresolved reference")
+            assertHasErrorOutput("is inapplicable because of a receiver type mismatch")
         }
     }
 
@@ -143,9 +143,7 @@ class DclModelDefaultsScopingIntegrationTest : AbstractKotlinIntegrationTest() {
                     `kotlin-dsl`
                 }
 
-                repositories {
-                    mavenCentral()
-                }
+                $repositoriesBlock
 
                 gradlePlugin {
                     plugins {

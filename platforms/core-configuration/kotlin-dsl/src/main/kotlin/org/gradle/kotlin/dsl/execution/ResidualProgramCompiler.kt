@@ -97,7 +97,6 @@ class ResidualProgramCompiler(
     private val implicitImports: List<String>,
     private val logger: Logger,
     private val moduleRegistry: ModuleRegistry,
-    private val classLoaderFactory: ClassLoaderFactory,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
     private val fileSystemAccess: FileSystemAccess,
     private val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
@@ -262,7 +261,7 @@ class ResidualProgramCompiler(
                 stage1BlocksClassPath
             )
 
-        val implicitReceiverType = kotlinCompiler(moduleRegistry, classLoaderFactory).implicitReceiverOf(scriptTemplate)!!
+        val implicitReceiverType = kotlinCompiler(moduleRegistry).implicitReceiverOf(scriptTemplate)!!
         compiledScriptClassInstantiation(compiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
@@ -588,7 +587,7 @@ class ResidualProgramCompiler(
         scriptTemplate: KClass<out Any>
     ) {
 
-        val implicitReceiverType = kotlinCompiler(moduleRegistry, classLoaderFactory).implicitReceiverOf(scriptTemplate)
+        val implicitReceiverType = kotlinCompiler(moduleRegistry).implicitReceiverOf(scriptTemplate)
         compiledScriptClassInstantiation(compiledScriptClass) {
 
             // ${compiledScriptClass}(scriptHost)
@@ -716,7 +715,7 @@ class ResidualProgramCompiler(
             InternalName.from(
                 compileBuildOperationRunner(originalPath, stage) {
                     checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
-                    kotlinCompiler(moduleRegistry, classLoaderFactory).compileKotlinScriptToDirectory(
+                    kotlinCompiler(moduleRegistry).compileKotlinScriptToDirectory(
                         outputDir,
                         compilerOptions,
                         scriptFile,
@@ -729,7 +728,8 @@ class ResidualProgramCompiler(
                         incrementalCompilationCache,
                         scriptIdentity
                     ) { path ->
-                        if (path == scriptFile.path) originalPath
+                        // Compare as Files: the compiler may report the path with '/' separators on Windows
+                        if (File(path) == scriptFile) originalPath
                         else path
                     }
                 }.let { compiledScriptClassName ->

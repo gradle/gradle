@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.classloader.ClassLoaderFactory
-import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.vfs.FileSystemAccess
@@ -46,7 +45,6 @@ import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Com
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_METADATA_VERSION_CHECK
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_PRERELEASE_CHECK
-import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_USE_FIR_LT
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
@@ -71,13 +69,6 @@ import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompil
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
-import org.jetbrains.kotlin.K1Deprecation
-import org.jetbrains.kotlin.cli.create
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.cli.jvm.compiler.setupIdeaStandaloneExecution
-import org.jetbrains.kotlin.com.intellij.openapi.Disposable
-import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.name.NameUtils
@@ -89,10 +80,10 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
-import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import kotlin.io.path.Path
 import kotlin.reflect.KClass
@@ -102,20 +93,16 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
-private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutableMapOf() // necessary because some Kotlin code is retaining them and we can't clean it up properly
-private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompilerImpl> = mutableMapOf()
+// concurrent: under Isolated Projects, projects' scripts are compiled concurrently
+private val compilerInstances: MutableMap<ModuleRegistry, KotlinCompilerImpl> = ConcurrentHashMap()
 
-internal fun kotlinCompiler(moduleRegistry: ModuleRegistry, classLoaderFactory: ClassLoaderFactory): KotlinCompiler {
-    val classLoader = KotlinCompiler::class.java.classLoader
-    return compilerInstances.computeIfAbsent(Pair(moduleRegistry, classLoaderFactory), { KotlinCompilerImpl(moduleRegistry, classLoader) })
+internal fun kotlinCompiler(moduleRegistry: ModuleRegistry): KotlinCompiler {
+    return compilerInstances.computeIfAbsent(moduleRegistry, { KotlinCompilerImpl(moduleRegistry) })
 }
 
 internal fun cleanupKotlinCompilers() {
     compilerInstances.values.forEach { kotlinCompiler -> kotlinCompiler.clean() }
     compilerInstances.clear()
-
-    classloaderInstances.values.forEach { classLoader -> classLoader.close() }
-    classloaderInstances.clear()
 }
 
 internal interface KotlinCompiler {
@@ -138,9 +125,9 @@ internal interface KotlinCompiler {
 }
 
 private
-class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: ClassLoader) : KotlinCompiler {
+class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry) : KotlinCompiler {
 
-    private val lazyBTACompiler = lazy { BTACompiler(moduleRegistry, classLoader) }
+    private val lazyBTACompiler = lazy { BTACompiler(moduleRegistry, KotlinCompilerImpl::class.java.classLoader) }
     private val btaCompiler by lazyBTACompiler
 
     override fun compileKotlinScriptToDirectory(
@@ -174,7 +161,7 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
         return NameUtils.getScriptNameForFile(scriptFile.name).asString()
     }
 
-    private val receiverCache: MutableMap<KClass<*>, KClass<*>> = mutableMapOf()
+    private val receiverCache: MutableMap<KClass<*>, KClass<*>> = ConcurrentHashMap()
 
     override fun implicitReceiverOf(template: KClass<*>): KClass<*>? {
         return receiverCache.getOrPut(template) {
@@ -495,7 +482,7 @@ internal fun JvmTarget.toBuildToolsApiJvmTarget(): BtaJvmTarget =
     BtaJvmTarget.values().first { it.stringValue == description }
 
 
-@OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class, K1Deprecation::class)
+@OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
 private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: ClassLoader) {
 
     companion object {
@@ -503,30 +490,8 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         private val logger = LoggerFactory.getLogger(BTACompiler::class.java)
     }
 
-    private lateinit var toolchains: KotlinToolchains
-    private lateinit var buildSession: KotlinToolchains.BuildSession
-
-    // Keeps KotlinCoreEnvironment's ref-count on the process-global application environment above zero until
-    // clean(), so it isn't disposed (jar caches and all) between the build's script compiles.
-    // The `kotlin.environment.keepalive` property is no substitute: BTA registers compilations
-    // deep inside executeOperation(), so the property would have to stay set across whole
-    // compiles — which either serializes the daemon (synchronized SystemProperties helper) or
-    // races with concurrent compiles (raw set/restore). An explicit
-    // disposeApplicationEnvironment() still wins over the pin; KotlinCompilerContextDisposer only
-    // issues it once the whole build tree is configured.
-    private val applicationEnvironmentPin: Disposable = Disposer.newDisposable("kotlin-dsl BTA application environment pin")
-
-    init {
-        toolchains = KotlinToolchains.loadImplementation(classLoader)
-        if (!::buildSession.isInitialized) {
-            buildSession = toolchains.createBuildSession()
-        }
-
-        // Same setup order as KotlinCoreEnvironment.createForProduction: the standalone-mode system
-        // properties must be in place before the application environment is first created.
-        setupIdeaStandaloneExecution()
-        KotlinCoreEnvironment.getOrCreateApplicationEnvironmentForProduction(applicationEnvironmentPin, CompilerConfiguration.create())
-    }
+    private val toolchains = KotlinToolchains.loadImplementation(classLoader)
+    private val buildSession = toolchains.createBuildSession()
 
     private val plugins: List<CompilerPlugin> = createPlugins()
 
@@ -612,10 +577,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
     }
 
     fun clean() {
-        if (::buildSession.isInitialized) {
-            buildSession.close()
-        }
-        Disposer.dispose(applicationEnvironmentPin)
+        buildSession.close()
     }
 
     private fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
@@ -646,7 +608,6 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
 
     private fun JvmCompilerArguments.Builder.configureMisc() {
         this[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
-        this[X_USE_FIR_LT] = false
         this[X_SAM_CONVERSIONS] = SamConversionsMode.CLASS
 
         this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME

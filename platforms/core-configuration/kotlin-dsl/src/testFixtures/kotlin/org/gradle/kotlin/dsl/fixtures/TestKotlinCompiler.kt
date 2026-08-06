@@ -17,13 +17,17 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.JavaVersion
+import org.gradle.kotlin.dsl.support.cleanupKotlinCompilers
 import org.gradle.kotlin.dsl.support.toKotlinJvmTarget
+import org.jetbrains.kotlin.CoreEnvironmentDeprecation
+import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
@@ -51,6 +55,17 @@ fun compileToDirectory(
         return K2JVMCompiler().exec(messageCollector, Services.EMPTY, arguments) == ExitCode.OK
     }
 }
+
+/**
+ * Cleans up the shared Kotlin compiler instances once all scripts are compiled.
+ * as [org.gradle.kotlin.dsl.provider.KotlinCompilerContextDisposer] does at the end of a build.
+ * Call from an `@After` in tests that compile against jars inside the test directory: the environment
+ * caches open jar handles, which on Windows prevent deleting the directory.
+ */
+fun disposeKotlinCompilerContext() {
+    cleanupKotlinCompilers()
+}
+
 
 private
 inline fun <T> withDisposable(action: Disposable.() -> T): T {

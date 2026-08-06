@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpec {
@@ -54,6 +55,12 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
             this.buildFile = file("$buildName/build${fileExtension}")
 
             settingsFile << """
+                pluginManagement {
+                    repositories {
+                        gradlePluginPortal()
+                        ${kotlinDevRepositoryDefinition(useKotlinDSL ? GradleDsl.KOTLIN : GradleDsl.GROOVY)}
+                    }
+                }
                 rootProject.name = "$buildName"
             """
             buildFile << """
@@ -62,6 +69,7 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
                 }
                 repositories {
                     gradlePluginPortal()
+                    ${kotlinDevRepositoryDefinition(useKotlinDSL ? GradleDsl.KOTLIN : GradleDsl.GROOVY)}
                 }
             """
             settingsPluginFile = file("$buildName/src/main/$sourceDirectory/${settingsPluginId}.settings${fileExtension}")

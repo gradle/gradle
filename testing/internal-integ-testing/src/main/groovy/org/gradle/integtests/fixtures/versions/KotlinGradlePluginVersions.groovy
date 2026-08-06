@@ -38,6 +38,8 @@ class KotlinGradlePluginVersions {
 
     private static final LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION = VersionNumber.parse("2.0")
 
+    private static final String KOTLIN_DEV_REPOSITORY_URL = 'https://packages.jetbrains.team/maven/p/kt/dev'
+
     private final Factory<Properties> propertiesFactory
     private Properties properties
 
@@ -103,6 +105,79 @@ class KotlinGradlePluginVersions {
         return LANGUAGE_VERSIONS.findAll { VersionNumber.parse(it) >= LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION }
     }
 
+    /**
+     * Kotlin dev builds carry a trailing build number, e.g. {@code 2.4.20-RC-197}.
+     * They are only published to the Kotlin dev repository.
+     */
+    static boolean isKotlinDevVersion(String version) {
+        version ==~ /.+-\d+$/
+    }
+
+    static String getKotlinDevRepositoryUrl() {
+        System.getProperty('org.gradle.integtest.mirrors.kotlindev') ?: KOTLIN_DEV_REPOSITORY_URL
+    }
+
+    static String getKotlinDevRepositoryDeclaration() {
+        return """
+            maven {
+                name = 'kotlin-dev'
+                url = '${kotlinDevRepositoryUrl}'
+                content {
+                    includeGroupByRegex("org.jetbrains.kotlin.*")
+                }
+            }
+        """
+    }
+
+    static File createKotlinDevRepositoryInitScript() {
+        File initScript = File.createTempFile("kotlin-dev-repo", ".gradle")
+        initScript.deleteOnExit()
+        initScript << kotlinDevRepositoryInitScript
+        return initScript
+    }
+
+    private static String getKotlinDevRepositoryInitScript() {
+        return """
+            beforeSettings { settings ->
+                settings.pluginManagement.repositories {
+                    $kotlinDevRepositoryDeclaration
+                    gradlePluginPortal()
+                }
+            }
+            settingsEvaluated { settings ->
+                // adding a settings repository when there is none would change how project repositories are treated
+                if (!settings.dependencyResolutionManagement.repositories.isEmpty()) {
+                    settings.dependencyResolutionManagement.repositories {
+                        $kotlinDevRepositoryDeclaration
+                    }
+                }
+            }
+            gradle.lifecycle.beforeProject { project ->
+                project.buildscript.configurations["classpath"].incoming.beforeResolve {
+                    if (project.buildscript.repositories.findByName("kotlin-dev") == null) {
+                        project.buildscript.repositories {
+                            $kotlinDevRepositoryDeclaration
+                        }
+                    }
+                }
+                project.afterEvaluate {
+                    def usesKotlin = project.plugins.any { plugin ->
+                        def pluginClassName = plugin.class.name
+                        pluginClassName.startsWith("org.jetbrains.kotlin.") || pluginClassName.startsWith("org.gradle.kotlin.dsl.plugins.")
+                    } || project.configurations.any { configuration ->
+                        configuration.dependencies.any { it.group?.startsWith("org.jetbrains.kotlin") }
+                    }
+                    // adding a project repository would make Gradle ignore the settings repositories
+                    if (usesKotlin && !project.repositories.isEmpty() && project.repositories.findByName("kotlin-dev") == null) {
+                        project.repositories {
+                            $kotlinDevRepositoryDeclaration
+                        }
+                    }
+                }
+            }
+        """
+    }
+
     static final VersionNumber KOTLIN_2_0_0 = VersionNumber.parse('2.0.0')
     static final VersionNumber KOTLIN_2_0_20 = VersionNumber.parse('2.0.20')
     static final VersionNumber KOTLIN_2_1_0 = VersionNumber.parse('2.1.0')
@@ -112,6 +187,7 @@ class KotlinGradlePluginVersions {
     static final VersionNumber KOTLIN_2_3_0 = VersionNumber.parse('2.3.0')
     static final VersionNumber KOTLIN_2_3_21 = VersionNumber.parse('2.3.21')
     static final VersionNumber KOTLIN_2_4_0 = VersionNumber.parse('2.4.0')
+    static final VersionNumber KOTLIN_2_4_20 = VersionNumber.parse('2.4.20')
 
     static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
         assumeCurrentJavaVersionIsSupportedBy(VersionNumber.parse(kotlinVersion))
