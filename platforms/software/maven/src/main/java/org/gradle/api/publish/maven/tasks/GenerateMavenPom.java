@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,6 +41,7 @@ import java.io.File;
  * @since 1.5
  */
 @SuppressWarnings("this-escape")
+@DisableCachingByDefault(because = "Not worth caching")
 public abstract class GenerateMavenPom extends DefaultTask {
 
     private MavenPom pom;
