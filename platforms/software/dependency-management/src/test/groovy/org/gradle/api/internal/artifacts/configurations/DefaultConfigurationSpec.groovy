@@ -926,7 +926,6 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private Configuration prepareConfigurationForCopyTest(configuration = conf()) {
-        configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
         configuration.exclude([group: "value"])
