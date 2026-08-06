@@ -17,7 +17,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.model.ManagedType;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers;
 import org.jspecify.annotations.Nullable;
@@ -28,7 +27,7 @@ import java.io.File;
  * Represents some configurable regular file location, whose value is mutable.
  *
  * <p>
- * You can create a {@link RegularFileProperty} using {@link ObjectFactory#fileProperty()}.
+ * You can create a {@link RegularFileProperty} using {@link org.gradle.api.model.ObjectFactory#fileProperty()}.
  * </p>
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
