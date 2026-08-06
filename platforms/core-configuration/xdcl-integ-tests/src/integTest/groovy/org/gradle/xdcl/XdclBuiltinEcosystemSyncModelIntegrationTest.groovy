@@ -1,0 +1,81 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.xdcl
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+/**
+ * The built-in-ecosystem hand-off to the sync model builders: a built-in ecosystem's schema jars
+ * never appear on the settings plugin classpath (a distribution plugin bypasses artifact
+ * resolution), which is the surface the sync/LSP universe otherwise derives members from — so the
+ * settings apply freezes the pulled jars into the build-scoped
+ * {@code org.gradle.api.xdcl.internal.BuiltinEcosystemSchemas} service. The service is keyed by an
+ * API-layer type on purpose: the model builders ride the sync CLI's init-script classpath, and only
+ * API-parent-loader classes are the same {@code Class} for them and for the distribution. This test
+ * pins the provider half of that contract against a real distribution, reading the service exactly
+ * the way the model builders do; the jars-to-universe-members half is unit-tested in
+ * {@code xdcl-gradle-model-builders}.
+ */
+class XdclBuiltinEcosystemSyncModelIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final String PROBE = '''
+        def service = gradle.services.find(org.gradle.api.xdcl.internal.BuiltinEcosystemSchemas)
+        println("xdcl-builtin-service-present=" + (service != null))
+        if (service != null) {
+            println("xdcl-builtin-jar-count=" + service.jars().size())
+            service.jars().each { println("xdcl-builtin-jar=" + it.name) }
+        }
+    '''
+
+    def "the settings apply freezes the applied ecosystems' schema jars into the sync hand-off service"() {
+        given: 'a declarative settings applying the JVM ecosystem, probed by an imperative root build script'
+        file('settings.gradle.xdcl') << '''
+            settings {
+              plugins [
+                { id "java-ecosystem" }
+              ]
+              rootProject { name "probe" }
+            }
+        '''
+        buildFile << PROBE
+
+        when:
+        succeeds("help")
+
+        then: 'the pulled closure is handed over: the applied ecosystem module AND the common module it imports'
+        outputContains("xdcl-builtin-service-present=true")
+        output.contains("xdcl-builtin-jar=gradle-xdcl-jvm-ecosystem-")
+        output.contains("xdcl-builtin-jar=gradle-xdcl-common-ecosystem-")
+    }
+
+    def "a routed build applying no ecosystem freezes an empty list"() {
+        given:
+        file('settings.gradle.xdcl') << '''
+            settings {
+              rootProject { name "probe" }
+            }
+        '''
+        buildFile << PROBE
+
+        when:
+        succeeds("help")
+
+        then: 'the service answers "applied, nothing pulled" rather than being absent'
+        outputContains("xdcl-builtin-service-present=true")
+        outputContains("xdcl-builtin-jar-count=0")
+    }
+}
