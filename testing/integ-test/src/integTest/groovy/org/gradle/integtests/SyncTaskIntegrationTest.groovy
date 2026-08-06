@@ -95,36 +95,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'with includeEmptyDirs=false an emptied child source dir is not synced to destination'() {
-        given:
-        file('source/sub/foo.txt').text = 'foo'
-
-        buildFile """
-            task sync(type: Sync) {
-                from 'source'
-                into 'dest'
-                includeEmptyDirs = false
-            }
-        """
-
-        when:
-        run 'sync'
-
-        then:
-        executedAndNotSkipped ':sync'
-        file('dest/sub/foo.txt').exists()
-
-        when:
-        file('source/sub/foo.txt').delete()
-        run 'sync'
-
-        then:
-        executedAndNotSkipped ':sync'
-        !file('dest/sub/foo.txt').exists()
-        !file('dest/sub').exists()
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/37597")
     def 'a source of only empty directories is synced on first run when includeEmptyDirs is true'() {
         given:
         file('source').create {
@@ -148,15 +118,17 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'does not delete stale outputs when source becomes empty for an untracked task'() {
+    def 'for a task that does not track state, an emptied source #description'() {
         given:
         file('source/foo.txt').text = 'foo'
 
         buildFile """
+            // `base` is responsible for registering build-owned locations
+            apply plugin: 'base'
             task sync(type: Sync) {
                 from 'source'
-                into 'dest'
-                doNotTrackState('exercising the empty-source guard without execution history')
+                into $into
+                doNotTrackState('a task that does not track state keeps no record of previous syncs')
             }
         """
 
@@ -165,15 +137,26 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
 
         then:
         executedAndNotSkipped ':sync'
-        file('dest/foo.txt').exists()
+        file("$destDir/foo.txt").exists()
 
         when:
         file('source/foo.txt').delete()
         run 'sync'
 
         then:
-        skipped ':sync'
-        file('dest/foo.txt').exists()
+        file("$destDir/foo.txt").exists() != destinationEmptied
+
+        and:
+        if (destinationEmptied) {
+            executedAndNotSkipped ':sync'
+        } else {
+            skipped ':sync'
+        }
+
+        where:
+        description                                      | into                                 | destDir     | destinationEmptied
+        'empties a build-owned destination'              | 'layout.buildDirectory.dir("out")'   | 'build/out' | true
+        'leaves a non-build-owned destination untouched' | 'layout.projectDirectory.dir("out")' | 'out'       | false
     }
 
     def 'copies files and removes extra files from destDir'() {
