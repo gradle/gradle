@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.cache.Cleanup
@@ -269,13 +268,16 @@ class ConfigurationCacheState(
     private
     fun bindRestoredTaskReferences(builds: List<CachedBuildState>) {
         val buildsWithWork = builds.filterIsInstance<BuildWithWork>()
-        val allNodesById = Int2ObjectOpenHashMap<Node>(buildsWithWork.sumOf { it.workGraph.nodesById.size })
+        // Node ids form a single dense, contiguous id space spanning the whole build tree, so each build's
+        // nodes can be scattered into one flat array indexed by global node id, giving O(1) target lookups.
+        val globalNodesById = arrayOfNulls<Node>(buildsWithWork.sumOf { it.workGraph.buildNodesById.size })
         for (build in buildsWithWork) {
-            allNodesById.putAll(build.workGraph.nodesById)
+            val workGraph = build.workGraph
+            workGraph.buildNodesById.copyInto(globalNodesById, destinationOffset = workGraph.baseNodeId)
         }
         for (build in buildsWithWork) {
             for (reference in build.workGraph.taskReferences) {
-                val targetNode = requireNotNull(allNodesById[reference.targetNodeId]) {
+                val targetNode = requireNotNull(globalNodesById[reference.targetNodeId]) {
                     "No node with id ${reference.targetNodeId} was restored for ${reference.node}"
                 }
                 reference.node.bindTarget(targetNode as TaskNode)
