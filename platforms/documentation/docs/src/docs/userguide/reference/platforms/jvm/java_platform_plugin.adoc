@@ -77,6 +77,51 @@ include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/kot
 include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/groovy",files="build.gradle[tags=allow-dependencies]"]
 ====
 
+[[sec:java_platform_configurations]]
+== Dependency configurations
+
+The Java Platform plugin adds the configurations described below.
+
+[[sec:java_platform_declarable_configurations]]
+=== Declarable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `api`
+| Declarable
+| This is where you declare constraints and dependencies that apply when compiling against the platform. They are exported to consumers.
+
+| `runtime`
+| Declarable
+| This is where you declare constraints and dependencies that are only visible at runtime.
+|===
+
+[[sec:java_platform_consumable_configurations]]
+=== Consumable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `apiElements`
+| Consumable
+| The elements exposed to consumers that depend on the platform via `platform(...)` for compilation.
+
+| `runtimeElements`
+| Consumable
+| The elements exposed to consumers that depend on the platform via `platform(...)` at runtime.
+
+| `enforcedApiElements`
+| Consumable
+| Like `apiElements`, but exposes the platform's constraints as _forced_. Used when consumers depend on the platform via `enforcedPlatform(...)`.
+
+| `enforcedRuntimeElements`
+| Consumable
+| Like `runtimeElements`, but exposes the platform's constraints as _forced_. Used when consumers depend on the platform via `enforcedPlatform(...)`.
+|===
+
 [[sec:java_platform_project_constraints]]
 == Local project constraints
 

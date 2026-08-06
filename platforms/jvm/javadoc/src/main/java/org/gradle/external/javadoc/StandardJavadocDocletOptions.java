@@ -44,6 +44,7 @@ import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
 
 /**
  * Provides the options for the standard Javadoc doclet.
+ * @since 0.7
  */
 public class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
     private static final String OPTION_D = "d";
@@ -115,6 +116,11 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     private final JavadocOptionFileOption<Boolean> docFilesSubDirs;
     private final JavadocOptionFileOption<List<String>> excludeDocFilesSubDir;
     private final JavadocOptionFileOption<List<String>> noQualifiers;
+    /**
+     * The no timestamp.
+     *
+     * @since 0.7
+     */
     public final JavadocOptionFileOption<Boolean> noTimestamp;
     private final JavadocOptionFileOption<Boolean> noComment;
 
@@ -126,10 +132,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     @Incubating
     private final Set<String> knownStandardOptionNames;
 
+    /**
+     * Creates a new {@code StandardJavadocDocletOptions}.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions() {
         this(new JavadocOptionFile());
     }
 
+    /**
+     * Creates a new {@code StandardJavadocDocletOptions}.
+     *
+     * @since 0.7
+     */
     @SuppressWarnings("this-escape")
     public StandardJavadocDocletOptions(JavadocOptionFile javadocOptionFile) {
         super(javadocOptionFile);
@@ -173,10 +189,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         knownStandardOptionNames = Collections.unmodifiableSet(new HashSet<>(Sets.difference(optionFile.getOptions().keySet(), knownCoreOptionNames)));
     }
 
+    /**
+     * Creates a new {@code StandardJavadocDocletOptions}.
+     *
+     * @since 3.4
+     */
     public StandardJavadocDocletOptions(StandardJavadocDocletOptions original) {
         this(original, new JavadocOptionFile(original.optionFile));
     }
 
+    /**
+     * Creates a new {@code StandardJavadocDocletOptions}.
+     *
+     * @since 3.4
+     */
     public StandardJavadocDocletOptions(StandardJavadocDocletOptions original, JavadocOptionFile optionFile) {
         super(original, optionFile);
 
@@ -219,6 +245,11 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         knownStandardOptionNames = original.knownStandardOptionNames;
     }
 
+    /**
+     * Creates a new {@code StandardJavadocDocletOptions}.
+     *
+     * @since 3.4
+     */
     @SuppressWarnings("this-escape")
     public StandardJavadocDocletOptions(MinimalJavadocOptions original) {
         this();
@@ -309,6 +340,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * You can access the generated "Use" page by first going to the class or package,
      * then clicking on the "Use" link in the navigation bar.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -316,15 +348,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return use.getValue();
     }
 
+    /**
+     * Sets the use.
+     *
+     * @since 0.7
+     */
     public void setUse(boolean use) {
         this.use.setValue(use);
     }
 
+    /**
+     * Use.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions use(boolean use) {
         setUse(use);
         return this;
     }
 
+    /**
+     * Use.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions use() {
         return use(true);
     }
@@ -334,6 +381,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * Includes the @version text in the generated docs. This text is omitted by default.
      * To tell what version of the Javadoc tool you are using, use the -J-version option.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -341,15 +389,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return version.getValue();
     }
 
+    /**
+     * Sets the version.
+     *
+     * @since 0.7
+     */
     public void setVersion(boolean version) {
         this.version.setValue(version);
     }
 
+    /**
+     * Version.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions version(boolean version) {
         setVersion(version);
         return this;
     }
 
+    /**
+     * Version.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions version() {
         return version(true);
     }
@@ -358,6 +421,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -author
      * <p>
      * Includes the @author text in the generated docs.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -365,15 +429,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return author.getValue();
     }
 
+    /**
+     * Sets the author.
+     *
+     * @since 0.7
+     */
     public void setAuthor(boolean author) {
         this.author.setValue(author);
     }
 
+    /**
+     * Author.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions author(boolean author) {
         setAuthor(author);
         return this;
     }
 
+    /**
+     * Author.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions author() {
         return author(true);
     }
@@ -383,6 +462,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * Splits the index file into multiple files, alphabetically, one file per letter,
      * plus a file for any index entries that start with non-alphabetical characters.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -390,15 +470,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return splitIndex.getValue();
     }
 
+    /**
+     * Sets the split index.
+     *
+     * @since 0.7
+     */
     public void setSplitIndex(boolean splitIndex) {
         this.splitIndex.setValue(splitIndex);
     }
 
+    /**
+     * Split index.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions splitIndex(boolean splitIndex) {
         setSplitIndex(splitIndex);
         return this;
     }
 
+    /**
+     * Split index.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions splitIndex() {
         return splitIndex(true);
     }
@@ -463,6 +558,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * level-one heading directly beneath the upper navigation bar. The title may contain HTML tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
      * javadoc -doctitle "Java&lt;sup&gt;&lt;font size=\"-2\"&gt;TM&lt;/font&gt;&lt;/sup&gt;" com.mypackage
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -470,10 +566,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return docTitle.getValue();
     }
 
+    /**
+     * Sets the doc title.
+     *
+     * @since 0.7
+     */
     public void setDocTitle(@Nullable String docTitle) {
         this.docTitle.setValue(docTitle);
     }
 
+    /**
+     * Doc title.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions docTitle(String docTitle) {
         setDocTitle(docTitle);
         return this;
@@ -485,6 +591,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Specifies the footer text to be placed at the bottom of each output file.
      * The footer will be placed to the right of the lower navigation bar. footer may contain HTML tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within footer may have to be escaped.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -492,10 +599,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return footer.getValue();
     }
 
+    /**
+     * Sets the footer.
+     *
+     * @since 0.7
+     */
     public void setFooter(@Nullable String footer) {
         this.footer.setValue(footer);
     }
 
+    /**
+     * Footer.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions footer(String footer) {
         setFooter(footer);
         return this;
@@ -508,6 +625,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The text will be placed at the bottom of the page, below the lower navigation bar.
      * The text may contain HTML tags and white space, though if it does, it must be enclosed in quotes.
      * Any internal quotation marks within text may have to be escaped.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -515,10 +633,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return bottom.getValue();
     }
 
+    /**
+     * Sets the bottom.
+     *
+     * @since 0.7
+     */
     public void setBottom(@Nullable String bottom) {
         this.bottom.setValue(bottom);
     }
 
+    /**
+     * Bottom.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions bottom(String bottom) {
         setBottom(bottom);
         return this;
@@ -542,6 +670,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * When specifying an absolute link you normally use an http: link. However,
      * if you want to link to a file system that has no web server, you can use a file: link -- however,
      * do this only if everyone wanting to access the generated documentation shares the same file system.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -549,15 +678,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return links.getValue();
     }
 
+    /**
+     * Sets the links.
+     *
+     * @since 0.7
+     */
     public void setLinks(@Nullable List<String> links) {
         this.links.setValue(links);
     }
 
+    /**
+     * Links.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions links(String... links) {
         this.links.getValue().addAll(Arrays.asList(links));
         return this;
     }
 
+    /**
+     * Links file.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions linksFile(File linksFile) {
         return (StandardJavadocDocletOptions) optionFiles(linksFile);
     }
@@ -586,6 +730,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * packagelistLoc is the path or URL to the directory containing the package-list file for the external documentation.
      * This can be a URL (http: or file:) or file path, and can be absolute or relative. If relative,
      * make it relative to the current directory from where javadoc was run. Do not include the package-list filename.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -593,15 +738,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return linksOffline.getValue();
     }
 
+    /**
+     * Sets the links offline.
+     *
+     * @since 0.7
+     */
     public void setLinksOffline(@Nullable List<JavadocOfflineLink> linksOffline) {
         this.linksOffline.setValue(linksOffline);
     }
 
+    /**
+     * Links offline.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions linksOffline(String extDocUrl, String packageListLoc) {
         this.linksOffline.getValue().add(new JavadocOfflineLink(extDocUrl, packageListLoc));
         return this;
     }
 
+    /**
+     * Links offline file.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions linksOfflineFile(File linksOfflineFile) {
         return (StandardJavadocDocletOptions) optionFiles(linksOfflineFile);
     }
@@ -619,6 +779,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * implements Accessible
      * and the link to the source code of the getLabel() method in the Button class would be on the word "getLabel":
      * public String getLabel()
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -626,15 +787,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return linkSource.getValue();
     }
 
+    /**
+     * Sets the link source.
+     *
+     * @since 0.7
+     */
     public void setLinkSource(boolean linkSource) {
         this.linkSource.setValue(linkSource);
     }
 
+    /**
+     * Link source.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions linkSource(boolean linkSource) {
         setLinkSource(linkSource);
         return this;
     }
 
+    /**
+     * Link source.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions linkSource() {
         return linkSource(true);
     }
@@ -680,6 +856,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * Other Packages
      * <br>java.new
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -687,24 +864,49 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return groups.getValue();
     }
 
+    /**
+     * Sets the groups.
+     *
+     * @since 0.7
+     */
     public void setGroups(@Nullable Map<String, List<String>> groups) {
         this.groups.setValue(groups);
     }
 
+    /**
+     * Group.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions group(Map<String, List<String>> groups) {
         setGroups(groups);
         return this;
     }
 
+    /**
+     * Group.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions group(String groupName, List<String> packagePatterns) {
         this.groups.getValue().put(groupName, packagePatterns);
         return this;
     }
 
+    /**
+     * Group.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions group(String groupName, String... packagePatterns) {
         return group(groupName, Arrays.asList(packagePatterns));
     }
 
+    /**
+     * Groups file.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions groupsFile(File groupsFile) {
         return (StandardJavadocDocletOptions) optionFiles(groupsFile);
     }
@@ -715,6 +917,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Prevents the generation of any deprecated API at all in the documentation.
      * This does what -nodeprecatedlist does, plus it does not generate any deprecated API throughout the rest of the documentation.
      * This is useful when writing code and you don't want to be distracted by the deprecated code.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -722,15 +925,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noDeprecated.getValue();
     }
 
+    /**
+     * Sets the no deprecated.
+     *
+     * @since 0.7
+     */
     public void setNoDeprecated(boolean noDeprecated) {
         this.noDeprecated.setValue(noDeprecated);
     }
 
+    /**
+     * No deprecated.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noDeprecated(boolean noDeprecated) {
         setNoDeprecated(noDeprecated);
         return this;
     }
 
+    /**
+     * No deprecated.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noDeprecated() {
         return noDeprecated(true);
     }
@@ -742,6 +960,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * the link in the navigation bar to that page.
      * (However, javadoc continues to generate the deprecated API throughout the rest of the document.)
      * This is useful if your source code contains no deprecated API, and you want to make the navigation bar cleaner.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -749,15 +968,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noDeprecatedList.getValue();
     }
 
+    /**
+     * Sets the no deprecated list.
+     *
+     * @since 0.7
+     */
     public void setNoDeprecatedList(boolean noDeprecatedList) {
         this.noDeprecatedList.setValue(noDeprecatedList);
     }
 
+    /**
+     * No deprecated list.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noDeprecatedList(boolean noDeprecatedList) {
         setNoDeprecatedList(noDeprecatedList);
         return this;
     }
 
+    /**
+     * No deprecated list.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noDeprecatedList() {
         return noDeprecatedList(true);
     }
@@ -766,6 +1000,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -nosince
      * <p>
      * Omits from the generated docs the "Since" sections associated with the @since tags.
+     *
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -773,15 +1009,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noSince.getValue();
     }
 
+    /**
+     * Sets the no since.
+     *
+     * @since 0.7
+     */
     public void setNoSince(boolean noSince) {
         this.noSince.setValue(noSince);
     }
 
+    /**
+     * No since.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noSince(boolean noSince) {
         setNoSince(noSince);
         return this;
     }
 
+    /**
+     * No since.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noSince() {
         return noSince(true);
     }
@@ -792,6 +1043,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Omits the class/interface hierarchy pages from the generated docs.
      * These are the pages you reach using the "Tree" button in the navigation bar.
      * The hierarchy is produced by default.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -799,15 +1051,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noTree.getValue();
     }
 
+    /**
+     * Sets the no tree.
+     *
+     * @since 0.7
+     */
     public void setNoTree(boolean noTree) {
         this.noTree.setValue(noTree);
     }
 
+    /**
+     * No tree.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noTree(boolean noTree) {
         setNoTree(noTree);
         return this;
     }
 
+    /**
+     * No tree.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noTree() {
         return noTree(true);
     }
@@ -816,6 +1083,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -noindex
      * <p>
      * Omits the index from the generated docs. The index is produced by default.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -823,15 +1091,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noIndex.getValue();
     }
 
+    /**
+     * Sets the no index.
+     *
+     * @since 0.7
+     */
     public void setNoIndex(boolean noIndex) {
         this.noIndex.setValue(noIndex);
     }
 
+    /**
+     * No index.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noIndex(boolean noIndex) {
         setNoIndex(noIndex);
         return this;
     }
 
+    /**
+     * No index.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noIndex() {
         return noIndex(true);
     }
@@ -840,6 +1123,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -nohelp
      * <p>
      * Omits the HELP link in the navigation bars at the top and bottom of each page of output.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -847,15 +1131,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noHelp.getValue();
     }
 
+    /**
+     * Sets the no help.
+     *
+     * @since 0.7
+     */
     public void setNoHelp(boolean noHelp) {
         this.noHelp.setValue(noHelp);
     }
 
+    /**
+     * No help.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noHelp(boolean noHelp) {
         setNoHelp(noHelp);
         return this;
     }
 
+    /**
+     * No help.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noHelp() {
         return noHelp(true);
     }
@@ -867,6 +1166,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * otherwise found at the top and bottom of the generated pages. Has no affect on the "bottom" option.
      * The -nonavbar option is useful when you are interested only in the content and have no need for navigation,
      * such as converting the files to PostScript or PDF for print only.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -874,15 +1174,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noNavBar.getValue();
     }
 
+    /**
+     * Sets the no nav bar.
+     *
+     * @since 0.7
+     */
     public void setNoNavBar(boolean noNavBar) {
         this.noNavBar.setValue(noNavBar);
     }
 
+    /**
+     * No nav bar.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noNavBar(boolean noNavBar) {
         setNoNavBar(noNavBar);
         return this;
     }
 
+    /**
+     * No nav bar.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noNavBar() {
         return noNavBar(true);
     }
@@ -893,6 +1208,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Specifies the path of an alternate help file path\filename that the HELP link in the top and bottom navigation bars link to. Without this option, the Javadoc tool automatically creates a help file help-doc.html that is hard-coded in the Javadoc tool. This option enables you to override this default. The filename can be any name and is not restricted to help-doc.html -- the Javadoc tool will adjust the links in the navigation bar accordingly. For example:
      * <p>
      * javadoc -helpfile C:/user/myhelp.html java.awt
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @PathSensitive(NAME_ONLY) @InputFile
@@ -900,10 +1216,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return helpFile.getValue();
     }
 
+    /**
+     * Sets the help file.
+     *
+     * @since 0.7
+     */
     public void setHelpFile(@Nullable File helpFile) {
         this.helpFile.setValue(helpFile);
     }
 
+    /**
+     * Help file.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions helpFile(File helpFile) {
         setHelpFile(helpFile);
         return this;
@@ -915,6 +1241,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Specifies the path of an alternate HTML stylesheet file. Without this option, the Javadoc tool automatically creates a stylesheet file stylesheet.css that is hard-coded in the Javadoc tool. This option enables you to override this default. The filename can be any name and is not restricted to stylesheet.css. For example:
      * <p>
      * javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @PathSensitive(NAME_ONLY) @InputFile
@@ -922,10 +1249,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return stylesheetFile.getValue();
     }
 
+    /**
+     * Sets the stylesheet file.
+     *
+     * @since 0.7
+     */
     public void setStylesheetFile(@Nullable File stylesheetFile) {
         this.stylesheetFile.setValue(stylesheetFile);
     }
 
+    /**
+     * Stylesheet file.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions stylesheetFile(File stylesheetFile) {
         setStylesheetFile(stylesheetFile);
         return this;
@@ -938,6 +1275,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * By default, Javadoc 1.2.2 (and later versions) generates no serial warnings.
      * (This is a reversal from earlier versions.) Use this option to display the serial warnings,
      * which helps to properly document default serializable fields and writeExternal methods.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -945,15 +1283,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return serialWarn.getValue();
     }
 
+    /**
+     * Sets the serial warn.
+     *
+     * @since 0.7
+     */
     public void setSerialWarn(boolean serialWarn) {
         this.serialWarn.setValue(serialWarn);
     }
 
+    /**
+     * Serial warn.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions serialWarn(boolean serialWarn) {
         setSerialWarn(serialWarn);
         return this;
     }
 
+    /**
+     * Serial warn.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions serialWarn() {
         return serialWarn(true);
     }
@@ -971,6 +1324,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * This META tag is described in the HTML standard. (4197265 and 4137321)
      * <p>
      * Also see -encoding and -docencoding.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -978,10 +1332,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return charSet.getValue();
     }
 
+    /**
+     * Sets the char set.
+     *
+     * @since 0.7
+     */
     public void setCharSet(@Nullable String charSet) {
         this.charSet.setValue(charSet);
     }
 
+    /**
+     * Char set.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions charSet(String charSet) {
         setCharSet(charSet);
         return this;
@@ -995,6 +1359,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * % javadoc -docencoding "ISO-8859-1" mypackage
      * <p>
      * Also see -encoding and -charset.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -1002,10 +1367,20 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return docEncoding.getValue();
     }
 
+    /**
+     * Sets the doc encoding.
+     *
+     * @since 0.7
+     */
     public void setDocEncoding(@Nullable String docEncoding) {
         this.docEncoding.setValue(docEncoding);
     }
 
+    /**
+     * Doc encoding.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions docEncoding(String docEncoding) {
         setDocEncoding(docEncoding);
         return this;
@@ -1013,6 +1388,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
 
     /**
      * -keywords.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -1020,21 +1396,37 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return keyWords.getValue();
     }
 
+    /**
+     * Sets the key words.
+     *
+     * @since 0.7
+     */
     public void setKeyWords(boolean keyWords) {
         this.keyWords.setValue(keyWords);
     }
 
+    /**
+     * Key words.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions keyWords(boolean keyWords) {
         setKeyWords(keyWords);
         return this;
     }
 
+    /**
+     * Key words.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions keyWords() {
         return keyWords(true);
     }
 
     /**
      * -tag tagname:Xaoptcmf:"taghead".
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -1042,25 +1434,46 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return tags.getValue();
     }
 
+    /**
+     * Sets the tags.
+     *
+     * @since 0.7
+     */
     public void setTags(@Nullable List<String> tags) {
         this.tags.setValue(tags);
     }
 
+    /**
+     * Tags.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions tags(List<String> tags) {
         this.tags.getValue().addAll(tags);
         return this;
     }
 
+    /**
+     * Tags.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions tags(String... tags) {
         return tags(Arrays.asList(tags));
     }
 
+    /**
+     * Tags file.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions tagsFile(File tagsFile) {
         return (StandardJavadocDocletOptions) optionFiles(tagsFile);
     }
 
     /**
      * -taglet class.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -1068,21 +1481,37 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return taglets.getValue();
     }
 
+    /**
+     * Sets the taglets.
+     *
+     * @since 1.0
+     */
     public void setTaglets(@Nullable List<String> taglets) {
         this.taglets.setValue(taglets);
     }
 
+    /**
+     * Taglets.
+     *
+     * @since 1.0
+     */
     public StandardJavadocDocletOptions taglets(List<String> taglets) {
         this.taglets.getValue().addAll(taglets);
         return this;
     }
 
+    /**
+     * Taglets.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions taglets(String... taglets) {
         return taglets(Arrays.asList(taglets));
     }
 
     /**
      * -tagletpath tagletpathlist.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Classpath
@@ -1090,21 +1519,37 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return tagletPath.getValue();
     }
 
+    /**
+     * Sets the taglet path.
+     *
+     * @since 0.7
+     */
     public void setTagletPath(@Nullable List<File> tagletPath) {
         this.tagletPath.setValue(tagletPath);
     }
 
+    /**
+     * Taglet path.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions tagletPath(List<File> tagletPath) {
         this.tagletPath.getValue().addAll(tagletPath);
         return this;
     }
 
+    /**
+     * Taglet path.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions tagletPath(File... tagletPath) {
         return tagletPath(Arrays.asList(tagletPath));
     }
 
     /**
      * -docfilessubdirs.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -1112,21 +1557,37 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return docFilesSubDirs.getValue();
     }
 
+    /**
+     * Sets the doc files sub dirs.
+     *
+     * @since 0.7
+     */
     public void setDocFilesSubDirs(boolean docFilesSubDirs) {
         this.docFilesSubDirs.setValue(docFilesSubDirs);
     }
 
+    /**
+     * Doc files sub dirs.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions docFilesSubDirs(boolean docFilesSubDirs) {
         setDocFilesSubDirs(docFilesSubDirs);
         return this;
     }
 
+    /**
+     * Doc files sub dirs.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions docFilesSubDirs() {
         return docFilesSubDirs(true);
     }
 
     /**
      * -excludedocfilessubdir name1:name2...
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -1134,21 +1595,37 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return excludeDocFilesSubDir.getValue();
     }
 
+    /**
+     * Sets the exclude doc files sub dir.
+     *
+     * @since 0.7
+     */
     public void setExcludeDocFilesSubDir(@Nullable List<String> excludeDocFilesSubDir) {
         this.excludeDocFilesSubDir.setValue(excludeDocFilesSubDir);
     }
 
+    /**
+     * Exclude doc files sub dir.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions excludeDocFilesSubDir(List<String> excludeDocFilesSubDir) {
         this.excludeDocFilesSubDir.getValue().addAll(excludeDocFilesSubDir);
         return this;
     }
 
+    /**
+     * Exclude doc files sub dir.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions excludeDocFilesSubDir(String... excludeDocFilesSubDir) {
         return excludeDocFilesSubDir(Arrays.asList(excludeDocFilesSubDir));
     }
 
     /**
      * -noqualifier all | packagename1:packagename2:...
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -1156,40 +1633,76 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noQualifiers.getValue();
     }
 
+    /**
+     * Sets the no qualifiers.
+     *
+     * @since 0.7
+     */
     public void setNoQualifiers(@Nullable List<String> noQualifiers) {
         this.noQualifiers.setValue(noQualifiers);
     }
 
+    /**
+     * No qualifier.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noQualifier(List<String> noQualifiers) {
         this.noQualifiers.getValue().addAll(noQualifiers);
         return this;
     }
 
+    /**
+     * No qualifiers.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noQualifiers(String... noQualifiers) {
         return noQualifier(Arrays.asList(noQualifiers));
     }
 
+    /**
+     * Returns whether no timestamp is set.
+     *
+     * @since 0.7
+     */
     @Input
     @ToBeReplacedByLazyProperty
     public boolean isNoTimestamp() {
         return noTimestamp.getValue();
     }
 
+    /**
+     * Sets the no timestamp.
+     *
+     * @since 0.7
+     */
     public void setNoTimestamp(boolean noTimestamp) {
         this.noTimestamp.setValue(noTimestamp);
     }
 
+    /**
+     * No timestamp.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noTimestamp(boolean noTimestamp) {
         setNoTimestamp(noTimestamp);
         return this;
     }
 
+    /**
+     * No timestamp.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noTimestamp() {
         return noTimestamp(true);
     }
 
     /**
      * -nocomment.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -1197,15 +1710,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noComment.getValue();
     }
 
+    /**
+     * Sets the no comment.
+     *
+     * @since 0.7
+     */
     public void setNoComment(boolean noComment) {
         this.noComment.setValue(noComment);
     }
 
+    /**
+     * No comment.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noComment(boolean noComment) {
         setNoComment(noComment);
         return this;
     }
 
+    /**
+     * No comment.
+     *
+     * @since 0.7
+     */
     public StandardJavadocDocletOptions noComment() {
         return noComment(true);
     }

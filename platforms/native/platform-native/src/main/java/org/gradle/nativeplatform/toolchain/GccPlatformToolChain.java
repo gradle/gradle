@@ -20,41 +20,49 @@ import org.gradle.api.Incubating;
 
 /**
  * GCC specific settings for the tools used to build for a particular platform.
+ * @since 2.2
  */
 @Incubating
 public interface GccPlatformToolChain extends NativePlatformToolChain {
     /**
      * Returns the settings to use for the C compiler.
+     * @since 2.2
      */
     GccCommandLineToolConfiguration getcCompiler();
 
     /**
      * Returns the settings to use for the C++ compiler.
+     * @since 2.2
      */
     GccCommandLineToolConfiguration getCppCompiler();
 
     /**
      * Returns the settings to use for the Objective-C compiler.
+     * @since 2.2
      */
     GccCommandLineToolConfiguration getObjcCompiler();
 
     /**
      * Returns the settings to use for the Objective-C++ compiler.
+     * @since 2.2
      */
     GccCommandLineToolConfiguration getObjcppCompiler();
 
     /**
      * Returns the settings to use for the assembler.
+     * @since 2.2
      */
     GccCommandLineToolConfiguration getAssembler();
 
     /**
      * Returns the settings to use for the linker.
+     * @since 2.2
      */
     GccCommandLineToolConfiguration getLinker();
 
     /**
      * Returns the settings to use for the archiver.
+     * @since 2.2
      */
     GccCommandLineToolConfiguration getStaticLibArchiver();
 }

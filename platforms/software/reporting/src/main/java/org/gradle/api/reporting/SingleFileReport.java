@@ -21,6 +21,7 @@ import org.gradle.api.tasks.OutputFile;
 
 /**
  * A report that is a single file.
+ * @since 1.0
  */
 public interface SingleFileReport extends ConfigurableReport {
     @Override

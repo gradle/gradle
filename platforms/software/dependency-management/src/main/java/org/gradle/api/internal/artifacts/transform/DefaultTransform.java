@@ -33,7 +33,6 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
@@ -82,6 +81,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.TextUtil;
@@ -610,17 +610,15 @@ public class DefaultTransform implements Transform {
 
         @Override
         public boolean usesMutableProjectState() {
-            return owner.getProjectState() != null;
+            return owner instanceof ProjectDomainObjectContext;
         }
 
         @Nullable
         @Override
         public ProjectInternal getOwningProject() {
-            ProjectState projectState = owner.getProjectState();
-            if (projectState != null) {
-                return projectState.getMutableModel();
-            }
-            return null;
+            return owner instanceof ProjectDomainObjectContext pdoc
+                ? pdoc.getModel().getMutableModel()
+                : null;
         }
 
         @Override

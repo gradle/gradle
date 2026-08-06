@@ -16,7 +16,7 @@
 = The War Plugin
 
 The War plugin extends the <<java_plugin.adoc#java_plugin,Java plugin>> to add support for assembling web application WAR files.
-It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
+It adds a default `war` task that assembles the WAR archive, and a `web` software component for <<#sec:war_plugin_publishing,publishing>> it.
 
 [[sec:war_usage]]
 == Usage
@@ -42,9 +42,9 @@ Web application sources
 The War plugin adds and modifies the following tasks:
 
 `war` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War]::
-_Depends on_: `compile`
+_Depends on_: `classes`
 +
-Assembles the application WAR file.
+Assembles the WAR archive containing the compiled classes, the web application content, and the runtime libraries.
 
 `assemble` - _lifecycle task_::
 _Depends on_: `war`
@@ -61,11 +61,11 @@ The War plugin adds two dependency configurations:
 
 `providedCompile`::
 This configuration should be used for dependencies required at compilation but which are provided by the environment in which the WAR is deployed.
-Dependencies declared here are thus visible to the `main` and `test` compilation classpaths.
+Dependencies declared here are visible to the `main` and `test` compile and runtime classpaths, but are excluded from the WAR archive.
 
 `providedRuntime`::
 This configuration should be used for dependencies required at runtime but which are provided by the environment in which the WAR is deployed.
-Dependencies declared here are only visible to the `main` and `test` runtime classpaths.
+Dependencies declared here are visible to the `main` and `test` runtime classpaths, but are excluded from the WAR archive.
 
 [NOTE]
 ====
@@ -87,9 +87,32 @@ A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareCom
 [[sec:war_default_settings]]
 == War
 
-The default behavior of the `War` task is to copy the content of `src/main/webapp` to the root of the archive. Your `webapp` directory may of course contain a `WEB-INF` sub-directory, which may contain a `web.xml` file. Your compiled classes are compiled to `WEB-INF/classes`. All the dependencies of the `runtime` footnote:[The `runtime` configuration extends the `compile` configuration.] configuration are copied to `WEB-INF/lib`.
+The default behavior of the `War` task is to copy the content of `src/main/webapp` to the root of the archive. Your `webapp` directory may of course contain a `WEB-INF` sub-directory, which may contain a `web.xml` file. Your compiled classes are copied to `WEB-INF/classes`. The libraries on the `runtimeClasspath` configuration, minus those declared in the `providedRuntime` configuration, are copied to `WEB-INF/lib`.
 
 The link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War] class in the API documentation has additional useful information.
+
+The most commonly configured properties of the `War` task are:
+
+`webAppDirectory` — link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]::
+The directory whose contents are copied to the root of the archive.
+The `war` plugin sets the default value to `src/main/webapp`.
+
+`classpath` — link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
+The classpath to include in the archive.
+Directories on the classpath are added to `WEB-INF/classes` and JAR or ZIP files are added to `WEB-INF/lib`.
+The `war` plugin sets the default value to `sourceSets.main.runtimeClasspath` minus the `providedRuntime` configuration.
+
+`webXml` — `File`::
+The `web.xml` file to copy to `WEB-INF/web.xml`.
+When not set, no `web.xml` file is included in the archive.
++
+[NOTE]
+====
+An incubating replacement, `webXmlFile` (a link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty]), was introduced in Gradle 9.7.0.
+====
+
+`webInf`::
+Adds a nested link:{groovyDslPath}/org.gradle.api.file.CopySpec.html[CopySpec] whose contents are copied into the `WEB-INF` directory of the archive.
 
 [[sec:war_customizing]]
 == Customizing

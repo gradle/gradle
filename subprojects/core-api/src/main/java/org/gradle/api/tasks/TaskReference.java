@@ -21,6 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A lightweight reference to a task.
+ * @since 3.1
  */
 @HasInternalProtocol
 public interface TaskReference extends Named {

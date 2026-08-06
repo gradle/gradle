@@ -28,6 +28,8 @@ import org.gradle.api.NamedDomainObjectProvider
  *   dependsOn("clean")
  * }
  * ```
+ *
+ * @since 4.10
  */
 operator fun <T : Any> NamedDomainObjectProvider<T>.invoke(action: T.() -> Unit) =
     configure(action)

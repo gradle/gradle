@@ -42,6 +42,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * </pre>
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 public abstract class IdeaWorkspace {
@@ -57,11 +58,17 @@ public abstract class IdeaWorkspace {
      * Enables advanced manipulation of the output XML.
      * <p>
      * For example see docs for {@link IdeaWorkspace}
+     * @since 1.0
      */
     public XmlFileContentMerger getIws() {
         return iws;
     }
 
+    /**
+     * Sets the iws.
+     *
+     * @since 1.0
+     */
     public void setIws(XmlFileContentMerger iws) {
         this.iws = iws;
     }
@@ -70,6 +77,7 @@ public abstract class IdeaWorkspace {
      * Enables advanced manipulation of the output XML.
      * <p>
      * For example see docs for {@link IdeaWorkspace}
+     * @since 1.0
      */
     public void iws(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, iws);
@@ -86,6 +94,11 @@ public abstract class IdeaWorkspace {
         action.execute(iws);
     }
 
+    /**
+     * Merge xml workspace.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("unchecked")
     public void mergeXmlWorkspace(Workspace xmlWorkspace) {
         iws.getBeforeMerged().execute(xmlWorkspace);

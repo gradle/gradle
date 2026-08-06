@@ -19,6 +19,7 @@ package org.gradle.api;
  * A namer is capable of providing a name based on some inherent characteristic of an object.
  *
  * @param <T> The type of object that the namer can name
+ * @since 1.0
  */
 public interface Namer<T> {
 
@@ -28,6 +29,7 @@ public interface Namer<T> {
      * @param object The object to determine the name of
      * @return The object's inherent name. Never null.
      * @throws RuntimeException If the name cannot be determined or is null
+     * @since 1.0
      */
     String determineName(T object);
 
@@ -35,11 +37,17 @@ public interface Namer<T> {
      * A comparator implementation based on the names returned by the given namer.
      *
      * @param <T> The type of object that the namer can name
+     * @since 1.0
      */
     class Comparator<T> implements java.util.Comparator<T> {
 
         private final Namer<? super T> namer;
 
+        /**
+         * Creates a new {@code Comparator}.
+         *
+         * @since 1.0
+         */
         public Comparator(Namer<? super T> namer) {
             this.namer = namer;
         }

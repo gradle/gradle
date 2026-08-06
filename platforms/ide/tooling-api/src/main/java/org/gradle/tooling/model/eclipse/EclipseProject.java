@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Note that the names of Eclipse projects are unique, and can be used as an identifier for the project.
  *
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public interface EclipseProject extends HierarchicalEclipseProject {
     /**
@@ -58,7 +58,7 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * See {@link HasGradleProject}
      *
      * @return associated gradle project
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     @Override
     GradleProject getGradleProject();
@@ -67,7 +67,7 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * Returns the external dependencies which make up the classpath of this project.
      *
      * @return The dependencies. Returns an empty set if the project has no external dependencies.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     DomainObjectSet<? extends EclipseExternalDependency> getClasspath();
 

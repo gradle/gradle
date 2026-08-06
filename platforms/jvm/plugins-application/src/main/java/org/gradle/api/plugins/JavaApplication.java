@@ -42,12 +42,14 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 public interface JavaApplication {
     /**
      * The name of the application.
+     * @since 4.10
      */
     @ToBeReplacedByLazyProperty
     String getApplicationName();
 
     /**
      * The name of the application.
+     * @since 4.10
      */
     void setApplicationName(String applicationName);
 
@@ -67,23 +69,27 @@ public interface JavaApplication {
 
     /**
      * Array of string arguments to pass to the JVM when running the application
+     * @since 4.10
      */
     @ToBeReplacedByLazyProperty
     Iterable<String> getApplicationDefaultJvmArgs();
 
     /**
      * Array of string arguments to pass to the JVM when running the application
+     * @since 4.10
      */
     void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs);
 
     /**
      * Directory to place executables in
+     * @since 4.10
      */
     @ToBeReplacedByLazyProperty
     String getExecutableDir();
 
     /**
      * Directory to place executables in
+     * @since 4.10
      */
     void setExecutableDir(String executableDir);
 
@@ -106,9 +112,15 @@ public interface JavaApplication {
      * Note that the application plugin pre configures this spec to; include the contents of "{@code src/dist}",
      * copy the application start scripts into the "{@code bin}" directory, and copy the built jar and its dependencies
      * into the "{@code lib}" directory.
+     * @since 4.10
      */
     @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     CopySpec getApplicationDistribution();
 
+    /**
+     * Sets the application distribution.
+     *
+     * @since 4.10
+     */
     void setApplicationDistribution(CopySpec applicationDistribution);
 }

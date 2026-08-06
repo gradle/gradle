@@ -76,11 +76,13 @@ import java.util.Map;
  * Groovy syntax is used or not. If Groovy property syntax is used, the Groovy {@link groovy.lang.MissingPropertyException} will be thrown.
  * When the {@link #get(String)} method is used, an {@link UnknownPropertyException} will be thrown.
  *
+ * @since 1.0
  */
 public interface ExtraPropertiesExtension {
 
     /**
      * The name of this extension in all {@link ExtensionContainer ExtensionContainers}, {@value}.
+     * @since 1.0
      */
     String EXTENSION_NAME = "ext";
 
@@ -99,6 +101,7 @@ public interface ExtraPropertiesExtension {
      *
      * @param name The name of the property to check for
      * @return {@code true} if a property has been registered with this name, otherwise {@code false}.
+     * @since 1.0
      */
     boolean has(String name);
 
@@ -126,6 +129,7 @@ public interface ExtraPropertiesExtension {
      * @param name The name of the property to get the value of
      * @return The value for the property with the given name.
      * @throws UnknownPropertyException if there is no property registered with the given name
+     * @since 1.0
      */
     @Nullable
     Object get(String name) throws UnknownPropertyException;
@@ -148,6 +152,7 @@ public interface ExtraPropertiesExtension {
      *
      * @param name The name of the property to update the value of or create
      * @param value The value to set for the property
+     * @since 1.0
      */
     void set(String name, @Nullable Object value);
 
@@ -172,17 +177,29 @@ public interface ExtraPropertiesExtension {
      * </pre>
      *
      * @return All of the registered properties and their current values as a map.
+     * @since 1.0
      */
     Map<String, Object> getProperties();
 
     /**
      * The exception that will be thrown when an attempt is made to read a property that is not set.
+     * @since 1.0
      */
     class UnknownPropertyException extends InvalidUserDataException {
+        /**
+         * Creates a new {@code UnknownPropertyException}.
+         *
+         * @since 1.0
+         */
         public UnknownPropertyException(ExtraPropertiesExtension extension, String propertyName) {
             super(createMessage(propertyName));
         }
 
+        /**
+         * Create message.
+         *
+         * @since 2.14
+         */
         public static String createMessage(String propertyName) {
             return String.format("Cannot get property '%s' on extra properties extension as it does not exist", propertyName);
         }

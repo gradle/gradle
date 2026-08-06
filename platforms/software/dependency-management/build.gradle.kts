@@ -92,6 +92,7 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.execution))
+    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.resourcesHttp))
     testImplementation(testFixtures(projects.snapshots))

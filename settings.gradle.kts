@@ -197,6 +197,7 @@ module("ide") {
     subproject("problems-api")
     subproject("problems-impl")
     subproject("problems-rendering")
+    subproject("problems-reporting")
     subproject("tooling-api")
     subproject("tooling-api-builders")
 }

@@ -61,6 +61,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -167,7 +168,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ImmutableList<ResolutionParameters.ModuleVersionLock> moduleVersionLocks = includeConsistentResolutionLocks ? configuration.getConsistentResolutionVersionLocks() : ImmutableList.of();
         ImmutableArtifactTypeRegistry immutableArtifactTypeRegistry = attributeSchemaServices.getArtifactTypeRegistryFactory().create(artifactTypeRegistry);
         ImmutableModuleReplacements moduleReplacements = componentModuleMetadataHandler.getModuleReplacements();
-        ConfigurationFailureResolutions failureResolutions = new ConfigurationFailureResolutions(configuration.getDomainObjectContext().getProjectIdentity(), configuration.getName());
+        ProjectIdentity projectIdentity = configuration.getDomainObjectContext() instanceof ProjectDomainObjectContext pdoc ? pdoc.getModel().getIdentity() : null;
+        ConfigurationFailureResolutions failureResolutions = new ConfigurationFailureResolutions(projectIdentity, configuration.getName());
 
         return new ResolutionParameters(
             configuration.getResolutionHost(),
@@ -404,8 +406,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                 localResolveStateFactory
             );
 
-            ProjectIdentity projectIdentity = owner.getProjectIdentity();
-            if (projectIdentity == null) {
+            if (!(owner instanceof ProjectDomainObjectContext pdoc)) {
                 return adhocRootComponentProvider;
             }
 
@@ -413,7 +414,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             //  an adhoc root component, and should use an AdhocRootComponentProvider.
             return new ProjectRootComponentProvider(
                 owner.getModel(),
-                projectIdentity,
+                pdoc.getModel().getIdentity(),
                 moduleIdentity,
                 schema,
                 configurations,

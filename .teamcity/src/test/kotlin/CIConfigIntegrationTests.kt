@@ -8,7 +8,6 @@ import configurations.stageWithOsTriggers
 import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.failureConditions.BuildFailureOnText
-import model.ALL_CROSS_VERSION_BUCKETS
 import model.CIBuildModel
 import model.DefaultFunctionalTestBucketProvider
 import model.JsonBasedGradleSubprojectProvider
@@ -16,6 +15,7 @@ import model.QUICK_CROSS_VERSION_BUCKETS
 import model.StageName
 import model.TestCoverage
 import model.TestType
+import model.allCrossVersionBucketsFor
 import model.ignoredSubprojects
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -140,6 +140,7 @@ class CIConfigIntegrationTests {
             testType: TestType,
             functionalTests: List<BaseGradleBuildType>,
         ) {
+            assertEquals(buckets.size, functionalTests.size)
             buckets.forEachIndexed { index: Int, startEndVersion: List<String> ->
                 assertTrue(functionalTests[index].name.contains("(${startEndVersion[0]} <= gradle <${startEndVersion[1]})"))
                 assertEquals("clean ${testType.asCamelCase()}Test", functionalTests[index].getGradleTasks())
@@ -158,7 +159,7 @@ class CIConfigIntegrationTests {
                 when {
                     functionalTestProject.name.contains("AllVersionsCrossVersion") -> {
                         assertProjectAreSplitByGradleVersionCorrectly(
-                            ALL_CROSS_VERSION_BUCKETS,
+                            allCrossVersionBucketsFor(functionalTestProject.testCoverage.os),
                             TestType.ALL_VERSIONS_CROSS_VERSION,
                             functionalTestProject.functionalTests,
                         )
@@ -345,11 +346,13 @@ class CIConfigIntegrationTests {
 
     @Test
     fun allVersionsAreIncludedInCrossVersionTests() {
-        assertEquals("0.0", ALL_CROSS_VERSION_BUCKETS[0][0])
-        assertEquals("99.0", ALL_CROSS_VERSION_BUCKETS[ALL_CROSS_VERSION_BUCKETS.size - 1][1])
+        Os.entries.map { allCrossVersionBucketsFor(it) }.distinct().forEach { buckets ->
+            assertEquals("0.0", buckets[0][0])
+            assertEquals("99.0", buckets[buckets.size - 1][1])
 
-        (1 until ALL_CROSS_VERSION_BUCKETS.size).forEach {
-            assertEquals(ALL_CROSS_VERSION_BUCKETS[it - 1][1], ALL_CROSS_VERSION_BUCKETS[it][0])
+            (1 until buckets.size).forEach {
+                assertEquals(buckets[it - 1][1], buckets[it][0])
+            }
         }
     }
 }

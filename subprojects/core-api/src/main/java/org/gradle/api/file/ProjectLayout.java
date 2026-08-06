@@ -40,12 +40,14 @@ import java.io.File;
 public interface ProjectLayout extends ProjectService, TaskService {
     /**
      * Returns the project directory.
+     * @since 4.1
      */
     @ValueFactories
     Directory getProjectDirectory();
 
     /**
      * Returns the build directory for the project.
+     * @since 4.1
      */
     @HiddenInDefinition
     DirectoryProperty getBuildDirectory();
@@ -66,6 +68,7 @@ public interface ProjectLayout extends ProjectService, TaskService {
      * <p>
      * File system locations based on relative paths will be
      * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
+     * @since 4.1
      */
     @HiddenInDefinition
     Provider<RegularFile> file(Provider<File> file);

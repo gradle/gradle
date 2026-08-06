@@ -40,6 +40,7 @@ import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegra
 /**
  * Displays some details about the configuration model of the project.
  * An instance of this type is used when you execute the {@code model} task from the command-line.
+ * @since 2.4
  */
 @Deprecated
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
@@ -51,9 +52,16 @@ public abstract class ModelReport extends DefaultTask {
      *     <li><i>full</i> (default value) will show details about types, rules and creators</li>
      *     <li><i>short</i> will only show nodes and their values</li>
      * </ul>
+     * @since 2.12
      */
     public enum Format {
+        /**
+         * @since 2.12
+         */
         FULL,
+        /**
+         * @since 2.12
+         */
         SHORT
     }
 
@@ -66,21 +74,41 @@ public abstract class ModelReport extends DefaultTask {
         requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
+    /**
+     * Sets the show hidden.
+     *
+     * @since 2.10
+     */
     @Option(option = "showHidden", description = "Show hidden model elements.")
     public void setShowHidden(boolean showHidden) {
         this.showHidden = showHidden;
     }
 
+    /**
+     * Returns whether show hidden is set.
+     *
+     * @since 2.10
+     */
     @Console
     public boolean isShowHidden() {
         return showHidden;
     }
 
+    /**
+     * Sets the format.
+     *
+     * @since 2.12
+     */
     @Option(option = "format", description = "Output format (full, short)")
     public void setFormat(String format) {
         this.format = Format.valueOf(format.toUpperCase(Locale.ROOT));
     }
 
+    /**
+     * Returns the format.
+     *
+     * @since 2.12
+     */
     @Console
     public Format getFormat() {
         return format;
@@ -92,6 +120,11 @@ public abstract class ModelReport extends DefaultTask {
     @Inject
     protected abstract ModelRegistry getModelRegistry();
 
+    /**
+     * Report.
+     *
+     * @since 2.4
+     */
     @TaskAction
     public void report() {
         DeprecationLogger.whileDisabled(this::doReport);

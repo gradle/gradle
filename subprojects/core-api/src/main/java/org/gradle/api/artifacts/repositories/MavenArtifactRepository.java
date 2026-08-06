@@ -27,6 +27,7 @@ import java.util.Set;
  * An artifact repository which uses a Maven format to store artifacts and meta-data.
  * <p>
  * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(org.gradle.api.Action)} group of methods.
+ * @since 1.0
  */
 public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 
@@ -65,6 +66,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @return The additional URLs. Returns an empty list if there are no such URLs.
      * @deprecated Maven repositories with separate locations for POMs and artifacts are a Gradle-only feature with no equivalent in Maven. This method is scheduled to be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     @HiddenInDefinition
@@ -78,6 +80,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @param urls The URLs to add.
      * @deprecated Maven repositories with separate locations for POMs and artifacts are a Gradle-only feature with no equivalent in Maven. This method is scheduled to be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     @HiddenInDefinition
@@ -102,6 +105,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @param urls The URLs.
      * @deprecated Maven repositories with separate locations for POMs and artifacts are a Gradle-only feature with no equivalent in Maven. This method is scheduled to be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     @HiddenInDefinition
@@ -136,6 +140,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
     interface MetadataSources {
         /**
          * Indicates that this repository will contain Gradle metadata.
+         * @since 4.5
          */
         void gradleMetadata();
 
@@ -144,12 +149,14 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
          * If the POM file contains a marker telling that Gradle metadata exists
          * for this component, Gradle will <i>also</i> look for the Gradle metadata
          * file. Gradle module metadata redirection will not happen if {@code ignoreGradleMetadataRedirection()} has been used.
+         * @since 4.5
          */
         void mavenPom();
 
         /**
          * Indicates that this repository may not contain metadata files,
          * but we can infer it from the presence of an artifact file.
+         * @since 4.5
          */
         void artifact();
 

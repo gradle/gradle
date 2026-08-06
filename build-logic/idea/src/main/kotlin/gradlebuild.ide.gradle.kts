@@ -15,6 +15,7 @@
  */
 
 import gradlebuild.basics.repoRoot
+import gradlebuild.idea.tasks.CheckIdeaJdkConfiguration
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
@@ -46,6 +47,12 @@ limitations under the License."""
 
 tasks.idea {
     doFirst { throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij") }
+}
+
+tasks.register<CheckIdeaJdkConfiguration>("checkIdeaJdkConfiguration") {
+    description = "Verifies that .idea/misc.xml's project SDK supports its project language level"
+    group = "verification"
+    ideaMiscXml = repoRoot().file(".idea/misc.xml")
 }
 
 if (idea.project != null) { // may be null during script compilation

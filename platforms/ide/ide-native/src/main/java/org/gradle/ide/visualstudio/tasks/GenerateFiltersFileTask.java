@@ -43,6 +43,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Task for generating a Visual Studio filters file (e.g. {@code foo.vcxproj.filters}).
+ * @since 1.11
  */
 @SuppressWarnings("this-escape")
 @Incubating
@@ -63,10 +64,20 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
         return true;
     }
 
+    /**
+     * Sets the visual studio project.
+     *
+     * @since 1.11
+     */
     public void setVisualStudioProject(VisualStudioProject vsProject) {
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
+    /**
+     * Returns the visual studio project.
+     *
+     * @since 1.11
+     */
     @Internal
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;

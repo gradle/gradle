@@ -52,6 +52,7 @@ public interface TestSpec {
      *
      * @param pkg The target package.
      * @return this
+     * @since 7.6
      */
     TestSpec includePackage(String pkg);
 
@@ -61,6 +62,7 @@ public interface TestSpec {
      * @see #includePackage(String)
      * @param packages The target packages.
      * @return this
+     * @since 7.6
      */
     TestSpec includePackages(Collection<String> packages);
 
@@ -71,6 +73,7 @@ public interface TestSpec {
      *
      * @param cls The fully-qualified name of the target class.
      * @return this
+     * @since 7.6
      */
     TestSpec includeClass(String cls);
 
@@ -80,6 +83,7 @@ public interface TestSpec {
      * @see #includeClass(String)
      * @param classes The fully-qualified name of the target classes.
      * @return this
+     * @since 7.6
      */
     TestSpec includeClasses(Collection<String>  classes);
 
@@ -91,6 +95,7 @@ public interface TestSpec {
      * @param cls The fully-qualified name of the class containing the method.
      * @param method The name of the target method.
      * @return this
+     * @since 7.6
      */
     TestSpec includeMethod(String cls, String method);
 
@@ -101,6 +106,7 @@ public interface TestSpec {
      * @param cls The fully-qualified name of the class containing the method.
      * @param methods The name of the target methods.
      * @return this
+     * @since 7.6
      */
     TestSpec includeMethods(String cls, Collection<String> methods);
 
@@ -112,6 +118,7 @@ public interface TestSpec {
      *
      * @param pattern the pattern to select tests.
      * @return this
+     * @since 7.6
      */
     TestSpec includePattern(String pattern);
 
@@ -121,6 +128,7 @@ public interface TestSpec {
      * @see #includePattern(String)
      * @param patterns the patterns to select tests.
      * @return this
+     * @since 7.6
      */
     TestSpec includePatterns(Collection<String> patterns);
 }

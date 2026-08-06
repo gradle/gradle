@@ -67,6 +67,7 @@ public interface BuildResult {
      * This can occur if the build fails early, due to a build script failing to compile for example.
      *
      * @return the build tasks
+     * @since 2.6
      */
     List<BuildTask> getTasks();
 
@@ -78,6 +79,7 @@ public interface BuildResult {
      *
      * @param outcome the desired outcome
      * @return the build tasks with the given outcome
+     * @since 2.6
      */
     List<BuildTask> tasks(TaskOutcome outcome);
 
@@ -89,6 +91,7 @@ public interface BuildResult {
      *
      * @param outcome the desired outcome
      * @return the paths of the build tasks with the given outcome
+     * @since 2.6
      */
     List<String> taskPaths(TaskOutcome outcome);
 
@@ -97,8 +100,21 @@ public interface BuildResult {
      *
      * @param taskPath the path of the target task
      * @return information about the executed task, or {@code null} if the task was not executed
+     * @since 2.6
      */
     @Nullable
     BuildTask task(String taskPath);
+
+    /**
+     * The outcome of configuration caching for the build.
+     * <p>
+     * Returns {@link ConfigurationCacheOutcome#NOT_ENABLED} if the configuration cache was not enabled for the build.
+     *
+     * @return the configuration cache outcome, never null
+     * @throws UnsupportedFeatureException when the build was run with a version of Gradle that does not report the outcome (older than 9.8.0)
+     * @since 9.8.0
+     */
+    @Incubating
+    ConfigurationCacheOutcome getConfigurationCacheOutcome();
 
 }

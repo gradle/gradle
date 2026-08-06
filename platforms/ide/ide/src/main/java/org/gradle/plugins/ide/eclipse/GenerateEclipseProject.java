@@ -32,6 +32,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseProject}.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -39,6 +40,11 @@ public abstract class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     private EclipseProject projectModel;
 
+    /**
+     * Creates a new {@code GenerateEclipseProject}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public GenerateEclipseProject() {
         getXmlTransformer().setIndentation("\t");
@@ -79,12 +85,18 @@ public abstract class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     /**
      * The Eclipse project model that contains the details required to generate the project file.
+     * @since 1.0
      */
     @Internal
     public EclipseProject getProjectModel() {
         return projectModel;
     }
 
+    /**
+     * Sets the project model.
+     *
+     * @since 1.0
+     */
     public void setProjectModel(EclipseProject projectModel) {
         this.projectModel = projectModel;
     }

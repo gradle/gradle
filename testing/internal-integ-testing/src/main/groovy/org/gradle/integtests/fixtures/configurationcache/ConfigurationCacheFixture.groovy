@@ -48,6 +48,7 @@ class ConfigurationCacheFixture {
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
         configurationCacheBuildOperations.assertNoConfigurationCache()
+        configurationCacheBuildOperations.assertNoEntryOutcome()
         assertHasNoProblems()
     }
 
@@ -72,6 +73,7 @@ class ConfigurationCacheFixture {
         assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsAfterStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
+        assertEntryOutcomeMatches(details)
     }
 
     /**
@@ -152,6 +154,7 @@ class ConfigurationCacheFixture {
         } else {
             spec.postBuildOutputContains(message)
         }
+        assertEntryOutcomeMatches(details)
 
         assertHasProblems(problemDetails)
     }
@@ -176,6 +179,7 @@ class ConfigurationCacheFixture {
         assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.runsTasks)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
+        assertEntryOutcomeMatches(details)
         assertHasNoProblems()
     }
 
@@ -199,6 +203,7 @@ class ConfigurationCacheFixture {
         assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, false)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
+        assertEntryOutcomeMatches(details)
         assertHasProblems(problemDetails)
     }
 
@@ -215,6 +220,7 @@ class ConfigurationCacheFixture {
     void assertStateLoaded(LoadDetails details) {
         assertLoadLogged()
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
+        assertEntryOutcomeMatches(details)
 
         assert details.runsTasks || details.createsModels
         if (details.runsTasks) {
@@ -246,6 +252,7 @@ class ConfigurationCacheFixture {
         assertHasWarningThatIncubatingFeatureUsed()
         assertLoadLogged()
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
+        assertEntryOutcomeMatches(details)
 
         configurationCacheBuildOperations.assertStateLoaded()
         configurationCacheBuildOperations.assertNoModelOperations()
@@ -253,6 +260,20 @@ class ConfigurationCacheFixture {
         assertNothingConfigured()
 
         assertHasProblems(details)
+    }
+
+    private void assertEntryOutcomeMatches(HasBuildActions details) {
+        configurationCacheBuildOperations.assertEntryOutcome(expectedEntryOutcomeFor(details.storeAction))
+    }
+
+    private static String expectedEntryOutcomeFor(String storeAction) {
+        switch (storeAction.split(" ")[0]) {
+            case "stored": return "STORED"
+            case "reused": return "REUSED"
+            case "updated": return "UPDATED"
+            case "discarded": return "DISCARDED"
+            default: throw new IllegalArgumentException("Unexpected store action: '$storeAction'")
+        }
     }
 
     private void assertWorkGraphOrModelStored(boolean runsTasks, boolean createsModels, boolean loadAfterStore) {

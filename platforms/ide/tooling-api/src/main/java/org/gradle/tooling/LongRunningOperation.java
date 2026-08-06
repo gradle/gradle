@@ -38,7 +38,7 @@ import java.util.Set;
  * Those settings might not be supported by the target Gradle version. Refer to Javadoc for those methods
  * to understand what kind of exception throw and when is it thrown.
  *
- * @since 1.0-milestone-7
+ * @since 1.0
  */
 public interface LongRunningOperation {
 
@@ -48,7 +48,7 @@ public interface LongRunningOperation {
      *
      * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
      * @return this
-     * @since 1.0-milestone-7
+     * @since 1.0
      */
     LongRunningOperation setStandardOutput(OutputStream outputStream);
 
@@ -58,7 +58,7 @@ public interface LongRunningOperation {
      *
      * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
      * @return this
-     * @since 1.0-milestone-7
+     * @since 1.0
      */
     LongRunningOperation setStandardError(OutputStream outputStream);
 
@@ -79,7 +79,7 @@ public interface LongRunningOperation {
      *
      * @param inputStream The input stream
      * @return this
-     * @since 1.0-milestone-8
+     * @since 1.0
      */
     LongRunningOperation setStandardInput(InputStream inputStream);
 
@@ -94,7 +94,7 @@ public interface LongRunningOperation {
      * @param javaHome to use for the Gradle process
      * @return this
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder.
-     * @since 1.0-milestone-8
+     * @since 1.0
      */
     LongRunningOperation setJavaHome(@Nullable File javaHome) throws IllegalArgumentException;
 
@@ -111,7 +111,7 @@ public interface LongRunningOperation {
      *
      * @param jvmArguments to use for the Gradle process
      * @return this
-     * @since 1.0-milestone-8
+     * @since 1.0
      */
     LongRunningOperation setJvmArguments(@Nullable String... jvmArguments);
 
@@ -278,7 +278,7 @@ public interface LongRunningOperation {
      *
      * @param listener The listener
      * @return this
-     * @since 1.0-milestone-7
+     * @since 1.0
      */
     @SuppressWarnings("overloads")
     LongRunningOperation addProgressListener(ProgressListener listener);

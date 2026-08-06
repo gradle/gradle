@@ -20,6 +20,8 @@ import com.google.common.base.Function
 import org.gradle.api.Action
 import org.gradle.api.NonExtensible
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
@@ -27,9 +29,19 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.state.ModelObject
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
+import org.junit.Rule
 import spock.lang.Issue
 
+import java.lang.annotation.Annotation
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 import java.util.function.BiFunction
 
 import static AsmBackedClassGeneratorTest.Bean
@@ -41,6 +53,11 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
+
+    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def "mixes in toString() implementation for class"() {
         given:
@@ -140,6 +157,80 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.prop.toString() == "property 'prop'"
         beanWithDisplayName.prop.toString() == "<display-name> property 'prop'"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37421")
+    def "re-attaches owner to non-managed read only #description when model properties are re-attached"() {
+        given:
+        def bean = create(type, Describables.of("<display name>"))
+
+        // Read the backing field directly, without going through the attaching getter. This mirrors how
+        // deserialization restores the property - straight into the field
+        def field = type.getDeclaredField(fieldName)
+        field.accessible = true
+
+        expect: "the property restored into the field has no owner yet"
+        field.get(bean).toString() == ownerlessDisplayName
+
+        when: "the model properties are re-attached, as happens after deserialization"
+        (bean as ModelObject).attachModelProperties()
+
+        then: "the owner (and thus the display name) is restored, observed via the field rather than the getter"
+        field.get(bean).toString() == "<display name> property 'someValue'"
+
+        where:
+        description                  | type                       | fieldName | ownerlessDisplayName
+        "Property"                   | HasReadOnlyProperty        | "prop"    | "property(java.lang.String, undefined)"
+        "ConfigurableFileCollection" | HasReadOnlyFileCollection  | "files"   | "file collection"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37421")
+    def "attempting to reattach the owner to a non-managed properties ignores getter exception"() {
+        given:
+        def bean = create(HasFailingAndWorkingPropertyGetters, Describables.of("<display name>"))
+        def field = HasFailingAndWorkingPropertyGetters.getDeclaredField("working")
+        field.accessible = true
+
+        when: "model properties are re-attached, as happens after deserialization"
+        (bean as ModelObject).attachModelProperties()
+
+        then: "the failure is ignored and the remaining properties are still attached"
+        noExceptionThrown()
+        field.get(bean).toString() == "<display name> property 'working'"
+
+        and: "the ignored failure is logged at debug level, naming the property so that a missing owner can still be diagnosed"
+        def events = outputEventListener.events.findAll { it.message.startsWith("Could not attach owner to <display name> property 'failing'") }
+        events.size() == 1
+        events[0].logLevel == LogLevel.DEBUG
+        events[0].throwable.message == "The value of this property has been discarded during serialization."
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37421")
+    def "attempting to reattach the owner propagates a role handler exception"() {
+        given: "a role handler that fails"
+        def attempts = []
+        def roleHandler = new PropertyRoleAnnotationHandler() {
+            Set<Class<? extends Annotation>> getAnnotationTypes() { [Producer] as Set }
+            void applyRoleTo(ModelObject owner, Object target) {
+                attempts << target
+                throw new IllegalStateException("cannot apply the role")
+            }
+        }
+        def generator = AsmBackedClassGenerator.decorateAndInject([], roleHandler, [], new TestCrossBuildInMemoryCacheFactory(), 0)
+        def bean = create(generator, HasRoleAnnotatedManagedProperty)
+
+        // Write the value straight into the backing field, as deserialization does, so that the getter returns
+        // it instead of creating it - and therefore does not apply the role itself.
+        def field = bean.getClass().getDeclaredField("__someValue__")
+        field.accessible = true
+        field.set(bean, TestUtil.objectFactory().property(String))
+
+        when: "model properties are re-attached, as happens after deserialization"
+        (bean as ModelObject).attachModelProperties()
+
+        then: "the failure surfaces - only the getter invocation is meant to be tolerated"
+        thrown(IllegalStateException)
+        attempts.size() == 1
     }
 
     def "can attach nested extensions to object"() {
@@ -744,6 +835,44 @@ class HasReadOnlyProperty {
 
     HasReadOnlyProperty(ObjectFactory objectFactory) {
         prop = objectFactory.property(String)
+    }
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@interface Producer {}
+
+interface HasRoleAnnotatedManagedProperty {
+    @Producer
+    Property<String> getSomeValue()
+}
+
+class HasFailingAndWorkingPropertyGetters {
+    private final Property<String> working
+
+    // Mirrors GenerateModuleMetadata.getPublication(), whose value is discarded during serialization.
+    Property<String> getFailing() {
+        throw new IllegalStateException("The value of this property has been discarded during serialization.")
+    }
+
+    Property<String> getWorking() {
+        return working
+    }
+
+    HasFailingAndWorkingPropertyGetters(ObjectFactory objectFactory) {
+        working = objectFactory.property(String)
+    }
+}
+
+class HasReadOnlyFileCollection {
+    private final ConfigurableFileCollection files
+
+    ConfigurableFileCollection getSomeValue() {
+        return files
+    }
+
+    HasReadOnlyFileCollection(ObjectFactory objectFactory) {
+        files = objectFactory.fileCollection()
     }
 }
 

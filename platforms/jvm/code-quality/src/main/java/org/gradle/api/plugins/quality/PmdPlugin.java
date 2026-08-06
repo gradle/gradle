@@ -55,11 +55,17 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * @see PmdExtension
  * @see Pmd
  * @see <a href="https://docs.gradle.org/current/userguide/pmd_plugin.html">PMD plugin reference</a>
+ * @since 1.0
  */
 @SuppressWarnings("deprecation") // The targetJdk property and TargetJdk type are themselves deprecated.
 public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     // When updating DEFAULT_PMD_VERSION, also update links in Pmd and PmdExtension!
+    /**
+     * The default pmd version.
+     *
+     * @since 2.4
+     */
     public static final String DEFAULT_PMD_VERSION = "7.24.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
@@ -97,6 +103,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
      * Returns the default {@link TargetJdk} for the given Java source compatibility version.
      *
      * @deprecated The {@code targetJdk} property has no effect for PMD 5.0 and later. Scheduled to be removed in Gradle 10.
+     * @since 1.5
      */
     @Deprecated
     public TargetJdk getDefaultTargetJdk(JavaVersion javaVersion) {

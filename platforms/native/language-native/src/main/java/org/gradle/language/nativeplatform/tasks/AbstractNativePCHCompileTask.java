@@ -21,6 +21,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Compiles native header source files into object files.
+ * @since 2.4
  */
 @Incubating
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")

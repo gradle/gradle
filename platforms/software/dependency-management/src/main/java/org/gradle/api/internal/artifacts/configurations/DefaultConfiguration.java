@@ -54,6 +54,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
@@ -76,7 +77,6 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
-import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -103,6 +103,7 @@ import org.gradle.internal.model.DefaultCalculatedModelValue;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
@@ -280,13 +281,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.validateExtendedConfiguration = extended -> {
             ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
-            if (!domainObjectContext.equals(other.getDomainObjectContext())) {
+            if (!configurationServices.getInstanceIdentity().equals(other.getInstanceIdentity())) {
                 throw new InvalidUserDataException(String.format(
                     "%s in %s cannot extend %s from %s. Configurations can only extend from configurations in the same context.",
                     displayName.getCapitalizedDisplayName(),
-                    DefaultConfiguration.this.domainObjectContext.getDisplayName(),
+                    configurationServices.getInstanceIdentity().getDisplayName(),
                     other.getDisplayName(),
-                    other.getDomainObjectContext().getDisplayName()
+                    other.getInstanceIdentity().getDisplayName()
                 ));
             }
             if (other.getHierarchy().contains(DefaultConfiguration.this)) {
@@ -299,11 +300,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private static Path getIdentityPath(DomainObjectContext domainObjectContext, String name) {
-        Path ownerIdPath = domainObjectContext.getIdentityPath();
-        if (ownerIdPath == null) {
-            return Path.path(name);
+        if (domainObjectContext instanceof ProjectDomainObjectContext pdoc) {
+            return pdoc.getModel().getIdentity().getBuildTreePath().child(name);
         }
-        return ownerIdPath.child(name);
+        return Path.path(name);
     }
 
     private static Action<String> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -712,18 +712,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve dependencies of " + identityPath;
-                ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
-                String projectPathString = null;
-                if (!domainObjectContext.isScript()) {
-                    if (projectId != null) {
-                        projectPathString = projectId.getProjectPath().asString();
-                    }
-                }
+                String projectPathString = domainObjectContext instanceof ProjectDomainObjectContext pdoc
+                    ? pdoc.getModel().getIdentity().getProjectPath().asString()
+                    : null;
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
                     .details(new ResolveConfigurationResolutionBuildOperationDetails(
                         getName(),
-                        domainObjectContext.isScript(),
+                        projectPathString == null,
                         getDescription(),
                         domainObjectContext.getBuildPath().asString(),
                         projectPathString,
@@ -1207,6 +1203,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
+    public DependencyManagementInstanceIdentity getInstanceIdentity() {
+        return configurationServices.getInstanceIdentity();
+    }
+
+    @Override
     public Configuration resolutionStrategy(Closure closure) {
         configure(closure, getResolutionStrategy());
         return this;
@@ -1265,9 +1266,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ConfigurationIdentity getConfigurationIdentity() {
         String name = getName();
-        ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
-        String projectPath = projectId == null ? null : projectId.getProjectPath().asString();
-        String buildPath = domainObjectContext.getBuildPath().toString();
+        String projectPath = domainObjectContext instanceof ProjectDomainObjectContext pdoc
+            ? pdoc.getModel().getIdentity().getProjectPath().asString()
+            : null;
+        String buildPath = domainObjectContext.getBuildPath().asString();
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
     }
 

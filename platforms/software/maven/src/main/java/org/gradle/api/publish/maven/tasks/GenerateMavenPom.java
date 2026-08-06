@@ -43,7 +43,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
 /**
  * Generates a Maven module descriptor (POM) file.
  *
- * @since 1.4
+ * @since 1.5
  */
 @SuppressWarnings("this-escape")
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
@@ -64,6 +64,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * The Maven POM.
      *
      * @return The Maven POM.
+     * @since 1.5
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -71,6 +72,11 @@ public abstract class GenerateMavenPom extends DefaultTask {
         return pom.get();
     }
 
+    /**
+     * Sets the pom.
+     *
+     * @since 1.5
+     */
     public void setPom(MavenPom pom) {
         this.pom.set(pom);
     }
@@ -89,6 +95,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * The file the POM will be written to.
      *
      * @return The file the POM will be written to
+     * @since 1.5
      */
     @ReplacedBy("destinationFile")
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationFile() instead", willBeDeprecated = true)
@@ -113,6 +120,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * The value is resolved with {@link Project#file(Object)}
      *
      * @param destination The file the descriptor will be written to.
+     * @since 1.5
      */
     public void setDestination(Object destination) {
         File resolved = getFileResolver().resolve(destination);
@@ -120,6 +128,11 @@ public abstract class GenerateMavenPom extends DefaultTask {
         getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(resolved));
     }
 
+    /**
+     * Do generate.
+     *
+     * @since 1.5
+     */
     @TaskAction
     public void doGenerate() {
         mavenPomSpec.get().writeTo(getDestinationFile().get().getAsFile());

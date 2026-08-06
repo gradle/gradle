@@ -713,17 +713,19 @@ class ConfigurationCacheState(
 
     private
     fun WriteContext.writeStartParameterOf(gradle: GradleInternal) {
-        writeStrings(gradle.startParameter.taskNames)
+        val startParameter = gradle.startParameter
+        writeStrings(startParameter.taskNames)
     }
 
     private
     fun ReadContext.readStartParameterOf(gradle: GradleInternal) {
+        val startParameter = gradle.startParameter
         // Restore the requested task names captured during configuration. The cached work graph already
         // drives what executes on a cache hit, so this is not needed to run the build. It keeps
         // gradle.startParameter.taskNames consistent on a hit for internal consumers that read it (build
         // operations, problem reports, build scans), since scheduling -- which resolves and populates the
         // names on a store run -- does not run on a hit.
-        gradle.startParameter.setTaskNames(readStrings())
+        startParameter.setTaskNames(readStrings())
     }
 
     private
@@ -768,6 +770,12 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeBuildCacheConfiguration(gradle: GradleInternal) {
+        val startParameter = gradle.startParameter
+        val configuredByBuildLogic = startParameter.isBuildCacheEnabledConfiguredByBuildLogic
+        writeBoolean(configuredByBuildLogic)
+        if (configuredByBuildLogic) {
+            writeBoolean(startParameter.isBuildCacheEnabled)
+        }
         gradle.settings.buildCache.let { buildCache ->
             write(buildCache.local)
             write(buildCache.remote)
@@ -777,6 +785,10 @@ class ConfigurationCacheState(
 
     private
     suspend fun ReadContext.readBuildCacheConfiguration(gradle: GradleInternal) {
+        val configuredByBuildLogic = readBoolean()
+        if (configuredByBuildLogic) {
+            gradle.startParameter.setBuildCacheEnabledInternal(readBoolean(), true)
+        }
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?

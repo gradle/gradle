@@ -24,17 +24,20 @@ import java.io.File;
  * A shared library that exists at a known location on the filesystem.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @Deprecated
 public interface PrebuiltSharedLibraryBinary extends SharedLibraryBinary {
     /**
      * The shared library file.
+     * @since 2.2
      */
     void setSharedLibraryFile(File sharedLibraryFile);
 
     /**
      * The shared library link file.
+     * @since 2.2
      */
     void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
 }

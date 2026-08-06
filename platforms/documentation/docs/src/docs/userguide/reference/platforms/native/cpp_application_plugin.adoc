@@ -15,7 +15,7 @@
 [[cpp_application_plugin]]
 = {cpp} Application
 
-The {cpp} Application Plugin provides the tasks, configurations and conventions for a building {cpp} application.
+The {cpp} Application Plugin provides the tasks, configurations and conventions for building a {cpp} application.
 
 [[sec:cpp_application_usage]]
 == Usage
@@ -33,7 +33,7 @@ Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introdu
 
 Build types - always either _debug_ or _release_::
 The build type controls the debuggability as well as the optimization of the generated binaries.
-- `debug` - Generate debug symbols and don’t optimized the binary
+- `debug` - Generate debug symbols and don’t optimize the binary
 - `release` - Generate debug symbols and optimize, but extract the debug symbols from the binary
 
 Target machines - defaults to the build host::
@@ -79,7 +79,7 @@ Links executable from compiled object files using the selected linker.
 `install__Variant__` (e.g. `installDebug` and `installRelease`) - link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable]::
 Depends on: `link__Variant__` and all tasks which contribute to the runtime of the executable, including `link__Variant__` tasks from projects that are resolved via project dependencies
 ::
-Installs the executable and all of it's runtime dependencies for easy execution.
+Installs the executable and all of its runtime dependencies for easy execution.
 
 `assemble__Variant__` (e.g. `assembleDebug` and `assembleRelease`) - Task (lifecycle)::
 Depends on: `link__Variant__`
@@ -106,7 +106,7 @@ This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 `build` - Task (lifecycle)::
 Depends on: `check`, `assemble`
 ::
-Aggregate tasks that perform a full build of the project.
+Aggregate task that performs a full build of the project.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `clean` - Delete::
@@ -139,7 +139,7 @@ This is where you should declare dependencies of the specific variant.
 
 The following configurations are used by downstream consumers that depend on the application component:
 
-`__variant__RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements) extends `main__Variant__Implementation`::
+`__variant__RuntimeElements` (e.g. `debugRuntimeElements` and `releaseRuntimeElements`) extends `main__Variant__Implementation`::
 Used for executing the application.
 This configuration is meant to be used by consumers, to retrieve all the elements necessary to run the application.
 

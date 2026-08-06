@@ -20,6 +20,7 @@ import org.gradle.api.Plugin;
 /**
  * <p>An {@code ObjectConfigurationAction} allows you to apply {@link org.gradle.api.Plugin}s and scripts to an object
  * or objects.</p>
+ * @since 0.9
  */
 public interface ObjectConfigurationAction {
     /**
@@ -29,6 +30,7 @@ public interface ObjectConfigurationAction {
      *
      * @param targets The target objects.
      * @return this
+     * @since 0.9
      */
     ObjectConfigurationAction to(Object... targets);
 
@@ -39,6 +41,7 @@ public interface ObjectConfigurationAction {
      * @param script The script. Evaluated as per {@link org.gradle.api.Project#file(Object)}. However, note that
      * a URL can also be used, allowing the script to be fetched using HTTP, for example.
      * @return this
+     * @since 0.9
      */
     ObjectConfigurationAction from(Object script);
 
@@ -48,6 +51,7 @@ public interface ObjectConfigurationAction {
      *
      * @param pluginClass The plugin to apply.
      * @return this
+     * @since 0.9
      */
     ObjectConfigurationAction plugin(Class<? extends Plugin> pluginClass);
 
@@ -59,6 +63,7 @@ public interface ObjectConfigurationAction {
      *
      * @param pluginClass the plugin to apply
      * @return this
+     * @since 2.3
      */
     ObjectConfigurationAction type(Class<?> pluginClass);
 
@@ -68,6 +73,7 @@ public interface ObjectConfigurationAction {
      *
      * @param pluginId The id of the plugin to apply.
      * @return this
+     * @since 0.9
      */
     ObjectConfigurationAction plugin(String pluginId);
 }

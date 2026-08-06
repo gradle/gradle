@@ -23,6 +23,7 @@ import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
@@ -33,6 +34,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class StartParameterInternal extends StartParameter {
+    private static final ThreadLocal<Boolean> LISTENER_SUPPRESSED = new ThreadLocal<>();
+
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
     private boolean vfsVerboseLogging;
 
@@ -67,6 +70,7 @@ public class StartParameterInternal extends StartParameter {
     // Runtime-only wiring, deliberately transient: a StartParameter captured in task state must be
     // serializable to the configuration cache without dragging the listener (and its services) along.
     private transient @Nullable Consumer<String> mutationListener;
+    private boolean buildCacheEnabledConfiguredByBuildLogic = false;
 
     public StartParameterInternal() {
         // Delegate to the protected constructor rather than the deprecated no-arg super().
@@ -101,9 +105,44 @@ public class StartParameterInternal extends StartParameter {
     @Override
     protected void onMutableCall(String methodSignature) {
         Consumer<String> listener = this.mutationListener;
-        if (listener != null) {
+        if (listener != null && LISTENER_SUPPRESSED.get() == null) {
             listener.accept(methodSignature);
         }
+    }
+
+    /**
+     * Runs the action without notifying the mutation listener, so internal machinery can go through the
+     * public setters without its own mutations being reported as violations.
+     */
+    private static void withoutMutationListener(Runnable action) {
+        LISTENER_SUPPRESSED.set(Boolean.TRUE);
+        try {
+            action.run();
+        } finally {
+            LISTENER_SUPPRESSED.remove();
+        }
+    }
+
+    /**
+     * Sets build cache enablement from a source other than user build logic
+     */
+    public void setBuildCacheEnabledInternal(boolean buildCacheEnabled, boolean configuredByBuildLogic) {
+        withoutMutationListener(() -> super.setBuildCacheEnabled(buildCacheEnabled));
+        this.buildCacheEnabledConfiguredByBuildLogic = configuredByBuildLogic;
+    }
+
+    @Override
+    public void setBuildCacheEnabled(boolean buildCacheEnabled) {
+        super.setBuildCacheEnabled(buildCacheEnabled);
+        this.buildCacheEnabledConfiguredByBuildLogic = true;
+        StartParameterDeprecations.nagOnSetBuildCacheEnabled();
+    }
+
+    /**
+     * Is build cache flag set by build logic?
+     */
+    public boolean isBuildCacheEnabledConfiguredByBuildLogic() {
+        return buildCacheEnabledConfiguredByBuildLogic;
     }
 
     // The public copy methods are deprecated. They are still reached at runtime via a StartParameter
@@ -131,9 +170,22 @@ public class StartParameterInternal extends StartParameter {
         return prepareNewBuild(new StartParameterInternal());
     }
 
+    public StartParameterInternal newNestedBuildInternal() {
+        return prepareNewBuild(new NestedBuildStartParameter());
+    }
+
+    private static class NestedBuildStartParameter extends StartParameterInternal {
+        @Override
+        public void setBuildCacheEnabled(boolean buildCacheEnabled) {
+            DeprecationLogger.whileDisabled(() -> super.setBuildCacheEnabled(buildCacheEnabled));
+        }
+    }
+
     @Override
     protected StartParameterInternal prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
+        // super copies the buildCacheEnabled value; carry over its provenance too so a copy equals the original.
+        p.buildCacheEnabledConfiguredByBuildLogic = buildCacheEnabledConfiguredByBuildLogic;
         p.watchFileSystemMode = watchFileSystemMode;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;

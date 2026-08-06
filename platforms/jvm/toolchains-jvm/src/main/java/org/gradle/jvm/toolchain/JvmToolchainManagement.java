@@ -34,6 +34,7 @@ public interface JvmToolchainManagement {
 
     /**
      * Returns the handler for the ordered list of configured <code>JavaToolchainRepository</code> implementations.
+     * @since 7.6
      */
     JavaToolchainRepositoryHandler getJavaRepositories();
 
@@ -61,6 +62,7 @@ public interface JvmToolchainManagement {
      *         }
      *     }
      * </pre>
+     * @since 7.6
      */
     void javaRepositories(Action<? super JavaToolchainRepositoryHandler> configureAction);
 

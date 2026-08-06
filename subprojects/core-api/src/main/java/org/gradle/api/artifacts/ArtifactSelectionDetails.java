@@ -32,16 +32,19 @@ import java.util.List;
 public interface ArtifactSelectionDetails {
     /**
      * Returns true if the dependency has requested a special artifact (either classifier, type or extension)
+     * @since 6.6
      */
     boolean hasSelectors();
 
     /**
      * Returns the list of requested artifacts for the dependency
+     * @since 6.6
      */
     List<DependencyArtifactSelector> getRequestedSelectors();
 
     /**
      * Removes all artifact selectors, if any.
+     * @since 6.6
      */
     void withoutArtifactSelectors();
 
@@ -54,6 +57,7 @@ public interface ArtifactSelectionDetails {
      * @param type the type of the artifact being queried
      * @param extension the extension, defaults to the type
      * @param classifier the classifier, defaults to null (no classifier)
+     * @since 6.6
      */
     void selectArtifact(String type, @Nullable String extension, @Nullable String classifier);
 
@@ -64,6 +68,7 @@ public interface ArtifactSelectionDetails {
      * dependency.
      *
      * In most cases, the appropriate method to call is {@link #selectArtifact(String, String, String)}
+     * @since 6.6
      */
     void selectArtifact(DependencyArtifactSelector selector);
 }

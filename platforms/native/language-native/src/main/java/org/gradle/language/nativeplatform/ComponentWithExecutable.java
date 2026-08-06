@@ -30,6 +30,7 @@ import org.gradle.nativeplatform.tasks.LinkExecutable;
 public interface ComponentWithExecutable extends ComponentWithNativeRuntime {
     /**
      * Returns the link libraries to use to link the executable. Includes the link libraries of the component's dependencies.
+     * @since 4.5
      */
     FileCollection getLinkLibraries();
 
@@ -42,11 +43,13 @@ public interface ComponentWithExecutable extends ComponentWithNativeRuntime {
 
     /**
      * Returns the executable file to produce.
+     * @since 4.5
      */
     Provider<RegularFile> getExecutableFile();
 
     /**
      * Returns the link task for the executable.
+     * @since 4.5
      */
     Provider<? extends LinkExecutable> getLinkTask();
 }

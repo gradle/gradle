@@ -28,6 +28,7 @@ import java.io.File;
  * Generated the Gradle CUnit launcher: main method and header.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @DisableCachingByDefault(because = "Not worth caching")
 @Deprecated
@@ -35,6 +36,11 @@ public abstract class GenerateCUnitLauncher extends DefaultTask {
     private File sourceDir;
     private File headerDir;
 
+    /**
+     * Generate.
+     *
+     * @since 2.2
+     */
     @TaskAction
     public void generate() {
         writeToFile(sourceDir, "gradle_cunit_main.c");
@@ -46,20 +52,40 @@ public abstract class GenerateCUnitLauncher extends DefaultTask {
         GFileUtils.copyURLToFile(getClass().getResource(fileName), file);
     }
 
+    /**
+     * Returns the source dir.
+     *
+     * @since 2.2
+     */
     @OutputDirectory
     public File getSourceDir() {
         return sourceDir;
     }
 
+    /**
+     * Sets the source dir.
+     *
+     * @since 2.2
+     */
     public void setSourceDir(File sourceDir) {
         this.sourceDir = sourceDir;
     }
 
+    /**
+     * Returns the header dir.
+     *
+     * @since 2.2
+     */
     @OutputDirectory
     public File getHeaderDir() {
         return headerDir;
     }
 
+    /**
+     * Sets the header dir.
+     *
+     * @since 2.2
+     */
     public void setHeaderDir(File headerDir) {
         this.headerDir = headerDir;
     }

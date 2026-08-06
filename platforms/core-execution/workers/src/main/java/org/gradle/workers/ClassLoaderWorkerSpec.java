@@ -28,6 +28,7 @@ public interface ClassLoaderWorkerSpec extends WorkerSpec {
      * Gets the classpath associated with the worker.
      *
      * @return the classpath associated with the worker
+     * @since 5.6
      */
     ConfigurableFileCollection getClasspath();
 }

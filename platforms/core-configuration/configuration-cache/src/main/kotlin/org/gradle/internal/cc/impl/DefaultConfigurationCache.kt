@@ -23,15 +23,6 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.cc.operations.EntrySearchResult
-import org.gradle.internal.cc.operations.ModelStoreResult
-import org.gradle.internal.cc.operations.WorkGraphLoadResult
-import org.gradle.internal.cc.operations.WorkGraphStoreResult
-import org.gradle.internal.cc.operations.withFingerprintCheckOperations
-import org.gradle.internal.cc.operations.withModelLoadOperation
-import org.gradle.internal.cc.operations.withModelStoreOperation
-import org.gradle.internal.cc.operations.withWorkGraphLoadOperation
-import org.gradle.internal.cc.operations.withWorkGraphStoreOperation
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
@@ -61,6 +52,15 @@ import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.FingerprintDeserializationException
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
+import org.gradle.internal.cc.operations.EntrySearchResult
+import org.gradle.internal.cc.operations.ModelStoreResult
+import org.gradle.internal.cc.operations.WorkGraphLoadResult
+import org.gradle.internal.cc.operations.WorkGraphStoreResult
+import org.gradle.internal.cc.operations.withFingerprintCheckOperations
+import org.gradle.internal.cc.operations.withModelLoadOperation
+import org.gradle.internal.cc.operations.withModelStoreOperation
+import org.gradle.internal.cc.operations.withWorkGraphLoadOperation
+import org.gradle.internal.cc.operations.withWorkGraphStoreOperation
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -78,8 +78,8 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
@@ -253,7 +253,7 @@ class DefaultConfigurationCache internal constructor(
     ): BuildTreeConfigurationCache.WorkGraphResult {
         return when (cacheAction) {
             is Load -> {
-                val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
+                val finalizedGraph = loadWorkGraph(graph, graphBuilder, false).graph
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = true,
@@ -292,7 +292,7 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
+    override fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeConfigurationCache.LoadRequestedTasksResult {
         return loadWorkGraph(graph, graphBuilder, true)
     }
 
@@ -763,13 +763,13 @@ class DefaultConfigurationCache internal constructor(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
-    ): BuildTreeWorkGraph.FinalizedGraph = runAtConfigurationTime {
+    ): BuildTreeConfigurationCache.LoadRequestedTasksResult = runAtConfigurationTime {
 
         // No need to record the `ClassLoaderScope` tree
         // when loading the task graph.
         scopeRegistryListener.dispose()
 
-        buildOperationRunner.withWorkGraphLoadOperation {
+        val finalizedGraph = buildOperationRunner.withWorkGraphLoadOperation {
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
                 LoadResultMetadata(buildInvocationId) to workGraph
@@ -777,6 +777,8 @@ class DefaultConfigurationCache internal constructor(
             val (intermediateLoadResult, actionResult) = storeLoadResult.value
             WorkGraphLoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }
+        val restorationFailed = !startParameter.isWarningMode && problems.queryFailure() != null
+        BuildTreeConfigurationCache.LoadRequestedTasksResult(finalizedGraph, restorationFailed)
     }
 
     private

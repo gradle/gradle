@@ -71,12 +71,52 @@ object JavaSourceQueries {
                     is JApiClass -> getSinceJavaClassVisitorFor(declaringClassSimpleName)
                     is JApiField -> getSinceJavaFieldVisitorFor(member)
                     is JApiConstructor -> getSinceJavaConstructorVisitorFor(declaringClassSimpleName, member)
-                    is JApiMethod -> getSinceJavaMethodVisitorFor(declaringClassSimpleName, member)
+                    is JApiMethod -> getSinceJavaMethodVisitorFor(member)
                     else -> error("Unsupported japicmp member type ${member::class}")
                 }
             )
         }
+
+    fun isGenerated(member: JApiCompatibility): JavaSourceQuery<Boolean> =
+        member.jApiClass.simpleName.let { declaringClassSimpleName ->
+            JavaSourceQuery(
+                false,
+                when (member) {
+                    is JApiMethod -> generatedJavaEnumMethodVisitorFor(declaringClassSimpleName, member)
+                    is JApiConstructor -> implicitJavaConstructorVisitorFor(declaringClassSimpleName, member)
+                    else -> object : PredicateVisitor() {}
+                }
+            )
+        }
 }
+
+
+private
+fun generatedJavaEnumMethodVisitorFor(classSimpleName: String, method: JApiMethod) =
+    object : PredicateVisitor() {
+        override fun visit(declaration: EnumDeclaration, arg: Unit?): Boolean? =
+            if (declaration.matchesName(classSimpleName) && method.isEnumImplicitMethod()) true
+            else super.visit(declaration, arg)
+    }
+
+
+private
+fun implicitJavaConstructorVisitorFor(classSimpleName: String, constructor: JApiConstructor) =
+    object : PredicateVisitor() {
+        override fun visit(declaration: ClassOrInterfaceDeclaration, arg: Unit?): Boolean? =
+            if (declaration.isImplicitConstructorHost(classSimpleName, constructor)) true
+            else super.visit(declaration, arg)
+
+        override fun visit(declaration: EnumDeclaration, arg: Unit?): Boolean? =
+            if (declaration.isImplicitConstructorHost(classSimpleName, constructor)) true
+            else super.visit(declaration, arg)
+    }
+
+
+private
+fun <T> T.isImplicitConstructorHost(classSimpleName: String, constructor: JApiConstructor): Boolean
+    where T : com.github.javaparser.ast.body.TypeDeclaration<*>, T : NodeWithSimpleName<*> =
+    matchesName(classSimpleName) && constructor.binaryParameterTypes.isEmpty() && constructors.isEmpty()
 
 
 private
@@ -124,7 +164,7 @@ fun getSinceJavaConstructorVisitorFor(classSimpleName: String, constructor: JApi
 
 
 private
-fun getSinceJavaMethodVisitorFor(classSimpleName: String, method: JApiMethod) =
+fun getSinceJavaMethodVisitorFor(method: JApiMethod) =
     object : SinceVisitor() {
 
         override fun visit(declaration: AnnotationMemberDeclaration, arg: Unit?): SinceTagStatus? =
@@ -134,12 +174,6 @@ fun getSinceJavaMethodVisitorFor(classSimpleName: String, method: JApiMethod) =
             declaration
                 .takeIf { it.matchesName(method.name) && it.matchesParametersOf(method.binaryParameterTypes) }
                 ?.getSince()?.let { SinceTagStatus.Present(it) }
-
-        override fun visit(declaration: EnumDeclaration, arg: Unit?): SinceTagStatus? {
-            return if (declaration.matchesName(classSimpleName) && method.isEnumImplicitMethod()) {
-                SinceTagStatus.NotNeeded
-            } else super.visit(declaration, arg)
-        }
     }
 
 
@@ -195,12 +229,24 @@ fun Node.enclosingTypeParameters(): List<TypeParameter> {
 
 
 private
+val INNERMOST_GENERIC_TYPE_ARGUMENTS = Regex("<[^<>]*>")
+
+
+private
 fun String.matchesSourceParameter(parameter: Parameter, typeParameterBounds: Map<String, String?>): Boolean {
     val binaryArrayDepth = count { it == '[' }
     val binarySimpleName = substringBefore('[').substringAfterLast('.').substringAfterLast('$')
 
     val sourceText = parameter.type.asString()
-    val sourceArrayDepth = sourceText.count { it == '[' } + if (parameter.isVarArgs) 1 else 0
+    // Strip generic type arguments first, so `[` inside them (e.g. `ConcurrentMap<String, byte[]>`)
+    // is not counted as array depth of the parameter type itself.
+    var sourceWithoutGenerics = sourceText
+    while ("<" in sourceWithoutGenerics) {
+        val stripped = sourceWithoutGenerics.replace(INNERMOST_GENERIC_TYPE_ARGUMENTS, "")
+        if (stripped == sourceWithoutGenerics) break
+        sourceWithoutGenerics = stripped
+    }
+    val sourceArrayDepth = sourceWithoutGenerics.count { it == '[' } + if (parameter.isVarArgs) 1 else 0
     val sourceRawName = sourceText.substringBefore('<').substringBefore('[').trim().substringAfterLast('.')
     // A source type parameter is erased to its bound (Object when unbounded) in the binary signature
     val sourceSimpleName =

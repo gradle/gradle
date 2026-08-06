@@ -54,6 +54,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  *
  * </pre>
+ * @since 1.0
  */
 public abstract class EclipseWtp {
 
@@ -75,11 +76,17 @@ public abstract class EclipseWtp {
      * Configures wtp component.
      * <p>
      * For examples see docs for {@link EclipseWtpComponent}
+     * @since 1.0
      */
     public EclipseWtpComponent getComponent() {
         return component;
     }
 
+    /**
+     * Sets the component.
+     *
+     * @since 1.0
+     */
     public void setComponent(EclipseWtpComponent component) {
         this.component = component;
     }
@@ -88,6 +95,7 @@ public abstract class EclipseWtp {
      * Configures wtp component.
      * <p>
      * For examples see docs for {@link EclipseWtpComponent}
+     * @since 1.0
      */
     public void component(@DelegatesTo(EclipseWtpComponent.class) Closure action) {
         configure(action, component);
@@ -108,6 +116,7 @@ public abstract class EclipseWtp {
      * Configures wtp facet.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public EclipseWtpFacet getFacet() {
@@ -126,6 +135,7 @@ public abstract class EclipseWtp {
      * Sets the wtp facet configuration.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void setFacet(EclipseWtpFacet facet) {
@@ -137,6 +147,7 @@ public abstract class EclipseWtp {
      * Configures wtp facet.
      *
      * @deprecated Will be removed in Gradle 10.
+     * @since 1.0
      */
     @Deprecated
     public void facet(@DelegatesTo(EclipseWtpFacet.class) Closure action) {

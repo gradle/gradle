@@ -43,9 +43,15 @@ import java.util.List;
  *   }
  * }
  * </pre>
+ * @since 0.9
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class Exec extends AbstractExecTask<Exec> {
+    /**
+     * Creates a new {@code Exec}.
+     *
+     * @since 0.9
+     */
     public Exec() {
         super(Exec.class);
     }

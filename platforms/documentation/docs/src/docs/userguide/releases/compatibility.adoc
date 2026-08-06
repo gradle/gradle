@@ -22,8 +22,8 @@ Versions not listed here may or may not work.
 == Java Runtime
 
 Gradle runs on the Java Virtual Machine (JVM), which is often provided by either a JDK or JRE.
-A JVM version between 17 and 26 is required to execute Gradle.
-JVM 27 and later versions are not yet supported.
+A JVM version between 17 and 27 is required to execute Gradle.
+JVM 28 and later versions are not yet supported.
 
 The Gradle wrapper, Gradle client, Tooling API client, and TestKit client are compatible with JVM 8.
 
@@ -59,6 +59,7 @@ See the table below for the Java version supported by a specific Gradle release:
 | 24| 8.14 | 8.14 and after
 | 25| 9.1.0 | 9.1.0 and after
 | 26| 9.4.0 | 9.4.0 and after
+| 27| 9.8.0 | 9.8.0 and after
 |===
 
 NOTE: We only list versions in the table above once we have tested that they work without any warnings.
@@ -122,7 +123,7 @@ Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Grad
 [[android_compatibility]]
 == Android
 
-Gradle is tested with Android Gradle Plugin 9.0 through 9.4.0-alpha06.
+Gradle is tested with Android Gradle Plugin 9.0 through 9.4.0-alpha07.
 Alpha and beta versions may or may not work.
 
 [[target_platforms]]

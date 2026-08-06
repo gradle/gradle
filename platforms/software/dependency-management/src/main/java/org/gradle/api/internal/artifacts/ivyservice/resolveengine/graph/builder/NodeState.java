@@ -63,7 +63,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -276,7 +275,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public String getDisplayName() {
-        return String.format("'%s' (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
+        return String.format("%s (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
     }
 
     public boolean isTransitive() {
@@ -416,8 +415,8 @@ public class NodeState implements DependencyGraphNode {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
                 ModuleResolveState module = resolveState.getModule(identifier);
                 for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
-                    if (!unattachedEdge.getSelector().isResolved()) {
-                        // Unresolved - we have a selector that was deferred but the constraint has been removed in between
+                    if (unattachedEdge.getSelector().requiresSelection()) {
+                        // We have a selector that was deferred but the constraint has been removed in between
                         NodeState from = unattachedEdge.getFrom();
                         from.prepareToRecomputeEdge(unattachedEdge);
                     }
@@ -850,10 +849,15 @@ public class NodeState implements DependencyGraphNode {
         return formatCapabilityRejectMessage(getComponent().getModule().getId(), capabilityReject);
     }
 
+    @SuppressWarnings("DataFlowIssue") // Conflict nodes are not null when this is called
     private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        var conflictNodes = capabilityConflict.right;
+        var multipleConflicts = conflictNodes.size() > 1;
+        var conflictMsg = multipleConflicts ? "conflicts" : "conflict";
+        var providedByMsg = multipleConflicts ? conflictNodes.stream().map(NodeState::getDisplayName).sorted().toList().toString() : conflictNodes.iterator().next().getDisplayName();
+        var groupNameMsg = multipleConflicts ? "All" : "Both";
         return "Module '" + id + "' has been rejected:\n" +
-            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
-            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+            "   Cannot select module because of " + conflictMsg + " with " + providedByMsg + ". " + groupNameMsg + " provide capability '" + formatCapability(capabilityConflict.left) + "'.";
     }
 
     private static String formatCapability(Capability capability) {

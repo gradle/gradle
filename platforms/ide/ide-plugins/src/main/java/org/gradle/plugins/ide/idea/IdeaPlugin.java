@@ -89,6 +89,7 @@ import java.util.concurrent.Callable;
  * configuration.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/idea_plugin.html">IDEA plugin reference</a>
+ * @since 1.0
  */
 public abstract class IdeaPlugin extends IdePlugin {
     private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
@@ -97,12 +98,22 @@ public abstract class IdeaPlugin extends IdePlugin {
             return project.getPlugins().hasPlugin(IdeaPlugin.class) && project.getPlugins().hasPlugin(JavaBasePlugin.class);
         }
     };
+    /**
+     * The source compatibility.
+     *
+     * @since 3.2
+     */
     public static final Function<Project, JavaVersion> SOURCE_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
         public JavaVersion apply(Project p) {
             return p.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility();
         }
     };
+    /**
+     * The target compatibility.
+     *
+     * @since 3.2
+     */
     public static final Function<Project, JavaVersion> TARGET_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
         public JavaVersion apply(Project p) {
@@ -130,6 +141,11 @@ public abstract class IdeaPlugin extends IdePlugin {
         this.projectPathRegistry = projectPathRegistry;
     }
 
+    /**
+     * Returns the model.
+     *
+     * @since 1.0
+     */
     public IdeaModel getModel() {
         return ideaModel;
     }

@@ -26,6 +26,7 @@ import org.gradle.model.internal.core.UnmanagedStruct;
  * A collection of tasks associated to a binary
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @UnmanagedStruct
@@ -33,24 +34,33 @@ import org.gradle.model.internal.core.UnmanagedStruct;
 public interface BinaryTasksCollection extends DomainObjectSet<Task> {
     /**
      * Generates a name for a task that performs some action on the binary.
+     * @since 2.10
      */
     String taskName(String verb);
 
     /**
      * Generates a name for a task that performs some action on the binary.
+     * @since 2.10
      */
     String taskName(String verb, String object);
 
     /**
      * The task that can be used to assemble this binary.
+     * @since 2.2
      */
     Task getBuild();
 
     /**
      * The task that can be used to check this binary.
+     * @since 3.2
      */
     Task getCheck();
 
+    /**
+     * Create.
+     *
+     * @since 2.4
+     */
     <T extends Task> void create(String name, Class<T> type, Action<? super T> config);
 
 }

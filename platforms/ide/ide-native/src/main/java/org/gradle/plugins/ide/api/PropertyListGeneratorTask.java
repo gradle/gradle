@@ -35,6 +35,11 @@ public abstract class PropertyListGeneratorTask<T extends PersistableConfigurati
     @SuppressWarnings("rawtypes")
     private final PropertyListTransformer propertyListTransformer = new PropertyListTransformer();
 
+    /**
+     * Creates a new {@code PropertyListGeneratorTask}.
+     *
+     * @since 4.2
+     */
     public PropertyListGeneratorTask() {
         generator = new PersistableConfigurationObjectGenerator<T>() {
             @Override
@@ -49,13 +54,28 @@ public abstract class PropertyListGeneratorTask<T extends PersistableConfigurati
         };
     }
 
+    /**
+     * Returns the property list transformer.
+     *
+     * @since 4.2
+     */
     @Internal
     @SuppressWarnings("rawtypes")
     public PropertyListTransformer getPropertyListTransformer() {
         return propertyListTransformer;
     }
 
+    /**
+     * Configure.
+     *
+     * @since 4.2
+     */
     protected abstract void configure(T object);
 
+    /**
+     * Create.
+     *
+     * @since 4.2
+     */
     protected abstract T create();
 }

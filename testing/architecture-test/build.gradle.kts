@@ -1,5 +1,8 @@
+@file:Suppress("UnstableApiUsage")
+
 import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.ArchitectureDataType
+import gradlebuild.basics.DistributionArtifactScope
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
@@ -29,6 +32,23 @@ val packageInfoDataResolvable = configurations.resolvable("packageInfoDataResolv
     }
 }
 
+// Bucket for declaring the runtime-only distribution dependency, extended by the resolvable below.
+val distributionRuntimeDependencies = configurations.dependencyScope("distributionRuntimeDependencies")
+
+// Resolves to the module JARs of the full distribution WITHOUT triggering the packaging metadata
+// pipeline (runtime-api-info jar and its whole-codebase-scanning derivation tasks).
+// Selects the `runtimeJarsOnly` variant exposed by gradlebuild.distributions via the
+// DistributionArtifactScope attribute. Transitive projects that do not advertise this attribute
+// remain compatible via Gradle's default compatibility process.
+val distributionRuntime = configurations.resolvable("distributionRuntime") {
+    extendsFrom(distributionRuntimeDependencies)
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+        attribute(DistributionArtifactScope.attribute, DistributionArtifactScope.RUNTIME_ONLY)
+    }
+}
+
 dependencies {
     add(rootProjectDependency.name, projects.gradle)
 
@@ -46,7 +66,7 @@ dependencies {
     testImplementation(testLibs.junitJupiter)
     testImplementation(testLibs.assertj)
 
-    testRuntimeOnly(projects.distributionsFull)
+    add(distributionRuntimeDependencies.name, projects.distributionsFull)
 
     testRuntimeOnly(testLibs.junitPlatform)
 }
@@ -79,6 +99,11 @@ tasks {
 
         // Only use one fork, so freezing doesn't have concurrency issues
         maxParallelForks = 1
+
+        // Provide the whole-distribution module bytecode via the leaner `runtimeJarsOnly`
+        // variant. This is the classpath the ArchUnit @AnalyzeClasses(packages = "org.gradle")
+        // scan reflects on.
+        classpath += files(distributionRuntime)
 
         inputs.dir(ruleStoreDir).withPathSensitivity(PathSensitivity.RELATIVE)
 

@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.FailsWith
 import spock.lang.Issue
@@ -213,7 +212,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("inside: output is produced by thing")
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/37421; Fails with Configuration Cache")
+    @Issue("https://github.com/gradle/gradle/issues/37421")
     def "reports failure to query non-abstract Property<T> with non-final getter"() {
         given:
         javaFile("buildSrc/src/main/java/MyTask.java", """
@@ -248,14 +247,54 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("property = task ':thing' property 'count'")
-        if (!GradleContextualExecuter.configCache) {
-            // This is the correct failure message.
-            failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
-        } else {
-            // TODO(https://github.com/gradle/gradle/issues/37421): There shouldn't be any difference in behavior with CC enabled.
-            //  This assert encodes current behavior, not desired one.
-            failure.assertHasCause("Cannot query the value of this property because it has no value available.")
-        }
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/37421")
+    def "reports failure to query non-abstract Property<T> with final getter and boolean overload"() {
+        given:
+        javaFile("buildSrc/src/main/java/MyTask.java", """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Internal;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class MyTask extends DefaultTask {
+                private final Property<Boolean> flag = getProject().getObjects().property(Boolean.class);
+
+                @Internal
+                public final Property<Boolean> getFlag() {
+                    return flag;
+                }
+
+                @Internal
+                public boolean isFlag() {
+                    return flag.getOrElse(false);
+                }
+
+                @TaskAction
+                void go() {
+                    System.out.println("flag = " + flag.get());
+                }
+            }
+        """)
+
+        buildFile """
+            tasks.register("thing", MyTask) {
+                println("property = " + getFlag())
+            }
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        // FIXME The owner is never attached, in a cached run and in a plain one alike, so neither the printed
+        //  property nor the failure can name the task or the property. These should be the asserts:
+        // outputContains("property = task ':thing' property 'flag'")
+        // failure.assertHasCause("Cannot query the value of task ':thing' property 'flag' because it has no value available.")
+        outputContains("property = property(java.lang.Boolean, undefined)")
+        failure.assertHasCause("Cannot query the value of this property because it has no value available.")
     }
 
     @FailsWith(reason = "non-final getters do not trigger attachOwner/attachProducer logic", value = AssertionError)

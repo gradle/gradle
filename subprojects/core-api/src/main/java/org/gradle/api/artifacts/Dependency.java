@@ -22,16 +22,33 @@ import org.jspecify.annotations.Nullable;
 /**
  * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an Ivy
  * module, a Maven POM, another Gradle project, a collection of Files, etc... A source can have zero or more artifacts.
+ * @since 0.7
  */
 public interface Dependency {
+    /**
+     * The default configuration.
+     *
+     * @since 0.7
+     */
     String DEFAULT_CONFIGURATION = "default";
+    /**
+     * The archives configuration.
+     *
+     * @since 0.7
+     */
     String ARCHIVES_CONFIGURATION = "archives";
+    /**
+     * The classifier.
+     *
+     * @since 0.7
+     */
     String CLASSIFIER = "m:classifier";
 
     /**
      * Returns the group of this dependency. The group is often required to find the artifacts of a dependency in a
      * repository. For example, the group name corresponds to a directory name in a Maven like repository. Might return
      * null.
+     * @since 0.7
      */
     @HiddenInDefinition
     @Nullable
@@ -40,6 +57,7 @@ public interface Dependency {
     /**
      * Returns the name of this dependency. The name is almost always required to find the artifacts of a dependency in
      * a repository. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     String getName();
@@ -49,6 +67,7 @@ public interface Dependency {
      * repository. For example the version name corresponds to a directory name in a Maven like repository. Might return
      * null.
      *
+     * @since 0.7
      */
     @HiddenInDefinition
     @Nullable
@@ -58,6 +77,7 @@ public interface Dependency {
      * Creates and returns a new dependency with the property values of this one.
      *
      * @return The copy. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     Dependency copy();

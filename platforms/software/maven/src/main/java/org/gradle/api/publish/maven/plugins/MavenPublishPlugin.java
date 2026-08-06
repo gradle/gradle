@@ -65,6 +65,11 @@ import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegra
  */
 public abstract class MavenPublishPlugin implements Plugin<Project> {
 
+    /**
+     * The publish local lifecycle task name.
+     *
+     * @since 1.4
+     */
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
     private final InstantiatorFactory instantiatorFactory;

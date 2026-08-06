@@ -225,6 +225,13 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21) {
             deprecations << "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration".toString()
         }
+        // The KGP 2.0.x line declares an attribute of type KotlinNativeBundleArtifactsTypes,
+        // a plain enum that does not implement Named. Attribute.of allows this via a targeted
+        // compatibility exception and emits a KGP-specific deprecation warning. KGP 2.1.0+ no
+        // longer uses the plain enum, so the deprecation is expected only for the 2.0.x range.
+        if (kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_0_0 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_0) {
+            deprecations << "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated. This will fail with an error in Gradle 10. This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#kgp_native_bundle_attribute_enum".toString()
+        }
         return deprecations
     }
 

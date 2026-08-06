@@ -1,0 +1,53 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.service.scopes;
+
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.model.ModelContainer;
+import org.gradle.util.Path;
+
+/**
+ * The domain object context modeling a {@link org.gradle.api.invocation.Gradle} instance.
+ */
+public class BuildDomainObjectContext implements DomainObjectContext {
+
+    private final BuildState buildState;
+
+    public BuildDomainObjectContext(BuildState buildState) {
+        this.buildState = buildState;
+    }
+
+    @Override
+    public Path getBuildPath() {
+        return buildState.getIdentityPath();
+    }
+
+    @Override
+    public ModelContainer<?> getModel() {
+        // TODO: This should be the build model, a container for the Gradle instance
+        // that provides lock-aware access to the build's mutable model.
+        return StandaloneDomainObjectContext.ANONYMOUS.getModel();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return buildState.getDisplayName().getDisplayName();
+    }
+
+}

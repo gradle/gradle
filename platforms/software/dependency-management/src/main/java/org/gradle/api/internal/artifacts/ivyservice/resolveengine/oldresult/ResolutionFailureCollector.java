@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -44,14 +44,14 @@ import java.util.Set;
 public class ResolutionFailureCollector implements DependencyGraphVisitor {
 
     private final ComponentSelectorConverter componentSelectorConverter;
-    private final DomainObjectContext owner;
+    private final DependencyManagementInstanceIdentity owner;
 
     private final Map<ComponentSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<>();
     private @Nullable RootGraphNode root;
 
     public ResolutionFailureCollector(
         ComponentSelectorConverter componentSelectorConverter,
-        DomainObjectContext owner
+        DependencyManagementInstanceIdentity owner
     ) {
         this.componentSelectorConverter = componentSelectorConverter;
         this.owner = owner;

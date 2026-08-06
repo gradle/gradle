@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.NamedVariantIdentifier
@@ -50,7 +51,6 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -1269,7 +1269,7 @@ class DependencyGraphBuilderTest extends Specification {
             }
 
             throw new DefaultMultiCauseException("message", failures.values().collect {
-                it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root, StandaloneDomainObjectContext.ANONYMOUS))
+                it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root, new DependencyManagementInstanceIdentity(Describables.of("unknown"))))
             })
         }
 

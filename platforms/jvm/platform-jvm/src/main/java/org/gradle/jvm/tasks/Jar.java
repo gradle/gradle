@@ -47,10 +47,16 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Assembles a JAR archive.
+ * @since 2.3
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Jar extends Zip {
 
+    /**
+     * The default extension.
+     *
+     * @since 2.3
+     */
     public static final String DEFAULT_EXTENSION = "jar";
     private Manifest manifest;
     private final CopySpecInternal metaInf;
@@ -167,6 +173,7 @@ public abstract class Jar extends Zip {
      * Returns the manifest for this JAR archive.
      *
      * @return The manifest
+     * @since 2.3
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -178,6 +185,7 @@ public abstract class Jar extends Zip {
      * Sets the manifest for this JAR archive.
      *
      * @param manifest The manifest. May be null.
+     * @since 2.3
      */
     public void setManifest(Manifest manifest) {
         this.manifest = manifest;
@@ -190,6 +198,7 @@ public abstract class Jar extends Zip {
      *
      * @param configureClosure The closure.
      * @return This.
+     * @since 2.3
      */
     public Jar manifest(@DelegatesTo(Manifest.class) Closure<?> configureClosure) {
         ConfigureUtil.configure(configureClosure, forceManifest());
@@ -232,6 +241,11 @@ public abstract class Jar extends Zip {
         return manifest;
     }
 
+    /**
+     * Returns the meta inf.
+     *
+     * @since 2.3
+     */
     @Internal
     @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")
     public CopySpec getMetaInf() {
@@ -245,6 +259,7 @@ public abstract class Jar extends Zip {
      *
      * @param configureClosure The closure.
      * @return The created {@code CopySpec}
+     * @since 2.3
      */
     public CopySpec metaInf(@DelegatesTo(CopySpec.class) Closure<?> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf());

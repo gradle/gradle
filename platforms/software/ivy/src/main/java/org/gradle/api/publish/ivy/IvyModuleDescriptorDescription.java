@@ -28,11 +28,13 @@ public interface IvyModuleDescriptorDescription {
 
     /**
      * The text of this description.
+     * @since 4.8
      */
     Property<String> getText();
 
     /**
      * The homepage of the publication of this description.
+     * @since 4.8
      */
     Property<String> getHomepage();
 

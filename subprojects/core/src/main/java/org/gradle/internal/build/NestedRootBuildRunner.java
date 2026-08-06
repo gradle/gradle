@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
 public class NestedRootBuildRunner {
 
     public static StartParameter createStartParameterForNewBuild(ServiceRegistry services) {
-        return services.get(StartParameterInternal.class).newBuildInternal();
+        return services.get(StartParameterInternal.class).newNestedBuildInternal();
     }
 
     public static void runNestedRootBuild(String buildName, StartParameterInternal startParameter, ServiceRegistry services, ClassPath injectedPluginClassPath) {

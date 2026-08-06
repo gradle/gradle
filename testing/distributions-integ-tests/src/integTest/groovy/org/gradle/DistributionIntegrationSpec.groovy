@@ -126,6 +126,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems",
         "problems-api",
         "problems-rendering",
+        "problems-reporting",
         "process-memory-services",
         "process-services",
         "process-services-api",
@@ -374,7 +375,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 603 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 625 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

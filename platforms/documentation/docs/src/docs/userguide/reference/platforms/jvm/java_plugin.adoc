@@ -272,8 +272,6 @@ The Java plugin adds a number of <<dependency_configurations.adoc#sub:what-are-d
 Tasks such as `compileJava` and `test` then use one or more of those configurations to get the corresponding files and use them, for example by placing them on a compilation or runtime classpath.
 
 [[tab:configurations]]
-== Dependency configurations
-
 The role of each configuration is described in the following tables.
 
 [NOTE]
@@ -335,7 +333,7 @@ For information on the `api`, `compileOnlyApi` , or consumable configurations, p
 
 | `runtimeClasspath` (extends `runtimeOnly, implementation`)
 | Resolvable
-| Represents the classpath used to run the main sources, which includes dependencies from both `runtimeOnly` and `implementation` configurations. Used by the `run` task.
+| Represents the classpath used to run the main sources, which includes dependencies from both `runtimeOnly` and `implementation` configurations.
 
 | `testCompileClasspath` (extends `testCompileOnly, testImplementation`)
 | Resolvable
@@ -385,7 +383,7 @@ Runtime classpath contains elements of the implementation, as well as runtime on
 == Contributed extension
 
 The Java plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[`java` extension] to the project.
-This allows to configure a number of Java related properties inside a dedicated DSL block.
+This allows you to configure a number of Java-related properties inside a dedicated DSL block.
 
 .Using the `java` extension to configure a toolchain
 ====
@@ -421,44 +419,19 @@ Automatically packages source code and creates a variant `sourceElements` with a
 [[sec:java_directory_properties]]
 === Directory properties
 
-`String reporting.baseDir`::
-The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
+`docsDir` — link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]::
+The directory to generate documentation into. Default value: `layout.buildDirectory.dir("docs")`
 
-`(read-only) File reportsDir`::
-The directory to generate reports into. Default value: `__reporting.baseDirectory__`
+`testResultsDir` — link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]::
+The directory to generate test result `.xml` files into. Default value: `layout.buildDirectory.dir("test-results")`
 
-`String testResultsDirName`::
-The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
+`testReportDir` — link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]::
+The directory to generate the test report into. Default value: `reporting.baseDirectory.dir("tests")`, e.g. _build/reports/tests_
 
-`(read-only) File testResultsDir`::
-The directory to generate test result .xml files into. Default value: `layout.buildDirectory.dir(__testResultsDirName__)`
-
-`String testReportDirName`::
-The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
-
-`(read-only) File testReportDir`::
-The directory to generate the test report into. Default value: `__reportsDir__/testReportDirName`
-
-`String libsDirName`::
-The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
-
-`(read-only) File libsDir`::
-The directory to generate libraries into. Default value: `layout.buildDirectory.dir(__libsDirName__)`
-
-`String distsDirName`::
-The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
-
-`(read-only) File distsDir`::
-The directory to generate distributions into. Default value: `layout.buildDirectory.dir(__distsDirName__)`
-
-`String docsDirName`::
-The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
-
-`(read-only) File docsDir`::
-The directory to generate documentation into. Default value: `layout.buildDirectory.dir(__docsDirName__)`
-
-`String dependencyCacheDirName`::
-The name of the directory to cache source dependency information relative to the build directory. Default value: `dependency-cache`.
+[NOTE]
+====
+The directories for library archives (`libs`) and distributions (`distributions`), along with the archive base name, are configured on the <<base_plugin.adoc#sec:base_plugin_extension,`base` extension>> — via `base.libsDirectory`, `base.distsDirectory`, and `base.archivesName` respectively.
+====
 
 [[sec:java_other_properties]]
 === Other properties
@@ -466,13 +439,19 @@ The name of the directory to cache source dependency information relative to the
 `(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
 Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
 
-`String archivesBaseName`::
-The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
-
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
 +
 See <<building_java_projects.adoc#sec:jar_manifest, Modifying the JAR manifest>> for examples of configuring attributes and using Provider values.
+
+`modularity.inferModulePath`::
+Controls whether Gradle infers the module path (instead of the classpath) for tasks that have a `module-info.java`. See <<java_library_plugin.adoc#sec:java_library_modular, Building Modules for the Java Module System>>. Default value: `true`
+
+`consistentResolution(Action)`::
+Configures dependency resolution consistency so that the compile and runtime classpaths of the project resolve to the same dependency versions. _Incubating._
+
+`(read-only) boolean autoTargetJvmDisabled`::
+Tells whether automatic JVM targeting is disabled. When enabled (the default), Gradle refuses to use a dependency built for a more recent JVM than this module's target compatibility. Default value: `false`
 
 [[sec:java_test]]
 == Testing

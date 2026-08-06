@@ -43,6 +43,7 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
     /**
      * Returns any additional JVM argument providers for the compiler process.
      *
+     * @since 7.1
      */
     @Optional
     @Nested
@@ -56,6 +57,7 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
      * system properties, the minimum/maximum heap size, and the bootstrap classpath.
      *
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
+     * @since 7.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
