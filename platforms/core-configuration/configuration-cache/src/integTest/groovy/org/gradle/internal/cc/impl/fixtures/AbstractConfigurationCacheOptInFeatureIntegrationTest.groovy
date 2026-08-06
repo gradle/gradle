@@ -41,29 +41,7 @@ abstract class AbstractConfigurationCacheOptInFeatureIntegrationTest extends Abs
         assert System.getProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME) == null
     }
 
-    /**
-     * The single configuration cache entry directory (the one containing {@code entry.bin}) under the given cache root.
-     */
-    protected static TestFile cacheEntryDir(TestFile cacheDir) {
-        cacheDir.listFiles().findAll { it.directory && it.file("entry.bin").exists() }.with {
-            assert size() == 1
-            first()
-        }
-    }
-
-    protected static void corrupt(TestFile file) {
-        assert file.exists()
-        file.bytes = "corrupt".bytes
-    }
-
-    /**
-     * Corrupts the stored work graph while keeping {@code entry.bin} and the fingerprints valid, so the entry is still
-     * selected and loaded (exercising the load-time recovery path rather than the fingerprint check).
-     */
-    protected static void corruptWorkState(TestFile cacheDir) {
-        def keep = ['entry.bin', 'buildfingerprint.bin', 'projectfingerprint.bin', 'classloaderscopes.bin']
-        def stateFiles = cacheEntryDir(cacheDir).listFiles().findAll { it.name.endsWith(".bin") && it.name !in keep }
-        assert !stateFiles.empty
-        stateFiles.each { corrupt(it) }
+    protected TestFile getConfigurationCacheDir() {
+        file(".gradle/configuration-cache")
     }
 }

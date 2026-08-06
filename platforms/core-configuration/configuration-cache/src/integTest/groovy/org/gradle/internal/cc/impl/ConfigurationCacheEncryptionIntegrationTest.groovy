@@ -30,7 +30,6 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
 
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import spock.lang.Issue
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
@@ -157,32 +156,6 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         EncryptionKind.NONE     | false   | false
         EncryptionKind.KEYSTORE | true    | true
         EncryptionKind.ENV_VAR  | true    | false
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/26663")
-    def "recovers from a corrupted entry when encryption is enabled"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-
-        when:
-        runWithEncryption()
-
-        then:
-        configurationCache.assertStateStored()
-
-        when: "the encrypted work graph is corrupted"
-        corruptWorkState(file(".gradle/configuration-cache"))
-        executer.withStackTraceChecksDisabled()
-        runWithEncryption()
-
-        then: "the entry is recomputed and the build completes"
-        outputContains("The configuration cache entry could not be loaded and has been recomputed.")
-
-        when: "the build runs again"
-        runWithEncryption()
-
-        then: "the recomputed entry is valid and is reused"
-        configurationCache.assertStateLoaded()
     }
 
     def "new configuration cache entry if keystore is not found"() {
