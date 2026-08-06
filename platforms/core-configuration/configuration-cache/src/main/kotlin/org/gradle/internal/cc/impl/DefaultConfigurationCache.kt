@@ -26,6 +26,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelCreatorResult
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
@@ -99,6 +100,7 @@ class DefaultConfigurationCache internal constructor(
     private val inputsAccessListener: ConfigurationCacheInputsListener,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
+    private val modelParameters: BuildModelParameters,
     private val buildStateRegistry: BuildStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
@@ -897,10 +899,15 @@ class DefaultConfigurationCache internal constructor(
             when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
                 null -> {
                     // Build inputs are up-to-date, check project specific inputs
-                    CheckedFingerprint.Valid(
-                        candidateEntry.id,
-                        checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
-                    )
+                    val invalidProjects = checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
+                    when {
+                        // Partial invalidation only pays off when cached per-project models can be reused,
+                        // so an out-of-date project invalidates the entry as a whole otherwise
+                        invalidProjects == null || modelParameters.isCachingModelBuilding ->
+                            CheckedFingerprint.Valid(candidateEntry.id, invalidProjects)
+
+                        else -> CheckedFingerprint.Invalid(invalidProjects.first.buildPath, invalidProjects.first.reason)
+                    }
                 }
 
                 else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
