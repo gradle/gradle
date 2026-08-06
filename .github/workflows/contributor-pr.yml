@@ -33,7 +33,7 @@ jobs:
       - id: setup-matrix
         run: echo "matrix=$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)" >> $GITHUB_OUTPUT
       - name: setup java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: temurin
           java-version: 25
@@ -47,7 +47,7 @@ jobs:
                 core.setOutput('sys-prop-args', '')
             }
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew compileAll -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
@@ -70,7 +70,7 @@ jobs:
       - name: git clone
         uses: actions/checkout@v7
       - name: setup java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: temurin
           java-version: 25
@@ -79,7 +79,7 @@ jobs:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
@@ -104,7 +104,7 @@ jobs:
       - name: git clone
         uses: actions/checkout@v7
       - name: setup java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: temurin
           java-version: 25
@@ -113,7 +113,7 @@ jobs:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew ${{ matrix.bucket.tasks }} -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
@@ -133,16 +133,16 @@ jobs:
       - name: git clone
         uses: actions/checkout@v7
       - name: setup java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: microsoft # no temurin available
-          java-version: 21.0.1
+          java-version: 21
       - uses: actions/download-artifact@v8
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       # Work around JDK-8371740: Microsoft OpenJDK 25 on Windows ARM64 intermittently

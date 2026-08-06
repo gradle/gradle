@@ -52,17 +52,37 @@ import java.util.TreeSet;
 public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final String projectName;
 
+    /**
+     * Creates a new {@code GenerateSwiftPackageManagerManifest}.
+     *
+     * @since 4.6
+     */
     @SuppressWarnings("this-escape")
     public GenerateSwiftPackageManagerManifest() {
         projectName = getProject().getName();
     }
 
+    /**
+     * Returns the package.
+     *
+     * @since 4.6
+     */
     @Input
     public abstract Property<Package> getPackage();
 
+    /**
+     * Returns the manifest file.
+     *
+     * @since 4.6
+     */
     @OutputFile
     public abstract RegularFileProperty getManifestFile();
 
+    /**
+     * Generate.
+     *
+     * @since 4.6
+     */
     @TaskAction
     public void generate() {
         DefaultPackage srcPackage = (DefaultPackage) getPackage().get();

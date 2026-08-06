@@ -70,7 +70,7 @@ This section explores ways to optimize performance, highlights common pitfalls, 
 [[inspect_your_build]]
 == 0. Inspect your Build
 
-Before making any changes, <<inspect.adoc#inspecting_build_scans,inspect your build>> with a link:https://gradle.com/develocity/product/build-scan/[*Build Scan*] or *profile report*.
+Before making any changes, <<inspect.adoc#inspecting_build_scans,inspect your build>> with a link:https://develocity.ai/product/build-scan/[*Build Scan*] or *profile report*.
 A thorough inspection helps you understand:
 
 - **Total build time**

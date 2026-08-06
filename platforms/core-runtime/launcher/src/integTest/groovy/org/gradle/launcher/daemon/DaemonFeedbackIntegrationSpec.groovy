@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
-import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
@@ -191,9 +190,11 @@ task sleep {
         assert new TestFile(logFile).permissions == "rw-------"
     }
 
-    //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(JdkVersionTestPreconditions.Jdk8OrEarlier)
     def "foreground daemon log honors log levels for logging"() {
+        // Both the foreground daemon and the client must request the same daemon JVM args,
+        // so the client's build runs in the foreground daemon instead of a forked daemon.
+        List<String> daemonJvmArgs = ["-ea", "-Xms256m", "-Xmx512m"]
+
         given:
         buildFile """
             tasks.register("log") {
@@ -205,13 +206,15 @@ task sleep {
         """
 
         when:
+        executer.useOnlyRequestedJvmOpts()
+        executer.withBuildJvmOpts(daemonJvmArgs)
         def daemon = executer.noExtraLogging().withArguments("--foreground").start()
 
         then:
         poll(60) { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
 
         when:
-        def infoBuild = executer.withArguments("-i").withTasks("log").run()
+        def infoBuild = executer.useOnlyRequestedJvmOpts().withArguments("-i", "-Dorg.gradle.jvmargs=${daemonJvmArgs.join(" ")}").withTasks("log").run()
 
         then:
         infoBuild.output.count("debug me!") == 0
@@ -225,7 +228,7 @@ task sleep {
         daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
 
         when:
-        def debugBuild = executer.withArguments("-d").withTasks("log").run()
+        def debugBuild = executer.useOnlyRequestedJvmOpts().withArguments("-d", "-Dorg.gradle.jvmargs=${daemonJvmArgs.join(" ")}").withTasks("log").run()
 
         then:
         debugBuild.output.count("debug me!") == 1

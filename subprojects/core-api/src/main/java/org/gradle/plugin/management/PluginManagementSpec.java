@@ -37,23 +37,27 @@ public interface PluginManagementSpec {
 
     /**
      * Defines the plugin repositories to use.
+     * @since 3.5
      */
     @HiddenInDefinition
     void repositories(Action<? super RepositoryHandler> repositoriesAction);
 
     /**
      * The plugin repositories to use.
+     * @since 3.5
      */
     RepositoryHandler getRepositories();
 
     /**
      * Configure the plugin resolution strategy.
+     * @since 3.5
      */
     @HiddenInDefinition
     void resolutionStrategy(Action<? super PluginResolutionStrategy> action);
 
     /**
      * The plugin resolution strategy.
+     * @since 3.5
      */
     @HiddenInDefinition
     PluginResolutionStrategy getResolutionStrategy();

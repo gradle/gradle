@@ -24,8 +24,10 @@ dependencies {
 // tag::dependency-full-platform[]
 abstract class KafkaAlignmentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext ctx) {
-        if (ctx.details.id.group == "org.apache.kafka") {
-            ctx.details.belongsTo("org.apache.kafka:kafka-virtual-platform:${ctx.details.id.version}")
+        ctx.details.run {
+            if (id.group == "org.apache.kafka") {
+                belongsTo("org.apache.kafka:kafka-virtual-platform:${id.version}")
+            }
         }
     }
 }

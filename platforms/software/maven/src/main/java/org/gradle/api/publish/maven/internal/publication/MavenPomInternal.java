@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPom;
@@ -30,45 +29,68 @@ import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
+import org.gradle.internal.MutableActionSet;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
 public interface MavenPomInternal extends MavenPom {
 
+    @Internal
     Property<String> getPackagingProperty();
 
+    @Nested
     List<MavenPomLicense> getLicenses();
 
+    @Nested
+    @Optional
     @Nullable
     MavenPomOrganization getOrganization();
 
+    @Nested
     List<MavenPomDeveloper> getDevelopers();
 
+    @Nested
     List<MavenPomContributor> getContributors();
 
+    @Nested
+    @Optional
     @Nullable
     MavenPomScm getScm();
 
+    @Nested
+    @Optional
     @Nullable
     MavenPomIssueManagement getIssueManagement();
 
+    @Nested
+    @Optional
     @Nullable
     MavenPomCiManagement getCiManagement();
 
+    @Nested
+    @Optional
     @Nullable
     MavenPomDistributionManagementInternal getDistributionManagement();
 
+    @Nested
     List<MavenPomMailingList> getMailingLists();
 
     @Nested
     MavenPublicationCoordinates getCoordinates();
 
+    @Nested
+    @Optional
     Property<MavenPomDependencies> getDependencies();
 
-    Action<XmlProvider> getXmlAction();
+    @Internal
+    MutableActionSet<XmlProvider> getXmlAction();
 
+    @Input
     Property<Boolean> getWriteGradleMetadataMarker();
 
 }

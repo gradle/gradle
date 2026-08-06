@@ -26,11 +26,13 @@ import java.util.Map;
 
 /**
  * Represents the manifest file of a JAR file.
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface Manifest {
     /**
      * Returns the main attributes of the manifest.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     Attributes getAttributes();
@@ -39,6 +41,7 @@ public interface Manifest {
      * Returns the sections of the manifest (excluding the main section).
      *
      * @return A map with the sections, where the key represents the section name and value the section attributes.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     Map<String, Attributes> getSections();
@@ -53,6 +56,7 @@ public interface Manifest {
      *
      * @return this
      * @throws ManifestException If a key is invalid according to the manifest spec or if a key or value is null.
+     * @since 0.9
      */
     Manifest attributes(Map<String, ?> attributes) throws ManifestException;
 
@@ -67,12 +71,14 @@ public interface Manifest {
      *
      * @return this
      * @throws ManifestException If a key is invalid according to the manifest spec or if a key or value is null.
+     * @since 0.9
      */
     Manifest attributes(Map<String, ?> attributes, String sectionName) throws ManifestException;
 
     /**
      * Returns a new manifest instance where all the attribute values are expanded (e.g. their toString method is called).
      * The returned manifest also contains all the attributes of the to be merged manifests specified in {@link #from(Object...)}.
+     * @since 0.9
      */
     Manifest getEffectiveManifest();
 
@@ -83,6 +89,7 @@ public interface Manifest {
      *
      * @param path The path of the file to write the manifest into.
      * @return this
+     * @since 0.9
      */
     Manifest writeTo(Object path);
 
@@ -94,6 +101,7 @@ public interface Manifest {
      * is called.
      *
      * @return this
+     * @since 0.9
      */
     Manifest from(Object... mergePath);
 
@@ -107,6 +115,7 @@ public interface Manifest {
      * The closure configures the underlying {@link org.gradle.api.java.archives.ManifestMergeSpec}.
      *
      * @return this
+     * @since 0.9
      */
     Manifest from(Object mergePath, @DelegatesTo(ManifestMergeSpec.class) Closure<?> closure);
 

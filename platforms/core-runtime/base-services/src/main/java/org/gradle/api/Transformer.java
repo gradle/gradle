@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <OUT> The type the value is transformed to.
  * @param <IN> The type of the value to be transformed.
+ * @since 0.7
  */
 public interface Transformer<OUT extends @Nullable Object, IN> {
     /**
@@ -31,6 +32,7 @@ public interface Transformer<OUT extends @Nullable Object, IN> {
      *
      * @param in The object to transform.
      * @return The transformed object.
+     * @since 2.0
      */
     OUT transform(IN in);
 }

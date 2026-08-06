@@ -20,13 +20,13 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
-import gradlebuild.basics.develocityServerUrl
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
 import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.predictiveTestSelectionEnabled
+import gradlebuild.basics.predictiveTestSelectionServerUrl
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.testDistributionDogfoodingTag
 import gradlebuild.basics.testDistributionEnabled
@@ -102,6 +102,7 @@ fun configureSourcesVariant() {
         isCanBeResolved = false
         isCanBeConsumed = true
         extendsFrom(configurations.implementation.get())
+        extendsFrom(configurations.runtimeOnly.get())
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
@@ -341,14 +342,17 @@ fun configureTests() {
             }
         }
 
+        // Set on every test task, not only the PTS-enabled ones: the selection server is shared per
+        // build invocation, so tasks that disagree fail with "Client was already created for a
+        // different server".
+        // Don't move this line into the lambda as it may cause config cache problems
+        val ptsServerUrl = project.predictiveTestSelectionServerUrl.getOrElse("https://ge.gradle.org")
+        extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
+            (this as PredictiveTestSelectionConfigurationInternal).server = uri(ptsServerUrl)
+        }
+
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // Falling back to https://ge.gradle.org when absent (e.g. GitHub actions for contributor PRs,
-            // which use a public Build Scan instance).
-            // Don't move this line into the lambda as it may cause config cache problems
-            val ptsServerUrl = project.develocityServerUrl.getOrElse("https://ge.gradle.org")
             extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
-                this as PredictiveTestSelectionConfigurationInternal
-                server = uri(ptsServerUrl)
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }

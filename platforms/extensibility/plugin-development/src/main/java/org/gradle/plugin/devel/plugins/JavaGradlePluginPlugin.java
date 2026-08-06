@@ -87,6 +87,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * Integrates with the 'maven-publish' and 'ivy-publish' plugins to automatically publish the plugins so they can be resolved using the `pluginRepositories` and `plugins` DSL.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html">Gradle plugin development reference</a>
+ * @since 2.2
  */
 @NullMarked
 public abstract class JavaGradlePluginPlugin implements Plugin<Project> {

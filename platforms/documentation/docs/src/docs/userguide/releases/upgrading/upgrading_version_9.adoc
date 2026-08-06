@@ -65,6 +65,21 @@ fun Project.service(name: String): MyService = extensions.getByName(name) as MyS
 fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
 ----
 
+==== Upgrade to ASM 9.10.1
+
+ASM was upgraded from 9.9 to https://asm.ow2.io/versions.html[9.10.1] to support Java 27.
+
+==== Upgrade to JaCoCo 0.8.15
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.15].
+This changes the default `toolVersion` used by the <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo plugin>>.
+If you need to pin the previous version, set `jacoco.toolVersion = "0.8.14"` in your build.
+
+[[upgrade_to_groovy_4_0_33]]
+==== Upgrade to Groovy 4.0.33
+
+Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.33.html[4.0.33].
+
 [[task_logging_listeners_are_now_stored_in_the_configuration_cache]]
 ==== Task logging listeners are now stored in the Configuration Cache
 
@@ -144,10 +159,34 @@ The same guidance about wiring the provider lazily to task inputs applies.
 
 This behavior will become an error in Gradle 11.
 
+[[deprecation_enabling_build_cache_from_build_logic]]
+==== Deprecation of enabling the Build Cache from build logic
+
+Enabling the Build Cache from build logic by mutating the start parameter, for example `gradle.startParameter.buildCacheEnabled = true` in a `settings.gradle(.kts)` file or init script, is now deprecated and will be removed in Gradle 10.
+
+Whether the Build Cache is enabled is determined by the Gradle invocation (`--build-cache` / `--no-build-cache`) and the `org.gradle.caching` Gradle property, and is not intended to be overridden by build logic.
+
+Enable or disable the Build Cache with the `org.gradle.caching` Gradle property instead.
+See <<build_cache.adoc#sec:build_cache_enable,Enable the Build Cache>> for details.
+
+
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
 
 === Potential breaking changes
+
+[[resilient_sync_reports_failed_operations]]
+==== Resilient sync reports failed operations
+
+Tooling API clients that query models through the incubating link:{javadocPath}/org/gradle/tooling/BuildController.html#fetch(java.lang.Class)[`BuildController.fetch(...)`] method perform a _resilient sync_: failures are attached to each link:{javadocPath}/org/gradle/tooling/FetchModelResult.html[`FetchModelResult`] instead of aborting the operation.
+
+Previously, such an operation could complete successfully even when some of these model builds failed.
+The failures were reported only through `FetchModelResult.getFailures()`, and the client still received a successful result.
+
+Starting in Gradle 9.7.0, the operation is reported as failed when any part of it fails: `ResultHandler.onFailure(...)` is called, and a blocking `run()` throws, even though the partial models have already been delivered.
+Because a single link:{javadocPath}/org/gradle/tooling/BuildAction.html[`BuildAction`] loses its result in that case, clients should use a <<tooling_api.adoc#sec:embedding_phased_action_example,phased build action>> and read the partial models from the intermediate result handlers.
+
+This aligns resilient sync with the reporting of `getModel(...)` and `findModel(...)`, and of task and configuration failures, so a sync in which something failed is no longer reported as successful.
 
 [[publish_no_checksums_for_signature_files]]
 ==== Checksum files are no longer published for signature files
@@ -299,6 +338,9 @@ The legacy `org.gradle.unsafe.*` names are now deprecated and will be removed in
 They continue to be accepted as aliases for now and currently emit no warning.
 Update your `gradle.properties` and command-line invocations to the new names.
 
+When both the legacy and the new name of a property are set — for example, the new name in `gradle.properties` and the legacy name injected by a plugin or CI script on the command line — an explicit `false` from either one disables the feature.
+This guarantees that tooling which still opts out via a legacy property name keeps working after a build migrates to the new names.
+
 See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
 [[deprecated_custom_collection_types_with_cc]]
@@ -326,6 +368,86 @@ The following have been deprecated for removal:
 - link:{javadocPath}/org/gradle/StartParameter.html#newBuild()[`StartParameter.newBuild()`]
 
 The existing `StartParameter` instance for a build may be obtained via link:{javadocPath}/org/gradle/api/invocation/Gradle.html#getStartParameter()[`Gradle.getStartParameter()`] instead of constructing or copying one.
+
+[[deprecate_signature_as_artifact]]
+==== Deprecation of `Signature` as a Configuration artifact
+
+Starting in Gradle 10, link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] will no longer implement link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[`PublishArtifact`].
+The following methods inherited from `PublishArtifact` have been deprecated and will be removed in Gradle 10:
+
+- `getName()` / `setName(String)`
+- `getExtension()` / `setExtension(String)`
+- `getType()` / `setType(String)`
+- `getClassifier()` / `setClassifier(String)`
+- `getDate()` / `setDate(Date)`
+- `getBuildDependencies()`
+- `builtBy(Object...)`
+
+Furthermore, `Signature` will no longer extend the internal `AbstractPublishArtifact` class or implement the internal `PublishArtifactInternal` interface.
+Code that dereferenced these internal types via `Signature` must be updated.
+The `shouldBePublished()` method inherited from `PublishArtifactInternal` has also been deprecated for removal.
+
+As a result, a `Signature` will no longer be permitted directly as an artifact of a `Configuration`.
+Starting in Gradle 10, the <<signing_plugin.adoc#signing_plugin,Signing Plugin>> will no longer create the `signatures` configuration or automatically add `Signature` instances to it.
+
+The `getConfiguration()` and `setConfiguration(Configuration)` methods on link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html[`SigningExtension`] have been deprecated and will be removed in Gradle 10.
+Creating a configuration named `signatures` before the signing plugin is applied is now also deprecated.
+
+[[deprecate_signature_constructors]]
+==== Deprecation of constructing `Signature` instances
+
+Starting in Gradle 10, manually constructing a link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] instance will no longer be permitted.
+All public constructors for this type have been deprecated for removal.
+
+To sign files, use the `sign` methods on the link:{javadocPath}/org/gradle/plugins/signing/Sign.html[`Sign`] task, or use the `sign` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`].
+
+[[deprecate_sign_operation_signatures]]
+==== Deprecation of `getSignatures()` and `getSingleSignature()` on `SignOperation`
+
+The `getSignatures()` and `getSingleSignature()` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`] have been deprecated and will be removed in Gradle 10.
+
+Use `getFilesToSign()` and `getSignatureFiles()` instead.
+
+[[deprecate_sign_classifier]]
+==== Deprecation of signing files with a classifier
+
+The following methods that accept a classifier alongside files to sign have been deprecated and will be removed in Gradle 10:
+
+- `Sign.sign(String, File...)`
+- `SignOperation.sign(String, File...)`
+- `SigningExtension.sign(String, File...)`
+
+The classifier argument is ignored during signing and does not influence the resulting signature file.
+Use the `sign(File...)` overloads instead.
+
+[[unsupported_attribute_value_type]]
+==== Deprecation of unsupported attribute value types
+
+Attribute value types are limited to: `String`, `Boolean`, any subtype of `Number`, and any type that implements `org.gradle.api.Named`.
+
+Passing any other type to link:{javadocPath}/org/gradle/api/attributes/Attribute.html#of(java.lang.String,java.lang.Class)[`Attribute.of(String, Class)`] — or declaring an unsupported type as the type parameter of an `AttributeCompatibilityRule` or `AttributeDisambiguationRule` — now emits a deprecation warning and will become an error in Gradle 10.
+
+The most common case is a plain Java `Enum` that does not implement `Named`.
+Such types often work at first but fail later during dependency resolution, publishing, or configuration cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
+
+To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
+For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
+
+See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
+
+[[kgp_native_bundle_attribute_enum]]
+==== Deprecation of using `KotlinNativeBundleArtifactsTypes` as an attribute value type
+
+The Kotlin Gradle Plugin (KGP) 2.0.x line registers an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
+
+This deprecation is a specialized variant of the general <<#unsupported_attribute_value_type, unsupported attribute value type>> deprecation, called out separately so users can identify KGP as the source and remediate by upgrading the plugin.
+
+To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.1.0 or later.
+KGP 2.1.0 and newer do not use a plain enum for this attribute and are unaffected.
+
+Like the general case, this deprecation will become an error in Gradle 10.
+
+See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
 
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
@@ -2142,7 +2264,7 @@ tasks.named("assemble") {
 
 Prior to Gradle 9.0.0, any configuration with `isVisible()` returning `true` would implicitly trigger artifact creation when running the `assemble` task.
 This behavior was removed in Gradle 9.0.0, and the `Configuration.visible` property no longer has any effect.
-The property is now deprecated and will be removed in Gradle 10.0.0.
+The property is now deprecated and will be removed in Gradle 11.0.0.
 You can safely remove any usage of `visible`.
 
 If you want the artifacts of a configuration to be built when running the `assemble` task, add an explicit task dependency on `assemble`:

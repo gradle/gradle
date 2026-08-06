@@ -21,12 +21,14 @@ package org.gradle.api;
  * objects.</p>
  *
  * @param <T> The type of object which this plugin can configure.
+ * @since 0.7
  */
 public interface Plugin<T> {
     /**
      * Apply this plugin to the given target object.
      *
      * @param target The target object
+     * @since 0.9
      */
     void apply(T target);
 }

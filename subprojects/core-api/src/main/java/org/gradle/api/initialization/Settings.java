@@ -79,6 +79,7 @@ import java.util.Arrays;
  * <li>Provided on the command-line using the -P option.</li>
  *
  * </ul>
+ * @since 0.7
  */
 @HasInternalProtocol
 public interface Settings extends PluginAware, ExtensionAware {
@@ -86,6 +87,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>The default name for the settings file.</p>
      *
      * @implNote For internal purposes, prefer constants from {@code BuildLogicFiles}.
+     * @since 0.7
      */
     String DEFAULT_SETTINGS_FILE = "settings.gradle";
 
@@ -121,6 +123,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * </pre>
      *
      * @param projectPaths the projects to add.
+     * @since 0.7
      */
     @HiddenInDefinition
     default void include(String... projectPaths) {
@@ -176,6 +179,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * {@code $rootDir/../a}.</p>
      *
      * @param projectNames the projects to add.
+     * @since 0.7
      */
     @HiddenInDefinition
     default void includeFlat(String... projectNames) {
@@ -203,6 +207,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Returns this settings object.</p>
      *
      * @return This settings object. Never returns null.
+     * @since 0.8
      */
     @HiddenInDefinition
     Settings getSettings();
@@ -232,6 +237,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * file.</p>
      *
      * @return The settings directory. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     File getSettingsDir();
@@ -240,6 +246,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Returns the root directory of the build. The root directory is the project directory of the root project.</p>
      *
      * @return The root directory. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     File getRootDir();
@@ -248,6 +255,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Returns the root project of the build.</p>
      *
      * @return The root project. Never returns null.
+     * @since 0.7
      */
     ProjectDescriptor getRootProject();
 
@@ -257,6 +265,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @param path The path.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     * @since 0.7
      */
     @HiddenInDefinition
     ProjectDescriptor project(String path) throws UnknownProjectException;
@@ -266,6 +275,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @param path The path
      * @return The project with the given path. Returns null if no such project exists.
+     * @since 0.7
      */
     @Nullable
     @HiddenInDefinition
@@ -277,6 +287,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @param projectDir The project directory.
      * @return The project with the given project directory. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     * @since 0.7
      */
     @HiddenInDefinition
     ProjectDescriptor project(File projectDir) throws UnknownProjectException;
@@ -286,6 +297,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @param projectDir The project directory.
      * @return The project with the given project directory. Returns null if no such project exists.
+     * @since 0.7
      */
     @Nullable
     @HiddenInDefinition
@@ -295,6 +307,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Returns the set of parameters used to invoke this instance of Gradle.</p>
      *
      * @return The parameters. Never returns null.
+     * @since 0.7
      */
     @HiddenInDefinition
     StartParameter getStartParameter();
@@ -329,6 +342,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * Returns the {@link Gradle} instance for the current build.
      *
      * @return The Gradle instance. Never returns null.
+     * @since 0.9
      */
     @HiddenInDefinition
     Gradle getGradle();

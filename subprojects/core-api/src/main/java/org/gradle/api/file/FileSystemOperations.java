@@ -64,6 +64,7 @@ public interface FileSystemOperations extends GradleService, ProjectService, Set
      *
      * @param action Action to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
+     * @since 6.0
      */
     WorkResult copy(Action<? super CopySpec> action);
 
@@ -73,6 +74,7 @@ public interface FileSystemOperations extends GradleService, ProjectService, Set
      *
      * @param action action Action to configure the SyncSpec.
      * @return {@link WorkResult} that can be used to check if the sync did any work.
+     * @since 6.0
      */
     WorkResult sync(Action<? super SyncSpec> action);
 
@@ -82,6 +84,7 @@ public interface FileSystemOperations extends GradleService, ProjectService, Set
      *
      * @param action Action to configure the DeleteSpec
      * @return {@link WorkResult} that can be used to check if delete did any work.
+     * @since 6.0
      */
     WorkResult delete(Action<? super DeleteSpec> action);
 

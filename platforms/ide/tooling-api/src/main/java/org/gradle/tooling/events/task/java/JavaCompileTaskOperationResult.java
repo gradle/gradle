@@ -37,6 +37,7 @@ public interface JavaCompileTaskOperationResult extends TaskOperationResult {
      * <p>Details are only available if an instrumented compiler was used.
      *
      * @return details about used annotation processors; {@code null} if unknown.
+     * @since 5.1
      */
     @Nullable
     List<AnnotationProcessorResult> getAnnotationProcessorResults();
@@ -50,6 +51,7 @@ public interface JavaCompileTaskOperationResult extends TaskOperationResult {
 
         /**
          * Returns the fully-qualified class name of this annotation processor.
+         * @since 5.1
          */
         String getClassName();
 
@@ -57,11 +59,13 @@ public interface JavaCompileTaskOperationResult extends TaskOperationResult {
          * Returns the type of this annotation processor.
          *
          * <p>Can be used to determine whether this processor was incremental.
+         * @since 5.1
          */
         Type getType();
 
         /**
          * Returns the total execution time of this annotation processor.
+         * @since 5.1
          */
         Duration getDuration();
 
@@ -71,8 +75,17 @@ public interface JavaCompileTaskOperationResult extends TaskOperationResult {
          * @since 5.1
          */
         enum Type {
+            /**
+             * @since 5.1
+             */
             ISOLATING,
+            /**
+             * @since 5.1
+             */
             AGGREGATING,
+            /**
+             * @since 5.1
+             */
             UNKNOWN
         }
     }

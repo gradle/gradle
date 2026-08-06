@@ -18,17 +18,20 @@ package org.gradle.internal.logging.source;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
  * A {@link LoggingSourceSystem} which configures JUL to route logging events to SLF4J.
  */
+@NullMarked
 public class JavaUtilLoggingSystem implements LoggingSourceSystem {
 
     private static final Map<LogLevel, Level> LOG_LEVEL_MAPPING = new HashMap<LogLevel, Level>();
@@ -48,7 +51,7 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     }
 
     private final Logger logger;
-    private LogLevel requestedLevel;
+    private @Nullable LogLevel requestedLevel;
     private boolean installed;
 
     public JavaUtilLoggingSystem() {
@@ -76,49 +79,87 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
 
     @Override
     public void restore(Snapshot state) {
-        SnapshotImpl snapshot = (SnapshotImpl) state;
+        JulSnapshot snapshot = (JulSnapshot) state;
         requestedLevel = snapshot.requestedLevel;
         if (snapshot.installed) {
             install(snapshot.javaUtilLevel);
         } else {
-            uninstall(snapshot.javaUtilLevel);
+            uninstall(snapshot.handlers, snapshot.javaUtilLevel);
         }
     }
 
     @Override
     public Snapshot snapshot() {
-        return new SnapshotImpl(installed, logger.getLevel(), requestedLevel);
+        return new JulSnapshot(installed, logger.getHandlers(), logger.getLevel(), requestedLevel);
     }
 
-    private void uninstall(Level level) {
+    private void uninstall(Handler[] newHandlers, Level level) {
         if (!installed) {
             return;
         }
 
-        LogManager.getLogManager().reset();
+        Handler[] uninstalled = replaceHandlers(newHandlers);
+
+        // Close the handlers that were installed while capturing was active, mirroring LogManager's
+        // behavior of closing attached handlers when the process exits.
+        for (Handler displaced : uninstalled) {
+            if (!contains(newHandlers, displaced)) {
+                displaced.close();
+            }
+        }
+
         logger.setLevel(level);
         installed = false;
     }
 
+    private static boolean contains(Handler[] handlers, Handler handler) {
+        for (Handler candidate : handlers) {
+            if (candidate == handler) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void install(Level level) {
         if (!installed) {
-            LogManager.getLogManager().reset();
-            SLF4JBridgeHandler.install();
+            replaceHandlers(new Handler[]{new SLF4JBridgeHandler()});
             installed = true;
         }
 
         logger.setLevel(level);
     }
 
-    private static class SnapshotImpl implements Snapshot {
-        private final boolean installed;
-        private final java.util.logging.Level javaUtilLevel;
-        private final LogLevel requestedLevel;
+    private Handler[] replaceHandlers(Handler[] handlers) {
+        Handler[] displaced = logger.getHandlers();
+        for (Handler handler : displaced) {
+            logger.removeHandler(handler);
+        }
+        for (Handler handler : handlers) {
+            logger.addHandler(handler);
+        }
+        return displaced;
+    }
 
-        SnapshotImpl(boolean installed, Level javaUtilLevel, LogLevel requestedLevel) {
+    private static class JulSnapshot implements Snapshot {
+
+        private final boolean installed;
+        private final Handler[] handlers;
+        private final Level javaUtilLevel;
+        private final @Nullable LogLevel requestedLevel;
+
+        JulSnapshot(
+            boolean installed,
+            Handler[] handlers,
+            Level javaUtilLevel,
+            @Nullable LogLevel requestedLevel
+        ) {
             this.installed = installed;
+            this.handlers = handlers;
             this.javaUtilLevel = javaUtilLevel;
             this.requestedLevel = requestedLevel;
         }
+
     }
+
 }

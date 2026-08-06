@@ -1,0 +1,105 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[version_catalog_plugin]]
+= The Version Catalog Plugin
+
+The Version Catalog Plugin (plugin id: `version-catalog`) lets you publish a <<version_catalogs.adoc#version-catalog,version catalog>> as a Maven or Ivy artifact, so it can be consumed like any other dependency by independent Gradle builds.
+It works with both an existing `libs.versions.toml` file and programmatic catalog declarations.
+
+For an introduction to version catalogs themselves — the TOML format, aliases, bundles, and how to consume them — see <<version_catalogs.adoc#version-catalog,Version Catalogs>>.
+
+[[sec:version_catalog_plugin_usage]]
+== Usage
+
+To use the Version Catalog Plugin, include the following in your build script:
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `version-catalog`
+    `maven-publish`
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'version-catalog'
+    id 'maven-publish'
+}
+----
+=====
+
+Applying the plugin adds a `catalog` extension, a `generateCatalogAsToml` task, and registers a `versionCatalog` software component for publishing.
+
+[[sec:version_catalog_plugin_tasks]]
+== Tasks
+
+`generateCatalogAsToml` (type `TomlFileGenerator`)::
+Generates the version catalog TOML file from the configured catalog.
+The default output location is `layout.buildDirectory.file("version-catalog/libs.versions.toml")`.
+When the <<base_plugin.adoc#base_plugin,Base Plugin>> is applied — for example, transitively by a publishing plugin — this task is wired into the `assemble` lifecycle task.
+
+[[sec:version_catalog_plugin_dependency_management]]
+== Dependency management
+
+The Version Catalog Plugin adds the following dependency configurations:
+
+`versionCatalog`::
+_Declarable._ Used to declare the platforms and dependencies whose coordinates and versions make up the generated catalog.
+
+`versionCatalogElements`::
+_Consumable._ Exposes the generated TOML catalog as an artifact for publishing and consumption, with the `org.gradle.category=platform` and `org.gradle.usage=version-catalog` attributes.
+This configuration backs the `versionCatalog` component.
+
+[[sec:version_catalog_plugin_extension]]
+== Contributed extension
+
+The plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.catalog.CatalogPluginExtension.html[`catalog`] extension to the project.
+Configure the catalog contents through its nested `versionCatalog { }` block, which exposes a link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html[VersionCatalogBuilder].
+
+If you already have a `gradle/libs.versions.toml` file, you can publish it directly by importing it — keeping the TOML file as the single source of truth:
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-publishTomlFile/kotlin",files="build.gradle.kts[tags=publish_toml_file]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-publishTomlFile/groovy",files="build.gradle[tags=publish_toml_file]"]
+====
+
+Alternatively, declare the catalog entries programmatically:
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-versionCatalogPlugin/kotlin",files="build.gradle.kts[tags=catalog_spec]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-versionCatalogPlugin/groovy",files="build.gradle[tags=catalog_spec]"]
+====
+
+[[sec:version_catalog_plugin_publishing]]
+== Publishing
+
+The plugin registers a `versionCatalog` <<publishing_setup.adoc#publishing_components,software component>>.
+Attach it to a Maven or Ivy publication to publish the catalog:
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-versionCatalogPlugin/kotlin",files="build.gradle.kts[tags=catalog_publish]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-versionCatalogPlugin/groovy",files="build.gradle[tags=catalog_publish]"]
+====
+
+Running `./gradlew publish` uploads the catalog as an artifact (with the `.toml` extension).
+Consumers then <<version_catalogs.adoc#sec:importing-published-catalog,import it>> in their `settings.gradle(.kts)` file using standard dependency notation.

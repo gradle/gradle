@@ -22,6 +22,7 @@ import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 @Requires(JdkVersionTestPreconditions.Jdk11OrLater)
 class JenkinsJpiPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
+
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
@@ -37,5 +38,18 @@ class JenkinsJpiPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
         [parentMethodInvocationDeprecation('jenkinsPlugin')]
+    }
+
+    @Override
+    SmokeTestGradleRunner runner(String... tasks) {
+        // The jpi plugin calls the deprecated Configuration.setVisible(boolean) method
+        return super.runner(tasks)
+            .expectDeprecationWarning(
+                "The Configuration.setVisible(boolean) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 11. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property",
+                "https://github.com/jenkinsci/gradle-jpi-plugin/issues/415"
+            )
     }
 }

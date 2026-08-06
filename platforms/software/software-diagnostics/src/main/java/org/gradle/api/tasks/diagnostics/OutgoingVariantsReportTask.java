@@ -40,6 +40,7 @@ public abstract class OutgoingVariantsReportTask extends AbstractConfigurationRe
      * Limits the report to a single variant.
      *
      * @return property holding name of the variant to report
+     * @since 7.5
      */
     @Input
     @Optional
@@ -50,6 +51,7 @@ public abstract class OutgoingVariantsReportTask extends AbstractConfigurationRe
      * Shows all variants, including legacy and deprecated configurations.
      *
      * @return property holding the flag to show all variants
+     * @since 7.5
      */
     @Input
     @Optional

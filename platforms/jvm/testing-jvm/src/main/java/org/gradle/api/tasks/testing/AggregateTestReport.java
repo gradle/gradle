@@ -33,6 +33,7 @@ public interface AggregateTestReport extends ReportSpec {
      * Contains the {@link TestReport} task instance which produces this report.
      *
      * @return the task instance
+     * @since 7.4
      */
     TaskProvider<TestReport> getReportTask();
 

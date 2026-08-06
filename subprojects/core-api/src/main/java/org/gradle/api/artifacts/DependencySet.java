@@ -20,6 +20,7 @@ import org.gradle.api.DomainObjectSet;
 
 /**
  * A set of artifact dependencies.
+ * @since 1.0
  */
 public interface DependencySet extends DomainObjectSet<Dependency>, Buildable {
 }

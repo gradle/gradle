@@ -18,11 +18,8 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
-import org.jspecify.annotations.Nullable;
 
 /**
  * The domain object context modeling a {@link org.gradle.api.Project}.
@@ -37,44 +34,18 @@ public class ProjectDomainObjectContext implements DomainObjectContext {
         this.projectState = projectState;
     }
 
-    @Override
-    public @Nullable Path getIdentityPath() {
-        return projectState.getIdentity().getBuildTreePath();
-    }
-
-    @Override
     public ProjectIdentity getProjectIdentity() {
         return projectState.getIdentity();
     }
 
     @Override
-    public ProjectState getProjectState() {
-        return projectState;
-    }
-
-    @Override
-    public ModelContainer<ProjectInternal> getModel() {
+    public ProjectState getModel() {
         return projectState;
     }
 
     @Override
     public Path getBuildPath() {
         return projectState.getIdentity().getBuildPath();
-    }
-
-    @Override
-    public boolean isScript() {
-        return false;
-    }
-
-    @Override
-    public boolean isRootScript() {
-        return false;
-    }
-
-    @Override
-    public boolean isPluginContext() {
-        return false;
     }
 
     @Override

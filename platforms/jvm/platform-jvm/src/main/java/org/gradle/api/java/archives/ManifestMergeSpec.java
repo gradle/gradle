@@ -22,6 +22,7 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy
 
 /**
  * Specifies how the entries of multiple manifests should be merged together.
+ * @since 0.9
  */
 @NotToBeMigratedToLazy
 public interface ManifestMergeSpec {
@@ -52,6 +53,7 @@ public interface ManifestMergeSpec {
      *
      * @param mergePaths The paths of manifests to be merged
      * @return this
+     * @since 0.9
      */
     ManifestMergeSpec from(Object... mergePaths);
 
@@ -63,6 +65,7 @@ public interface ManifestMergeSpec {
      *
      * @param mergeAction A merge action to be executed.
      * @return this
+     * @since 0.9
      */
     ManifestMergeSpec eachEntry(Action<? super ManifestMergeDetails> mergeAction);
 
@@ -74,6 +77,7 @@ public interface ManifestMergeSpec {
      *
      * @param mergeAction The action to execute.
      * @return this
+     * @since 0.9
      */
     ManifestMergeSpec eachEntry(@DelegatesTo(ManifestMergeDetails.class) Closure<?> mergeAction);
 }

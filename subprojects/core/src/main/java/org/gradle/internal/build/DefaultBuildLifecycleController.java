@@ -373,7 +373,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private final ExecutionPlan plan;
         private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
         private final List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = new ArrayList<>();
-        private FinalizedExecutionPlan finalizedPlan;
+        private @Nullable FinalizedExecutionPlan finalizedPlan;
         private boolean empty = true;
 
         public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {

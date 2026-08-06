@@ -42,6 +42,7 @@ public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder 
 
     private final Deque<Directory> directoryStack = new ArrayDeque<>();
     private final boolean sortingRequired;
+    @Nullable
     private FileSystemLocationSnapshot result;
 
     public static DirectorySnapshotBuilder sortingRequired() {
@@ -72,6 +73,7 @@ public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder 
     }
 
     @Override
+    @Nullable
     public FileSystemLocationSnapshot leaveDirectory() {
         FileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
         if (snapshot != null) {
@@ -91,6 +93,7 @@ public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder 
     }
 
     @Override
+    @Nullable
     public FileSystemLocationSnapshot getResult() {
         return result;
     }

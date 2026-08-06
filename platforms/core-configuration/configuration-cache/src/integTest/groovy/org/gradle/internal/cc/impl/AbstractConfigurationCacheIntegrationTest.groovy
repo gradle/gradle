@@ -20,6 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheParallelOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheReadOnlyOption
+import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 
 abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
@@ -48,6 +49,13 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
 
     void configurationCacheRunLenient(String... tasks) {
         run(WARN_PROBLEMS_CLI_OPT, *CLI_OPTIONS, *tasks)
+        if (isProblemsApiCheckEnabled()) {
+            consumeWarnModeProblem()
+        }
+    }
+
+    protected ReceivedProblem consumeWarnModeProblem() {
+        return findReceivedProblem { it.fqid.endsWith(":configuration-cache-warn-mode") }
     }
 
     void configurationCacheFails(String... tasks) {

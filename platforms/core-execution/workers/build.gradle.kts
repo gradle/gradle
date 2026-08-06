@@ -57,6 +57,7 @@ dependencies {
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(projects.launcher)
 
     testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.groovyJson)

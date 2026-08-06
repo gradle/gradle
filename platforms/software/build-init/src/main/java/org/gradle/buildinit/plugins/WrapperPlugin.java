@@ -25,6 +25,7 @@ import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
  * The wrapper plugin.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">Gradle Wrapper reference</a>
+ * @since 1.9
  */
 public abstract class WrapperPlugin implements Plugin<Project> {
 

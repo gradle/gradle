@@ -25,6 +25,7 @@ import org.gradle.platform.base.BinaryTasksCollection;
  * An binary built by Gradle for a native application.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @Deprecated
@@ -32,15 +33,18 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
 
     /**
      * Provides access to key tasks used for building the binary.
+     * @since 2.3
      */
     interface TasksCollection extends BinaryTasksCollection {
         /**
          * The link task.
+         * @since 2.3
          */
         Task getLink();
 
         /**
          * The install task.
+         * @since 2.3
          */
         Task getInstall();
     }
@@ -59,11 +63,13 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
 
     /**
      * Native Installation location for a native executable.
+     * @since 2.9
      */
     NativeInstallationSpec getInstallation();
 
     /**
      * Native Executable File.
+     * @since 2.9
      */
     NativeExecutableFileSpec getExecutable();
 

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -64,7 +64,6 @@ import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -283,6 +282,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
         registration.add(BuildDefinition.class, buildDefinition);
         registration.add(BuildState.class, buildState);
+        registration.add(DomainObjectContext.class, new BuildDomainObjectContext(buildState));
 
         registration.addProvider(new BuildCacheServices());
 
@@ -739,10 +739,9 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     protected DefaultToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(
         List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
         BuildOperationRunner buildOperationRunner,
-        ProjectStateRegistry projectStateRegistry,
         UserCodeApplicationContext userCodeApplicationContext
     ) {
-        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, projectStateRegistry, userCodeApplicationContext);
+        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, userCodeApplicationContext);
         // Services are created on demand, and this may happen while applying a plugin
         userCodeApplicationContext.gradleRuntime(() -> {
             for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
@@ -866,9 +865,17 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         GradleInternal gradle,
         StyledTextOutputFactory textOutputFactory,
         BuildOperationRunner buildOperationRunner,
-        ConfigurationTimeBarrier configurationTimeBarrier
+        ConfigurationTimeBarrier configurationTimeBarrier,
+        ServiceRegistry buildScopeServices,
+        PlanExecutor planExecutor
     ) {
-        BuildWorkExecutor delegate = new SelectedTaskExecutionAction();
+        BuildWorkExecutor delegate = new SelectedTaskExecutionAction(
+            buildScopeServices,
+            planExecutor,
+            buildOperationRunner,
+            new DefaultNodeExecutor()
+        );
+
         BuildWorkExecutor executor;
         if (gradle.getStartParameter().isDryRun()) {
             executor = new DryRunBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
@@ -920,24 +927,20 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @SuppressWarnings("deprecation")
     @Provides
     TaskExecutionGraphInternal createTaskExecutionGraph(
-        PlanExecutor planExecutor,
         BuildOperationRunner buildOperationRunner,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
-        ListenerManager listenerManager,
-        ServiceRegistry gradleScopedServices
+        ListenerManager listenerManager
     ) {
         return new DefaultTaskExecutionGraph(
-            planExecutor,
-            new DefaultNodeExecutor(),
             buildOperationRunner,
             listenerBuildOperationDecorator,
             gradleInternal,
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
             listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class),
-            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
-            gradleScopedServices
+            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class)
         );
     }
+
 }

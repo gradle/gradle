@@ -82,14 +82,14 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
         });
     }
 
-    private List<TaskIdentifier.TaskBasedTaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {
-        List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
+    private List<TaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {
+        List<TaskIdentifier> tasksToBuild = new ArrayList<>();
         for (Task task : getDependenciesForInternalUse(classpath)) {
             BuildState targetBuild = owningBuildOf(task);
             if (targetBuild == currentBuild) {
                 throw new InvalidUserDataException("Script classpath dependencies must reside in a separate build from the script itself.");
             }
-            tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
+            tasksToBuild.add(new TaskIdentifier(targetBuild.getBuildIdentifier(), (TaskInternal) task));
         }
         return tasksToBuild;
     }

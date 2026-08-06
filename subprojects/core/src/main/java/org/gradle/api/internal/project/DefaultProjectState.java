@@ -239,7 +239,7 @@ class DefaultProjectState implements ProjectState, Closeable {
     @Override
     public <S extends @Nullable Object> S runWithModelLock(Supplier<S> action) {
         Thread currentThread = Thread.currentThread();
-        if (workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || canDoAnythingToThisProject.contains(currentThread)) {
+        if (canDoAnythingToThisProject.contains(currentThread)) {
             // Current thread is allowed to access anything at any time, so run the action
             return action.get();
         }
@@ -274,7 +274,7 @@ class DefaultProjectState implements ProjectState, Closeable {
     @Override
     public boolean hasMutableState() {
         Thread currentThread = Thread.currentThread();
-        if (canDoAnythingToThisProject.contains(currentThread) || workerLeaseService.isAllowedUncontrolledAccessToAnyProject()) {
+        if (canDoAnythingToThisProject.contains(currentThread)) {
             return true;
         }
         Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();

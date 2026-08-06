@@ -501,7 +501,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should be integrated into plugins
     For more information, please refer to https://example.com/some-problem.
-    Location: /path/to/script line 20
+    Location: /path/to/script:20
     Possible solution: Look up the samples index for real-life examples.
         """
         verifyAll(receivedProblem) {

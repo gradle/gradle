@@ -52,6 +52,11 @@ import static java.util.Collections.singleton;
 @UntrackedTask(because = "Produces only non-cacheable console output")
 public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
+    /**
+     * The task name.
+     *
+     * @since 2.10
+     */
     public static final String TASK_NAME = "buildEnvironment";
 
     private final ToolchainReportRenderer toolchainReportRenderer = new ToolchainReportRenderer();
@@ -93,6 +98,11 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
     @Inject
     protected abstract JvmMetadataDetector getMetadataDetector();
 
+    /**
+     * Generate.
+     *
+     * @since 2.10
+     */
     @TaskAction
     public void generate() {
         StyledTextOutput output = getTextOutputFactory().create(getClass());

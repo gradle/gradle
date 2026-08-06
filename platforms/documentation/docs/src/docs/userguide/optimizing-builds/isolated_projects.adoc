@@ -265,7 +265,7 @@ Rather than predicting the gain from the structure of your build, the most relia
 
 . Enable the feature
 +
-Make the build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, then enable Isolated Projects.
+Make the build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>> first, then enable Isolated Projects.
 
 . Get an early estimate before completing the migration
 +
@@ -554,7 +554,7 @@ By using the latest versions you reduce the risks of dealing with problems that 
 Newer IDE versions can bring better performance as well as a better user experience when adopting Isolated Projects.
 It is recommended to use IntelliJ IDEA 2026.1.1 or later.
 
-* Make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>>
+* Make your build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>>
 +
 The Isolated Projects feature builds on top of the Configuration Cache feature and requires the build to be compatible with it.
 
@@ -584,6 +584,7 @@ org.gradle.isolated-projects=true
 ====
 The legacy property name `org.gradle.unsafe.isolated-projects` is still accepted, but the new `org.gradle.isolated-projects` name is preferred.
 The same applies to `org.gradle.unsafe.isolated-projects.diagnostics` and `org.gradle.unsafe.isolated-projects.dangerously-ignore-problems`.
+When both the legacy and the new name of a property are set, an explicit `false` from either one disables the feature.
 ====
 
 If you have never enabled the feature in the build before, it's likely that the build is not compatible and contains Isolated Projects <<sec:constraint_violations,constraint violations>>.
@@ -1030,7 +1031,7 @@ When executed, the configuration phase runs sequentially, configuring one projec
 Isolated Projects relies on the Configuration Cache infrastructure, and it also extends the set of constraints imposed by Configuration Cache.
 
 Configuration Cache is enabled automatically when Isolated Projects is enabled.
-You should make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
+You should make your build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
 
 [IMPORTANT]
 ====

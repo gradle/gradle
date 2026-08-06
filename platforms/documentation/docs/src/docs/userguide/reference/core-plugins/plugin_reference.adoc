@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Gradle, Inc.
+// Copyright (C) 2026 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -20,125 +20,140 @@ This page contains links and short descriptions for all the core plugins provide
 [[jvm_languages_and_frameworks]]
 == JVM languages and frameworks
 
-<<java_plugin.adoc#java_plugin,Java>>::
-Provides support for building any type of Java project.
+<<java_plugin.adoc#java_plugin,Java>> — `java`::
+Compiles, tests, and packages Java source code, and provides the foundational configurations, source sets, and tasks reused by higher-level JVM plugins.
 
-<<java_library_plugin.adoc#java_library_plugin,Java Library>>::
-Provides support for building a Java library.
+<<java_library_plugin.adoc#java_library_plugin,Java Library>> — `java-library`::
+Extends the Java plugin with a proper `api`/`implementation` separation so a library exposes only its intended public dependencies to consumers.
 
-<<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>::
-Provides support for building a Java platform.
+<<java_platform_plugin.adoc#java_platform_plugin,Java Platform>> — `java-platform`::
+Publishes a set of dependency constraints as a platform (Maven BOM equivalent) that other projects can align their versions against.
 
-<<groovy_plugin.adoc#groovy_plugin,Groovy>>::
-Provides support for building any type of https://groovy-lang.org/[Groovy] project.
+<<groovy_plugin.adoc#groovy_plugin,Groovy>> — `groovy`::
+Adds joint Java/Groovy compilation, Groovydoc, and the `groovy` configuration on top of the Java plugin for building https://groovy-lang.org/[Groovy] projects.
 
-<<scala_plugin.adoc#scala_plugin,Scala>>::
-Provides support for building any type of https://www.scala-lang.org/[Scala] project.
+<<scala_plugin.adoc#scala_plugin,Scala>> — `scala`::
+Adds Scala compilation, ScalaDoc, and Zinc-based incremental compilation on top of the Java plugin for building https://www.scala-lang.org/[Scala] projects.
 
-<<antlr_plugin.adoc#antlr_plugin,ANTLR>>::
-Provides support for generating parsers using http://www.antlr.org/[ANTLR].
+<<antlr_plugin.adoc#antlr_plugin,ANTLR>> — `antlr`::
+Generates parser and lexer sources from https://www.antlr.org/[ANTLR] grammar files and wires the generated code into the Java compile task.
 
-<<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>>::
-Provides support for modeling and configuring multiple test suite invocations.
+<<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> — `jvm-test-suite`::
+Declaratively models multiple test suites (unit, integration, functional) as first-class citizens with their own source sets, dependencies, and tasks. Applied automatically by the `java` plugin.
 
-<<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin,Test Report Aggregation>>::
+<<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin,Test Report Aggregation>> — `test-report-aggregation`::
 Aggregates the results of multiple link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task invocations (potentially spanning multiple Gradle projects) into a single HTML report.
+
+<<java_test_fixtures_plugin.adoc#java_test_fixtures_plugin,Java Test Fixtures>> — `java-test-fixtures`::
+Produces a `testFixtures` component so a project can share reusable test helpers, doubles, and builders with its own test source set and with downstream consumers.
+
+<<jvm_toolchains_plugins.adoc#jvm_toolchains_plugins,JVM Toolchains>> — `jvm-toolchains` / `jvm-toolchain-management`::
+Selects and provisions the JDK used to build and test. Applied automatically by JVM plugins in projects (`jvm-toolchains`), and used in `settings.gradle(.kts)` to configure toolchain download repositories (`jvm-toolchain-management`).
 
 [[native_languages]]
 == Native languages
 
-<<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>::
-Provides support for building C++ applications on Windows, Linux, and macOS.
+<<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>> — `cpp-application`::
+Builds an executable C++ application, with multi-variant support for debug/release, target machines, and toolchains on Windows, Linux, and macOS.
 
-<<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>::
-Provides support for building C++ libraries on Windows, Linux, and macOS.
+<<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>> — `cpp-library`::
+Builds a shared or static C++ library, with the same variant model as `cpp-application` for cross-platform builds on Windows, Linux, and macOS.
 
-<<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>::
-Provides support for building and running C++ executable-based tests on Windows, Linux, and macOS.
+<<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>> — `cpp-unit-test`::
+Adds a native executable test suite backed by a C++ test entry point, and wires it into the C++ variant model for Windows, Linux, and macOS.
 
-<<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>::
-Provides support for building Swift applications on Linux and macOS.
+<<swift_application_plugin.adoc#swift_application_plugin,Swift Application>> — `swift-application`::
+Builds an executable Swift application, integrating with the Swift compiler and the variant model used by other native plugins on Linux and macOS.
 
-<<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>::
-Provides support for building Swift libraries on Linux and macOS.
+<<swift_library_plugin.adoc#swift_library_plugin,Swift Library>> — `swift-library`::
+Builds a Swift library (static or shared) and exposes it through the same variant model as `swift-application` on Linux and macOS.
 
-<<xctest_plugin.adoc#xctest_plugin,XCTest>>::
-Provides support for building and running XCTest-based tests on Linux and macOS.
+<<xctest_plugin.adoc#xctest_plugin,XCTest>> — `xctest`::
+Adds an XCTest-based test executable for Swift or Objective-C code, running against the XCTest framework on Linux and macOS.
 
 [[packaging_and_distribution]]
 == Packaging and distribution
 
-<<application_plugin.adoc#application_plugin,Application>>::
-Provides support for building JVM-based, runnable applications.
+<<application_plugin.adoc#application_plugin,Application>> — `application`::
+Packages a JVM application together with its runtime classpath and generates cross-platform `run`, `installDist`, and `distZip`/`distTar` tasks with launcher scripts.
 
-<<war_plugin.adoc#war_plugin,WAR>>::
-Provides support for building and packaging WAR-based Java web applications.
+<<war_plugin.adoc#war_plugin,WAR>> — `war`::
+Assembles a Java web application as a WAR archive, including `web.xml`, static resources, and the runtime classpath under `WEB-INF/lib`.
 
-<<ear_plugin.adoc#ear_plugin,EAR>>::
-Provides support for building and packaging Java EE applications.
+<<ear_plugin.adoc#ear_plugin,EAR>> — `ear`::
+Assembles a Java EE Enterprise Archive (EAR) from component modules, including the `application.xml` deployment descriptor and shared library modules.
 
-<<publishing_maven.adoc#publishing_maven,Maven Publish>>::
-Provides support for <<publishing_setup.adoc#publishing_components,publishing artifacts>> to Maven-compatible repositories.
+<<publishing_maven.adoc#publishing_maven,Maven Publish>> — `maven-publish`::
+<<publishing_setup.adoc#publishing_components,Publishes artifacts>> to Maven-compatible repositories, generating a POM per publication and supporting local and remote repositories.
 
-<<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>::
-Provides support for <<publishing_setup.adoc#publishing_components,publishing artifacts>> to Ivy-compatible repositories.
+<<publishing_ivy.adoc#publishing_ivy,Ivy Publish>> — `ivy-publish`::
+<<publishing_setup.adoc#publishing_components,Publishes artifacts>> to Ivy-compatible repositories, generating an `ivy.xml` per publication and supporting local and remote repositories.
 
-<<distribution_plugin.adoc#distribution_plugin,Distribution>>::
-Makes it easy to create ZIP and tarball distributions of your project.
+<<distribution_plugin.adoc#distribution_plugin,Distribution>> — `distribution`::
+Defines named distributions (a set of files bundled together) and generates ZIP and tarball assemble/install tasks for each.
 
-<<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>::
-Provides support for creating a ZIP distribution of a Java library project that includes its runtime dependencies.
+<<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>> — `java-library-distribution`::
+Creates a ZIP distribution of a Java library project that bundles the library JAR alongside its runtime dependencies for offline use.
 
 [[code_analysis]]
 == Code analysis
 
-<<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>::
-Performs quality checks on your project’s Java source files using https://checkstyle.org/index.html[Checkstyle] and generates associated reports.
+<<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>> — `checkstyle`::
+Runs https://checkstyle.org/index.html[Checkstyle] against Java source sets and generates HTML/XML reports; configurable via a shared Checkstyle configuration file.
 
-<<pmd_plugin.adoc#pmd_plugin,PMD>>::
-Performs quality checks on your project’s Java source files using http://pmd.github.io/[PMD] and generates associated reports.
+<<pmd_plugin.adoc#pmd_plugin,PMD>> — `pmd`::
+Runs https://pmd.github.io/[PMD] against Java source sets and generates HTML/XML reports of code style and correctness violations.
 
-<<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>::
-Provides code coverage metrics for your Java project using http://www.eclemma.org/jacoco/[JaCoCo].
+<<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>> — `jacoco`::
+Adds https://www.jacoco.org/jacoco/[JaCoCo] code coverage to `Test` tasks and generates coverage reports and coverage-based build verification checks.
 
-<<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>>::
+<<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>> — `jacoco-report-aggregation`::
 Aggregates the results of multiple JaCoCo code coverage reports (potentially spanning multiple Gradle projects) into a single HTML report.
 
-<<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>::
-Performs quality checks on your Groovy source files using https://codenarc.org/[CodeNarc] and generates associated reports.
+<<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>> — `codenarc`::
+Runs https://codenarc.org/[CodeNarc] against Groovy source sets and generates HTML/XML/text reports of style and correctness violations.
 
 [[ide_integration]]
 == IDE integration
 
-<<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>::
-Customizes how Eclipse/http://projects.eclipse.org/projects/tools.buildship[Buildship] understands your Gradle project during import.
+<<eclipse_plugin.adoc#eclipse_plugin,Eclipse>> — `eclipse` / `eclipse-wtp`::
+Generates Eclipse project metadata (`.project`, `.classpath`) and customizes how Eclipse and https://projects.eclipse.org/projects/tools.buildship[Buildship] import your build. Use `eclipse-wtp` for web projects.
 
-<<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>::
-Customizes how IntelliJ IDEA understands your Gradle project during import.
+<<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>> — `idea`::
+Generates IntelliJ IDEA project metadata (`.ipr`, `.iml`, `.iws`) and customizes how IntelliJ IDEA imports your build.
 
-<<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>::
-Generates Visual Studio solution and project files for build that can be opened by the IDE.
+<<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>> — `visual-studio`::
+Generates a Visual Studio solution and per-component project files for the current C++ build so it can be opened directly in the IDE.
 
-<<xcode_plugin.adoc#xcode_plugin,Xcode>>::
-Generates Xcode workspace and project files for the build that can be opened by the IDE.
+<<xcode_plugin.adoc#xcode_plugin,Xcode>> — `xcode`::
+Generates an Xcode workspace and per-component project files for the current C++/Swift build so it can be opened directly in the IDE.
 
 [[utility]]
 == Utility
 
-<<base_plugin.adoc#base_plugin,Base>>::
-Provides common lifecycle tasks, such as `clean`, and other features common to most builds.
+<<base_plugin.adoc#base_plugin,Base>> — `base`::
+Provides the common `clean`, `assemble`, `check`, and `build` lifecycle tasks and the archive/distribution conventions reused by most other plugins. Applied transitively by any plugin that adds archives or lifecycle tasks (JVM, native, distribution), so it rarely needs to be applied directly.
 
-<<build_init_plugin.adoc#build_init_plugin,Build Init>>::
-Generates a new Gradle build of a specified type, such as a Java library. It can also generate a build script from a Maven POM — see <<migrating_from_maven.adoc#migrating_from_maven,Migrating from Maven to Gradle>> for more details.
+<<gradle_wrapper.adoc#gradle_wrapper,Wrapper>> — `wrapper`::
+Registers the `wrapper` task that generates the Gradle Wrapper scripts and `gradle-wrapper.properties` for a project. Applied automatically to the root project, so it never needs to be applied directly.
 
-<<signing_plugin.adoc#signing_plugin,Signing>>::
-Provides support for digitally signing generated files and artifacts.
+<<build_init_plugin.adoc#build_init_plugin,Build Init>> — `build-init`::
+Generates a new Gradle build of a specified type (Java library, Kotlin application, and so on). Can also generate a build from a Maven POM — see <<migrating_from_maven.adoc#migrating_from_maven,Migrating from Maven to Gradle>>.
 
-<<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>::
-Makes it easier to develop and publish a Gradle plugin.
+<<signing_plugin.adoc#signing_plugin,Signing>> — `signing`::
+Digitally signs generated files and artifacts (typically with PGP), and wires signatures into Maven and Ivy publications.
 
-<<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>::
-Helps to generate reports containing useful information about your build.
+<<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>> — `java-gradle-plugin`::
+Configures a project for authoring Gradle plugins in Java, Groovy, or Kotlin; adds the `gradleApi()` dependency, registers plugin descriptors, and enables `TestKit` and plugin publishing.
 
-<<build_dashboard_plugin.adoc#build_dashboard_plugin,Build Dashboard Plugin>>::
-Generates a single HTML dashboard that provides a single point of access to all of the reports generated by your build.
+<<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>> — `project-report`::
+Adds reporting tasks that produce project information, task graphs, and dependency listings for inspecting a build.
+
+<<build_dashboard_plugin.adoc#build_dashboard_plugin,Build Dashboard Plugin>> — `build-dashboard`::
+Generates a single HTML dashboard that links to every report produced by the build (test results, coverage, static analysis, and more).
+
+<<version_catalog_plugin.adoc#version_catalog_plugin,Version Catalog>> — `version-catalog`::
+Declares a shareable dependency version catalog and publishes it as a TOML artifact so other projects can consume it via `versionCatalogs`.
+
+<<groovy_gradle_plugin.adoc#groovy_gradle_plugin,Groovy Gradle Plugin>> — `groovy-gradle-plugin`::
+Configures a project to author Gradle plugins as precompiled Groovy DSL scripts in `src/main/groovy`, without hand-writing a plugin class.

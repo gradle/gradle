@@ -16,6 +16,7 @@
 
 
 import gradlebuild.EnrichedReportRenderer
+import me.champeau.gradle.japicmp.report.GroovyReportRenderer
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
@@ -124,6 +125,26 @@ def extractGradleApiInfo = tasks.register("extractGradleApiInfo", gradlebuild.bi
     baselineUpgradedProperties = baselineUpgradedPropertiesFile
 }
 
+def configureCommonJapicmpInputs = { task ->
+    def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
+    task.with {
+        inputs.property("baseline.version", compatibilityBaselineVersion)
+        inputs.property("currentVersion", baseVersion)
+        inputs.files("apiSourceFolders", apiSourceFolders)
+        inputs.files(currentClasspath)
+        inputs.files(extractGradleApiInfo)
+
+        newClasspath.from(currentClasspath)
+        oldClasspath.from(configurations.baselineClasspath)
+        newArchives.from(currentDistroJars)
+        oldArchives.from(baselineJars)
+
+        failOnModification = false // we rely on the custom report to fail or not
+        ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
+    }
+    apiSourceFolders
+}
+
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTaskWithKotlin) {
     def mainApiChangesJsonFile = apiChangesJsonDirectory.file("accepted-public-api-changes.json")
 
@@ -131,25 +152,11 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         include("**/*.json")
     }
 
-    def isSnapshot = gradleModule.identity.snapshot
     inputs.files(acceptedViolationsFiles)
-    inputs.property("baseline.version", compatibilityBaselineVersion)
-    inputs.property("currentVersion", baseVersion)
-    def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
-    inputs.files("apiSourceFolders", apiSourceFolders)
-    inputs.files(currentClasspath)
-    inputs.files(extractGradleApiInfo)
 
-    newClasspath.from(currentClasspath)
-    oldClasspath.from(configurations.baselineClasspath)
-
-    newArchives.from(currentDistroJars)
-    oldArchives.from(baselineJars)
-
-    // binary breaking change checking setup
+    def isSnapshot = gradleModule.identity.snapshot
+    def apiSourceFolders = configureCommonJapicmpInputs(delegate)
     onlyModified = false
-    failOnModification = false // we rely on the custom report to fail or not
-    ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
 
     BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
         delegate,
@@ -182,10 +189,36 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
             it.renderer.set(EnrichedReportRenderer.class)
         } as Action
     )
-
-
 }
-tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
+
+def checkSinceForNonPublicApi = tasks.register("checkSinceForNonPublicApi", gradlebuild.binarycompatibility.JapicmpTaskWithKotlin) {
+    def isSnapshot = gradleModule.identity.snapshot
+    def apiSourceFolders = configureCommonJapicmpInputs(delegate)
+    onlyModified = true
+
+    BinaryCompatibilityHelper.setupSinceForNonPublicApiReportRules(
+        delegate,
+        project,
+        apiSourceFolders,
+        baseVersion.get(),
+        {
+            it.includedClasses = toPatterns(["org/gradle/**"])
+            it.excludedClasses = toNonInternalPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
+
+            it.title = "@since report for non-public Gradle API ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
+            it.destinationDir = layout.buildDirectory.dir("reports/binary-compatibility-non-public-api")
+            it.reportName = "report.html"
+            it.description = """
+            <p>Validates the <code>@since</code> tag on newly added non-public API members. Unlike the public API, <code>@since</code> is not required here, but when present it must name the version under development. Fix any violation at the source.</p>
+            ${writeFilterPreset(project)}
+""".stripIndent()
+
+            it.renderer.set(GroovyReportRenderer.class)
+        } as Action
+    )
+}
+
+tasks.named("check").configure { dependsOn(checkBinaryCompatibility, checkSinceForNonPublicApi) }
 
 tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
     description = 'Cleans up all existing accepted API changes.'
@@ -200,6 +233,10 @@ static List<String> toPatterns(List<String> packages) {
             .replaceAll('/', '[.]')
             .replaceAll('###', '.*?')
     }
+}
+
+static List<String> toNonInternalPatterns(List<String> packages) {
+    toPatterns(packages).collect { '(?!.*[.]internal[.])' + it }
 }
 
 static String writeFilterPreset(Project project) {

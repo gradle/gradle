@@ -38,7 +38,6 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
-    api(projects.serialization)
 
     implementation(libs.jsr305)
 
@@ -47,8 +46,6 @@ dependencies {
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
-    testFixturesImplementation(projects.enterpriseOperations)
-    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalDistributionTesting)
 
     // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.

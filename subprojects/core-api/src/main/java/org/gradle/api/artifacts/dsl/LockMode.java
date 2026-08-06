@@ -28,7 +28,16 @@ package org.gradle.api.artifacts.dsl;
  * @since 6.1
  */
 public enum LockMode {
+    /**
+     * @since 6.1
+     */
     STRICT,
+    /**
+     * @since 6.1
+     */
     DEFAULT,
+    /**
+     * @since 6.1
+     */
     LENIENT
 }

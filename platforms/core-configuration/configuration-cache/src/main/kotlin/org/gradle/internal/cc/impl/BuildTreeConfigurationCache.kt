@@ -44,7 +44,7 @@ interface BuildTreeConfigurationCache {
     /**
      * Loads the scheduled tasks from cache.
      */
-    fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph
+    fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): LoadRequestedTasksResult
 
     /**
      * Prepares to load or create a model. Returns an empty result if the cached model is available or else prepares
@@ -86,4 +86,6 @@ interface BuildTreeConfigurationCache {
     val isLoaded: Boolean
 
     class WorkGraphResult(val graph: BuildTreeWorkGraph.FinalizedGraph, val wasLoadedFromCache: Boolean, val entryDiscarded: Boolean)
+
+    data class LoadRequestedTasksResult(val graph: BuildTreeWorkGraph.FinalizedGraph, val workGraphRestorationFailed: Boolean)
 }

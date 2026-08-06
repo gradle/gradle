@@ -15,6 +15,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Julian Krannich](https://github.com/jkrannich).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -67,8 +68,47 @@ You can extract the URL from YouTube by clicking the "Share" button.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Support for Java 27
+
+With this release, Gradle supports [Java 27](https://openjdk.org/projects/jdk/27/).
+
+You can now run the [Gradle daemon](userguide/gradle_daemon.html) on Java 27, in addition to using it via [toolchains](userguide/toolchains.html):
+
+```kotlin
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(27)
+    }
+}
+```
+
+Some third-party tools (for example, PMD) do not yet support Java 27.
+
+See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
+
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+
+#### TestKit API for asserting the Configuration Cache outcome
+
+Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded — an approach that broke whenever the wording of the console messages changed.
+
+The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly:
+
+```groovy
+def result = GradleRunner.create()
+    .withProjectDir(projectDir)
+    .withArguments("myTask", "--configuration-cache")
+    .build()
+
+assert result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
+```
+
+See [`ConfigurationCacheOutcome`](javadoc/org/gradle/testkit/runner/ConfigurationCacheOutcome.html) for the possible outcomes.
+
+The outcome is also available to any Tooling API client through a new [`CONFIGURATION_CACHE`](javadoc/org/gradle/tooling/events/OperationType.html#CONFIGURATION_CACHE) progress event type.
+
+See the [Testing with the Configuration Cache](userguide/test_kit.html#sub:test-kit-configuration-cache) section in the Gradle User Manual for more details.
 
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
@@ -97,6 +137,28 @@ Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. I
 Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or later at runtime.
 
 See the [Looking up services in scripts](userguide/service_injection.html#looking_up_services) section in the Gradle User Manual for more details.
+
+#### Lazy destination directory for `Copy` and `Sync`
+
+The [`Copy`](dsl/org.gradle.api.tasks.Copy.html) and [`Sync`](dsl/org.gradle.api.tasks.Sync.html) tasks only exposed the destination as `destinationDir`, a plain `File` property, so a destination derived from a provider had to be resolved eagerly at configuration time.
+Both tasks now expose a `destinationDirectory` [`DirectoryProperty`](javadoc/org/gradle/api/file/DirectoryProperty.html):
+
+```kotlin
+tasks.register<Copy>("copyFiles") {
+    from("src")
+    destinationDirectory = layout.buildDirectory.dir("out")
+}
+```
+
+The property is the single source of truth for the destination.
+Assigning it is equivalent to calling `into(...)`, and it reflects whatever was configured through `into(...)` or `destinationDir`.
+
+`into(...)` now wires a `Provider` destination into `destinationDirectory` instead of resolving its value, so provider-based destinations stay lazy; all other notations (`String`, `File`, `Closure`, `Callable`, ...) keep their existing lazy resolution.
+Since `destinationDirectory` is a task output property, other tasks can consume it directly and pick up the task dependency.
+
+The new property is [incubating](userguide/feature_lifecycle.html#feature_preview). `destinationDir` continues to work and will be deprecated once `destinationDirectory` is promoted.
+
+See [`Copy.destinationDirectory`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:destinationDirectory) and [`Sync.destinationDirectory`](dsl/org.gradle.api.tasks.Sync.html#org.gradle.api.tasks.Sync:destinationDirectory) in the DSL Reference for more details.
 
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
@@ -145,6 +207,40 @@ Gradle provides [Tooling APIs](userguide/third_party_integration.html) that faci
 
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+
+#### Improved performance on Windows machines with slow system clocks
+
+Gradle reads the system clock frequently while a build runs, to capture execution traces, progress events, and log messages.
+On most machines, querying the time is inexpensive.
+However, on some Windows systems, particularly virtualized ones, reading the clock is much slower, and the increased cost can accumulate over the many readings taken during a single build invocation.
+
+Gradle now detects these slow system clocks at startup and switches to a faster source of time for the remainder of the build.
+On affected machines we have measured build time improvements of up to 45%.
+
+Builds on machines with a normal system clock are unaffected, and no change to configuration is required.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+========================================================== -->
+
+
+#### Faster Maven publishing with up-to-date POM generation
+
+The [`GenerateMavenPom`](javadoc/org/gradle/api/publish/maven/tasks/GenerateMavenPom.html) task was previously marked as untracked, so it executed on every build regardless of whether the underlying POM had changed.
+
+The task now declares each part of its source POM as a task input, so it participates in up-to-date checks:
+
+```text
+$ ./gradlew generatePomFileForMavenPublication
+> Task :generatePomFileForMavenPublication UP-TO-DATE
+
+BUILD SUCCESSFUL
+```
+
+When a `withXml` action is registered, task input tracking remains disabled, as `withXml` actions do not yet support snapshotting, so the task continues to run on every build.
+To restore up-to-date behavior, move the customization into the DSL properties on [`MavenPom`](javadoc/org/gradle/api/publish/maven/MavenPom.html) where possible.
+
+See the [Generate POM task](userguide/publishing_maven.html#publishing_maven:generate-pom) section in the Gradle User Manual for more details.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

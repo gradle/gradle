@@ -17,12 +17,8 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectState;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
-import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -46,99 +42,7 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
         }
     };
 
-    /**
-     * Domain object context for resolving plugins outside a project's buildscript.
-     */
-    public static final StandaloneDomainObjectContext PLUGINS = new StandaloneDomainObjectContext() {
-        @Override
-        public boolean isPluginContext() {
-            return true;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "plugin resolution";
-        }
-    };
-
-    /**
-     * A domain object context for resolution within some script.
-     *
-     * TODO: We should probably have more specialized types for each script, to ensure locks
-     * on mutable state are properly acquired, build ID is properly reported, etc.
-     */
-    public static StandaloneDomainObjectContext forScript(ScriptSource source) {
-        return new StandaloneDomainObjectContext() {
-            @Override
-            public String getDisplayName() {
-                return source.getShortDisplayName().getDisplayName();
-            }
-        };
-    }
-
-    /**
-     * A domain object context for resolution within a project's buildscript.
-     */
-    public static StandaloneDomainObjectContext forProjectBuildscript(ProjectState project) {
-        return new StandaloneDomainObjectContext() {
-
-            @Override
-            public Path getBuildPath() {
-                return project.getIdentity().getBuildPath();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "buildscript of " + project.getDisplayName();
-            }
-
-            @Override
-            public boolean isRootScript() {
-                return false;
-            }
-
-        };
-    }
-
-    /**
-     * A domain object context independent of but associated with some other context.
-     */
-    public static StandaloneDomainObjectContext detachedFrom(DomainObjectContext owner) {
-        return new StandaloneDomainObjectContext() {
-
-            @Override
-            public Path getBuildPath() {
-                return owner.getBuildPath();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "detached context for " + owner.getDisplayName();
-            }
-
-            @Override
-            public boolean isDetachedState() {
-                return true;
-            }
-        };
-    }
-
     private StandaloneDomainObjectContext() {
-    }
-
-    @Override
-    public @Nullable Path getIdentityPath() {
-        return null;
-    }
-
-    @Override
-    public @Nullable ProjectIdentity getProjectIdentity() {
-        return null;
-    }
-
-    @Override
-    public @Nullable ProjectState getProjectState() {
-        return null;
     }
 
     @Override
@@ -174,21 +78,6 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
     @Override
     public Path getBuildPath() {
         return Path.ROOT;
-    }
-
-    @Override
-    public boolean isScript() {
-        return true;
-    }
-
-    @Override
-    public boolean isRootScript() {
-        return true;
-    }
-
-    @Override
-    public boolean isPluginContext() {
-        return false;
     }
 
 }

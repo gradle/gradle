@@ -20,13 +20,24 @@ import groovy.util.Node;
 
 /**
  * A container classpath entry.
+ * @since 1.0
  */
 public class Container extends AbstractClasspathEntry {
 
+    /**
+     * Creates a new {@code Container}.
+     *
+     * @since 1.0
+     */
     public Container(Node node) {
         super(node);
     }
 
+    /**
+     * Creates a new {@code Container}.
+     *
+     * @since 1.0
+     */
     public Container(String path) {
         super(path);
     }

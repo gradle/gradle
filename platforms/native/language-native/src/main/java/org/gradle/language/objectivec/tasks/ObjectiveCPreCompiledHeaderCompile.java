@@ -23,6 +23,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Compiles Objective C header source files into object files.
+ * @since 2.4
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class ObjectiveCPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {

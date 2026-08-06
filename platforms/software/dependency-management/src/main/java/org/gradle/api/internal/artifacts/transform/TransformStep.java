@@ -29,6 +29,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -50,7 +51,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         this.transform = transform;
         this.transformInvocationFactory = transformInvocationFactory;
         this.globalInputFingerprinter = globalInputFingerprinter;
-        this.owningProject = owner.getProjectState();
+        this.owningProject = owner instanceof ProjectDomainObjectContext pdoc ? pdoc.getModel() : null;
     }
 
     public Transform getTransform() {

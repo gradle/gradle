@@ -24,6 +24,11 @@ package org.gradle.testkit.runner;
  */
 public class InvalidPluginMetadataException extends IllegalStateException {
 
+    /**
+     * Creates a new {@code InvalidPluginMetadataException}.
+     *
+     * @since 2.13
+     */
     public InvalidPluginMetadataException(String s) {
         super(s);
     }

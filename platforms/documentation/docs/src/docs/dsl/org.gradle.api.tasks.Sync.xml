@@ -13,6 +13,10 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>destinationDirectory</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>preserve</td>
                 <td><literal>empty</literal></td>
             </tr>

@@ -57,6 +57,7 @@ val core = platform("core") {
         subproject("client-services")
         subproject("collections")
         subproject("concurrent")
+        subproject("daemon-main")
         subproject("daemon-messaging")
         subproject("daemon-protocol")
         subproject("daemon-services")
@@ -197,6 +198,7 @@ module("ide") {
     subproject("problems-api")
     subproject("problems-impl")
     subproject("problems-rendering")
+    subproject("problems-reporting")
     subproject("tooling-api")
     subproject("tooling-api-builders")
 }

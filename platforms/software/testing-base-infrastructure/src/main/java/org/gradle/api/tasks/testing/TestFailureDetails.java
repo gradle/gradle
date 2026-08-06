@@ -32,6 +32,7 @@ public interface TestFailureDetails {
      * Returns the failure message.
      *
      * @return the failure message
+     * @since 7.6
      */
     @Nullable
     String getMessage();
@@ -40,6 +41,7 @@ public interface TestFailureDetails {
      * The fully-qualified name of the underlying exception type.
      *
      * @return the class name
+     * @since 7.6
      */
     String getClassName();
 
@@ -49,6 +51,7 @@ public interface TestFailureDetails {
      * The instances are created on the test worker side allowing the clients not to deal with non-serializable exceptions.
      *
      * @return the stacktrace string
+     * @since 7.6
      */
     String getStacktrace();
 
@@ -56,6 +59,7 @@ public interface TestFailureDetails {
      * Returns true if the represented failure is recognized as an assertion failure.
      *
      * @return {@code true} for assertion failures
+     * @since 7.6
      */
     boolean isAssertionFailure();
 
@@ -93,6 +97,7 @@ public interface TestFailureDetails {
      * If the current instance does not represent an assertion failure, or the test failure doesn't provide any information about expected and actual values then the method returns {@code null}.
      *
      * @return The expected value
+     * @since 7.6
      */
     @Nullable
     String getExpected();
@@ -103,6 +108,7 @@ public interface TestFailureDetails {
      * If the current instance does not represent an assertion failure, or the test failure doesn't provide any information about expected and actual values then the method returns {@code null}.
      *
      * @return The actual value
+     * @since 7.6
      */
     @Nullable
     String getActual();

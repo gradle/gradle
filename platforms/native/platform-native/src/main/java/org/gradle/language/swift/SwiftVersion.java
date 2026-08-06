@@ -22,7 +22,14 @@ package org.gradle.language.swift;
  * @since 4.6
  */
 public enum SwiftVersion {
-    SWIFT3(3), SWIFT4(4),
+    /**
+     * @since 4.6
+     */
+    SWIFT3(3),
+    /**
+     * @since 4.6
+     */
+    SWIFT4(4),
 
     /**
      * Swift 5 major version.
@@ -46,6 +53,7 @@ public enum SwiftVersion {
 
     /**
      * Returns the Swift language version in numerical value
+     * @since 4.6
      */
     public int getVersion() {
         return version;

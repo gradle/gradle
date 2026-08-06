@@ -35,7 +35,6 @@ import gradlebuild.basics.BuildParams.DEBUG_DAEMON
 import gradlebuild.basics.BuildParams.DEBUG_LAUNCHER
 import gradlebuild.basics.BuildParams.DEFAULT_RFN_PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.DEFAULT_RFR_PERFORMANCE_BASELINES
-import gradlebuild.basics.BuildParams.DEVELOCITY_SERVER_URL_ENV
 import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
 import gradlebuild.basics.BuildParams.FLAKY_TEST
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
@@ -55,6 +54,7 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_STAGE_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
+import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_SERVER_URL
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
 import gradlebuild.basics.BuildParams.RUN_IDE_IN_HEADLESS_MODE
@@ -127,8 +127,8 @@ object BuildParams {
     const val PERFORMANCE_STAGE_ENV = "PERFORMANCE_STAGE"
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val RERUN_ALL_TESTS = "rerunAllTests"
-    const val DEVELOCITY_SERVER_URL_ENV = "DEVELOCITY_SERVER_URL"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
+    const val PREDICTIVE_TEST_SELECTION_SERVER_URL = "predictiveTestSelectionServerUrl"
     const val TEST_DISTRIBUTION_DOGFOODING_TAG = "testDistributionDogfoodingTag"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
     const val TEST_DISTRIBUTION_PARTITION_SIZE = "testDistributionPartitionSizeInSeconds"
@@ -388,8 +388,10 @@ val Project.testSplitOnlyTestGradleVersion: String
     get() = project.stringPropertyOrEmpty(TEST_SPLIT_ONLY_TEST_GRADLE_VERSION)
 
 
-val Project.develocityServerUrl: Provider<String>
-    get() = environmentVariable(DEVELOCITY_SERVER_URL_ENV)
+// The Develocity server that serves Predictive Test Selection. Deliberately not derived from
+// DEVELOCITY_SERVER_URL: CI points that at a Develocity Edge, and Edges do not serve PTS.
+val Project.predictiveTestSelectionServerUrl: Provider<String>
+    get() = gradleProperty(PREDICTIVE_TEST_SELECTION_SERVER_URL)
 
 
 val Project.predictiveTestSelectionEnabled: Provider<Boolean>

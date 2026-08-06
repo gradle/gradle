@@ -18,9 +18,7 @@ package org.gradle.tooling.provider.model.internal
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.Describables
-import org.gradle.internal.Factory
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationRunner
@@ -33,12 +31,12 @@ import spock.lang.Specification
 import java.util.function.Supplier
 
 class DefaultToolingModelBuilderRegistryTest extends Specification {
-    final def projectStateRegistry = Mock(ProjectStateRegistry)
+
     final def userCodeApplicationContext = Mock(UserCodeApplicationContext)
     final def buildOperationRunner = Mock(BuildOperationRunner)
-    final def registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, projectStateRegistry, userCodeApplicationContext)
+    final def registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, userCodeApplicationContext)
 
-    def "wraps builder for requested model"() {
+    def "selects builder that can supports requested model"() {
         def builder1 = Mock(ToolingModelBuilder)
         def builder2 = Mock(ToolingModelBuilder)
         def project = Stub(ProjectInternal)
@@ -53,7 +51,6 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         expect:
         def actualBuilder = registry.getBuilder("model")
-        actualBuilder != builder2
 
         when:
         def result = actualBuilder.buildAll("model", project)
@@ -62,7 +59,6 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         result == "result"
 
         and:
-        1 * projectStateRegistry.allowUncontrolledAccessToAnyProject(_) >> { Factory factory -> factory.create() }
         1 * builder2.buildAll("model", project) >> "result"
         0 * _
     }
@@ -106,9 +102,6 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
     }
 
     def "includes a simple implementation for the Void model"() {
-        given:
-        _ * projectStateRegistry.allowUncontrolledAccessToAnyProject(_) >> { Factory factory -> factory.create() }
-
         expect:
         registry.getBuilder(Void.class.name).buildAll(Void.class.name, Mock(ProjectInternal)) == null
     }
@@ -199,4 +192,5 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         1 * builder.buildAll("model", "param", project) >> "result"
         0 * _
     }
+
 }

@@ -18,12 +18,12 @@ package org.gradle.plugin.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -37,6 +37,7 @@ import org.gradle.features.internal.binding.ModelDefaultsHandler;
 import org.gradle.features.internal.binding.ProjectFeatureApplicator;
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.event.ListenerManager;
@@ -157,7 +158,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             }
 
             Factory<DependencyResolutionServices> dependencyResolutionServicesFactory =
-                () -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS);
+                () -> dependencyManagementServices.newDetachedResolver(new DependencyManagementParameters(Describables.of("plugin resolution"), null, true, true, true));
 
             return new DefaultInjectedClasspathPluginResolver(
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
@@ -180,7 +181,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             DependencyManagementServices dependencyManagementServices
         ) {
             return new PluginDependencyResolutionServices(() ->
-                dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS)
+                dependencyManagementServices.newDetachedResolver(new DependencyManagementParameters(Describables.of("plugin resolution"), null, true, true, true))
             );
         }
 

@@ -61,6 +61,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * The module descriptor metadata.
      *
      * @return The module descriptor.
+     * @since 1.4
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -68,6 +69,11 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
         return descriptor.get();
     }
 
+    /**
+     * Sets the descriptor.
+     *
+     * @since 2.1
+     */
     public void setDescriptor(IvyModuleDescriptorSpec descriptor) {
         this.descriptor.set(descriptor);
     }
@@ -86,6 +92,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * The file the descriptor will be written to.
      *
      * @return The file the descriptor will be written to
+     * @since 1.4
      */
     @ReplacedBy("destinationFile")
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationFile() instead", willBeDeprecated = true)
@@ -110,6 +117,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * The value is resolved with {@link Project#file(Object)}
      *
      * @param destination The file the descriptor will be written to.
+     * @since 1.4
      */
     public void setDestination(Object destination) {
         File resolved = getFileResolver().resolve(destination);
@@ -117,6 +125,11 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
         getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(resolved));
     }
 
+    /**
+     * Do generate.
+     *
+     * @since 1.4
+     */
     @TaskAction
     public void doGenerate() {
         ivyDescriptorSpec.get().writeTo(getDestinationFile().get().getAsFile());

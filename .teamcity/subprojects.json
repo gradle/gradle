@@ -399,6 +399,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-main",
+    "path": "platforms/core-runtime/daemon-main",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-messaging",
     "path": "platforms/core-runtime/daemon-messaging",
     "unitTests": true,
@@ -807,7 +814,7 @@
   {
     "name": "instrumentation-agent-services",
     "path": "platforms/core-runtime/instrumentation-agent-services",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
@@ -1290,6 +1297,13 @@
   {
     "name": "problems-rendering",
     "path": "platforms/ide/problems-rendering",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "problems-reporting",
+    "path": "platforms/ide/problems-reporting",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

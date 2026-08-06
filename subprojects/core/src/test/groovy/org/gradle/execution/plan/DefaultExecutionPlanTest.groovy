@@ -16,6 +16,8 @@
 
 package org.gradle.execution.plan
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -695,6 +697,27 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         failures[0] instanceof BuildCancelledException
     }
 
+    def "does not fail when build is cancelled after the last task has started"() {
+        def failures = []
+        Task a = task("a")
+        Task b = task("b")
+
+        when:
+        addToGraphAndPopulate([a, b])
+
+        then:
+        executedTasks == [a, b]
+
+        when:
+        coordinator.withStateLock {
+            finalizedPlan.cancelExecution()
+        }
+        finalizedPlan.collectFailures(failures)
+
+        then:
+        failures.empty
+    }
+
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
         def failures = []
         RuntimeException failure = new RuntimeException()
@@ -861,6 +884,34 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         then:
         executes(c)
         filtered(b)
+    }
+
+    def "will execute a task whose dependencies have been filtered when an unrelated task fails"() {
+        given:
+        def failures = []
+        RuntimeException failure = new RuntimeException()
+        Task a = task("a", failure: failure)
+        Task b = filteredTask("b")
+        Task c = task("c", dependsOn: [b])
+        Spec<Task> filter = Mock()
+
+        and:
+        filter.isSatisfiedBy(_) >> { Task t -> t != b }
+
+        when:
+        executionPlan.setContinueOnFailure(true)
+        executionPlan.addFilter(filter)
+        addToGraphAndPopulate([a, c])
+
+        then:
+        executes(a, c)
+        filtered(b)
+
+        when:
+        finalizedPlan.collectFailures(failures)
+
+        then:
+        failures == [failure]
     }
 
     def "does not build graph for or execute tasks that have already executed in a previous plan"() {
@@ -1184,6 +1235,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     }
 
     private ScheduledWork scheduledWork(Node... nodes) {
-        return new ScheduledWork(nodes as List<Node>, nodes as List<Node>)
+        return new ScheduledWork(ImmutableList.copyOf(nodes), ImmutableSet.copyOf(nodes))
     }
 }

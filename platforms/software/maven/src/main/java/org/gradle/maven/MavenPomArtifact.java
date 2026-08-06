@@ -20,6 +20,7 @@ import org.gradle.api.component.Artifact;
 
 /**
  * A Maven POM artifact.
+ * @since 2.3
  */
 public interface MavenPomArtifact extends Artifact {
 }
