@@ -87,6 +87,7 @@ class ConfigurationCacheFingerprintWriter(
     private val host: Host,
     buildScopedContext: CloseableWriteContext,
     projectScopedContext: CloseableWriteContext,
+    private val newProjectScopedContext: (Path) -> CloseableWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val workExecutionTracker: WorkExecutionTracker,
@@ -126,14 +127,28 @@ class ConfigurationCacheFingerprintWriter(
      * The version of the system properties, incremented by every change the build makes to them.
      *
      * Values that observe the system properties record the version they observed, so that the checker can
-     * compare them against the right state regardless of the order it visits them in.
+     * compare them against the right state regardless of the order it visits the fingerprint files in.
      * See [VersionedSystemProperties].
      */
     private
     val systemPropertiesVersion = AtomicLong()
 
+    /**
+     * The shared "manifest" writer. It only holds cross-project information: the identity of every
+     * project that has its own fingerprint file (see [projectScopedWriters]) and the project-to-project
+     * dependency/coupling records. The per-project fingerprint values live in the related files.
+     */
     private
     val projectScopedWriter = ScopedFingerprintWriter<ProjectSpecificFingerprint>(projectScopedContext)
+
+    /**
+     * A writer per project, each backed by a distinct file that is a child of the manifest file.
+     *
+     * Kept for the whole lifetime of this writer, independently of [sinksForProject], so that a project
+     * whose sink was released (see [runCollectingFingerprintForProject]) can still contribute again.
+     */
+    private
+    val projectScopedWriters = ConcurrentHashMap<Path, ScopedFingerprintWriter<ConfigurationCacheFingerprint>>()
 
     private
     val sinksForProject = ConcurrentHashMap<Path, ProjectScopedSink>()
@@ -263,7 +278,9 @@ class ConfigurationCacheFingerprintWriter(
                 buildScopedSink.write(it)
             }
         }
-        CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
+        CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter)
+            .add(projectScopedWriters.values)
+            .stop()
     }
 
     private
@@ -620,7 +637,7 @@ class ConfigurationCacheFingerprintWriter(
     fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
         val previous = projectForThread.get()
         val projectSink = sinksForProject.computeIfAbsent(project.buildTreePath) {
-            ProjectScopedSink(host, project, projectScopedWriter)
+            ProjectScopedSink(host, project, projectScopedWriter, projectWriterFor(project.buildTreePath))
         }
         projectForThread.set(projectSink)
         try {
@@ -673,10 +690,27 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    fun append(fingerprint: ProjectSpecificFingerprint) {
+    /**
+     * Re-appends a cross-project record (project identity or project-to-project dependency/coupling)
+     * of a reused project to the manifest of the fingerprint currently being written.
+     */
+    fun appendRelation(fingerprint: ProjectSpecificFingerprint) {
         // TODO - should add to report as an input
         projectScopedWriter.write(fingerprint)
     }
+
+    /**
+     * Re-appends a fingerprint value of a reused project to that project's own fingerprint file.
+     */
+    fun appendProjectValue(projectPath: Path, value: ConfigurationCacheFingerprint) {
+        projectWriterFor(projectPath).write(value)
+    }
+
+    private
+    fun projectWriterFor(projectPath: Path): ScopedFingerprintWriter<ConfigurationCacheFingerprint> =
+        projectScopedWriters.computeIfAbsent(projectPath) {
+            ScopedFingerprintWriter(newProjectScopedContext(projectPath))
+        }
 
     private
     fun sink(): Sink = projectForThread.get() ?: buildScopedSink
@@ -983,14 +1017,14 @@ class ConfigurationCacheFingerprintWriter(
     class ProjectScopedSink(
         host: Host,
         project: ProjectIdentity,
-        private val writer: ScopedFingerprintWriter<ProjectSpecificFingerprint>
+        manifestWriter: ScopedFingerprintWriter<ProjectSpecificFingerprint>,
+        private val writer: ScopedFingerprintWriter<ConfigurationCacheFingerprint>
     ) : Sink(host) {
 
-        private
-        val projectIdentityPath = project.buildTreePath
-
         init {
-            writer.write(
+            // Record the project's identity in the manifest so that its dedicated fingerprint file can be
+            // discovered and read back. The fingerprint values themselves go to the project's own file.
+            manifestWriter.write(
                 ProjectSpecificFingerprint.ProjectIdentity(
                     project.buildTreePath,
                     project.buildPath,
@@ -1000,7 +1034,7 @@ class ConfigurationCacheFingerprintWriter(
         }
 
         override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {
-            writer.write(ProjectSpecificFingerprint.ProjectFingerprint(projectIdentityPath, value), trace)
+            writer.write(value, trace)
         }
     }
 

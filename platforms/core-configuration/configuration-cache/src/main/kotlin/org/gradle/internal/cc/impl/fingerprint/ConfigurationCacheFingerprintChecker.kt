@@ -87,6 +87,27 @@ class ConfigurationCacheFingerprintChecker(
     private
     val inputFileChecker = ConfigurationCacheInputFileChecker(host)
 
+    /**
+     * State shared between the manifest pass ([readProjectFingerprintManifest]) and the per-project
+     * fingerprint file passes ([checkProjectFingerprintFile]). A single checker instance is used to
+     * check the whole project-scoped fingerprint of an entry.
+     */
+    private
+    val projects = hashMapOf<Path, ProjectInvalidationState>()
+
+    private
+    val projectFingerprintFiles = LinkedHashSet<Path>()
+
+    /**
+     * The identity paths of the projects that have their own fingerprint file, in the order they were
+     * declared in the manifest. Only populated after [readProjectFingerprintManifest].
+     */
+    val projectsWithFingerprintFile: Set<Path>
+        get() = projectFingerprintFiles
+
+    private
+    var firstInvalidatedPath: Path? = null
+
     suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
         ensureGroovyRuntimeInitialized()
@@ -134,11 +155,13 @@ class ConfigurationCacheFingerprintChecker(
         return ready.firstNotNullOfOrNull { check(it) }
     }
 
-    @Suppress("NestedBlockDepth")
-    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint.InvalidProjects? {
+    /**
+     * Reads the project-scoped fingerprint manifest: the identity of every project that has its own
+     * fingerprint file, and the cross-project dependency/coupling relationships. The fingerprint values
+     * are checked separately, per project, by [checkProjectFingerprintFile].
+     */
+    suspend fun ReadContext.readProjectFingerprintManifest() {
         // TODO: log some debug info
-        var firstInvalidatedPath: Path? = null
-        val projects = hashMapOf<Path, ProjectInvalidationState>()
         while (true) {
             when (val input = read()) {
                 null -> break
@@ -146,21 +169,7 @@ class ConfigurationCacheFingerprintChecker(
                     val state = projects.entryFor(input.identityPath)
                     state.buildPath = input.buildPath
                     state.projectPath = input.projectPath
-                }
-
-                is ProjectSpecificFingerprint.ProjectFingerprint -> {
-                    // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
-                    // Don't check a value for a project that is already out-of-date
-                    val state = projects.entryFor(input.projectIdentityPath)
-                    if (!state.isInvalid) {
-                        val reason = check(input.value)
-                        if (reason != null) {
-                            if (firstInvalidatedPath == null) {
-                                firstInvalidatedPath = input.projectIdentityPath
-                            }
-                            state.invalidate(reason)
-                        }
-                    }
+                    projectFingerprintFiles.add(input.identityPath)
                 }
 
                 is ProjectSpecificFingerprint.ProjectDependency -> {
@@ -181,7 +190,43 @@ class ConfigurationCacheFingerprintChecker(
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return firstInvalidatedPath?.let { path ->
+    }
+
+    /**
+     * Whether the given project still needs its fingerprint file checked, i.e. it hasn't already been
+     * invalidated (for example, transitively via a dependency).
+     */
+    fun requiresProjectFingerprintCheck(projectPath: Path): Boolean = !projects.entryFor(projectPath).isInvalid
+
+    /**
+     * Checks the fingerprint values stored in a single project's fingerprint file. If any value is
+     * out-of-date, the project is invalidated (which transitively invalidates its consumers).
+     */
+    suspend fun ReadContext.checkProjectFingerprintFile(projectPath: Path) {
+        val state = projects.entryFor(projectPath)
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ConfigurationCacheFingerprint -> {
+                    // Don't check a value for a project that is already out-of-date
+                    if (!state.isInvalid) {
+                        val reason = check(input)
+                        if (reason != null) {
+                            if (firstInvalidatedPath == null) {
+                                firstInvalidatedPath = projectPath
+                            }
+                            state.invalidate(reason)
+                        }
+                    }
+                }
+
+                else -> error("Unexpected configuration cache fingerprint: $input")
+            }
+        }
+    }
+
+    fun projectFingerprintInvalidationResult(): CheckedFingerprint.InvalidProjects? =
+        firstInvalidatedPath?.let { path ->
             CheckedFingerprint.InvalidProjects(
                 path,
                 projects
@@ -189,9 +234,13 @@ class ConfigurationCacheFingerprintChecker(
                     .mapValues { it.value.toProjectInvalidationData() }
             )
         }
-    }
 
-    suspend fun ReadContext.visitEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
+    /**
+     * Visits the manifest records (project identity and cross-project relationships) that belong to any
+     * of the [reusedProjects]. The fingerprint values of a reused project are visited separately by
+     * [visitProjectFingerprintFile].
+     */
+    suspend fun ReadContext.visitManifestEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
         while (true) {
             // TODO(mlopatkin): this implementation duplicates some inputs, e.g. a build file input is stored even if the project is reused.
             when (val input = read()) {
@@ -199,11 +248,6 @@ class ConfigurationCacheFingerprintChecker(
 
                 is ProjectSpecificFingerprint.ProjectIdentity ->
                     if (reusedProjects.contains(input.identityPath)) {
-                        consumer.accept(input)
-                    }
-
-                is ProjectSpecificFingerprint.ProjectFingerprint ->
-                    if (reusedProjects.contains(input.projectIdentityPath)) {
                         consumer.accept(input)
                     }
 
@@ -216,6 +260,21 @@ class ConfigurationCacheFingerprintChecker(
                     if (reusedProjects.contains(input.referringProject)) {
                         consumer.accept(input)
                     }
+
+                else -> error("Unexpected configuration cache fingerprint: $input")
+            }
+        }
+    }
+
+    /**
+     * Visits all the fingerprint values stored in a single project's fingerprint file.
+     */
+    suspend fun ReadContext.visitProjectFingerprintFile(consumer: Consumer<ConfigurationCacheFingerprint>) {
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ConfigurationCacheFingerprint -> consumer.accept(input)
+                else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
     }
