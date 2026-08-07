@@ -54,6 +54,38 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getTest-retry-bundled(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "New Kotlin DSL accessor for the test-retry-bundled plugin added in 9.8.0",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TestRetryKt",
+            "member": "Class org.gradle.kotlin.dsl.TestRetryKt",
+            "acceptation": "New Kotlin DSL extensions for test-retry plugin added in 9.8.0",
+            "changes": [
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TestRetryKt",
+            "member": "Method org.gradle.kotlin.dsl.TestRetryKt.getRetry(org.gradle.api.tasks.testing.Test)",
+            "acceptation": "New Kotlin DSL extensions for test-retry plugin added in 9.8.0",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TestRetryKt",
+            "member": "Method org.gradle.kotlin.dsl.TestRetryKt.retry(org.gradle.api.tasks.testing.Test,kotlin.jvm.functions.Function1)",
+            "acceptation": "New Kotlin DSL extensions for test-retry plugin added in 9.8.0",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.process.ExecOperations",
             "member": "Class org.gradle.process.ExecOperations",
             "acceptation": "Marked as injectable via the incubating service(Class) lookup markers (#13121)",

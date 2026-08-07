@@ -1,0 +1,11 @@
+SampleTests > failing() FAILED
+    org.opentest4j.AssertionFailedError at SampleTests.java:21
+
+SampleTests > flaky() FAILED
+    java.lang.RuntimeException at SampleTests.java:16
+
+SampleTests > failing() FAILED
+    org.opentest4j.AssertionFailedError at SampleTests.java:21
+
+SampleTests > failing() FAILED
+    org.opentest4j.AssertionFailedError at SampleTests.java:21
