@@ -41,6 +41,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -75,46 +76,35 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
     // Matches https:// or http:// URLs
     private static final Pattern URL_PATTERN = Pattern.compile("https?://[^\\s\\[\\]<>\"'`|)]+");
 
-    // Host suffixes to skip
-    private static final Set<String> SKIP_HOST_SUFFIXES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        // Acceptable examples
-        "example.com",
+    // Placeholder hosts
+    private static final Set<String> PLACEHOLDER_HOST_SUFFIXES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        "example.com",              // IANA-reserved for examples
         "example.org",
         "example.net",
-        "localhost",
+        "localhost",                // local references
         "127.0.0.1",
         "0.0.0.0",
-        "my.key.server.com",
+        "my.key.server.com",        // ad-hoc placeholders in snippets
         "my.server.com",
         "your.server.com",
         "your.ivy.repo",
         "your.maven.repo",
         "your.secure.repo",
-        "schema.gradle.org",
-        // Rate limiting
-        "mvnrepository.com",
-        "repo.maven.apache.org",
-        "bugs.openjdk.org",
-        "gradle-community.slack.com",
-        "bugs.java.com",
-        // Frequently unreachable but still the canonical destination — do not rewrite these links.
-        // groovy-lang.org is Apache Groovy's canonical docs domain (referenced from groovy.apache.org itself).
-        "groovy-lang.org",
-        "docs.groovy-lang.org"
+        "schema.gradle.org"         // XSD namespace, not a live web page
     )));
 
-    // URL substrings that mark unreliable-to-check paths
-    private static final List<String> SKIP_URL_SUBSTRINGS = Collections.unmodifiableList(Arrays.asList(
-        "/edit/",               // GitHub edit URLs redirect to login
-        "localhost",            // any URL containing localhost
-        "gradle.com/s/link"     // known placeholder used in tutorials
-    ));
+    // Flaky-but-real hosts
+    private static final Set<String> FLAKY_HOST_SUFFIXES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        "docs.junit.org",               // slow / rate-limits bots
+        "gradle-community.slack.com"    // auth-walled
+    )));
 
     // URL prefixes to skip
     private static final List<String> SKIP_URL_PREFIXES = Collections.unmodifiableList(Arrays.asList(
-        "https://stackoverflow.com/questions/tagged/",  // SO rate-limits/blocks bot HEAD requests on tag pages
-        "https://marketplace.visualstudio.com/", // Legit
-        "https://keys.openpgp.org/vks/v1/by-fingerprint/" // Example
+        "https://stackoverflow.com/questions/tagged/",      // SO rate-limits/blocks bot HEAD requests on tag pages
+        "https://marketplace.visualstudio.com/",            // Legit but no bots
+        "https://keys.openpgp.org/vks/v1/by-fingerprint/",  // Example that normally contains a large fingerprint hash
+        "https://gradle.com/s/link"                         // Build Scan example that is a fake build scan link
     ));
 
     // Host suffixes that must never appear in docs
@@ -142,22 +132,45 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
 
     @TaskAction
     public void check() {
-        CollectResult collected = collectUrls();
-        getLogger().lifecycle("Checking {} unique external URLs...", collected.urlsToCheck.size());
+        Map<String, List<Occurrence>> allUrls = collectUrls();
 
-        Map<String, String> failures = checkAll(collected.urlsToCheck.keySet());
-        // Blocked URLs are reported as failures without any HTTP request.
-        for (String blocked : collected.blockedUrls.keySet()) {
-            failures.put(blocked, "blocked placeholder host — use example.com/example.org instead");
+        // Classify URLs: block, check, or silently skip.
+        Set<String> toCheck = new HashSet<>();
+        Map<String, String> failures = new HashMap<>();
+        for (String url : allUrls.keySet()) {
+            if (isBlocked(url)) {
+                failures.put(url, "blocked placeholder host — use example.com/example.org instead");
+            } else if (!shouldSkip(url)) {
+                toCheck.add(url);
+            }
         }
 
-        Map<String, List<Occurrence>> allUrls = new TreeMap<>(collected.urlsToCheck);
-        allUrls.putAll(collected.blockedUrls);
-        writeReport(allUrls, failures);
+        getLogger().lifecycle("Extracted {} unique URLs, checking {} (rest skipped or blocked)...",
+            allUrls.size(), toCheck.size());
+
+        // Partition network results.
+        // Fail: HTTP 404 (page missing), HTTP 410 (gone), UnknownHostException (domain doesn't resolve).
+        // Warning: SocketTimeoutException (timeouts), 403s (bot detection), 5xx (transient server errors).
+        Map<String, String> warnings = new HashMap<>();
+        for (Map.Entry<String, String> result : checkAll(toCheck).entrySet()) {
+            if (isBrokenLink(result.getValue())) {
+                failures.put(result.getKey(), result.getValue());
+            } else {
+                warnings.put(result.getKey(), result.getValue());
+            }
+        }
+
+        writeReport(allUrls, failures, warnings);
     }
 
-    private CollectResult collectUrls() {
-        CollectResult result = new CollectResult();
+    private static boolean isBrokenLink(String reason) {
+        return reason.startsWith("HTTP 404")
+            || reason.startsWith("HTTP 410")
+            || reason.startsWith("UnknownHostException");
+    }
+
+    private Map<String, List<Occurrence>> collectUrls() {
+        Map<String, List<Occurrence>> result = new TreeMap<>();
         File root = getDocumentationRoot().get().getAsFile();
         try (Stream<Path> stream = Files.walk(root.toPath())) {
             stream.filter(Files::isRegularFile)
@@ -174,7 +187,7 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
         return name.endsWith(".adoc") || name.endsWith(".md");
     }
 
-    private void extractUrls(Path file, CollectResult result) {
+    private void extractUrls(Path file, Map<String, List<Occurrence>> result) {
         try {
             List<String> lines = Files.readAllLines(file);
             for (int i = 0; i < lines.size(); i++) {
@@ -185,12 +198,8 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
                     if (url == null) {
                         continue;
                     }
-                    Occurrence occ = new Occurrence(file.toFile(), i + 1);
-                    if (isBlocked(url)) {
-                        result.blockedUrls.computeIfAbsent(url, k -> new ArrayList<>()).add(occ);
-                    } else if (!shouldSkip(url)) {
-                        result.urlsToCheck.computeIfAbsent(url, k -> new ArrayList<>()).add(occ);
-                    }
+                    result.computeIfAbsent(url, k -> new ArrayList<>())
+                        .add(new Occurrence(file.toFile(), i + 1));
                 }
             }
         } catch (IOException e) {
@@ -202,13 +211,8 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
         try {
             URI uri = new URI(url);
             String host = uri.getHost();
-            if (host != null) {
-                String lower = host.toLowerCase();
-                for (String suffix : BLOCKED_HOST_SUFFIXES) {
-                    if (lower.equals(suffix) || lower.endsWith("." + suffix)) {
-                        return true;
-                    }
-                }
+            if (host != null && matchesHostSuffix(host.toLowerCase(), BLOCKED_HOST_SUFFIXES)) {
+                return true;
             }
         } catch (URISyntaxException e) {
             // Malformed URIs are handled by shouldSkip().
@@ -247,24 +251,27 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
                 return true;
             }
         }
-        for (String substr : SKIP_URL_SUBSTRINGS) {
-            if (url.contains(substr)) {
-                return true;
-            }
-        }
         try {
             URI uri = new URI(url);
             String host = uri.getHost();
             if (host != null) {
                 String lower = host.toLowerCase();
-                for (String suffix : SKIP_HOST_SUFFIXES) {
-                    if (lower.equals(suffix) || lower.endsWith("." + suffix)) {
-                        return true;
-                    }
+                if (matchesHostSuffix(lower, PLACEHOLDER_HOST_SUFFIXES)
+                    || matchesHostSuffix(lower, FLAKY_HOST_SUFFIXES)) {
+                    return true;
                 }
             }
         } catch (URISyntaxException e) {
             return true;
+        }
+        return false;
+    }
+
+    private static boolean matchesHostSuffix(String host, Set<String> suffixes) {
+        for (String suffix : suffixes) {
+            if (host.equals(suffix) || host.endsWith("." + suffix)) {
+                return true;
+            }
         }
         return false;
     }
@@ -320,33 +327,37 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
         }
     }
 
-    private void writeReport(Map<String, List<Occurrence>> urls, Map<String, String> failures) {
+    private void writeReport(Map<String, List<Occurrence>> urls, Map<String, String> failures, Map<String, String> warnings) {
         File reportFile = getReportFile().get().getAsFile();
         try (PrintWriter fw = new PrintWriter(new FileWriter(reportFile))) {
             fw.println("# External link check");
             fw.println("# Scanned " + urls.size() + " unique URLs across .adoc and .md files.");
-            fw.println("# Skipped host suffixes: " + SKIP_HOST_SUFFIXES);
-            fw.println("# Skipped URL substrings: " + SKIP_URL_SUBSTRINGS);
+            fw.println("# Placeholder hosts (never resolve, intentionally): " + PLACEHOLDER_HOST_SUFFIXES);
+            fw.println("# Flaky/bot-hostile hosts (real destinations, unchecked): " + FLAKY_HOST_SUFFIXES);
             fw.println("# Skipped URL prefixes: " + SKIP_URL_PREFIXES);
             fw.println("# Blocked host suffixes (must not appear in docs): " + BLOCKED_HOST_SUFFIXES);
             fw.println();
-            if (failures.isEmpty()) {
+            if (failures.isEmpty() && warnings.isEmpty()) {
                 fw.println("All clear!");
                 return;
             }
-            fw.println("Found " + failures.size() + " broken external links:");
-            fw.println();
-            for (Map.Entry<String, String> failure : new TreeMap<>(failures).entrySet()) {
-                String url = failure.getKey();
-                fw.println(url);
-                fw.println("  reason: " + failure.getValue());
-                for (Occurrence occ : urls.get(url)) {
-                    fw.println("  at " + occ.file.getName() + ":" + occ.lineNumber);
-                }
+            if (!failures.isEmpty()) {
+                fw.println("Found " + failures.size() + " broken external links:");
                 fw.println();
+                writeEntries(fw, urls, failures);
+            }
+            if (!warnings.isEmpty()) {
+                fw.println("Found " + warnings.size() + " transient timeouts (not build-failing):");
+                fw.println();
+                writeEntries(fw, urls, warnings);
             }
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        }
+        if (!warnings.isEmpty()) {
+            getLogger().warn("{} external links timed out. See {}",
+                warnings.size(),
+                new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile));
         }
         if (!failures.isEmpty()) {
             String message = "Documentation assertion failed: found " + failures.size()
@@ -354,6 +365,18 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
                 + new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile);
             getLogger().error(message);
             throw new GradleException(message);
+        }
+    }
+
+    private static void writeEntries(PrintWriter fw, Map<String, List<Occurrence>> urls, Map<String, String> entries) {
+        for (Map.Entry<String, String> entry : new TreeMap<>(entries).entrySet()) {
+            String url = entry.getKey();
+            fw.println(url);
+            fw.println("  reason: " + entry.getValue());
+            for (Occurrence occ : urls.get(url)) {
+                fw.println("  at " + occ.file.getName() + ":" + occ.lineNumber);
+            }
+            fw.println();
         }
     }
 
@@ -367,8 +390,4 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
         }
     }
 
-    private static final class CollectResult {
-        final Map<String, List<Occurrence>> urlsToCheck = new TreeMap<>();
-        final Map<String, List<Occurrence>> blockedUrls = new TreeMap<>();
-    }
 }

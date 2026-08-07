@@ -167,6 +167,7 @@ This means that your build cannot benefit from file system watching for one of t
 
 Too many open files on macOS::
 If you receive the `java.io.IOException: Too many open files` error on macOS, raise your open files limit.
+See https://superuser.com/a/443168/8117[this post] for more details.
 
 [[sec:inotify_watches_limit]]
 ===  Adjust inotify watches limit on Linux

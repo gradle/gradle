@@ -176,7 +176,7 @@ As of **June 30, 2025**, link:https://central.sonatype.org/pages/ossrh-eol/[Mave
 This change also marks the deprecation of the OSSRH (OSS Repository Hosting) service.
 
 Going forward, publishing to Maven Central **requires a dedicated plugin**.
-You can learn more by watching link:https://youtu.be/nd2ULXyBaV8?si=W--uIajN75ZlaRtL[this video].
+You can learn more by watching link:https://youtu.be/nd2ULXyBaV8[this video].
 
 [[publishing_maven:snapshot_and_release_repositories]]
 === Snapshot and release repositories
