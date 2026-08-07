@@ -25,7 +25,6 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.CountDownLatch;
 
 public class ExecOutputHandleRunner implements Runnable {
     private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
@@ -34,20 +33,20 @@ public class ExecOutputHandleRunner implements Runnable {
     private final InputStream inputStream;
     private final OutputStream outputStream;
     private final int bufferSize;
-    private final CountDownLatch completed;
+    private final Runnable onFinished;
     private volatile boolean closed;
     private volatile BuildOperationRef associatedBuildOperation;
 
-    public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
-        this(displayName, inputStream, outputStream, 8192, completed);
+    public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, Runnable onFinished) {
+        this(displayName, inputStream, outputStream, 8192, onFinished);
     }
 
-    ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize, CountDownLatch completed) {
+    ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize, Runnable onFinished) {
         this.displayName = displayName;
         this.inputStream = inputStream;
         this.outputStream = outputStream;
         this.bufferSize = bufferSize;
-        this.completed = completed;
+        this.onFinished = onFinished;
     }
 
     public void associateBuildOperation(BuildOperationRef startupRef) {
@@ -63,7 +62,7 @@ public class ExecOutputHandleRunner implements Runnable {
         try {
             forwardContent();
         } finally {
-            completed.countDown();
+            onFinished.run();
         }
     }
 
