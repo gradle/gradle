@@ -56,7 +56,6 @@ For Gradle support:
 
 - link:https://discuss.gradle.org/[Gradle Forum]
 - link:https://gradle-community.slack.com/[Gradle Slack Channel]
-- link:https://gradle.org/courses/[Free Gradle Training]
 
 == Step 2. Next steps
 

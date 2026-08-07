@@ -81,7 +81,7 @@ The following tool chains are supported:
 | Windows XP and later.
 
 | Windows
-| http://gcc.gnu.org/[GCC] with http://www.mingw.org/[MinGW] and https://mingw-w64.org/doku.php[MinGW64]
+| http://gcc.gnu.org/[GCC] with http://www.mingw.org/[MinGW] and https://mingw-w64.org[MinGW64]
 | Windows XP and later.
 |===
 

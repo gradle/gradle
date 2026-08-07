@@ -13,7 +13,7 @@
 // limitations under the License.
 
 :kotlin-reference: https://kotlinlang.org/docs/reference/
-:kotlin-tutorials: https://kotlinlang.org/tutorials/
+:kotlin-tutorials: https://kotlinlang.org/education/
 :gradle-issues: https://github.com/gradle/gradle/issues/
 :plugin-portal: https://plugins.gradle.org/
 
