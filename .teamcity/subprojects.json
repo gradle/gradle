@@ -93,7 +93,7 @@
   {
     "name": "bean-serialization-services",
     "path": "platforms/core-configuration/bean-serialization-services",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -366,7 +366,7 @@
   {
     "name": "core-serialization-codecs",
     "path": "platforms/core-configuration/core-serialization-codecs",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -709,7 +709,7 @@
   {
     "name": "graph-serialization",
     "path": "platforms/core-configuration/graph-serialization",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

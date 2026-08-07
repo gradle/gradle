@@ -39,7 +39,6 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.baseServicesGroovy)
-    implementation(projects.beanSerializationServices)
     implementation(projects.buildOperations)
     implementation(projects.collections)
     implementation(projects.configurationCacheBase)
