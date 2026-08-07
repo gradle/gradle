@@ -152,6 +152,33 @@ When the build action queries models through `BuildController.fetch(...)`, the d
 There is no separate opt-in: using `fetch(...)` enables the resilient behaviour for that call.
 Calls made through `getModel(...)` or `findModel(...)` continue to fail fast as before.
 
+Resilient sync affects which models can be built, not the outcome of the operation: starting with the Gradle 9.7 daemon, a broken part of the build still fails the operation as a whole.
+See <<sec:embedding_phased_action_example,Reading intermediate models with a phased build action>> for how a client receives the partial models in that case.
+
+[[sec:embedding_phased_action_example]]
+=== Reading intermediate models with a phased build action
+
+A phased build action, created via link:{javadocPath}/org/gradle/tooling/ProjectConnection.html#action()[`ProjectConnection.action()`], can query models at two points in the build lifecycle:
+
+* The `projectsLoaded` action runs after the settings have been evaluated, before any project is configured.
+This is the place to query models that describe the build structure, such as link:{javadocPath}/org/gradle/tooling/model/gradle/GradleBuild.html[`GradleBuild`].
+* The `buildFinished` action runs at the end of the invocation, after any scheduled tasks have executed.
+
+The result of each action is delivered to its link:{javadocPath}/org/gradle/tooling/IntermediateResultHandler.html[`IntermediateResultHandler`] while the build is still running, as soon as the corresponding phase completes.
+The executer created by the builder produces no final value of its own: `run()` returns `Void`, and the models arrive only through the intermediate handlers.
+
+The following example queries the build structure once projects are loaded, and fetches an Eclipse model at the end of the build, reusing the `FetchEclipseModelAction` shown <<sec:embedding_get_find_vs_fetch,above>>:
+
+====
+include::sample[dir="snippets/integration/fetchModel/common",files="src/main/java/org/gradle/sample/FetchBuildStructureAction.java[tags=projects-loaded-action];src/main/java/org/gradle/sample/PhasedSync.java[tags=phased-sync]"]
+====
+
+[NOTE]
+====
+Starting with the Gradle 9.7 daemon, a resilient sync still fails as a whole when any part of it fails: `run()` throws, even though the intermediate handlers have already received their models.
+A single action passed to link:{javadocPath}/org/gradle/tooling/ProjectConnection.html#action(org.gradle.tooling.BuildAction)[`ProjectConnection.action(BuildAction)`] loses its result in that case, so use a phased build action and read the models from the intermediate handlers.
+====
+
 [[sec:embedding_action_tasks]]
 === Running tasks together with a build action
 
@@ -160,7 +187,7 @@ A build action can request that tasks run as part of the same Gradle invocation:
 * link:{javadocPath}/org/gradle/tooling/BuildActionExecuter.html#forTasks(java.lang.String...)[`BuildActionExecuter.forTasks(...)`] schedules tasks that run before the action executes.
 Passing an empty array runs the build's default tasks.
 Omitting the call (or passing `null`) skips task execution entirely.
-* For two-phase actions created via link:{javadocPath}/org/gradle/tooling/ProjectConnection.html#action()[`ProjectConnection.action()`], the `projectsLoaded` action runs after settings are evaluated and the `buildFinished` action runs after the scheduled tasks have executed.
+* For a phased build action, the scheduled tasks run after the `projectsLoaded` action and before the `buildFinished` action.
 
 Prior to Gradle 9.4, if any of the scheduled tasks failed, Gradle aborted the invocation before the model-producing action got a chance to run.
 The `buildFinished` action of a phased build was skipped entirely, and the client only received the task failure.
