@@ -64,6 +64,7 @@ dependencies {
     testFixturesImplementation(projects.logging)
     testFixturesImplementation(projects.modelCore)
 
+    testFixturesImplementation(libs.groovyXml)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.jsoup)
 

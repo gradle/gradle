@@ -26,6 +26,15 @@ plugins {
 }
 
 configure<DependencyAnalysisExtension> {
+    abi {
+        exclusions {
+            // Exclude Groovy's generated closures from ABI analysis
+            // On Groovy 4 this generates false positives for ABI types
+            // With Groovy 5 we might be able to remove this.
+            excludeClasses(".*_closure\\d+")
+        }
+    }
+
     issues {
         all {
             onDuplicateClassWarnings {
