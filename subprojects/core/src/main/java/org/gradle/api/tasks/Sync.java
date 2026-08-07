@@ -25,6 +25,8 @@ import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -32,6 +34,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * Synchronizes the contents of a destination directory with some source directories and files.
@@ -71,6 +74,51 @@ import java.io.File;
 public abstract class Sync extends AbstractCopyTask {
 
     private final PatternFilterable preserveInDestination = new PatternSet();
+
+    @Override
+    boolean shouldSkipWhenSourceIsEmpty() {
+        return false;
+    }
+
+    @Override
+    protected void copy() {
+        File destinationDir = getDestinationDir();
+        if (destinationDir != null
+            && !getBuildOutputCleanupRegistry().isOutputOwnedByBuild(destinationDir)
+            && !hasPreviousOutputFilesUnder(destinationDir)
+            && isSourceEmpty()) {
+            setDidWork(false);
+            // we used to skip the task on empty input but no longer do, so, for the sake of safety,
+            // if there is no previous record of syncing into the destination, and it is not build-owned,
+            // don't do anything
+            return;
+        }
+        super.copy();
+    }
+
+    /**
+     * Whether the source has no files and no directories. Unlike {@link org.gradle.api.file.FileCollection#isEmpty()},
+     * which counts regular files only, this also counts empty directories (needed to honor
+     * {@code ignoreEmptyDirectories(false)}).
+     */
+    private boolean isSourceEmpty() {
+        MutableBoolean found = new MutableBoolean();
+        getSource().getAsFileTree().visit(fileDetails -> {
+            found.set(true);
+            fileDetails.stopVisiting();
+        });
+        return !found.get();
+    }
+
+    private boolean hasPreviousOutputFilesUnder(File destinationDir) {
+        Path destinationPath = destinationDir.toPath();
+        for (File previousOutputFile : getOutputs().getPreviousOutputFiles()) {
+            if (previousOutputFile.toPath().startsWith(destinationPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     protected CopyAction createCopyAction() {
@@ -148,4 +196,7 @@ public abstract class Sync extends AbstractCopyTask {
 
     @Inject
     protected abstract Deleter getDeleter();
+
+    @Inject
+    protected abstract BuildOutputCleanupRegistry getBuildOutputCleanupRegistry();
 }

@@ -28,6 +28,137 @@ import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'deletes stale outputs when source becomes empty (destination: #description)'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+
+        buildFile """
+            // `base` is responsible for registering build-owned locations
+            apply plugin: 'base'
+            task sync(type: Sync) {
+                from 'source'
+                into $into
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file("$destDir/foo.txt").exists()
+
+        when:
+        file('source/foo.txt').delete()
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        !file("$destDir/foo.txt").exists()
+        file(destDir).directory
+
+        when:
+        run 'sync'
+
+        then:
+        skipped ':sync'
+        !file("$destDir/foo.txt").exists()
+        file(destDir).directory
+
+        where:
+        description         | into                                    | destDir
+        'build-owned'       | 'layout.buildDirectory.dir("out")'      | 'build/out'
+        'non-build-owned'   | 'layout.projectDirectory.dir("out")'    | 'out'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'on its first execution against a destination, an empty source leaves pre-existing unrelated content untouched'() {
+        given:
+        // 'source' is never created, so it resolves to an empty file tree (simulating a misconfigured 'from').
+        file('dest/unrelated.txt').text = 'do not delete me'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        skipped ':sync'
+        file('dest/unrelated.txt').text == 'do not delete me'
+        file('dest').assertHasDescendants('unrelated.txt')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'a source of only empty directories is synced on first run when includeEmptyDirs is true'() {
+        given:
+        file('source').create {
+            emptyDir {}
+        }
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                // includeEmptyDirs = true (default)
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file('dest/emptyDir').directory
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'for a task that does not track state, an emptied source #description'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+
+        buildFile """
+            // `base` is responsible for registering build-owned locations
+            apply plugin: 'base'
+            task sync(type: Sync) {
+                from 'source'
+                into $into
+                doNotTrackState('a task that does not track state keeps no record of previous syncs')
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file("$destDir/foo.txt").exists()
+
+        when:
+        file('source/foo.txt').delete()
+        run 'sync'
+
+        then:
+        file("$destDir/foo.txt").exists() != destinationEmptied
+
+        and:
+        if (destinationEmptied) {
+            executedAndNotSkipped ':sync'
+        } else {
+            skipped ':sync'
+        }
+
+        where:
+        description                                      | into                                 | destDir     | destinationEmptied
+        'empties a build-owned destination'              | 'layout.buildDirectory.dir("out")'   | 'build/out' | true
+        'leaves a non-build-owned destination untouched' | 'layout.projectDirectory.dir("out")' | 'out'       | false
+    }
+
     def 'copies files and removes extra files from destDir'() {
         given:
         defaultSourceFileTree()
@@ -96,6 +227,48 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             'dir1/extraDir/extra.txt',
             'emptyDir'
         )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'preserve is honored when the source is fully emptied, once the destination has sync history (destination: #description)'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+        file('source/keep.txt').text = 'keep'
+
+        buildFile """
+            // `base` is responsible for registering build-owned locations
+            apply plugin: 'base'
+            task sync(type: Sync) {
+                from 'source'
+                into $into
+                preserve {
+                    include 'keep.txt'
+                }
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file("$destDir/foo.txt").exists()
+        file("$destDir/keep.txt").exists()
+
+        when:
+        file('source/foo.txt').delete()
+        file('source/keep.txt').delete()
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        !file("$destDir/foo.txt").exists()
+        file("$destDir/keep.txt").exists()
+
+        where:
+        description         | into                                    | destDir
+        'build-owned'       | 'layout.buildDirectory.dir("out")'      | 'build/out'
+        'non-build-owned'   | 'layout.projectDirectory.dir("out")'    | 'out'
     }
 
     def 'only excluding non-preserved files works as expected'() {

@@ -485,6 +485,13 @@ It synchronizes the contents of a directory with its source.
 
 This can be useful for doing things such as installing your application, creating an exploded copy of your archives, or maintaining a copy of the project's dependencies.
 
+[NOTE]
+====
+Since Gradle 9.8.0, `Sync` no longer skips when its source is empty; it empties its destination instead, except for anything matched by `preserve { ... }`.
+However, a destination the build does not own and has never synced into is left untouched.
+See <<upgrading_version_9.adoc#sync_runs_when_source_is_empty, the upgrade guide entry>>.
+====
+
 Here is an example that maintains a copy of the project's runtime dependencies in the `build/libs` directory:
 
 ====
