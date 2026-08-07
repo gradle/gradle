@@ -18,39 +18,37 @@ package org.gradle.execution
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.Action
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
-import org.gradle.execution.plan.DefaultPlanExecutor
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
-import org.gradle.execution.plan.NodeExecutor
 import org.gradle.execution.plan.PlanExecutor
 import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.execution.plan.ScheduledWork
+import org.gradle.execution.plan.TaskNode
 import org.gradle.execution.plan.WorkSource
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
-import org.gradle.internal.operations.BuildOperationRef
-import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.operations.CurrentBuildOperationRef
-import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.util.Path
 import org.junit.Rule
 
-import java.util.concurrent.atomic.AtomicReference
-
 /**
- * Tests {@link SelectedTaskExecutionAction}.
+ * Tests {@link DefaultBuildWorkExecutor}.
  */
-class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
+class DefaultBuildWorkExecutorTest extends AbstractExecutionPlanSpec {
 
     @Rule
     ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
@@ -58,15 +56,16 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
     ServiceRegistry buildScopeServices = Stub(ServiceRegistry) {
         get(TaskDependencyFactory) >> TestFiles.taskDependencyFactory()
     }
-    PlanExecutor planExecutor = Mock(DefaultPlanExecutor)
-    BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
-    NodeExecutor nodeExecutor = Mock(NodeExecutor)
+    PlanExecutor planExecutor = Mock(PlanExecutor)
+    StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
+    ConfigurationTimeBarrier configurationTimeBarrier = Mock(ConfigurationTimeBarrier)
 
-    SelectedTaskExecutionAction underTest = new SelectedTaskExecutionAction(
+    DefaultBuildWorkExecutor underTest = new DefaultBuildWorkExecutor(
         buildScopeServices,
         planExecutor,
-        buildOperationRunner,
-        nodeExecutor
+        textOutputFactory,
+        configurationTimeBarrier,
+        new TestBuildOperationRunner()
     )
 
     TaskExecutionGraphExecutionListener executionGraphExecutionListener = Mock(TaskExecutionGraphExecutionListener)
@@ -75,8 +74,10 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
         getGraphExecutionListeners() >> executionGraphExecutionListener
         getExecutionPlan() >> { populatedPlan }
     }
+    StartParameterInternal startParameter = Mock(StartParameterInternal)
     GradleInternal gradle = Mock(GradleInternal) {
         getTaskGraph() >> taskExecutionGraph
+        getStartParameter() >> startParameter
     }
 
     def "closes plan after executing"() {
@@ -84,6 +85,9 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
 
         when:
         underTest.execute(gradle, plan)
+
+        then:
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
 
         then:
         1 * plan.close()
@@ -94,6 +98,9 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
 
         when:
         underTest.execute(gradle, plan)
+
+        then:
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
 
         then:
         1 * taskExecutionGraph.depopulate()
@@ -107,6 +114,9 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
 
         then:
         1 * executionGraphExecutionListener.beforeGraphExecutionStarts(plan.getContents())
+
+        then:
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
     }
 
     def "notifies task graph execution listener before starting execution"() {
@@ -119,7 +129,7 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
         1 * executionGraphExecutionListener.beforeGraphExecutionStarts(_)
 
         then:
-        1 * planExecutor.process(_, _)
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
     }
 
     def "closes plan and depopulates task graph when execution fails"() {
@@ -147,6 +157,7 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
         underTest.execute(gradle, plan)
 
         then:
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
         1 * project.bindAllModelRules()
         1 * otherProject.bindAllModelRules()
     }
@@ -158,6 +169,7 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
         underTest.execute(gradle, plan)
 
         then:
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
         1 * project.bindAllModelRules()
     }
 
@@ -168,58 +180,8 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
         underTest.execute(gradle, plan)
 
         then:
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
         0 * project.bindAllModelRules()
-    }
-
-    def "fails when the node executor does not know how to execute a node"() {
-        def node = Mock(Node)
-        def plan = newPlan()
-
-        when:
-        underTest.execute(gradle, plan)
-
-        then:
-        1 * planExecutor.process(_, _) >> { WorkSource<Node> source, Action<Node> nodeAction ->
-            nodeAction.execute(node)
-        }
-        1 * nodeExecutor.execute(node, _) >> false
-
-        and:
-        def failure = thrown(IllegalStateException)
-        failure.message.startsWith("Unknown type of node: ")
-    }
-
-    def "runs nodes with the build operation captured on the thread that started execution"() {
-        def callingThread = Thread.currentThread()
-        def parentOperation = Stub(BuildOperationRef) {
-            getId() >> new OperationIdentifier(42L)
-        }
-        def buildOperationRunner = Stub(BuildOperationRunner) {
-            getCurrentOperation() >> {
-                // Verify the build operation from the calling thread is captured
-                assert Thread.currentThread() == callingThread
-                parentOperation
-            }
-        }
-        def action = new SelectedTaskExecutionAction(buildScopeServices, planExecutor, buildOperationRunner, nodeExecutor)
-        def node = Mock(Node)
-        def plan = newPlan()
-        def operationWhileExecuting = new AtomicReference<BuildOperationRef>()
-
-        when:
-        action.execute(gradle, plan)
-
-        then:
-        1 * planExecutor.process(_, _) >> { WorkSource<Node> source, Action<Node> nodeAction ->
-            concurrent.start { nodeAction.execute(node) }.completed()
-        }
-        1 * nodeExecutor.execute(node, _) >> {
-            operationWhileExecuting.set(CurrentBuildOperationRef.instance().get())
-            true
-        }
-
-        and:
-        operationWhileExecuting.get().is(parentOperation)
     }
 
     def "can execute multiple times"() {
@@ -259,10 +221,38 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
         0 * taskExecutionGraph.depopulate()
     }
 
+    def "print all selected tasks before proceeding when dry run is enabled"() {
+        def task1 = Mock(TaskNode) {
+            getTask() >> Mock(TaskInternal)
+        }
+        def task2 = Mock(TaskNode) {
+            getTask() >> Mock(TaskInternal)
+        }
+
+        given:
+        startParameter.isDryRun() >> true
+        configurationTimeBarrier.isAtConfigurationTime() >> false
+        def plan = newPlan([task1, task2])
+
+        when:
+        underTest.execute(gradle, plan)
+
+        then:
+        textOutputFactory.category == DefaultBuildWorkExecutor.canonicalName
+        textOutputFactory.output == """:task1 {progressstatus}SKIPPED
+:task2 {progressstatus}SKIPPED
+"""
+        1 * task1.getTask().getIdentityPath() >> Path.path(':task1')
+        1 * task2.getTask().getIdentityPath() >> Path.path(':task2')
+    }
+
     FinalizedExecutionPlan newPlan(List<Node> scheduledNodes) {
         populatedPlan = Mock(FinalizedExecutionPlan) {
             getContents() >> Stub(QueryableExecutionPlan) {
                 getScheduledNodes() >> new ScheduledWork(ImmutableList.copyOf(scheduledNodes), ImmutableSet.copyOf(scheduledNodes))
+                getTasks() >> {
+                    scheduledNodes.findAll { it instanceof TaskNode }.collect { ((TaskNode) it).getTask() }
+                }
             }
             asWorkSource() >> Stub(WorkSource)
         }

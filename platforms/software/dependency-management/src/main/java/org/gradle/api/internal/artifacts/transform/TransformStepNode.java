@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.CreationOrderedNode;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.SelfExecutingNode;
 import org.gradle.execution.plan.TaskDeclarationAware;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.Describables;
@@ -63,7 +62,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("this-escape")
-public abstract class TransformStepNode extends CreationOrderedNode implements SelfExecutingNode, TaskDeclarationAware {
+public abstract class TransformStepNode extends CreationOrderedNode implements TaskDeclarationAware {
 
     protected final TransformStep transformStep;
     protected final ResolvableArtifact artifact;
