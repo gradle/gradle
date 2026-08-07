@@ -327,20 +327,12 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy -> input.run {
-                val currentWithoutIgnored = System.getProperties().uncheckedCast<Map<String, Any>>().filterKeysByPrefix(prefix).filterKeys {
-                    // remove properties that are known to be modified by the build logic at the moment of obtaining this, as their initial
-                    // values doesn't matter.
-                    snapshot[it] != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
-                }
-                val snapshotWithoutIgnored = snapshot.filterValues {
-                    // remove placeholders of modified properties to only compare relevant values.
-                    it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
-                }
-                ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
+                val current = System.getProperties().uncheckedCast<Map<String, Any>>().filterKeysByPrefix(prefix)
+                ifOrNull(current != snapshot) {
                     text("the set of system properties prefixed by ")
                         .reference(prefix)
                         .text(" has changed: ")
-                        .text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
+                        .text(detailedMessageForChanges(snapshot, current))
                 }
             }
 
