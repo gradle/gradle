@@ -2,5 +2,25 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew *)",
+      "Bash(cat *)",
+      "Bash(find *)",
+      "Bash(gh api:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh search:*)",
+      "Bash(git *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(date *)",
+      "Read(.agents/**)",
+      "mcp__ide__getDiagnostics"
+    ],
+    "deny": [
+      "Bash(git push *)"
+    ]
   }
 }
