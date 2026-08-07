@@ -49,4 +49,35 @@ class GroovyScriptClassCompilerIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("value = value")
     }
+
+    def "classes declared in a script get the implicit default constructor and the metaclass accessors"() {
+        // Groovy's Verifier is what adds these. It runs as part of the CLASS_GENERATION phase
+        // operations that CustomCompilationUnit has to re-register, so make sure none of them get
+        // lost - without the Verifier, `new Thing()` fails at runtime with
+        // "Could not find matching constructor for: Thing()".
+        buildFile """
+        class Thing {
+        }
+
+        class ThingWithAField {
+            def value = "field"
+        }
+
+        tasks.register("echo") {
+            doLast {
+                println("declaredConstructors = \$Thing.declaredConstructors")
+                println("thingWithAField = \${new ThingWithAField().value}")
+                println("metaClass = \${new Thing().metaClass != null}")
+            }
+        }
+        """
+
+        when:
+        succeeds("echo")
+
+        then:
+        outputContains("declaredConstructors = [public Thing()]")
+        outputContains("thingWithAField = field")
+        outputContains("metaClass = true")
+    }
 }
