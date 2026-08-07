@@ -16,6 +16,8 @@
 
 package org.gradle.internal.build
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
@@ -25,6 +27,7 @@ import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.QueryableExecutionPlan
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.execution.plan.ToPlannedTaskConverter
 import org.gradle.internal.operations.TestBuildOperationRunner
@@ -32,8 +35,6 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.NodeIdentity
 import org.gradle.util.Path
 import spock.lang.Specification
-
-import java.util.function.BiConsumer
 
 class BuildOperationFiringBuildWorkPreparerTest extends Specification {
     def "build operation provides execution plan when queries with all node types"() {
@@ -46,12 +47,10 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
                 getTaskIdentity() >> ti1
             }
         }
-        List<Node> nodes = [t]
 
-        def scheduledNodesStub = Stub(QueryableExecutionPlan.ScheduledNodes) {
-            visitNodes(_) >> { BiConsumer<List<Node>, Set<Node>> consumer ->
-                consumer.accept(nodes, new HashSet<Node>(nodes))
-            }
+        def scheduledNodesStub = Stub(ScheduledWork) {
+            getScheduledNodes() >> ImmutableList.of(t)
+            getEntryNodes() >> ImmutableSet.of(t)
         }
 
         def executionPlan = Stub(ExecutionPlan) {
@@ -86,7 +85,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         def executionPlan = Stub(ExecutionPlan) {
             getContents() >> Stub(QueryableExecutionPlan) {
-                getScheduledNodes() >> Stub(QueryableExecutionPlan.ScheduledNodes)
+                getScheduledNodes() >> Stub(ScheduledWork)
             }
         }
 
@@ -111,7 +110,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
         def executionPlan = Stub(ExecutionPlan) {
             getContents() >> Stub(QueryableExecutionPlan) {
-                getScheduledNodes() >> Stub(QueryableExecutionPlan.ScheduledNodes)
+                getScheduledNodes() >> Stub(ScheduledWork)
             }
         }
 

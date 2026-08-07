@@ -865,9 +865,17 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         GradleInternal gradle,
         StyledTextOutputFactory textOutputFactory,
         BuildOperationRunner buildOperationRunner,
-        ConfigurationTimeBarrier configurationTimeBarrier
+        ConfigurationTimeBarrier configurationTimeBarrier,
+        ServiceRegistry buildScopeServices,
+        PlanExecutor planExecutor
     ) {
-        BuildWorkExecutor delegate = new SelectedTaskExecutionAction();
+        BuildWorkExecutor delegate = new SelectedTaskExecutionAction(
+            buildScopeServices,
+            planExecutor,
+            buildOperationRunner,
+            new DefaultNodeExecutor()
+        );
+
         BuildWorkExecutor executor;
         if (gradle.getStartParameter().isDryRun()) {
             executor = new DryRunBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
@@ -919,24 +927,20 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @SuppressWarnings("deprecation")
     @Provides
     TaskExecutionGraphInternal createTaskExecutionGraph(
-        PlanExecutor planExecutor,
         BuildOperationRunner buildOperationRunner,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
-        ListenerManager listenerManager,
-        ServiceRegistry gradleScopedServices
+        ListenerManager listenerManager
     ) {
         return new DefaultTaskExecutionGraph(
-            planExecutor,
-            new DefaultNodeExecutor(),
             buildOperationRunner,
             listenerBuildOperationDecorator,
             gradleInternal,
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
             listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class),
-            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
-            gradleScopedServices
+            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class)
         );
     }
+
 }

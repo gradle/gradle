@@ -17,6 +17,7 @@
 package org.gradle.composite.internal
 
 import org.gradle.api.Action
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.GradleInternal
@@ -47,6 +48,7 @@ import org.gradle.execution.plan.PlanExecutor
 import org.gradle.execution.plan.SelfExecutingNode
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNodeFactory
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
@@ -179,6 +181,38 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         result.failures.empty
         childNode.executed
         node.executed
+
+        where:
+        workers << [1, manyWorkers]
+    }
+
+    def "stops running work and fails with exception when build is cancelled"() {
+        def services = new TreeServices(workers)
+        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
+        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childNode = new CancellingNode("child build node", cancellationToken)
+        def node = new DelegateNode("main build node", [childNode])
+
+        when:
+        def result = scheduleAndRun(services) { builder ->
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
+            }
+            builder.withWorkGraph(childBuild.state) { graphBuilder ->
+                def task = task(childBuild, childNode)
+                graphBuilder.addEntryTasks([task])
+            }
+        }
+
+        then:
+        childNode.executed
+        !node.executed
+
+        and:
+        // Every build that still had work to start is cancelled
+        !result.failures.empty
+        result.failures.every { it instanceof BuildCancelledException }
 
         where:
         workers << [1, manyWorkers]
@@ -524,6 +558,22 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
                     action.run()
                 }
             }
+        }
+    }
+
+    private static class CancellingNode extends TestNode {
+        private final BuildCancellationToken cancellationToken
+
+        CancellingNode(String displayName, BuildCancellationToken cancellationToken) {
+            super(displayName)
+            this.cancellationToken = cancellationToken
+        }
+
+        @Override
+        void execute(NodeExecutionContext context) {
+            cancellationToken.cancel()
+            // Sleeping while cancelled gives every worker a chance to notice before this node completes
+            super.execute(context)
         }
     }
 
