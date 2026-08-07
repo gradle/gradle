@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
+
 import java.io.Serializable;
 
 /**
@@ -32,6 +34,23 @@ public class DefaultTaskLocation implements TaskLocation, Serializable {
     @Override
     public String getBuildTreePath() {
         return buildTreePath;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultTaskLocation that = (DefaultTaskLocation) o;
+        return Objects.equal(buildTreePath, that.buildTreePath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(buildTreePath);
     }
 
 }
