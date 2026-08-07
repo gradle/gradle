@@ -17,12 +17,209 @@ package org.gradle.util
 
 import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.internal.ConfigureUtil.IncompleteInputException
+import spock.lang.Requires
 import spock.lang.Specification
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class ConfigureUtilTest extends Specification {
+
+    private static String privateStaticField = 'static value'
+    private String privateInstanceField = 'instance value'
+    private static String shadowed = 'from owner'
+    private static String nestedValue = 'nested value'
+
+    private static boolean isGroovy5OrLater() {
+        GroovySystem.version.tokenize('.')[0].toInteger() >= 5
+    }
+
+    def "can read a private static field of the closure owner class"() {
+        given:
+        Bean obj = new Bean()
+
+        when:
+        ConfigureUtil.configure({ prop = privateStaticField }, obj)
+
+        then:
+        obj.prop == 'static value'
+    }
+
+    def "can read a private instance field of the closure owner class"() {
+        given:
+        Bean obj = new Bean()
+
+        when:
+        ConfigureUtil.configure({ prop = privateInstanceField }, obj)
+
+        then:
+        obj.prop == 'instance value'
+    }
+
+    def "can read a private static field declared in the closure owner super class"() {
+        given:
+        Bean obj = new Bean()
+        def holder = new SubOfBaseWithPrivateFields()
+
+        when:
+        ConfigureUtil.configure(holder.readsStaticField(), obj)
+
+        then:
+        obj.prop == 'base static value'
+    }
+
+    @Requires({ GroovySystem.version.tokenize('.')[0].toInteger() >= 5 })
+    def "can read a private instance field declared in the closure owner super class"() {
+        given:
+        Bean obj = new Bean()
+        def holder = new SubOfBaseWithPrivateFields()
+
+        when:
+        ConfigureUtil.configure(holder.readsInstanceField(), obj)
+
+        then:
+        obj.prop == 'base instance value'
+    }
+
+    @Requires({ GroovySystem.version.tokenize('.')[0].toInteger() < 5 })
+    def "cannot read a private instance field declared in the closure owner super class on Groovy 4"() {
+        given:
+        Bean obj = new Bean()
+        def holder = new SubOfBaseWithPrivateFields()
+
+        when:
+        ConfigureUtil.configure(holder.readsInstanceField(), obj)
+
+        then:
+        thrown(MissingPropertyException)
+    }
+
+    def "delegate property shadows an owner private static field on Groovy 5"() {
+        given:
+        ShadowBean obj = new ShadowBean()
+
+        when:
+        ConfigureUtil.configure({ result = shadowed }, obj)
+
+        then:
+        obj.result == (groovy5OrLater ? 'from delegate' : 'from owner')
+    }
+
+    def "can read a private static field from a nested configure closure"() {
+        given:
+        Outer outer = new Outer()
+
+        when:
+        ConfigureUtil.configure(
+            {
+                inner {
+                    prop = nestedValue
+                }
+            },
+            outer
+        )
+
+        then:
+        outer.inner.prop == 'nested value'
+    }
+
+    def "can read an inherited private static field from a nested configure closure"() {
+        given:
+        Outer outer = new Outer()
+        def holder = new SubOfBaseWithPrivateFields()
+
+        when:
+        ConfigureUtil.configure(holder.nestedReadsStaticField(), outer)
+
+        then:
+        outer.inner.prop == 'base static value'
+    }
+
+    def "throws exception for an unknown property read in a closure"() {
+        given:
+        Bean obj = new Bean()
+
+        when:
+        ConfigureUtil.configure({ method(unknownThing) }, obj)
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.property == 'unknownThing'
+        e.type == Bean
+    }
+
+    def "throws exception for an unknown property read in a nested configure closure"() {
+        given:
+        Outer outer = new Outer()
+
+        when:
+        ConfigureUtil.configure(
+            {
+                inner {
+                    prop = unknownThing
+                }
+            },
+            outer
+        )
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.property == 'unknownThing'
+    }
+
+    def "user-thrown MissingPropertyException is not masked as an unknown property"() {
+        given:
+        Bean obj = new Bean()
+        def holder = new SubOfBaseWithThrowingPropertyMissing()
+
+        when:
+        ConfigureUtil.configure(holder.readsMissing(), obj)
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.property == 'somethingMissing'
+        e.type == ForeignBean
+    }
+
+    static abstract class BaseWithPrivateFields {
+        private static String baseStaticField = 'base static value'
+        private String baseInstanceField = 'base instance value'
+
+        Closure readsStaticField() {
+            return { prop = baseStaticField }
+        }
+
+        Closure readsInstanceField() {
+            return { prop = baseInstanceField }
+        }
+
+        Closure nestedReadsStaticField() {
+            return {
+                inner {
+                    prop = baseStaticField
+                }
+            }
+        }
+    }
+
+    static class SubOfBaseWithPrivateFields extends BaseWithPrivateFields {}
+
+    static class ShadowBean {
+        String shadowed = 'from delegate'
+        String result
+    }
+
+    static class Outer {
+        Inner inner = new Inner()
+
+        def inner(Closure closure) {
+            ConfigureUtil.configure(closure, inner)
+        }
+    }
+
+    static class Inner {
+        String prop
+    }
 
     def doesNothingWhenNullClosureIsProvided() {
         given:
@@ -212,3 +409,17 @@ class ConfigureUtilTest extends Specification {
         }
     }
 }
+
+class ForeignBean {}
+
+abstract class BaseWithThrowingPropertyMissing {
+    def propertyMissing(String name) {
+        throw new MissingPropertyException(name, ForeignBean)
+    }
+
+    Closure readsMissing() {
+        return { prop = somethingMissing }
+    }
+}
+
+class SubOfBaseWithThrowingPropertyMissing extends BaseWithThrowingPropertyMissing {}

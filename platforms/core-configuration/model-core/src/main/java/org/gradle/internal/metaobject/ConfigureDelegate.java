@@ -18,6 +18,7 @@ package org.gradle.internal.metaobject;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
+import groovy.lang.MissingPropertyException;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -28,9 +29,11 @@ public class ConfigureDelegate extends GroovyObjectSupport {
     protected final DynamicObject _owner;
     protected final DynamicObject _delegate;
     private final Object _original_owner;
+    private final Closure<?> _original_closure;
     private boolean _configuring;
 
     public ConfigureDelegate(Closure<?> configureClosure, Object delegate) {
+        _original_closure = configureClosure;
         _original_owner = configureClosure.getOwner();
         _owner = DynamicObjectUtil.asDynamicObject(_original_owner);
         _delegate = DynamicObjectUtil.asDynamicObject(delegate);
@@ -126,9 +129,43 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 }
             }
 
+            try {
+                return _original_closure.getProperty(name);
+            } catch (MissingPropertyException e) {
+                if (!_isMissThrownByResolutionChain(name, e)) {
+                    throw e;
+                }
+            }
+
             throw _delegate.getMissingProperty(name);
         } finally {
             _configuring = isAlreadyConfiguring;
         }
+    }
+
+    private boolean _isMissThrownByResolutionChain(String name, MissingPropertyException e) {
+        if (!name.equals(e.getProperty())) {
+            return false;
+        }
+        Object current = _original_closure;
+        while (current instanceof Closure) {
+            Closure<?> closure = (Closure<?>) current;
+            if (_typeMatches(e, closure.getThisObject()) || _typeMatches(e, closure.getDelegate())) {
+                return true;
+            }
+            current = closure.getOwner();
+        }
+        if (current instanceof ConfigureDelegate) {
+            DynamicObject enclosingDelegate = ((ConfigureDelegate) current)._delegate;
+            Class<?> enclosingMissType = enclosingDelegate instanceof AbstractDynamicObject
+                ? ((AbstractDynamicObject) enclosingDelegate).getPublicType()
+                : enclosingDelegate.getMissingProperty(name).getType();
+            return enclosingMissType == null ? e.getType() == null : enclosingMissType.equals(e.getType());
+        }
+        return _typeMatches(e, current);
+    }
+
+    private static boolean _typeMatches(MissingPropertyException e, @Nullable Object candidate) {
+        return candidate != null && candidate.getClass().equals(e.getType());
     }
 }
