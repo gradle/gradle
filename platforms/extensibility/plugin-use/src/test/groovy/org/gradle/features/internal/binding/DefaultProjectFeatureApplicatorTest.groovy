@@ -45,7 +45,6 @@ import org.gradle.internal.service.UnknownServiceException
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import java.lang.annotation.Annotation
 import java.lang.reflect.Type
 
 class DefaultProjectFeatureApplicatorTest extends Specification {
@@ -236,9 +235,5 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
             return found
         }
 
-        @Override
-        Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
     }
 }
