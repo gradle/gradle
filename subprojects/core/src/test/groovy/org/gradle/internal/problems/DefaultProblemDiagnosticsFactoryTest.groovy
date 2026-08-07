@@ -104,6 +104,52 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         diagnostics5.stack.empty
     }
 
+    def "supplied exception path falls back to a location-only bounded capture past the full cap"() {
+        given:
+        // 1 full capture, then a bounded budget of 2.
+        def cappedFactory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 1, 2, boundedCallerStackCapturer)
+        def stream = cappedFactory.newStream()
+        def suppliedException = new Exception("supplied")
+        def supplier = Stub(Supplier) {
+            get() >> suppliedException
+        }
+        def boundedThrowable = new Exception()
+
+        when:
+        // Within the full budget: the supplied exception is kept and surfaced.
+        def withinCap = stream.forCurrentCaller(supplier)
+
+        then:
+        withinCap.exception == suppliedException
+        0 * boundedCallerStackCapturer.captureCallerStack()
+
+        when:
+        // Past the full budget: a bounded capture provides the location, but it is never kept as the exception.
+        def pastCap = stream.forCurrentCaller(supplier)
+
+        then:
+        pastCap.exception == null
+        !pastCap.stack.empty
+        1 * boundedCallerStackCapturer.captureCallerStack() >> boundedThrowable
+    }
+
+    def "supplied exception path stops capturing once the bounded budget is spent"() {
+        given:
+        // 1 full capture, then a bounded budget of 2, then no capture at all.
+        def cappedFactory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 1, 2, boundedCallerStackCapturer)
+        def stream = cappedFactory.newStream()
+        def supplier = Stub(Supplier) {
+            get() >> new Exception("supplied")
+        }
+
+        when:
+        // 1 supplied (full) + 2 bounded fallbacks + 1 past both budgets.
+        4.times { stream.forCurrentCaller(supplier) }
+
+        then:
+        2 * boundedCallerStackCapturer.captureCallerStack() >> null
+    }
+
     def "stops capturing bounded stacks once the bounded budget is spent"() {
         given:
         // 2 full captures, then a bounded budget of 3, then no capture at all.
