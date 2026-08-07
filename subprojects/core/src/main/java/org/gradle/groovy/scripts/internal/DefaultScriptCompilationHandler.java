@@ -436,6 +436,13 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         }
 
         @Override
+        public boolean canReinstrumentClasses() {
+            // The compiled script classloader always substitutes bytecode instrumented during the artifact
+            // transform and never re-instruments the JVM-supplied buffer, so it cannot honor a hot-swap.
+            return false;
+        }
+
+        @Override
         public void transformFailed(@Nullable String className, Throwable cause) {
             errorHandler.classLoadingError(className, cause);
         }
