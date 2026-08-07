@@ -225,7 +225,7 @@ class WorkNodeCodec(
     }
 
     private
-    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId, taskReferences: MutableList<RestoredTaskReference>): List<Node> =
+    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId, taskReferences: MutableList<RestoredTaskReference>): ImmutableList<Node> =
         buildCollection({ ImmutableList.builderWithExpectedSize<Node>(it) }) {
             val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)

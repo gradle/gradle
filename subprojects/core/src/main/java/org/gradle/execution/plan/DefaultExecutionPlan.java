@@ -340,7 +340,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     @Override
-    public ScheduledNodes getScheduledNodes() {
+    public ScheduledWork getScheduledNodes() {
         if (scheduledNodes == null) {
             throw new IllegalStateException("Nodes have not been scheduled yet.");
         }
@@ -354,7 +354,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         }
         // We're not filtering entryNodes to only contain scheduled nodes here to avoid performance penalty for clients that
         // don't care about the entry nodes at all.
-        return new ScheduledWork(scheduledNodes, entryNodes);
+        return new ScheduledWork(scheduledNodes, ImmutableSet.copyOf(entryNodes));
     }
 
     @Override
