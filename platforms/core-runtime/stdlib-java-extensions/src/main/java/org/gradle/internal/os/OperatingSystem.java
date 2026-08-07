@@ -105,6 +105,10 @@ public abstract class OperatingSystem {
         return false;
     }
 
+    public boolean isFreeBSD() {
+        return false;
+    }
+
     public abstract String getNativePrefix();
 
     public abstract String getScriptName(String scriptPath);
@@ -417,6 +421,15 @@ public abstract class OperatingSystem {
     }
 
     static class FreeBSD extends Unix {
+        @Override
+        public boolean isFreeBSD() {
+            return true;
+        }
+
+        @Override
+        public String getFamilyName() {
+            return "freebsd";
+        }
     }
 
     static class Solaris extends Unix {
