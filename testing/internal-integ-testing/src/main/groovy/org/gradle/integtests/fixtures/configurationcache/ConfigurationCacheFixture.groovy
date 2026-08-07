@@ -263,17 +263,24 @@ class ConfigurationCacheFixture {
     }
 
     private void assertEntryOutcomeMatches(HasBuildActions details) {
-        configurationCacheBuildOperations.assertEntryOutcome(expectedEntryOutcomeFor(details.storeAction))
+        configurationCacheBuildOperations.assertEntryOutcome(details.entryOutcome ?: expectedEntryOutcomeFor(details))
     }
 
-    private static String expectedEntryOutcomeFor(String storeAction) {
-        switch (storeAction.split(" ")[0]) {
+    private static String expectedEntryOutcomeFor(HasBuildActions details) {
+        switch (details.storeAction.split(" ")[0]) {
             case "stored": return "STORED"
             case "reused": return "REUSED"
-            case "updated": return "UPDATED"
-            case "discarded": return "DISCARDED"
-            default: throw new IllegalArgumentException("Unexpected store action: '$storeAction'")
+            // Partial updates report STORED until the entry fate for Isolated Projects gets more coverage
+            case "updated": return "STORED"
+            // Discarding without any problems means an incompatible task caused a deliberate skip;
+            // discarding because of problems is a failed store. Exceptions can set entryOutcome explicitly.
+            case "discarded": return declaredProblemCount(details) == 0 ? "STORE_SKIPPED" : "STORE_FAILED"
+            default: throw new IllegalArgumentException("Unexpected store action: '${details.storeAction}'")
         }
+    }
+
+    private static int declaredProblemCount(HasBuildActions details) {
+        details instanceof HasProblems ? ((HasProblems) details).totalProblems : 0
     }
 
     private void assertWorkGraphOrModelStored(boolean runsTasks, boolean createsModels, boolean loadAfterStore) {
@@ -486,6 +493,8 @@ class ConfigurationCacheFixture {
         boolean loadsAfterStore = true
         boolean hasStoreFailure = true
         boolean hasLoadFailure = false
+        // Explicit entry outcome expectation; when null it is derived from the store action and declared problems
+        String entryOutcome = null
 
         abstract String getStoreAction()
     }

@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.configuration.internal;
+package org.gradle.tooling.events.configuration;
 
-import org.gradle.tooling.events.configuration.ConfigurationCacheEntryUpdatedResult;
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * Storing a configuration cache entry failed, e.g. because of problems, a serialization error, or because the build failed before the entry could be stored.
+ *
+ * @since 9.8.0
+ */
+@Incubating
 @NullMarked
-public class DefaultConfigurationCacheEntryUpdatedResult extends AbstractConfigurationCacheEntryOutcomeResult implements ConfigurationCacheEntryUpdatedResult {
-    public DefaultConfigurationCacheEntryUpdatedResult(long startTime, long endTime, int problemCount) {
-        super(startTime, endTime, problemCount);
-    }
+public interface ConfigurationCacheEntryStoreFailedResult extends ConfigurationCacheEntryOutcomeResult {
 }

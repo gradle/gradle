@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.configuration;
+package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * No configuration cache entry was stored on purpose: no reusable entry was found while the cache is in read-only mode, or configuration caching was degraded gracefully because incompatible tasks were scheduled.
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * Storing a configuration cache entry failed, e.g. because of problems, a serialization error, or because the build failed before the entry could be stored.
  *
  * @since 9.8.0
  */
-@Incubating
 @NullMarked
-public interface ConfigurationCacheEntryNotStoredResult extends ConfigurationCacheEntryOutcomeResult {
+public interface InternalConfigurationCacheEntryStoreFailedResult extends InternalConfigurationCacheEntryOutcomeResult {
 }

@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build.event.types;
+package org.gradle.internal.cc.impl.problems
 
-import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryNotStoredResult;
-import org.jspecify.annotations.NullMarked;
-
-@NullMarked
-public class DefaultConfigurationCacheEntryNotStoredResult extends AbstractConfigurationCacheEntryOutcomeResult implements InternalConfigurationCacheEntryNotStoredResult {
-    public DefaultConfigurationCacheEntryNotStoredResult(long startTime, long endTime, int problemCount) {
-        super(startTime, endTime, problemCount);
-    }
+/**
+ * The outcome of configuration caching for a build invocation, classified along user-facing
+ * lines for the build-logic API. `NOT_ENABLED` has no representation here: when the
+ * configuration cache is off, none of the reporting infrastructure exists.
+ */
+internal
+enum class EntryOutcomeKind {
+    REUSED,
+    STORED,
+    STORE_SKIPPED,
+    STORE_FAILED
 }

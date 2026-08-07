@@ -36,12 +36,11 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
-import org.gradle.tooling.events.configuration.ConfigurationCacheEntryDiscardedResult;
-import org.gradle.tooling.events.configuration.ConfigurationCacheEntryNotStoredResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoreFailedResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoreSkippedResult;
 import org.gradle.tooling.events.configuration.ConfigurationCacheEntryOutcomeResult;
 import org.gradle.tooling.events.configuration.ConfigurationCacheEntryReusedResult;
 import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoredResult;
-import org.gradle.tooling.events.configuration.ConfigurationCacheEntryUpdatedResult;
 import org.gradle.tooling.events.configuration.ConfigurationCacheFinishEvent;
 import org.gradle.tooling.events.task.TaskFailureResult;
 import org.gradle.tooling.events.task.TaskFinishEvent;
@@ -249,12 +248,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 return ConfigurationCacheOutcome.STORED;
             } else if (result instanceof ConfigurationCacheEntryReusedResult) {
                 return ConfigurationCacheOutcome.REUSED;
-            } else if (result instanceof ConfigurationCacheEntryUpdatedResult) {
-                return ConfigurationCacheOutcome.UPDATED;
-            } else if (result instanceof ConfigurationCacheEntryDiscardedResult) {
-                return ConfigurationCacheOutcome.DISCARDED;
-            } else if (result instanceof ConfigurationCacheEntryNotStoredResult) {
-                return ConfigurationCacheOutcome.NOT_STORED;
+            } else if (result instanceof ConfigurationCacheEntryStoreFailedResult) {
+                return ConfigurationCacheOutcome.STORE_FAILED;
+            } else if (result instanceof ConfigurationCacheEntryStoreSkippedResult) {
+                return ConfigurationCacheOutcome.STORE_SKIPPED;
             } else {
                 // ConfigurationCacheEntryUndeterminedResult, no result at all,
                 // or an outcome added by a later Gradle version that this TestKit version does not know about

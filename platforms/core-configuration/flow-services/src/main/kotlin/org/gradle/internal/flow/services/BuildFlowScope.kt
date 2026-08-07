@@ -116,6 +116,7 @@ open class BuildFlowScope @Inject internal constructor(
     @Deprecated("Deprecated in Java")
     override fun buildFinished(result: BuildResult) {
         setBuildWorkResult(result.failure)
+        markConfigurationCacheOutcomeAvailable()
         schedulePendingActions()
     }
 
@@ -134,6 +135,11 @@ open class BuildFlowScope @Inject internal constructor(
         flowProviders.buildWorkResult.uncheckedCast<BuildWorkResultProvider>().apply {
             set { Optional.ofNullable(failure) }
         }
+    }
+
+    private
+    fun markConfigurationCacheOutcomeAvailable() {
+        flowProviders.configurationCacheOutcome.uncheckedCast<ConfigurationCacheOutcomeProvider>().markAvailable()
     }
 
     private

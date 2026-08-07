@@ -109,6 +109,21 @@ The outcome is also available to any Tooling API client through a new [`CONFIGUR
 
 See the [Testing with the Configuration Cache](userguide/test_kit.html#sub:test-kit-configuration-cache) section in the Gradle User Manual for more details.
 
+#### Build logic can verify the Configuration Cache outcome
+
+Build logic can now observe the same outcome from within the build, through a new [`FlowProviders.getConfigurationCacheOutcome()`](javadoc/org/gradle/api/flow/FlowProviders.html#getConfigurationCacheOutcome--) lifecycle event provider that can be used as an input to [dataflow actions](userguide/dataflow_actions.html#dataflow_action):
+
+```groovy
+flowScope.always(VerifyConfigurationCacheReuse) {
+    parameters.outcome = flowProviders.configurationCacheOutcome
+}
+```
+
+This makes it possible, for example, to fail a CI build when an expected Configuration Cache hit did not happen, without parsing console output.
+When the Configuration Cache is not enabled, the provider reports [`ConfigurationCacheOutcome.NotEnabled`](javadoc/org/gradle/api/configuration/ConfigurationCacheOutcome.NotEnabled.html).
+
+For more information, see the [dedicated section](userguide/dataflow_actions.html#verifying_configuration_cache_reuse) in the user manual.
+
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 

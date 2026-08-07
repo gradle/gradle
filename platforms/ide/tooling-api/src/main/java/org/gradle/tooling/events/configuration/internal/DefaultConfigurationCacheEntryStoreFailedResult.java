@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build.event.types;
+package org.gradle.tooling.events.configuration.internal;
 
-import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryUpdatedResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoreFailedResult;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class DefaultConfigurationCacheEntryUpdatedResult extends AbstractConfigurationCacheEntryOutcomeResult implements InternalConfigurationCacheEntryUpdatedResult {
-    public DefaultConfigurationCacheEntryUpdatedResult(long startTime, long endTime, int problemCount) {
+public class DefaultConfigurationCacheEntryStoreFailedResult extends AbstractConfigurationCacheEntryOutcomeResult implements ConfigurationCacheEntryStoreFailedResult {
+    public DefaultConfigurationCacheEntryStoreFailedResult(long startTime, long endTime, int problemCount) {
         super(startTime, endTime, problemCount);
     }
 }
