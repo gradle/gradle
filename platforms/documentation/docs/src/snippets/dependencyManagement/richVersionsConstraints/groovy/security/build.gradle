@@ -1,0 +1,27 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// An older log4j-core version is declared directly to simulate a transitive
+// dependency bringing in a vulnerable version. The constraint below upgrades
+// it to the security floor.
+dependencies {
+    implementation('org.apache.logging.log4j:log4j-core:2.17.0')
+}
+
+// tag::security-minimum[]
+dependencies {
+    constraints {
+        implementation('org.apache.logging.log4j:log4j-core') {
+            version {
+                strictly '[2.17.1, 3['
+            }
+            because 'CVE-2021-44832: versions prior to 2.17.1 are vulnerable'
+        }
+    }
+}
+// end::security-minimum[]

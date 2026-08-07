@@ -1,0 +1,17 @@
+plugins {
+    `java-library`
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::constraints-alongside-dependencies[]
+dependencies {
+    implementation("com.google.guava:guava")
+
+    constraints {
+        implementation("com.google.guava:guava:33.0.0-jre")
+    }
+}
+// end::constraints-alongside-dependencies[]

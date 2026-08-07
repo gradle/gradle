@@ -1,0 +1,54 @@
+plugins {
+    `java-library`
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::strictly-prevent-upgrade[]
+dependencies {
+    // Your project depends on an API from Commons Codec 1.9 that was removed in 1.10.
+    // Use strictly to prevent HttpClient from upgrading it to 1.10 transitively.
+    implementation("commons-codec:commons-codec") {
+        version {
+            strictly("[1.9, 1.10[")
+        }
+    }
+    implementation("org.apache.httpcomponents:httpclient:4.5.4") // brings in commons-codec:1.10
+}
+// end::strictly-prevent-upgrade[]
+
+// tag::reject-single-version[]
+dependencies {
+    // Version 1.4 has a known bug; any other version in the 1.x range is fine.
+    implementation("commons-io:commons-io") {
+        version {
+            require("[1.0, 2.0[")
+            reject("1.4")
+        }
+    }
+}
+// end::reject-single-version[]
+
+// tag::strictly-with-prefer[]
+dependencies {
+    implementation("org.slf4j:slf4j-api") {
+        version {
+            strictly("[1.0, 2.0[")  // consumers must stay within 1.x
+            prefer("1.7.25")        // use 1.7.25 when no other opinion exists
+        }
+    }
+}
+// end::strictly-with-prefer[]
+
+// tag::reject-multiple-versions[]
+dependencies {
+    implementation("com.google.guava:guava") {
+        version {
+            require("[33.0, 34.0[")
+            reject("33.4.4-jre", "33.5.0-jre")
+        }
+    }
+}
+// end::reject-multiple-versions[]
