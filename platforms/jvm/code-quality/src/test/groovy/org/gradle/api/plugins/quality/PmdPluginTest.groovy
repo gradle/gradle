@@ -21,9 +21,13 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmEnvironment
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
@@ -311,6 +315,31 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert getAttribute(Bundling.BUNDLING_ATTRIBUTE).name == Bundling.EXTERNAL
             assert getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).name == LibraryElements.JAR
             assert getAttribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE).name == TargetJvmEnvironment.STANDARD_JVM
+            assert getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Jvm.current().getJavaVersionMajor()
+        }
+    }
+
+    def "task aux configurations have TargetJvmVersion set based on pmd task launcher"() {
+        given:
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+
+        when:
+        TaskProvider<Pmd> pmdTask = project.tasks.named("pmdMain", Pmd)
+        pmdTask.configure { task ->
+            task.javaLauncher.set(
+                task.toolchainService.launcherFor {
+                    it.languageVersion = JavaLanguageVersion.of(17)
+                }
+            )
+        }
+        pmdTask.get()
+
+        then:
+        with(project.configurations.mainPmdAuxClasspath.attributes) {
+            assert getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 17
         }
     }
 }
