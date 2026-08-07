@@ -71,7 +71,6 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.properties.GradlePropertiesController;
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
@@ -119,23 +118,19 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
-import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildTaskScheduler;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildTaskScheduler;
-import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
-import org.gradle.execution.plan.DefaultNodeExecutor;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
 import org.gradle.execution.plan.NodeValidator;
 import org.gradle.execution.plan.OrdinalGroupFactory;
-import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -216,7 +211,6 @@ import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.TaskGraphBuildExecutionAction;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
@@ -227,7 +221,6 @@ import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerFactory;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -303,6 +296,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
         registration.add(BuildLogicBuilder.class, DefaultBuildLogicBuilder.class);
+        registration.add(BuildWorkExecutor.class, DefaultBuildWorkExecutor.class);
 
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
@@ -858,33 +852,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     CommandLineTaskParser createCommandLineTaskParser(OptionReader optionReader, BuildTaskSelector taskSelector, BuildState build) {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector, build);
-    }
-
-    @Provides
-    BuildWorkExecutor createBuildExecuter(
-        GradleInternal gradle,
-        StyledTextOutputFactory textOutputFactory,
-        BuildOperationRunner buildOperationRunner,
-        ConfigurationTimeBarrier configurationTimeBarrier,
-        ServiceRegistry buildScopeServices,
-        PlanExecutor planExecutor
-    ) {
-        BuildWorkExecutor delegate = new SelectedTaskExecutionAction(
-            buildScopeServices,
-            planExecutor,
-            buildOperationRunner,
-            new DefaultNodeExecutor()
-        );
-
-        BuildWorkExecutor executor;
-        if (gradle.getStartParameter().isDryRun()) {
-            executor = new DryRunBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
-        } else if (gradle.getStartParameter().isTaskGraph()) {
-            executor = new TaskGraphBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
-        } else {
-            executor = delegate;
-        }
-        return new BuildOperationFiringBuildWorkerExecutor(executor, buildOperationRunner);
     }
 
     @Provides

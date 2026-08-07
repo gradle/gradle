@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes
 
+import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNode
@@ -123,6 +124,9 @@ class ToPlannedNodeConverterRegistryTest extends Specification {
 
         @Override
         void resolveDependencies(TaskDependencyResolver dependencyResolver) {}
+
+        @Override
+        void execute(NodeExecutionContext context) {}
 
         @Override
         String toString() {
