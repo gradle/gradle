@@ -38,7 +38,6 @@ import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.FileSystemTestPreconditions
-
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ToBeImplemented
@@ -2413,9 +2412,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     List<Node> getScheduledNodes() {
-        def result = []
-        executionPlan.scheduledNodes.visitNodes { nodes, entryNodes -> result.addAll(nodes) }
-        return result
+        return executionPlan.scheduledNodes.scheduledNodes
     }
 
     private static class TestNode extends CreationOrderedNode implements SelfExecutingNode {

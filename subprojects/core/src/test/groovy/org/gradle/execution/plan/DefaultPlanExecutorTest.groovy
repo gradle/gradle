@@ -17,6 +17,7 @@
 package org.gradle.execution.plan
 
 import org.gradle.api.Action
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -113,4 +114,48 @@ class DefaultPlanExecutorTest extends Specification {
         1 * workSource.collectFailures([])
         0 * workSource._
     }
+
+    def "no work is started when cancellation is requested before the first work item is selected"() {
+        when:
+        def result = executor.process(workSource, worker)
+
+        then:
+        result.failures.empty
+        1 * workerLeaseService.currentWorkerLease >> workerLease
+
+        then:
+        1 * cancellationHandler.isCancellationRequested() >> true
+        1 * workSource.cancelExecution()
+        1 * workSource.executionState() >> WorkSource.State.NoMoreWorkToStart
+
+        then:
+        1 * workerLease.tryLock() >> true
+        3 * workSource.allExecutionComplete() >> true
+        1 * workSource.collectFailures([])
+        0 * workSource._
+        0 * worker._
+    }
+
+    def "failures collected from the work source are reported in the result"() {
+        def cancellation = new BuildCancelledException()
+
+        when:
+        def result = executor.process(workSource, worker)
+
+        then:
+        result.failures == [cancellation]
+        1 * workerLeaseService.currentWorkerLease >> workerLease
+
+        then:
+        1 * cancellationHandler.isCancellationRequested() >> true
+        1 * workSource.cancelExecution()
+        1 * workSource.executionState() >> WorkSource.State.NoMoreWorkToStart
+
+        then:
+        1 * workerLease.tryLock() >> true
+        3 * workSource.allExecutionComplete() >> true
+        1 * workSource.collectFailures(_) >> { arguments -> arguments[0].add(cancellation) }
+        0 * workSource._
+    }
+
 }

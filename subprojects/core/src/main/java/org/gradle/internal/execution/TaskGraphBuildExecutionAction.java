@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
@@ -70,12 +71,11 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
     }
 
     private void renderTaskGraph(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
-            String invocation = renderRequestedTasks(gradle.getStartParameter());
-            StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
-            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
-            renderer.renderTo(new RootNode(entryNodes, invocation), output);
-        });
+        ImmutableSet<Node> entryNodes = plan.getContents().getScheduledNodes().getEntryNodes();
+        String invocation = renderRequestedTasks(gradle.getStartParameter());
+        StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
+        DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
+        renderer.renderTo(new RootNode(entryNodes, invocation), output);
     }
 
     private static String renderRequestedTasks(StartParameterInternal startParameter) {
