@@ -1,0 +1,15 @@
+// tag::avoid[]
+def failedTasks = []
+
+gradle.taskGraph.afterTask { Task task, TaskState state ->
+    if (state.failure != null) {
+        failedTasks << task.path
+    }
+}
+
+gradle.buildFinished {
+    if (failedTasks) {
+        println "Failed tasks: ${failedTasks.join(', ')}"
+    }
+}
+// end::avoid[]
