@@ -469,6 +469,8 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=consume_catalog]"]
 ====
 
+TIP: For the full plugin reference — apply syntax, tasks, dependency configurations, extension and publishing component — see the <<version_catalog_plugin.adoc#version_catalog_plugin,Version Catalog Plugin>> page.
+
 [[sec:changing-catalog-name]]
 == Changing the catalog name
 

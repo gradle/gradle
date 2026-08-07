@@ -1,0 +1,81 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[jvm_toolchains_plugins]]
+= The JVM Toolchains Plugins
+
+Two related core plugins provide <<toolchains.adoc#toolchains,Java toolchain>> support: `jvm-toolchains` works at the project level, and `jvm-toolchain-management` works at the settings level.
+Both are applied automatically in the situations described below, so you rarely apply them by hand.
+
+For the concepts — how a toolchain is selected, provisioned, and used by JVM tasks — see <<toolchains.adoc#toolchains,Toolchains for JVM projects>>.
+For writing and registering toolchain download repositories, see <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>>.
+
+[[sec:jvm_toolchains_plugin]]
+== The `jvm-toolchains` plugin
+
+The `jvm-toolchains` plugin (a `Plugin<Project>`) makes the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainService.html[JavaToolchainService] available to a project so that toolchains can be selected and provisioned for JVM tools such as compilation, testing, and execution.
+
+It adds the following extension:
+
+`javaToolchains` — link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainService.html[JavaToolchainService]::
+Used to query for and provision toolchains — for example, to obtain a `JavaLauncher`, `JavaCompiler`, or `JavadocTool` for a specific `JavaLanguageVersion`.
+
+The JVM language plugins (via the `java-base` plugin) apply `jvm-toolchains` automatically, so most builds never apply it directly.
+Apply it explicitly only when you need the `javaToolchains` service in a project that does not apply a JVM language plugin:
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("jvm-toolchains")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'jvm-toolchains'
+}
+----
+=====
+
+[[sec:jvm_toolchain_management_plugin]]
+== The `jvm-toolchain-management` plugin
+
+The `jvm-toolchain-management` plugin (a `Plugin<Settings>`) adds a `jvm` block to the settings-level `toolchainManagement` container, where <<toolchain_plugins.adoc#toolchain_plugins,Java toolchain download repositories>> are configured:
+
+[source,kotlin]
+.settings.gradle.kts
+----
+toolchainManagement {
+    jvm {
+        javaRepositories {
+            // register toolchain resolver repositories here
+        }
+    }
+}
+----
+
+Toolchain resolver plugins apply `jvm-toolchain-management` automatically, so you normally do not apply it yourself.
+
+[[sec:jvm_toolchains_plugins_reference]]
+== See also
+
+* <<toolchains.adoc#toolchains,Toolchains for JVM projects>> — selecting and provisioning toolchains.
+* <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> — writing and registering toolchain download repositories.
