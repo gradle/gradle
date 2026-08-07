@@ -27,6 +27,36 @@ import java.io.File
 import java.net.URI
 
 
+/**
+ * A fingerprint value whose meaning depends on the state of the system properties at the moment it was
+ * recorded, because the build logic can change them while the build is being configured.
+ *
+ * Fingerprint values are checked in an order that has nothing to do with the order they were recorded in,
+ * so an entry cannot rely on the changes recorded before it having been replayed already. Instead, every
+ * such entry carries the version of the system properties it observed, and the checker resolves it against
+ * that version. See [VersionedSystemProperties].
+ */
+internal
+sealed interface SystemPropertiesVersioned {
+
+    val systemPropertiesVersion: Long
+}
+
+
+/**
+ * A value that observed the system properties at [systemPropertiesVersion] and is checked against them.
+ */
+internal
+interface ReadsSystemProperties : SystemPropertiesVersioned
+
+
+/**
+ * A change to the system properties, which produced [systemPropertiesVersion].
+ */
+internal
+interface ChangesSystemProperties : SystemPropertiesVersioned
+
+
 internal
 sealed class ConfigurationCacheFingerprint : ValueObject {
 
@@ -87,25 +117,30 @@ sealed class ConfigurationCacheFingerprint : ValueObject {
     ) : ConfigurationCacheFingerprint()
 
     data class ValueSource(
-        val obtainedValue: ObtainedValue
-    ) : ConfigurationCacheFingerprint()
+        val obtainedValue: ObtainedValue,
+        override val systemPropertiesVersion: Long
+    ) : ConfigurationCacheFingerprint(), ReadsSystemProperties
 
     data class SystemPropertyChanged(
         val key: Any,
-        val value: Any?
-    ) : ConfigurationCacheFingerprint()
+        val value: Any?,
+        override val systemPropertiesVersion: Long
+    ) : ConfigurationCacheFingerprint(), ChangesSystemProperties
 
     data class SystemPropertyRemoved(
         val key: Any,
-    ) : ConfigurationCacheFingerprint()
+        override val systemPropertiesVersion: Long
+    ) : ConfigurationCacheFingerprint(), ChangesSystemProperties
 
-    object SystemPropertiesCleared
-        : ConfigurationCacheFingerprint()
+    data class SystemPropertiesCleared(
+        override val systemPropertiesVersion: Long
+    ) : ConfigurationCacheFingerprint(), ChangesSystemProperties
 
     data class UndeclaredSystemProperty(
         val key: String,
-        val value: Any?
-    ) : ConfigurationCacheFingerprint()
+        val value: Any?,
+        override val systemPropertiesVersion: Long
+    ) : ConfigurationCacheFingerprint(), ReadsSystemProperties
 
     data class UndeclaredEnvironmentVariable(
         val key: String,
@@ -140,8 +175,9 @@ sealed class ConfigurationCacheFingerprint : ValueObject {
 
     data class SystemPropertiesPrefixedBy(
         val prefix: String,
-        val snapshot: Map<String, Any?>
-    ) : ConfigurationCacheFingerprint()
+        val snapshot: Map<String, Any?>,
+        override val systemPropertiesVersion: Long
+    ) : ConfigurationCacheFingerprint(), ReadsSystemProperties
 
     data class EnvironmentVariablesPrefixedBy(
         val prefix: String,
@@ -150,8 +186,9 @@ sealed class ConfigurationCacheFingerprint : ValueObject {
 
     data class GradlePropertiesLoaded(
         val propertyScope: GradlePropertyScope,
-        val propertiesDir: File
-    ) : ConfigurationCacheFingerprint()
+        val propertiesDir: File,
+        override val systemPropertiesVersion: Long
+    ) : ConfigurationCacheFingerprint(), ChangesSystemProperties
 
     data class GradleProperty(
         val propertyScope: GradlePropertyScope,

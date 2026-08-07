@@ -428,6 +428,59 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputDoesNotContain("creating model")
     }
 
+    @ToBeImplemented("A project that reads a system property another project mutates can be reused with a stale value")
+    def "reuses a project that read a system property mutated by an invalidated project"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        includeProjects("a", "b")
+
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            System.setProperty("my.prop", "fromA")
+        """
+
+        // ':b' is configured after ':a', so it observes the value ':a' set
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            myExtension.message = "my.prop = " + System.getProperty("my.prop")
+        """
+
+        when:
+        withIsolatedProjects()
+        def models = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+        }
+        models.find { it.message.startsWith("my.prop") }.message == "my.prop = fromA"
+
+        when: "the mutating project changes the value it sets"
+        file("a/build.gradle").text = file("a/build.gradle").text.replace('"fromA"', '"fromAChanged"')
+
+        and:
+        withIsolatedProjects()
+        def updatedModels = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        fixture.assertModelUpdated {
+            fileChanged("a/build.gradle")
+            projectsConfigured(":buildSrc", ":", ":a")
+            modelsCreated(":a")
+            modelsReused(":buildSrc", ":", ":b")
+        }
+
+        and:
+        // TODO(mlopatkin): this should be "my.prop = fromAChanged". ':b' recorded the value it read together
+        //  with the version of the system properties it read it at, and that version still resolves to the
+        //  value ':a' used to set, so ':b' looks up-to-date. Making this correct means tracking which project
+        //  made each change and invalidating its readers; the intended direction is the opposite one, namely
+        //  to reject mutating a system property that another project reads.
+        updatedModels.find { it.message.startsWith("my.prop") }.message == "my.prop = fromA"
+    }
+
     def "can store fingerprint for reused projects"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()

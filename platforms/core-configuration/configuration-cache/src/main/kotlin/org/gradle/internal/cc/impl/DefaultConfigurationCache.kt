@@ -870,6 +870,11 @@ class DefaultConfigurationCache internal constructor(
                 // so the Gradle properties files along with any Gradle property defining
                 // system properties and environment variables are added to the new fingerprint.
                 rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
+            } else {
+                // The entry is going to be reused as a whole, so the process has to end up with the system
+                // properties the build that stored it left behind. Checking the fingerprint does not apply
+                // them, exactly so that the rollback above has nothing to undo.
+                cacheFingerprintController.applyCheckedSystemProperties()
             }
         }
     }

@@ -72,6 +72,7 @@ import java.io.File
 import java.net.URI
 import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -120,6 +121,16 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     val buildScopedSink = BuildScopedSink(host, buildScopedWriter)
+
+    /**
+     * The version of the system properties, incremented by every change the build makes to them.
+     *
+     * Values that observe the system properties record the version they observed, so that the checker can
+     * compare them against the right state regardless of the order it visits them in.
+     * See [VersionedSystemProperties].
+     */
+    private
+    val systemPropertiesVersion = AtomicLong()
 
     private
     val projectScopedWriter = ScopedFingerprintWriter<ProjectSpecificFingerprint>(projectScopedContext)
@@ -348,17 +359,35 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueFileSystemEntryInput(file, consumer)
     }
 
+    // Changes to the system properties are recorded build-scoped even when they are made while a project is
+    // being configured, because they affect the whole build: any project can read the changed value. Keeping
+    // them together also means the checker knows every change before it looks at any project.
+
     fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
-        sink().systemPropertyChanged(key, value, locationFor(consumer))
+        buildScopedSink.systemPropertyChanged(key, value, nextSystemPropertiesVersion(), locationFor(consumer))
     }
 
     fun systemPropertyRemoved(key: Any) {
-        sink().systemPropertyRemoved(key)
+        buildScopedSink.systemPropertyRemoved(key, nextSystemPropertiesVersion())
     }
 
     fun systemPropertiesCleared() {
-        sink().systemPropertiesCleared()
+        buildScopedSink.systemPropertiesCleared(nextSystemPropertiesVersion())
     }
+
+    private
+    fun nextSystemPropertiesVersion(): Long = systemPropertiesVersion.incrementAndGet()
+
+    /**
+     * The version of the system properties a value being recorded right now observes.
+     *
+     * This is sampled without synchronizing with the changes, so a read that races a concurrent change may
+     * observe either version. We accept that: build logic that changes a system property while another
+     * project reads it is racy to begin with, and the worst outcome is checking the read against the state
+     * just before or just after the change.
+     */
+    private
+    fun currentSystemPropertiesVersion(): Long = systemPropertiesVersion.get()
 
     fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         if (isInputTrackingDisabled()) {
@@ -375,7 +404,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun addSystemPropertyToFingerprint(key: String, value: Any?, consumer: String? = null) {
-        sink().systemPropertyRead(key, value)
+        sink().systemPropertyRead(key, value, currentSystemPropertiesVersion())
         reportUniqueSystemPropertyInput(key, consumer)
     }
 
@@ -425,7 +454,9 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun addSystemPropertiesPrefixedByToFingerprint(prefix: String, snapshot: Map<String, String?>) {
-        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
+        buildScopedSink.write(
+            ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot, currentSystemPropertiesVersion())
+        )
     }
 
     fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -462,6 +493,14 @@ class ConfigurationCacheFingerprintWriter(
 
         // TODO(https://github.com/gradle/gradle/issues/22494) ValueSources become part of the fingerprint even if they are only obtained
         //  inside other value sources. This is not really necessary for the correctness and causes excessive cache invalidation.
+
+        // TODO(mlopatkin): the system properties version recorded for a value source is sampled here, after
+        //  obtain() has already run, so we assume nothing changed the system properties while it was running.
+        //  Sampling it in ValueSourceProviderFactory.ComputationListener.beforeValueObtained instead would be
+        //  exact, but the value has to survive until this callback, and valueObtained is not guaranteed to run
+        //  on the thread that computed the value (see LazilyObtainedValue.obtain).
+        //  We also don't record which system properties the value source read, so a value source cannot be
+        //  told apart from one that doesn't depend on them at all.
         when (val parameters = obtainedValue.valueSourceParameters) {
             is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
@@ -503,7 +542,7 @@ class ConfigurationCacheFingerprintWriter(
             }
 
             is ProcessOutputValueSource.Parameters -> {
-                sink().write(ValueSource(obtainedValue.uncheckedCast()))
+                sink().write(ValueSource(obtainedValue.uncheckedCast(), currentSystemPropertiesVersion()))
                 reportExternalProcessOutputRead(ProcessOutputValueSource.Parameters.getExecutable(parameters))
             }
 
@@ -512,7 +551,7 @@ class ConfigurationCacheFingerprintWriter(
                 // Writing with explicit trace helps to avoid attributing these failures to "Gradle runtime".
                 // TODO(mlopatkin): can we do even better and pinpoint the exact stacktrace in case of failure?
                 val trace = locationFor(null)
-                sink().write(ValueSource(obtainedValue.uncheckedCast()), trace)
+                sink().write(ValueSource(obtainedValue.uncheckedCast(), currentSystemPropertiesVersion()), trace)
                 reportUniqueValueSourceInput(
                     trace,
                     displayName = source.displayNameIfAvailable,
@@ -630,7 +669,7 @@ class ConfigurationCacheFingerprintWriter(
 
     fun flagRead(flag: FeatureFlag) {
         flag.systemPropertyName?.let { propertyName ->
-            sink().systemPropertyRead(propertyName, System.getProperty(propertyName))
+            sink().systemPropertyRead(propertyName, System.getProperty(propertyName), currentSystemPropertiesVersion())
         }
     }
 
@@ -847,7 +886,7 @@ class ConfigurationCacheFingerprintWriter(
         val capturedFileSystemEntries: MutableSet<File> = newConcurrentHashSet()
 
         private
-        val undeclaredSystemProperties = newConcurrentHashSet<String>()
+        val undeclaredSystemProperties = newConcurrentHashSet<Pair<String, Long>>()
 
         private
         val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
@@ -882,25 +921,25 @@ class ConfigurationCacheFingerprintWriter(
             write(inputFileSystemEntry(file))
         }
 
-        fun systemPropertyRead(key: String, value: Any?) {
-            if (undeclaredSystemProperties.add(key)) {
-                write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value))
+        fun systemPropertyRead(key: String, value: Any?, version: Long) {
+            // Deduplicating by version as well as by key re-records a property that is read again after the
+            // build logic changed it, which is a different input. Changes are recorded build-scoped, so this
+            // sink cannot be told about them directly.
+            if (undeclaredSystemProperties.add(key to version)) {
+                write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value, version))
             }
         }
 
-        fun systemPropertyChanged(key: Any, value: Any?, trace: PropertyTrace) {
-            undeclaredSystemProperties.remove(key)
-            write(ConfigurationCacheFingerprint.SystemPropertyChanged(key, value), trace)
+        fun systemPropertyChanged(key: Any, value: Any?, version: Long, trace: PropertyTrace) {
+            write(ConfigurationCacheFingerprint.SystemPropertyChanged(key, value, version), trace)
         }
 
-        fun systemPropertyRemoved(key: Any) {
-            undeclaredSystemProperties.remove(key)
-            write(ConfigurationCacheFingerprint.SystemPropertyRemoved(key))
+        fun systemPropertyRemoved(key: Any, version: Long) {
+            write(ConfigurationCacheFingerprint.SystemPropertyRemoved(key, version))
         }
 
-        fun systemPropertiesCleared() {
-            undeclaredSystemProperties.clear()
-            write(ConfigurationCacheFingerprint.SystemPropertiesCleared)
+        fun systemPropertiesCleared(version: Long) {
+            write(ConfigurationCacheFingerprint.SystemPropertiesCleared(version))
         }
 
         fun envVariableRead(key: String, value: String?) {
@@ -973,10 +1012,14 @@ class ConfigurationCacheFingerprintWriter(
         propertyScope: GradlePropertyScope,
         propertiesDir: File
     ) {
+        // Loading build-scoped Gradle properties installs the system properties they declare, so it changes
+        // the environment the values recorded after it observe. The installed values are not recorded here:
+        // checking this entry re-runs the load, which installs them again.
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradlePropertiesLoaded(
                 propertyScope,
-                propertiesDir
+                propertiesDir,
+                nextSystemPropertiesVersion()
             )
         )
     }

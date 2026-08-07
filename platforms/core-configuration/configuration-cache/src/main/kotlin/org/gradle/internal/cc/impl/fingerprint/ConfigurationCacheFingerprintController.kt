@@ -345,26 +345,57 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.dispose()
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host) =
-        fingerprintChecker(host).run {
+    /**
+     * The system properties reconstructed by the build-scoped fingerprint check, reused by the per-project
+     * checks and by [applyCheckedSystemProperties]. Replaced by every build-scoped check, as more than one
+     * candidate entry can be checked in turn.
+     */
+    private
+    var checkedSystemProperties: VersionedSystemProperties? = null
+
+    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host): InvalidationReason? {
+        val systemProperties = VersionedSystemProperties(System.getProperties())
+        checkedSystemProperties = systemProperties
+        return fingerprintChecker(host, systemProperties).run {
             checkBuildScopedFingerprint()
         }
+    }
+
+    /**
+     * Puts the system properties into the state the build that stored the entry left them in.
+     *
+     * The changes the build logic made to them are not applied while the entry is checked, so that a check
+     * that fails leaves the process alone. They have to be applied before the entry is used, though: the
+     * loaded build never runs the configuration that made them, and nothing else re-establishes them.
+     */
+    fun applyCheckedSystemProperties() {
+        checkedSystemProperties?.let {
+            System.setProperties(it.finalSnapshot().toProperties())
+        }
+    }
 
     suspend fun ReadContext.checkProjectScopedFingerprint(host: Host) =
-        fingerprintChecker(host).run {
+        fingerprintCheckerAfterBuildScopedCheck(host).run {
             checkProjectScopedFingerprint()
         }
 
     suspend fun ReadContext.collectFingerprintForReusedProjects(host: Host, reusedProjects: Set<Path>): Unit =
-        fingerprintChecker(host).run {
+        fingerprintCheckerAfterBuildScopedCheck(host).run {
             visitEntriesForProjects(reusedProjects) { fingerprint ->
                 writingState.append(fingerprint)
             }
         }
 
     private
-    fun fingerprintChecker(host: Host): ConfigurationCacheFingerprintChecker =
-        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host))
+    fun fingerprintChecker(host: Host, systemProperties: VersionedSystemProperties): ConfigurationCacheFingerprintChecker =
+        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host), systemProperties)
+
+    /**
+     * A checker for a pass that follows the build-scoped one, reusing the system properties it reconstructed.
+     */
+    private
+    fun fingerprintCheckerAfterBuildScopedCheck(host: Host): ConfigurationCacheFingerprintChecker =
+        fingerprintChecker(host, checkedSystemProperties ?: VersionedSystemProperties(System.getProperties()))
 
     private
     fun addListener(fingerprintWriter: ConfigurationCacheFingerprintWriter) {
@@ -512,10 +543,10 @@ class ConfigurationCacheFingerprintController internal constructor(
             return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
         }
 
-        override fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File) {
+        override fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File): Map<String, String> {
             when (propertyScope) {
                 is GradlePropertyScope.Build -> {
-                    propertiesController.loadGradleProperties(
+                    return propertiesController.loadGradleProperties(
                         propertyScope.buildIdentifier,
                         propertiesDir,
                         true
@@ -527,6 +558,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                         propertyScope.projectIdentity,
                         propertiesDir,
                     )
+                    // Only build-scoped properties can declare system properties.
+                    return emptyMap()
                 }
 
                 else -> error("Unsupported propertyScope $propertyScope")
