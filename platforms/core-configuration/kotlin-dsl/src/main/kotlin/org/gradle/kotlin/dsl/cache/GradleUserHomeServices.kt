@@ -16,6 +16,12 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.cache.CacheCleanupStrategyFactory
+import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.service.PrivateService
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -28,4 +34,36 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     fun configure(registration: ServiceRegistration) {
         registration.add(KotlinDslWorkspaceProvider::class.java)
     }
+
+    @Provides
+    @PrivateService
+    fun createKotlinDslIncrementalCompilationStore(
+        cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+        fileAccessTimeJournal: FileAccessTimeJournal,
+        cacheConfigurations: CacheConfigurationsInternal,
+        cacheCleanupStrategyFactory: FineGrainedCacheCleanupStrategyFactory,
+    ): KotlinDslIncrementalCompilationStore =
+        KotlinDslIncrementalCompilationStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
+
+    @Provides
+    fun createKotlinDslIncrementalCompilationCache(
+        store: KotlinDslIncrementalCompilationStore,
+    ): KotlinDslIncrementalCompilationCache =
+        KotlinDslIncrementalCompilationCache(store.cache, store.fileAccessTracker, store.softDeleter)
+
+    @Provides
+    @PrivateService
+    fun createKotlinDslClasspathEntrySnapshotStore(
+        cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+        fileAccessTimeJournal: FileAccessTimeJournal,
+        cacheConfigurations: CacheConfigurationsInternal,
+        cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
+    ): KotlinDslClasspathEntrySnapshotStore =
+        KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
+
+    @Provides
+    fun createKotlinDslClasspathEntrySnapshotCache(
+        store: KotlinDslClasspathEntrySnapshotStore,
+    ): KotlinDslClasspathEntrySnapshotCache =
+        KotlinDslClasspathEntrySnapshotCache(store.snapshotsCacheDirectory, store.fileAccessTracker)
 }

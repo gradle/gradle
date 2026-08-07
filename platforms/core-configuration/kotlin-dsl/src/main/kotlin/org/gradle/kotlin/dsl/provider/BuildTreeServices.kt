@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
+package org.gradle.kotlin.dsl.provider
 
-import kotlin.reflect.KClass
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 
 
-/**
- * Associates a script template with the type of its implicit receiver
- * which must match the type of the given [KotlinScriptHost.target].
- */
-internal
-annotation class ImplicitReceiver(val type: KClass<*>)
+internal object BuildTreeServices : ServiceRegistrationProvider {
+
+    @Provides
+    fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =
+        KotlinCompilerContextDisposer(listenerManager)
+}

@@ -22,14 +22,19 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+import org.gradle.kotlin.dsl.fixtures.sharedTestClasspathSnapshotCache
+import org.gradle.kotlin.dsl.fixtures.sharedTestIncrementalCompilationCache
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -74,16 +79,22 @@ abstract class TestWithCompiler : TestWithTempFiles() {
         programTarget: ProgramTarget
     ) {
         ResidualProgramCompiler(
-            outputDir,
-            KotlinCompilerOptions(),
-            testRuntimeClassPath,
-            sourceHash,
-            programKind,
-            programTarget,
-            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
+            outputDir = outputDir,
+            compilerOptions = KotlinCompilerOptions(),
+            classPath = testRuntimeClassPath,
+            originalSourceHash = sourceHash,
+            programKind = programKind,
+            programTarget = programTarget,
+            implicitImports = emptyList(),
+            logger = loggerFor<TestWithCompiler>(),
+            moduleRegistry = TestModuleRegistry(),
+            classLoaderFactory = DefaultClassLoaderFactory(),
             metadataCompatibilityChecker = object : KotlinMetadataCompatibilityChecker {
                 override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
-            }
+            },
+            fileSystemAccess = TestFiles.fileSystemAccess(),
+            classpathEntrySnapshotCache = sharedTestClasspathSnapshotCache,
+            incrementalCompilationCache = sharedTestIncrementalCompilationCache,
         ).compile(program)
     }
 

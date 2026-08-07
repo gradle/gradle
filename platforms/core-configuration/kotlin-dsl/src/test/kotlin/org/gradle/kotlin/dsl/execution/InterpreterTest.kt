@@ -17,11 +17,13 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.TestBuildOperationRunner
@@ -29,9 +31,12 @@ import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fixtures.DummyCompiledScript
+import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.fixtures.sharedTestClasspathSnapshotCache
+import org.gradle.kotlin.dsl.fixtures.sharedTestIncrementalCompilationCache
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -124,6 +129,11 @@ class InterpreterTest : TestWithTempFiles() {
         }
 
         val buildOperationRunner = TestBuildOperationRunner()
+        val testModuleRegistry = TestModuleRegistry()
+        val testClassLoaderFactory = DefaultClassLoaderFactory()
+        val testFileSystemAccess = TestFiles.fileSystemAccess()
+        val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
+        val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
         val host = mock<Interpreter.Host> {
 
             on { serviceRegistryFor(any(), any()) } doReturn mockServiceRegistry
@@ -182,6 +192,11 @@ class InterpreterTest : TestWithTempFiles() {
 
             on { compilerOptions } doReturn KotlinCompilerOptions()
             on { buildTreeRootDir } doReturn root.toPath()
+            on { moduleRegistry } doReturn testModuleRegistry
+            on { classLoaderFactory } doReturn testClassLoaderFactory
+            on { fileSystemAccess } doReturn testFileSystemAccess
+            on { classpathEntrySnapshotCache } doReturn testClasspathSnapshotCache
+            on { incrementalCompilationCache } doReturn testIncrementalCompilationCache
         }
 
         try {
@@ -418,6 +433,12 @@ class InterpreterTest : TestWithTempFiles() {
             }
         }
 
+        val testModuleRegistry = TestModuleRegistry()
+        val testClassLoaderFactory = DefaultClassLoaderFactory()
+        val testFileSystemAccess = TestFiles.fileSystemAccess()
+        val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
+        val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
+
         val host = mock<Interpreter.Host> {
             on { cachedClassFor(any()) } doAnswer { invocation ->
                 val programId = invocation.getArgument<ProgramId>(0)
@@ -455,6 +476,11 @@ class InterpreterTest : TestWithTempFiles() {
                 it.getArgument<() -> String>(2)()
             }
             on { buildTreeRootDir } doReturn root.toPath()
+            on { moduleRegistry } doReturn testModuleRegistry
+            on { classLoaderFactory } doReturn testClassLoaderFactory
+            on { fileSystemAccess } doReturn testFileSystemAccess
+            on { classpathEntrySnapshotCache } doReturn testClasspathSnapshotCache
+            on { incrementalCompilationCache } doReturn testIncrementalCompilationCache
         }
 
         return CachingHostMock(host, programCache, compilationCountRef)
