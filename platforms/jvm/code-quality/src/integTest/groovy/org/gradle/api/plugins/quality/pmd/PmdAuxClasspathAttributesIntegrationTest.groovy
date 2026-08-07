@@ -16,17 +16,24 @@
 
 package org.gradle.api.plugins.quality.pmd
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.jvm.Jvm
+import org.junit.jupiter.api.Assumptions
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+class PmdAuxClasspathAttributesIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
-class PmdAuxClasspathAttributesIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    MavenHttpModule module
+    def "pmd aux classpath can disambiguate variants using the configured toolchain java version"() {
+        given:
+        Jvm higherJvm = AvailableJavaHomes.getAvailableJdk {
+            it.javaMajorVersion > Jvm.current().javaVersionMajor
+        }
+        Assumptions.assumeTrue(higherJvm != null)
 
-    def setup() {
         settingsFile << """
-            rootProject.name = 'test'
+            rootProject.name = "test"
         """
 
         buildFile << """
@@ -34,70 +41,62 @@ class PmdAuxClasspathAttributesIntegrationTest extends AbstractHttpDependencyRes
                 id("java-library")
                 id("pmd")
             }
+
             repositories {
-                maven { url = '${mavenHttpRepo.uri}' }
-                ${mavenCentralRepositoryDefinition()}
+                ${mavenTestRepository()}
             }
+
             dependencies {
-                pmdAux 'org:producer:1.0'
+                pmdAux("org:producer:1.0")
             }
-            afterEvaluate {
-                configurations.configureEach {
-                    // use configureEach because the mainPmdAuxClasspath configuration does not exist at configuration time
-                    attributes.attribute(Attribute.of('custom.attribute.1', String), '1')
-                    attributes.attribute(Attribute.of('custom.attribute.2', String), '2')
+
+            tasks.named("pmdMain") {
+                javaLauncher = toolchainService.launcherFor {
+                    it.languageVersion = JavaLanguageVersion.of(${higherJvm.javaVersionMajor})
                 }
             }
+
+            ${ResolveTestFixture.configureProject("mainPmdAuxClasspath")}
         """
 
-        module = mavenHttpRepo.module('org', 'producer', '1.0')
+        mavenRepo.module('org', 'producer', '1.0')
             .withModuleMetadata()
             .adhocVariants()
-            .variant("runtimeElements", [
+            .variant("runtimeElementsLower", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': 25,
+                'org.gradle.jvm.version': Integer.toString(Jvm.current().javaVersionMajor),
                 'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.usage': 'java-runtime',
-                'custom.attribute.1': '1',
-                'custom.attribute.2': '2'
-            ], { artifact('producer-1.0.jar') })
-            .variant("runtimeElementsCustom3a", [
+            ])
+            .variant("runtimeElementsHigher", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': 25,
+                'org.gradle.jvm.version': Integer.toString(higherJvm.javaVersionMajor),
                 'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.usage': 'java-runtime',
-                'custom.attribute.1': '1',
-                'custom.attribute.2': '2',
-                'custom.attribute.3': 'a'
-            ], { artifact('producer-1.0-custom.jar') })
-            .variant("runtimeElementsCustom3b", [
-                'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': 25,
-                'org.gradle.category': 'library',
-                'org.gradle.libraryelements': 'jar',
-                'org.gradle.usage': 'java-runtime',
-                'custom.attribute.1': '1',
-                'custom.attribute.2': '2',
-                'custom.attribute.3': 'b'
-            ], { artifact('producer-1.0-custom.jar') })
+            ])
             .publish()
 
-    }
-
-    def "pmd Aux classpath has enough attributes to disambiguate variants"() {
-        given:
-        module.pom.expectGet()
-        module.moduleMetadata.expectGet()
-
         when:
-        succeeds 'pmdMain', 'dependencyInsight', '--configuration', 'mainPmdAuxClasspath', '--dependency', 'producer'
+        withInstallations(higherJvm)
+        succeeds("checkDeps")
 
         then:
-        // without the correct attributes, the build will fail with "Could not resolve org:producer:1.0" and "Ambiguity errors"
-        outputContains('org:producer:1.0')
-        outputContains('Variant runtimeElements:')
-        outputDoesNotContain('FAILED')
+        new ResolveTestFixture(testDirectory).expectGraph {
+            root(":", ":test:") {
+                module("org:producer:1.0") {
+                    variant("runtimeElementsHigher", [
+                        'org.gradle.dependency.bundling': 'external',
+                        'org.gradle.jvm.version': Integer.toString(higherJvm.javaVersionMajor),
+                        'org.gradle.category': 'library',
+                        'org.gradle.libraryelements': 'jar',
+                        'org.gradle.usage': 'java-runtime',
+                        "org.gradle.status": "release",
+                    ])
+                }
+            }
+        }
     }
+
 }

@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.file.Directory;
@@ -235,7 +236,10 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected void configureForSourceSet(final SourceSet sourceSet, final Pmd task) {
         task.setDescription("Run PMD analysis for " + sourceSet.getName() + " classes");
         task.setSource(sourceSet.getAllJava());
-        ConventionMapping taskMapping = task.getConventionMapping();
+    }
+
+    @Override
+    protected void configureTaskProviderForSourceSet(SourceSet sourceSet, NamedDomainObjectProvider<Pmd> taskProvider) {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
 
         Configuration compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
@@ -249,16 +253,21 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             conf.attributes(attributes ->
                 attributes.attributeProvider(
                     TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-                    task.getJavaLauncher().map(launcher -> launcher.getMetadata().getLanguageVersion().asInt())));
+                    taskProvider.flatMap(task -> task.getJavaLauncher().map(launcher -> launcher.getMetadata().getLanguageVersion().asInt()))));
         });
 
-        // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the compileClasspathConfiguration. In particular, compile
-        // classpath of the test sourceSet contains output of the main sourceSet.
-        taskMapping.map("classpath", () -> {
-            // It is important to subtract compileClasspath and not pmdAuxClasspath here because these configurations are resolved differently (as a compile and as a
-            // runtime classpath). Compile and runtime entries for the same dependency may resolve to different files (e.g. compiled classes directory vs. jar).
-            FileCollection nonConfigurationClasspathEntries = sourceSet.getCompileClasspath().minus(compileClasspath);
-            return sourceSet.getOutput().plus(nonConfigurationClasspathEntries).plus(pmdAuxClasspath);
+        taskProvider.configure(task -> {
+            ConventionMapping taskMapping = task.getConventionMapping();
+
+            // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the compileClasspathConfiguration. In particular, compile
+            // classpath of the test sourceSet contains output of the main sourceSet.
+            taskMapping.map("classpath", () -> {
+                // It is important to subtract compileClasspath and not pmdAuxClasspath here because these configurations are resolved differently (as a compile and as a
+                // runtime classpath). Compile and runtime entries for the same dependency may resolve to different files (e.g. compiled classes directory vs. jar).
+                FileCollection nonConfigurationClasspathEntries = sourceSet.getCompileClasspath().minus(compileClasspath);
+                return sourceSet.getOutput().plus(nonConfigurationClasspathEntries).plus(pmdAuxClasspath);
+            });
         });
     }
+
 }
