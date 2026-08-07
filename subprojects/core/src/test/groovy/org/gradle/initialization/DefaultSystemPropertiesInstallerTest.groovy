@@ -46,7 +46,7 @@ class DefaultSystemPropertiesInstallerTest extends Specification {
 
     def "set system properties"() {
         when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties)
+        systemPropertiesInstaller.applySystemProperties(systemPropertiesInstaller.systemPropertiesFrom(loadedGradleProperties))
 
         then:
         "userSystemValue" == System.getProperty("userSystemProp")
