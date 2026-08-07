@@ -316,6 +316,18 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.willRefuseNewCommands
     }
 
+    def "requestQuietStop stops immediately when idle"() {
+        expect:
+        idle
+
+        when:
+        coordinator.requestQuietStop()
+
+        then:
+        stopped
+        coordinator.willRefuseNewCommands
+    }
+
     def "requestStop stops after current command has completed"() {
         Runnable command = Mock()
 
@@ -326,6 +338,28 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         1 * command.run() >> {
             assert busy
             coordinator.requestStop("REASON")
+            assert notStopped
+            assert coordinator.willRefuseNewCommands
+        }
+
+        and:
+        stopped
+
+        and:
+        1 * onStartCommand.run()
+        0 * _._
+    }
+
+    def "requestQuietStop stops after current command has completed"() {
+        Runnable command = Mock()
+
+        when:
+        coordinator.runCommand(command, "some command")
+
+        then:
+        1 * command.run() >> {
+            assert busy
+            coordinator.requestQuietStop()
             assert notStopped
             assert coordinator.willRefuseNewCommands
         }
