@@ -96,7 +96,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
             capabilityNotationParser
         );
 
-        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forResolutionStrategy(
+        Factory<DependencySubstitutionsInternal> dependencySubstitutionsFactory = () -> DefaultDependencySubstitutions.forResolutionStrategy(
             currentBuild, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser
         );
 
@@ -104,7 +104,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
 
         return instantiator.newInstance(DefaultResolutionStrategy.class,
             cachePolicy,
-            dependencySubstitutions,
+            dependencySubstitutionsFactory,
             globalDependencySubstitutionRules,
             vcsResolver,
             moduleIdentifierFactory,
