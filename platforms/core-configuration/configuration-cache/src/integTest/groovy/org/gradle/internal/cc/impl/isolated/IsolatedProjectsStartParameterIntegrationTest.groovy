@@ -313,6 +313,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         ["setConfigurationCacheHeapDumpDir(null)", "setConfigurationCacheHeapDumpDir(String)"],
         ["setConfigurationCacheFineGrainedPropertyTracking(true)", "setConfigurationCacheFineGrainedPropertyTracking(boolean)"],
         ["setConfigurationCacheSkipTaskLoggingListenersSerialization(false)", "setConfigurationCacheSkipTaskLoggingListenersSerialization(boolean)"],
+        ["setConfigurationCacheRecoverFromCacheCorruption(true)", "setConfigurationCacheRecoverFromCacheCorruption(boolean)"],
         ["setIsolatedProjectsDiagnostics(true)", "setIsolatedProjectsDiagnostics(boolean)"],
         ["setContinuousBuildQuietPeriod(java.time.Duration.ofMillis(250))", "setContinuousBuildQuietPeriod(Duration)"],
         ["setPropertyUpgradeReportEnabled(false)", "setPropertyUpgradeReportEnabled(boolean)"],

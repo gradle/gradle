@@ -296,6 +296,24 @@ class DefaultConfigurationCache internal constructor(
         return loadWorkGraph(graph, graphBuilder, true)
     }
 
+    override fun recoverFromFailedLoad(failure: Throwable): Boolean {
+        if (!startParameter.isRecoverFromCacheCorruption) {
+            return false
+        }
+        resetState()
+        return true
+    }
+
+    private fun resetState() {
+        scopeRegistryListener.reattach()
+        loadedSideEffects.clear()
+        cacheEntryRequiresCommit = false
+        entryDiscardRequested = false
+        gradlePropertiesController.unloadAll()
+        cacheAction = Store
+        modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
+    }
+
     override fun maybePrepareModel(action: () -> BuildTreeModelCreatorResult<Void>): BuildTreeModelCreatorResult<Void> {
         if (isLoaded) {
             return BuildTreeModelCreatorResult.of(null)
@@ -328,7 +346,14 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun <T : Any> runAndDiscardEntryOnFailures(action: () -> BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T> {
-        val result = action()
+        val result = try {
+            action()
+        } catch (e: Throwable) {
+            if (startParameter.isRecoverFromCacheCorruption) {
+                entryDiscardRequested = true
+            }
+            throw e
+        }
         if (result.hasFailures()) {
             // Model building produced failures, so the resulting partial configuration must not be reused:
             // discard the entry so the next build re-runs and re-reports the failures.
@@ -632,21 +657,37 @@ class DefaultConfigurationCache internal constructor(
         // checking a single fingerprint
         val entryName = candidateEntry.id
         val entryStore = cacheRepository.forKey(entryName)
-        return entryStore.useForStateLoad {
-            checkedFingerprint(candidateEntry)
-        }.value
+        return try {
+            entryStore.useForStateLoad {
+                checkedFingerprint(candidateEntry)
+            }.value
+        } catch (failure: ConfigurationCacheEntryReadException) {
+            if (!startParameter.isRecoverFromCacheCorruption) {
+                throw failure.cause ?: failure
+            }
+            logger.warn(
+                "The configuration cache entry could not be checked and will be discarded. The build will proceed as if the configuration cache had missed.",
+                failure
+            )
+            updateCandidateEntries { minus(candidateEntry) }
+            EntrySearchResult(null, CheckedFingerprint.NotFound)
+        }
     }
 
     private
-    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): EntrySearchResult =
-        cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
-            ?.let { entryDetails ->
-                // TODO:configuration-cache read only rootDirs at this point
-                EntrySearchResult(
-                    entryDetails.buildInvocationScopeId,
-                    checkFingerprint(candidateEntry, entryDetails.rootDirs)
-                )
-            } ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
+    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): EntrySearchResult {
+        val entryDetails = try {
+            cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
+                ?: return EntrySearchResult(null, CheckedFingerprint.NotFound)
+        } catch (e: Exception) {
+            throw ConfigurationCacheEntryReadException(e)
+        }
+        // TODO:configuration-cache read only rootDirs at this point
+        return EntrySearchResult(
+            entryDetails.buildInvocationScopeId,
+            checkFingerprint(candidateEntry, entryDetails.rootDirs)
+        )
+    }
 
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
