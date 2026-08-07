@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 
@@ -124,6 +125,38 @@ class DesugaringAttributeContainerSerializerTest extends SerializerSpec {
         result.getAttribute(Attribute.of("flavor", String)) == "vanilla"
     }
 
+    @ExpectDeprecation("as a value type for attribute 'flavor' has been deprecated")
+    def "desugars a plain Enum attribute value"() {
+        given:
+        // Plain (non-Named) enums are deprecated as attribute value types, but until that becomes an
+        // error in Gradle 10 one can still reach this serializer — e.g. via a component metadata rule.
+        def attribute = Attribute.of("flavor", PlainFlavor)
+        def container = attributesFactory.concat(ImmutableAttributes.EMPTY, attribute, PlainFlavor.VANILLA)
+
+        when:
+        ImmutableAttributes result = serialize(container, serializer) as ImmutableAttributes
+
+        then:
+        def resultAttribute = result.keySet().first()
+        resultAttribute.name == "flavor"
+        result.getAttribute(Attribute.of("flavor", String)) == "VANILLA"
+        result.getAttribute(attribute) == PlainFlavor.VANILLA
+    }
+
+    @ExpectDeprecation("as a value type for attribute 'flavor' has been deprecated")
+    def "fails with a clear error when an attribute value can not be desugared"() {
+        given:
+        def attribute = Attribute.of("flavor", Unsupported)
+        def container = attributesFactory.concat(ImmutableAttributes.EMPTY, attribute, new Unsupported())
+
+        when:
+        serialize(container, serializer)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Cannot serialize attribute 'flavor'")
+    }
+
     def "round-trips a container holding a mix of value types"() {
         given:
         def container = attributesFactory.concat(ImmutableAttributes.EMPTY, Attribute.of("s", String), "text")
@@ -145,4 +178,9 @@ class DesugaringAttributeContainerSerializerTest extends SerializerSpec {
     }
 
     interface Flavor extends Named {}
+
+    enum PlainFlavor { VANILLA, CHOCOLATE }
+
+    // Serializable so the value can be isolated into the container at all, and thus reach the serializer.
+    static class Unsupported implements Serializable {}
 }
