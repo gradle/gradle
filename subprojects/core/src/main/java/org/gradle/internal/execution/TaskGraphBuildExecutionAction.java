@@ -73,9 +73,15 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
         plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
             String invocation = renderRequestedTasks(gradle.getStartParameter());
             StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
-            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
+            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph(), dependencyDepthLimit(gradle));
             renderer.renderTo(new RootNode(entryNodes, invocation), output);
         });
+    }
+
+    private static int dependencyDepthLimit(GradleInternal gradle) {
+        int limit = gradle.getStartParameter().getTaskGraphLimit();
+        // Ignore the RootNode that serves as a header for the task invocation
+        return limit == Integer.MAX_VALUE ? Integer.MAX_VALUE : limit + 1;
     }
 
     private static String renderRequestedTasks(StartParameterInternal startParameter) {

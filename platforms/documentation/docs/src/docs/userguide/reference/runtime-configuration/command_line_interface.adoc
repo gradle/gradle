@@ -799,6 +799,12 @@ Run Gradle with all task actions disabled. Use this to show which task would hav
 `--task-graph` since-gradle-label:9.1.0[]::
 Run Gradle with all task actions disabled and print the task dependency graph.
 
+`--task-graph-limit=<n>` since-gradle-label:9.7.0[]::
+Limit the depth of the task graph printed by `--task-graph`.
+The requested task itself is not counted against the limit, so `--task-graph-limit=1` shows the requested task plus its direct dependencies.
+Truncated nodes are marked with `(+)`.
+Has no effect unless `--task-graph` is also specified.
+
 `-t`, `--continuous`::
 Enables <<#sec:continuous_build,continuous build>>. Gradle does not exit and will re-execute tasks when task file inputs change.
 
