@@ -17,13 +17,13 @@
 package org.gradle.internal.work;
 
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.Factory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
 
@@ -43,13 +43,10 @@ public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
         final BuildOperationContext buildOperationContext = startWaitingOperation();
 
         try {
-            delegate.withLock(new Runnable() {
-                @Override
-                public void run() {
-                    successfulWait.set(true);
-                    buildOperationContext.setResult(null);
-                    action.run();
-                }
+            delegate.withLock(() -> {
+                successfulWait.set(true);
+                buildOperationContext.setResult(null);
+                action.run();
             });
         } finally {
             if (!successfulWait.get()) {
@@ -59,18 +56,15 @@ public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
     }
 
     @Override
-    public <T extends @Nullable Object> T withLock(final Factory<T> action) {
+    public <T extends @Nullable Object> T withLock(final Supplier<T> action) {
         final AtomicBoolean successfulWait = new AtomicBoolean(false);
         final BuildOperationContext buildOperationContext = startWaitingOperation();
 
         try {
-            return delegate.withLock(new Factory<T>() {
-                @Override
-                public T create() {
-                    successfulWait.set(true);
-                    buildOperationContext.setResult(null);
-                    return action.create();
-                }
+            return delegate.withLock(() -> {
+                successfulWait.set(true);
+                buildOperationContext.setResult(null);
+                return action.get();
             });
         } finally {
             if (!successfulWait.get()) {
@@ -86,4 +80,5 @@ public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
                 .displayName("Synchronizer wait: " + targetDescription.getDisplayName())
         );
     }
+
 }

@@ -16,9 +16,10 @@
 
 package org.gradle.internal.work;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 class DefaultSynchronizer implements Synchronizer {
     private final WorkerLeaseService workerLeaseService;
@@ -39,10 +40,10 @@ class DefaultSynchronizer implements Synchronizer {
     }
 
     @Override
-    public <T extends @Nullable Object> T withLock(Factory<T> action) {
+    public <T extends @Nullable Object> T withLock(Supplier<T> action) {
         Thread previous = takeOwnership();
         try {
-            return action.create();
+            return action.get();
         } finally {
             releaseOwnership(previous);
         }

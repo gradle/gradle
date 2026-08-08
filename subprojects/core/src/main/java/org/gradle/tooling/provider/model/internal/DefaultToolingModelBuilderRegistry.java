@@ -287,7 +287,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
         @Override
         public Object build(Object parameter) {
-            return target.runWithModelLock(() -> delegate.build(parameter));
+            return target.fromMutableStateEvenAfterFailure(project -> delegate.build(parameter));
         }
     }
 

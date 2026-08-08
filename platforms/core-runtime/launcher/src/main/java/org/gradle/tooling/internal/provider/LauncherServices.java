@@ -67,7 +67,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
-import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
 import org.gradle.launcher.exec.DefaultBuildTreeActionExecutor;
@@ -191,7 +190,6 @@ public class LauncherServices extends AbstractGradleModuleServices {
         @Provides
         RootBuildLifecycleBuildActionExecutor createActionExecutor(
             BuildModelParameters buildModelParameters,
-            ProjectParallelExecutionController projectParallelExecutionController,
             List<BuildActionRunner> buildActionRunners,
             StyledTextOutputFactory styledTextOutputFactory,
             BuildStateRegistry buildStateRegistry,
@@ -218,7 +216,6 @@ public class LauncherServices extends AbstractGradleModuleServices {
         ) {
             return new RootBuildLifecycleBuildActionExecutor(
                 buildModelParameters,
-                projectParallelExecutionController,
                 listenerManager.getBroadcaster(BuildTreeLifecycleListener.class),
                 problemsService,
                 eventEmitter,

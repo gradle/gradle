@@ -28,6 +28,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
+import java.util.function.Function
 import java.util.function.Supplier
 
 class DefaultToolingModelBuilderRegistryTest extends Specification {
@@ -95,7 +96,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectState.runWithModelLock(_) >> { Supplier supplier -> supplier.get() }
+        1 * projectState.fromMutableState(_) >> { Function<?, ?> func -> func.apply(project) }
         1 * application.reapply(_) >> { Supplier supplier -> supplier.get() }
         1 * builder2.buildAll("model", project) >> "result"
         0 * _
@@ -188,7 +189,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectState.runWithModelLock (_) >> { Supplier supplier -> supplier.get() }
+        1 * projectState.fromMutableState(_) >> { Function<?, ?> func -> func.apply(project) }
         1 * builder.buildAll("model", "param", project) >> "result"
         0 * _
     }
