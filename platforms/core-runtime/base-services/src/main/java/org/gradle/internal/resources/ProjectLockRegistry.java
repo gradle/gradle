@@ -18,7 +18,7 @@ package org.gradle.internal.resources;
 
 import org.gradle.util.Path;
 
-public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ProjectLock> {
+public class ProjectLockRegistry extends MultiLockRegistry<Path, ProjectLock> {
     private final boolean parallelEnabled;
     private final LockCache<Path, AllProjectsLock> allProjectsLocks;
 
