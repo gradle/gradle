@@ -19,6 +19,7 @@ package org.gradle.internal.resources;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -30,6 +31,7 @@ import java.util.concurrent.ConcurrentMap;
  * <p>
  * Acquiring more than one lock of this registry on one thread is not permitted.
  */
+@NullMarked
 public abstract class SingleLockRegistry<K, T extends ResourceLock> extends AbstractResourceLockRegistry<K, T> {
 
     private final ConcurrentMap<Long, ThreadState<T>> threadStates = new ConcurrentHashMap<>();
@@ -54,6 +56,11 @@ public abstract class SingleLockRegistry<K, T extends ResourceLock> extends Abst
     @Override
     public boolean holdsLock() {
         return stateForCurrentThread().lock != null;
+    }
+
+    @Override
+    public boolean holdsLock(ResourceLock lock) {
+        return stateForCurrentThread().lock == lock;
     }
 
     @Override

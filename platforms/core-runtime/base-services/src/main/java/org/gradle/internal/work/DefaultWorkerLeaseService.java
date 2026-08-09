@@ -187,11 +187,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public ResourceLock getAllProjectsLock(Path buildIdentityPath) {
-        return getRegistries().getProjectLockRegistry().getAllProjectsLock(buildIdentityPath);
-    }
-
-    @Override
     public ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
         return getRegistries().getProjectLockRegistry().getProjectLock(buildIdentityPath, projectIdentityPath);
     }
@@ -204,6 +199,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     @Override
     public Collection<? extends ResourceLock> getCurrentProjectLocks() {
         return getRegistries().getProjectLockRegistry().getResourceLocksByCurrentThread();
+    }
+
+    @Override
+    public boolean holdsProjectLock(ResourceLock lock) {
+        return getRegistries().getProjectLockRegistry().holdsLock(lock);
     }
 
     private Registries getRegistries() {
@@ -431,14 +431,14 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T extends @Nullable Object> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
-        if (currentLocks.contains(newLock)) {
-            // Already holds the lock
+    public <T extends @Nullable Object> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, Collection<? extends ResourceLock> newLocks, Factory<T> factory) {
+        if (currentLocks.containsAll(newLocks)) {
+            // Already holds the locks.
             return factory.create();
         }
 
         return withoutLocks(currentLocks, () ->
-            withLocksAcquired(Collections.singletonList(newLock), factory)
+            withLocksAcquired(newLocks, factory)
         );
     }
 

@@ -54,13 +54,13 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    ResourceLock getAllProjectsLock(Path buildIdentityPath) {
+    Collection<? extends ResourceLock> getCurrentProjectLocks() {
         throw new UnsupportedOperationException()
     }
 
     @Override
-    Collection<? extends ResourceLock> getCurrentProjectLocks() {
-        throw new UnsupportedOperationException()
+    boolean holdsProjectLock(ResourceLock lock) {
+        return false
     }
 
     @Override
@@ -167,7 +167,7 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
+    <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, Collection<? extends ResourceLock> newLocks, Factory<T> factory) {
         return factory.create()
     }
 

@@ -19,6 +19,7 @@ package org.gradle.internal.resources;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * A registry where a thread may hold more than one of its locks simultaneously.
  */
+@NullMarked
 public abstract class MultiLockRegistry<K, T extends ResourceLock> extends AbstractResourceLockRegistry<K, T> {
 
     private final ConcurrentMap<Long, ThreadState<T>> threadStates = new ConcurrentHashMap<>();
@@ -47,6 +49,11 @@ public abstract class MultiLockRegistry<K, T extends ResourceLock> extends Abstr
     @Override
     public boolean holdsLock() {
         return !stateForCurrentThread().locks.isEmpty();
+    }
+
+    @Override
+    public boolean holdsLock(ResourceLock lock) {
+        return stateForCurrentThread().locks.contains(lock);
     }
 
     @Override
