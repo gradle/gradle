@@ -47,17 +47,14 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     /**
-     * {@return all locks currently cached} Locks are removed from the cache when they are no longer referenced,
-     * so this can only be relied upon to return locks that are currently held, but it may also include locks that are not currently held.
-     */
-    protected Iterable<T> getCachedResourceLocks() {
-        return resourceLocks.values();
-    }
-
-    /**
      * Return true if the current thread holds any lock of this registry.
      */
     public abstract boolean holdsLock();
+
+    /**
+     * Return true if the current thread holds the given lock of this registry.
+     */
+    public abstract boolean holdsLock(ResourceLock lock);
 
     /**
      * Return true if the current thread is allowed to acquire or release locks of this registry.
