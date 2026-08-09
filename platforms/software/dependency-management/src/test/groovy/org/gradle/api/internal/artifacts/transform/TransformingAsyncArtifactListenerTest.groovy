@@ -35,7 +35,6 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def transformStep = Mock(TransformStep)
     def targetAttributes = Mock(ImmutableAttributes)
     def result = ImmutableList.<ResolvedArtifactSet.Artifacts>builder()
-    def invocation = Mock(Deferrable<TransformStepSubject>)
     def operationQueue = Mock(BuildOperationQueue)
     def listener = new TransformingAsyncArtifactListener([new BoundTransformStep(transformStep, Stub(TransformUpstreamDependencies))], targetAttributes, ImmutableCapabilities.EMPTY, result)
     def file = new File("foo")
@@ -54,6 +53,9 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def artifacts = Mock(ResolvedArtifactSet.Artifacts)
 
     def "adds expensive artifact transformations to the build operation queue"() {
+        given:
+        def pendingInvocation = Deferrable.deferred { throw new AssertionError("The invocation should be queued, not executed") }
+
         when:
         listener.visitArtifacts(artifacts)
         def artifacts = result.build()
@@ -67,12 +69,14 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         artifacts[0].startFinalization(operationQueue, true)
 
         then:
-        1 * transformStep.createInvocation(_, _, _) >> invocation
-        1 * invocation.getCompleted() >> Optional.empty()
+        1 * transformStep.createInvocation(_, _, _) >> pendingInvocation
         1 * operationQueue.add(_ as BuildOperation)
     }
 
     def "runs cheap artifact transformations immediately when not scheduled"() {
+        given:
+        def completedInvocation = Deferrable.completed(Try.successful(TransformStepSubject.initial(artifact)))
+
         when:
         listener.visitArtifacts(artifacts)
         def artifacts = result.build()
@@ -86,8 +90,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         artifacts[0].startFinalization(operationQueue, true)
 
         then:
-        1 * transformStep.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
-        2 * invocation.getCompleted() >> Optional.of(Try.successful(TransformStepSubject.initial(artifact)))
+        1 * transformStep.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> completedInvocation
         0 * operationQueue._
     }
 }

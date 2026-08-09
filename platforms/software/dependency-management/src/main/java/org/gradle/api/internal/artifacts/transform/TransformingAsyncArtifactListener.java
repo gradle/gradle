@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -29,6 +28,7 @@ import org.gradle.internal.Deferrable;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -37,6 +37,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformStep> transformSteps;
@@ -90,8 +92,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
         private final List<BoundTransformStep> transformSteps;
-        private Try<TransformStepSubject> transformedSubject;
-        private Deferrable<Try<TransformStepSubject>> invocation;
+        private @Nullable Try<ImmutableList<File>> transformedFiles;
+        private @Nullable Deferrable<Try<ImmutableList<File>>> deferredTransformedFiles;
 
         public TransformedArtifact(
             DisplayName artifactSetName,
@@ -165,7 +167,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
          */
         private boolean prepareInvocation() {
             synchronized (this) {
-                if (transformedSubject != null) {
+                if (transformedFiles != null) {
                     // Already have a result, no need to execute
                     return false;
                 }
@@ -174,80 +176,93 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 // No input artifact yet, should execute
                 return true;
             }
-            if (!artifact.getFileSource().getValue().isSuccessful()) {
+            Try<File> inputFile = artifact.getFileSource().getValue();
+            Optional<Throwable> inputFailure = inputFile.getFailure();
+            if (inputFailure.isPresent()) {
                 synchronized (this) {
                     // Failed to resolve input artifact, no need to execute
-                    transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
+                    transformedFiles = Try.failure(inputFailure.get());
                     return false;
                 }
             }
 
-            Deferrable<Try<TransformStepSubject>> invocation = createInvocation();
+            Deferrable<Try<ImmutableList<File>>> deferredTransformedFiles = createDeferredTransformedFiles();
             synchronized (this) {
-                this.invocation = invocation;
-                if (invocation.getCompleted().isPresent()) {
+                if (deferredTransformedFiles.getCompleted().isPresent()) {
                     // Have already executed the transform, no need to execute
-                    transformedSubject = invocation.getCompleted().get();
+                    transformedFiles = deferredTransformedFiles.getCompleted().get();
+                    this.deferredTransformedFiles = null;
                     return false;
                 } else {
                     // Have not executed the transform, should execute
+                    this.deferredTransformedFiles = deferredTransformedFiles;
                     return true;
                 }
             }
         }
 
-        private Try<TransformStepSubject> finalizeValue() {
+        private Try<ImmutableList<File>> finalizeValue() {
             synchronized (this) {
-                if (transformedSubject != null) {
-                    return transformedSubject;
+                if (transformedFiles != null) {
+                    return transformedFiles;
                 }
             }
 
             artifact.getFileSource().finalizeIfNotAlready();
-            if (!artifact.getFileSource().getValue().isSuccessful()) {
+            Try<File> inputFile = artifact.getFileSource().getValue();
+            Optional<Throwable> inputFailure = inputFile.getFailure();
+            if (inputFailure.isPresent()) {
                 synchronized (this) {
-                    transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
-                    return transformedSubject;
+                    // Failed to resolve input artifact
+                    transformedFiles = Try.failure(inputFailure.get());
+                    return transformedFiles;
                 }
             }
 
-            Deferrable<Try<TransformStepSubject>> invocation;
+            Deferrable<Try<ImmutableList<File>>> deferredTransformedFiles;
             synchronized (this) {
-                invocation = this.invocation;
+                deferredTransformedFiles = this.deferredTransformedFiles;
             }
 
-            if (invocation == null) {
-                invocation = createInvocation();
+            if (deferredTransformedFiles == null) {
+                deferredTransformedFiles = createDeferredTransformedFiles();
             }
-            Try<TransformStepSubject> result = invocation.completeAndGet();
+            Try<ImmutableList<File>> result = deferredTransformedFiles.completeAndGet();
             synchronized (this) {
-                transformedSubject = result;
+                transformedFiles = result;
+                // Only the files are needed from now on, release the invocation machinery
+                this.deferredTransformedFiles = null;
                 return result;
             }
         }
 
-        private Deferrable<Try<TransformStepSubject>> createInvocation() {
+        private Deferrable<Try<ImmutableList<File>>> createDeferredTransformedFiles() {
             TransformStepSubject initialSubject = TransformStepSubject.initial(artifact);
             BoundTransformStep initialStep = transformSteps.get(0);
             Deferrable<Try<TransformStepSubject>> invocation = initialStep.getTransformStep()
                 .createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
             for (int i = 1; i < transformSteps.size(); i++) {
                 BoundTransformStep nextStep = transformSteps.get(i);
-                invocation = invocation
-                    .flatMap(intermediateResult -> intermediateResult
-                        .map(intermediateSubject -> nextStep.getTransformStep()
-                            .createInvocation(intermediateSubject, nextStep.getUpstreamDependencies(), null))
-                        .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure))));
+                invocation = invocation.flatMap(previousResult -> {
+                    if (previousResult.isSuccessful()) {
+                        // The subject of a successful invocation is never null
+                        TransformStepSubject previousSubject = Objects.requireNonNull(previousResult.get());
+                        return nextStep.getTransformStep().createInvocation(previousSubject, nextStep.getUpstreamDependencies(), null);
+                    }
+                    // Propagate the failure
+                    return Deferrable.completed(previousResult);
+                });
             }
-            return invocation;
+            // Keep only the files, so that the subject chain can be collected once the invocation completes
+            return invocation.map(result -> result.map(TransformStepSubject::getFiles));
         }
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            Try<TransformStepSubject> transformedSubject = finalizeValue();
-            transformedSubject.ifSuccessfulOrElse(
-                subject -> {
-                    for (File output : subject.getFiles()) {
+            Try<ImmutableList<File>> result = finalizeValue();
+            result.ifSuccessfulOrElse(
+                files -> {
+                    for (File output : files) {
                         ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
                         visitor.visitArtifact(artifactSetName, sourceVariantId, target, capabilities, resolvedArtifact);
                     }
