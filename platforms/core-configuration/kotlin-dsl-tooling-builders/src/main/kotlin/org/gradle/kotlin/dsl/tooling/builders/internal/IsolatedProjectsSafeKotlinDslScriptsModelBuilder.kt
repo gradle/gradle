@@ -415,7 +415,7 @@ fun buildOutputModel(
     classPath.asFiles,
     sourcePath.asFiles,
     implicitImports,
-    editorReports = mapEditorReports(buildEditorReportsFor(scriptFile, exceptions, locationAwareHints = false)),
+    editorReports = mapEditorReports(buildEditorReportsFor(scriptFile, exceptions)),
     exceptions = getExceptionsForFile(scriptFile, exceptions)
 )
 

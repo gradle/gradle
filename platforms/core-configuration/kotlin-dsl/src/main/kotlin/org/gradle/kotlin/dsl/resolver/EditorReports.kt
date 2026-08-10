@@ -17,12 +17,6 @@
 package org.gradle.kotlin.dsl.resolver
 
 
-object EditorReports {
-
-    const val locationAwareEditorHintsPropertyName = "org.gradle.kotlin.dsl.internal.locationAwareEditorHints"
-}
-
-
 object EditorMessages {
 
     private
@@ -45,7 +39,4 @@ object EditorMessages {
     const val buildConfigurationFailedUsingPrevious = "Build configuration failed, $usingPrevious, $gradleTasks"
 
     const val buildConfigurationFailedInCurrentScript = "This script caused build configuration to fail, $gradleTasks"
-
-    fun defaultLocationAwareHintMessageFor(runtimeFailure: Throwable) =
-        "${runtimeFailure::class.java.name}, $gradleTasks"
 }
