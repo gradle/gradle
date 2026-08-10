@@ -153,7 +153,7 @@ These are harmless notifications about changes to Gradle's caches and can be saf
 == Troubleshooting
 
 Gradle does not detect some changes::
-_Please https://gradle-community.slack.com/[let us know on the Gradle community Slack]._
+_Please https://gradle-community.slack.com[let us know on the Gradle community Slack]._
 If a build declares its inputs and outputs correctly, this should not happen.
 So it's either a bug we must fix or your build lacks declaration for some inputs or outputs.
 

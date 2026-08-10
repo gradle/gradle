@@ -107,9 +107,8 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
         // curl example whose path contains a <FINGERPRINT> placeholder
         "https://keys.openpgp.org/vks/v1/by-fingerprint/",
         // On purpose failure example of failed dependency
-        "https://repo.maven.apache.org/maven2/co/paralleluniverse/quasar-core/0.8.0/",
+        "https://repo.maven.apache.org/maven2/co/paralleluniverse/quasar-core/0.8.0/quasar-core-0.8.0-jdk8.jar",
         // Gradle community Slack
-        "https://gradle-community.slack.com/",
         "https://gradle-community.slack.com",
         // StackOverflow tag pages block bot HEAD requests
         "https://stackoverflow.com/questions/tagged/gradle",
