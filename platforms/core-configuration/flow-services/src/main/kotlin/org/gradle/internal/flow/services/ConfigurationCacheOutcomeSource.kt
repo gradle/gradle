@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  * Provides the outcome of configuration caching for the current build invocation.
  *
  * Registered by the configuration cache infrastructure only when the configuration cache is
- * enabled; when absent, the outcome is [ConfigurationCacheOutcome.NOT_ENABLED].
+ * enabled; when absent, the outcome is [ConfigurationCacheOutcome.NotEnabled].
  *
  * Must only be queried once the scheduled work of the build has completed.
  */

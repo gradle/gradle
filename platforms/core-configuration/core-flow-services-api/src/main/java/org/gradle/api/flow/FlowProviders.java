@@ -100,7 +100,27 @@ public interface FlowProviders {
      * will result in an error.
      * </p>
      *
-     * <pre>
+     * <pre class='autoTested'>
+     * /**
+     *  * Fails the build if the {{@literal @}link Parameters#getOutcome() outcome} is not
+     *  * a reused configuration cache entry.
+     *  *{@literal /}
+     * class VerifyReuse implements FlowAction&lt;VerifyReuse.Parameters&gt; {
+     *
+     *     interface Parameters extends FlowParameters {
+     *         {@literal @}Input
+     *         Property&lt;ConfigurationCacheOutcome&gt; getOutcome();
+     *     }
+     *
+     *     {@literal @}Override
+     *     public void execute(Parameters parameters) {
+     *         ConfigurationCacheOutcome outcome = parameters.getOutcome().get();
+     *         if (!ConfigurationCacheOutcome.reused().equals(outcome)) {
+     *             throw new GradleException("Expected the configuration cache to be reused, but the outcome was: " + outcome);
+     *         }
+     *     }
+     * }
+     *
      * /**
      *  * A settings plugin that verifies that the configuration cache was reused,
      *  * e.g. on the second of two identical CI builds.

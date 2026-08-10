@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Gradle, Inc.
+    // Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ class VerifyConfigurationCacheReuse implements FlowAction<Parameters> {
         // time would make it a configuration input and invalidate the very entry to verify.
         if (System.getenv('VERIFY_CC_REUSE') != null) {
             def outcome = parameters.outcome.get()
-            if (outcome != ConfigurationCacheOutcome.reused()) {
+            if (outcome !instanceof ConfigurationCacheOutcome.Reused) {
                 throw new GradleException("Expected the configuration cache entry to be reused but the outcome was: $outcome")
             }
         }

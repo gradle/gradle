@@ -596,12 +596,11 @@ class ConfigurationCacheProblems(
         !::cacheAction.isInitialized -> null
         cacheAction is Load -> EntryOutcomeKind.REUSED
         cacheAction == SkipStore -> EntryOutcomeKind.STORE_SKIPPED
-        // Store or Update from here on
         entryFinalizeResult == EntryFinalizeResult.COMMITTED -> EntryOutcomeKind.STORED
         seenSerializationErrorOnStore -> EntryOutcomeKind.STORE_FAILED
         shouldDegradeGracefully() -> EntryOutcomeKind.STORE_SKIPPED
         incompatibleTasks.isNotEmpty() && summary.consoleProblemCount == 0 -> EntryOutcomeKind.STORE_SKIPPED
-        // Discarded due to problems, too many problems, or never stored because the build failed early
+        summary.consoleProblemCount > 0 && isWarningMode -> EntryOutcomeKind.STORE_SKIPPED
         else -> EntryOutcomeKind.STORE_FAILED
     }
 
