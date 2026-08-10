@@ -115,6 +115,47 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
         task << ['Copy', 'Sync']
     }
 
+    def "#task legacy convention mapping on rootSpec destinationDir is routed to destinationDirectory"() {
+        buildFile """
+            task copy(type: $task) {
+                from 'src'
+            }
+            copy.rootSpec.conventionMapping.map('destinationDir') { file("\$buildDir/mapped") }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('build/mapped/a.txt').text == 'a'
+
+        where:
+        task << ['Copy', 'Sync']
+    }
+
+    def "wiring #task destinationDirectory as another task input works with a legacy into() destination"() {
+        buildFile """
+            task producer(type: $task) {
+                from 'src'
+                into "\$buildDir/produced"
+            }
+            task consumer(type: Copy) {
+                from producer.destinationDirectory
+                into layout.buildDirectory.dir("consumed")
+            }
+        """
+
+        when:
+        run 'consumer'
+
+        then:
+        result.assertTasksExecuted(':producer', ':consumer')
+        file('build/consumed/a.txt').text == 'a'
+
+        where:
+        task << ['Copy', 'Sync']
+    }
+
     @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly in the test")
     def "#task destinationDirectory survives the configuration cache"() {
         buildFile """

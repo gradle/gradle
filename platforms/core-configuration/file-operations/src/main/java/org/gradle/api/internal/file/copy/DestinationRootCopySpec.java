@@ -22,6 +22,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.jspecify.annotations.Nullable;
@@ -51,8 +52,10 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     @Override
     public CopySpec into(@Nullable Object destinationDir) {
+        // Avoid referencing `this` (and the whole spec tree) into configuration cache state
+        PathToFileResolver fileResolver = this.fileResolver;
         if (destinationDir == null) {
-            destinationDirectory.set((Directory) null);
+            destinationDirectory.unset();
         } else if (destinationDir instanceof DirectoryProperty) {
             destinationDirectory.set((DirectoryProperty) destinationDir);
         } else if (destinationDir instanceof Directory) {
@@ -78,6 +81,7 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     @Override
     @Nullable
+    @ReplacedBy("destinationDirectory")
     public File getDestinationDir() {
         return destinationDirectory.isPresent() ? destinationDirectory.get().getAsFile() : null;
     }
