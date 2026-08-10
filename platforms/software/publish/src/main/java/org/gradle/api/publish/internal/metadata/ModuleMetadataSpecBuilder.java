@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +66,6 @@ import java.util.TreeMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
@@ -170,7 +170,7 @@ public class ModuleMetadataSpecBuilder {
     @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Artifact> artifactsOf(SoftwareComponentVariant variant) {
         if (variant.getArtifacts().isEmpty()) {
-            return emptyList();
+            return Collections.emptyList();
         }
         ArrayList<ModuleMetadataSpec.Artifact> artifacts = new ArrayList<>();
         for (PublishArtifact artifact : variant.getArtifacts()) {
@@ -219,7 +219,7 @@ public class ModuleMetadataSpecBuilder {
         return new ModuleMetadataSpec.Dependency(
             coordinates,
             excludedRulesFor(dependency, additionalExcludes),
-            dependencyAttributesFor(variant, coordinates.group, coordinates.name, dependency.getAttributes()),
+            dependencyAttributesFor(variant, coordinates.group(), coordinates.name(), dependency.getAttributes()),
             capabilitySelectorsFor(dependency.getCapabilitySelectors(), coordinates),
             dependency.isEndorsingStrictVersions(),
             isNotEmpty(dependency.getReason()) ? dependency.getReason() : null,
@@ -235,7 +235,7 @@ public class ModuleMetadataSpecBuilder {
         ModuleMetadataSpec.DependencyCoordinates coordinates = dependencyConstraintCoordinatesFor(dependencyConstraint, dependencyResolver);
         return new ModuleMetadataSpec.DependencyConstraint(
             coordinates,
-            dependencyAttributesFor(variant, coordinates.group, coordinates.name, dependencyConstraint.getAttributes()),
+            dependencyAttributesFor(variant, coordinates.group(), coordinates.name(), dependencyConstraint.getAttributes()),
             isNotEmpty(dependencyConstraint.getReason()) ? dependencyConstraint.getReason() : null
         );
     }
@@ -300,7 +300,7 @@ public class ModuleMetadataSpecBuilder {
     @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Capability> capabilitiesFor(Collection<? extends Capability> capabilities) {
         if (capabilities.isEmpty()) {
-            return emptyList();
+            return Collections.emptyList();
         }
 
         ArrayList<ModuleMetadataSpec.Capability> metadataCapabilities = new ArrayList<>();
@@ -322,7 +322,7 @@ public class ModuleMetadataSpecBuilder {
         ModuleMetadataSpec.DependencyCoordinates targetComponent
     ) {
         if (capabilitySelectors.isEmpty()) {
-            return emptyList();
+            return Collections.emptyList();
         }
 
         ArrayList<ModuleMetadataSpec.Capability> metadataCapabilities = new ArrayList<>();
@@ -346,8 +346,8 @@ public class ModuleMetadataSpecBuilder {
         } else if (capabilitySelector instanceof FeatureCapabilitySelector) {
             FeatureCapabilitySelector featureSelector = (FeatureCapabilitySelector) capabilitySelector;
             return new ModuleMetadataSpec.Capability(
-                componentCoordinates.group,
-                componentCoordinates.name + "-" + featureSelector.getFeatureName(),
+                componentCoordinates.group(),
+                componentCoordinates.name() + "-" + featureSelector.getFeatureName(),
                 null
             );
         } else {
@@ -358,7 +358,7 @@ public class ModuleMetadataSpecBuilder {
     @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Attribute> attributesFor(AttributeContainer attributes) {
         if (attributes.isEmpty()) {
-            return emptyList();
+            return Collections.emptyList();
         }
 
         ArrayList<ModuleMetadataSpec.Attribute> metadataAttributes = new ArrayList<>();
@@ -396,11 +396,12 @@ public class ModuleMetadataSpecBuilder {
     }
 
     @SuppressWarnings("MixedMutabilityReturnType")
-    private List<ModuleMetadataSpec.Dependency> dependenciesOf(SoftwareComponentVariant variant, ComponentDependencyResolver dependencyResolver) {
+    private Set<ModuleMetadataSpec.Dependency> dependenciesOf(SoftwareComponentVariant variant, ComponentDependencyResolver dependencyResolver) {
         if (variant.getDependencies().isEmpty()) {
-            return emptyList();
+            return Collections.emptySet();
         }
-        ArrayList<ModuleMetadataSpec.Dependency> dependencies = new ArrayList<>();
+
+        Set<ModuleMetadataSpec.Dependency> dependencies = new LinkedHashSet<>();
         Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
             if (moduleDependency.getArtifacts().isEmpty()) {
@@ -429,11 +430,12 @@ public class ModuleMetadataSpecBuilder {
     }
 
     @SuppressWarnings("MixedMutabilityReturnType")
-    private List<ModuleMetadataSpec.DependencyConstraint> dependencyConstraintsFor(SoftwareComponentVariant variant, ComponentDependencyResolver dependencyResolver) {
+    private Set<ModuleMetadataSpec.DependencyConstraint> dependencyConstraintsFor(SoftwareComponentVariant variant, ComponentDependencyResolver dependencyResolver) {
         if (variant.getDependencyConstraints().isEmpty()) {
-            return emptyList();
+            return Collections.emptySet();
         }
-        ArrayList<ModuleMetadataSpec.DependencyConstraint> dependencyConstraints = new ArrayList<>();
+
+        Set<ModuleMetadataSpec.DependencyConstraint> dependencyConstraints = new LinkedHashSet<>();
         for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencyConstraints.add(
                 dependencyConstraintFor(dependencyConstraint, dependencyResolver, variant.getName())
