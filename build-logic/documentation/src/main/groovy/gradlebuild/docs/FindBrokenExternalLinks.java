@@ -78,34 +78,44 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
 
     // Placeholder hosts
     private static final Set<String> PLACEHOLDER_HOST_SUFFIXES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        "example.com",              // IANA-reserved for examples
+        // IANA-reserved for examples
+        "example.com",
         "example.org",
         "example.net",
-        "localhost",                // local references
+        // local references
+        "localhost",
         "127.0.0.1",
         "0.0.0.0",
-        "my.key.server.com",        // ad-hoc placeholders in snippets
+        // ad-hoc placeholders in snippets
+        "my.key.server.com",
         "my.server.com",
         "your.server.com",
         "your.ivy.repo",
         "your.maven.repo",
         "your.secure.repo",
-        "schema.gradle.org"         // XSD namespace, not a live web page
+        // XSD namespace, not a live web page
+        "schema.gradle.org"
     )));
 
-    // Flaky-but-real hosts
-    private static final Set<String> FLAKY_HOST_SUFFIXES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        "docs.junit.org",               // slow / rate-limits bots
-        "gradle-community.slack.com"    // auth-walled
+    // Known URLs we can't (or don't need to) check automatically.
+    private static final Set<String> EXCLUSIONS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        // Fake build scan link used in tutorials
+        "https://gradle.com/s/link",
+        // JUnit docs — slow / rate-limits bots
+        "https://docs.junit.org/current/api/org.junit.jupiter.engine/module-summary.html",
+        "https://docs.junit.org/current/user-guide/",
+        // curl example whose path contains a <FINGERPRINT> placeholder
+        "https://keys.openpgp.org/vks/v1/by-fingerprint/",
+        // On purpose failure example of failed dependency
+        "https://repo.maven.apache.org/maven2/co/paralleluniverse/quasar-core/0.8.0/",
+        // Gradle community Slack
+        "https://gradle-community.slack.com/",
+        "https://gradle-community.slack.com",
+        // StackOverflow tag pages block bot HEAD requests
+        "https://stackoverflow.com/questions/tagged/gradle",
+        // VS Code marketplace blocks bots
+        "https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-gradle"
     )));
-
-    // URL prefixes to skip
-    private static final List<String> SKIP_URL_PREFIXES = Collections.unmodifiableList(Arrays.asList(
-        "https://stackoverflow.com/questions/tagged/",      // SO rate-limits/blocks bot HEAD requests on tag pages
-        "https://marketplace.visualstudio.com/",            // Legit but no bots
-        "https://keys.openpgp.org/vks/v1/by-fingerprint/",  // Example that normally contains a large fingerprint hash
-        "https://gradle.com/s/link"                         // Build Scan example that is a fake build scan link
-    ));
 
     // Host suffixes that must never appear in docs
     private static final Set<String> BLOCKED_HOST_SUFFIXES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -246,20 +256,14 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
     }
 
     private static boolean shouldSkip(String url) {
-        for (String prefix : SKIP_URL_PREFIXES) {
-            if (url.startsWith(prefix)) {
-                return true;
-            }
+        if (EXCLUSIONS.contains(url)) {
+            return true;
         }
         try {
             URI uri = new URI(url);
             String host = uri.getHost();
-            if (host != null) {
-                String lower = host.toLowerCase();
-                if (matchesHostSuffix(lower, PLACEHOLDER_HOST_SUFFIXES)
-                    || matchesHostSuffix(lower, FLAKY_HOST_SUFFIXES)) {
-                    return true;
-                }
+            if (host != null && matchesHostSuffix(host.toLowerCase(), PLACEHOLDER_HOST_SUFFIXES)) {
+                return true;
             }
         } catch (URISyntaxException e) {
             return true;
@@ -333,8 +337,7 @@ public abstract class FindBrokenExternalLinks extends DefaultTask {
             fw.println("# External link check");
             fw.println("# Scanned " + urls.size() + " unique URLs across .adoc and .md files.");
             fw.println("# Placeholder hosts (never resolve, intentionally): " + PLACEHOLDER_HOST_SUFFIXES);
-            fw.println("# Flaky/bot-hostile hosts (real destinations, unchecked): " + FLAKY_HOST_SUFFIXES);
-            fw.println("# Skipped URL prefixes: " + SKIP_URL_PREFIXES);
+            fw.println("# Known excluded URLs (bot-hostile or intentional placeholders): " + EXCLUSIONS);
             fw.println("# Blocked host suffixes (must not appear in docs): " + BLOCKED_HOST_SUFFIXES);
             fw.println();
             if (failures.isEmpty() && warnings.isEmpty()) {
