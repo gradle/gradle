@@ -107,7 +107,7 @@ public abstract class Sync extends AbstractCopyTask {
      * the destination configured through {@link #into(Object)} or {@link #setDestinationDir(File)}.
      *
      * @return the destination directory property
-     * @since 9.7.0
+     * @since 9.8.0
      */
     @Incubating
     @OutputDirectory
