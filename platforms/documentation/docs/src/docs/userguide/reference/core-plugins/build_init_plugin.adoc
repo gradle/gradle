@@ -251,7 +251,7 @@ An alternative test framework can be specified by supplying a `--test-framework`
 
 * `gradle init --type java-application --test-framework junit`: Uses https://junit.org/junit4/[JUnit 4] for testing instead of JUnit Jupiter
 * `gradle init --type java-application --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of JUnit Jupiter
-* `gradle init --type java-application --test-framework testng`: Uses https://testng.org/doc/index.html[TestNG] for testing instead of JUnit Jupiter
+* `gradle init --type java-application --test-framework testng`: Uses https://testng.org[TestNG] for testing instead of JUnit Jupiter
 
 [[sec:java_version_option]]
 ==== The `--java-version` option
@@ -280,7 +280,7 @@ An alternative test framework can be specified by supplying a `--test-framework`
 
 * `gradle init --type java-library --test-framework junit`: Uses https://junit.org/junit4/[JUnit 4] for testing instead of JUnit Jupiter
 * `gradle init --type java-library --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of JUnit Jupiter
-* `gradle init --type java-library --test-framework testng`: Uses https://testng.org/doc/index.html[TestNG] for testing instead of JUnit Jupiter
+* `gradle init --type java-library --test-framework testng`: Uses https://testng.org[TestNG] for testing instead of JUnit Jupiter
 
 [[sec:java_gradle_plugin]]
 === `java-gradle-plugin` build type

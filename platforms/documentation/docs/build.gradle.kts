@@ -332,6 +332,8 @@ tasks.withType<CheckLinks>().configureEach {
 
 tasks.register("checkLinks") {
     dependsOn(tasks.withType<CheckLinks>())
+    dependsOn("checkDeadInternalLinks")
+    dependsOn("checkDeadExternalLinks")
 }
 
 errorprone {
