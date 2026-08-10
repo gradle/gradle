@@ -189,6 +189,29 @@ Gradle provides various incremental updates and performance optimizations to ens
 ADD RELEASE FEATURES ABOVE
 ========================================================== -->
 
+
+#### Faster Maven publishing with up-to-date POM generation
+
+The [`GenerateMavenPom`](javadoc/org/gradle/api/publish/maven/tasks/GenerateMavenPom.html) task was previously marked as untracked, so it executed on every build regardless of whether the underlying POM had changed.
+
+The task now declares each part of its source POM as a task input, so it participates in up-to-date checks:
+
+```text
+$ ./gradlew generatePomFileForMavenPublication
+> Task :generatePomFileForMavenPublication UP-TO-DATE
+
+BUILD SUCCESSFUL
+```
+
+When a `withXml` action is registered, task input tracking remains disabled, as `withXml` actions do not yet support snapshotting, so the task continues to run on every build.
+To restore up-to-date behavior, move the customization into the DSL properties on [`MavenPom`](javadoc/org/gradle/api/publish/maven/MavenPom.html) where possible.
+
+See the [Generate POM task](userguide/publishing_maven.html#publishing_maven:generate-pom) section in the Gradle User Manual for more details.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+========================================================== -->
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.

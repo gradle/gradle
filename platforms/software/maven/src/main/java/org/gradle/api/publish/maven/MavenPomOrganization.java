@@ -17,6 +17,8 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * The organization of a Maven publication.
@@ -30,12 +32,16 @@ public interface MavenPomOrganization {
      * The name of this organization.
      * @since 4.8
      */
+    @Input
+    @Optional
     Property<String> getName();
 
     /**
      * The URL of this organization.
      * @since 4.8
      */
+    @Input
+    @Optional
     Property<String> getUrl();
 
 }

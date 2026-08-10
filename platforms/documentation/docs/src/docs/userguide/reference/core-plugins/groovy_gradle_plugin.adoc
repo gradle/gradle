@@ -1,0 +1,82 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[groovy_gradle_plugin]]
+= The Groovy Gradle Plugin
+
+The Groovy Gradle Plugin (plugin id: `groovy-gradle-plugin`) lets you author Gradle plugins as _precompiled Groovy DSL script plugins_ — `.gradle` scripts placed in a plugin source set such as `buildSrc` or an included `build-logic` build.
+Each script is compiled into a binary Gradle plugin whose ID is derived from the script's file name (and optional package).
+
+For a step-by-step authoring guide — deriving plugin IDs, exposing extensions, and applying the resulting plugins — see <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins,Precompiled Script Plugins>>.
+The Kotlin DSL equivalent is the `kotlin-dsl` plugin.
+
+[[sec:groovy_gradle_plugin_usage]]
+== Usage
+
+Apply the plugin in the build script of the project that hosts your script plugins (for example, `buildSrc` or `build-logic`):
+
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `groovy-gradle-plugin`
+}
+----
+=====
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle
+[source,groovy]
+----
+plugins {
+    id 'groovy-gradle-plugin'
+}
+----
+=====
+
+Applying the plugin also applies the <<groovy_plugin.adoc#groovy_plugin,Groovy (base) plugin>> to compile the scripts and the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> to expose them as plugins.
+
+Gradle discovers every `.gradle` file in the plugin source set and registers it as a plugin in the `gradlePlugin {}` extension automatically.
+A script named `code-quality.gradle` becomes the `code-quality` plugin, and a package declaration adds a prefix (for example, `my.code-quality`).
+See <<implementing_gradle_plugins_precompiled.adoc#sec:the_plugin_id,the plugin ID section>> for details.
+
+[[sec:groovy_gradle_plugin_layout]]
+== Project layout
+
+`src/main/groovy`::
+Precompiled Groovy DSL script plugins (`.gradle` files).
+This is the Groovy source directory of the plugin source set configured on the `gradlePlugin {}` extension (the `main` source set by default).
+
+[[sec:groovy_gradle_plugin_tasks]]
+== Tasks
+
+The plugin adds the following tasks, which are wired into the compilation and output of the plugin source set.
+You do not normally run them directly; they participate automatically when the source set is built.
+
+`extractPluginRequests` (type `ExtractPluginRequestsTask`)::
+Extracts the `plugins {}` block from each script plugin so that the plugins it requests can be applied.
+
+`generatePluginAdapters` (type `GeneratePluginAdaptersTask`)::
+Generates the Java adapter classes that expose each script as a binary link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation. The generated sources are added to the plugin source set's Java sources.
+
+`compileGroovyPlugins` (type `CompileGroovyScriptPluginsTask`)::
+Compiles the Groovy script plugins into plugin classes and adds them to the plugin source set's output.
+
+[[sec:groovy_gradle_plugin_notes]]
+== Notes
+
+* A precompiled script plugin ID must not start with `org.gradle` and must not conflict with a core Gradle plugin.
+* The file-name suffix determines how a script is interpreted: `*.gradle` becomes a `Plugin<Project>`, `*.settings.gradle` a `Plugin<Settings>`, and `*.init.gradle` a `Plugin<Gradle>`.
