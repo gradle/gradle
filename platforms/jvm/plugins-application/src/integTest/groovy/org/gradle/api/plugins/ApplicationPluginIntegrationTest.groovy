@@ -252,7 +252,7 @@ System.out.println("CLASSPATH: " + System.getenv("CLASSPATH"));
 
         then:
         def scriptOutput = outputFile.text
-        scriptOutput.contains('ERROR: JAVA_HOME is set to an invalid directory')
+        scriptOutput.readLines().contains("ERROR: JAVA_HOME is set to an invalid directory: ${invalidJavaHome.canonicalPath}".toString())
         // The script must stop after the error rather than falling through to :execute and
         // trying to launch the missing java.exe, which prints "cannot find the path/file
         // specified".
