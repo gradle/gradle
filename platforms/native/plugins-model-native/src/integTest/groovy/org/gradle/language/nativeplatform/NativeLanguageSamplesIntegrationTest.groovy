@@ -45,8 +45,33 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
     @Rule public final Sample pch = sample(testDirProvider, 'pre-compiled-headers')
 
+    private static final String CPP = "org.gradle.language.cpp.plugins.CppLangPlugin"
+    private static final String C = "org.gradle.language.c.plugins.CLangPlugin"
+    private static final String OBJECTIVE_C = "org.gradle.language.objectivec.plugins.ObjectiveCLangPlugin"
+    private static final String OBJECTIVE_CPP = "org.gradle.language.objectivecpp.plugins.ObjectiveCppLangPlugin"
+    private static final String ASSEMBLER = "org.gradle.language.assembler.plugins.AssemblerLangPlugin"
+    private static final String WINDOWS_RESOURCES = "org.gradle.language.rc.plugins.WindowsResourceScriptPlugin"
+
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "integration-tests/native-binaries/${name}/groovy", name)
+    }
+
+    /**
+     * The samples apply the deprecated rule-based/software model native plugins, which nag once per applied
+     * rule source plugin. The set of base plugins is always the same; the language plugins vary per sample.
+     * Expectations are cleared after each build invocation, so this must be called before each one.
+     */
+    private void expectSoftwareModelDeprecations(String... languagePlugins) {
+        def plugins = [
+            "org.gradle.platform.base.plugins.ComponentBasePlugin",
+            "org.gradle.language.base.plugins.LanguageBasePlugin",
+            "org.gradle.platform.base.plugins.BinaryBasePlugin",
+            "org.gradle.language.base.plugins.ComponentModelBasePlugin",
+            "org.gradle.nativeplatform.plugins.NativeComponentModelPlugin",
+        ] + (languagePlugins as List)
+        plugins.each { plugin ->
+            executer.expectDocumentedDeprecationWarning("The ${plugin} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
@@ -55,6 +80,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample assembler
 
         when:
+        expectSoftwareModelDeprecations(ASSEMBLER, C)
         run "installMainExecutable"
 
         then:
@@ -69,6 +95,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample c
 
         when:
+        expectSoftwareModelDeprecations(C)
         run "installMainExecutable"
 
         then:
@@ -84,6 +111,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample cpp
 
         when:
+        expectSoftwareModelDeprecations(CPP)
         run "installMainExecutable"
 
         then:
@@ -101,6 +129,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample objectiveC
 
         when:
+        expectSoftwareModelDeprecations(OBJECTIVE_C)
         succeeds "installMainExecutable"
 
         then:
@@ -117,6 +146,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample objectiveCpp
 
         when:
+        expectSoftwareModelDeprecations(OBJECTIVE_CPP)
         succeeds "installMainExecutable"
 
         then:
@@ -134,6 +164,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample windowsResources
 
         when:
+        expectSoftwareModelDeprecations(CPP, WINDOWS_RESOURCES)
         run "installMainExecutable"
 
         then:
@@ -146,6 +177,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         inDirectory(windowsResources.dir.file('only-dll'))
+        expectSoftwareModelDeprecations(WINDOWS_RESOURCES)
         run "helloResSharedLibrary"
 
         then:
@@ -157,6 +189,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample customLayout
 
         when:
+        expectSoftwareModelDeprecations(CPP, C)
         run "installMainExecutable"
 
         then:
@@ -172,6 +205,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample idl
 
         when:
+        expectSoftwareModelDeprecations(C)
         run "installMainExecutable"
 
         then:
@@ -188,6 +222,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample pch
 
         when:
+        expectSoftwareModelDeprecations(CPP)
         run "installMainExecutable"
 
         then:
