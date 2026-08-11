@@ -177,6 +177,6 @@ Build the client's view of the project from the values passed to the intermediat
 
 Resilient sync requires Tooling API 9.3.0 or later and a target Gradle version that supports the behavior you rely on:
 
-* The `fetch(...)` methods and `FetchModelResult` are available from Gradle 9.3.0.
-* Partial build models, returned when a settings script or a settings plugin fails, are available from Gradle 9.4.0.
-* Reporting a resilient sync that partially failed as a failed operation is the behavior from Gradle 9.7.0. In earlier versions, such an operation could complete successfully, with the failures reported only through `FetchModelResult.getFailures()`.
+* Gradle 9.3.0: The `fetch(...)` methods and `FetchModelResult` are available.
+* Gradle 9.4.0: Partial build models, returned when a settings script or a settings plugin fails.
+* Gradle 9.7.0: Reporting a resilient sync that partially failed as a failed operation. In earlier versions, such an operation could complete successfully, with the failures reported only through `FetchModelResult.getFailures()`.
