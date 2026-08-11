@@ -674,7 +674,7 @@ configurations.implementation.extendsFrom(configurations.myConfiguration)
 [[v6_updates_to_bundled_gradle_dependencies_6_6]]
 ==== Updates to bundled Gradle dependencies
 
-- Ant has been updated to https://downloads.apache.org/ant/RELEASE-NOTES-1.10.8.html[1.10.8].
+- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.8.html[1.10.8].
 - Groovy has been updated to https://groovy-lang.org/changelogs/changelog-2.5.12.html[Groovy 2.5.12].
 
 [[v6_dependency_substitutions_and_variant_aware_dependency_resolution]]
@@ -827,7 +827,7 @@ The dependencies for annotation processors are not added to an IDEA module's cla
 [[v6_updates_to_default_tool_integration_versions_6_3]]
 ==== Updates to default tool integration versions
 
-- PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
+- PMD has been updated to https://pmd.github.io/2020/01/24/PMD-6.21.0/#24-january-2020---6210[PMD 6.21.0].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.5/CHANGELOG.md#version-15----nov-2019[CodeNarc 1.5].
 
 [[v6_rich_console_support_removed_for_some_32_bit_operating_systems]]
@@ -951,7 +951,7 @@ This service allowed for mutable state to leak into a worker action and introduc
 ==== Updates to default tool integration versions
 
 - Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.27[Checkstyle 8.27].
-- PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].
+- PMD has been updated to https://pmd.github.io/2019/11/29/PMD-6.20.0/#29-november-2019---6200[PMD 6.20.0].
 
 [[v6_publishing_spring_boot_applications]]
 ==== Publishing Spring Boot applications
