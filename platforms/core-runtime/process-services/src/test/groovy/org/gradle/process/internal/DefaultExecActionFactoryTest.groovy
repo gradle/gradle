@@ -29,6 +29,7 @@ import org.gradle.test.preconditions.OsTestPreconditions
 
 import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 
 class DefaultExecActionFactoryTest extends ConcurrentSpec {
     @Rule
@@ -82,6 +83,36 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
 
         then:
         result.exitValue != 0
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38787")
+    def "exec action exposes the documented stream defaults before they are configured"() {
+        when:
+        def execAction = factory.newExecAction()
+
+        then:
+        execAction.standardOutput != null
+        execAction.errorOutput != null
+        execAction.standardInput != null
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38787")
+    def "exec action returns the configured stream instead of the default"() {
+        given:
+        def execAction = factory.newExecAction()
+        def standardOutput = new ByteArrayOutputStream()
+        def errorOutput = new ByteArrayOutputStream()
+        def standardInput = new ByteArrayInputStream(new byte[0])
+
+        when:
+        execAction.standardOutput = standardOutput
+        execAction.errorOutput = errorOutput
+        execAction.standardInput = standardInput
+
+        then:
+        execAction.standardOutput.is(standardOutput)
+        execAction.errorOutput.is(errorOutput)
+        execAction.standardInput.is(standardInput)
     }
 
     @Requires(OsTestPreconditions.NotWindows)
