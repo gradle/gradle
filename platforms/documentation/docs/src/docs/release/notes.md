@@ -16,6 +16,8 @@ In this release, the [Isolated Projects](#isolated-projects) performance feature
 
 This release also enhances the [Configuration Cache](#configuration-cache-improvements), where tasks gain access to higher-level dependency resolution APIs, Java agents and TestKit work better together, and a source of spurious invalidation when used from IntelliJ IDEA was removed.
 
+When your build fails during IDE import or sync, Gradle now returns a partial model through [Resilient Sync](#tooling-and-ide-integration), so your IDE keeps offering code completion, navigation, and highlighting for the parts of the build-logic that are healthy, instead of leaving you with all-red scripts and no assistance while you track down the problem.
+
 [Test reporting and execution](#test-reporting-and-execution) now surfaces framework-initialization failures for TestNG, JUnit 4, and JUnit Platform in the console by default, and supports the new way of controlling parallelism in TestNG 7.10 and later.
 
 In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), Gradle now shows a source location for up to 2050 problems per build, up from 50, so the console, problems report, and Tooling API pinpoint many more issues.
@@ -189,6 +191,27 @@ Calculating task graph as configuration cache cannot be reused because system pr
 Gradle now sets the property at the start of every build, so its value stays stable and the Configuration Cache entry is reused.
 
 This resolves [one of the most highly-voted Configuration Cache issues](https://github.com/gradle/gradle/issues/30145).
+
+### Tooling and IDE integration
+Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
+
+#### Resilient sync for IDE integration
+
+When an IDE syncs a Gradle build, it queries tooling models through the [Tooling API](userguide/tooling_api.html).
+
+With resilient sync, Gradle builds and returns models for as much of the build as it can configure and reports the rest as structured failures, so an IDE can keep assisting you with the healthy parts of the build while you repair what is broken. In particular, Gradle can now provide:
+
+- A partial build model listing the projects Gradle could discover, even when the settings script or a settings plugin fails to configure.
+- A partial Kotlin DSL scripts model carrying the classpath and imports for the build scripts Gradle could resolve, even when other build logic is broken, so those scripts keep their editor assistance.
+- Models for the individual projects, `buildSrc`, and included builds that configured successfully before a failure elsewhere in the build.
+
+Tooling API clients opt into this behavior by querying models through the incubating [`BuildController.fetch(...)`](javadoc/org/gradle/tooling/BuildController.html#fetch(java.lang.Class)) method, which returns each model together with any failures encountered instead of aborting the operation.
+
+In this release, a resilient sync reports the operation as failed when any part of it fails, so the reported build status is accurate, while the partial models are still delivered to the client's intermediate result handlers before the failure is raised.
+
+Resilient sync is [incubating](userguide/feature_lifecycle.html). The failure-reporting behavior is available in IntelliJ IDEA 2026.2.
+
+See the [Resilient sync](userguide/tooling_api.html#sec:embedding_resilient_sync) section in the Gradle User Manual for more details.
 
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
