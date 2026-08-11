@@ -99,7 +99,12 @@ class GroovyCoverage {
     private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
         def allVersions = allVersions()
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_27)) {
+            // This branch does not support Java 27. None of the covered Groovy versions can be used with it:
+            // 4.0.x bundles an ASM that fails to read class file major version 71, and 5.0.x cannot target Java 27.
+            // JDK 27 is present on the test executor images, so it has to be excluded explicitly here.
+            return Collections.emptySet()
+        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
             return VersionCoverage.versionsAtLeast(allVersions, '4.0.29')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
             return VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
