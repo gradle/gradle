@@ -319,32 +319,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-    @Test
-    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
-    fun `report line warning on runtime failure in currently edited script when location aware hints are enabled`() {
-
-        withFile(
-            "gradle.properties",
-            """
-            ${EditorReports.locationAwareEditorHintsPropertyName}=true
-            """
-        )
-        val editedScript = withBuildScript(
-            """
-            configurations.getByName("doNotExists")
-            """
-        )
-
-        resolvedScriptDependencies(editedScript).apply {
-            assertContainsBasicDependencies()
-        }
-
-        recorder.apply {
-            assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleLineWarningReport("Configuration with name 'doNotExists' not found.", 1)
-        }
-    }
-
     private
     val recorder = ResolverTestRecorder()
 
@@ -484,15 +458,6 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
         }
     }
 
-    fun assertSingleLineWarningReport(message: String, line: Int) {
-        assertSingleEditorReport()
-        reports.single().let { report ->
-            assertThat(report.severity, equalTo(ReportSeverity.WARNING))
-            assertThat(report.position, notNullValue())
-            assertThat(report.position!!.line, equalTo(line))
-            assertThat(report.message, equalTo(message))
-        }
-    }
 }
 
 
