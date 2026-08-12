@@ -93,6 +93,8 @@ val agentsRuntimeOnly = bucket("agentsRuntimeOnly")
 agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
 val publicAbiOnly = bucket("publicAbiOnly")
 publicAbiOnly.description = "To define dependencies to the public API ABI jar (lib/api/*.jar)"
+val distributionRepositoryOnly = bucket("distributionRepositoryOnly")
+distributionRepositoryOnly.description = "To define modules whose per-project Maven repository slices merge into the distribution's embedded repository (repo/)"
 
 // Use lazy API to not attempt to find platform project during script compilation
 coreRuntimeOnly.dependencies.addLater(provider {
@@ -114,6 +116,19 @@ gradlePublicAbiClasspath.description = "Resolves the public API ABI jar (signatu
 gradlePublicAbiClasspath.isTransitive = false // Transitives must already be part of the distribution
 val gradlePublicAbiRuntimeClasspath = apiLibraryResolver("gradlePublicAbiRuntimeClasspath", listOf(publicAbiOnly))
 gradlePublicAbiRuntimeClasspath.description = "Resolves the public API ABI jar and its transitive dependencies (used to populate the module registry's dependency list for that jar)"
+val distributionRepositoryPath = configurations.create("distributionRepositoryPath") {
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("gradle-distribution-repository"))
+    }
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    // Each declared module contributes exactly its own slice variant; a slice has no repo-slice
+    // dependencies of its own, and walking the java-component graph here would demand the
+    // repo-slice variant of modules that legitimately do not publish one.
+    isTransitive = false
+    extendsFrom(distributionRepositoryOnly)
+}
+distributionRepositoryPath.description = "Resolves the per-project Maven repository slices merged into the distribution's embedded repository (repo/)"
 val gradleScriptPath = startScriptResolver("gradleScriptPath", ":gradle-cli-main")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath = sourcesResolver("sourcesPath", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
