@@ -19,21 +19,24 @@ package gradlebuild.xdcl
 import org.gradle.api.provider.ListProperty
 
 /**
- * Configures the xdcl-builtin-ecosystem manifests for a built-in XDCL ecosystem plugin module.
+ * Configures the manifests for a built-in XDCL ecosystem plugin module.
  *
- * A built-in ecosystem ships its schemas in the distribution but is applied by id (a distribution
- * plugin), so its jar never lands on the settings plugin classpath and the transform-over-classpath
- * schema discovery is blind to it. One `META-INF/xdcl-builtin-ecosystem/<plugin-id>.properties` is
- * written per plugin carrier in the module (the ids come from the `.xdcl` file names, so there is
- * nothing to declare here); each names the distribution schema module(s) whose jars the provider
- * resolves via `ModuleRegistry`. See `integrations/gradle/doc/builtin-ecosystem-schemas.md`.
+ * A built-in ecosystem's plugin is applied by id (a distribution plugin), so its jar never lands on
+ * the settings plugin classpath — instead its standard plugin descriptor declares the ecosystem's
+ * PUBLISHED schema library as a `distribution-companion-modules` entry, and core plugin resolution
+ * injects that library into the settings classpath resolution (served at the distribution version
+ * by the image-embedded Maven repository). One descriptor is written per plugin carrier in the
+ * module (the ids come from the `.xdcl` file names, so there is nothing to declare here). See
+ * `integrations/gradle/doc/builtin-ecosystem-schemas.md`.
  */
 interface XdclBuiltinEcosystemExtension {
 
     /**
-     * Distribution module names carrying this module's ecosystem schemas. Defaults to the module of
-     * the project applying the convention (`gradle-${project.name}`), i.e. schemas live in the
-     * plugin's own module; override to point at dedicated schema-only modules.
+     * The published schema library module(s) of this ecosystem (`org.gradle` artifactIds; a module
+     * name doubles as the distribution module name). Defaults to the carrier's lib sibling
+     * (`gradle-${project.name}` minus the `-plugin` suffix); override to point at dedicated
+     * schema-only modules. Transitive schema libraries (e.g. the common ecosystem) need no entry —
+     * they arrive through the published metadata.
      */
     val schemaModules: ListProperty<String>
 }

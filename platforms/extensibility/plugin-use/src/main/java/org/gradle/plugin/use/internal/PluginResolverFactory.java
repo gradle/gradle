@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -40,17 +41,20 @@ public class PluginResolverFactory {
     private final DocumentationRegistry documentationRegistry;
     private final ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver;
     private final List<PluginResolverContributor> pluginResolverContributors;
+    private final DependencyFactory dependencyFactory;
 
     public PluginResolverFactory(
         CorePluginRegistryProvider corePluginRegistryProvider,
         DocumentationRegistry documentationRegistry,
         ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
-        List<PluginResolverContributor> pluginResolverContributors
+        List<PluginResolverContributor> pluginResolverContributors,
+        DependencyFactory dependencyFactory
     ) {
         this.corePluginRegistry = corePluginRegistryProvider.getCorePluginRegistry();
         this.documentationRegistry = documentationRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
         this.pluginResolverContributors = pluginResolverContributors;
+        this.dependencyFactory = dependencyFactory;
     }
 
     public PluginResolver create(PluginArtifactRepositories pluginResolveContext) {
@@ -82,7 +86,7 @@ public class PluginResolverFactory {
      */
     private void addDefaultResolvers(PluginArtifactRepositories pluginResolveContext, List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(corePluginRegistry));
-        resolvers.add(new CorePluginResolver(documentationRegistry, corePluginRegistry));
+        resolvers.add(new CorePluginResolver(documentationRegistry, corePluginRegistry, dependencyFactory));
 
         injectedClasspathPluginResolver.collectResolversInto(resolvers);
 

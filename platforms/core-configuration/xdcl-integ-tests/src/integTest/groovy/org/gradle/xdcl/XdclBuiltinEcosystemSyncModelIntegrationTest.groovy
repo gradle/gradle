@@ -21,15 +21,16 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 /**
  * The universe-composition hand-off to the sync model builders: what a build's schema universe is
  * made of is composed once by the settings apply and frozen into the build-scoped
- * {@code org.gradle.api.xdcl.internal.UniverseCompositionHolder} service — above all the applied
- * built-in ecosystems' distribution schema jars, which never appear on the settings plugin
- * classpath (a distribution plugin bypasses artifact resolution), the one surface the sync/LSP
- * universe could otherwise derive members from. The service and the composition's whole reachable
- * graph are API-layer types on purpose: the model builders ride the sync CLI's init-script
- * classpath, and only API-parent-loader classes are the same {@code Class} for them and for the
- * distribution. This test pins the provider half of that contract against a real distribution,
- * reading the frozen composition exactly the way the model builders do; the
- * composition-to-universe-members half is unit-tested in {@code xdcl-gradle-model-builders}.
+ * {@code org.gradle.api.xdcl.internal.UniverseCompositionHolder} service. An applied built-in
+ * ecosystem's published library is an ordinary classpath root in it — the provider injects the
+ * library into the settings classpath resolution (served by the distribution's embedded Maven
+ * repository), so build evaluation and the sync/LSP universe see built-ins uniformly in the
+ * resolution result. The service and the composition's whole reachable graph are API-layer types
+ * on purpose: the model builders ride the sync CLI's init-script classpath, and only
+ * API-parent-loader classes are the same {@code Class} for them and for the distribution. This
+ * test pins the provider half of that contract against a real distribution, reading the frozen
+ * composition exactly the way the model builders do; the composition-to-universe-members half is
+ * unit-tested in {@code xdcl-gradle-model-builders}.
  */
 class XdclBuiltinEcosystemSyncModelIntegrationTest extends AbstractIntegrationSpec {
 
@@ -39,14 +40,13 @@ class XdclBuiltinEcosystemSyncModelIntegrationTest extends AbstractIntegrationSp
         def composition = holder?.composition()
         println("xdcl-composition-frozen=" + (composition != null))
         if (composition != null) {
-            println("xdcl-builtin-ecosystem-ids=" + composition.builtinEcosystems*.ecosystemId.join(","))
-            println("xdcl-builtin-jar-count=" + composition.builtinEcosystemSchemaJars.size())
-            composition.builtinEcosystemSchemaJars.each { println("xdcl-builtin-jar=" + it.name) }
+            println("xdcl-classpath-root-count=" + composition.classpathRoots.size())
+            composition.classpathRoots.each { println("xdcl-classpath-root-owner=" + it.owner) }
             println("xdcl-bootstrap-count=" + composition.bootstrapSchemas.size())
         }
     '''
 
-    def "the settings apply freezes the composed universe, with the applied ecosystems' pulls attributed per id"() {
+    def "the settings apply freezes the composed universe, with the applied ecosystems' libraries as ordinary classpath roots"() {
         given: 'a declarative settings applying the JVM ecosystem, probed by an imperative root build script'
         file('settings.gradle.xdcl') << '''
             settings {
@@ -61,13 +61,12 @@ class XdclBuiltinEcosystemSyncModelIntegrationTest extends AbstractIntegrationSp
         when:
         succeeds("help")
 
-        then: 'the pulled closure is handed over attributed to its ecosystem: the applied module AND the common module it imports'
+        then: 'the injected libraries arrive as resolution-owned roots: the applied module AND the common module it imports, at the distribution version'
         outputContains("xdcl-composition-frozen=true")
-        outputContains("xdcl-builtin-ecosystem-ids=java-ecosystem")
-        output.contains("xdcl-builtin-jar=gradle-xdcl-jvm-ecosystem-")
-        output.contains("xdcl-builtin-jar=gradle-xdcl-common-ecosystem-")
+        output.contains("xdcl-classpath-root-owner=org.gradle:gradle-xdcl-jvm-ecosystem:" + distribution.version.version)
+        output.contains("xdcl-classpath-root-owner=org.gradle:gradle-xdcl-common-ecosystem:" + distribution.version.version)
 
-        and: 'the composition carries the distribution bootstrap text, not just the jar list'
+        and: 'the composition carries the distribution bootstrap text, not just the roots'
         outputContains("xdcl-bootstrap-count=1")
     }
 
@@ -83,9 +82,9 @@ class XdclBuiltinEcosystemSyncModelIntegrationTest extends AbstractIntegrationSp
         when:
         succeeds("help")
 
-        then: 'the frozen composition answers "applied, nothing pulled" — consumers fall back only on ABSENT, never on lean'
+        then: 'the frozen composition answers "applied, nothing resolved" — consumers fall back only on ABSENT, never on lean'
         outputContains("xdcl-composition-frozen=true")
-        outputContains("xdcl-builtin-jar-count=0")
+        outputContains("xdcl-classpath-root-count=0")
         outputContains("xdcl-bootstrap-count=1")
     }
 }

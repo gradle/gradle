@@ -39,7 +39,8 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 248
+        // 247 MiB stock + the XDCL modules and the embedded Maven repository (repo/).
+        return 250
     }
 
     @Requires(TestEnvironmentPreconditions.StableGroovy) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/
