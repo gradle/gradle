@@ -17,6 +17,7 @@
 package org.gradle.composite.internal
 
 import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.internal.TaskInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildWorkGraphController
@@ -34,8 +35,11 @@ abstract class AbstractIncludedBuildTaskGraphTest extends ConcurrentSpec {
         return build
     }
 
-    static TaskIdentifier taskIdentifier(BuildIdentifier id, String taskPath) {
-        return TaskIdentifier.of(id, taskPath)
+    TaskIdentifier taskIdentifier(BuildIdentifier id, String taskPath) {
+        def task = Stub(TaskInternal) {
+            getPath() >> taskPath
+        }
+        return new TaskIdentifier(id, task)
     }
 
 }
