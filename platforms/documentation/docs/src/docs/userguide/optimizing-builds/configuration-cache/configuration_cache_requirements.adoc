@@ -722,6 +722,10 @@ When process isolation is used, the worker action is executed in a separate work
 
 In simple cases, when the libraries also provide command-line entry points (`public static void main()` method), you can also use the link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[`JavaExec`] task to isolate the library.
 
+The agent also affects hot-swapping build logic classes in a running build.
+It prevents Hot Code Replace of such classes: Gradle logs a warning and ignores the recompiled definition.
+You should not rely on Hot Code Replace when debugging build logic; restart the build to pick up such a change.
+
 [[config_cache:secrets]]
 == Handling of Credentials and Secrets
 
