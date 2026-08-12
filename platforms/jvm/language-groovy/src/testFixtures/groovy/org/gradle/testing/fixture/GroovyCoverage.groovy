@@ -90,7 +90,8 @@ class GroovyCoverage {
         return switch (groovyVersion.major) {
             case 6 -> JavaVersion.VERSION_27
             case 5 -> JavaVersion.VERSION_27
-            case 4 -> groovyVersion >= VersionNumber.parse('4.0.33') ? JavaVersion.VERSION_27 : JavaVersion.VERSION_26
+            // Groovy 4.0.33 added target support for Java 26 and 27; earlier 4.0.x releases top out at Java 25
+            case 4 -> (groovyVersion >= VersionNumber.parse('4.0.33') ? JavaVersion.VERSION_27 : JavaVersion.VERSION_25)
             case 3 -> JavaVersion.VERSION_17
             default -> throw new IllegalArgumentException("Computing effective target for Groovy version $groovyVersion is not supported")
         }
