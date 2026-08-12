@@ -81,7 +81,8 @@ Instead, we recommend explicitly marking problematic tasks as <<configuration_ca
 [[config_cache:usage:max_problems]]
 === Allowing a Maximum Number of Problems
 
-When Configuration Cache problems are treated as warnings, Gradle will fail the build if `512` problems are found by default.
+By default, Gradle fails the build once more than `512` Configuration Cache problems have accumulated.
+This limit applies regardless of the `problems` mode, but in practice it is only reached under `problems=warn`, since `problems=fail` stops at the first problem.
 
 You can adjust this limit by specifying the maximum number of allowed problems on the command line:
 
