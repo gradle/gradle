@@ -16,6 +16,7 @@
 package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
@@ -88,6 +90,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -496,6 +499,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE);
         private static final String RETURN_CONVENTION_MAPPING = getMethodDescriptor(CONVENTION_MAPPING_TYPE);
         private static final String RETURN_OBJECT = getMethodDescriptor(OBJECT_TYPE);
+        private static final Type PROVIDER_TYPE = getType(Provider.class);
         private static final String RETURN_OBJECT_FROM_STRING = getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT = getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_STRING_OBJECT = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
@@ -533,6 +537,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final AsmClassGenerator classGenerator;
         private final int factoryId;
         private boolean hasMappingField;
+        private final Set<String> generatedLegacyShims = new HashSet<>();
         private final boolean conventionAware;
         private final boolean mixInDsl;
         private final boolean extensible;
@@ -1363,6 +1368,51 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
+        public void applyEagerShimToLegacyGetter(PropertyMetadata property, Method legacyGetter) {
+            Class<?> eagerRawType = legacyGetter.getReturnType();
+            if (eagerRawType.isPrimitive()) {
+                // Would need the same default-value semantics as the generated eager adapters
+                // (getOrElse(0), getOrElse(false), ...), which is not settled yet.
+                return;
+            }
+            Class<?> lazyRawType = property.getType();
+            boolean lazyValueIsAlreadyEagerType = eagerRawType.isAssignableFrom(lazyRawType);
+            if (!lazyValueIsAlreadyEagerType) {
+                if (!Provider.class.isAssignableFrom(lazyRawType)) {
+                    return;
+                }
+                Class<?> valueType = TypeToken.of(property.getGenericType())
+                    .resolveType(Provider.class.getTypeParameters()[0])
+                    .getRawType();
+                if (!eagerRawType.isAssignableFrom(valueType)) {
+                    // e.g. DirectoryProperty is a Provider<Directory>, but the accessor it replaced returned a File
+                    return;
+                }
+            }
+
+            Type eagerType = getType(eagerRawType);
+            String descriptor = getMethodDescriptor(eagerType);
+            if (!generatedLegacyShims.add(legacyGetter.getName() + descriptor)) {
+                // The same accessor is declared more than once in the hierarchy
+                return;
+            }
+
+            // GENERATE public <eagerType> <getter>() { return <lazyGetter>()[.getOrNull()]; }
+            String lazyGetterName = property.getMainGetter().getName();
+            String lazyDescriptor = getMethodDescriptor(getType(lazyRawType));
+            addGetter(legacyGetter.getName(), eagerType, descriptor, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, lazyGetterName, lazyDescriptor);
+                if (!lazyValueIsAlreadyEagerType) {
+                    _CHECKCAST(PROVIDER_TYPE);
+                    _INVOKEINTERFACE(PROVIDER_TYPE, "getOrNull", RETURN_OBJECT);
+                    _CHECKCAST(eagerType);
+                }
+                _ARETURN();
+            }});
+        }
+
+        @Override
         public void applyManagedStateToSetter(PropertyMetadata property, Method setter) {
             addSetterForProperty(property, setter);
         }
@@ -2059,6 +2109,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyManagedStateToGetter(PropertyMetadata property, Method getter) {
+        }
+
+        @Override
+        public void applyEagerShimToLegacyGetter(PropertyMetadata property, Method legacyGetter) {
         }
 
         @Override

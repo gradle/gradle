@@ -1279,6 +1279,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 for (MethodMetadata getter : property.getters) {
                     if (property.isLegacyEagerGetter(getter)) {
                         // Its return type is the replaced eager type, so it cannot read the managed field
+                        visitor.applyEagerShimToLegacyGetter(property, getter.method);
                         continue;
                     }
                     visitor.applyManagedStateToGetter(property, getter.method);
@@ -1292,6 +1293,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 boolean applyRole = isRoleType(property);
                 for (MethodMetadata getter : property.getters) {
                     if (property.isLegacyEagerGetter(getter)) {
+                        visitor.applyEagerShimToLegacyGetter(property, getter.method);
                         continue;
                     }
                     visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
@@ -1657,6 +1659,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyManagedStateToProperty(PropertyMetadata property);
 
         void applyManagedStateToGetter(PropertyMetadata property, Method getter);
+
+        /**
+         * Implements the eager accessor a type compiled against an older Gradle still declares, by reading
+         * through the upgraded lazy property. Does nothing if the value cannot be unwrapped to the eager type.
+         */
+        void applyEagerShimToLegacyGetter(PropertyMetadata property, Method legacyGetter);
 
         void applyManagedStateToSetter(PropertyMetadata property, Method setter);
 

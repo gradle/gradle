@@ -68,4 +68,40 @@ class UpgradedPropertyLegacyGetterIntegrationTest extends AbstractIntegrationSpe
         "ListProperty<String>"       | "List<String>"   | "[]"
         "ConfigurableFileCollection" | "FileCollection" | "null"
     }
+
+    def "the legacy getter reads through the upgraded property instead of its own body"() {
+        given:
+        // Groovy cannot dispatch between two same-named getters, so each is selected by return type.
+        buildFile """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            interface UpgradedProp {
+                @ReplacesEagerProperty
+                @Internal
+                Property<String> getProp()
+            }
+
+            abstract class LegacyBase extends DefaultTask {
+                String getProp() { return "from legacy body" }
+            }
+
+            abstract class SomeTask extends LegacyBase implements UpgradedProp {
+                private accessor(Class<?> returnType) {
+                    getClass().methods.find { it.name == "getProp" && it.returnType == returnType }
+                }
+
+                @TaskAction
+                void go() {
+                    accessor(Property).invoke(this).set("from lazy property")
+                    println("eager getter returned: " + accessor(String).invoke(this))
+                }
+            }
+
+            tasks.register("thing", SomeTask)
+        """
+
+        expect:
+        succeeds("thing")
+        outputContains("eager getter returned: from lazy property")
+    }
 }
