@@ -668,6 +668,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return !method.isBridge();
         }
 
+        /**
+         * Is this the lazy accessor of a property upgraded to the Provider API? A type compiled against
+         * an older Gradle may still declare the eager accessor this one replaced, under the same name
+         * but with a different descriptor.
+         */
+        boolean isUpgradedLazyAccessor() {
+            return method.isAnnotationPresent(ReplacesEagerProperty.class);
+        }
+
         public Class<?> getReturnType() {
             return method.getReturnType();
         }
@@ -789,11 +798,33 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             } else if (mainGetter.getReturnType().isAssignableFrom(metadata.getReturnType())) {
                 // Prefer the most specialized type
                 mainGetter = metadata;
+            } else if (metadata.isUpgradedLazyAccessor() && !mainGetter.isUpgradedLazyAccessor()) {
+                // Neither return type is assignable to the other, so the rules above cannot choose. One of them is
+                // the eager accessor an upgraded property replaced (e.g. String against Property<String>), and
+                // picking it would stop the property being recognised as managed.
+                mainGetter = metadata;
             }
         }
 
         public void addGetterDeclaration(Method method) {
             getterDeclarations.add(method);
+        }
+
+        /**
+         * The eager accessor an upgraded property replaced, still declared by a type compiled against an older
+         * Gradle. Identified by return type rather than by carrying the annotation: an override does not inherit
+         * it, and a covariant override of the lazy getter is still the lazy getter, not the accessor it replaced.
+         */
+        public boolean isLegacyEagerGetter(MethodMetadata getter) {
+            if (!getter.shouldImplement()) {
+                // A bridge is not a declaration of its own; the method it delegates to is handled instead
+                return false;
+            }
+            List<Method> lazyDeclarations = getterDeclarations.stream()
+                .filter(declaration -> declaration.isAnnotationPresent(ReplacesEagerProperty.class))
+                .collect(Collectors.toList());
+            return !lazyDeclarations.isEmpty()
+                && lazyDeclarations.stream().noneMatch(declaration -> declaration.getReturnType().isAssignableFrom(getter.getReturnType()));
         }
 
         public void addSetter(Method method) {
@@ -1158,6 +1189,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     // A bridge getter cannot manage state: its compiler-generated body only delegates to the real getter
                     continue;
                 }
+                if (property.isLegacyEagerGetter(getter)) {
+                    // The eager accessor a type compiled against an older Gradle still declares. We implement it as a
+                    // shim over the upgraded property, so its body is not user-managed state either.
+                    continue;
+                }
                 if (!getter.isAbstract()) {
                     // A concrete real getter reads user-managed state (e.g. a handwritten field), so the property is not ours to claim
                     return false;
@@ -1241,6 +1277,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             for (PropertyMetadata property : mutableProperties) {
                 visitor.applyManagedStateToProperty(property);
                 for (MethodMetadata getter : property.getters) {
+                    if (property.isLegacyEagerGetter(getter)) {
+                        // Its return type is the replaced eager type, so it cannot read the managed field
+                        continue;
+                    }
                     visitor.applyManagedStateToGetter(property, getter.method);
                 }
                 for (Method setter : property.setters) {
@@ -1251,6 +1291,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.applyManagedStateToProperty(property);
                 boolean applyRole = isRoleType(property);
                 for (MethodMetadata getter : property.getters) {
+                    if (property.isLegacyEagerGetter(getter)) {
+                        continue;
+                    }
                     visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
                 }
             }
