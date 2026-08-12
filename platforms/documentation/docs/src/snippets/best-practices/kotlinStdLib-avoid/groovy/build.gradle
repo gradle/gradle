@@ -1,9 +1,9 @@
 // tag::avoid-this[]
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.4.20-RC-197"
+    id("org.jetbrains.kotlin.jvm") version "2.4.20-Beta2"
 }
 
 dependencies {
-    api("org.jetbrains.kotlin:kotlin-stdlib:2.4.20-RC-197") // <1>
+    api("org.jetbrains.kotlin:kotlin-stdlib:2.4.20-Beta2") // <1>
 }
 // end::avoid-this[]
