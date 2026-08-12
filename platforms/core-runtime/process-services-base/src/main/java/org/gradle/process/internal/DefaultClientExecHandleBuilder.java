@@ -278,11 +278,20 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         return buildWithEffectiveArguments(argumentsSpec.getAllArguments());
     }
 
+    // One stream for both outputs means the caller wants them merged, so let the process merge them.
+    // Reading them separately would give two threads the same stream, and the one that finishes
+    // first closes it while the other is still writing.
+    // Only the same object is detected: two streams wrapping one destination still race.
+    private boolean isRedirectingErrorStream() {
+        return redirectErrorStream || streamsSpec.getErrorOutput() == streamsSpec.getStandardOutput();
+    }
+
     @Override
     public ExecHandle buildWithEffectiveArguments(List<String> effectiveArguments) {
         String displayName = this.displayName == null ? String.format("command '%s'", executable) : this.displayName;
         Map<String, String> effectiveEnvironment = getEffectiveEnvironment(getEnvironment());
-        StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, redirectErrorStream);
+        boolean effectiveRedirectErrorStream = isRedirectingErrorStream();
+        StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, effectiveRedirectErrorStream);
         return new DefaultExecHandle(
             displayName,
             getWorkingDir(),
@@ -292,7 +301,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
             effectiveOutputHandler,
             inputHandler,
             listeners,
-            redirectErrorStream,
+            effectiveRedirectErrorStream,
             timeoutMillis,
             daemon,
             executor,
