@@ -258,7 +258,8 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/dependencyLo
 When a task is marked as incompatible:
 
 - Configuration Cache problems *in that task* will no longer cause the build to fail.
-- With the default `problems=fail`, Gradle discards the cache entry at the end of the build if an incompatible task is executed. This ensures the broken state is never reused on a subsequent run.
+- If an incompatible task runs, Gradle discards the cache entry at the end of the build, regardless of the `problems` mode.
+This ensures the broken state is never reused on a subsequent run.
 
 This mechanism can be useful when adopting the Configuration Cache, allowing you to temporarily opt out tasks that require more extensive changes to become compatible.
 
