@@ -16,12 +16,20 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.util.GradleVersion;
+
+import java.util.List;
 
 import static java.lang.String.format;
 import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_NAMESPACE;
@@ -30,10 +38,12 @@ public class CorePluginResolver implements PluginResolver {
 
     private final DocumentationRegistry documentationRegistry;
     private final PluginRegistry pluginRegistry;
+    private final DependencyFactory dependencyFactory;
 
-    public CorePluginResolver(DocumentationRegistry documentationRegistry, PluginRegistry pluginRegistry) {
+    public CorePluginResolver(DocumentationRegistry documentationRegistry, PluginRegistry pluginRegistry, DependencyFactory dependencyFactory) {
         this.documentationRegistry = documentationRegistry;
         this.pluginRegistry = pluginRegistry;
+        this.dependencyFactory = dependencyFactory;
     }
 
     @Override
@@ -49,7 +59,42 @@ public class CorePluginResolver implements PluginResolver {
         }
 
         validate(pluginRequest);
-        return PluginResolutionResult.found(new SimplePluginResolution(plugin));
+        return PluginResolutionResult.found(new SimplePluginResolution(plugin, companionDependenciesOf(id, plugin, dependencyFactory)));
+    }
+
+    /**
+     * The distribution-companion dependencies the plugin's descriptor declares
+     * ({@link PluginDescriptor#getDistributionCompanionModules()}): module coordinates a
+     * distribution plugin requires on the consuming build's script classpath, resolved at the
+     * running distribution's version (a distribution plugin is versioned as part of Gradle, and its
+     * companions are served by the distribution's embedded repository at that same version). The
+     * resolution visits them as ordinary plugin dependencies, so the request applicator adds them
+     * to the still-unresolved script classpath exactly like a repository-resolved plugin's jars.
+     */
+    private static List<Dependency> companionDependenciesOf(PluginId id, PluginImplementation<?> plugin, DependencyFactory dependencyFactory) {
+        Class<?> pluginClass = plugin.asClass();
+        ClassLoader pluginClassLoader = pluginClass == null ? null : pluginClass.getClassLoader();
+        if (pluginClassLoader == null) {
+            // A bootstrap-loaded (or classless) plugin implementation has no descriptor to consult.
+            return ImmutableList.of();
+        }
+        PluginDescriptor descriptor = new ClassloaderBackedPluginDescriptorLocator(pluginClassLoader).findPluginDescriptor(id.getName());
+        if (descriptor == null) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<Dependency> dependencies = ImmutableList.builder();
+        for (String module : descriptor.getDistributionCompanionModules()) {
+            int separator = module.indexOf(':');
+            if (separator <= 0 || separator == module.length() - 1) {
+                throw new IllegalStateException(
+                    format("Plugin '%s' declares an invalid distribution companion module '%s' in %s; expected 'group:name'.", id, module, descriptor)
+                );
+            }
+            dependencies.add(dependencyFactory.create(
+                module.substring(0, separator), module.substring(separator + 1), GradleVersion.current().getVersion()
+            ));
+        }
+        return dependencies.build();
     }
 
     private static void validate(PluginRequestInternal pluginRequest) {
