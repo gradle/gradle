@@ -5,7 +5,7 @@ plugins {
     id 'java'
 // end::use-plugin[]
 // tag::use-community-plugin[]
-    id 'org.springframework.boot' version '3.3.1'
+    id 'org.springframework.boot' version '4.1.0'
 // tag::use-plugin[]
 }
 // end::use-plugin[]

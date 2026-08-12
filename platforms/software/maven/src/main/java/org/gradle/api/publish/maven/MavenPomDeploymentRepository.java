@@ -18,6 +18,8 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -35,6 +37,8 @@ public interface MavenPomDeploymentRepository {
      *
      * @since 9.1.0
      */
+    @Input
+    @Optional
     Property<String> getId();
 
     /**
@@ -42,6 +46,8 @@ public interface MavenPomDeploymentRepository {
      *
      * @since 9.1.0
      */
+    @Input
+    @Optional
     Property<String> getName();
 
     /**
@@ -51,6 +57,8 @@ public interface MavenPomDeploymentRepository {
      *
      * @since 9.1.0
      */
+    @Input
+    @Optional
     Property<Boolean> getUniqueVersion();
 
     /**
@@ -58,6 +66,8 @@ public interface MavenPomDeploymentRepository {
      *
      * @since 9.1.0
      */
+    @Input
+    @Optional
     Property<String> getUrl();
 
     /**
@@ -67,5 +77,7 @@ public interface MavenPomDeploymentRepository {
      *
      * @since 9.1.0
      */
+    @Input
+    @Optional
     Property<String> getLayout();
 }

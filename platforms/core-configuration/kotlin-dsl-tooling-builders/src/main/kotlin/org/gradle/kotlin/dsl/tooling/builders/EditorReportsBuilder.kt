@@ -20,25 +20,22 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.kotlin.dsl.resolver.EditorMessages
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
-import java.io.BufferedInputStream
 import java.io.File
 
 
 internal
 fun buildEditorReportsFor(
     scriptFile: File?,
-    exceptions: List<Exception>,
-    locationAwareHints: Boolean
+    exceptions: List<Exception>
 ): List<EditorReport> =
     if (scriptFile == null || exceptions.isEmpty()) emptyList()
-    else inferEditorReportsFrom(scriptFile.canonicalFile, exceptions.asSequence(), locationAwareHints)
+    else inferEditorReportsFrom(scriptFile.canonicalFile, exceptions.asSequence())
 
 
 private
 fun inferEditorReportsFrom(
     scriptFile: File,
-    exceptions: Sequence<Exception>,
-    locationAwareHints: Boolean
+    exceptions: Sequence<Exception>
 ): List<EditorReport> {
 
     val locatedExceptions =
@@ -49,7 +46,7 @@ fun inferEditorReportsFrom(
 
     reportExceptionsNotLocatedIn(scriptFile, locatedExceptions, reports)
 
-    reportRuntimeExceptionsLocatedIn(scriptFile, locatedExceptions, locationAwareHints, reports)
+    reportRuntimeExceptionsLocatedIn(scriptFile, locatedExceptions, reports)
 
     return reports
 }
@@ -71,17 +68,10 @@ private
 fun reportRuntimeExceptionsLocatedIn(
     scriptFile: File,
     exceptions: Sequence<LocationAwareException>,
-    locationAwareHints: Boolean,
     reports: MutableList<EditorReport>
 ) {
-    val actualLinesRange = if (locationAwareHints) scriptFile.readLinesRange() else LongRange.EMPTY
-    exceptions.runtimeFailuresLocatedInAndNotCausedScriptCompilation(scriptFile.path).forEach { failure ->
-        val lineNumber = failure.lineNumber
-        if (locationAwareHints && lineNumber != null && lineNumber in actualLinesRange) {
-            reports.add(lineWarning(messageForLocationAwareEditorHint(failure), lineNumber))
-        } else {
-            reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailedInCurrentScript))
-        }
+    exceptions.runtimeFailuresLocatedInAndNotCausedScriptCompilation(scriptFile.path).forEach {
+        reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailedInCurrentScript))
     }
 }
 
@@ -135,53 +125,5 @@ val LocationAwareException.isCausedByScriptCompilationException
 
 
 private
-fun messageForLocationAwareEditorHint(failure: LocationAwareException): String {
-    val cause = failure.cause!!
-    return cause.message?.takeIf { it.isNotBlank() } ?: EditorMessages.defaultLocationAwareHintMessageFor(cause)
-}
-
-
-private
 fun wholeFileWarning(message: String) =
     DefaultEditorReport(EditorReportSeverity.WARNING, message)
-
-
-private
-fun lineWarning(message: String, line: Int) =
-    DefaultEditorReport(EditorReportSeverity.WARNING, message, DefaultEditorPosition(line))
-
-
-internal
-fun File.readLinesRange() =
-    countLines().let { count ->
-        if (count == 0L) 0..0L
-        else 1..count
-    }
-
-
-private
-fun File.countLines(): Long =
-    inputStream().buffered().use { input ->
-        input.countLines()
-    }
-
-
-private
-fun BufferedInputStream.countLines(): Long {
-    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-    val newLine = '\n'.code.toByte()
-
-    var count = 0L
-    var noNewLineBeforeEOF = false
-    var readCount = read(buffer)
-
-    while (readCount != -1) {
-        for (idx in 0 until readCount) {
-            if (buffer[idx] == newLine) count++
-        }
-        noNewLineBeforeEOF = buffer[readCount - 1] != newLine
-        readCount = read(buffer)
-    }
-    if (noNewLineBeforeEOF) count++
-    return count
-}

@@ -51,7 +51,6 @@ import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.buildEditorReportsFor
 import org.gradle.kotlin.dsl.tooling.builders.mapEditorReports
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
-import org.gradle.kotlin.dsl.tooling.builders.isLocationAwareEditorHintsEnabled
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
 import org.gradle.kotlin.dsl.tooling.builders.settings
@@ -109,7 +108,7 @@ private fun buildOutputsForNonProject(
     val classPath = base.nonProjectScriptPaths.bin + it.classPath
     val gradleKotlinDslJar = classPath.filter(::isGradleKotlinDslJar)
     val sourcePath = gradleKotlinDslJar + base.nonProjectScriptPaths.src + it.sourcePath
-    buildOutputModel(it.scriptFile, classPath, sourcePath, base.implicitImports, exceptions, base.locationAwareEditorHints)
+    buildOutputModel(it.scriptFile, classPath, sourcePath, base.implicitImports, exceptions)
 }
 
 
@@ -135,10 +134,6 @@ class ScriptModelBase(
 
     val implicitImports: List<String> by unsafeLazy {
         rootProject.serviceOf<ImplicitImports>().list
-    }
-
-    val locationAwareEditorHints: Boolean by unsafeLazy {
-        rootProject.isLocationAwareEditorHintsEnabled
     }
 
     val nonProjectScriptPaths: ScriptClassPath by unsafeLazy {
@@ -233,15 +228,12 @@ fun buildOutputsForHierarchy(
             val effectiveParentSourcePath = if (childScriptModel.includeParentSourcePath) parentSourcePath else EMPTY
             val sourcePath = gradleKotlinDslJar + base.scriptPaths.src + effectiveParentSourcePath + childScriptModel.localSourcePath
             val implicitImports = base.implicitImports + childScriptModel.localImplicitImports
-            // Use the owning project's locationAwareEditorHints — a subproject's gradle.properties
-            // override is only visible inside that project's IsolatedScriptsModel build.
             outputModels[childScriptModel.scriptFile] = buildOutputModel(
                 childScriptModel.scriptFile,
                 classPath,
                 sourcePath,
                 implicitImports,
-                exceptions,
-                model.locationAwareEditorHints
+                exceptions
             )
         }
     }
@@ -336,7 +328,6 @@ internal
 data class IsolatedScriptsModel(
     val models: List<IntermediateScriptModel>,
     val buildScriptSourcePath: ClassPath,
-    val locationAwareEditorHints: Boolean
 )
 
 
@@ -362,8 +353,7 @@ fun isolatedScriptsModelFor(project: ProjectInternal): IsolatedScriptsModel {
     val buildScriptSourcePath =
         if (buildScriptModel != null) sourcePathFor(listOf(project.buildscript))
         else EMPTY
-    val locationAwareEditorHints = project.isLocationAwareEditorHintsEnabled
-    return IsolatedScriptsModel(models, buildScriptSourcePath, locationAwareEditorHints)
+    return IsolatedScriptsModel(models, buildScriptSourcePath)
 }
 
 
@@ -420,13 +410,12 @@ fun buildOutputModel(
     classPath: ClassPath,
     sourcePath: ClassPath,
     implicitImports: List<String>,
-    exceptions: List<Exception>,
-    locationAwareEditorHints: Boolean
+    exceptions: List<Exception>
 ) = StandardKotlinDslScriptModel(
     classPath.asFiles,
     sourcePath.asFiles,
     implicitImports,
-    editorReports = mapEditorReports(buildEditorReportsFor(scriptFile, exceptions, locationAwareEditorHints)),
+    editorReports = mapEditorReports(buildEditorReportsFor(scriptFile, exceptions)),
     exceptions = getExceptionsForFile(scriptFile, exceptions)
 )
 

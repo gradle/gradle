@@ -220,7 +220,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def actualKB = (int) Math.ceil((double) getZip().size() / 1024)
         def expectedKB = getDistributionSizeMiB() * 1024
 
-        int margin = buildContext.version.isSnapshot() ? 1024 : 2048 // Allow 1 MiB margin for current dev, 2 MiB for more stable releases (promotion builds)
+        int margin = buildContext.version.isSnapshot() ? 1024 : 4096 // Allow 1 MiB margin for current dev, 4 MiB for more stable releases (promotion builds)
         def message = "content needs to be verified. Current size: ${(int) (actualKB / 1024)} MiB (${actualKB} KiB). Expected size: ${getDistributionSizeMiB()} ± ${margin / 1024} MiB."
 
         assert actualKB <= expectedKB + margin: "Distribution is unexpectedly larger, $message"

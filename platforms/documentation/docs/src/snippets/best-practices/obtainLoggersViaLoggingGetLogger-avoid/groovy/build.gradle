@@ -1,0 +1,53 @@
+// tag::avoid-this[]
+import javax.inject.Inject
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+
+abstract class GreetingService implements BuildService<BuildServiceParameters.None> {
+    @Inject
+    abstract Logger getLogger()  // <1>
+
+    void greet(String name) {
+        getLogger().lifecycle("Hello, {}!", name)
+    }
+}
+
+abstract class GreetingPlugin implements Plugin<Project> {
+    @Override
+    void apply(Project project) {
+        project.logger.lifecycle("Applying GreetingPlugin")  // <2>
+
+        def service =
+            project.gradle.sharedServices.registerIfAbsent("greeting", GreetingService) {}
+
+        project.tasks.register("greet", PluginGreetingTask) {
+            it.service = service
+            it.usesService(service)
+        }
+    }
+}
+
+abstract class PluginGreetingTask extends DefaultTask {
+    private static final Logger LOGGER = Logging.getLogger(PluginGreetingTask)  // <3>
+
+    @Internal
+    abstract Property<GreetingService> getService()
+
+    @Input
+    abstract Property<String> getGreeting()
+
+    @TaskAction
+    void run() {
+        project.logger.lifecycle("Greeting from task: ${greeting.get()}")  // <4>
+        service.get().greet(greeting.get())
+    }
+}
+
+apply plugin: GreetingPlugin
+
+tasks.named("greet", PluginGreetingTask) {
+    greeting = "world"
+}
+// end::avoid-this[]

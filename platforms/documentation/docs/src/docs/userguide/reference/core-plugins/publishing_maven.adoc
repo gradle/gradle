@@ -172,21 +172,11 @@ This includes a wide range of Maven-compatible repositories, such as:
 
 The service commonly known as *Maven Central* and hosted at link:https://central.sonatype.com/[central.sonatype.com] is a widely used repository for distributing Java and Kotlin libraries.
 
-As of **June 30, 2025**, link:https://cookbook.gradle.org/integrations/maven-central/publishing/#breaking-changes-in-maven-central-on-june-2025[Maven Central no longer supports the legacy deployment protocol] used by the link:https://maven.apache.org/plugins/maven-deploy-plugin/[Maven Deploy Plugin].
+As of **June 30, 2025**, link:https://central.sonatype.org/pages/ossrh-eol/[Maven Central no longer supports the legacy deployment protocol] used by the link:https://maven.apache.org/plugins/maven-deploy-plugin/[Maven Deploy Plugin].
 This change also marks the deprecation of the OSSRH (OSS Repository Hosting) service.
 
 Going forward, publishing to Maven Central **requires a dedicated plugin**.
-Several options are available.
-For guidance and recommendations, see the link:https://cookbook.gradle.org/integrations/maven-central/publishing/[Publishing to Maven Central] page in the Gradle Cookbook.
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/nd2ULXyBaV8?si=yymYVoqGawuYx6Hh&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
+You can learn more by watching link:https://youtu.be/nd2ULXyBaV8[this video].
 
 [[publishing_maven:snapshot_and_release_repositories]]
 === Snapshot and release repositories

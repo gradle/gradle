@@ -44,7 +44,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -88,7 +87,6 @@ public class DependencyGraphBuilder {
     private final ModuleExclusions moduleExclusions;
     private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
-    private final AttributeDesugaring attributeDesugaring;
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final ComponentIdGenerator idGenerator;
@@ -101,7 +99,6 @@ public class DependencyGraphBuilder {
         ModuleExclusions moduleExclusions,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        AttributeDesugaring attributeDesugaring,
         VersionSelectorScheme versionSelectorScheme,
         VersionComparator versionComparator,
         ComponentIdGenerator idGenerator,
@@ -112,7 +109,6 @@ public class DependencyGraphBuilder {
         this.moduleExclusions = moduleExclusions;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
-        this.attributeDesugaring = attributeDesugaring;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.idGenerator = idGenerator;
@@ -151,7 +147,6 @@ public class DependencyGraphBuilder {
             componentSelectorConverter,
             attributesFactory,
             attributeSchemaServices,
-            attributeDesugaring,
             dependencySubstitutionApplicator,
             versionSelectorScheme,
             versionComparator,

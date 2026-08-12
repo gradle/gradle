@@ -189,7 +189,7 @@ Please see https://gradle.com/help/gradle-6-build-scan-plugin for more informati
 
 - Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.24[Checkstyle 8.24].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-14---may-2019[CodeNarc 1.4].
-- PMD has been updated to https://pmd.github.io/latest/pmd_release_notes.html#28-july-2019---6170[PMD 6.17.0].
+- PMD has been updated to https://pmd.github.io/2019/07/28/PMD-6.17.0/#28-july-2019---6170[PMD 6.17.0].
 - JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.5]. Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
 
 [[v5_changes_to_build_and_task_names_in_composite_builds]]
@@ -634,7 +634,7 @@ To fix the plugin, the worker should explicitly include all required dependencie
 [[v5_default_pmd_version_upgraded_to_6_15_0]]
 ==== Default PMD version upgraded to 6.15.0
 
-<<pmd_plugin#pmd_plugin, The PMD plugin>> has been upgraded to use link:https://pmd.github.io/pmd-6.15.0/pmd_release_notes.html[PMD version 6.15.0] instead of 6.8.0 by default.
+<<pmd_plugin#pmd_plugin, The PMD plugin>> has been upgraded to use link:https://pmd.github.io/2019/05/26/PMD-6.15.0/[PMD version 6.15.0] instead of 6.8.0 by default.
 
 Contributed by link:https://github.com/wreulicke[wreulicke]
 
@@ -708,7 +708,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
-A link:https://gradle.com/develocity/product/build-scan[Build Scan] shows much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
+A link:https://develocity.ai/product/build-scan/[Build Scan] shows much deeper insights into your build and you can use link:https://gradle.com/develocity[Develocity] to directly compare two build's build-scans.
 
 [[v5_potential_breaking_changes_5_5]]
 === Potential breaking changes
