@@ -545,13 +545,16 @@ If a specific invocation is noticeably slower with CC than without, profile that
 
 Not in the way the flag name implies.
 
-CC enables **parallel task execution** regardless of `--parallel`, `--no-parallel`, or `org.gradle.parallel`.
-Every task has its own isolated deserialized state and no project-level lock contention, so tasks run in parallel across the entire build — intra- and cross-project — automatically.
+CC enables **intra-project parallel task execution** regardless of `--parallel`, `--no-parallel`, or `org.gradle.parallel`.
+Every task has its own isolated deserialized state and no project-level lock contention, so tasks within a project run in parallel automatically.
 
-`--parallel` is still meaningful under CC, but its effect is narrower than the flag name suggests: it enables **parallel CC store**, so writing the CC entry itself proceeds in parallel where possible.
-It does *not* control task execution parallelism — that is already parallel with or without the flag.
+`--parallel` still controls **cross-project** parallel task execution, exactly as it does without CC.
+CC's intra-project parallelism composes with it: with `--parallel`, tasks run in parallel both within and across projects; without it, only within.
 
-`--no-parallel` is effectively ignored for task execution under CC. It still disables the parallel CC store, but task execution stays parallel.
+`--no-parallel` is effectively ignored for CC's intra-project parallelism — task execution within each project stays parallel — but it does disable cross-project parallelism.
+
+Writing the CC entry itself in parallel is a separate, incubating option: `-Dorg.gradle.configuration-cache.parallel=true`.
+It is unrelated to `--parallel`.
 
 [[config_cache:adoption_guide:faq:plugin_without_cc]]
 === Will my plugin still work for users who do not enable CC?
