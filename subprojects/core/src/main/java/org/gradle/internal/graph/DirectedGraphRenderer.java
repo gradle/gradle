@@ -30,11 +30,18 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 public class DirectedGraphRenderer<N> {
     private final GraphNodeRenderer<N> nodeRenderer;
     private final DirectedGraph<N, ?> graph;
+    private final int maxDepth;
     private boolean omittedDetails;
+    private boolean truncatedDetails;
 
     public DirectedGraphRenderer(GraphNodeRenderer<N> nodeRenderer, DirectedGraph<N, ?> graph) {
+        this(nodeRenderer, graph, Integer.MAX_VALUE);
+    }
+
+    public DirectedGraphRenderer(GraphNodeRenderer<N> nodeRenderer, DirectedGraph<N, ?> graph, int maxDepth) {
         this.nodeRenderer = nodeRenderer;
         this.graph = graph;
+        this.maxDepth = maxDepth;
     }
 
     public void renderTo(N root, Appendable output) {
@@ -45,15 +52,26 @@ public class DirectedGraphRenderer<N> {
         GraphRenderer renderer = new GraphRenderer(output);
         Set<N> rendered = new HashSet<N>();
         omittedDetails = false;
-        renderTo(root, renderer, rendered, false);
+        truncatedDetails = false;
+        renderTo(root, renderer, rendered, false, 0);
         if (omittedDetails) {
             output.println();
             output.withStyle(Info).println("(*) - details omitted (listed previously)");
         }
+        if (truncatedDetails) {
+            output.println();
+            output.withStyle(Info).println("(+) - dependencies omitted (exceeded depth limit)");
+        }
     }
 
-    private void renderTo(final N node, GraphRenderer graphRenderer, Collection<N> rendered, boolean lastChild) {
+    private void renderTo(final N node, GraphRenderer graphRenderer, Collection<N> rendered, boolean lastChild, final int depth) {
         final boolean alreadySeen = !rendered.add(node);
+
+        List<N> children = new ArrayList<N>();
+        if (!alreadySeen) {
+            graph.getNodeValues(node, new HashSet<Object>(), children);
+        }
+        final boolean willTruncate = !alreadySeen && !children.isEmpty() && depth >= maxDepth;
 
         graphRenderer.visit(new Action<StyledTextOutput>() {
             @Override
@@ -61,6 +79,8 @@ public class DirectedGraphRenderer<N> {
                 nodeRenderer.renderTo(node, output, alreadySeen);
                 if (alreadySeen) {
                     output.text(" (*)");
+                } else if (willTruncate) {
+                    output.text(" (+)");
                 }
             }
         }, lastChild);
@@ -70,15 +90,17 @@ public class DirectedGraphRenderer<N> {
             return;
         }
 
-        List<N> children = new ArrayList<N>();
-        graph.getNodeValues(node, new HashSet<Object>(), children);
         if (children.isEmpty()) {
+            return;
+        }
+        if (depth >= maxDepth) {
+            truncatedDetails = true;
             return;
         }
         graphRenderer.startChildren();
         for (int i = 0; i < children.size(); i++) {
             N child = children.get(i);
-            renderTo(child, graphRenderer, rendered, i == children.size() - 1);
+            renderTo(child, graphRenderer, rendered, i == children.size() - 1, depth + 1);
         }
         graphRenderer.completeChildren();
     }
