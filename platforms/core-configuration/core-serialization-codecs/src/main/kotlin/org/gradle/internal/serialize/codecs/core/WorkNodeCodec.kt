@@ -78,7 +78,7 @@ interface IsolateContextSource {
 
 
 /**
- * The work graph restored from a build's state, each restored node indexed by its node id and
+ * The work graph restored from a build's state, the ids of the nodes it owns, and
  * the restored references to task nodes in other builds, which are not yet to be bound to their
  * target nodes.
  */
@@ -86,8 +86,10 @@ class RestoredWorkGraph(
     val scheduledWork: ScheduledWork,
     /** The global node id of this graph's first node in the build-tree-wide id space. */
     val baseNodeId: Int,
-    /** This build's nodes, indexed by build node id (`globalNodeId - baseNodeId`). */
-    val buildNodesById: Array<Node>,
+    /** The number of node ids owned by this graph. */
+    val nodeCount: Int,
+    /** Returns the node with the given global node id, which must be one of the ids owned by this graph. */
+    val nodeForId: NodeForId,
     val taskReferences: List<RestoredTaskReference>
 )
 
@@ -177,17 +179,16 @@ class WorkNodeCodec(
     fun ReadContext.doRead(): RestoredWorkGraph {
         val baseNodeId = readSmallInt()
         val buildNodeCount = readSmallInt()
-        val buildNodesById = readNodes(baseNodeId, buildNodeCount)
-        val nodeForId: NodeForId = { globalNodeId -> buildNodesById[globalNodeId - baseNodeId] }
-        val entryNodes = readEntryNodes(nodeForId)
+        val nodesForId = readNodes(baseNodeId, buildNodeCount)
+        val entryNodes = readEntryNodes(nodesForId)
         val taskReferences = mutableListOf<RestoredTaskReference>()
-        val nodes = readEdgesAndGroupMembership(nodeForId, taskReferences)
+        val nodes = readEdgesAndGroupMembership(nodesForId, taskReferences)
         val work = ScheduledWork(nodes, entryNodes).also {
             // ensure no unnecessary copying happens (for performance)
             assert(it.scheduledNodes === nodes)
             assert(it.entryNodes === entryNodes)
         }
-        return RestoredWorkGraph(work, baseNodeId, buildNodesById, taskReferences)
+        return RestoredWorkGraph(work, baseNodeId, buildNodeCount, nodesForId, taskReferences)
     }
 
     private
@@ -272,20 +273,17 @@ class WorkNodeCodec(
     }
 
     private
-    fun ReadContext.readNodes(baseNodeId: Int, buildNodeCount: Int): Array<Node> {
-        // Node ids of a work graph form a dense, contiguous range, so build into a temporary null-filled
-        // buffer (batches arrive out of order) and then validate every slot was filled exactly once.
-        val buildNodesById = arrayOfNulls<Node>(buildNodeCount)
+    fun ReadContext.readNodes(baseNodeId: Int, buildNodeCount: Int): NodeForId {
+        // Node ids of a work graph form a dense, contiguous range, so fill a null-initialized array
+        // indexed by build node id (batches arrive out of order).
+        val nullableNodesById = arrayOfNulls<Node>(buildNodeCount)
         readNodeBatchesInParallel().forEach { batch ->
             batch.forEach { (node, globalNodeId) ->
-                buildNodesById[globalNodeId - baseNodeId] = node
+                nullableNodesById[globalNodeId - baseNodeId] = node
             }
         }
-        return Array(buildNodeCount) { buildNodeId ->
-            requireNotNull(buildNodesById[buildNodeId]) {
-                "No node with id ${baseNodeId + buildNodeId} was restored"
-            }
-        }
+        val buildNodesById: Array<Node> = nullableNodesById.requireNoNulls()
+        return { globalNodeId -> buildNodesById[globalNodeId - baseNodeId] }
     }
 
     private

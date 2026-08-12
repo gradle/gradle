@@ -76,6 +76,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.serialize.codecs.core.IdForNode
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
+import org.gradle.internal.serialize.codecs.core.RestoredTaskReference
 import org.gradle.internal.serialize.codecs.core.RestoredWorkGraph
 import org.gradle.internal.serialize.codecs.core.assignNodeIds
 import org.gradle.internal.serialize.graph.MutableReadContext
@@ -268,21 +269,34 @@ class ConfigurationCacheState(
     private
     fun bindRestoredTaskReferences(builds: List<CachedBuildState>) {
         val buildsWithWork = builds.filterIsInstance<BuildWithWork>()
-        // Node ids form a single dense, contiguous id space spanning the whole build tree, so each build's
-        // nodes can be scattered into one flat array indexed by global node id, giving O(1) target lookups.
-        val globalNodesById = arrayOfNulls<Node>(buildsWithWork.sumOf { it.workGraph.buildNodesById.size })
-        for (build in buildsWithWork) {
-            val workGraph = build.workGraph
-            workGraph.buildNodesById.copyInto(globalNodesById, destinationOffset = workGraph.baseNodeId)
-        }
         for (build in buildsWithWork) {
             for (reference in build.workGraph.taskReferences) {
-                val targetNode = requireNotNull(globalNodesById[reference.targetNodeId]) {
-                    "No node with id ${reference.targetNodeId} was restored for ${reference.node}"
-                }
-                reference.node.bindTarget(targetNode as TaskNode)
+                reference.node.bindTarget(targetNodeOf(buildsWithWork, reference) as TaskNode)
             }
         }
+    }
+
+    /**
+     * Finds the restored node targeted by the given reference.
+     *
+     * Node ids form a single dense, contiguous id space spanning the whole build tree, and builds are
+     * stored in ascending [RestoredWorkGraph.baseNodeId] order, so the graph owning an id is found by
+     * walking the builds in order.
+     */
+    private
+    fun targetNodeOf(buildsWithWork: List<BuildWithWork>, reference: RestoredTaskReference): Node {
+        val nodeId = reference.targetNodeId
+        for (build in buildsWithWork) {
+            val workGraph = build.workGraph
+            val buildNodeId = nodeId - workGraph.baseNodeId
+            require(buildNodeId >= 0) {
+                "Builds are not stored in ascending base node id order, cannot find the node with id $nodeId targeted by ${reference.node}."
+            }
+            if (buildNodeId < workGraph.nodeCount) {
+                return workGraph.nodeForId(nodeId)
+            }
+        }
+        error("No node with id $nodeId was restored for ${reference.node}.")
     }
 
     private
@@ -342,9 +356,12 @@ class ConfigurationCacheState(
             }
         }
         val transformedProjectsPerBuild = collectTransformedProjectsPerBuild(scheduledWorkPerBuild)
-        val idForNode = assignNodeIds(scheduledWorkPerBuild.values)
+        val buildsToStore = builds.values.toList()
+        // Assign node ids in the order the builds are stored, so that the stored builds are always in
+        // ascending base node id order.
+        val idForNode = assignNodeIds(buildsToStore.map { scheduledWorkPerBuild.getValue(it.build.buildIdentifier) })
         val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, scheduledWorkPerBuild, idForNode, transformedProjectsPerBuild)
-        writeCollection(builds.values) { build ->
+        writeCollection(buildsToStore) { build ->
             writeBuildState(build, buildTreeState)
         }
     }
