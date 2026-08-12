@@ -26,13 +26,10 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.tools.api.ApiClassExtractor
-import org.gradle.internal.tools.api.impl.JavaApiMemberWriter
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutor
 import java.io.File
-import java.io.InputStream
 import javax.inject.Inject
 
 
@@ -66,16 +63,14 @@ abstract class ExtractJavaAbi : DefaultTask() {
 
     @TaskAction
     fun execute() {
-        // Run using process isolation to avoid using the ABI extractor from the runtime Gradle distribution
-        // FIXME This actually does not achieve the desired goal, and we end up using the runtime distribution
-        //       For a proper fix we need to shade the API extractor
         val task = this
-        workerExecutor.processIsolation {
-            classpath.setFrom(extractorClasspath)
-        }.submit(ExtractJavaAbiAction::class.java) {
+        // The worker process keeps extraction failures and heap out of the build process,
+        // IsolatedApiClassExtractor keeps the extractor away from the distribution running this build
+        workerExecutor.processIsolation().submit(ExtractJavaAbiAction::class.java) {
             packages.set(task.packages)
             classesDirectories.setFrom(task.classesDirectories)
             outputDirectory.set(task.outputDirectory)
+            extractorClasspath.setFrom(task.extractorClasspath)
         }
     }
 
@@ -85,51 +80,37 @@ abstract class ExtractJavaAbi : DefaultTask() {
             val packages: SetProperty<String>
             val classesDirectories: ConfigurableFileCollection
             val outputDirectory: DirectoryProperty
+            val extractorClasspath: ConfigurableFileCollection
         }
 
         override fun execute() {
-            val apiClassExtractor = with(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())) {
-                val publicApiPackages = parameters.packages.get()
-                if (publicApiPackages.isNotEmpty()) {
-                    includePackagesMatching(publicApiPackages::contains)
-                } else {
-                    includePackagePrivateMembers()
-                }
-                build()
-            }
+            val outputDirectory = parameters.outputDirectory.get().asFile
+            IsolatedApiClassExtractor(parameters.extractorClasspath, parameters.packages.get()).use { extractor ->
+                parameters.classesDirectories.forEach { classDir ->
+                    classDir.walk().forEach { inputFile ->
+                        val outputFile = outputDirectory.resolve(inputFile.relativeTo(classDir).path)
+                        when (inputFile.filtering()) {
+                            ContentFilter.VERBATIM -> {
+                                outputFile.parentFile.mkdirs()
+                                inputFile.copyTo(outputFile)
+                            }
 
-            // Walk the classesDirectory and find each `.class` file
-            parameters.classesDirectories.forEach { classDir ->
-                classDir.walk().forEach { inputClassFile ->
-                    val relativePath = inputClassFile.relativeTo(classDir).path
-                    val outputClassFile = parameters.outputDirectory.get().asFile.resolve(relativePath)
-                    when (inputClassFile.filtering()) {
-                        ContentFilter.VERBATIM -> {
-                            outputClassFile.parentFile.mkdirs()
-                            inputClassFile.copyTo(outputClassFile)
-                        }
-
-                        ContentFilter.API_ONLY -> {
-                            inputClassFile.inputStream().use { input ->
-                                apiClassExtractor.extractApiClassFrom(input)
+                            ContentFilter.API_ONLY -> {
+                                extractor.extractApiClassFrom(inputFile.readBytes())
                                     .ifPresent { apiClass ->
-                                        outputClassFile.parentFile.mkdirs()
-                                        outputClassFile.outputStream().use { output -> output.write(apiClass) }
+                                        outputFile.parentFile.mkdirs()
+                                        outputFile.writeBytes(apiClass)
                                     }
                             }
-                        }
 
-                        ContentFilter.SKIP -> {
-                            // Skip the file
+                            ContentFilter.SKIP -> {
+                                // Skip the file
+                            }
                         }
                     }
                 }
             }
         }
-
-        private
-        fun ApiClassExtractor.extractApiClassFrom(input: InputStream) =
-            extractApiClassFrom(input.readAllBytes())
 
         private
         fun File.filtering(): ContentFilter {
