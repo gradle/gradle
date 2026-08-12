@@ -265,7 +265,7 @@ Rather than predicting the gain from the structure of your build, the most relia
 
 . Enable the feature
 +
-Make the build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, then enable Isolated Projects.
+Make the build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>> first, then enable Isolated Projects.
 
 . Get an early estimate before completing the migration
 +
@@ -554,7 +554,7 @@ By using the latest versions you reduce the risks of dealing with problems that 
 Newer IDE versions can bring better performance as well as a better user experience when adopting Isolated Projects.
 It is recommended to use IntelliJ IDEA 2026.1.1 or later.
 
-* Make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>>
+* Make your build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>>
 +
 The Isolated Projects feature builds on top of the Configuration Cache feature and requires the build to be compatible with it.
 
@@ -1031,7 +1031,7 @@ When executed, the configuration phase runs sequentially, configuring one projec
 Isolated Projects relies on the Configuration Cache infrastructure, and it also extends the set of constraints imposed by Configuration Cache.
 
 Configuration Cache is enabled automatically when Isolated Projects is enabled.
-You should make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
+You should make your build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
 
 [IMPORTANT]
 ====
