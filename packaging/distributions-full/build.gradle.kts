@@ -69,16 +69,14 @@ dependencies {
     distributionRepositoryOnly(libs.xdclGradleApi)
 }
 
-// External plugin modules don't follow the gradle-<name>.jar naming the manifest derives module
-// names from; register them explicitly so the distribution's plugins classloader picks them up
-// (which is what lets `plugins { id "…" }` resolve like a builtin).
+// The manifest auto-derives module names from `gradle-<name>-<version>.jar` file names, which
+// covers the ecosystem carriers; the org.xdcl codegen plugin's jar doesn't follow that naming, so
+// its MODULE name is registered explicitly — that puts it on the distribution's plugins
+// classloader, which is what lets `plugins { id "…" }` resolve it like a builtin. (Entries are
+// module-registry names, not plugin ids — DefaultPluginModuleRegistry silently ignores anything
+// that doesn't resolve as a module.)
 tasks.named<gradlebuild.packaging.tasks.PluginsManifest>("implementationPluginsManifest") {
     additionalPlugins.add("xdcl-gradle-plugin")
-    additionalPlugins.add("java-ecosystem")
-    additionalPlugins.add("checkstyle-ecosystem")
-    additionalPlugins.add("instrumentation-ecosystem")
-    additionalPlugins.add("groovy-ecosystem")
-    additionalPlugins.add("plugin-development-ecosystem")
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future
