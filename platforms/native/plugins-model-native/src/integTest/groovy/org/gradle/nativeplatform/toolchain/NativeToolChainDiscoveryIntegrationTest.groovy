@@ -31,6 +31,7 @@ class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChain
     }
 
     def "can discover tool chain in environment"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         toolChain.initialiseEnvironment()
 
@@ -68,6 +69,7 @@ model {
     }
 
     def "uses correct tool chain when explicitly configured"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: 'cpp'

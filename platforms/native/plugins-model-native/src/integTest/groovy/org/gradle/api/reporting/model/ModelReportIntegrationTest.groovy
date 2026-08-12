@@ -35,6 +35,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "displays basic structure of an empty project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         run "model"
 
@@ -67,6 +68,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "displays collections of scalar types in a human-readable format"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
 
@@ -99,6 +101,7 @@ model {
     }
 
     def "display unset primitive and null scalar values"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
             @Managed
@@ -174,6 +177,7 @@ model {
     }
 
     def "displays basic values of a simple model graph with values"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 
@@ -231,6 +235,7 @@ model {
     // nb: specifically doesn't use the parsing fixture, so that the output is visualised
     //If you're changing this you will also need to change: src/snippets/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
     def "displays a report in the correct format"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
@@ -432,6 +437,7 @@ model {
     }
 
     def "method rule sources have simple type names and correct order"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 ${managedNumbers()}
@@ -475,6 +481,7 @@ apply plugin: ClassHolder.InnerRules
     }
 
     def "hidden nodes are not displayed on the report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         class Rules extends RuleSource {
@@ -495,6 +502,7 @@ apply plugin: ClassHolder.InnerRules
     }
 
     def "properties on internal views of custom component are hidden in the model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             interface UnmanagedComponentSpec extends ComponentSpec {}
@@ -550,6 +558,7 @@ apply plugin: ClassHolder.InnerRules
     }
 
     def "properties on internal views of custom binaries are hidden in the model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             interface UnmanagedBinarySpec extends BinarySpec {}
@@ -605,6 +614,7 @@ apply plugin: ClassHolder.InnerRules
     }
 
     def "managed reference properties are displayed with correct type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             @Managed
@@ -639,6 +649,7 @@ apply plugin: ClassHolder.InnerRules
     }
 
     def "renders cycle in model graph"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             @Managed
@@ -667,6 +678,7 @@ apply plugin: ClassHolder.InnerRules
     }
 
     def "renders sensible value for node whose toString() method returns null"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             @Managed abstract class SomeType {

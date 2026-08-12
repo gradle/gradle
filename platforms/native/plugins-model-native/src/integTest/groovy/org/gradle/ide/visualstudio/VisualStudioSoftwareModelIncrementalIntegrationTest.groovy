@@ -61,6 +61,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
     }
 
     def "visual studio tasks re-execute when source files are added"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         app.writeSources(file("src/main"))
 
         when:
@@ -91,6 +92,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
     }
 
     def "visual studio tasks re-execute when header files are added"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         app.writeSources(file("src/main"))
 
         when:
@@ -121,6 +123,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
     }
 
     def "visual studio tasks re-execute when output file locations change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         app.writeSources(file("src/main"))
 
@@ -196,6 +199,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
     }
 
     def "visual studio tasks re-execute when a new variant is introduced"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         app.writeSources(file("src/main"))
 
@@ -237,6 +241,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
     }
 
     def "visual studio tasks re-execute when compiler macros change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         app.writeSources(file("src/main"))
 
         when:

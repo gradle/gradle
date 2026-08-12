@@ -48,6 +48,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
 
     @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "does not create rule based tasks in projects without required tasks"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -71,6 +72,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
     }
 
     def "rule based tasks that are not requested on the command line are not created"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             ${ruleBasedTasks()}
@@ -92,6 +94,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
 
     @UnsupportedWithConfigurationCache
     def "task container is self closed by task selection and can be later graph closed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
             import org.gradle.model.internal.core.*
@@ -122,6 +125,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
     }
 
     def "tasks added via task container and not explicitly required but executed are self closed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile """
             ${ruleBasedTasks()}
@@ -162,6 +166,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
 
     @ToBeFixedForIsolatedProjects(because = "allprojects, configuring projects from root")
     def "task container is self closed for projects of which any tasks are being executed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
@@ -199,6 +204,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
     }
 
     def "can use getTasksByName() to get task defined in rules only script plugin after configuration"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile """
             apply from: "fooTask.gradle"
@@ -222,6 +228,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
     }
 
     def "can use getTasksByName() to get task defined in rules only script plugin during configuration"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile """
             apply from: "fooTask.gradle"

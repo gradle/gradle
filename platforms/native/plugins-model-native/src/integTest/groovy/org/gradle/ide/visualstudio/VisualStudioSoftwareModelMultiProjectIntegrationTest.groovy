@@ -56,6 +56,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     def "create visual studio solution for executable that depends on a library in another project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
@@ -121,6 +122,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     def "visual studio solution does not reference the components of a project if it does not have visual studio plugin applied"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
@@ -223,6 +225,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     def "create visual studio solution for executable that transitively depends on multiple projects"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
         app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("greet/src/greetings"))
@@ -296,6 +299,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
 
     @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can build executable that depends on static library in another project from visual studio"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         useMsbuildTool()
 
         given:
@@ -341,6 +345,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
 
     @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can clean from visual studio with dependencies"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         useMsbuildTool()
         def debugBinary = executable('exe/build/exe/main/debug/main')
 
@@ -393,6 +398,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     def "create visual studio solution where multiple components have same name"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
         app.writeSources(file("exe/src/main"), file("lib/src/main"), file("greet/src/main"))
@@ -465,6 +471,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     def "create visual studio solution for executable with project dependency cycle"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
         app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("exe/src/greetings"))
@@ -531,6 +538,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
 
     /** @see IdePlugin#toGradleCommand(Project) */
     def "detects gradle wrapper and uses in vs project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         hostGradleWrapperFile << "dummy wrapper"
 
@@ -566,6 +574,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     /** @see IdePlugin#toGradleCommand(Project) */
     @Requires(TestExecutionPreconditions.IsDaemonOrNoDaemonExecutor)
     def "detects executing gradle distribution and uses in vs project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         hostGradleWrapperFile << "dummy wrapper"
 
@@ -593,6 +602,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     def "cleanVisualStudio removes all generated visual studio files"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         createDirs("exe", "lib")
         settingsFile << """
@@ -642,6 +652,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
 
     @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "can create Visual Studio solution for multiproject depending on the same prebuilt binary from another project in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         createDirs("projectA", "projectB", "library")
         settingsFile.text = """

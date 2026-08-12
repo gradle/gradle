@@ -42,6 +42,7 @@ plugins { id 'cpp' }
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(ToolChainRequirement.GCC)
     def "can build with multiple tool chains"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         AvailableToolChains.InstalledToolChain x86ToolChain = OperatingSystem.current().isWindows() ?
                 AvailableToolChains.getToolChain(ToolChainRequirement.VISUALCPP) :
                 AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)

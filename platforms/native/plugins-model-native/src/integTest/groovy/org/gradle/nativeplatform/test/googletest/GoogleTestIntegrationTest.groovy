@@ -112,6 +112,7 @@ model {
     }
 
     def "can build and run googleTest test suite"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()
@@ -131,6 +132,7 @@ model {
     }
 
     def "assemble does not build or run tests"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()
@@ -145,6 +147,7 @@ model {
 
     @Issue("GRADLE-3225")
     def "can build and run googleTest test suite with C and C++ plugins"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()
@@ -161,6 +164,7 @@ model {
     }
 
     def "can configure via testSuite component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
 
@@ -202,6 +206,7 @@ tasks.withType(RunTestExecutable) {
     }
 
     def "can supply cppCompiler macro to googleTest sources"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()
@@ -225,6 +230,7 @@ model {
     }
 
     def "can configure location of googleTest test sources"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useStandardConfig()
         app.library.writeSources(file("src/hello"))
@@ -250,6 +256,7 @@ model {
     }
 
     def "can configure location of googleTest test sources before component is declared"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.library.writeSources(file("src/hello"))
         app.googleTestTests.writeSources(file("src/alternateHelloTest"))
@@ -275,6 +282,7 @@ model {
     }
 
     def "variant-dependent sources are included in test binary"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.library.headerFiles*.writeToDir(file("src/hello"))
         app.googleTestTests.writeSources(file("src/helloTest"))
@@ -310,6 +318,7 @@ model {
     }
 
     def "can configure variant-dependent test sources"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useStandardConfig()
         app.library.writeSources(file("src/hello"))
@@ -338,6 +347,7 @@ model {
     }
 
     def "test suite skipped after successful run"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useStandardConfig()
         useConventionalSourceLocations()
@@ -352,6 +362,7 @@ model {
     }
 
     def "can build and run googleTest failing test suite"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         useStandardConfig()
         useFailingTestSources()
@@ -374,6 +385,7 @@ model {
     }
 
     def "build does not break for failing tests if ignoreFailures is true"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         useStandardConfig()
         useFailingTestSources()
@@ -393,6 +405,7 @@ tasks.withType(RunTestExecutable) {
     }
 
     def "test suite not skipped after failing run"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useStandardConfig()
         useFailingTestSources()
@@ -406,6 +419,7 @@ tasks.withType(RunTestExecutable) {
     }
 
     def "creates visual studio solution and project for googleTest test suite"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useStandardConfig()
         useConventionalSourceLocations()
@@ -437,6 +451,7 @@ tasks.withType(RunTestExecutable) {
     }
 
     def "non-buildable binaries are not attached to check task"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()
@@ -467,6 +482,7 @@ model {
     }
 
     def "google test run task is properly wired to binaries check tasks and lifecycle check task"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useStandardConfig()
         useConventionalSourceLocations()
@@ -501,6 +517,7 @@ model {
 
     @Issue("https://github.com/gradle/gradle/issues/1000")
     def "can configure legacy plugin"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             apply plugin: 'java'

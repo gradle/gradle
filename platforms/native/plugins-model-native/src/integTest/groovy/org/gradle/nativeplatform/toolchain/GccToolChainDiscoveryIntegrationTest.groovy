@@ -55,6 +55,7 @@ model {
     }
 
     def "can build when language tools that are not required are not available"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 toolChains {
@@ -72,6 +73,7 @@ toolChains {
     }
 
     def "does not break when compiler not available and not building"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
     toolChains {
@@ -90,6 +92,7 @@ toolChains {
     }
 
     def "tool chain is not available when no tools are available"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
     toolChains {
@@ -120,6 +123,7 @@ toolChains {
     @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @ToBeFixedForConfigurationCache(because = "different failure reporting for vintage mode and storing to cache")
     def "fails when required language tool is not available but other language tools are available"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
     toolChains {
@@ -138,6 +142,7 @@ toolChains {
     }
 
     def "fails when required linker tool is not available but language tool is available"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
     toolChains {

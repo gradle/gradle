@@ -25,6 +25,7 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "help displays dependents report task options"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             plugins {
@@ -44,6 +45,7 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "displays empty dependents report for an empty project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             plugins {

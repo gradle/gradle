@@ -40,6 +40,7 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
 
     @RequiresInstalledToolChain(SUPPORTS_32)
     def "can have sourcefiles with same base name but different directories"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def testApp = initTestApp(testAppType)
 
@@ -95,6 +96,7 @@ model {
      * */
     @RequiresInstalledToolChain(SUPPORTS_32)
     def "can have sourcefiles with same base name in same directory"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         setup:
         def testApp = new DuplicateMixedSameBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
 
@@ -152,6 +154,7 @@ model {
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(OsTestPreconditions.NotWindows)
     def "can have objectiveC and objectiveCpp source files with same name in different directories"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         setup:
         testApp.writeSources(file("src/main"))
         buildFile.text = ""
@@ -177,6 +180,7 @@ model {
     @RequiresInstalledToolChain(VISUALCPP)
     @ToBeFixedForConfigurationCache
     def "windows-resources can have sourcefiles with same base name but different directories"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         setup:
         def testApp = new DuplicateWindowsResourcesBaseNamesTestApp()
         testApp.writeSources(file("src/main"))

@@ -32,6 +32,7 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
 
     @Requires(OsTestPreconditions.NotWindows)
     def "resource files are ignored on unsupported platforms"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {
@@ -64,6 +65,7 @@ model {
     @Requires(OsTestPreconditions.Windows)
     @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
     def "reasonable error message when attempting to compile resource files with unsupported tool chain"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {

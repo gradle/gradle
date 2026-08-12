@@ -55,6 +55,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
     }
 
     def "creates #taskPrefix dependents tasks"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         succeeds 'tasks'
 
@@ -75,6 +76,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
     }
 
     def "#task triggers expected tasks only"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         succeeds task
 

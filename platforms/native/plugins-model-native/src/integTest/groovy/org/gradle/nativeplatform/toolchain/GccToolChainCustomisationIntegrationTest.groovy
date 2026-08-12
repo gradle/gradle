@@ -57,6 +57,7 @@ model {
 
     @RequiresInstalledToolChain(SUPPORTS_32)
     def "can configure platform specific args"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
     toolChains {
@@ -110,6 +111,7 @@ model {
 
     @Requires(OsTestPreconditions.NotWindows)
     def "can configure tool executables"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
         wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
@@ -136,6 +138,7 @@ model {
 
     @Requires(OsTestPreconditions.NotWindows)
     def "can configure platform specific executables"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")
         wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
@@ -204,6 +207,7 @@ model {
 
     @Requires(OsTestPreconditions.NotWindows)
     def "can configure setTargets with alternate toolchain"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")
         wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
