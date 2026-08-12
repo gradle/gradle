@@ -45,6 +45,7 @@ object GradleDistributionSpecs {
         val gradlePublicAbiClasspath = configurations.getByName("gradlePublicAbiClasspath")
         val generatePublicAbiModuleProperties = tasks.named("generatePublicAbiModuleProperties", GenerateSingleModuleProperties::class.java).get()
         val generateLicenseFile = tasks.named("generateLicenseFile", GenerateLicenseFile::class.java).get()
+        val distributionRepositoryPath = configurations.getByName("distributionRepositoryPath")
 
         from(generateLicenseFile.outputLicenseFile)
         from("src/toplevel")
@@ -52,6 +53,15 @@ object GradleDistributionSpecs {
         into("bin") {
             from(gradleScriptPath)
             filePermissions { unix("0755") }
+        }
+
+        // The embedded Maven repository: per-module repo slices (POM/GMM + jars at the distribution
+        // version) merged under `repo/` — deliberately OUTSIDE `lib/` (whose contents are pinned by
+        // the distribution integrity tests, and whose subdirectories the module registry scans).
+        // Consumer builds resolve distribution-served components from here through ordinary
+        // dependency resolution (the XDCL provider injects it as a settings-classpath repository).
+        into("repo") {
+            from(distributionRepositoryPath)
         }
 
         val coreRuntimeProperties = generateCoreRuntimeModuleProperties.outputDir.asFileTree.elements

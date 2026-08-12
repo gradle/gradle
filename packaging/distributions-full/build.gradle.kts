@@ -37,8 +37,8 @@ dependencies {
     pluginsRuntimeOnly(libs.xdclGradlePlugin)
 
     // The shared schema foundation the JVM ecosystem (and future ecosystems) import. Also PUBLISHED as
-    // org.gradle:gradle-xdcl-common-ecosystem. Bundled so the provider's ModuleRegistry closure finds
-    // its schema jar when walking an applied ecosystem's dependency graph.
+    // org.gradle:gradle-xdcl-common-ecosystem and served by the embedded repo (repo/); bundled so its
+    // facade classes load parent-first from the distribution.
     pluginsRuntimeOnly(projects.xdclCommonEcosystem)
     // Shared imperative carrier glue (DependencyScopes/Repositories) — distribution-only, not published.
     pluginsRuntimeOnly(projects.xdclEcosystemSupport)
@@ -55,18 +55,28 @@ dependencies {
     // reaction drives the real java-library/java-gradle-plugin/xdcl-gradle-plugin machinery.
     pluginsRuntimeOnly(projects.xdclPluginDevelopment)
     pluginsRuntimeOnly(projects.xdclPluginDevelopmentPlugin)
+
+    // The embedded Maven repository (repo/ in the image): the published ecosystem libraries at the
+    // distribution version, plus the org.xdcl API module their published metadata strictly
+    // requires — the full offline-resolution closure a consumer build's settings classpath needs
+    // when the XDCL provider injects built-in ecosystems into dependency resolution.
+    distributionRepositoryOnly(projects.xdclCommonEcosystem)
+    distributionRepositoryOnly(projects.xdclJvmEcosystem)
+    distributionRepositoryOnly(projects.xdclJvmCheckstyle)
+    distributionRepositoryOnly(projects.xdclJvmInstrumentation)
+    distributionRepositoryOnly(projects.xdclGroovyEcosystem)
+    distributionRepositoryOnly(projects.xdclPluginDevelopment)
+    distributionRepositoryOnly(libs.xdclGradleApi)
 }
 
-// External plugin modules don't follow the gradle-<name>.jar naming the manifest derives module
-// names from; register them explicitly so the distribution's plugins classloader picks them up
-// (which is what lets `plugins { id "…" }` resolve like a builtin).
+// The manifest auto-derives module names from `gradle-<name>-<version>.jar` file names, which
+// covers the ecosystem carriers; the org.xdcl codegen plugin's jar doesn't follow that naming, so
+// its MODULE name is registered explicitly — that puts it on the distribution's plugins
+// classloader, which is what lets `plugins { id "…" }` resolve it like a builtin. (Entries are
+// module-registry names, not plugin ids — DefaultPluginModuleRegistry silently ignores anything
+// that doesn't resolve as a module.)
 tasks.named<gradlebuild.packaging.tasks.PluginsManifest>("implementationPluginsManifest") {
     additionalPlugins.add("xdcl-gradle-plugin")
-    additionalPlugins.add("java-ecosystem")
-    additionalPlugins.add("checkstyle-ecosystem")
-    additionalPlugins.add("instrumentation-ecosystem")
-    additionalPlugins.add("groovy-ecosystem")
-    additionalPlugins.add("plugin-development-ecosystem")
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future

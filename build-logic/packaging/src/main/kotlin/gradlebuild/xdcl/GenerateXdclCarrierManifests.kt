@@ -17,6 +17,7 @@
 package gradlebuild.xdcl
 
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
+import gradlebuild.packaging.NO_KOTLIN_DSL_EXTENSIONS_MARKER
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -41,8 +42,11 @@ import java.util.Properties
  *   (that is the external plugin-development plugin, unused for bundled plugins), so the descriptor
  *   `java-gradle-plugin` would otherwise synthesize from the `gradlePlugin {}` extension is written
  *   here instead, matching how every other Gradle bundled plugin ships a hand-authored descriptor.
- * - `META-INF/xdcl-builtin-ecosystem/<id>.properties` — names the distribution schema module(s) the
- *   provider resolves (via `ModuleRegistry`) when that plugin is applied.
+ *   The descriptor also carries `distribution-companion-modules` — the published schema library
+ *   coordinates core plugin resolution injects into the settings classpath when the plugin is
+ *   applied (resolved at the distribution version from the image-embedded Maven repository).
+ * - the [NO_KOTLIN_DSL_EXTENSIONS_MARKER] opt-out (once per module): the carrier's plugin ids must
+ *   not become generated Kotlin DSL accessors; distribution-BUILD metadata the runtime never reads.
  *
  * The implementation class mirrors `xdcl-gradle-plugin`'s own resolution
  * (`xdcl.gradleplugin.internal.PluginRegistrationReader` / `CarrierNaming`): the `implementationClass`
@@ -66,28 +70,31 @@ abstract class GenerateXdclCarrierManifests : DefaultTask() {
     @TaskAction
     fun generate() {
         val root = outputDir.get().asFile
+        root.deleteRecursively()
         val descriptorsDir = root.resolve("META-INF/gradle-plugins")
-        val markersDir = root.resolve("META-INF/xdcl-builtin-ecosystem")
-        descriptorsDir.deleteRecursively()
-        markersDir.deleteRecursively()
         descriptorsDir.mkdirs()
-        markersDir.mkdirs()
 
-        val modules = schemaModules.get().joinToString(",")
-        carrierFiles.files
+        val companionModules = schemaModules.get().joinToString(",") { "org.gradle:$it" }
+        val carriers = carrierFiles.files
             .filter { it.name.endsWith(".xdcl") }
             .map { it to it.readText() }
             .filter { (_, text) -> PLUGIN_BLOCK.containsMatchIn(text) }
-            .forEach { (carrier, text) ->
-                val pluginId = carrier.name.removeSuffix(".xdcl")
+        carriers.forEach { (carrier, text) ->
+            val pluginId = carrier.name.removeSuffix(".xdcl")
 
-                val implementationClass = IMPLEMENTATION_CLASS.find(text)?.groupValues?.get(1) ?: carrierFqn(pluginId)
-                val descriptor = Properties().apply { setProperty("implementation-class", implementationClass) }
-                ReproduciblePropertiesWriter.store(descriptor, descriptorsDir.resolve("$pluginId.properties"))
-
-                val marker = Properties().apply { setProperty("schemaModules", modules) }
-                ReproduciblePropertiesWriter.store(marker, markersDir.resolve("$pluginId.properties"))
+            val implementationClass = IMPLEMENTATION_CLASS.find(text)?.groupValues?.get(1) ?: carrierFqn(pluginId)
+            val descriptor = Properties().apply {
+                setProperty("implementation-class", implementationClass)
+                setProperty("distribution-companion-modules", companionModules)
             }
+            ReproduciblePropertiesWriter.store(descriptor, descriptorsDir.resolve("$pluginId.properties"))
+        }
+        if (carriers.isNotEmpty()) {
+            root.resolve(NO_KOTLIN_DSL_EXTENSIONS_MARKER).apply {
+                parentFile.mkdirs()
+                writeText("")
+            }
+        }
     }
 
     private companion object {

@@ -20,12 +20,16 @@ import gradlebuild.xdcl.excludeGeneratedXdclSourcesFromChecks
 
 /**
  * Packs the per-carrier manifests into a distribution ecosystem plugin jar. For every plugin carrier
- * under `src/main/xdcl/` (an `.xdcl` with a top-level `plugin { }` block) it emits both the standard
- * `META-INF/gradle-plugins/<plugin-id>.properties` descriptor (binding the id to its implementation
- * class — synthesized here because these bundled modules don't apply `java-gradle-plugin`) and the
- * `META-INF/xdcl-builtin-ecosystem/<plugin-id>.properties` marker naming the distribution schema
- * module(s) the runtime glue resolves (via `ModuleRegistry`) and contributes to the settings
- * registry. The plugin id is the carrier's file name, so a module declares no ids here.
+ * under `src/main/xdcl/` (an `.xdcl` with a top-level `plugin { }` block) it emits the standard
+ * `META-INF/gradle-plugins/<plugin-id>.properties` descriptor: the implementation class binding
+ * (synthesized here because these bundled modules don't apply `java-gradle-plugin`) plus
+ * `distribution-companion-modules` naming the ecosystem's PUBLISHED schema library — the
+ * `org.gradle:<schemaModule>` artifact core plugin resolution injects into the settings classpath
+ * when the plugin is applied, served at the distribution version by the embedded Maven repository
+ * (`repo/` in the image). Transitive schema libraries (e.g. the common ecosystem) arrive through
+ * the published metadata, so the descriptor names only the ecosystem's own library. The plugin id
+ * is the carrier's file name, so a module declares no ids here. The jar also carries the
+ * Kotlin-DSL-extensions opt-out marker (see `NO_KOTLIN_DSL_EXTENSIONS_MARKER`).
  */
 
 plugins {
@@ -44,7 +48,9 @@ dependencies {
 }
 
 val xdclBuiltinEcosystem = extensions.create<XdclBuiltinEcosystemExtension>("xdclBuiltinEcosystem")
-xdclBuiltinEcosystem.schemaModules.convention(listOf("gradle-${project.name}"))
+// Every carrier is named `<lib>-plugin` after its published schema library — the artifactId the
+// manifest must name (the carrier itself is distribution-only, not published).
+xdclBuiltinEcosystem.schemaModules.convention(listOf("gradle-${project.name.removeSuffix("-plugin")}"))
 
 val generatedDir = layout.buildDirectory.dir("generated/xdcl-carrier-manifests")
 
