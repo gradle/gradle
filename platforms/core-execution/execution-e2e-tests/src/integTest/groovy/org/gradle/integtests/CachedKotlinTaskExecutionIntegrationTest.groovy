@@ -35,7 +35,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         settingsFile << "rootProject.buildFileName = '${buildFile.name}'"
 
         file("buildSrc/settings.gradle.kts") << """
-            ${KotlinDslTestUtil.kotlinDslSettingsPluginManagement}
             buildCache {
                 local {
                     directory = "${cacheDir.absoluteFile.toURI()}"

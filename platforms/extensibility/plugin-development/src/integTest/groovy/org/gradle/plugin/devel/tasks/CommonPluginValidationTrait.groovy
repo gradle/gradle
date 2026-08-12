@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.devel.tasks
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
 trait CommonPluginValidationTrait {
@@ -34,16 +32,6 @@ trait CommonPluginValidationTrait {
 
     TestFile getKotlinTaskSource() {
         buildFile.delete()
-        def settings = file("settings.gradle")
-        def existingSettings = settings.exists() ? settings.text : ""
-        settings.text = """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.GROOVY)}
-                }
-            }
-        """ + existingSettings
         buildKotlinFile << """
             plugins {
                 id("java-gradle-plugin")
@@ -52,7 +40,6 @@ trait CommonPluginValidationTrait {
 
             repositories {
                 mavenCentral()
-                ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         source("src/main/kotlin/MyTask.kt")

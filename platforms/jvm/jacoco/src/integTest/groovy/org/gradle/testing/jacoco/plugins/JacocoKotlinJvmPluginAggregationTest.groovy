@@ -41,15 +41,6 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
     def setup() {
         JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()
 
-        settingsFile.text = """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${kotlinDevRepositoryDefinition()}
-                }
-            }
-        """ + (settingsFile.exists() ? settingsFile.text : "")
-
         multiProjectBuild("root", ["direct", "transitive"]) {
             buildFile << """
                 plugins {
@@ -57,7 +48,6 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
                 }
 
                 ${mavenCentralRepository()}
-                ${kotlinDevRepository()}
 
                 dependencies {
                     jacocoAggregation project(":direct")
@@ -73,7 +63,6 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
 
                 subprojects {
                     ${mavenCentralRepository()}
-                ${kotlinDevRepository()}
 
                     plugins.withId('java') {
                         testing {

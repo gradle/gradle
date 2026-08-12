@@ -35,21 +35,12 @@ import static org.hamcrest.CoreMatchers.containsString
 )
 class Spek2IntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def setup() {
-        settingsFile << """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${kotlinDevRepositoryDefinition()}
-                }
-            }
-        """
         buildFile <<"""
             plugins {
                 id("org.jetbrains.kotlin.jvm") version "${new KotlinGradlePluginVersions().latest}"
             }
 
             ${mavenCentralRepository()}
-            ${kotlinDevRepository()}
 
             testing.suites.test {
                 useJUnitJupiter()

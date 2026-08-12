@@ -20,7 +20,6 @@ import groovy.transform.SelfType
 import org.gradle.features.internal.builders.TestScenarioBuilder
 import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 /**
@@ -60,15 +59,8 @@ trait TestScenarioFixture {
      * Returns the settings script content that includes the "plugins" build and applies the ecosystem plugin.
      */
     static String getPluginsFromIncludedBuild() {
-        // repository declaration syntax must stay valid in Groovy, Kotlin and Declarative DSL
         return """
             pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    maven {
-                        url = uri("${KotlinGradlePluginVersions.kotlinDevRepositoryUrl}")
-                    }
-                }
                 includeBuild("plugins")
             }
             plugins {
@@ -76,7 +68,6 @@ trait TestScenarioFixture {
             }
         """
     }
-
 
     /**
      * Returns build script content that configures Java compilation to target Java 8.

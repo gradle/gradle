@@ -316,14 +316,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         file("build-logic/src/main/kotlin/com/example/restricted/LibraryExtension.kt") << defineLibraryExtensionKotlin()
         file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
         file("build-logic/src/main/kotlin/com/example/restricted/RestrictedPlugin.kt") << defineKotlinRestrictedPlugin()
-        file("build-logic/settings.gradle") << """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${kotlinDevRepositoryDefinition()}
-                }
-            }
-        """
         file("build-logic/build.gradle") << defineRestrictedPluginBuild(true)
 
         and: "a build script that adds dependencies using the custom extension"
@@ -464,14 +456,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
         file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
         file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
-        file("build-logic/settings.gradle") << """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${kotlinDevRepositoryDefinition()}
-                }
-            }
-        """
         file("build-logic/build.gradle") << defineRestrictedPluginBuild(true)
 
         and: "a project that defines a platform"
@@ -513,14 +497,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
         file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
         file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
-        file("build-logic/settings.gradle") << """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${kotlinDevRepositoryDefinition()}
-                }
-            }
-        """
         file("build-logic/build.gradle") << defineRestrictedPluginBuild(true)
 
         and: "a project that has testFixtures"
@@ -1057,7 +1033,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             }
 
             ${mavenCentralRepository()}
-            ${kotlinDevRepository()}
 
             ${if (kotlin) {
                 def majorJavaVersion = JavaVersion.current().majorVersion
@@ -1173,10 +1148,6 @@ commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0"
     private static String defineSettings(boolean typeSafeProjectAccessors = false) {
         return """
             pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${kotlinDevRepositoryDefinition()}
-                }
                 includeBuild("build-logic")
             }
 

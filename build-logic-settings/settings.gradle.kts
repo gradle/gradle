@@ -18,13 +18,6 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        maven {
-            name = "Kotlin dev repository"
-            url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
-            content {
-                includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..+)?")
-            }
-        }
     }
     versionCatalogs {
         create("buildLibs") {
@@ -48,14 +41,6 @@ pluginManagement {
         }
 
         gradlePluginPortal()
-
-        maven {
-            name = "Kotlin dev repository"
-            url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
-            content {
-                includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..+)?")
-            }
-        }
     }
 }
 
@@ -66,17 +51,3 @@ include("default-settings-plugins")
 include("version-catalogs")
 
 rootProject.name = "build-logic-settings"
-
-// When run by a Gradle embedding a dev Kotlin, the published `kotlin-dsl` plugin strictly pins the previous Kotlin version
-if (Regex(""".+-\d+$""").matches(embeddedKotlinVersion)) {
-    gradle.lifecycle.beforeProject {
-        configurations.all {
-            resolutionStrategy.dependencySubstitution {
-                for (module in listOf("kotlin-stdlib", "kotlin-reflect")) {
-                    substitute(module("org.jetbrains.kotlin:$module"))
-                        .using(module("org.jetbrains.kotlin:$module:$embeddedKotlinVersion"))
-                }
-            }
-        }
-    }
-}

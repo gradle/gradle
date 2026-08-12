@@ -38,14 +38,6 @@ class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
                 require(currentAgpVersion != null)
             }
         """
-        settingsFile << """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${kotlinDevRepositoryDefinition()}
-                }
-            }
-        """
         buildKotlinFile << """
             import org.gradle.util.internal.VersionNumber
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -55,7 +47,6 @@ class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
             }
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
-            ${kotlinDevRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation(gradleApi())

@@ -8,13 +8,6 @@ import org.gradle.api.internal.FeaturePreviews
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven {
-            name = "Kotlin dev repository"
-            url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
-            content {
-                includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..+)?")
-            }
-        }
     }
     includeBuild("build-logic-settings")
 }

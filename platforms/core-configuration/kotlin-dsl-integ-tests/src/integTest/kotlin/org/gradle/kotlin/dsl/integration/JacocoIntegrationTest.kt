@@ -21,7 +21,6 @@ class JacocoIntegrationTest : AbstractKotlinIntegrationTest() {
                 jacoco
             }
             ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
-            ${RepoScriptBlockUtil.kotlinDevRepository(GradleDsl.KOTLIN)}
             dependencies {
                 testImplementation("junit:junit:4.12")
             }

@@ -25,7 +25,6 @@ class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConf
         buildKotlinFile """
             buildscript {
                 ${mavenCentralRepository(GradleDsl.KOTLIN)}
-                ${kotlinDevRepository(GradleDsl.KOTLIN)}
                 dependencies {
                     if(${dependency !instanceof Wildcard}) {
                         classpath("$dependency")

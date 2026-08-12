@@ -690,14 +690,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         RepoScriptBlockUtil.mavenCentralRepository(dsl)
     }
 
-    static String kotlinDevRepository(GradleDsl dsl = GROOVY) {
-        RepoScriptBlockUtil.kotlinDevRepository(dsl)
-    }
-
-    static String kotlinDevRepositoryDefinition(GradleDsl dsl = GROOVY) {
-        RepoScriptBlockUtil.kotlinDevRepositoryDefinition(dsl)
-    }
-
     static String googleRepository() {
         RepoScriptBlockUtil.googleRepository()
     }

@@ -55,7 +55,9 @@ abstract class AbstractDeclarativeKotlinIntegrationTest : AbstractKotlinIntegrat
                     `kotlin-dsl`
                 }
 
-                $repositoriesBlock
+                repositories {
+                    mavenCentral()
+                }
 
                 gradlePlugin {
                     plugins {

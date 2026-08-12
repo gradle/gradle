@@ -71,10 +71,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 `kotlin-dsl`
             }
 
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation(kotlin("gradle-plugin", "$kotlinVersion"))
@@ -96,10 +93,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 `my-plugin`
             }
 
-            repositories {
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation(kotlin("stdlib"))

@@ -1799,12 +1799,6 @@ Hello, subproject1
         given:
         createDir("plugins") {
             file("settings.gradle.kts") << """
-                pluginManagement {
-                    repositories {
-                        gradlePluginPortal()
-                        ${kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
-                    }
-                }
                 include("service-plugin")
                 include("convention-kotlin-plugin")
                 include("convention-groovy-plugin")
@@ -1867,7 +1861,6 @@ Hello, subproject1
 
                 repositories {
                     ${mavenCentralRepository(GradleDsl.KOTLIN)}
-                    ${kotlinDevRepository(GradleDsl.KOTLIN)}
                 }
 
                 dependencies {
@@ -1889,7 +1882,6 @@ Hello, subproject1
 
                 repositories {
                     ${mavenCentralRepository(GradleDsl.KOTLIN)}
-                    ${kotlinDevRepository(GradleDsl.KOTLIN)}
                 }
 
                 dependencies {

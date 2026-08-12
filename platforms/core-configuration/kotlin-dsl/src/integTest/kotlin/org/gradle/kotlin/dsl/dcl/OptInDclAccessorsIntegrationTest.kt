@@ -122,7 +122,9 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                     targetCompatibility = "1.8"
                 }
 
-                $repositoriesBlock
+                repositories {
+                    mavenCentral()
+                }
 
                 gradlePlugin {
                     plugins {

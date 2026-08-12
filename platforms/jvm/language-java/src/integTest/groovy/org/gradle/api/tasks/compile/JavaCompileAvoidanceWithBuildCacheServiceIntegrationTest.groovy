@@ -210,7 +210,6 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
             version = "1.0.0"
 
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
-            ${kotlinDevRepository(GradleDsl.KOTLIN)}
 
             publishing {
                 repositories {
@@ -221,12 +220,6 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
             }
         """
         file("kotlin-library/settings.gradle") << """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${kotlinDevRepositoryDefinition()}
-                }
-            }
             rootProject.name = "kotlin-library"
         """
         file("kotlin-library/src/main/kotlin/MyClass.kt") << """

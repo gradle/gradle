@@ -140,7 +140,6 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
             $buildScriptConfigurationForValidation
         """
         settingsFile << """
-            $settingsPluginManagement
             rootProject.name = "test"
             include("child")
         """
@@ -158,10 +157,6 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
 
     void configureValidation(String testedPluginId, String version) {
         allPlugins.alwaysPasses = true
-    }
-
-    protected String getSettingsPluginManagement() {
-        return ""
     }
 
     void performValidation(String version) {
