@@ -63,6 +63,7 @@ model {
 }
 '''
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "show"
 
         then:
@@ -95,6 +96,7 @@ model {
 }
 '''
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "show"
 
         then:
@@ -127,6 +129,7 @@ model {
 }
 '''
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "show"
 
         then:
@@ -162,6 +165,7 @@ model {
 }
 '''
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "show"
 
         then:
@@ -198,6 +202,7 @@ model {
 }
 '''
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "show"
 
         then:
@@ -234,6 +239,7 @@ model {
 }
 '''
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "show"
 
         then:
@@ -254,6 +260,7 @@ model {
 }
 '''
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails "model"
         failure.assertHasLineNumber(19)
         failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 18, column 9')
@@ -272,6 +279,7 @@ model {
 }
 '''
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "model"
     }
 
@@ -290,6 +298,7 @@ model {
 }
 '''
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "model"
     }
 
@@ -320,6 +329,7 @@ model {
 }
 '''
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "show"
 
         then:
@@ -354,6 +364,7 @@ model {
 }
 '''
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "show"
 
         then:
@@ -372,6 +383,7 @@ model {
 '''
 
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: main(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -390,6 +402,7 @@ model {
 '''
 
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: main { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -408,6 +421,7 @@ model {
 '''
 
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: all { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -426,6 +440,7 @@ model {
 '''
 
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: withType(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -444,6 +459,7 @@ model {
 '''
 
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: beforeEach(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -462,8 +478,13 @@ model {
 '''
 
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: afterEach(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }
