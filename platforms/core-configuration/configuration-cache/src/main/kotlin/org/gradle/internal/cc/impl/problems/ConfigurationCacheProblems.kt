@@ -348,6 +348,34 @@ class ConfigurationCacheProblems(
         }
     }
 
+    fun onEntryDiscarded(message: String, failure: Throwable) {
+        problemsService.internalReporter.internalCreate {
+            id(
+                "configuration-cache-entry-discarded",
+                "Configuration cache entry discarded",
+                configCacheValidation
+            )
+            contextualLabel(message)
+            withException(failure)
+        }.also {
+            problemsService.internalReporter.report(it)
+        }
+    }
+
+    fun onEntryUnreadable(message: String, failure: Throwable) {
+        problemsService.internalReporter.internalCreate {
+            id(
+                "configuration-cache-entry-unreadable",
+                "Configuration cache entry could not be read",
+                configCacheValidation
+            )
+            contextualLabel(message)
+            withException(failure)
+        }.also {
+            problemsService.internalReporter.reportError(it)
+        }
+    }
+
     private
     fun reportDangerouslyIgnoringProblems() {
         val message = isolatedProjectsDangerouslyIgnoreProblemsSentences.joinToString(" ")
