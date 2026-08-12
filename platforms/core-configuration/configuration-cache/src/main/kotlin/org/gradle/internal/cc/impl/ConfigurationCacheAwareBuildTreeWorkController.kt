@@ -53,12 +53,9 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 addFinalization(rootBuildState, selector::postProcessExecutionPlan)
             }
         }
-        val cachedExecutionResult = loadAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
-        if (cachedExecutionResult != null) {
-            return cachedExecutionResult
-        }
         return Try.ofFailable {
-            scheduleStoreAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
+            val cachedExecutionResult = loadAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
+            cachedExecutionResult ?: scheduleStoreAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
         }.getOrMapFailure { ExecutionResult.failed(it) }
     }
 

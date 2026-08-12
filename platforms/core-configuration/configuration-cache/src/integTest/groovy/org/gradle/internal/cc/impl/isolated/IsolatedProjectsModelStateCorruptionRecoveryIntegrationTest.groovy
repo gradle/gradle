@@ -121,6 +121,56 @@ class IsolatedProjectsModelStateCorruptionRecoveryIntegrationTest extends Abstra
         failureCauseContains("Could not load entry for")
     }
 
+    def "reports the model failure alongside the task failure when a corrupted entry is not recovered"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile """
+            include("a")
+        """
+        buildFile """
+            plugins.apply(my.MyPlugin)
+            def projectPath = project.path
+            tasks.register("hello") { doLast { println("hello from " + projectPath) } }
+        """
+        buildFile "a/build.gradle", """
+            plugins.apply(my.MyPlugin)
+            def projectPath = project.path
+            tasks.register("hello") { doLast { println("hello from " + projectPath) } }
+        """
+
+        when:
+        withIsolatedProjects(DISABLE_CC_RECOVERY)
+        runBuildAction(new FetchCustomModelForEachProject()) { forTasks("hello") }
+
+        then:
+        outputContains("hello from :")
+        outputContains("hello from :a")
+
+        when:
+        corruptStoredState()
+        withIsolatedProjects(DISABLE_CC_RECOVERY)
+        executer.withStackTraceChecksDisabled()
+        runBuildActionFails(new FetchCustomModelForEachProject()) { forTasks("hello") }
+
+        then:
+        failure.assertHasFailures(2)
+        failure.assertHasErrorOutput("BuildAction failed with an exception.")
+        failure.assertHasDescription("reached end of stream after reading 3 bytes; 16 bytes expected")
+        failure.assertHasErrorOutput("Task failed with an exception.")
+        failure.assertHasDescription("reached end of stream after reading 7 bytes; 16 bytes expected")
+    }
+
+    private void corruptStoredState() {
+        def entryDir = configurationCacheDir.listFiles().find { it.directory && it.file("entry.bin").exists() }
+        def keep = ['entry.bin', 'buildfingerprint.bin', 'projectfingerprint.bin', 'classloaderscopes.bin']
+        def stateFiles = entryDir.listFiles().findAll { it.name.endsWith(".bin") && !(it.name in keep) }
+        assert stateFiles.any { it.name.endsWith(".work.bin") }
+        assert stateFiles.any { !it.name.endsWith(".work.bin") }
+        stateFiles.each {
+            it.bytes = (it.name.endsWith(".work.bin") ? "corrupt" : "bad").bytes
+        }
+    }
+
     private void corruptReusedProjectState() {
         def entryDir = configurationCacheDir.listFiles().find { it.directory && it.file("entry.bin").exists() }
         def stateFiles = entryDir.listFiles().findAll { it.name.startsWith("projectmetadata") }
