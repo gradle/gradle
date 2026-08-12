@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.initialization.transform.ClassLoadTimeInstrumentationComposer
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
@@ -27,10 +28,12 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.io.safeWrap
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
@@ -83,6 +86,7 @@ import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
 import org.gradle.internal.serialize.graph.writeStrings
@@ -305,7 +309,7 @@ class DefaultConfigurationCacheIO internal constructor(
             if (deduplicate) {
                 // Create a context that honors global value duplication
                 // but uses an inline global value decoder
-                val (globalContext, _) = readContextFor(globalsFile, SpecialDecoders(stringDecoder))
+                val globalContext = readContextFor(globalsFile, SpecialDecoders(stringDecoder))
                 globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.mutableModel))
                 DefaultSharedObjectDecoder(globalContext)
             } else {
@@ -385,6 +389,20 @@ class DefaultConfigurationCacheIO internal constructor(
             }
         }
     }
+
+    override fun <T> readFingerprintFrom(
+        stateFileName: String,
+        decoder: Decoder,
+        action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
+    ): T =
+        readContextFor(stateFileName, decoder, SpecialDecoders()).readWith(codecs) { codecs ->
+            withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
+                action(object : ConfigurationCacheFingerprintController.Host {
+                    override val valueSourceProviderFactory: ValueSourceProviderFactory
+                        get() = host.service()
+                })
+            }
+        }
 
     private
     fun writeContextFor(
@@ -488,24 +506,18 @@ class DefaultConfigurationCacheIO internal constructor(
         ) to codecs
 
     override fun <R> withReadContextFor(
-        name: String,
-        stateType: StateType,
-        inputStream: () -> InputStream,
+        stateFile: ConfigurationCacheStateFile,
         specialDecoders: SpecialDecoders,
         customClassDecoder: ClassDecoder?,
         readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
     ): R =
-        readContextFor(name, stateType, inputStream, specialDecoders, customClassDecoder)
-            .let { (context, codecs) ->
-                withReadContextFor(context, codecs, readOperation)
-            }
-
-    override fun <R> withReadContextFor(
-        readContext: CloseableReadContext,
-        codecs: ConfigurationCacheCodecs,
-        readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
-    ): R =
-        readContext.readWith(codecs, readOperation)
+        readContextFor(
+            stateFile.stateFile.name,
+            stateFile.stateType,
+            stateFile::inputStream,
+            specialDecoders,
+            customClassDecoder
+        ).readWith(codecs, readOperation)
 
     override fun <R> withWriteContextFor(
         name: String,
@@ -547,7 +559,7 @@ class DefaultConfigurationCacheIO internal constructor(
     )
 
     override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: ConfigurationCacheCodecs) -> T): T {
-        val (context, codecs) = readContextFor("unnamed", decoder, SpecialDecoders())
+        val context = readContextFor("unnamed", decoder, SpecialDecoders())
         return context.runReadOperation { readOperation(codecs) }
     }
 
@@ -563,7 +575,7 @@ class DefaultConfigurationCacheIO internal constructor(
         codecs,
         specialDecoders,
         customClassDecoder
-    ) to codecs
+    )
 
     private
     fun writeContextFor(
@@ -627,9 +639,9 @@ class DefaultConfigurationCacheIO internal constructor(
     inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
         override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext =
             baseFile.relatedStateFile(path).let {
-                readContextFor(it, SpecialDecoders(baseContext.currentStringDecoder, baseContext.currentSharedObjectDecoder)).also { (subContext, subCodecs) ->
-                    subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
-                }.first
+                readContextFor(it, SpecialDecoders(baseContext.currentStringDecoder, baseContext.currentSharedObjectDecoder)).also { subContext ->
+                    subContext.push(baseContext.isolate.owner, codecs.internalTypesCodec())
+                }
             }
 
         override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
