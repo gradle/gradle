@@ -281,6 +281,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     // One stream for both outputs means the caller wants them merged, so let the process merge them.
     // Reading them separately would give two threads the same stream, and the one that finishes
     // first closes it while the other is still writing.
+    // Only the same object is detected: two streams wrapping one destination still race.
     private boolean isRedirectingErrorStream() {
         return redirectErrorStream || streamsSpec.getErrorOutput() == streamsSpec.getStandardOutput();
     }
