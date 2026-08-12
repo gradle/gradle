@@ -185,7 +185,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        95
+        // 95 stock plugins + the XDCL codegen plugin, ecosystem-support glue, and the
+        // built-in ecosystem libraries and carriers (common, jvm, checkstyle,
+        // instrumentation, groovy, plugin-development).
+        95 + 13
     }
 
     /**
