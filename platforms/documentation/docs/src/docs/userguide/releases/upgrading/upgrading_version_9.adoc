@@ -39,6 +39,13 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 
+=== Potential breaking changes
+
+[[kotlin_2_4_10]]
+==== Upgrade to Kotlin 2.4.20
+
+The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20[Kotlin 2.4.20].
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
@@ -112,9 +119,9 @@ See <<working_with_files.adoc#sec:unpacking_archives_example, Unpacking archives
 === Potential breaking changes
 
 [[kotlin_2_4_10]]
-==== Upgrade to Kotlin 2.4.20-Beta2
+==== Upgrade to Kotlin 2.4.10
 
-The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20-Beta2[Kotlin 2.4.20-Beta2].
+The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.10[Kotlin 2.4.10].
 
 [[upgrade_to_asm_9_10_1]]
 ==== Upgrade to ASM 9.10.1

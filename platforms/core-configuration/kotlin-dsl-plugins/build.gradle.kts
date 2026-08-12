@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 // Published to the Gradle Plugin Portal under its own coordinates
-val portalVersion = "6.7.7"
+val portalVersion = "6.7.12"
 gradleModule {
     identity {
         group = "org.gradle.kotlin"
@@ -42,6 +42,7 @@ dependencies {
 
     implementation(libs.kotlinGradlePlugin.relaxRestriction())
     implementation(libs.kotlinGradlePluginApi.relaxRestriction())
+    implementation(libs.kotlinGradlePluginAnnotations.relaxRestriction())
     implementation(libs.kotlinSamWithReceiver.relaxRestriction())
     implementation(libs.kotlinAssignment.relaxRestriction())
 
