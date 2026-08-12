@@ -361,7 +361,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Deprecated
     public boolean isVisible() {
         DeprecationLogger.deprecateMethod(Configuration.class, "isVisible")
-            .willBeRemovedInGradle10()
+            .willBeRemovedInGradle11()
             .withUpgradeGuideSection(9, "deprecate-visible-property")
             .nagUser();
         return visible;
@@ -370,8 +370,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     @Deprecated
     public Configuration setVisible(boolean visible) {
+        DeprecationLogger.deprecateMethod(Configuration.class, "setVisible(boolean)")
+            .willBeRemovedInGradle11()
+            .withUpgradeGuideSection(9, "deprecate-visible-property")
+            .nagUser();
         validateMutation(MutationType.BASIC_STATE);
-        // TODO: Create a deprecation warning once https://youtrack.jetbrains.com/issue/KT-78754 is resolved
         this.visible = visible;
         return this;
     }

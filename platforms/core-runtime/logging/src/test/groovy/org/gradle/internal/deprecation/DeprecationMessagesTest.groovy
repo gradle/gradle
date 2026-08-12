@@ -74,6 +74,18 @@ class DeprecationMessagesTest extends Specification {
         problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'Summary is deprecated.' })
     }
 
+    def "logs deprecation message scheduled for removal in Gradle 11"() {
+        given:
+        def builder = new DeprecationMessageBuilder()
+        builder.setSummary(summary)
+
+        when:
+        builder.willBeRemovedInGradle11().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+
+        then:
+        expectMessage "$summary This is scheduled to be removed in Gradle 11. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation."
+    }
+
     def "logs deprecation message with custom problem id"() {
         def deprecationDisplayName = "summary deprecation"
         given:

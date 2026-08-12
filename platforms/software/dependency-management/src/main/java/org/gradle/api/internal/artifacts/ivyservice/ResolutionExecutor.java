@@ -227,7 +227,7 @@ public class ResolutionExecutor {
         CalculatedValue<ResolverResults> futureCompleteResults
     ) {
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, instanceIdentity);
-        InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
+        InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder(attributeDesugaring);
 
         ComponentResolvers resolvers = getResolvers(params, legacyParams, Collections.emptyList());
         ResolvedArtifactsGraphVisitor artifactsGraphVisitor = artifactVisitorFor(params.getArtifactTypeRegistry());
