@@ -120,11 +120,13 @@ abstract class TestFilesCleanupService @Inject constructor(
     override fun onFinish(event: FinishEvent) {
         if (event is TaskFinishEvent && taskPathToReports.containsKey(event.descriptor.taskPath)) {
             val taskPath = event.descriptor.taskPath
-            when (event.result) {
+            when (val result = event.result) {
                 is TaskSuccessResult -> {
-                    addExecutedTaskPath(taskPath)
-                    if (containsFailedTest(taskPath)) {
-                        addFailedTaskPath(taskPath)
+                    if (producedSomethingWorthArchiving(taskPath, result)) {
+                        addExecutedTaskPath(taskPath)
+                        if (containsFailedTest(taskPath)) {
+                            addFailedTaskPath(taskPath)
+                        }
                     }
                 }
 
@@ -137,6 +139,35 @@ abstract class TestFilesCleanupService @Inject constructor(
                 }
             }
         }
+    }
+
+    /**
+     * Whether a successful task produced reports this build has any reason to archive.
+     *
+     * A task that was up-to-date or came from the build cache didn't produce anything in this build,
+     * and it can't have failed either: a failing task is never up-to-date and its outputs are never
+     * cached. Its restored reports are identical to those an earlier build already published.
+     *
+     * A test task that ran can still end up with nothing to report, because a filter excluded every
+     * test it would have run - `-PflakyTests=ONLY` does exactly that for most tasks. Its reports are
+     * empty, so there is nothing worth archiving either.
+     *
+     * Skipping both matters most where a single build has a task per tested Gradle version per
+     * subproject: the flaky test quarantine build for AllVersionsCrossVersion has over a thousand of
+     * them, which used to blow past TeamCity's limit on the number of artifacts a build may publish.
+     */
+    private
+    fun producedSomethingWorthArchiving(taskPath: String, result: TaskSuccessResult): Boolean =
+        !result.isUpToDate && !result.isFromCache && ranAnyTest(taskPath)
+
+    /**
+     * Whether a test task recorded any test result. Always true for tasks that aren't test tasks,
+     * as there is no result store to inspect for those.
+     */
+    private
+    fun ranAnyTest(taskPath: String): Boolean {
+        val binaryResultsDir = testTaskPathToBinaryResultsDir[taskPath] ?: return true
+        return SerializableTestResultStore(binaryResultsDir.get().toPath()).hasResults()
     }
 
     private
