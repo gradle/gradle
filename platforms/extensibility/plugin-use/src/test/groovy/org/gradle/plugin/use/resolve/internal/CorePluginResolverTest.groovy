@@ -18,6 +18,7 @@ package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.Plugin
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
 import org.gradle.api.internal.plugins.PluginManagerInternal
@@ -42,7 +43,9 @@ class CorePluginResolverTest extends Specification {
     def impl = Mock(PluginImplementation)
     def pluginManager = Mock(PluginManagerInternal)
 
-    def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
+    def dependencyFactory = Mock(DependencyFactory)
+
+    def resolver = new CorePluginResolver(docRegistry, pluginRegistry, dependencyFactory)
 
     PluginRequestInternal request(String id, String version = null) {
         new DefaultPluginRequest(DefaultPluginId.of(id), true, PluginRequestInternal.Origin.OTHER, "source display name", 1, version, null, null, null)
