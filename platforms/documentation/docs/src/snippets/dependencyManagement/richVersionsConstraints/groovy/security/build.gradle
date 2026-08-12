@@ -18,7 +18,7 @@ dependencies {
     constraints {
         implementation('org.apache.logging.log4j:log4j-core') {
             version {
-                strictly '[2.17.1, 3['
+                strictly '[2.17.1, 2.18['
             }
             because 'CVE-2021-44832: versions prior to 2.17.1 are vulnerable'
         }

@@ -315,7 +315,7 @@ Use the table below to pick the right declaration for a given scenario; each row
 | The strict range caps consumers; `prefer` picks a default when no one else has an opinion.
 
 | <<#sec:strictly-security-minimum,Enforce a minimum version for a security fix>>
-| `constraints { strictly("[2.17.1, 3[") }`
+| `constraints { strictly("[2.17.1, 2.18[") }`
 | Applied as a constraint so it only activates when the module appears in the graph.
 
 | <<#sec:reject-multiple-versions,Exclude multiple known-broken versions>>
