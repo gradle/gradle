@@ -53,6 +53,7 @@ model {
 }
 '''
         then:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         succeeds "checkModel"
     }
 
@@ -86,6 +87,7 @@ model {
 }
 '''
         then:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         succeeds "checkModel"
     }
 
@@ -93,6 +95,7 @@ model {
         when:
         buildWithCustomBinaryPlugin()
         then:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         succeeds "sampleBinary"
     }
 
@@ -101,6 +104,7 @@ model {
         buildWithCustomBinaryPlugin()
         when:
         executer.withArgument("--no-problems-report")
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         succeeds "components"
         then:
         output.contains """
@@ -142,4 +146,10 @@ BUILD SUCCESSFUL"""
         """
     }
 
+
+    private void expectSoftwareModelDeprecations(String... pluginNames) {
+        for (String name : pluginNames) {
+            executer.expectDocumentedDeprecationWarning("The ${name} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
 }
