@@ -161,7 +161,8 @@ class DefaultConfigurationCache internal constructor(
             virtualFileSystem,
             buildOperationRunner,
             gradlePropertiesController,
-            isolateOwnerHost
+            isolateOwnerHost,
+            problems
         )
     }
 
@@ -273,8 +274,10 @@ class DefaultConfigurationCache internal constructor(
             BuildTreeConfigurationCache.LoadOutcome.Reused(finalizedGraph)
         } catch (failure: Throwable) {
             if (!isRecoveryEnabled) {
+                problems.onEntryUnreadable("The configuration cache entry could not be loaded.", failure)
                 throw failure
             }
+            problems.onEntryDiscarded("The configuration cache entry could not be loaded and has been discarded.", failure)
             rollbackFromFailedLoad()
             BuildTreeConfigurationCache.LoadOutcome.Discarded(failure)
         }

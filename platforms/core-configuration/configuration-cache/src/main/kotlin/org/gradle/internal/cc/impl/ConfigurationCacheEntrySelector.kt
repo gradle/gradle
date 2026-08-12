@@ -23,6 +23,7 @@ import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintCont
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
 import org.gradle.internal.cc.impl.fingerprint.readFingerprintFrom
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.FingerprintDeserializationException
 import org.gradle.internal.cc.operations.EntrySearchResult
 import org.gradle.internal.cc.operations.withFingerprintCheckOperations
@@ -50,7 +51,8 @@ internal class ConfigurationCacheEntrySelector(
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val isolateOwner: IsolateOwner
+    private val isolateOwner: IsolateOwner,
+    private val problems: ConfigurationCacheProblems
 ) {
     private
     val isRecoveryEnabled: Boolean
@@ -79,9 +81,10 @@ internal class ConfigurationCacheEntrySelector(
             }.value
         } catch (failure: ConfigurationCacheEntryReadException) {
             if (!isRecoveryEnabled) {
+                problems.onEntryUnreadable("The configuration cache entry could not be checked because it was corrupted.", failure)
                 throw failure.cause ?: failure
             }
-            logger.warn(
+            problems.onEntryDiscarded(
                 "The configuration cache entry could not be checked because it was corrupted and will be discarded.",
                 failure
             )

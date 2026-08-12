@@ -114,7 +114,6 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             logger.info("Discarding the configuration cache entry after a failed load", failure)
             return ExecutionResult.failed(originalFailure)
         }
-        logger.warn("The configuration cache entry could not be loaded and has been discarded.", originalFailure)
         return executionResult
     }
 

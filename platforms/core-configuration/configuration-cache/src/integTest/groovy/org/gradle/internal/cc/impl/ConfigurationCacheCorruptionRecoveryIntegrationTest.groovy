@@ -28,18 +28,21 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
     private static final String INTEGRITY_CHECKS = StartParameterBuildOptions.ConfigurationCacheIntegrityCheckOption.PROPERTY_NAME
     private static final String ENABLE_ISOLATED_PROJECTS = "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true"
 
+    private static final String DISCARDED_PROBLEM_ID = "validation:configuration-cache:configuration-cache-entry-discarded"
+    private static final String UNREADABLE_PROBLEM_ID = "validation:configuration-cache:configuration-cache-entry-unreadable"
+    private static final String UNREADABLE_ON_LOAD = "The configuration cache entry could not be loaded."
+    private static final String UNREADABLE_ON_CHECK = "The configuration cache entry could not be checked because it was corrupted."
     private static final String CORRUPT_ON_LOAD = "The configuration cache entry could not be loaded and has been discarded."
     private static final String CORRUPT_ON_CHECK = "The configuration cache entry could not be checked because it was corrupted and will be discarded."
-    private static final String FAILURE_STACK_TRACE = "at org.gradle.internal.cc.impl.DefaultConfigurationCache"
     private static final String ENABLE_INTEGRITY_CHECK = "-D$INTEGRITY_CHECKS=true"
     private static final byte[] CORRUPT_MARKER = "corrupt".bytes
-    private static final List<String> ALL_CORRUPTIONS = ["corruptWorkState", "corruptMetadata", "corruptFingerprint", "corruptClassLoaderScopes"]
 
     def configurationCache = newConfigurationCacheFixture()
 
     def "recovers from #corruptState (IP: #ipEnabled)"() {
         given:
         assumeClassLoaderScopesAreFingerprinted(ipEnabled, corruptState)
+        enableProblemsApiCheck()
         withIsolatedProjects(ipEnabled)
         buildFile """
             tasks.register("hello") {
@@ -56,12 +59,13 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
 
         when:
         "$corruptState"()
-        executer.withStackTraceChecksDisabled()
         configurationCacheRun("hello")
 
         then:
-        outputContains(expectedMessage)
-        outputContains(FAILURE_STACK_TRACE)
+        verifyAll(receivedProblem) {
+            fqid == DISCARDED_PROBLEM_ID
+            contextualLabel == expectedMessage
+        }
         outputContains("Hello")
         assertNoCorruptedState()
 
@@ -71,7 +75,7 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         then:
         configurationCache.assertStateLoaded()
         outputContains("Hello")
-        outputDoesNotContain("could not be")
+        receivedProblems.empty
 
         where:
         corruptState               | expectedMessage
@@ -86,6 +90,7 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
 
     def "recovers from a corrupted work graph in a build with buildSrc and subprojects (IP: #ipEnabled)"() {
         given:
+        enableProblemsApiCheck()
         withIsolatedProjects(ipEnabled)
         file("buildSrc/src/main/java/Util.java").text = "public class Util {}"
         settingsFile """
@@ -108,11 +113,13 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
 
         when:
         corruptWorkState()
-        executer.withStackTraceChecksDisabled()
         configurationCacheRun("hello")
 
         then:
-        outputContains(CORRUPT_ON_LOAD)
+        verifyAll(receivedProblem) {
+            fqid == DISCARDED_PROBLEM_ID
+            contextualLabel == CORRUPT_ON_LOAD
+        }
         outputContains("Hello from root")
         outputContains("Hello from a")
         outputContains("Hello from b")
@@ -132,6 +139,7 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
     def "fails the build on #corruptState when recovery is disabled (IP: #ipEnabled)"() {
         given:
         assumeClassLoaderScopesAreFingerprinted(ipEnabled, corruptState)
+        enableProblemsApiCheck()
         withIsolatedProjects(ipEnabled)
         buildFile """
             tasks.register("hello") {
@@ -150,13 +158,19 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         configurationCacheFails(DISABLE_CC_RECOVERY, "hello")
 
         then:
-        outputDoesNotContain(CORRUPT_ON_LOAD)
-        outputDoesNotContain(CORRUPT_ON_CHECK)
+        verifyAll(receivedProblem) {
+            fqid == UNREADABLE_PROBLEM_ID
+            contextualLabel == expectedMessage
+        }
         outputDoesNotContain("Hello")
         hasCorruptedState()
 
         where:
-        corruptState << ALL_CORRUPTIONS
+        corruptState               | expectedMessage
+        "corruptWorkState"         | UNREADABLE_ON_LOAD
+        "corruptMetadata"          | UNREADABLE_ON_CHECK
+        "corruptFingerprint"       | UNREADABLE_ON_CHECK
+        "corruptClassLoaderScopes" | UNREADABLE_ON_CHECK
 
         combined:
         ipEnabled << [false, true]
@@ -197,6 +211,7 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
 
     def "the entry stored after recovery is invalidated by a Gradle properties change"() {
         given:
+        enableProblemsApiCheck()
         file("gradle.properties") << "someProperty=first"
         buildFile """
             def someProperty = providers.gradleProperty("someProperty").get()
@@ -214,11 +229,13 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
 
         when:
         corruptWorkState()
-        executer.withStackTraceChecksDisabled()
         configurationCacheRun("hello")
 
         then:
-        outputContains(CORRUPT_ON_LOAD)
+        verifyAll(receivedProblem) {
+            fqid == DISCARDED_PROBLEM_ID
+            contextualLabel == CORRUPT_ON_LOAD
+        }
         outputContains("someProperty = first")
 
         when:
@@ -232,6 +249,7 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
 
     def "recovers from a corrupted work graph when encryption is enabled"() {
         given:
+        enableProblemsApiCheck()
         def keyStoreOption = "-Dorg.gradle.internal.configuration-cache.key-store-dir=${file("keystores")}"
         buildFile """
             tasks.register("hello") {
@@ -248,11 +266,13 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
 
         when:
         corruptWorkState()
-        executer.withStackTraceChecksDisabled()
         configurationCacheRun(keyStoreOption, "hello")
 
         then:
-        outputContains(CORRUPT_ON_LOAD)
+        verifyAll(receivedProblem) {
+            fqid == DISCARDED_PROBLEM_ID
+            contextualLabel == CORRUPT_ON_LOAD
+        }
         outputContains("Hello")
         assertNoCorruptedState()
 
@@ -285,13 +305,11 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         configurationCacheFails(ENABLE_INTEGRITY_CHECK, "hello")
 
         then:
-        outputDoesNotContain(CORRUPT_ON_LOAD)
-        outputDoesNotContain(CORRUPT_ON_CHECK)
         outputDoesNotContain("Hello")
         hasCorruptedState()
 
         where:
-        corruptState << ALL_CORRUPTIONS
+        corruptState << ["corruptWorkState", "corruptMetadata", "corruptFingerprint", "corruptClassLoaderScopes"]
 
         combined:
         ipEnabled << [false, true]
