@@ -23,7 +23,6 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.initialization.ParallelismBuildOptions.ParallelOption
@@ -46,12 +45,6 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         """
         initializeIntoTestDir()
         executer.withRepositoryMirrors()
-        if (KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().latest)) {
-            def kotlinDevRepoInitScript = KotlinGradlePluginVersions.createKotlinDevRepositoryInitScript()
-            executer.beforeExecute {
-                usingInitScript(kotlinDevRepoInitScript)
-            }
-        }
     }
 
     void initializeIntoTestDir() {

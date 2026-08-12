@@ -26,7 +26,6 @@ class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndecla
 
     @Override
     void buildLogicApplication(BuildInputRead read) {
-        file("buildSrc/settings.gradle.kts").text = KotlinDslTestUtil.kotlinDslSettingsPluginManagement
         file("buildSrc/build.gradle.kts").text = KotlinDslTestUtil.kotlinDslBuildSrcScript
         kotlinPlugin(file("buildSrc/src/main/kotlin/SneakyPlugin.kt"), read)
         buildFile << """

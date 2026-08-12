@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl.inputs.undeclared
 
 import groovy.transform.CompileStatic
 import groovy.transform.MapConstructor
-import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.internal.ToBeImplemented
@@ -348,7 +347,6 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
                     group = "org.example.support"
 
                     ${mavenCentralRepository(GradleDsl.KOTLIN)}
-                    ${kotlinDevRepository(GradleDsl.KOTLIN)}
 
                     dependencies {
                         implementation(kotlin("stdlib"))
@@ -366,10 +364,7 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
                     }
                 """
 
-                file("settings.gradle.kts") << """
-                    ${KotlinDslTestUtil.kotlinDslSettingsPluginManagement}
-                    rootProject.name = "lib-kotlin"
-                """
+                file("settings.gradle.kts") << """ rootProject.name = "lib-kotlin" """
 
                 file("src/main/kotlin/ReadInput.kt") << """
                     import java.io.*
@@ -397,7 +392,6 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
 
                 file("build.gradle.kts") << """
                     ${mavenCentralRepository(GradleDsl.KOTLIN)}
-                    ${kotlinDevRepository(GradleDsl.KOTLIN)}
 
                     dependencies {
                         implementation("org.example.support:lib-kotlin")

@@ -104,7 +104,9 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
                     `kotlin-dsl`
                 }
 
-                $repositoriesBlock
+                repositories {
+                    mavenCentral()
+                }
 
                 gradlePlugin {
                     plugins {

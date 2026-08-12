@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.codehaus.groovy.runtime.StringGroovyMethods
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinDevRepository
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -113,7 +112,6 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """
             plugins { `kotlin-dsl` }
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
-            ${kotlinDevRepository(GradleDsl.KOTLIN)}
             """
         )
 

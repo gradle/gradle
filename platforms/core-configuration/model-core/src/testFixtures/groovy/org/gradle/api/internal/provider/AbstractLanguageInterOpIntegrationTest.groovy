@@ -41,7 +41,6 @@ class AbstractLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.withRepositoryMirrors()
         file("buildSrc/settings.gradle.kts") << """
-            ${KotlinDslTestUtil.kotlinDslSettingsPluginManagement}
             include("plugin")
         """
         file("buildSrc/build.gradle.kts") << """

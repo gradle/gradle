@@ -19,8 +19,6 @@ package org.gradle.kotlin.dsl.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinDevRepository
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinDevRepositoryDefinition
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
@@ -55,7 +53,6 @@ class KotlinLanguageVersionPluginCompatibilityIntegrationTest extends AbstractIn
             pluginManagement {
                 repositories {
                     ${mavenCentralRepositoryDefinition(KOTLIN)}
-                    ${kotlinDevRepositoryDefinition(KOTLIN)}
                 }
             }
             rootProject.name = "plugin"
@@ -73,7 +70,6 @@ class KotlinLanguageVersionPluginCompatibilityIntegrationTest extends AbstractIn
             group = "com.example"
             version = "1.0"
             ${mavenCentralRepository(KOTLIN)}
-            ${kotlinDevRepository(KOTLIN)}
 
             gradlePlugin {
                 plugins {
@@ -129,7 +125,6 @@ class KotlinLanguageVersionPluginCompatibilityIntegrationTest extends AbstractIn
                 repositories {
                     maven(url = "${mavenRepo.uri}")
                     ${mavenCentralRepositoryDefinition(KOTLIN)}
-                    ${kotlinDevRepositoryDefinition(KOTLIN)}
                 }
             }
             rootProject.name = "consumer"

@@ -178,7 +178,10 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
             plugins {
                 `kotlin-dsl`
             }
-            $repositoriesBlock
+            repositories {
+                mavenCentral()
+                gradlePluginPortal()
+            }
         """
         included.file("src/main/kotlin/build-logic.settings.gradle.kts") << """
             broken !!!

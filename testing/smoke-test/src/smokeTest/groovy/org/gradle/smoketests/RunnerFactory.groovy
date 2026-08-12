@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.internal.VersionNumber
 
 /**
@@ -45,21 +44,12 @@ trait RunnerFactory {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             extraArgs += ["-I", init.canonicalPath]
         }
-        // the running Gradle pins `kotlin-dsl` buildscript classpaths to its embedded Kotlin version
-        if (KotlinGradlePluginVersions.isKotlinDevVersion(KOTLIN_VERSIONS.latest)) {
-            def init = KotlinGradlePluginVersions.createKotlinDevRepositoryInitScript()
-            extraArgs += ["-I", init.canonicalPath]
-        }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
             .ignoreDeprecationWarningsIf(AGP_VERSIONS.isOld(agpVersion), "Old AGP version")
     }
 
     private SmokeTestGradleRunner newKotlinRunner(VersionNumber kotlinVersion, List<String> tasks) {
         List<String> args = []
-        if (KotlinGradlePluginVersions.isKotlinDevVersion(kotlinVersion.toString())) {
-            def init = KotlinGradlePluginVersions.createKotlinDevRepositoryInitScript()
-            args += ["-I", init.canonicalPath]
-        }
         runner(*(tasks + args))
             .ignoreDeprecationWarningsIf(KOTLIN_VERSIONS.isOld(kotlinVersion), "Old KGP version")
     }

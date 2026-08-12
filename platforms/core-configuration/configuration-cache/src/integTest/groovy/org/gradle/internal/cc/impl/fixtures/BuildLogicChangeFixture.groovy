@@ -99,11 +99,6 @@ class BuildLogicChangeFixture {
     }
 
     void setup() {
-        if (language == Language.KOTLIN) {
-            def settingsFile = file("settings.gradle.kts")
-            def existingSettings = settingsFile.exists() ? settingsFile.text : ""
-            settingsFile.text = KotlinDslTestUtil.kotlinDslSettingsPluginManagement + existingSettings
-        }
         buildFile << kotlinDslScriptForLanguage
         buildFile << """
             gradlePlugin {

@@ -19,7 +19,6 @@ package org.gradle.internal.cc.impl.inputs.undeclared
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 
@@ -41,13 +40,11 @@ class SystemPropertyInstrumentationInKotlinIntegrationTest extends AbstractConfi
             }
         """
 
-        file("buildSrc/settings.gradle.kts") << KotlinDslTestUtil.kotlinDslSettingsPluginManagement
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
             }
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
-            ${kotlinDevRepository(GradleDsl.KOTLIN)}
         """
 
         buildFile("""

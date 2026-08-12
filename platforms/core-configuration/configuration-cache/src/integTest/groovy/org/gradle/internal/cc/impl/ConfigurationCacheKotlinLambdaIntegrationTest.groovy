@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
@@ -27,11 +26,10 @@ class ConfigurationCacheKotlinLambdaIntegrationTest extends AbstractConfiguratio
     @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
     def "defers evaluation of #description objects"() {
         given:
-        file("buildSrc/settings.gradle.kts").text = KotlinDslTestUtil.kotlinDslSettingsPluginManagement
+        file("buildSrc/settings.gradle.kts").text = ""
         file("buildSrc/build.gradle.kts").text = """
             plugins { `kotlin-dsl` }
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
-            ${kotlinDevRepository(GradleDsl.KOTLIN)}
         """
         file("buildSrc/src/main/kotlin/my/LambdaTask.kt").tap {
             parentFile.mkdirs()

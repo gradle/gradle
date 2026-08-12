@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 /**
@@ -51,21 +50,15 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
 
             alwaysPasses()
 
-            settingsFile << settingsPluginManagement
-        }
-    }
-
-    @Override
-    protected String getSettingsPluginManagement() {
-        return """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    google()
-                    ${KotlinGradlePluginVersions.kotlinDevRepositoryDeclaration}
+            settingsFile << """
+                pluginManagement {
+                    repositories {
+                        gradlePluginPortal()
+                        google()
+                    }
                 }
-            }
-        """
+            """
+        }
     }
 
     protected boolean isAndroidKotlinPlugin(String pluginId) {

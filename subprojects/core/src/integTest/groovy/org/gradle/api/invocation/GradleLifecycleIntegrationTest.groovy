@@ -19,7 +19,6 @@ package org.gradle.api.invocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
-import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslSettingsPluginManagement
 
 class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
@@ -48,7 +47,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
         withSettingsPluginInBuildLogic()
 
         createDir('build-logic') {
-            file('settings.gradle.kts') << kotlinDslSettingsPluginManagement
+            file('settings.gradle.kts') << ''
             file('build.gradle.kts') << """
                 plugins {
                     `java-gradle-plugin`

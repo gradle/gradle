@@ -18,8 +18,6 @@ package org.gradle.integtests
 import org.gradle.api.internal.classpath.RuntimeApiInfo
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.lazy.Lazy
 
@@ -128,21 +126,12 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
     }
 
     protected void prepareKotlinPluginTest(String pluginApplyBody) {
-        file("producer/settings.gradle.kts") << """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
-            }
-        """
         file("producer/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
             }
             repositories {
                 mavenCentral()
-                ${RepoScriptBlockUtil.kotlinDevRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
 
