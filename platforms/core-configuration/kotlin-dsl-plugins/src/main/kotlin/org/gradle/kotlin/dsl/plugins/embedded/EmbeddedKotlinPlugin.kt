@@ -22,8 +22,12 @@ import org.gradle.api.logging.Logger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import javax.inject.Inject
 
 
@@ -42,7 +46,7 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
 
             plugins.apply(KotlinPluginWrapper::class.java)
 
-            logger.warnOnDifferentKotlinVersion(getKotlinPluginVersion())
+            warnOnDifferentKotlinCompilerVersion()
 
             val embeddedKotlinConfiguration = configurations.create("embeddedKotlin")
             embeddedKotlin.addDependenciesTo(
@@ -58,6 +62,24 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
             workAroundKgpEagerConfigurations()
         }
     }
+
+    /**
+     * A read of `compilerVersion` finalizes the value, so the read waits for the task configuration.
+     * A project can have several Kotlin compile tasks, and the warning appears one time.
+     */
+    private fun Project.warnOnDifferentKotlinCompilerVersion() {
+        var warned = false
+        tasks.withType<KotlinCompile>().configureEach {
+            if (!warned) {
+                warned = true
+                logger.warnOnDifferentKotlinVersion(kotlinCompilerVersion())
+            }
+        }
+    }
+
+    @OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalBuildToolsApi::class)
+    private fun Project.kotlinCompilerVersion(): String =
+        kotlinExtension.compilerVersion.orNull ?: getKotlinPluginVersion()
 
     // See https://github.com/gradle/gradle/issues/35309
     // TODO remove once https://youtrack.jetbrains.com/issue/KT-81706/ is fixed
@@ -76,8 +98,8 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
 fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
     if (kotlinVersion != embeddedKotlinVersion) {
         val warning =
-            """|WARNING: Unsupported Kotlin plugin version.
-               |The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `$embeddedKotlinVersion` that might work differently than in the requested version `$kotlinVersion`.
+            """|WARNING: Unsupported Kotlin compiler version.
+               |The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `$embeddedKotlinVersion` that might work differently than in the compiler version `$kotlinVersion`.
                |Using the `kotlin-dsl` plugin together with a different Kotlin version (for example, by using the Kotlin Gradle plugin (`kotlin(jvm)`)) in the same project is not recommended.
                |
                |See https://docs.gradle.org/${GradleVersion.current().version}/userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin for more details on how the `kotlin-dsl` plugin works (same applies to `embedded-kotlin`).

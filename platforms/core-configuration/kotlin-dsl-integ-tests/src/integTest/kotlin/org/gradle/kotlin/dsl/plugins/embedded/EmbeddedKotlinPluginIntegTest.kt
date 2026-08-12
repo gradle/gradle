@@ -16,9 +16,13 @@
 
 package org.gradle.kotlin.dsl.plugins.embedded
 
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
@@ -47,6 +51,83 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
         val result = build("assemble")
 
         result.assertOutputContains(":compileKotlin NO-SOURCE")
+    }
+
+    @Test
+    fun `warns when the Kotlin compiler version differs from the embedded Kotlin version`() {
+
+        withBuildScript(
+            """
+            import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+            import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+            $repositoriesBlock
+
+            @OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalBuildToolsApi::class)
+            fun useDifferentCompiler() = kotlin {
+                compilerVersion.set("2.3.21")
+            }
+            useDifferentCompiler()
+
+            """
+        )
+
+        val result = build("classes")
+
+        assertThat(result.output, containsString("Unsupported Kotlin compiler version"))
+    }
+
+    @Test
+    @Requires(
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
+        reason = "Class path isolation, needed for the forced Kotlin Gradle Plugin version"
+    )
+    fun `does not warn when the Kotlin compiler version is the embedded Kotlin version`() {
+
+        val olderKgpVersion = KotlinGradlePluginVersions().latestsStable
+            .last { VersionNumber.parse(it) < VersionNumber.parse(embeddedKotlinVersion) }
+
+        withBuildScript(
+            """
+            import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+            import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+            import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+
+            buildscript {
+                configurations.classpath {
+                    resolutionStrategy.eachDependency {
+                        if (requested.group == "org.jetbrains.kotlin" && requested.name.startsWith("kotlin-gradle-plugin")) {
+                            useVersion("$olderKgpVersion")
+                        }
+                    }
+                }
+            }
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+            $repositoriesBlock
+
+            @OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalBuildToolsApi::class)
+            fun useEmbeddedCompiler() = kotlin {
+                compilerVersion.set("$embeddedKotlinVersion")
+            }
+            useEmbeddedCompiler()
+
+            println("applied Kotlin plugin version: " + project.getKotlinPluginVersion())
+
+            """
+        )
+
+        val result = build("classes")
+
+        assertThat(result.output, containsString("applied Kotlin plugin version: $olderKgpVersion"))
+        assertThat(result.output, not(containsString("Unsupported Kotlin")))
     }
 
     @Test
