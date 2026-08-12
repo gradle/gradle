@@ -59,9 +59,9 @@ In Gradle 10, the property will be ignored, and the model will always be built f
 === Potential breaking changes
 
 [[kotlin_2_4_10]]
-==== Upgrade to Kotlin 2.4.20-RC-197
+==== Upgrade to Kotlin 2.4.20-Beta2
 
-The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20-RC-197[Kotlin 2.4.20-RC-197].
+The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20-Beta2[Kotlin 2.4.20-Beta2].
 
 [[upgrade_to_asm_9_10_1]]
 ==== Upgrade to ASM 9.10.1
