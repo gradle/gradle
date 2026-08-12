@@ -146,6 +146,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
             """
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails 'printResolvedValues'
 
         and:
@@ -174,6 +175,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
             """
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails 'printResolvedValues'
 
         and:
@@ -199,6 +201,7 @@ The following types/formats are supported:
             """
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails 'printResolvedValues'
 
         and:
@@ -236,6 +239,7 @@ The following types/formats are supported:
             """
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails 'printResolvedValues'
 
         and:
@@ -280,6 +284,7 @@ The following types/formats are supported:
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds 'printResolvedValues'
 
         and:
@@ -309,6 +314,7 @@ The following types/formats are supported:
             """
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails 'printResolvedValues'
 
         and:
@@ -329,6 +335,7 @@ The following types/formats are supported:
             """
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds 'printResolvedValues'
 
         and:
@@ -373,6 +380,7 @@ The following types/formats are supported:
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds 'printResolvedValues'
 
         and:
@@ -416,6 +424,8 @@ The following types/formats are supported:
         '''
 
         then:
+        expectSoftwareModelDeprecation("ConvertRules")
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds 'printResolvedValues'
 
         and:
@@ -497,6 +507,7 @@ The following types/formats are supported:
 
         then:
         expectTaskGetProjectDeprecations(5)
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds 'printResolvedValues'
 
         and:
@@ -534,6 +545,7 @@ The following types/formats are supported:
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails 'model'
 
         and:
@@ -594,10 +606,15 @@ The following types/formats are supported:
 
         then:
         expectTaskGetProjectDeprecations(3)
+        expectSoftwareModelDeprecation("RulePlugin")
         succeeds ':p1:printResolvedValues', ':p2:printResolvedValues'
 
         and:
         output.contains 'p1 file: /path/to/Thing.java true'.replace('/' as char, File.separatorChar)
         output.contains 'p2 file: /path/to/Thing.java true'.replace('/' as char, File.separatorChar)
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

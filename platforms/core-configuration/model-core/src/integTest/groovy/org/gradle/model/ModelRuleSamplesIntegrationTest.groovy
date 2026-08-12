@@ -33,6 +33,7 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
         inDirectory(sample.dir.file('groovy'))
 
         then:
+        expectSoftwareModelDeprecation("PersonRules")
         succeeds "hello"
         output.contains("Hello John Smith!")
 
@@ -40,10 +41,15 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
         inDirectory(sample.dir.file('groovy'))
 
         then:
+        expectSoftwareModelDeprecation("PersonRules")
         succeeds "listPeople"
         output.contains("configuring Person 'people.john'")
         output.contains("configuring Person 'people.barry'")
         output.contains("Hello John Smith!")
         output.contains("Hello Barry Barry!")
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

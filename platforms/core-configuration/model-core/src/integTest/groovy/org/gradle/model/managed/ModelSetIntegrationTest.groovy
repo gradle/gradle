@@ -52,6 +52,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "printPeople"
 
         and:
@@ -88,6 +89,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "printPeople"
 
         and:
@@ -148,6 +150,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "printPeople"
 
         and:
@@ -187,6 +190,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "printPeople"
 
         and:
@@ -252,6 +256,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "print"
 
         and:
@@ -305,6 +310,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "printGroup"
 
         and:
@@ -339,6 +345,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "tasks"
 
         and:
@@ -390,6 +397,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "printPeople"
 
         and:
@@ -454,6 +462,7 @@ finalize
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "printPeople"
 
         and:
@@ -496,6 +505,7 @@ configure p3
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "printPeople"
 
         and:
@@ -526,6 +536,7 @@ configure p3
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -559,6 +570,7 @@ configure p3
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -587,6 +599,7 @@ configure p3
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -619,6 +632,7 @@ configure p3
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -653,6 +667,7 @@ configure p3
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -683,10 +698,15 @@ configure p3
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: tasks { ... } @ build.gradle")
         failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelSet<Person>' given to rule tasks { ... } @ build.gradle")
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

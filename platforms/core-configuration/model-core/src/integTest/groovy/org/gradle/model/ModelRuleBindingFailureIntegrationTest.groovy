@@ -55,6 +55,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails "tasks"
 
         then:
@@ -101,6 +102,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails "tasks"
 
         then:
@@ -176,6 +178,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails "tasks"
 
         then:
@@ -223,6 +226,9 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectSoftwareModelDeprecation("Plugin1")
+        expectSoftwareModelDeprecation("Plugin2")
+        expectSoftwareModelDeprecation("Plugin3")
         fails "tasks"
 
         then:
@@ -249,6 +255,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectSoftwareModelDeprecation("Plugin1")
         fails "tasks"
 
         then:
@@ -295,6 +302,7 @@ model {
 """
 
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails()
 
         then:
@@ -348,6 +356,7 @@ model {
         """
 
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails "tasks"
 
         then:
@@ -364,5 +373,9 @@ model {
     inputs:
       - <no path> MyPlugin.MyThing3 (parameter 2) [*]
 '''
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

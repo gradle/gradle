@@ -50,6 +50,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -85,6 +86,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -121,6 +123,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -153,6 +156,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -189,6 +193,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -230,6 +235,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -277,10 +283,15 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject(ModelMap<Task>, Person)")
         failure.assertHasCause("Attempt to modify a read only view of model element 'pet' of type 'Pet' given to rule RulePlugin#person(Person, Pet)")
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

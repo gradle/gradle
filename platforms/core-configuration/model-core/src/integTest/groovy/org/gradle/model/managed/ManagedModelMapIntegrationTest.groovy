@@ -66,6 +66,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "print"
 
         and:
@@ -118,6 +119,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "print"
 
         and:
@@ -169,6 +171,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "print"
 
         and:
@@ -232,6 +235,7 @@ A managed collection can not contain 'java.io.InputStream's""")
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "tasks"
 
         and:
@@ -264,6 +268,7 @@ A managed collection can not contain 'java.io.InputStream's""")
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails "tasks"
 
         and:
@@ -294,6 +299,7 @@ A managed collection can not contain 'java.io.InputStream's""")
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails()
 
         and:
@@ -329,6 +335,7 @@ A managed collection can not contain 'java.io.InputStream's""")
         '''
 
         then:
+        expectSoftwareModelDeprecation("RulePlugin")
         fails()
 
         and:
@@ -398,6 +405,7 @@ A managed collection can not contain 'java.io.InputStream's""")
         """
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "printParent"
         outputContains("""
 parent
@@ -438,6 +446,7 @@ parent
         '''
 
         when:
+        expectSoftwareModelDeprecation("RulePlugin")
         run()
 
         then:
@@ -475,10 +484,15 @@ parent
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "print"
 
         and:
         output.contains "things: null,null"
     }
 
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
 }
