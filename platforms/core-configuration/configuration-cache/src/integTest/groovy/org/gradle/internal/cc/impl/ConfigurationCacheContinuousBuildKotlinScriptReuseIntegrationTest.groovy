@@ -17,6 +17,8 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class ConfigurationCacheContinuousBuildKotlinScriptReuseIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -77,5 +79,77 @@ class ConfigurationCacheContinuousBuildKotlinScriptReuseIntegrationTest extends 
         outputContains("value: changed-input")
         postBuildOutputContains("Configuration cache entry stored.")
         outputDoesNotContain("cannot be encoded")
+    }
+
+    /**
+     * Reinstates {@code ConfigurationCacheKotlinScriptReuseIntegrationTest} (#32039 / #32205)
+     * with reuse driven by continuous reconfigure instead of sibling projects with identical scripts.
+     * Keeps the version catalog and early {@code buildscript.classLoader} access that induce a
+     * non-strict ClassLoaderScope parent.
+     */
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = 'non-strict ClassLoader scope')
+    @Issue('https://github.com/gradle/gradle/issues/32039')
+    def "compiled Kotlin script with non-strict ClassLoaderScope parent can be reused across continuous reconfigure with version catalog"() {
+        given: 'a version catalog'
+        file('gradle/libs.versions.toml').text = '''
+            [versions]
+            # Deleting this line used to avoid #32039
+            test = "1"
+
+            [libraries]
+        '''.stripIndent()
+
+        and: 'settings that induce non-strict ClassLoaderScope'
+        settingsFile '''
+            gradle.rootProject {
+                // induces non-strict ClassLoaderScope in the hierarchy
+                // since this callback runs too early
+                buildscript.classLoader
+            }
+        '''
+
+        and: 'a Kotlin project script reused when only non-script inputs change'
+        def configFile = file('config.txt')
+        def inputFile = file('input.txt')
+        configFile.text = ''
+        inputFile.text = 'original'
+
+        // config.txt is read at configuration time (invalidates CC without changing script source).
+        // input.txt is a task input so continuous build keeps watching the FS.
+        kotlinFile 'build.gradle.kts', '''
+            if (layout.projectDirectory.file("config.txt").asFile.readText().isNotEmpty()) {
+                println("loaded config.txt")
+            }
+            tasks.register("ok") {
+                val input = layout.projectDirectory.file("input.txt")
+                inputs.files(input)
+                doLast {
+                    println("value: " + input.asFile.readText())
+                }
+            }
+        '''
+
+        and:
+        executer.withEagerClassLoaderCreationCheckDisabled()
+
+        when:
+        succeeds 'ok'
+
+        then:
+        outputContains 'value: original'
+        postBuildOutputContains 'Configuration cache entry stored.'
+
+        when: 'invalidate configuration cache without changing the script source'
+        update(configFile, 'changed-config')
+        update(inputFile, 'changed-input')
+
+        then:
+        buildTriggeredAndSucceeded()
+        outputContains 'loaded config.txt'
+        outputContains 'value: changed-input'
+        postBuildOutputContains 'Configuration cache entry stored.'
+        // Must not reintroduce #32039 (non-strict scope + catalog) or #34013 (CC encode failure)
+        outputDoesNotContain 'cannot be encoded'
+        outputDoesNotContain 'Unexpected delegating class loader'
     }
 }
