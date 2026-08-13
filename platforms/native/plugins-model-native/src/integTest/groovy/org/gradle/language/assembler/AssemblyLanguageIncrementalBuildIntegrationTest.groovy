@@ -38,6 +38,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     def install
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         app = new MixedLanguageHelloWorldApp(toolChain)
         buildFile << """
             plugins {

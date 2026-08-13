@@ -28,6 +28,7 @@ class GccToolChainCrossCompilationIntegrationTest extends AbstractInstalledToolC
     def helloWorldApp = new CHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 apply plugin: 'c'
 

@@ -24,6 +24,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
     def helloWorldApp = new ExeWithLibraryUsingLibraryHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
 
         buildFile << '''

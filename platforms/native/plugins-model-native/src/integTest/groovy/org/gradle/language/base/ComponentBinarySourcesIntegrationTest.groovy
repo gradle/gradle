@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 @UnsupportedWithConfigurationCache(because = "software model")
 class ComponentBinarySourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         withCustomComponentType()
         withCustomBinaryType()
         withCustomLanguageType()

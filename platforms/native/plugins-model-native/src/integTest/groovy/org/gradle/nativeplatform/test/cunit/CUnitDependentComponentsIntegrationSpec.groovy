@@ -35,6 +35,7 @@ class CUnitDependentComponentsIntegrationSpec extends AbstractInstalledToolChain
     def app = new CHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         prebuiltDir.file("cunit/2.1-2/lib/${toolChain.unitTestPlatform}/${cunitLibName}").assumeExists()
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
