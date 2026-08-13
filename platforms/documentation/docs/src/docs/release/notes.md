@@ -24,7 +24,7 @@ In this release, the [Isolated Projects](#isolated-projects) performance feature
 
 This release also enhances the [Configuration Cache](#configuration-cache-improvements), where tasks gain access to higher-level dependency resolution APIs, Java agents and TestKit work better together, and a source of spurious invalidation when used from IntelliJ IDEA was removed.
 
-When your build fails during IDE import or sync, Gradle now returns a partial model through [Resilient Sync](#tooling-and-ide-integration), so your IDE keeps offering code completion, navigation, and highlighting for the parts of the build-logic that are healthy, instead of leaving you with all-red scripts and no assistance while you track down the problem.
+When your build fails during IDE import or sync, Gradle now returns a partial model through [Resilient Sync](#tooling-and-ide-integration), so your IDE keeps offering code completion, navigation, and highlighting for the parts of the build logic that are healthy, instead of leaving you with all-red scripts and no assistance while you track down the problem.
 
 [Test reporting and execution](#test-reporting-and-execution) now surfaces framework-initialization failures for TestNG, JUnit 4, and JUnit Platform in the console by default, and supports the new way of controlling parallelism in TestNG 7.10 and later.
 
