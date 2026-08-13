@@ -22,11 +22,13 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.kotlin.dsl.support.BtaClasspathSnapshotter
 import org.gradle.kotlin.dsl.support.cleanupKotlinCompilers
 
 
 /**
- * Cleans up the shared Kotlin compiler instances once all scripts are compiled.
+ * Cleans up the shared Kotlin compiler instances and the classpath-snapshotting session once all
+ * scripts are compiled.
  *
  * BuildTree-scoped because the compiler instances are shared across the whole tree:
  * cleaning up per build would close build sessions under included builds' sibling compilations.
@@ -58,5 +60,6 @@ class KotlinCompilerContextDisposer(
 
     private fun cleanup() {
         cleanupKotlinCompilers()
+        BtaClasspathSnapshotter.closeSession()
     }
 }

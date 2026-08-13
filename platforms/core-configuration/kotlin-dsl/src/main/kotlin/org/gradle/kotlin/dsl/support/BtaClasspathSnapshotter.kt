@@ -26,12 +26,43 @@ import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.GRANULARITY
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.PARSE_INLINED_LOCAL_CLASSES
 import java.nio.file.Path
 
 
+/**
+ * Loaded once per daemon and shared by script compilation and classpath snapshotting:
+ * the implementation lookup is a ServiceLoader scan over the BTA implementation jar.
+ */
+internal val kotlinToolchains: KotlinToolchains by lazy {
+    KotlinToolchains.loadImplementation(BtaClasspathSnapshotter::class.java.classLoader)
+}
+
+
 internal object BtaClasspathSnapshotter {
+
+    private var session: KotlinToolchains.BuildSession? = null
+
+    /**
+     * Snapshots [classpathEntry] with [session], shared by all compile-avoidance fingerprinting in
+     * the process; created on demand, closed at the end of the build alongside the compilers' (see
+     * `KotlinCompilerContextDisposer`).
+     */
+    fun snapshot(classpathEntry: Path, snapshotOutput: Path): HashCode =
+        snapshot(kotlinToolchains.jvm, getOrCreateSession(), classpathEntry, snapshotOutput)
+
+    // Only session access is synchronized; snapshotting runs outside the lock, concurrently.
+    @Synchronized
+    private fun getOrCreateSession(): KotlinToolchains.BuildSession =
+        session ?: kotlinToolchains.createBuildSession().also { session = it }
+
+    @Synchronized
+    fun closeSession() {
+        session?.close()
+        session = null
+    }
 
     /**
      * Snapshots [classpathEntry] (a jar or a class directory) with [jvm] and [session], writes the

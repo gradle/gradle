@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:OptIn(ExperimentalBuildToolsApi::class)
-
 package org.gradle.kotlin.dsl.normalization
 
 import com.google.common.collect.ImmutableMultimap
@@ -35,19 +33,13 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.support.BtaClasspathSnapshotter
-import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
-import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
 import java.io.File
-import java.nio.file.Path
 
 
 internal
 class KotlinCompileClasspathFingerprinter(
     private val cache: KotlinDslClasspathEntrySnapshotCache
 ) : FileCollectionFingerprinter {
-
-    private val snapshotter by lazy { Snapshotter() }
 
     override fun getNormalizer(): FileNormalizer {
         throw UnsupportedOperationException("Not implemented")
@@ -72,7 +64,7 @@ class KotlinCompileClasspathFingerprinter(
             // Avoidance reads only the tiny ABI sidecar (served from memory when hot); the snapshot
             // file itself is never deserialized here, nor regenerated if cleanup already reclaimed it.
             val abiHash = cache.abiHashFor(snapshot.hash) { snapshotPath ->
-                snapshotter.snapshotAndSave(File(snapshot.absolutePath), snapshotPath)
+                BtaClasspathSnapshotter.snapshot(File(snapshot.absolutePath).toPath(), snapshotPath)
             }
             fingerprints[snapshot.absolutePath] = abiHash
 
@@ -131,21 +123,4 @@ class CurrentFileCollectionFingerprintImpl(private val fingerprints: Map<String,
     override fun wasCreatedWithStrategy(strategy: FingerprintingStrategy): Boolean {
         throw UnsupportedOperationException("Not implemented")
     }
-}
-
-
-private class Snapshotter {
-
-    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
-
-    private val buildSession = toolchains.createBuildSession()
-
-    private val jvmToolchains = toolchains.getToolchain(JvmPlatformToolchain::class.java)
-
-    /**
-     * Computes the BTA classpath snapshot for [file], writes it to [snapshotPath], and returns the
-     * ABI-rollup hash derived from the same snapshot — see [BtaClasspathSnapshotter].
-     */
-    fun snapshotAndSave(file: File, snapshotPath: Path): HashCode =
-        BtaClasspathSnapshotter.snapshot(jvmToolchains, buildSession, file.toPath(), snapshotPath)
 }

@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.JavaVersion
+import org.gradle.kotlin.dsl.support.BtaClasspathSnapshotter
 import org.gradle.kotlin.dsl.support.cleanupKotlinCompilers
 import org.gradle.kotlin.dsl.support.toKotlinJvmTarget
 import org.jetbrains.kotlin.CoreEnvironmentDeprecation
@@ -57,13 +58,14 @@ fun compileToDirectory(
 }
 
 /**
- * Cleans up the shared Kotlin compiler instances once all scripts are compiled.
+ * Cleans up the shared Kotlin compiler instances and the classpath-snapshotting session,
  * as [org.gradle.kotlin.dsl.provider.KotlinCompilerContextDisposer] does at the end of a build.
  * Call from an `@After` in tests that compile against jars inside the test directory: the environment
  * caches open jar handles, which on Windows prevent deleting the directory.
  */
 fun disposeKotlinCompilerContext() {
     cleanupKotlinCompilers()
+    BtaClasspathSnapshotter.closeSession()
 }
 
 
