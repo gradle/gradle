@@ -68,6 +68,7 @@ public final class AttributeTypeValidator {
      * <p>
      * This special case should be removed when compatibility with KGP 2.0.x is no longer required.
      */
+    // TODO: Remove support for raw Enums in Gradle 10.0.0
     public static boolean isKGPSpecialCase(Class<?> type) {
         return KGP_NATIVE_BUNDLE_ENUM_FQN.equals(type.getName());
     }
