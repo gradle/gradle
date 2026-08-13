@@ -92,10 +92,10 @@ abstract class ExtractJavaAbi : DefaultTask() {
                 parameters.classesDirectories.forEach { classDir ->
                     classDir.walk().forEach { inputFile ->
                         val outputFile = outputDirectory.resolve(inputFile.relativeTo(classDir).path)
-                        when (inputFile.filtering()) {
+                        when (contentFilterFor(classDir, inputFile)) {
                             ContentFilter.VERBATIM -> {
                                 outputFile.parentFile.mkdirs()
-                                inputFile.copyTo(outputFile)
+                                inputFile.copyTo(outputFile, overwrite = true)
                             }
 
                             ContentFilter.API_ONLY -> {
@@ -114,39 +114,5 @@ abstract class ExtractJavaAbi : DefaultTask() {
                 }
             }
         }
-
-        private
-        fun File.filtering(): ContentFilter {
-            if (name.endsWith(".class")) {
-                return if (name.endsWith("/module-info.class")
-                    || name.endsWith("/package-info.class")
-                ) {
-                    ContentFilter.VERBATIM
-                } else {
-                    ContentFilter.API_ONLY
-                }
-            }
-            if (name.equals("META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule")) {
-                return ContentFilter.VERBATIM
-            }
-            if (name.equals("META-INF/services/org.codehaus.groovy.transform.ASTTransformation")) {
-                return ContentFilter.VERBATIM
-            }
-            if (name.matches(KOTLIN_MODULE_PATH)) {
-                return ContentFilter.VERBATIM
-            }
-            return ContentFilter.SKIP
-        }
-    }
-
-    private
-    enum class ContentFilter {
-        VERBATIM,
-        API_ONLY,
-        SKIP
-    }
-
-    companion object {
-        val KOTLIN_MODULE_PATH = Regex("META-INF/.*\\.kotlin_module")
     }
 }
