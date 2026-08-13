@@ -22,7 +22,6 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -49,7 +48,11 @@ abstract class ExtractJavaAbi : DefaultTask() {
     @get:Input
     abstract val packages: SetProperty<String>
 
-    @get:CompileClasspath
+    // Do not change this to CompileClasspath. It hashes the input with the ABI extractor of the
+    // distribution that runs this build, and that extractor drops the details this task keeps.
+    // A new type-use annotation then leaves this task up to date, and the stub jar keeps the
+    // old annotations.
+    @get:Classpath
     abstract val classesDirectories: ConfigurableFileCollection
 
     @get:OutputDirectory
