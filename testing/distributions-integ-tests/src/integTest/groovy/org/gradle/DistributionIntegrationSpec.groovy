@@ -78,6 +78,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "credentials",
         "credentials-api",
         "daemon-logging",
+        "daemon-main",
         "daemon-messaging",
         "daemon-protocol",
         "daemon-server",
