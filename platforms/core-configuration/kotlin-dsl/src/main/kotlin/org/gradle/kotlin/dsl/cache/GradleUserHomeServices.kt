@@ -49,7 +49,7 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     fun createKotlinDslIncrementalCompilationCache(
         store: KotlinDslIncrementalCompilationStore,
     ): KotlinDslIncrementalCompilationCache =
-        KotlinDslIncrementalCompilationCache(store.cache, store.fileAccessTracker, store.softDeleter)
+        KotlinDslIncrementalCompilationCache(store)
 
     @Provides
     @PrivateService
