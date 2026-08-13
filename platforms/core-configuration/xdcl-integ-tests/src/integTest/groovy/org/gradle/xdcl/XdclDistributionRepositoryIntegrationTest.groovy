@@ -17,6 +17,7 @@
 package org.gradle.xdcl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.plugin.PluginBuilder
 
 /**
  * The Maven repository EMBEDDED in the distribution image ({@code <gradleHome>/repo}): it serves
@@ -240,6 +241,57 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
 
         then: 'the newer offer never resolves — the provider pin downgrades the whole conflict to the distribution version'
         output.contains("xdcl-e2e-selected=" + distribution.version.version)
+        outputContains("built-in XDCL ecosystem libraries are pinned to the running Gradle distribution")
+    }
+
+    def "a repository-published plugin's transitive dependency on a newer ecosystem library is downgraded to the distribution's"() {
+        given: "a third-party ecosystem plugin PUBLISHED to a repository, its POM carrying a transitive dependency on a NEWER built-in library version — the shape of an ecosystem extension compiled against a newer distribution (the newer version itself exists nowhere: the pin must rewrite the request before anything tries to resolve it)"
+        def pluginBuilder = new PluginBuilder(file("third-party-ecosystem"))
+        pluginBuilder.addSettingsPlugin(
+            'println "third-party-ecosystem applied"',
+            "third-party-ecosystem",
+            "ThirdPartyEcosystemPlugin"
+        )
+        def pluginModule = mavenRepo.module("com.example", "third-party-ecosystem-plugin", "1.0")
+        pluginModule.dependsOn("org.gradle", "gradle-xdcl-jvm-ecosystem", NEWER_OFFERED_VERSION)
+        pluginModule.publish()
+        // The same jar + marker layout PluginBuilder.publishAs produces, inlined so the
+        // implementation module's POM can carry the transitive dependency above.
+        def marker = mavenRepo.module("third-party-ecosystem", "third-party-ecosystem" + PluginBuilder.PLUGIN_MARKER_SUFFIX, "1.0")
+        marker.dependsOn(pluginModule)
+        marker.publish()
+        pluginBuilder.publishTo(executer, pluginModule.artifactFile)
+
+        and: 'a declarative settings resolving that plugin from the repository and applying it beside the built-in ecosystem'
+        file('settings.gradle.xdcl') << """
+            settings {
+              pluginManagement {
+                repositories ["${mavenRepo.uri}"]
+              }
+              plugins [
+                { id "java-ecosystem" },
+                { id "third-party-ecosystem" version "1.0" }
+              ]
+              rootProject { name "probe" }
+            }
+        """
+        buildFile << '''
+            def classpath = gradle.settings.buildscript.configurations.getByName("classpath")
+            def selected = classpath.incoming.resolutionResult.allComponents.find {
+                it.moduleVersion?.name == "gradle-xdcl-jvm-ecosystem"
+            }
+            println("xdcl-transitive-selected=" + selected.moduleVersion.version)
+            println("xdcl-transitive-reason=" + selected.selectionReason.descriptions*.description.join("; "))
+        '''
+
+        when:
+        succeeds("help")
+
+        then: 'the plugin itself resolved from the repository and applied'
+        outputContains("third-party-ecosystem applied")
+
+        and: "its POM's transitive request never resolves at the newer version — the pin downgrades it to the running distribution's"
+        output.contains("xdcl-transitive-selected=" + distribution.version.version)
         outputContains("built-in XDCL ecosystem libraries are pinned to the running Gradle distribution")
     }
 }
