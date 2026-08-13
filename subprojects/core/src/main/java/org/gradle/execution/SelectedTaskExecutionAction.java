@@ -18,34 +18,79 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.NodeExecutor;
+import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.service.ServiceRegistry;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class SelectedTaskExecutionAction implements BuildWorkExecutor {
+
+    private final ServiceRegistry buildScopeServices;
+    private final PlanExecutor planExecutor;
+    private final BuildOperationRunner buildOperationRunner;
+    private final NodeExecutor nodeExecutor;
+
+    public SelectedTaskExecutionAction(
+        ServiceRegistry buildScopeServices,
+        PlanExecutor planExecutor,
+        BuildOperationRunner buildOperationRunner,
+        NodeExecutor nodeExecutor
+    ) {
+        this.buildScopeServices = buildScopeServices;
+        this.planExecutor = planExecutor;
+        this.buildOperationRunner = buildOperationRunner;
+        this.nodeExecutor = nodeExecutor;
+    }
+
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
+        if (plan != taskGraph.getExecutionPlan()) {
+            throw new IllegalStateException("Executed plan inconsistent with build's execution plan.");
+        }
         bindAllReferencesOfProject(plan);
-        return taskGraph.execute(plan);
+        taskGraph.getGraphExecutionListeners().beforeGraphExecutionStarts(plan.getContents());
+        BuildOperationRef parentOperation = buildOperationRunner.getCurrentOperation();
+        try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(buildScopeServices)) {
+            return planExecutor.process(
+                plan.asWorkSource(),
+                node -> {
+                    CurrentBuildOperationRef.instance().with(parentOperation, () -> {
+                        NodeExecutionContext context = projectExecutionServices.forProject(node.getOwningProject());
+                        if (nodeExecutor.execute(node, context)) {
+                            return;
+                        }
+                        throw new IllegalStateException("Unknown type of node: " + node);
+                    });
+                }
+            );
+        } finally {
+            plan.close();
+            taskGraph.depopulate();
+        }
     }
 
-    private void bindAllReferencesOfProject(FinalizedExecutionPlan plan) {
+    private static void bindAllReferencesOfProject(FinalizedExecutionPlan plan) {
         Set<Project> seen = new HashSet<>();
-        plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
-            for (Node node : nodes) {
-                if (node instanceof LocalTaskNode) {
-                    ProjectInternal taskProject = node.getOwningProject();
-                    if (seen.add(taskProject)) {
-                        taskProject.bindAllModelRules();
-                    }
+        for (Node node : plan.getContents().getScheduledNodes().getScheduledNodes()) {
+            if (node instanceof LocalTaskNode) {
+                ProjectInternal taskProject = node.getOwningProject();
+                if (seen.add(taskProject)) {
+                    taskProject.bindAllModelRules();
                 }
             }
-        });
+        }
     }
+
 }

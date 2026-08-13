@@ -17,8 +17,6 @@ package org.gradle.internal.buildevents;
 
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -27,7 +25,6 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.execution.WorkValidationWarningReporter;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.InternalBuildListener;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -41,7 +38,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * A {@link org.gradle.BuildListener} which logs the build progress.
  */
-public class BuildLogger implements InternalBuildListener, TaskExecutionGraphListener {
+public class BuildLogger implements InternalBuildListener {
     private final Logger logger;
     private final BuildExceptionReporter exceptionReporter;
     private final BuildResultLogger resultLogger;
@@ -110,14 +107,6 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     @Override
     public void projectsEvaluated(Gradle gradle) {
         logger.info("All projects evaluated.");
-    }
-
-    @Override
-    public void graphPopulated(TaskExecutionGraph graph) {
-        if (logger.isInfoEnabled()) {
-            logger.info("Tasks to be executed: {}", graph.getAllTasks());
-            logger.info("Tasks that were excluded: {}", ((TaskExecutionGraphInternal)graph).getFilteredTasks());
-        }
     }
 
     @SuppressWarnings("deprecation")

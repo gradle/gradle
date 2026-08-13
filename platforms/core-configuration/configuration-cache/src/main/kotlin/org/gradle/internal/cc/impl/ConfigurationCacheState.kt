@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.cache.Cleanup
@@ -347,8 +349,9 @@ class ConfigurationCacheState(
         val scheduledWorkPerBuild = mutableMapOf<BuildIdentifier, ScheduledWork>()
         host.visitBuilds { state ->
             val gradle = state.mutableModel
-            scheduledWorkPerBuild[state.buildIdentifier] = gradle.taskGraph.collectScheduledWork()
-            val hasScheduledWork = gradle.taskGraph.hasScheduledWork()
+            val planContents = gradle.taskGraph.executionPlan?.contents
+            scheduledWorkPerBuild[state.buildIdentifier] = planContents?.scheduledNodes ?: ScheduledWork(ImmutableList.of(), ImmutableSet.of())
+            val hasScheduledWork = (planContents?.size() ?: 0) > 0
             builds[state] = BuildToStore(state, hasScheduledWork, hasChildren = gradle.isRootBuild)
             if (hasScheduledWork && state is StandAloneNestedBuild) {
                 // Also require the owner of a buildSrc build
