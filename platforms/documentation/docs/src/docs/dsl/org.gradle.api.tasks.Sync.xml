@@ -20,6 +20,10 @@
                 <td>preserve</td>
                 <td><literal>empty</literal></td>
             </tr>
+            <tr>
+                <td>syncWhenSourceIsEmpty</td>
+                <td><literal>false</literal></td>
+            </tr>
         </table>
     </section>
     <section>

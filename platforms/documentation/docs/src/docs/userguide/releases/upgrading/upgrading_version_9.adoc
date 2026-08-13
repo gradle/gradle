@@ -106,40 +106,6 @@ As a consequence, only the singleton's identity is restored, not any mutable sta
 Previously, each `object` was serialized as a regular bean and rebuilt as a _new_ instance on a cache hit, so `deserialized === TheObject` was `false`.
 If you relied on mutable state surviving a cache hit, move it into a task property or another bean type that is serialized by value.
 
-[[sync_runs_when_source_is_empty]]
-==== `Sync` task is no longer skipped when its source files are empty
-
-Previously, a link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] task with no source files was reported as `NO-SOURCE` and skipped, leaving any previously synced files in its destination directory in place indefinitely.
-
-`Sync` now always runs its copy action, even when its source is empty, deleting everything in its destination directory that is not matched by the task's `preserve { ... }` filter.
-
-If you rely on the previous skip behavior, configure the task to short-circuit explicitly:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-tasks.named<Sync>("mySync") {
-    onlyIf { !source.isEmpty }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-tasks.named('mySync') {
-    onlyIf { !source.empty }
-}
-----
-=====
-====
-
-NOTE: `source.isEmpty` counts regular files only. If your source can also be a set of empty directories that you want to trigger the skip, expand the predicate to visit the source file tree and check for any file or directory.
-
 === Deprecations
 
 [[deprecate_implicit_parallel_model_building]]

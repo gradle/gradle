@@ -485,13 +485,6 @@ It synchronizes the contents of a directory with its source.
 
 This can be useful for doing things such as installing your application, creating an exploded copy of your archives, or maintaining a copy of the project's dependencies.
 
-[NOTE]
-====
-Since Gradle 9.8.0, `Sync` no longer skips when its source is empty; it empties its destination instead, except for anything matched by `preserve { ... }`.
-However, a destination the build does not own and has never synced into is left untouched.
-See <<upgrading_version_9.adoc#sync_runs_when_source_is_empty, the upgrade guide entry>>.
-====
-
 Here is an example that maintains a copy of the project's runtime dependencies in the `build/libs` directory:
 
 ====
@@ -500,6 +493,46 @@ include::sample[dir="snippets/reference/gradle-types/sync/groovy",files="build.g
 ====
 
 You can also perform the same function in your own tasks with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:sync(org.gradle.api.Action)[Project.sync(org.gradle.api.Action)] method.
+
+[[sec:sync_task_empty_source]]
+==== Synchronizing from an empty source
+
+A `Sync` task whose source contains no files and no directories does not run, so its destination directory is not synchronized.
+What is left in the destination then depends on where it is: a destination inside the build directory is cleaned up, while one outside it keeps the files the source no longer contains.
+
+Set `syncWhenSourceIsEmpty` to `true` to have the task synchronize its destination even then, so that an empty source empties the destination directory, honoring `preserve { ... }`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.named<Sync>("mySync") {
+    syncWhenSourceIsEmpty = true
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.named('mySync', Sync) {
+    syncWhenSourceIsEmpty = true
+}
+----
+=====
+====
+
+NOTE: `syncWhenSourceIsEmpty` is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature and is subject to change.
+
+[WARNING]
+====
+`Sync` always deletes the entire contents of its destination directory, not only the files it previously copied there.
+With `syncWhenSourceIsEmpty` enabled, that also happens when the source is empty - including when it is empty by mistake.
+Enable it only where nothing other than this task writes to the destination, and use `preserve { ... }` to retain anything the task does not manage.
+====
 
 [[sec:copying_single_file_example]]
 === Using the `Copy` task
