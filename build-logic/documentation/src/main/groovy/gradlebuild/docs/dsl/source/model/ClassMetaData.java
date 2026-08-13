@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +43,14 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     private final List<String> imports = new ArrayList<String>();
     private final List<String> interfaceNames = new ArrayList<String>();
     private final Map<String, PropertyMetaData> declaredProperties = new HashMap<String, PropertyMetaData>();
-    private final Set<MethodMetaData> declaredMethods = new HashSet<MethodMetaData>();
+    /**
+     * Must preserve a deterministic iteration order: this set is serialized as part of the
+     * {@code dsl-meta-data.bin} repository, and {@link MethodMetaData#hashCode()} mixes in the
+     * identity hash code of its owner {@link ClassMetaData} (which does not override
+     * {@code hashCode()}). With a plain {@code HashSet} the serialized order therefore varies
+     * between JVM runs, making the task output non-reproducible for identical inputs.
+     */
+    private final Set<MethodMetaData> declaredMethods = new LinkedHashSet<MethodMetaData>();
     private final List<String> innerClassNames = new ArrayList<String>();
     private String outerClassName;
     private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
