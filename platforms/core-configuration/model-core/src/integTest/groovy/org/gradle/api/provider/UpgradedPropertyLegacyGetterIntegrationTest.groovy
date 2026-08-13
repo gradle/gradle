@@ -17,6 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import spock.lang.Issue
 
 /**
@@ -32,8 +33,20 @@ import spock.lang.Issue
 @Issue("https://github.com/gradle/gradle/issues/25421")
 class UpgradedPropertyLegacyGetterIntegrationTest extends AbstractIntegrationSpec {
 
+    /**
+     * These types cannot delegate to super — LegacyBase extends DefaultTask, which has no such accessor —
+     * so every legacy getter here is a non-delegating body and is expected to be reported. The
+     * delegating-body case, which must stay silent, is covered by FreefairAspectJPluginSmokeTest.
+     */
+    private static final String OVERRIDE_DEPRECATION =
+        "Overriding LegacyBase.getProp() on a property upgraded to the Provider API has been deprecated. " +
+            "This will fail with an error in Gradle 11. " +
+            "Gradle reads 'prop' through the upgraded accessor, so this override is no longer called. " +
+            "Remove the override and configure the 'prop' property instead."
+
     def "can generate a task type that has both an upgraded #lazyType getter and a legacy #eagerType getter"() {
         given:
+        executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(OVERRIDE_DEPRECATION))
         buildFile """
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 
@@ -69,8 +82,48 @@ class UpgradedPropertyLegacyGetterIntegrationTest extends AbstractIntegrationSpe
         "ConfigurableFileCollection" | "FileCollection" | "null"
     }
 
+    def "the legacy primitive getter reads through the upgraded property, defaulting like the eager adapters"() {
+        given:
+        executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(OVERRIDE_DEPRECATION))
+        buildFile """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            interface UpgradedProp {
+                @ReplacesEagerProperty
+                @Internal
+                Property<Integer> getProp()
+            }
+
+            abstract class LegacyBase extends DefaultTask {
+                int getProp() { return -1 }
+            }
+
+            abstract class SomeTask extends LegacyBase implements UpgradedProp {
+                private accessor(Class<?> returnType) {
+                    getClass().methods.find { it.name == "getProp" && it.returnType == returnType }
+                }
+
+                @TaskAction
+                void go() {
+                    println("unset: " + accessor(Integer.TYPE).invoke(this))
+                    accessor(Property).invoke(this).set(7)
+                    println("set: " + accessor(Integer.TYPE).invoke(this))
+                }
+            }
+
+            tasks.register("thing", SomeTask)
+        """
+
+        expect:
+        succeeds("thing")
+        // getOrElse(0), matching what the generated eager adapters return for an unset property
+        outputContains("unset: 0")
+        outputContains("set: 7")
+    }
+
     def "the legacy getter reads through the upgraded property instead of its own body"() {
         given:
+        executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(OVERRIDE_DEPRECATION))
         // Groovy cannot dispatch between two same-named getters, so each is selected by return type.
         buildFile """
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty

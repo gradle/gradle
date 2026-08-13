@@ -1249,6 +1249,25 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 && property.setters.stream().anyMatch(setter -> !Modifier.isAbstract(setter.getModifiers()));
         }
 
+        /**
+         * The generated subclass overrides the eager accessor, so whatever the declaring type put in its
+         * body stops running. That is invisible when the body only delegated to super, and a silent
+         * behaviour change otherwise — so report the second case.
+         */
+        private void applyLegacyEagerGetter(ClassGenerationVisitor visitor, PropertyMetadata property, MethodMetadata getter) {
+            Method legacyGetter = getter.method;
+            if (!SuperDelegatingAccessors.isPureSuperDelegation(legacyGetter)) {
+                Class<?> declaringClass = legacyGetter.getDeclaringClass();
+                DeprecationLogger.deprecateAction("Overriding " + declaringClass.getCanonicalName() + "." + legacyGetter.getName() + "() on a property upgraded to the Provider API")
+                    .withContext("Gradle reads '" + property.getName() + "' through the upgraded accessor, so this override is no longer called.")
+                    .withAdvice("Remove the override and configure the '" + property.getName() + "' property instead.")
+                    .willBecomeAnErrorInGradle11()
+                    .undocumented()
+                    .nagUser();
+            }
+            visitor.applyEagerShimToLegacyGetter(property, legacyGetter);
+        }
+
         @Override
         void applyTo(ClassInspectionVisitor visitor) {
             if (!hasFields) {
@@ -1279,7 +1298,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 for (MethodMetadata getter : property.getters) {
                     if (property.isLegacyEagerGetter(getter)) {
                         // Its return type is the replaced eager type, so it cannot read the managed field
-                        visitor.applyEagerShimToLegacyGetter(property, getter.method);
+                        applyLegacyEagerGetter(visitor, property, getter);
                         continue;
                     }
                     visitor.applyManagedStateToGetter(property, getter.method);
@@ -1293,7 +1312,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 boolean applyRole = isRoleType(property);
                 for (MethodMetadata getter : property.getters) {
                     if (property.isLegacyEagerGetter(getter)) {
-                        visitor.applyEagerShimToLegacyGetter(property, getter.method);
+                        applyLegacyEagerGetter(visitor, property, getter);
                         continue;
                     }
                     visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
