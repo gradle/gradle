@@ -21,7 +21,6 @@ import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.vfs.FileSystemAccess
@@ -37,7 +36,6 @@ import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.Severity
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.SourceLocation
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.SourcesChanges
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
@@ -127,7 +125,7 @@ internal interface KotlinCompiler {
 private
 class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry) : KotlinCompiler {
 
-    private val lazyBTACompiler = lazy { BTACompiler(moduleRegistry, KotlinCompilerImpl::class.java.classLoader) }
+    private val lazyBTACompiler = lazy { BTACompiler(moduleRegistry) }
     private val btaCompiler by lazyBTACompiler
 
     override fun compileKotlinScriptToDirectory(
@@ -483,15 +481,14 @@ internal fun JvmTarget.toBuildToolsApiJvmTarget(): BtaJvmTarget =
 
 
 @OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
-private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: ClassLoader) {
+private class BTACompiler(val moduleRegistry: ModuleRegistry) {
 
     companion object {
         private const val MODULE_NAME = "buildscript"
         private val logger = LoggerFactory.getLogger(BTACompiler::class.java)
     }
 
-    private val toolchains = KotlinToolchains.loadImplementation(classLoader)
-    private val buildSession = toolchains.createBuildSession()
+    private val session = kotlinToolchains.createBuildSession()
 
     private val plugins: List<CompilerPlugin> = createPlugins()
 
@@ -518,7 +515,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         val btaOutputDir = incrementalCompilationCache.scriptOutputsDirectory(scriptIdentity)
 
         fun runCompilation(incremental: Boolean) {
-            val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, btaOutputDir)
+            val operationBuilder = kotlinToolchains.jvm.jvmCompilationOperationBuilder(sources, btaOutputDir)
 
             operationBuilder[BaseCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
 
@@ -534,7 +531,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
                 operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, classpathSnapshotCache, incrementalCompilationCache)
             }
 
-            buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
+            session.executeOperation(operationBuilder.build(), kotlinToolchains.createInProcessExecutionPolicy())
         }
 
         incrementalCompilationCache.markCompilationStarted(scriptIdentity)
@@ -577,7 +574,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
     }
 
     fun clean() {
-        buildSession.close()
+        session.close()
     }
 
     private fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
@@ -658,7 +655,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         // bytes share one snapshot file and in-place rewrites invalidate the cached snapshot correctly.
         val contentHash = fileSystemAccess.read(entry.toAbsolutePath().toString()).hash
         return snapshotCache.snapshotFileFor(contentHash) { path ->
-            BtaClasspathSnapshotter.snapshot(toolchains.jvm, buildSession, entry, path)
+            BtaClasspathSnapshotter.snapshot(kotlinToolchains.jvm, session, entry, path)
         }
     }
 
