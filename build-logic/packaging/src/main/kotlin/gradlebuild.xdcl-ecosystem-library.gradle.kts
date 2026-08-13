@@ -15,17 +15,20 @@
  */
 
 /**
- * Shared dependency contract for a published built-in XDCL ecosystem schema library (the `:xdcl-*`
- * lib half of each ecosystem). The generated facades extend `org.gradle.api.xdcl.*`, so every such
- * library needs the external `xdclGradleApi` facade base types as `api` (exposed transitively to
- * consumers) — declared here once instead of in every lib build script. Applied alongside
- * `gradlebuild.publish-public-libraries` + `xdcl-gradle-plugin`.
+ * Shared contract for a published built-in XDCL ecosystem schema library (the `:xdcl-*` lib half
+ * of each ecosystem). The generated facades extend `org.gradle.api.xdcl.*`, so every such library
+ * needs the external `xdclGradleApi` facade base types as `api` (exposed transitively to
+ * consumers) — declared here once instead of in every lib build script. Every such library is also
+ * served by the distribution's embedded Maven repository (that is what makes it a BUILT-IN
+ * ecosystem library), so `gradlebuild.distribution-repository` — and through it
+ * `gradlebuild.publish-public-libraries` — is applied here rather than by each module.
  */
 
 import gradlebuild.xdcl.excludeGeneratedXdclSourcesFromChecks
 
 plugins {
     `java-library`
+    id("gradlebuild.distribution-repository")
     id("xdcl-gradle-plugin")
 }
 
