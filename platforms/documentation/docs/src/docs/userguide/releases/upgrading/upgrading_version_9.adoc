@@ -169,6 +169,17 @@ Whether the Build Cache is enabled is determined by the Gradle invocation (`--bu
 Enable or disable the Build Cache with the `org.gradle.caching` Gradle property instead.
 See <<build_cache.adoc#sec:build_cache_enable,Enable the Build Cache>> for details.
 
+[[deprecate_implicit_dependencies_between_builds]]
+==== Deprecation of implicit task dependencies between builds
+
+Gradle now detects overlapping task outputs across the builds of a composite build.
+Tasks in different builds that write to the same location no longer run in parallel, matching the behavior of tasks within a single build.
+
+As part of this change, a task consuming the outputs of a task in another build without declaring an explicit or implicit dependency is now deprecated.
+This will become an error in Gradle 10, matching the existing behavior for tasks in the same build.
+
+See <<validation_problems.adoc#implicit_dependency,Implicit dependencies between tasks>> for details and possible solutions.
+
 
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier

@@ -18,10 +18,16 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -48,6 +54,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * consuming a parent directory of the produced output.
  * </p>
  */
+@ServiceScope(Scope.BuildTree.class)
 public class MissingTaskDependencyDetector {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy;
@@ -149,7 +156,13 @@ public class MissingTaskDependencyDetector {
         node.getHardSuccessors().forEach(successor -> {
             // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
             // For example, we can skip all the transform nodes between two task nodes.
-            if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
+            if (successor instanceof TaskInAnotherBuild) {
+                // A reference to a task in another build is a proxy for the task node in the other build's work graph.
+                Node targetNode = ((TaskInAnotherBuild) successor).getTargetNode();
+                if (seenNodes.add(targetNode)) {
+                    queue.add(targetNode);
+                }
+            } else if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
                 if (seenNodes.add(successor)) {
                     queue.add(successor);
                 }
@@ -162,6 +175,25 @@ public class MissingTaskDependencyDetector {
     private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
 
     private static void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
+        if (mayBeDifferentBuilds(producer, consumer)) {
+            // Historically, we did not detect overlapping outputs between nodes in different builds.
+            // Emit a deprecation warning instead of a failure until Gradle 10.
+            // In Gradle 10, we can remove this branch entirely and fall back to the problem-emitting branch below.
+            DeprecationLogger.deprecateAction("Producing a file in one build and consuming it in another build without declaring an explicit dependency")
+                .withContext(String.format(
+                    "Gradle detected a problem with the following location: '%s'. Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
+                        + "This can lead to incorrect results being produced, depending on what order the tasks are executed.",
+                    consumerProducerPath,
+                    consumer,
+                    producer
+                ))
+                .withProblemIdDisplayName("Implicit dependency between tasks in different builds")
+                .withProblemId("implicit-dependency-between-tasks-in-different-builds")
+                .willBecomeAnErrorInGradle10()
+                .withUserManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase(Locale.ROOT))
+                .nagUser();
+            return;
+        }
         validationContext.visitPropertyError(problem ->
             problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                 .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
@@ -176,4 +208,30 @@ public class MissingTaskDependencyDetector {
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
         );
     }
+
+    private static boolean mayBeDifferentBuilds(Node producer, Node consumer) {
+        Path producerBuild = buildPathOf(producer);
+        if (producerBuild == null) {
+            return true;
+        }
+        Path consumerBuild = buildPathOf(consumer);
+        if (consumerBuild == null) {
+            return true;
+        }
+        return !consumerBuild.equals(producerBuild);
+    }
+
+    private static @Nullable Path buildPathOf(Node node) {
+        if (node instanceof TaskNode) {
+            return ((TaskNode) node).getTask().getTaskIdentity().getProjectIdentity().getBuildPath();
+        }
+
+        ProjectInternal owningProject = node.getOwningProject();
+        if (owningProject != null) {
+            return owningProject.getOwner().getOwner().getIdentityPath();
+        }
+
+        return null;
+    }
+
 }

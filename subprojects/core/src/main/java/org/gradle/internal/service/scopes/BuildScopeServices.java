@@ -126,10 +126,8 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
-import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
-import org.gradle.execution.plan.NodeValidator;
 import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
@@ -213,7 +211,6 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.RelativeFilePathResolver;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
@@ -242,7 +239,6 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
@@ -285,7 +281,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(IProjectFactory.class, ProjectFactory.class);
         registration.add(SettingsPreparer.class, DefaultSettingsPreparer.class);
         registration.add(ResolvedBuildLayout.class);
-        registration.add(NodeValidator.class, DefaultNodeValidator.class);
         registration.add(TaskNodeFactory.class);
         registration.add(TaskNodeDependencyResolver.class);
         registration.add(WorkNodeDependencyResolver.class);
@@ -346,11 +341,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             executionNodeAccessHierarchies.getDestroyableHierarchy(),
             lockCoordinationService
         );
-    }
-
-    @Provides
-    ExecutionNodeAccessHierarchies createExecutionNodeAccessHierarchies(FileSystem fileSystem, Stat stat) {
-        return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
     }
 
     @Provides

@@ -51,6 +51,10 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskPathProjectEvaluator;
 import org.gradle.execution.TaskSelector;
+import org.gradle.execution.plan.DefaultNodeValidator;
+import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
+import org.gradle.execution.plan.MissingTaskDependencyDetector;
+import org.gradle.execution.plan.NodeValidator;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
@@ -72,6 +76,7 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -80,6 +85,7 @@ import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionRe
 import org.gradle.internal.instrumentation.reporting.ErrorReportingMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.PrivateService;
@@ -89,6 +95,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 
@@ -137,6 +144,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
+        registration.add(NodeValidator.class, DefaultNodeValidator.class);
     }
 
     @Provides
@@ -176,6 +184,16 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     @Provides
     FeatureFlags createFeatureFlags(FeatureFlagListener listener, StartParameterInternal startParameter) {
         return new DefaultFeatureFlags(listener, startParameter.getSystemPropertiesArgs());
+    }
+
+    @Provides
+    ExecutionNodeAccessHierarchies createExecutionNodeAccessHierarchies(FileSystem fileSystem, Stat stat) {
+        return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
+    }
+
+    @Provides
+    MissingTaskDependencyDetector createMissingTaskDependencyDetector(ExecutionNodeAccessHierarchies hierarchies) {
+        return new MissingTaskDependencyDetector(hierarchies.getOutputHierarchy(), hierarchies.createInputHierarchy());
     }
 
     @Provides
