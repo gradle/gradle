@@ -27,12 +27,19 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
+import java.io.File
+import java.time.Instant
 
 
 /**
  * Owns the [FineGrainedPersistentCache] backing [KotlinDslIncrementalCompilationCache], rooted at
  * `<gradleUserHome>/caches/<gradleVersion>/kotlin-dsl/ic/`. Holds only the mutable, per-script
  * incremental-compilation state.
+ *
+ * The cache is opened lazily, on the first compilation: builds whose scripts are all up to date
+ * (compile avoidance) skip the open — unless cleanup is due, in which case the cache is opened
+ * eagerly (at most once per cleanup interval): cleanup only ever visits open caches, so entries
+ * of no-longer-compiled scripts must not wait for some other compilation to reclaim them.
  *
  * Per-script entries (`<scriptHash>/`, one cache key each) are reclaimed by the mark-and-sweep LRU
  * cleanup wired here. The cache touches each entry on use (see
@@ -42,9 +49,9 @@ import java.io.Closeable
  */
 @ServiceScope(Scope.UserHome::class)
 internal class KotlinDslIncrementalCompilationStore(
-    cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+    private val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     fileAccessTimeJournal: FileAccessTimeJournal,
-    cacheConfigurations: CacheConfigurationsInternal,
+    private val cacheConfigurations: CacheConfigurationsInternal,
     cacheCleanupStrategyFactory: FineGrainedCacheCleanupStrategyFactory,
 ) : Closeable {
 
@@ -53,17 +60,41 @@ internal class KotlinDslIncrementalCompilationStore(
         cacheConfigurations.cleanupFrequency::get
     )
 
-    val cache: FineGrainedPersistentCache = cacheBuilderFactory
-        .createFineGrainedCacheBuilder("kotlin-dsl/ic")
-        .withDisplayName("Kotlin DSL incremental compilation cache")
-        .withCleanupStrategy(cleanupStrategy)
-        .open()
+    // Resolved without opening the cache; entry paths derive from it eagerly and cheaply.
+    val baseDir: File = cacheBuilderFactory.baseDirForCache(CACHE_KEY)
 
-    val fileAccessTracker: FileAccessTracker = SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.baseDir, 1)
+    private val lazyCache = lazy {
+        cacheBuilderFactory
+            .createFineGrainedCacheBuilder(CACHE_KEY)
+            .withDisplayName("Kotlin DSL incremental compilation cache")
+            .withCleanupStrategy(cleanupStrategy)
+            .open()
+    }
 
-    val softDeleter: FineGrainedCacheEntrySoftDeleter = cleanupStrategy.getSoftDeleter(cache)
+    val cache: FineGrainedPersistentCache by lazyCache
+
+    val fileAccessTracker: FileAccessTracker = SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDir, 1)
+
+    val softDeleter: FineGrainedCacheEntrySoftDeleter by lazy { cleanupStrategy.getSoftDeleter(cache) }
+
+    init {
+        if (cleanupIsDue()) {
+            lazyCache.value
+        }
+    }
+
+    // Mirrors the due check in DefaultCacheCleanupExecutor: a missing gc.properties means the cache
+    // was never used. The cleanup itself re-checks against the frequency configured by then.
+    private fun cleanupIsDue(): Boolean {
+        val gcFile = baseDir.resolve(".internal/gc.properties")
+        return gcFile.isFile && cacheConfigurations.cleanupFrequency.get().requiresCleanup(Instant.ofEpochMilli(gcFile.lastModified()))
+    }
 
     override fun close() {
-        cache.close()
+        if (lazyCache.isInitialized()) {
+            lazyCache.value.close()
+        }
     }
 }
+
+private const val CACHE_KEY = "kotlin-dsl/ic"
