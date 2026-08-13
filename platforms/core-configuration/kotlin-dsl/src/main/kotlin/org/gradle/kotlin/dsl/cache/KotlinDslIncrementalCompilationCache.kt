@@ -16,9 +16,7 @@
 
 package org.gradle.kotlin.dsl.cache
 
-import org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter
 import org.gradle.cache.FineGrainedPersistentCache
-import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -41,11 +39,9 @@ import kotlin.io.path.createDirectories
  */
 @ServiceScope(Scope.UserHome::class)
 internal class KotlinDslIncrementalCompilationCache(
-    private val cache: FineGrainedPersistentCache,
-    private val fileAccessTracker: FileAccessTracker,
-    private val softDeleter: FineGrainedCacheEntrySoftDeleter,
+    private val store: KotlinDslIncrementalCompilationStore,
 ) {
-    private val baseDir: Path = cache.baseDir.toPath()
+    private val baseDir: Path = store.baseDir.toPath()
 
     /**
      * Runs [action] holding [scriptIdentity]'s lock — exclusive across the processes sharing
@@ -59,10 +55,10 @@ internal class KotlinDslIncrementalCompilationCache(
     fun <T> withScriptState(scriptIdentity: String, action: () -> T): T {
         val key = dirNameFor(scriptIdentity)
         var result: T? = null
-        cache.useCache(key) {
-            fileAccessTracker.markAccessed(scriptEntry(scriptIdentity).toFile())
+        store.cache.useCache(key) {
+            store.fileAccessTracker.markAccessed(scriptEntry(scriptIdentity).toFile())
             result = action()
-            softDeleter.removeSoftDeleteMarker(key)
+            store.softDeleter.removeSoftDeleteMarker(key)
         }
         @Suppress("UNCHECKED_CAST")
         return result as T

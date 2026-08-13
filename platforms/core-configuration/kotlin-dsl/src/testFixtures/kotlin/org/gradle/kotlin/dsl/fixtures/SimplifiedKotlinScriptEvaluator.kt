@@ -335,7 +335,7 @@ internal fun testIncrementalCompilationCache(rootDir: File): TestIncrementalComp
         on { cleanupFrequency } doReturn Providers.of(CleanupFrequency.NEVER)
     }
     val store = KotlinDslIncrementalCompilationStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, fineGrainedCacheCleanupStrategyFactory)
-    val cache = KotlinDslIncrementalCompilationCache(store.cache, store.fileAccessTracker, store.softDeleter)
+    val cache = KotlinDslIncrementalCompilationCache(store)
     val snapshotStore = KotlinDslClasspathEntrySnapshotStore(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
     val snapshotCache = KotlinDslClasspathEntrySnapshotCache(snapshotStore.snapshotsCacheDirectory, snapshotStore.fileAccessTracker)
     return TestIncrementalCompilationCache(cache, store, snapshotCache, snapshotStore)
