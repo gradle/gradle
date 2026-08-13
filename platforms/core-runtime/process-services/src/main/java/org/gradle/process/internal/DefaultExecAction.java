@@ -232,7 +232,9 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public OutputStream getStandardOutput() {
-        return execSpec.getStandardOutput();
+        OutputStream standardOutput = execSpec.getStandardOutput();
+        // The spec is empty until someone sets a stream. The defaults live on the handle builder.
+        return standardOutput != null ? standardOutput : execHandleBuilder.getStandardOutput();
     }
 
     @Override
@@ -243,7 +245,8 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public OutputStream getErrorOutput() {
-        return execSpec.getErrorOutput();
+        OutputStream errorOutput = execSpec.getErrorOutput();
+        return errorOutput != null ? errorOutput : execHandleBuilder.getErrorOutput();
     }
 
     @Override
@@ -253,7 +256,8 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public InputStream getStandardInput() {
-        return execSpec.getStandardInput();
+        InputStream standardInput = execSpec.getStandardInput();
+        return standardInput != null ? standardInput : execHandleBuilder.getStandardInput();
     }
 
     @Override
