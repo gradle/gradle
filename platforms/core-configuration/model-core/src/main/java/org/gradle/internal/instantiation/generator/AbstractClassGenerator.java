@@ -54,6 +54,7 @@ import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
@@ -356,6 +357,21 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 propertyMetaData.field(property.getBackingField());
             }
         }
+        // ClassDetails keeps a single declaration per getter signature, preferring the most concrete one, so a
+        // supertype getter that a subtype re-declares (directly, or via the bridge of a covariant override) is
+        // dropped. Record every declaration separately, so that annotations on the dropped ones remain visible.
+        for (Method method : classDetails.getAllMethods()) {
+            if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+            PropertyAccessorType accessorType = PropertyAccessorType.of(method);
+            if (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER) {
+                PropertyMetadata propertyMetaData = classMetaData.getProperty(accessorType.propertyNameFor(method));
+                if (propertyMetaData != null) {
+                    propertyMetaData.addGetterDeclaration(method);
+                }
+            }
+        }
         for (Method method : classDetails.getInstanceMethods()) {
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length == 1) {
@@ -655,15 +671,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         public Type getGenericReturnType() {
             return returnType;
         }
-
-        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-            return method.isAnnotationPresent(annotationType);
-        }
     }
 
     protected static class PropertyMetadata {
         private final String name;
         private final List<MethodMetadata> getters = new ArrayList<>();
+        private final List<Method> getterDeclarations = new ArrayList<>();
         private final List<MethodMetadata> overridableGetters = new ArrayList<>();
         private final List<Method> overridableSetters = new ArrayList<>();
         private final List<Method> setters = new ArrayList<>();
@@ -702,6 +715,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         public boolean hasAnnotation(Class<? extends Annotation> type) {
             return findAnnotation(type) != null;
+        }
+
+        /**
+         * A method annotation is not inherited by an override, so the annotation may sit on any
+         * declaration of this getter in the type hierarchy, not just on {@link #getMainGetter()}.
+         */
+        public boolean hasAnnotationOnAnyGetter(Class<? extends Annotation> type) {
+            return getterDeclarations.stream().anyMatch(getter -> getter.isAnnotationPresent(type));
         }
 
         @Nullable
@@ -765,6 +786,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // Prefer the most specialized type
                 mainGetter = metadata;
             }
+        }
+
+        public void addGetterDeclaration(Method method) {
+            getterDeclarations.add(method);
         }
 
         public void addSetter(Method method) {
@@ -1136,13 +1161,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 hasAbstractGetter = true;
             }
 
-            if (!hasAbstractGetter) {
+            // A concrete setter means the property is not ours to claim, unless it can only be a forwarder into a
+            // property we manage. That takes an abstract getter, leaving the setter no backing field to manage, plus
+            // @ReplacesEagerProperty, which marks the getters migrated to the Provider API; anywhere else a concrete
+            // setter still means "hands off". Without an abstract getter the property is write-only (e.g.
+            // Task.setOnlyIf) — a concrete getter would have returned above — so there is nothing to forward into.
+            if (!hasAbstractGetter || !property.hasAnnotationOnAnyGetter(ReplacesEagerProperty.class)) {
                 for (Method setter : property.setters) {
                     if (!Modifier.isAbstract(setter.getModifiers())) {
-                        // At this point we know that:
-                        //  - The property has no getter at all (write-only, e.g. Task.setOnlyIf): a concrete getter would have returned above, an abstract one would have set the flag.
-                        //  - This setter is concrete, and with no getter to work through, it can only be managing its own state.
-                        // So the property is not ours to claim.
                         return false;
                     }
                 }

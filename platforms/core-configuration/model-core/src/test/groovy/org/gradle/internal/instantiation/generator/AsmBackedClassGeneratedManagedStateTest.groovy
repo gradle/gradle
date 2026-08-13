@@ -18,6 +18,7 @@ package org.gradle.internal.instantiation.generator
 
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Describables
+import org.gradle.internal.instantiation.ClassGenerationException
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.state.DefaultManagedFactoryRegistry
 import org.gradle.internal.state.Managed
@@ -29,8 +30,14 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantPropertyBeanWithForwarderSetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantPropertyBeanWithInheritedAnnotation
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithForwarderSetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanRedeclaringAnnotatedGetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithForwarderSetterInSubclass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithUnannotatedForwarderSetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithUnannotatedForwarderSetterInSubclass
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Bean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BrokenConstructor
@@ -91,6 +98,45 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         bean.setProp("value")
         bean.prop.get() == "value"
+    }
+
+    def "claims property when @ReplacesEagerProperty is inherited from a super-interface getter"() {
+        def bean = create(type)
+
+        expect:
+        bean instanceof Managed
+        !bean.prop.present
+
+        bean.setProp("value")
+        bean.prop.get() == "value"
+
+        where:
+        type << [AbstractCovariantPropertyBeanWithInheritedAnnotation, AbstractPropertyBeanRedeclaringAnnotatedGetter]
+    }
+
+    def "claims property when @ReplacesEagerProperty is on a superclass getter and the forwarder setter is in a subclass"() {
+        def bean = create(AbstractPropertyBeanWithForwarderSetterInSubclass)
+
+        expect:
+        bean instanceof Managed
+        !bean.prop.present
+
+        bean.setProp("value")
+        bean.prop.get() == "value"
+    }
+
+    def "does not claim property with a concrete forwarder setter when the getter is not annotated with @ReplacesEagerProperty"() {
+        when:
+        create(type)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message.contains("Cannot have abstract method ${declaringType.simpleName}.getProp()")
+
+        where:
+        type                                                          | declaringType
+        AbstractPropertyBeanWithUnannotatedForwarderSetter            | AbstractPropertyBeanWithUnannotatedForwarderSetter
+        AbstractPropertyBeanWithUnannotatedForwarderSetterInSubclass  | AbstractPropertyBean
     }
 
     def canUnpackAndRecreateAbstractClassWithAbstractPropertyGetterAndSetter() {
