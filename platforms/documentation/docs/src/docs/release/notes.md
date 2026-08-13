@@ -211,13 +211,13 @@ With resilient sync, Gradle builds and returns models for as much of the build a
 
 - A partial build model listing the projects Gradle could discover, even when the settings script or a settings plugin fails to configure.
 - A partial Kotlin DSL scripts model carrying the classpath and imports for the build scripts Gradle could resolve, even when other build logic is broken, so those scripts keep their editor assistance.
-- Models for the individual projects, `buildSrc`, and included builds that configured successfully before a failure elsewhere in the build.
+- Other models for the individual included builds or `buildSrc` that configured successfully before a failure elsewhere in the build.
 
 Tooling API clients opt into this behavior by querying models through the incubating [`BuildController.fetch(...)`](javadoc/org/gradle/tooling/BuildController.html#fetch(java.lang.Class)) method, which returns each model together with any failures encountered instead of aborting the operation.
 
 In this release, a resilient sync reports the operation as failed when any part of it fails, so the reported build status is accurate, while the partial models are still delivered to the client's intermediate result handlers before the failure is raised.
 
-Resilient sync is [incubating](userguide/feature_lifecycle.html). The failure-reporting behavior is available in IntelliJ IDEA 2026.2.
+Resilient sync is [incubating](userguide/feature_lifecycle.html). The resilient behavior is available in IntelliJ IDEA 2026.2.
 
 See the [Resilient sync](userguide/tooling_api.html#sec:embedding_resilient_sync) section in the Gradle User Manual for more details.
 

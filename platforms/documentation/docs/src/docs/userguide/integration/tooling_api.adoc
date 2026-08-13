@@ -99,78 +99,61 @@ For example, the Tooling API 9.0.0 release is compatible with Gradle versions >=
 Besides, the Tooling API is guaranteed to be compatible with future Gradle releases for the current and the next major.
 This means, for example, that the 8.1 version of the Tooling API will be able to run Gradle 9.x builds and _might_ break with Gradle 10.
 
+[[sec:embedding_models]]
+== Querying tooling models with build actions
+
+A link:{javadocPath}/org/gradle/tooling/BuildAction.html[`BuildAction`] runs inside the Gradle process and receives a link:{javadocPath}/org/gradle/tooling/BuildController.html[`BuildController`].
+The controller exposes several ways to query tooling models for the build, for individual projects, or for included builds.
+
+[[sec:embedding_get_find_vs_fetch]]
+=== `getModel`/`findModel` versus `fetch`
+
+The classic ways to query a model from a `BuildAction` are link:{javadocPath}/org/gradle/tooling/BuildController.html#getModel(java.lang.Class)[`BuildController.getModel(...)`] and link:{javadocPath}/org/gradle/tooling/BuildController.html#findModel(java.lang.Class)[`BuildController.findModel(...)`]:
+
+* `getModel(...)` returns the requested model, or throws an exception if the model cannot be built — for example because the target project's configuration script fails to evaluate.
+* `findModel(...)` returns `null` when the model type is not supported, but still propagates exceptions thrown while building the model.
+
+When either of these calls throws, the build action itself fails.
+Any models that were already collected by the action are discarded, and the client receives a single failure for the whole sync.
+
+Starting with Gradle 9.3, link:{javadocPath}/org/gradle/tooling/BuildController.html#fetch(java.lang.Class)[`BuildController.fetch(...)`] offers a resilient alternative.
+Each `fetch(...)` call returns a link:{javadocPath}/org/gradle/tooling/FetchModelResult.html[`FetchModelResult`] that carries:
+
+* The fetched model — accessible via `FetchModelResult.getModel()`, or `null` if the model could not be built.
+* Any failures encountered while building the model — accessible via `FetchModelResult.getFailures()` as a collection of link:{javadocPath}/org/gradle/tooling/Failure.html[`Failure`] values.
+
+Unlike `getModel`/`findModel`, `fetch(...)` does not throw when the build-side fails to produce the model.
+The build action can inspect the failures, decide whether to continue, and request more models.
+This is the recommended API for IDEs and tools that want to deliver a partial sync result when part of the build is broken, rather than failing the whole operation on the first error:
+
+====
+include::sample[dir="snippets/integration/fetchModel/common",files="src/main/java/org/gradle/sample/FetchEclipseModelAction.java[tags=fetch-action]"]
+====
+
+[NOTE]
+====
+`BuildController.fetch(...)` is incubating and may change in future releases.
+The API requires a Tooling API client and a target Gradle version of 9.3 or later.
+The resilient daemon-side behaviour — returning a partial model together with failures — requires Gradle 9.4 or later.
+====
+
 [[sec:embedding_resilient_sync]]
-=== Resilient Sync incubating-label:[]
+=== Resilient sync
 
-When an IDE imports or synchronizes a Gradle build, it queries _tooling models_ through the Tooling API to build its view of the project.
-Before resilient sync, a single failure anywhere in the build stopped the whole query.
-A broken build script, a failing settings plugin, or build logic that no longer compiles caused the entire model request to fail, and the IDE was left without a project model.
-Code completion, navigation, and syntax highlighting then stopped working across the whole project, at exactly the moment you needed them to find and fix the problem.
+The Gradle 9.4 release completes the daemon-side support for _resilient sync_: building tooling models for as much of the build as configured successfully, and reporting the rest as structured failures instead of aborting the whole operation.
 
-Resilient sync makes model building fault-tolerant.
-Gradle configures as much of the build as it can, builds models for the parts that succeed, and reports the parts that fail as structured failures instead of aborting.
-An IDE can then keep helping you with the healthy parts of the build while you repair what is broken.
+When the build action queries models through `BuildController.fetch(...)`, the daemon will:
 
-Resilient sync is an <<feature_lifecycle.adoc#sec:incubating_state,incubating>> feature.
+* Continue model building for `buildSrc` and included builds that configured successfully even when other parts of the build fail.
+* Return a partial link:{javadocPath}/org/gradle/tooling/model/gradle/GradleBuild.html[`GradleBuild`] model that includes every project Gradle was able to discover from the settings script, along with the collected failures, so the IDE can present a best-effort project structure.
+* Return a partial link:{javadocPath}/org/gradle/tooling/model/kotlin/dsl/KotlinDslScriptsModel.html[`KotlinDslScriptsModel`] that carries editor data for the Kotlin DSL scripts Gradle was able to resolve, with the unresolved scripts reported through `FetchModelResult.getFailures()`.
+* Serve any other tooling model for `buildSrc` and included builds whose configuration succeeded — for example, an IDE can still obtain an `EclipseProject` or `IdeaProject` model for the parts of a composite build that configured cleanly, while the failing parts are reported as failures on the corresponding `fetch(...)` calls.
 
-[[sec:embedding_resilient_sync_capabilities]]
-==== What resilient sync provides
+There is no separate opt-in: using `fetch(...)` enables the resilient behaviour for that call.
+Calls made through `getModel(...)` or `findModel(...)` continue to fail fast as before.
 
-With resilient sync, Gradle can return partial results in situations that previously produced no model at all:
-
-* A partial link:{javadocPath}/org/gradle/tooling/model/gradle/GradleBuild.html[`GradleBuild`] model that lists the projects Gradle could discover, even when a settings script or a settings plugin fails to configure.
-* A partial Kotlin DSL scripts model that carries the classpath and imports for the build scripts Gradle could resolve, even when other build logic is broken, so those scripts keep their editor assistance.
-* Models for the individual projects, `buildSrc`, and included builds that configured successfully before a failure occurred elsewhere in the build.
-
-Each model that Gradle can build is returned as usual.
-For every model that cannot be built, the client receives the failure that caused it, instead of a single failure that replaces the whole result.
-
-[[sec:embedding_resilient_sync_fetch]]
-==== Fetching models resiliently
-
-A Tooling API client opts in to resilient sync by requesting models through the incubating link:{javadocPath}/org/gradle/tooling/BuildController.html#fetch(java.lang.Class)[`BuildController.fetch(...)`] methods from inside a link:{javadocPath}/org/gradle/tooling/BuildAction.html[`BuildAction`].
-Unlike `getModel(...)` and `findModel(...)`, which abort the action when a model cannot be built, `fetch(...)` always returns a link:{javadocPath}/org/gradle/tooling/FetchModelResult.html[`FetchModelResult`].
-The result carries either the model or the failures that prevented Gradle from building it.
-
-====
-include::sample[dir="snippets/integration/resilientSync/common",files="src/main/java/org/gradle/sample/FetchProjectModel.java[tags=fetch-model]"]
-====
-
-`FetchModelResult.getModel()` returns `null` when the fetch fails, and `FetchModelResult.getFailures()` returns the link:{javadocPath}/org/gradle/tooling/Failure.html[`Failure`] instances that describe what went wrong.
-A `Failure` exposes a message, a longer description, and any underlying causes, so the client can present the problem without needing the original exception.
-
-[[sec:embedding_resilient_sync_failure_reporting]]
-==== How failures are reported
-
-Resilient sync still reports whether the overall operation succeeded.
-When any part of a resilient sync fails, Gradle reports the operation itself as failed:
-a blocking link:{javadocPath}/org/gradle/tooling/BuildActionExecuter.html#run()[`run()`] throws a link:{javadocPath}/org/gradle/tooling/BuildException.html[`BuildException`], and the asynchronous link:{javadocPath}/org/gradle/tooling/ResultHandler.html#onFailure(org.gradle.tooling.GradleConnectionException)[`ResultHandler.onFailure(...)`] is called.
-This keeps the reported status accurate, so a sync in which something failed is no longer reported as successful.
-It aligns `fetch(...)` with the reporting of `getModel(...)` and of task and configuration failures.
-
-A single `BuildAction` loses its result when the operation is reported as failed, because `run()` throws instead of returning a value.
-To read the partial models even when the operation fails, run the action as a <<sec:embedding_resilient_sync_phased,phased build action>> and collect the results from its intermediate handlers, which receive the partial models before the failure is raised.
-
-[[sec:embedding_resilient_sync_phased]]
-==== Reading partial models with a phased build action
-
-A phased build action attaches an link:{javadocPath}/org/gradle/tooling/IntermediateResultHandler.html[`IntermediateResultHandler`] to a build phase.
-Gradle delivers the partial models to that handler before it raises the failure, so the client keeps the results it managed to build.
-
-The action queries the models it needs and returns them:
-
-====
-include::sample[dir="snippets/integration/resilientSync/common",files="src/main/java/org/gradle/sample/FetchProjectsAction.java[tags=fetch-projects-action]"]
-====
-
-The client registers the action against a build phase and reads the result from the intermediate handler:
-
-====
-include::sample[dir="snippets/integration/resilientSync/common",files="src/main/java/org/gradle/sample/ResilientSyncClient.java[tags=phased-action]"]
-====
-
-The intermediate handler runs whether or not the operation ultimately fails.
-Build the client's view of the project from the values passed to the intermediate handlers rather than from the return value of `run()`.
+Resilient sync affects which models can be built, not whether the operation succeeds: starting with the Gradle 9.7 daemon, a broken part of the build still fails the operation as a whole.
+See <<sec:embedding_phased_action_example,Reading intermediate models with a phased build action>> for how a client receives the partial models in that case.
 
 [[sec:embedding_resilient_sync_compatibility]]
 ==== Version compatibility
@@ -180,3 +163,51 @@ Resilient sync requires Tooling API 9.3.0 or later and a target Gradle version t
 * Gradle 9.3.0: The `fetch(...)` methods and `FetchModelResult` are available.
 * Gradle 9.4.0: Partial build models, returned when a settings script or a settings plugin fails.
 * Gradle 9.7.0: Reporting a resilient sync that partially failed as a failed operation. In earlier versions, such an operation could complete successfully, with the failures reported only through `FetchModelResult.getFailures()`.
+
+[[sec:embedding_phased_action_example]]
+=== Reading intermediate models with a phased build action
+
+A phased build action, created via link:{javadocPath}/org/gradle/tooling/ProjectConnection.html#action()[`ProjectConnection.action()`], can query models at two points in the build lifecycle:
+
+* The `projectsLoaded` action runs after the settings have been evaluated, before any project is configured.
+This is the place to query models that describe the build structure, such as link:{javadocPath}/org/gradle/tooling/model/gradle/GradleBuild.html[`GradleBuild`].
+* The `buildFinished` action runs at the end of the invocation, after any scheduled tasks have executed.
+
+The result of each action is delivered to its link:{javadocPath}/org/gradle/tooling/IntermediateResultHandler.html[`IntermediateResultHandler`] while the build is still running, as soon as the corresponding phase completes.
+The executer produces no final value: `run()` returns `Void`, and the models arrive only through the intermediate handlers.
+
+The following example queries the build structure once projects are loaded, and fetches an Eclipse model at the end of the build, reusing the `FetchEclipseModelAction` shown <<sec:embedding_get_find_vs_fetch,above>>:
+
+====
+include::sample[dir="snippets/integration/fetchModel/common",files="src/main/java/org/gradle/sample/FetchBuildStructureAction.java[tags=projects-loaded-action];src/main/java/org/gradle/sample/PhasedSync.java[tags=phased-sync]"]
+====
+
+[NOTE]
+====
+Starting with the Gradle 9.7 daemon, a resilient sync still fails as a whole when any part of it fails: `run()` throws, even though the intermediate handlers have already received their models.
+A single action passed to link:{javadocPath}/org/gradle/tooling/ProjectConnection.html#action(org.gradle.tooling.BuildAction)[`ProjectConnection.action(BuildAction)`] loses its result in that case, so use a phased build action and read the models from the intermediate handlers.
+====
+
+[[sec:embedding_action_tasks]]
+=== Running tasks together with a build action
+
+A build action can request that tasks run as part of the same Gradle invocation:
+
+* link:{javadocPath}/org/gradle/tooling/BuildActionExecuter.html#forTasks(java.lang.String...)[`BuildActionExecuter.forTasks(...)`] schedules tasks that run before the action executes.
+Passing an empty array runs the build's default tasks.
+Omitting the call (or passing `null`) skips task execution entirely.
+* For a phased build action, the scheduled tasks run after the `projectsLoaded` action and before the `buildFinished` action.
+
+Prior to Gradle 9.4, if any of the scheduled tasks failed, Gradle aborted the invocation before the model-producing action got a chance to run.
+The `buildFinished` action of a phased build was skipped entirely, and the client only received the task failure.
+
+Starting with Gradle 9.4, the model-producing action — including the `buildFinished` action of a phased build — runs even when scheduled tasks fail.
+The task failures are still reported to the client as a build failure, but the action gets a chance to collect and deliver its result first through the link:{javadocPath}/org/gradle/tooling/IntermediateResultHandler.html[`IntermediateResultHandler`].
+
+Combined with `BuildController.fetch(...)`, this means an IDE can:
+
+* Schedule preparatory tasks (for example, code generation) before sync.
+* Still receive useful model information when one of those tasks fails, instead of an opaque build failure.
+
+Note that an action that uses `getModel(...)` may itself fail when it queries a model whose underlying configuration was disturbed by the task failure.
+Use `fetch(...)` to inspect the failures and continue building remaining models.

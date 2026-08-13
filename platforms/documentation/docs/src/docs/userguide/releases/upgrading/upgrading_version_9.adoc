@@ -44,13 +44,13 @@ The previous step will help you identify potential problems by issuing deprecati
 [[resilient_sync_reports_failed_operations]]
 ==== Resilient sync reports failed operations
 
-Tooling API clients that query models through the incubating link:{javadocPath}/org/gradle/tooling/BuildController.html#fetch(java.lang.Class)[`BuildController.fetch(...)`] method use _resilient sync_: the build keeps configuring projects and building models even when part of the build fails, and any failures are attached to each link:{javadocPath}/org/gradle/tooling/FetchModelResult.html[`FetchModelResult`] instead of aborting the operation.
+Tooling API clients that query models through the incubating link:{javadocPath}/org/gradle/tooling/BuildController.html#fetch(java.lang.Class)[`BuildController.fetch(...)`] method perform a _resilient sync_: failures are attached to each link:{javadocPath}/org/gradle/tooling/FetchModelResult.html[`FetchModelResult`] instead of aborting the operation.
 
 Previously, such an operation could complete successfully even when some of these model builds failed.
 The failures were reported only through `FetchModelResult.getFailures()`, and the client still received a successful result.
 
 Starting in Gradle 9.7.0, the operation is reported as failed when any part of it fails: `ResultHandler.onFailure(...)` is called, and a blocking `run()` throws, even though the partial models have already been delivered.
-Because a single link:{javadocPath}/org/gradle/tooling/BuildAction.html[`BuildAction`] loses its result in that case, clients should use a <<tooling_api.adoc#sec:embedding_resilient_sync_phased,phased build action>> and read the partial models from the intermediate result handlers.
+Because a single link:{javadocPath}/org/gradle/tooling/BuildAction.html[`BuildAction`] loses its result in that case, clients should use a <<tooling_api.adoc#sec:embedding_phased_action_example,phased build action>> and read the partial models from the intermediate result handlers.
 
 This aligns resilient sync with the reporting of `getModel(...)` and `findModel(...)`, and of task and configuration failures, so a sync in which something failed is no longer reported as successful.
 

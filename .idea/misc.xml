@@ -19,7 +19,6 @@
   <component name="NullableNotNullManager">
     <option name="myDefaultNullable" value="javax.annotation.Nullable" />
     <option name="myDefaultNotNull" value="javax.annotation.Nonnull" />
-    <option name="myOrdered" value="true" />
     <option name="myNullables">
       <value>
         <list size="18">
@@ -69,5 +68,5 @@
       </value>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="17" project-jdk-type="JavaSDK" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_24" project-jdk-name="17" project-jdk-type="JavaSDK" />
 </project>
