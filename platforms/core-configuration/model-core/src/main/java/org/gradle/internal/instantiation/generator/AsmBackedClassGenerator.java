@@ -72,6 +72,7 @@ import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import javax.inject.Inject;
@@ -95,6 +96,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static groovy.lang.MetaProperty.getSetterName;
+import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType;
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.getterSignature;
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.signature;
 import static org.gradle.util.internal.CollectionUtils.collectArray;
@@ -499,6 +501,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE);
         private static final String RETURN_CONVENTION_MAPPING = getMethodDescriptor(CONVENTION_MAPPING_TYPE);
         private static final String RETURN_OBJECT = getMethodDescriptor(OBJECT_TYPE);
+        private static final String RETURN_OBJECT_FROM_OBJECT = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE);
         private static final Type PROVIDER_TYPE = getType(Provider.class);
         private static final String RETURN_OBJECT_FROM_STRING = getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT = getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
@@ -1370,13 +1373,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public void applyEagerShimToLegacyGetter(PropertyMetadata property, Method legacyGetter) {
             Class<?> eagerRawType = legacyGetter.getReturnType();
-            if (eagerRawType.isPrimitive()) {
-                // Would need the same default-value semantics as the generated eager adapters
-                // (getOrElse(0), getOrElse(false), ...), which is not settled yet.
-                return;
-            }
             Class<?> lazyRawType = property.getType();
-            boolean lazyValueIsAlreadyEagerType = eagerRawType.isAssignableFrom(lazyRawType);
+            boolean lazyValueIsAlreadyEagerType = !eagerRawType.isPrimitive() && eagerRawType.isAssignableFrom(lazyRawType);
             if (!lazyValueIsAlreadyEagerType) {
                 if (!Provider.class.isAssignableFrom(lazyRawType)) {
                     return;
@@ -1384,7 +1382,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 Class<?> valueType = TypeToken.of(property.getGenericType())
                     .resolveType(Provider.class.getTypeParameters()[0])
                     .getRawType();
-                if (!eagerRawType.isAssignableFrom(valueType)) {
+                if (!boxed(eagerRawType).isAssignableFrom(boxed(valueType))) {
                     // e.g. DirectoryProperty is a Provider<Directory>, but the accessor it replaced returned a File
                     return;
                 }
@@ -1397,7 +1395,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
-            // GENERATE public <eagerType> <getter>() { return <lazyGetter>()[.getOrNull()]; }
+            // GENERATE public <eagerType> <getter>() { return <lazyGetter>()[.getOrElse(<default>)]; }
+            // The default must match the generated eager adapters, so a rewritten call site and a virtual
+            // call landing here agree on the value of an unset property.
             String lazyGetterName = property.getMainGetter().getName();
             String lazyDescriptor = getMethodDescriptor(getType(lazyRawType));
             addGetter(legacyGetter.getName(), eagerType, descriptor, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
@@ -1405,11 +1405,38 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _INVOKEVIRTUAL(generatedType, lazyGetterName, lazyDescriptor);
                 if (!lazyValueIsAlreadyEagerType) {
                     _CHECKCAST(PROVIDER_TYPE);
-                    _INVOKEINTERFACE(PROVIDER_TYPE, "getOrNull", RETURN_OBJECT);
-                    _CHECKCAST(eagerType);
+                    if (eagerRawType.isPrimitive()) {
+                        pushDefaultValue(this, eagerType);
+                        _AUTOBOX(eagerRawType, eagerType);
+                        _INVOKEINTERFACE(PROVIDER_TYPE, "getOrElse", RETURN_OBJECT_FROM_OBJECT);
+                    } else {
+                        _INVOKEINTERFACE(PROVIDER_TYPE, "getOrNull", RETURN_OBJECT);
+                    }
+                    _UNBOX(eagerType);
                 }
-                _ARETURN();
+                _IRETURN_OF(eagerType);
             }});
+        }
+
+        private static void pushDefaultValue(MethodVisitorScope mv, Type primitiveType) {
+            switch (primitiveType.getSort()) {
+                case Type.LONG:
+                    mv.visitInsn(Opcodes.LCONST_0);
+                    break;
+                case Type.FLOAT:
+                    mv.visitInsn(Opcodes.FCONST_0);
+                    break;
+                case Type.DOUBLE:
+                    mv.visitInsn(Opcodes.DCONST_0);
+                    break;
+                default:
+                    mv._ICONST_0();
+                    break;
+            }
+        }
+
+        private static Class<?> boxed(Class<?> type) {
+            return type.isPrimitive() ? getWrapperTypeForPrimitiveType(type) : type;
         }
 
         @Override
