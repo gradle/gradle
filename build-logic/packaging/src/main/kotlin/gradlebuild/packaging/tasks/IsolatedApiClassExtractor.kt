@@ -33,13 +33,10 @@ import java.util.function.Predicate
  * JDK type or accessed reflectively for that reason.
  */
 internal
-class IsolatedApiClassExtractor(classpath: Iterable<File>, packages: Set<String>) : AutoCloseable {
-
-    private
-    val classLoader = URLClassLoader(
-        classpath.map { it.toURI().toURL() }.toTypedArray(),
-        ClassLoader.getPlatformClassLoader()
-    )
+class IsolatedApiClassExtractor private constructor(
+    private val classLoader: URLClassLoader,
+    packages: Set<String>
+) {
 
     private
     val extractorClass = classLoader.loadClass("org.gradle.internal.tools.api.ApiClassExtractor").also {
@@ -89,7 +86,21 @@ class IsolatedApiClassExtractor(classpath: Iterable<File>, packages: Set<String>
         return builderClass.getMethod("build").invoke(configuredBuilder)
     }
 
-    override fun close() {
-        classLoader.close()
+    companion object {
+
+        /**
+         * Runs [block] with an extractor loaded from [classpath], then closes the class loader.
+         *
+         * The class loader also closes when the extractor itself fails to come to life, which the
+         * isolation check does on purpose. The extractor holds the class loader, so it stays inside
+         * this scope.
+         */
+        fun <T> runUsing(classpath: Iterable<File>, packages: Set<String>, block: (IsolatedApiClassExtractor) -> T): T =
+            URLClassLoader(
+                classpath.map { it.toURI().toURL() }.toTypedArray(),
+                ClassLoader.getPlatformClassLoader()
+            ).use { classLoader ->
+                block(IsolatedApiClassExtractor(classLoader, packages))
+            }
     }
 }

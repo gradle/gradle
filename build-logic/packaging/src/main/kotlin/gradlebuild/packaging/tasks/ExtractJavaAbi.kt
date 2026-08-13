@@ -85,7 +85,7 @@ abstract class ExtractJavaAbi : DefaultTask() {
 
         override fun execute() {
             val outputDirectory = parameters.outputDirectory.get().asFile
-            IsolatedApiClassExtractor(parameters.extractorClasspath, parameters.packages.get()).use { extractor ->
+            IsolatedApiClassExtractor.runUsing(parameters.extractorClasspath, parameters.packages.get()) { extractor ->
                 parameters.classesDirectories.forEach { classDir ->
                     classDir.walk().forEach { inputFile ->
                         val outputFile = outputDirectory.resolve(inputFile.relativeTo(classDir).path)
