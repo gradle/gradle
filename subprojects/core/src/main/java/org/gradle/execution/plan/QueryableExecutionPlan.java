@@ -59,4 +59,9 @@ public interface QueryableExecutionPlan {
      */
     int size();
 
+    /**
+     * Returns whether the given node was scheduled as part of this execution plan.
+     */
+    boolean contains(Node node);
+
 }
