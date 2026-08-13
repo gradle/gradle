@@ -32,6 +32,8 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantPropertyBeanWithForwarderSetter
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantPropertyBeanWithInheritedAnnotation
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractFileCollectionBeanWithPropertyTypedForwarderSetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractProviderPropBeanWithForwarderSetter
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithForwarderSetter
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanRedeclaringAnnotatedGetter
@@ -98,6 +100,29 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         bean.setProp("value")
         bean.prop.get() == "value"
+    }
+
+    def "claims property with a forwarder setter that takes the property type"() {
+        def bean = create(AbstractFileCollectionBeanWithPropertyTypedForwarderSetter)
+        def file = tmpDir.file("some-file")
+
+        expect:
+        bean instanceof Managed
+        bean.files.toString() == "property 'files'"
+        bean.files.files.empty
+
+        // the setter's own body runs, rather than being replaced by managed state
+        bean.setFiles(TestUtil.objectFactory().fileCollection().from(file))
+        bean.files.files == [file] as Set
+    }
+
+    def "does not claim property with a forwarder setter when the property type cannot be created"() {
+        when:
+        create(AbstractProviderPropBeanWithForwarderSetter)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message.contains("Cannot have abstract method AbstractProviderPropBeanWithForwarderSetter.getProp()")
     }
 
     def "claims property when @ReplacesEagerProperty is inherited from a super-interface getter"() {

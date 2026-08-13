@@ -396,7 +396,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isManagedProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property::hasAnnotation));
+        return property.isReadableWithoutSetterOfPropertyType() && isManagedPropertyType(property);
+    }
+
+    private static boolean isManagedPropertyType(PropertyMetadata property) {
+        return property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property::hasAnnotation);
     }
 
     private static boolean hasNestedAnnotation(Predicate<Class<? extends Annotation>> hasAnnotation) {
@@ -1161,16 +1165,22 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 hasAbstractGetter = true;
             }
 
-            // A concrete setter means the property is not ours to claim, unless it can only be a forwarder into a
-            // property we manage. That takes an abstract getter, leaving the setter no backing field to manage, plus
-            // @ReplacesEagerProperty, which marks the getters migrated to the Provider API; anywhere else a concrete
-            // setter still means "hands off". Without an abstract getter the property is write-only (e.g.
-            // Task.setOnlyIf) — a concrete getter would have returned above — so there is nothing to forward into.
-            if (!hasAbstractGetter || !property.hasAnnotationOnAnyGetter(ReplacesEagerProperty.class)) {
-                for (Method setter : property.setters) {
-                    if (!Modifier.isAbstract(setter.getModifiers())) {
-                        return false;
-                    }
+            if (isForwarderSetterProperty(property, hasAbstractGetter)) {
+                // The setter can only forward into the property, so we must give the property a managed body without
+                // touching the setter. Only the read-only treatment leaves setters alone, so require a type we can
+                // create — regardless of the setter's parameter type, which is what isManagedProperty would test.
+                if (isManagedPropertyType(property)) {
+                    readOnlyProperties.add(property);
+                    return true;
+                }
+                // We cannot create the property, so a managed body would have to replace the setter's own. Leave both.
+                return false;
+            }
+
+            for (Method setter : property.setters) {
+                if (!Modifier.isAbstract(setter.getModifiers())) {
+                    // A concrete setter manages its own state, so the property is not ours to claim
+                    return false;
                 }
             }
 
@@ -1187,6 +1197,20 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // Read only but unrecognized type
                 return false;
             }
+        }
+
+        /**
+         * A property migrated to the Provider API that kept the eager setter it replaced, as a forwarder into the
+         * lazy property. Every getter being abstract is what makes that safe to assume: there is no backing field
+         * for the setter to manage, so it can only be writing through the getter.
+         *
+         * <p>Without an abstract getter the property is write-only (e.g. {@code Task.setOnlyIf}) — a concrete getter
+         * would already have disqualified the property — so a concrete setter there has nothing to forward into.
+         */
+        private boolean isForwarderSetterProperty(PropertyMetadata property, boolean hasAbstractGetter) {
+            return hasAbstractGetter
+                && property.hasAnnotationOnAnyGetter(ReplacesEagerProperty.class)
+                && property.setters.stream().anyMatch(setter -> !Modifier.isAbstract(setter.getModifiers()));
         }
 
         @Override

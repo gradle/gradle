@@ -2143,6 +2143,27 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static abstract class AbstractFileCollectionBeanWithPropertyTypedForwarderSetter {
+        @ReplacesEagerProperty
+        public abstract ConfigurableFileCollection getFiles();
+
+        // Takes the property type rather than the value type, so this is not a plain mutable property:
+        // the forwarder still writes through the lazy property.
+        public void setFiles(ConfigurableFileCollection files) {
+            getFiles().setFrom(files);
+        }
+    }
+
+    public static abstract class AbstractProviderPropBeanWithForwarderSetter {
+        // Provider cannot be created as managed state, so there is no lazy property to forward into
+        @ReplacesEagerProperty
+        public abstract Provider<String> getProp();
+
+        public void setProp(String value) {
+            throw new UnsupportedOperationException("should not be reachable");
+        }
+    }
+
     public interface BeanWithAnnotatedProperty {
         @ReplacesEagerProperty
         Property<String> getProp();
