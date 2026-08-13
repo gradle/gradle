@@ -26,17 +26,15 @@ import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.nio.file.Path;
 
 /**
  * Synchronizes the contents of a destination directory with some source directories and files.
@@ -77,49 +75,36 @@ public abstract class Sync extends AbstractCopyTask {
 
     private final PatternFilterable preserveInDestination = new PatternSet();
 
-    @Override
-    boolean shouldSkipWhenSourceIsEmpty() {
-        return false;
-    }
-
-    @Override
-    protected void copy() {
-        File destinationDir = getDestinationDir();
-        if (destinationDir != null
-            && !getBuildOutputCleanupRegistry().isOutputOwnedByBuild(destinationDir)
-            && !hasPreviousOutputFilesUnder(destinationDir)
-            && isSourceEmpty()) {
-            setDidWork(false);
-            // we used to skip the task on empty input but no longer do, so, for the sake of safety,
-            // if there is no previous record of syncing into the destination, and it is not build-owned,
-            // don't do anything
-            return;
-        }
-        super.copy();
+    @SuppressWarnings("this-escape")
+    public Sync() {
+        getSyncWhenSourceIsEmpty().convention(false);
     }
 
     /**
-     * Whether the source has no files and no directories. Unlike {@link org.gradle.api.file.FileCollection#isEmpty()},
-     * which counts regular files only, this also counts empty directories (needed to honor
-     * {@code ignoreEmptyDirectories(false)}).
+     * Whether this task runs when its source contains no files and no directories.
+     *
+     * <p>
+     * When this is {@code false}, which is the default, a task with an empty source does not run and its
+     * destination directory is not synchronized. What is left in the destination then depends on where it is:
+     * a destination inside the build directory is cleaned up, while one outside it keeps the files the source
+     * no longer contains.
+     *
+     * <p>
+     * When this is {@code true}, the task always runs its copy action, so an empty source empties the
+     * destination. Note that this task always deletes the entire contents of its destination directory, not
+     * only the files it copied there, except for anything matched by {@link #preserve(Action)}; enabling this
+     * extends that to a source that is empty, including one that is empty by mistake.
+     *
+     * @return whether this task runs when its source is empty
+     * @since 9.8.0
      */
-    private boolean isSourceEmpty() {
-        MutableBoolean found = new MutableBoolean();
-        getSource().getAsFileTree().visit(fileDetails -> {
-            found.set(true);
-            fileDetails.stopVisiting();
-        });
-        return !found.get();
-    }
+    @Incubating
+    @Input
+    public abstract Property<Boolean> getSyncWhenSourceIsEmpty();
 
-    private boolean hasPreviousOutputFilesUnder(File destinationDir) {
-        Path destinationPath = destinationDir.toPath();
-        for (File previousOutputFile : getOutputs().getPreviousOutputFiles()) {
-            if (previousOutputFile.toPath().startsWith(destinationPath)) {
-                return true;
-            }
-        }
-        return false;
+    @Override
+    boolean shouldSkipWhenSourceIsEmpty() {
+        return !getSyncWhenSourceIsEmpty().get();
     }
 
     @Override
@@ -213,7 +198,4 @@ public abstract class Sync extends AbstractCopyTask {
 
     @Inject
     protected abstract Deleter getDeleter();
-
-    @Inject
-    protected abstract BuildOutputCleanupRegistry getBuildOutputCleanupRegistry();
 }
