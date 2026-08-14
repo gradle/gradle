@@ -92,8 +92,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOption;
@@ -110,24 +108,12 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
-import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry;
-import org.gradle.model.internal.core.Hidden;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelRegistrations;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.binding.StructBindingsStore;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Configurable;
@@ -158,10 +144,6 @@ import static org.gradle.util.internal.GUtil.addMaps;
 @SuppressWarnings({"this-escape"})
 @NoConventionMapping
 public abstract class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
-    private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
-    private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
-    private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
-    private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
     private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
 
     /**
@@ -208,14 +190,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
-    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<>(RuleBasedPluginListener.class);
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
     @Nullable
     private String description;
 
-    private boolean preparedForRuleBasedPlugins;
 
     @Nullable
     private Object beforeProjectActionState;
@@ -256,77 +236,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         ProjectFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(ProjectFeatureApplicator.class), services.get(ProjectFeatureDeclarations.class), getObjects());
 
         evaluationListener.add(getBuildState().getMutableModel().getProjectEvaluationBroadcaster());
-
-        ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
-    }
-
-    @SuppressWarnings({"deprecation", "unused"})
-    static class BasicServicesRules extends org.gradle.model.RuleSource {
-        @Hidden
-        @org.gradle.model.Model
-        ProjectLayout projectLayoutService(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ProjectLayout.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ObjectFactory.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        NamedEntityInstantiator<Task> taskFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(TaskInstantiator.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(CollectionCallbackActionDecorator.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        Instantiator instantiator(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ModelSchemaStore.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ManagedProxyFactory.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        StructBindingsStore structBindingsStore(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(StructBindingsStore.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
-            return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(TypeConverter.class);
-        }
-
-        @Hidden
-        @org.gradle.model.Model
-        FileOperations fileOperations(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(FileOperations.class);
-        }
     }
 
     private ProjectState getRootProjectState() {
@@ -339,38 +248,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
         return new ListenerBroadcast<>(ProjectEvaluationListener.class);
-    }
-
-    private void populateModelRegistry(ModelRegistry modelRegistry) {
-        registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
-        // TODO:LPTR This ignores changes to Project.layout.buildDirectory after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, () -> getLayout().getBuildDirectory().getAsFile().get());
-        registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
-        registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
-        modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
-    }
-
-    private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, ModelType<T> type, T instance) {
-        registerFactoryOn(modelRegistry, path, type, Factories.constant(instance));
-    }
-
-    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, ModelType<T> type, Factory<T> factory) {
-        modelRegistry.register(ModelRegistrations
-            .unmanagedInstance(ModelReference.of(path, type), factory)
-            .descriptor(instanceDescriptorFor(path))
-            .hidden(true)
-            .build());
-    }
-
-    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, ModelType<T> type, T instance, String descriptor) {
-        modelRegistry.register(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
-            .descriptor(descriptor)
-            .build()
-        );
-    }
-
-    private String instanceDescriptorFor(String path) {
-        return "Project.<init>." + path + "()";
     }
 
     @Override
@@ -770,16 +647,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ProjectInternal evaluateUnchecked() {
         services.get(ProjectEvaluator.class).evaluate(this, state); // avoid getServices() call
-        return this;
-    }
-
-    @Override
-    public ProjectInternal bindAllModelRules() {
-        try {
-            getModelRegistry().bindAllReferences();
-        } catch (Exception e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", getDisplayName()), e);
-        }
         return this;
     }
 
@@ -1356,10 +1223,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public abstract ProjectConfigurationActionContainer getConfigurationActions();
 
-    @Inject
-    @Override
-    public abstract ModelRegistry getModelRegistry();
-
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         TextUriResourceLoader.Factory textUriResourceLoaderFactory = services.get(TextUriResourceLoader.Factory.class);
@@ -1466,23 +1329,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public void apply(Map<String, ?> options) {
         super.apply(options);
-    }
-
-    @Override
-    public void addRuleBasedPluginListener(RuleBasedPluginListener listener) {
-        if (preparedForRuleBasedPlugins) {
-            listener.prepareForRuleBasedPlugins(this);
-        } else {
-            ruleBasedPluginListenerBroadcast.add(listener);
-        }
-    }
-
-    @Override
-    public void prepareForRuleBasedPlugins() {
-        if (!preparedForRuleBasedPlugins) {
-            preparedForRuleBasedPlugins = true;
-            ruleBasedPluginListenerBroadcast.getSource().prepareForRuleBasedPlugins(this);
-        }
     }
 
     @Inject

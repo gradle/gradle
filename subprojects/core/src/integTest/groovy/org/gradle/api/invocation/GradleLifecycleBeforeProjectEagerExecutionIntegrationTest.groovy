@@ -106,7 +106,6 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
             "artifacts",
             "artifacts{}",
             "beforeEvaluate{}",
-            "bindAllModelRules()",
             "buildDir",
             "buildscript",
             "components",

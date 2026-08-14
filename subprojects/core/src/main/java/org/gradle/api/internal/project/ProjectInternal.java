@@ -39,13 +39,10 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
-import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -55,7 +52,7 @@ import java.util.Set;
 
 @UsedByScanPlugin("scan, test-retry")
 @ServiceScope(Scope.Project.class)
-public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, ModelRegistryScope, PluginAwareInternal {
+public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
     // in the ‘core’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.
@@ -83,8 +80,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * This method should be used by internal Gradle code to trigger project evaluation.
      */
     ProjectInternal evaluateUnchecked();
-
-    ProjectInternal bindAllModelRules();
 
     @Override
     TaskContainerInternal getTasks();
@@ -123,10 +118,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
 
-    void addRuleBasedPluginListener(RuleBasedPluginListener listener);
-
-    void prepareForRuleBasedPlugins();
-
     FileResolver getFileResolver();
 
     TaskDependencyFactory getTaskDependencyFactory();
@@ -143,9 +134,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     ExtensionContainerInternal getExtensions();
 
     ProjectConfigurationActionContainer getConfigurationActions();
-
-    @Override
-    ModelRegistry getModelRegistry();
 
     ClassLoaderScope getClassLoaderScope();
 

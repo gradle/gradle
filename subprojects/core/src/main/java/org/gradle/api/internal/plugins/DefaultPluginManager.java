@@ -161,7 +161,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         try {
             Thread.currentThread().setContextClassLoader(pluginClass.getClassLoader());
             if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
-                throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
+                throw new InvalidPluginException("'" + pluginClass.getName() + "' is not a plugin and cannot be applied.");
             } else {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
@@ -180,24 +180,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    private void addPlugin(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {
-        boolean imperative = plugin.isImperative();
-        if (imperative) {
-            Plugin<?> pluginInstance = producePluginInstance(pluginClass);
+    private void addPlugin(Runnable adder, String pluginId, Class<?> pluginClass) {
+        Plugin<?> pluginInstance = producePluginInstance(pluginClass);
+        target.applyImperative(pluginId, pluginInstance);
 
-            if (plugin.isHasRules()) {
-                target.applyImperativeRulesHybrid(pluginId, pluginInstance, pluginClass);
-            } else {
-                target.applyImperative(pluginId, pluginInstance);
-            }
-
-            // Important not to add until after it has been applied as there can be
-            // plugins.withType() callbacks waiting to build on what the plugin did
-            instances.put(pluginClass, pluginInstance);
-            pluginContainer.pluginAdded(pluginInstance);
-        } else {
-            target.applyRules(pluginId, pluginClass);
-        }
+        // Important not to add until after it has been applied as there can be
+        // plugins.withType() callbacks waiting to build on what the plugin did
+        instances.put(pluginClass, pluginInstance);
+        pluginContainer.pluginAdded(pluginInstance);
 
         adder.run();
     }
@@ -283,7 +273,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
         @Override
         public void run(BuildOperationContext context) {
-            addPlugin(adder, plugin, pluginId, pluginClass);
+            addPlugin(adder, pluginId, pluginClass);
             context.setResult(OPERATION_RESULT);
         }
 

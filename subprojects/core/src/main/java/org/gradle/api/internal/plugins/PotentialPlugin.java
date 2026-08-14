@@ -27,16 +27,12 @@ public interface PotentialPlugin<T> {
 
     enum Type {
         UNKNOWN,
-        IMPERATIVE_CLASS,
-        PURE_RULE_SOURCE_CLASS,
-        HYBRID_IMPERATIVE_AND_RULES_CLASS
+        IMPERATIVE_CLASS
     }
 
     Class<? extends T> asClass();
 
     boolean isImperative();
-
-    boolean isHasRules();
 
     Type getType();
 

@@ -16,22 +16,17 @@
 
 package org.gradle.execution
 
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
 import org.gradle.api.Action
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
 import org.gradle.execution.plan.DefaultPlanExecutor
 import org.gradle.execution.plan.FinalizedExecutionPlan
-import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeExecutor
 import org.gradle.execution.plan.PlanExecutor
 import org.gradle.execution.plan.QueryableExecutionPlan
-import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.WorkSource
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -139,38 +134,6 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
         thrown.is(failure)
     }
 
-    def "binds the model rules of every project that owns a scheduled task"() {
-        def otherProject = project(project, "other")
-        def plan = newPlan([taskNodeOwnedBy(project), taskNodeOwnedBy(otherProject)])
-
-        when:
-        underTest.execute(gradle, plan)
-
-        then:
-        1 * project.bindAllModelRules()
-        1 * otherProject.bindAllModelRules()
-    }
-
-    def "binds the model rules of a project only once when it owns several scheduled tasks"() {
-        def plan = newPlan([taskNodeOwnedBy(project), taskNodeOwnedBy(project)])
-
-        when:
-        underTest.execute(gradle, plan)
-
-        then:
-        1 * project.bindAllModelRules()
-    }
-
-    def "does not bind model rules for scheduled nodes that are not tasks"() {
-        def plan = newPlan([Mock(Node) { getOwningProject() >> project }])
-
-        when:
-        underTest.execute(gradle, plan)
-
-        then:
-        0 * project.bindAllModelRules()
-    }
-
     def "fails when the node executor does not know how to execute a node"() {
         def node = Mock(Node)
         def plan = newPlan()
@@ -257,21 +220,6 @@ class SelectedTaskExecutionActionTest extends AbstractExecutionPlanSpec {
         thrown(IllegalStateException)
         0 * planExecutor.process(_, _)
         0 * taskExecutionGraph.depopulate()
-    }
-
-    FinalizedExecutionPlan newPlan(List<Node> scheduledNodes) {
-        populatedPlan = Mock(FinalizedExecutionPlan) {
-            getContents() >> Stub(QueryableExecutionPlan) {
-                getScheduledNodes() >> new ScheduledWork(ImmutableList.copyOf(scheduledNodes), ImmutableSet.copyOf(scheduledNodes))
-            }
-            asWorkSource() >> Stub(WorkSource)
-        }
-    }
-
-    LocalTaskNode taskNodeOwnedBy(ProjectInternal owner) {
-        Mock(LocalTaskNode) {
-            getOwningProject() >> owner
-        }
     }
 
     FinalizedExecutionPlan newPlan() {

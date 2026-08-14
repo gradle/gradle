@@ -345,7 +345,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    protected PluginInspector createPluginInspector(ModelRuleSourceDetector modelRuleSourceDetector) {
-        return new PluginInspector(modelRuleSourceDetector);
+    protected PluginInspector createPluginInspector() {
+        return new PluginInspector();
     }
 }

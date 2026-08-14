@@ -23,7 +23,6 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 
 import java.util.Set;
 
@@ -50,11 +49,6 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         super(type, instantiator, namer, callbackDecorator);
         this.namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
         this.elementInstantiator = elementInstantiator;
-    }
-
-    @Override
-    public NamedEntityInstantiator<T> getEntityInstantiator() {
-        return namedEntityInstantiator;
     }
 
     @Override

@@ -83,13 +83,6 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
     @Incubating
     public static final String ARTIFACT_TRANSFORMS_TASK = DiagnosticsTaskNames.ARTIFACT_TRANSFORMS_TASK;
 
-    /**
-     * The model task.
-     *
-     * @since 2.4
-     */
-    public static final String MODEL_TASK = DiagnosticsTaskNames.MODEL_TASK;
-
 
     @Override
     public void apply(final Project project) {

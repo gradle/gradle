@@ -74,16 +74,6 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
     }
 
     @Override
-    public void applyRules(@Nullable String pluginId, Class<?> clazz) {
-        delegate.applyRules(pluginId, clazz);
-    }
-
-    @Override
-    public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass) {
-        delegate.applyImperativeRulesHybrid(pluginId, plugin, declaringClass);
-    }
-
-    @Override
     public String toString() {
         return delegate.toString();
     }

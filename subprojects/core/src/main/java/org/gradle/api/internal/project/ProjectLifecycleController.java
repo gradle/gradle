@@ -98,10 +98,7 @@ public class ProjectLifecycleController implements Closeable {
 
     public void ensureTasksDiscovered() {
         ensureSelfConfigured();
-        lockGuard.withProjectLock(() -> {
-            project.getTasks().discoverTasks();
-            project.bindAllModelRules();
-        });
+        lockGuard.withProjectLock(() -> project.getTasks().discoverTasks());
     }
 
     @Override

@@ -33,7 +33,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
-import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
@@ -51,11 +50,6 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
@@ -70,8 +64,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 @NullMarked
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
@@ -88,14 +80,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final TaskIdentityFactory taskIdentityFactory;
     private final ITaskFactory taskFactory;
     private final UserCodeApplicationContext userCodeApplicationContext;
-    private final NamedEntityInstantiator<Task> taskInstantiator;
     private final BuildOperationRunner buildOperationRunner;
     private final CrossProjectModelAccess crossProjectModelAccess;
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
 
-    private MutableModelNode modelNode;
 
     public DefaultTaskContainer(
         ProjectInternal project,
@@ -113,7 +103,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.taskIdentityFactory = taskIdentityFactory;
         this.taskFactory = taskFactory;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.taskInstantiator = new TaskInstantiator(taskIdentityFactory, taskFactory, project, userCodeApplicationContext);
         this.statistics = statistics;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationRunner = buildOperationRunner;
@@ -561,75 +550,22 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public NamedEntityInstantiator<Task> getEntityInstantiator() {
-        return taskInstantiator;
-    }
-
-    @Override
     public DynamicObject getTasksAsDynamicObject() {
         return getElementsAsDynamicObject();
     }
 
     @Override
-    public SortedSet<String> getNames() {
-        SortedSet<String> names = super.getNames();
-        if (modelNode == null) {
-            return names;
-        } else {
-            TreeSet<String> allNames = new TreeSet<>(names);
-            allNames.addAll(modelNode.getLinkNames());
-            return allNames;
-        }
-    }
-
-    @Override
     public void realize() {
-        if (modelNode != null) {
-            project.getModelRegistry().realizeNode(modelNode.getPath());
-        }
     }
 
     @Override
     public void discoverTasks() {
         project.fireDeferredConfiguration();
-        if (modelNode != null) {
-            project.getModelRegistry().atStateOrLater(modelNode.getPath(), ModelNode.State.SelfClosed);
-        }
     }
 
     @Override
     public void prepareForExecution(Task task) {
         assert task.getProject() == project;
-        if (modelNode != null && modelNode.hasLink(task.getName())) {
-            realizeTask(MODEL_PATH.child(task.getName()), ModelNode.State.GraphClosed);
-        }
-    }
-
-    /**
-     * @return true if this method _may_ have done some work.
-     */
-    private boolean maybeCreateTasks(String name) {
-        if (modelNode != null && modelNode.hasLink(name)) {
-            realizeTask(MODEL_PATH.child(name), ModelNode.State.Initialized);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public Task findByName(String name) {
-        Task task = super.findByName(name);
-        if (task != null) {
-            return task;
-        }
-        if (!maybeCreateTasks(name)) {
-            return null;
-        }
-        return super.findByNameWithoutRules(name);
-    }
-
-    private void realizeTask(ModelPath taskPath, ModelNode.State minState) {
-        project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
     @Override
@@ -642,14 +578,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Collections.singleton(getType());
     }
 
-    public void setModelNode(MutableModelNode modelNode) {
-        this.modelNode = modelNode;
-    }
-
     @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         Instantiator instantiator = getInstantiator();
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, super.withType(type), instantiator));
     }
 
     @Deprecated
