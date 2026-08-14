@@ -77,34 +77,34 @@ public abstract class Sync extends AbstractCopyTask {
 
     @SuppressWarnings("this-escape")
     public Sync() {
-        getSyncWhenSourceIsEmpty().convention(false);
+        getSkipWhenSourceIsEmpty().convention(true);
     }
 
     /**
-     * Whether this task runs when its source contains no files and no directories.
+     * Whether this task is skipped when its source contains no files and no directories.
      *
      * <p>
-     * When this is {@code false}, which is the default, a task with an empty source does not run and its
+     * When this is {@code true}, which is the default, a task with an empty source does not run and its
      * destination directory is not synchronized. What is left in the destination then depends on where it is:
      * a destination inside the build directory is cleaned up, while one outside it keeps the files the source
      * no longer contains.
      *
      * <p>
-     * When this is {@code true}, the task always runs its copy action, so an empty source empties the
+     * When this is {@code false}, the task always runs its copy action, so an empty source empties the
      * destination. Note that this task always deletes the entire contents of its destination directory, not
-     * only the files it copied there, except for anything matched by {@link #preserve(Action)}; enabling this
+     * only the files it copied there, except for anything matched by {@link #preserve(Action)}; disabling this
      * extends that to a source that is empty, including one that is empty by mistake.
      *
-     * @return whether this task runs when its source is empty
+     * @return whether this task is skipped when its source is empty
      * @since 9.8.0
      */
     @Incubating
     @Input
-    public abstract Property<Boolean> getSyncWhenSourceIsEmpty();
+    public abstract Property<Boolean> getSkipWhenSourceIsEmpty();
 
     @Override
     boolean shouldSkipWhenSourceIsEmpty() {
-        return !getSyncWhenSourceIsEmpty().get();
+        return getSkipWhenSourceIsEmpty().get();
     }
 
     @Override
