@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
@@ -85,6 +86,10 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         return FileCollectionStructureVisitor.VisitType.Visit;
     }
 
+    /**
+     * A transform chain execution for a single artifact. Thread safe: the result is computed at most once,
+     * regardless of how many threads call {@link #startFinalization}, {@link #run} or {@link #visit} concurrently.
+     */
     public static class TransformedArtifact implements ResolvedArtifactSet.Artifacts, RunnableBuildOperation {
         private final DisplayName artifactSetName;
         private final ImmutableCapabilities capabilities;
@@ -92,7 +97,10 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
         private final List<BoundTransformStep> transformSteps;
-        private @Nullable Try<ImmutableList<File>> transformedFiles;
+
+        // The terminal result, set at most once via setResult(). Volatile, so an available result is read without synchronization.
+        private volatile @Nullable Try<ImmutableList<File>> transformedFiles;
+        // The pending invocation, created at most once and released when the result is set. Guarded by this instance's monitor.
         private @Nullable Deferrable<Try<ImmutableList<File>>> deferredTransformedFiles;
 
         public TransformedArtifact(
@@ -135,6 +143,13 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             return transformSteps;
         }
 
+        @VisibleForTesting
+        boolean hasPendingInvocation() {
+            synchronized (this) {
+                return deferredTransformedFiles != null;
+            }
+        }
+
         @Override
         public void prepareForVisitingIfNotAlready() {
             // The parameters of the transforms should already be isolated prior to visiting this set.
@@ -166,73 +181,88 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
          * Returns true if this artifact should be queued for execution, false when a value is already available.
          */
         private boolean prepareInvocation() {
-            synchronized (this) {
-                if (transformedFiles != null) {
-                    // Already have a result, no need to execute
-                    return false;
-                }
+            if (transformedFiles != null) {
+                // Already have a result, no need to execute
+                return false;
             }
             if (!artifact.getFileSource().isFinalized()) {
                 // No input artifact yet, should execute
                 return true;
             }
-            Try<File> inputFile = artifact.getFileSource().getValue();
-            Optional<Throwable> inputFailure = inputFile.getFailure();
+            Optional<Throwable> inputFailure = artifact.getFileSource().getValue().getFailure();
             if (inputFailure.isPresent()) {
-                synchronized (this) {
-                    // Failed to resolve input artifact, no need to execute
-                    transformedFiles = Try.failure(inputFailure.get());
-                    return false;
-                }
+                // Failed to resolve the input artifact, no need to execute
+                setResult(Try.failure(inputFailure.get()));
+                return false;
             }
 
-            Deferrable<Try<ImmutableList<File>>> deferredTransformedFiles = createDeferredTransformedFiles();
-            synchronized (this) {
-                if (deferredTransformedFiles.getCompleted().isPresent()) {
-                    // Have already executed the transform, no need to execute
-                    transformedFiles = deferredTransformedFiles.getCompleted().get();
-                    this.deferredTransformedFiles = null;
-                    return false;
-                } else {
-                    // Have not executed the transform, should execute
-                    this.deferredTransformedFiles = deferredTransformedFiles;
-                    return true;
-                }
+            Deferrable<Try<ImmutableList<File>>> invocation = invocationForExecution();
+            if (invocation == null) {
+                // A result became available concurrently, no need to execute
+                return false;
             }
+            Optional<Try<ImmutableList<File>>> completed = invocation.getCompleted();
+            if (completed.isPresent()) {
+                // Have already executed the transform, no need to execute
+                setResult(completed.get());
+                return false;
+            }
+            // Have not executed the transform, should execute
+            return true;
         }
 
         private Try<ImmutableList<File>> finalizeValue() {
-            synchronized (this) {
-                if (transformedFiles != null) {
-                    return transformedFiles;
-                }
+            Try<ImmutableList<File>> result = transformedFiles;
+            if (result != null) {
+                return result;
             }
 
             artifact.getFileSource().finalizeIfNotAlready();
-            Try<File> inputFile = artifact.getFileSource().getValue();
-            Optional<Throwable> inputFailure = inputFile.getFailure();
+            Optional<Throwable> inputFailure = artifact.getFileSource().getValue().getFailure();
             if (inputFailure.isPresent()) {
-                synchronized (this) {
-                    // Failed to resolve input artifact
-                    transformedFiles = Try.failure(inputFailure.get());
-                    return transformedFiles;
+                // Failed to resolve the input artifact
+                return setResult(Try.failure(inputFailure.get()));
+            }
+
+            Deferrable<Try<ImmutableList<File>>> invocation = invocationForExecution();
+            if (invocation != null) {
+                return setResult(invocation.completeAndGet());
+            }
+            // A concurrent invocation has already set the result
+            return Objects.requireNonNull(transformedFiles);
+        }
+
+        /**
+         * Returns the invocation of the transform chain, creating it on first use, or null when the result is already available.
+         * The invocation is created at most once, since its creation is expensive and has side effects. Creation deliberately
+         * runs under the monitor; this is safe because it never calls back into this instance.
+         */
+        private @Nullable Deferrable<Try<ImmutableList<File>>> invocationForExecution() {
+            synchronized (this) {
+                if (transformedFiles != null) {
+                    return null;
                 }
+                Deferrable<Try<ImmutableList<File>>> currentDeferred = deferredTransformedFiles;
+                if (currentDeferred == null) {
+                    currentDeferred = createDeferredTransformedFiles();
+                    deferredTransformedFiles = currentDeferred;
+                }
+                return currentDeferred;
             }
+        }
 
-            Deferrable<Try<ImmutableList<File>>> deferredTransformedFiles;
+        /**
+         * Sets the terminal result unless already set and releases the invocation machinery.
+         */
+        private Try<ImmutableList<File>> setResult(Try<ImmutableList<File>> result) {
             synchronized (this) {
-                deferredTransformedFiles = this.deferredTransformedFiles;
-            }
-
-            if (deferredTransformedFiles == null) {
-                deferredTransformedFiles = createDeferredTransformedFiles();
-            }
-            Try<ImmutableList<File>> result = deferredTransformedFiles.completeAndGet();
-            synchronized (this) {
-                transformedFiles = result;
-                // Only the files are needed from now on, release the invocation machinery
-                this.deferredTransformedFiles = null;
-                return result;
+                Try<ImmutableList<File>> currentTransformedFiles = transformedFiles;
+                if (currentTransformedFiles == null) {
+                    currentTransformedFiles = result;
+                    transformedFiles = result;
+                }
+                deferredTransformedFiles = null;
+                return currentTransformedFiles;
             }
         }
 

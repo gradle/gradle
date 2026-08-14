@@ -31,6 +31,8 @@ import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
 import spock.lang.Specification
 
+import java.util.concurrent.atomic.AtomicInteger
+
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformStep = Mock(TransformStep)
     def targetAttributes = Mock(ImmutableAttributes)
@@ -92,5 +94,93 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         then:
         1 * transformStep.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> completedInvocation
         0 * operationQueue._
+        !artifacts[0].hasPendingInvocation()
+    }
+
+    def "propagates the input artifact failure without queueing the transformation"() {
+        given:
+        def failure = new RuntimeException("broken")
+        def failedSource = Stub(CalculatedValue) {
+            isFinalized() >> true
+            getValue() >> Try.failure(failure)
+        }
+        def failedArtifact = Stub(ResolvableArtifact) {
+            getId() >> artifactId
+            getFileSource() >> failedSource
+        }
+        def visitor = Mock(ArtifactVisitor)
+
+        when:
+        listener.visitArtifacts(artifacts)
+        def transformed = result.build()
+
+        then:
+        transformed.size() == 1
+        1 * artifacts.visit(_) >> { ArtifactVisitor v -> v.visitArtifact(null, sourceVariantId, null, ImmutableCapabilities.EMPTY, failedArtifact) }
+        0 * _
+
+        when:
+        transformed[0].startFinalization(operationQueue, true)
+
+        then:
+        0 * transformStep._
+        0 * operationQueue._
+
+        when:
+        transformed[0].visit(visitor)
+
+        then:
+        1 * visitor.visitFailure({ it instanceof TransformException && it.cause == failure })
+        0 * _
+    }
+
+    def "creates the invocation only once under concurrent finalization"() {
+        given:
+        def outputArtifact = Stub(ResolvableArtifact)
+        def artifact = Stub(ResolvableArtifact) {
+            getId() >> artifactId
+            getFileSource() >> source
+            getFile() >> artifactFile
+            transformedTo(_) >> outputArtifact
+        }
+        def invocationCreations = new AtomicInteger()
+        def invocationExecutions = new AtomicInteger()
+        def visitor = Mock(ArtifactVisitor)
+        transformStep.createInvocation(_, _, _) >> {
+            invocationCreations.incrementAndGet()
+            // Give racing threads a chance to attempt a duplicate creation
+            Thread.sleep(10)
+            Deferrable.deferred {
+                invocationExecutions.incrementAndGet()
+                Try.successful(TransformStepSubject.initial(artifact))
+            }
+        }
+
+        when:
+        listener.visitArtifacts(artifacts)
+        def transformed = result.build()
+
+        then:
+        transformed.size() == 1
+        1 * artifacts.visit(_) >> { ArtifactVisitor v -> v.visitArtifact(null, sourceVariantId, null, ImmutableCapabilities.EMPTY, artifact) }
+        0 * _
+
+        when:
+        def threads = (1..8).collect {
+            Thread.start {
+                transformed[0].startFinalization(operationQueue, true)
+                transformed[0].run(null)
+                transformed[0].visit(visitor)
+            }
+        }
+        threads*.join(30_000)
+
+        then:
+        threads.every { !it.alive }
+        invocationCreations.get() == 1
+        invocationExecutions.get() == 1
+        8 * visitor.visitArtifact(null, sourceVariantId, targetAttributes, ImmutableCapabilities.EMPTY, outputArtifact)
+        0 * visitor.visitFailure(_)
+        !transformed[0].hasPendingInvocation()
     }
 }
