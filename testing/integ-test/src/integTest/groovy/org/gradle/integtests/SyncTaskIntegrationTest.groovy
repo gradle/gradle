@@ -29,7 +29,7 @@ import spock.lang.Issue
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'an empty source when destination is #destDescription and syncWhenSourceIsEmpty is #optIn'() {
+    def 'an empty source when destination is #destDescription and skipWhenSourceIsEmpty is #skipOnEmpty'() {
         given:
         file('source/foo.txt').text = 'foo'
 
@@ -39,7 +39,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             task sync(type: Sync) {
                 from 'source'
                 into $into
-                syncWhenSourceIsEmpty = $optIn
+                skipWhenSourceIsEmpty = $skipOnEmpty
             }
         """
 
@@ -66,15 +66,15 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         assertDestination(destDir, remaining)
 
         where:
-        optIn | destDescription   | into                                 | destDir     | afterEmptying | onRerun      | remaining
-        false | 'build-owned'     | 'layout.buildDirectory.dir("out")'   | 'build/out' | 'EXECUTED'    | 'NO-SOURCE'  | null
-        false | 'non-build-owned' | 'layout.projectDirectory.dir("out")' | 'out'       | 'NO-SOURCE'   | 'NO-SOURCE'  | ['foo.txt']
-        true  | 'build-owned'     | 'layout.buildDirectory.dir("out")'   | 'build/out' | 'EXECUTED'    | 'UP-TO-DATE' | []
-        true  | 'non-build-owned' | 'layout.projectDirectory.dir("out")' | 'out'       | 'EXECUTED'    | 'UP-TO-DATE' | []
+        skipOnEmpty | destDescription   | into                                 | destDir     | afterEmptying | onRerun      | remaining
+        true        | 'build-owned'     | 'layout.buildDirectory.dir("out")'   | 'build/out' | 'EXECUTED'    | 'NO-SOURCE'  | null
+        true        | 'non-build-owned' | 'layout.projectDirectory.dir("out")' | 'out'       | 'NO-SOURCE'   | 'NO-SOURCE'  | ['foo.txt']
+        false       | 'build-owned'     | 'layout.buildDirectory.dir("out")'   | 'build/out' | 'EXECUTED'    | 'UP-TO-DATE' | []
+        false       | 'non-build-owned' | 'layout.projectDirectory.dir("out")' | 'out'       | 'EXECUTED'    | 'UP-TO-DATE' | []
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'an empty source with no previous run (syncWhenSourceIsEmpty: #optIn)'() {
+    def 'an empty source with no previous run (skipWhenSourceIsEmpty: #skipOnEmpty)'() {
         given:
         // 'source' is never created, so it resolves to an empty file tree (simulating a misconfigured 'from').
         file('dest/unrelated.txt').text = 'do not delete me'
@@ -83,7 +83,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
-                syncWhenSourceIsEmpty = $optIn
+                skipWhenSourceIsEmpty = $skipOnEmpty
             }
         """
 
@@ -95,13 +95,13 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         assertDestination('dest', remaining)
 
         where:
-        optIn | expectedOutcome | remaining
-        false | 'NO-SOURCE'     | ['unrelated.txt']
-        true  | 'EXECUTED'      | []
+        skipOnEmpty | expectedOutcome | remaining
+        true        | 'NO-SOURCE'     | ['unrelated.txt']
+        false       | 'EXECUTED'      | []
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'an empty source with a destination that does not exist yet (syncWhenSourceIsEmpty: #optIn)'() {
+    def 'an empty source with a destination that does not exist yet (skipWhenSourceIsEmpty: #skipOnEmpty)'() {
         given:
         // neither 'source' nor 'dest' is created, so the source resolves to an empty file tree and there is
         // nothing at all for the task to do
@@ -109,7 +109,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
-                syncWhenSourceIsEmpty = $optIn
+                skipWhenSourceIsEmpty = $skipOnEmpty
             }
         """
 
@@ -121,15 +121,15 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         assertDestination('dest', remaining)
 
         where:
-        // opting in runs the task, which creates its output directory, but the copy action does no work,
+        // not skipping runs the task, which creates its output directory, but the copy action does no work,
         // so the task is reported as UP-TO-DATE rather than as executed
-        optIn | expectedOutcome | remaining
-        false | 'NO-SOURCE'     | null
-        true  | 'UP-TO-DATE'    | []
+        skipOnEmpty | expectedOutcome | remaining
+        true        | 'NO-SOURCE'     | null
+        false       | 'UP-TO-DATE'    | []
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'syncWhenSourceIsEmpty is honored when set after the task has been configured'() {
+    def 'skipWhenSourceIsEmpty is honored when set after the task has been configured'() {
         given:
         // 'source' is never created, so it resolves to an empty file tree. The pre-existing file gives the
         // task something to do, so that honoring the late assignment shows up as the task running rather
@@ -143,7 +143,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             }
 
             tasks.named('sync') {
-                syncWhenSourceIsEmpty = true
+                skipWhenSourceIsEmpty = false
             }
         """
 
@@ -155,7 +155,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'opting into syncWhenSourceIsEmpty removes the copy spec from the task source files (syncWhenSourceIsEmpty: #optIn)'() {
+    def 'disabling skipWhenSourceIsEmpty removes the copy spec from the task source files (skipWhenSourceIsEmpty: #skipOnEmpty)'() {
         given:
         file('source/foo.txt').text = 'foo'
 
@@ -163,7 +163,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
-                syncWhenSourceIsEmpty = $optIn
+                skipWhenSourceIsEmpty = $skipOnEmpty
             }
 
             println "sourceFiles=" + tasks.sync.inputs.sourceFiles.files.size()
@@ -178,9 +178,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         outputContains("inputFiles=1")
 
         where:
-        optIn | expectedSourceFiles
-        false | 1
-        true  | 0
+        skipOnEmpty | expectedSourceFiles
+        true        | 1
+        false       | 0
     }
 
     def 'copies files and removes extra files from destDir'() {
@@ -254,7 +254,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37597")
-    def 'preserve is honored when the source is fully emptied and syncWhenSourceIsEmpty is true (destination: #description)'() {
+    def 'preserve is honored when the source is fully emptied and skipWhenSourceIsEmpty is false (destination: #description)'() {
         given:
         file('source/foo.txt').text = 'foo'
         file('source/keep.txt').text = 'keep'
@@ -265,7 +265,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             task sync(type: Sync) {
                 from 'source'
                 into $into
-                syncWhenSourceIsEmpty = true
+                skipWhenSourceIsEmpty = false
                 preserve {
                     include 'keep.txt'
                 }

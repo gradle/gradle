@@ -21,8 +21,8 @@
                 <td><literal>empty</literal></td>
             </tr>
             <tr>
-                <td>syncWhenSourceIsEmpty</td>
-                <td><literal>false</literal></td>
+                <td>skipWhenSourceIsEmpty</td>
+                <td><literal>true</literal></td>
             </tr>
         </table>
     </section>

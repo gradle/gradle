@@ -95,15 +95,15 @@ Gradle provides a comprehensive plugin system, including built-in [Core Plugins]
 
 A [`Sync`](dsl/org.gradle.api.tasks.Sync.html) task whose source contains no files and no directories, by default, does not run, so its destination directory is not synchronized. What is left in the destination then depends on where it is: a destination inside the build directory is cleaned up, while one outside it keeps the files the source no longer contains.
 
-The new `syncWhenSourceIsEmpty` property makes the task run in that case as well, so that an empty source empties the destination directory:
+Setting the new `skipWhenSourceIsEmpty` property to `false` makes the task run in that case as well, so that an empty source empties the destination directory:
 
 ```kotlin
 tasks.named<Sync>("mySync") {
-    syncWhenSourceIsEmpty = true
+    skipWhenSourceIsEmpty = false
 }
 ```
 
-`Sync` always deletes the entire contents of its destination directory, not only the files it previously copied there. With `syncWhenSourceIsEmpty` enabled, that also happens when the source is empty - including when it is empty by mistake - so enable it only where nothing other than the task writes to the destination, and use `preserve { ... }` to retain anything the task does not manage.
+`Sync` always deletes the entire contents of its destination directory, not only the files it previously copied there. With `skipWhenSourceIsEmpty` disabled, that also happens when the source is empty - including when it is empty by mistake - so disable it only where nothing other than the task writes to the destination, and use `preserve { ... }` to retain anything the task does not manage.
 
 See [Synchronizing from an empty source](userguide/working_with_files.html#sec:sync_task_empty_source) in the user manual for more details.
 
