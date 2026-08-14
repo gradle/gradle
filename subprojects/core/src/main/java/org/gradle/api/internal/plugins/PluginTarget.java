@@ -32,8 +32,4 @@ public interface PluginTarget {
     ConfigurationTargetIdentifier getConfigurationTargetIdentifier();
 
     void applyImperative(@Nullable String pluginId, Plugin<?> plugin);
-
-    void applyRules(@Nullable String pluginId, Class<?> clazz);
-
-    void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass);
 }

@@ -22,12 +22,10 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
 import org.gradle.execution.plan.FinalizedExecutionPlan
-import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.PlanExecutor
 import org.gradle.execution.plan.QueryableExecutionPlan
@@ -149,41 +147,6 @@ class DefaultBuildWorkExecutorTest extends AbstractExecutionPlanSpec {
         thrown.is(failure)
     }
 
-    def "binds the model rules of every project that owns a scheduled task"() {
-        def otherProject = project(project, "other")
-        def plan = newPlan([taskNodeOwnedBy(project), taskNodeOwnedBy(otherProject)])
-
-        when:
-        underTest.execute(gradle, plan)
-
-        then:
-        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
-        1 * project.bindAllModelRules()
-        1 * otherProject.bindAllModelRules()
-    }
-
-    def "binds the model rules of a project only once when it owns several scheduled tasks"() {
-        def plan = newPlan([taskNodeOwnedBy(project), taskNodeOwnedBy(project)])
-
-        when:
-        underTest.execute(gradle, plan)
-
-        then:
-        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
-        1 * project.bindAllModelRules()
-    }
-
-    def "does not bind model rules for scheduled nodes that are not tasks"() {
-        def plan = newPlan([Mock(Node) { getOwningProject() >> project }])
-
-        when:
-        underTest.execute(gradle, plan)
-
-        then:
-        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
-        0 * project.bindAllModelRules()
-    }
-
     def "can execute multiple times"() {
         def plan = newPlan()
         def plan2 = newPlan()
@@ -255,12 +218,6 @@ class DefaultBuildWorkExecutorTest extends AbstractExecutionPlanSpec {
                 }
             }
             asWorkSource() >> Stub(WorkSource)
-        }
-    }
-
-    LocalTaskNode taskNodeOwnedBy(ProjectInternal owner) {
-        Mock(LocalTaskNode) {
-            getOwningProject() >> owner
         }
     }
 

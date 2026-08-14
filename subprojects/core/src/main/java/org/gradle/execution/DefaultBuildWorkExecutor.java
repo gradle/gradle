@@ -15,7 +15,6 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -23,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
-import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -43,9 +41,7 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.Closeable;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
@@ -133,8 +129,6 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
             throw new IllegalStateException("Executed plan inconsistent with build's execution plan.");
         }
 
-        bindAllReferencesOfProject(plan);
-
         taskGraph.getGraphExecutionListeners().beforeGraphExecutionStarts(plan.getContents());
 
         Map<ProjectInternal, NodeExecutionContext> projectContexts = new ConcurrentHashMap<>();
@@ -161,18 +155,6 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
             taskGraph.depopulate();
             CompositeStoppable.stoppable(projectContexts.values()).stop();
             // Global context is intentionally not closed
-        }
-    }
-
-    private static void bindAllReferencesOfProject(FinalizedExecutionPlan plan) {
-        Set<Project> seen = new HashSet<>();
-        for (Node node : plan.getContents().getScheduledNodes().getScheduledNodes()) {
-            if (node instanceof LocalTaskNode) {
-                ProjectInternal taskProject = node.getOwningProject();
-                if (seen.add(taskProject)) {
-                    taskProject.bindAllModelRules();
-                }
-            }
         }
     }
 

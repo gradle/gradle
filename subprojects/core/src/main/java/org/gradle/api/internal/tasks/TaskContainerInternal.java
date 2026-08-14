@@ -22,17 +22,11 @@ import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
 @ServiceScope(Scope.Project.class)
 public interface TaskContainerInternal extends TaskContainer, PolymorphicDomainObjectContainerInternal<Task> {
-
-    // The path to the project's task container in the model registry
-    ModelPath MODEL_PATH = ModelPath.path("tasks");
-    ModelType<TaskContainerInternal> MODEL_TYPE = ModelType.of(TaskContainerInternal.class);
 
     DynamicObject getTasksAsDynamicObject();
 
@@ -54,12 +48,12 @@ public interface TaskContainerInternal extends TaskContainer, PolymorphicDomainO
     void prepareForExecution(Task task);
 
     /**
-     * Adds a previously constructed task into the container.  For internal use with software model bridging.
+     * Adds a previously constructed task into the container.
      */
     boolean addInternal(Task task);
 
     /**
-     * Adds a previously constructed task into the container.  For internal use with software model bridging.
+     * Adds previously constructed tasks into the container.
      */
     boolean addAllInternal(Collection<? extends Task> task);
 

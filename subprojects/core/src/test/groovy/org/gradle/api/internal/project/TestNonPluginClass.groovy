@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting.model.internal;
+package org.gradle.api.internal.project
 
-import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
-import org.gradle.model.internal.core.ModelNode;
-
-public class TextModelReportRenderer extends TextReportRenderer {
-    private final ModelNodeRenderer modelNodeRenderer;
-
-    public TextModelReportRenderer(ModelNodeRenderer modelNodeRenderer) {
-        this.modelNodeRenderer = modelNodeRenderer;
-    }
-
-    public void render(ModelNode node) {
-        modelNodeRenderer.render(node, getBuilder());
-    }
+/**
+ * A class that is registered as a plugin implementation but does not implement {@code Plugin}.
+ */
+class TestNonPluginClass {
 }

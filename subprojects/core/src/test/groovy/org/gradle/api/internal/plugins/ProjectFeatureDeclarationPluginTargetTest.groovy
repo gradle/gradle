@@ -123,16 +123,6 @@ class ProjectFeatureDeclarationPluginTargetTest extends Specification {
         1 * delegate.applyImperative(null, registrationPlugin)
     }
 
-    def "passes rule targets to delegate only"() {
-        when:
-        pluginTarget.applyRules(null, Rule.class)
-
-        then:
-        1 * delegate.applyRules(null, Rule.class)
-        0 * _
-    }
-
     abstract class ProjectTypePlugin implements Plugin<Project> { }
     abstract class ProjectFeaturePlugin implements Plugin<Project> { }
-    private static class Rule {}
 }

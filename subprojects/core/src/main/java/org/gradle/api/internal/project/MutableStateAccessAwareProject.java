@@ -74,9 +74,7 @@ import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
-import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
@@ -318,12 +316,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public ProjectInternal evaluateUnchecked() {
         return delegate.evaluateUnchecked();
-    }
-
-    @Override
-    public ProjectInternal bindAllModelRules() {
-        onMutableStateAccess("bindAllModelRules");
-        return delegate.bindAllModelRules();
     }
 
     @Override
@@ -813,18 +805,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public void addRuleBasedPluginListener(RuleBasedPluginListener listener) {
-        onMutableStateAccess("ruleBasedPluginListener");
-        delegate.addRuleBasedPluginListener(listener);
-    }
-
-    @Override
-    public void prepareForRuleBasedPlugins() {
-        onMutableStateAccess("ruleBasedPlugins");
-        delegate.prepareForRuleBasedPlugins();
-    }
-
-    @Override
     public FileResolver getFileResolver() {
         return delegate.getFileResolver();
     }
@@ -891,12 +871,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public ProjectConfigurationActionContainer getConfigurationActions() {
         onMutableStateAccess("configurationActions");
         return delegate.getConfigurationActions();
-    }
-
-    @Override
-    public ModelRegistry getModelRegistry() {
-        onMutableStateAccess("modelRegistry");
-        return delegate.getModelRegistry();
     }
 
     @Override

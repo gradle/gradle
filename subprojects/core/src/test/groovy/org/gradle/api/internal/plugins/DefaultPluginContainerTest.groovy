@@ -19,11 +19,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.TestRuleSource
+import org.gradle.api.internal.project.TestNonPluginClass
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -32,7 +31,7 @@ import spock.lang.Subject
 
 class DefaultPluginContainerTest extends Specification {
 
-    PluginInspector pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
+    PluginInspector pluginInspector = new PluginInspector()
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
     def target = Mock(PluginTarget)
@@ -294,11 +293,11 @@ class DefaultPluginContainerTest extends Specification {
 
     def "a useful error message is set when a plain rule source type is passed to withType"() {
         when:
-        container.withType(TestRuleSource)
+        container.withType(TestNonPluginClass)
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "'$TestRuleSource.name' does not implement the Plugin interface."
+        e.message == "'$TestNonPluginClass.name' does not implement the Plugin interface."
     }
 
     def "cannot add plugins directly to container"() {
