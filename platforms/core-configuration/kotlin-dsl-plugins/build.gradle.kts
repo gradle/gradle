@@ -25,6 +25,7 @@ dependencies {
     compileOnly(projects.serviceLookup)
     compileOnly(projects.stdlibJavaExtensions)
 
+    compileOnly(libs.kotlinBuildToolsApi.relaxRestriction())
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
     compileOnly(libs.jspecify)
