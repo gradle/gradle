@@ -59,6 +59,7 @@ model {
 '''
 
         when:
+        expectModelDslDeprecation()
         run "show"
 
         then:
@@ -93,6 +94,7 @@ model {
 '''
 
         when:
+        expectModelDslDeprecation()
         run "show"
 
         then:
@@ -123,6 +125,7 @@ model {
 '''
 
         when:
+        expectModelDslDeprecation()
         fails "model"
 
         then:
@@ -149,6 +152,7 @@ model {
 '''
 
         when:
+        expectModelDslDeprecation()
         fails "model"
 
         then:
@@ -176,6 +180,7 @@ model {
 '''
 
         when:
+        expectModelDslDeprecation()
         fails "model"
 
         then:
@@ -202,11 +207,16 @@ model {
 '''
 
         when:
+        expectModelDslDeprecation()
         fails "model"
 
         then:
         failure.assertHasLineNumber(12)
         failure.assertHasCause('Exception thrown while executing model rule: barry { ... } @ build.gradle line 11, column 5')
         failure.assertHasCause('No signature of method: Person.name() is applicable for argument types: (')
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }
