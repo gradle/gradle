@@ -185,6 +185,17 @@ Gradle provides [Tooling APIs](userguide/third_party_integration.html) that faci
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
 
+#### Improved performance on Windows machines with slow system clocks
+
+Gradle reads the system clock frequently while a build runs, to capture execution traces, progress events, and log messages.
+On most machines, querying the time is inexpensive.
+However, on some Windows systems, particularly virtualized ones, reading the clock is much slower, and the increased cost can accumulate over the many readings taken during a single build invocation.
+
+Gradle now detects these slow system clocks at startup and switches to a faster source of time for the remainder of the build.
+On affected machines we have measured build time improvements of up to 45%.
+
+Builds on machines with a normal system clock are unaffected, and no change to configuration is required.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ========================================================== -->
