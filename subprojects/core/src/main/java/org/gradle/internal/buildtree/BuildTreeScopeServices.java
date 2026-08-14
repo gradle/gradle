@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.configuration.BuildFeatures;
@@ -99,6 +98,7 @@ import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 
 import java.util.List;
+import org.gradle.execution.plan.TaskNodeFactory;
 
 /**
  * Contains the singleton services for a single build tree which consists of one or more builds.
@@ -144,6 +144,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
         registration.add(NodeValidator.class, DefaultNodeValidator.class);
+        registration.add(TaskNodeFactory.class);
     }
 
     @Provides

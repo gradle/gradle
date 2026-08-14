@@ -16,6 +16,8 @@
 
 package org.gradle.internal.model;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A cache that loads values on demand as they are requested.
  */
@@ -30,6 +32,15 @@ public interface InMemoryLoadingCache<K, V> {
      * @return The value corresponding to the key.
      */
     V get(K key);
+
+    /**
+     * Get the value corresponding to the given key, if it is already present in the cache.
+     *
+     * @param key The key to look up.
+     *
+     * @return The value corresponding to the key, or null if the key is not present in the cache.
+     */
+    @Nullable V getIfPresent(K key);
 
     /**
      * Invalidates the cache, clearing all cached entries.

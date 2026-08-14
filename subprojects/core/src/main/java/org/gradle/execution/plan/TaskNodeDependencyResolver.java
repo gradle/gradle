@@ -18,22 +18,36 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
+
+import javax.inject.Inject;
 
 /**
  * Resolves dependencies to {@link TaskNode} objects. Uses the same logic as {@link #TASK_AS_TASK}.
  */
 @ServiceScope(Scope.Build.class)
 public class TaskNodeDependencyResolver implements DependencyResolver {
+
     private final TaskNodeFactory taskNodeFactory;
 
-    public TaskNodeDependencyResolver(TaskNodeFactory taskNodeFactory) {
+    private final Path owningBuildPath;
+
+    @Inject
+    public TaskNodeDependencyResolver(
+        TaskNodeFactory taskNodeFactory,
+        BuildState owningBuild
+    ) {
         this.taskNodeFactory = taskNodeFactory;
+        this.owningBuildPath = owningBuild.getIdentityPath();
     }
 
     @Override
     public boolean resolve(Task task, Object node, final Action<? super Node> resolveAction) {
-        return TASK_AS_TASK.resolve(task, node, resolved -> resolveAction.execute(taskNodeFactory.getOrCreateNode(resolved)));
+        return TASK_AS_TASK.resolve(task, node, resolved -> resolveAction.execute(taskNodeFactory.getOrCreateNode((TaskInternal) resolved, owningBuildPath)));
     }
+
 }
