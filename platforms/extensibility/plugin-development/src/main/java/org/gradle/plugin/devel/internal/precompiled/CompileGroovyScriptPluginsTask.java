@@ -43,7 +43,6 @@ import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -118,8 +117,7 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
         File scriptClassesDir = subdirectory(intermediatePluginClassesDirectory, scriptPlugin.getId());
         getScriptCompilationHandler().compileToDir(
             scriptPlugin.getBodySource(), compileClassLoader, scriptClassesDir,
-            scriptMetadataDir, scriptCompileOperation, target.getScriptClass(),
-            ClosureCreationInterceptingVerifier.INSTANCE);
+            scriptMetadataDir, scriptCompileOperation, target.getScriptClass());
     }
 
     private static File subdirectory(Provider<Directory> root, String subdirPath) {

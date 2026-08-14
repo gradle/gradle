@@ -117,8 +117,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
-import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.ModelReference;
@@ -134,7 +132,6 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -1435,22 +1432,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ExtensionContainerInternal getExtensions() {
         return (ExtensionContainerInternal) extensibleDynamicObject.getExtensions();
-    }
-
-    // Not part of the public API
-    public void model(Closure<?> modelRules) {
-        DeprecationLogger.deprecate("The model DSL")
-            .withContext("Rule-based/software model plugins are no longer supported.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_software_model")
-            .nagUser();
-        prepareForRuleBasedPlugins();
-        ModelRegistry modelRegistry = getModelRegistry();
-        if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, this.getRootProject().getFileResolver()), modelRules);
-        } else {
-            new NonTransformedModelDslBacking(modelRegistry).configure(modelRules);
-        }
     }
 
     @Inject
