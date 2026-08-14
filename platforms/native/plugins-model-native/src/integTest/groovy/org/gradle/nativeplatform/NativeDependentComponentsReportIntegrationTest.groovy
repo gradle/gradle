@@ -30,7 +30,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "displays dependents report for all components of the task's project"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleCppBuild()
 
@@ -45,7 +44,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "displays dependents of targeted '#component' component"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleCppBuild()
 
@@ -64,7 +62,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "fails when targeted component is not found"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleCppBuild()
 
@@ -77,7 +74,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "fails when some of the targeted components are not found"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleBuildWithTestSuites()
 
@@ -90,7 +86,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "displays dependent of multiple targeted components"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleCppBuild()
 
@@ -105,7 +100,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "hide non-buildable dependents by default #nonBuildables"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleCppBuild()
         nonBuildables.each { nonBuildable ->
@@ -143,7 +137,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "displays non-buildable dependents when using #option"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleCppBuild() + '''
             model {
@@ -186,7 +179,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "consider components with no buildable binaries as non-buildables"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleCppBuild()
         buildFile << '''
@@ -212,7 +204,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "displays dependents across projects in a build"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         settingsFile.text = multiProjectSettings()
         buildFile multiProjectBuild()
@@ -250,7 +241,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "can show dependent components in parallel"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()
         buildFile multiProjectBuild()
@@ -299,7 +289,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "don't fail with prebuilt libraries"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleBuildWithPrebuiltLibrary()
 
@@ -309,7 +298,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "hide test suites by default"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleBuildWithTestSuites()
 
@@ -325,7 +313,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "displays dependent test suites when using #option"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile simpleBuildWithTestSuites()
 
@@ -370,7 +357,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "direct circular dependencies are handled gracefully"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile simpleCppBuild()
         buildFile << '''
             model {
@@ -401,7 +387,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "indirect circular dependencies are handled gracefully"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile simpleCppBuild()
         buildFile << '''
             model {
@@ -439,7 +424,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "circular dependencies across projects are handled gracefully"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         settingsFile.text = multiProjectSettings()
         buildFile multiProjectBuild()
@@ -475,7 +459,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     def "report renders variant binaries"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             apply plugin: 'cpp'
             model {
@@ -527,7 +510,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
     @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "report for empty build displays no component"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile emptyNativeBuild()
 
@@ -541,7 +523,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
     @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "report for empty build displays no component with task option #option"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile emptyNativeBuild()
 

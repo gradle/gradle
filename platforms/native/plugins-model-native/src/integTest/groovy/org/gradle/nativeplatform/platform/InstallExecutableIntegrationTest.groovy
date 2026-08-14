@@ -49,7 +49,6 @@ model {
     }
 
     def "can create installation for a different os than the current one"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         String installOS
         if (os.windows) {
             installOS = "linux"

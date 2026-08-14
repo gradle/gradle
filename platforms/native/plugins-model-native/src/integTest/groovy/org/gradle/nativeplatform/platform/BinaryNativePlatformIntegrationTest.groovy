@@ -66,7 +66,6 @@ model {
     }
 
     def "build binary for a default target platform"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def arch = currentArch()
 
@@ -82,7 +81,6 @@ model {
 
     @RequiresInstalledToolChain(SUPPORTS_32)
     def "configure component for a single target platform"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 model {
@@ -114,7 +112,6 @@ model {
     }
 
     def "defaults to current platform when platforms are defined but not targeted"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         def arch = currentArch()
         when:
         buildFile << """
@@ -142,7 +139,6 @@ model {
 
     @RequiresInstalledToolChain(SUPPORTS_32)
     def "library with matching platform is enforced by dependency resolution"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         testApp.executable.writeSources(file("src/exe"))
         testApp.library.writeSources(file("src/hello"))
@@ -185,7 +181,6 @@ model {
     }
 
     def "library with no platform defined is correctly chosen by dependency resolution"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         def arch = currentArch()
 
         given:
@@ -217,7 +212,6 @@ model {
     // No arm support in VS2022+
     @RequiresInstalledToolChain(VISUALCPP_2019)
     def "build binary for multiple target architectures"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 model {
@@ -266,7 +260,6 @@ model {
 
     @RequiresInstalledToolChain(SUPPORTS_32)
     def "can configure binary for multiple target operating systems"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         String currentOs
         if (os.windows) {
             currentOs = "windows"
@@ -323,7 +316,6 @@ model {
     }
 
     def "fails with reasonable error message when trying to build for an #type"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 model {
@@ -356,7 +348,6 @@ model {
     }
 
     def "fails with reasonable error message when trying to target an unknown platform"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         settingsFile << "rootProject.name = 'bad-platform'"
         buildFile << """
@@ -379,7 +370,6 @@ model {
     }
 
     def "fails with reasonable error message when depended on library has no variant with matching platform"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         settingsFile << "rootProject.name = 'no-matching-platform'"
         buildFile << """
@@ -412,7 +402,6 @@ model {
 
     @Issue("GRADLE-3499")
     def "can create a binary which name contains dots"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
             model {

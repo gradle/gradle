@@ -72,7 +72,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     }
 
     def "does not re-execute build with no change"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         run "mainExecutable"
 
@@ -82,7 +81,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "reassembles binary with assembler option change"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             model {
@@ -114,7 +112,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         OsTestPreconditions.NotWindows
     ])
     def "reassembles binary with target platform change"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile.text = buildFile.text.replace("i386", "x86-64")
 
@@ -127,7 +124,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     }
 
     def "cleans up stale object files when source file renamed"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         def oldObjFile = objectFileFor(asmSourceFile, "build/objs/hello/shared/helloAsm")
         def newObjFile = objectFileFor(file('src/hello/asm/changed_sum.s'), "build/objs/hello/shared/helloAsm")
         assert oldObjFile.file
@@ -146,7 +142,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     }
 
     def "reassembles binary with source comment change"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         asmSourceFile << "# A comment at the end of the file\n"
         run "mainExecutable"

@@ -52,7 +52,6 @@ model {
     }
 
     def "uses naming scheme of target platform when cross-compiling"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         // TODO - use linux as the target when running on windows
         buildFile << """
 model {

@@ -46,7 +46,6 @@ model {
     }
 
     def "tool chain is not available when visual studio install is not available"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
     toolChains {
@@ -66,7 +65,6 @@ model {
     }
 
     def "tool chain is not available when SDK install is not available"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
     toolChains {

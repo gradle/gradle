@@ -52,7 +52,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
     }
 
     def "can specify location of generated files"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         hostGradleWrapperFile << "dummy wrapper"
         buildFile << '''
@@ -106,7 +105,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
     }
 
     def "can add xml configuration to generated project files"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
     model {
@@ -131,7 +129,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
     }
 
     def "can add xml configuration to generated filter files"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
     model {
@@ -153,7 +150,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
     }
 
     def "can add text content to generated solution files"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
     model {
@@ -183,7 +179,6 @@ EndGlobal
     }
 
     def "can configure gradle command line"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 tasks.withType(GenerateProjectFileTask) {

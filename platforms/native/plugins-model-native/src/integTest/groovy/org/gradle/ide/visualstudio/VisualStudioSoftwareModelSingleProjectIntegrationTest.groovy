@@ -74,7 +74,6 @@ class VisualStudioSoftwareModelSingleProjectIntegrationTest extends AbstractVisu
 
     @Issue("https://github.com/gradle/gradle/issues/790")
     def "creating visual studio multiple time gives the same result"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.writeSources(file("src/main"))
         buildFile << """
@@ -106,7 +105,6 @@ model {
     }
 
     def "create visual studio solution for single executable"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.writeSources(file("src/main"))
         buildFile << """
@@ -147,7 +145,6 @@ model {
 
     @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can build executable from visual studio"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         useMsbuildTool()
         def debugBinary = executable("build/exe/main/win32/debug/main")
 
@@ -179,7 +176,6 @@ model {
 
     @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can build library from visual studio"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         useMsbuildTool()
         def debugBinaryLib = staticLibrary("build/libs/main/static/win32/debug/main")
         def debugBinaryDll = sharedLibrary("build/libs/main/shared/win32/debug/main")
@@ -212,7 +208,6 @@ model {
 
     @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can detect build failure from visual studio"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         useMsbuildTool()
 
         given:
@@ -241,7 +236,6 @@ model {
 
     @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can clean from visual studio"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         useMsbuildTool()
         def debugBinary = executable('build/exe/main/win32/debug/main')
 
@@ -280,7 +274,6 @@ model {
     }
 
     def "create visual studio solution for library"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
@@ -324,7 +317,6 @@ model {
     }
 
     def "create visual studio solution for build with an executable and library"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
@@ -369,7 +361,6 @@ model {
     }
 
     def "create visual studio project for executable that targets multiple platforms with the same architecture"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.writeSources(file("src/main"))
         buildFile << """
@@ -395,7 +386,6 @@ model {
     }
 
     def "create visual studio solution for executable that has diamond dependency"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         def testApp = new ExeWithDiamondDependencyHelloWorldApp()
         testApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
 
@@ -444,7 +434,6 @@ model {
     }
 
     def "generate visual studio solution for executable with mixed sources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def testApp = new MixedLanguageHelloWorldApp(toolChain)
         testApp.writeSources(file("src/main"))
@@ -477,7 +466,6 @@ model {
 
     @RequiresInstalledToolChain(VISUALCPP)
     def "generate visual studio solution for executable with windows resource files"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def resourceApp = new WindowsResourceHelloWorldApp()
         resourceApp.writeSources(file("src/main"))
@@ -520,7 +508,6 @@ model {
     }
 
     def "builds solution for component with no source"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -547,7 +534,6 @@ model {
     }
 
     def "visual studio project includes headers co-located with sources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         // Write headers so they sit with sources
         app.files.each {
@@ -577,7 +563,6 @@ model {
     }
 
     def "visual studio solution with header-only library"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -644,7 +629,6 @@ model {
     }
 
     def "create visual studio solution for executable with variant conditional sources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.writeSources(file("src/win32"))
         app.alternate.writeSources(file("src/x64"))
@@ -681,7 +665,6 @@ model {
     }
 
     def "visual studio solution with pre-built library"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.writeSources(file("src/main"))
         buildFile << """
@@ -722,7 +705,6 @@ model {
     }
 
     def "visual studio solution for executable that depends on library using precompiled header"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -772,7 +754,6 @@ model {
     }
 
     def "visual studio solution for component graph with library dependency cycle"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -842,7 +823,6 @@ model {
     }
 
     def "create visual studio solution where referenced projects have different configurations"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
@@ -889,7 +869,6 @@ model {
     }
 
     def "only create visual studio projects for buildable binaries"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         app.library.writeSources(file("src/both"))
         app.library.writeSources(file("src/staticOnly"))
@@ -956,7 +935,6 @@ model {
     }
 
     def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard] #uniqueIndex"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.writeSources(file("src/main"))
         buildFile << """
@@ -996,7 +974,6 @@ model {
     }
 
     def "can detect different language standard per component for Visual Studio IntelliSense"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.writeSources(file("src/main"))
         buildFile << """
@@ -1034,7 +1011,6 @@ model {
     }
 
     def "does not configure language standard when compiler flag is absent for Visual Studio IntelliSense"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.writeSources(file("src/main"))
         buildFile << """

@@ -43,7 +43,6 @@ model {
     }
 
     def "input source sets of binary is union of component source sets and binary specific source sets"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
 model {
@@ -84,7 +83,6 @@ model {
     //   3. Fix ordering of rules within a component and binary
     @NotYetImplemented
     def "source sets can be added to the binaries of a component using a rule attached to the top level binaries container"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
 model {
@@ -114,7 +112,6 @@ model {
     }
 
     def "source sets can be added to the binaries of a component using a rule applied to all components"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
 model {
@@ -148,7 +145,6 @@ model {
     }
 
     def "can reference sources container for a binary from a rule"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
 model {
@@ -180,7 +176,6 @@ model {
     }
 
     def "elements of binary sources container should be visible in model report"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -241,7 +236,6 @@ model {
     }
 
     def "elements of binary sources container can be referenced in a rule"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
             model {
@@ -273,7 +267,6 @@ model {
     }
 
     def "elements in binary.sources should not be created when defined"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             model {
@@ -316,7 +309,6 @@ after ss1
     }
 
     def "reasonable error message when adding source set with unknown type"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 interface UnregisteredSourceSetType extends LanguageSourceSet {}

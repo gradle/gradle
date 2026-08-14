@@ -37,7 +37,6 @@ class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "includes a relative path to the build script"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 ${managedNumbers()}
@@ -58,7 +57,6 @@ model {
     }
 
     def "can find the relative path to a custom named build script"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def renamed = testDirectory.file("why.gradle")
         settingsFile << """
@@ -87,7 +85,6 @@ model {
     }
 
     def "can find the relative path when model configuration is applied from a local script inside the root dir"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def modelFile = testDirectory.file(inputFile)
         modelFile << """
@@ -113,7 +110,6 @@ model {
     }
 
     def "can find the relative path when model configuration is applied from a local script outside the root dir"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def buildDir = testDirectory.createDir("root-dir")
         def modelFile = testDirectory.file("my-model.gradle")
@@ -143,7 +139,6 @@ model {
     }
 
     def "can find the relative path when model configuration is applied from a remote http url"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         server.start()
         server.logRequests = false
@@ -170,7 +165,6 @@ model {
     }
 
     def "can find the relative path to model rules defined in different scripts"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def model1File = testDirectory.file("model1.gradle")
         def model2File = testDirectory.file("sub-dir", "model2.gradle")

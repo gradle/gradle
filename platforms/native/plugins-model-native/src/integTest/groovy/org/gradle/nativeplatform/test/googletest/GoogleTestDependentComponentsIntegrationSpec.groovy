@@ -115,7 +115,6 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
     }
 
     def "buildDependentsHello assemble and check all hello binaries"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()
@@ -128,7 +127,6 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
     }
 
     def "buildDependentsHelloSharedLibrary assemble and check hello shared library"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()
@@ -142,7 +140,6 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
     }
 
     def "buildDependentsHelloStaticLibrary assemble and check hello static library"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()
@@ -155,7 +152,6 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
     }
 
     def "buildDependentsHelloTestCUnitExe assemble and run test suite"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useConventionalSourceLocations()
         useStandardConfig()

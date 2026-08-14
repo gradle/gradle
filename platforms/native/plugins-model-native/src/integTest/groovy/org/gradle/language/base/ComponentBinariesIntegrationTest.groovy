@@ -42,7 +42,6 @@ model {
     }
 
     def "binaries of a component are visible in the top level binaries container"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         succeeds "model"
 
@@ -74,7 +73,6 @@ model {
     }
 
     def "multiple components may have binary with the same given name"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -129,7 +127,6 @@ model {
     }
 
     def "fails when component has binary whose qualified name conflicts with another binary"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -147,7 +144,6 @@ model {
     }
 
     def "binaries of a component can be configured using a rule attached to the top level binaries container"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
 model {
@@ -179,7 +175,6 @@ model {
     }
 
     def "binary has check task"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
 model {

@@ -67,7 +67,6 @@ task generateCSources(type: GenerateSources) {
 
     @ToBeFixedForConfigurationCache
     def "generator task produces c sources and headers"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CHelloWorldApp()
         app.writeSources(file("src/input"))
@@ -94,7 +93,6 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "generator task produces sources for dependent source set with headers only"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         // Write sources to src/main, headers to src/input
         def app = new CHelloWorldApp()
@@ -129,7 +127,6 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "generator task produces sources for dependent source set"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -160,7 +157,6 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "can have library composed of generated sources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -195,7 +191,6 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "can depend on header-only library composed of generated sources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         // Write sources to src/main, headers to src/hello
         def app = new CHelloWorldApp()
@@ -234,7 +229,6 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "generator task produces cpp sources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.writeSources(file("src/input"))
@@ -268,7 +262,6 @@ model {
     @RequiresInstalledToolChain(SUPPORTS_32)
     @ToBeFixedForConfigurationCache
     def "generator task produces assembler sources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
         def asmSources = app.sourceFiles.findAll({it.path == 'asm'})
@@ -305,7 +298,6 @@ model {
     @RequiresInstalledToolChain(VISUALCPP)
     @ToBeFixedForConfigurationCache
     def "generator task produces windows resources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new WindowsResourceHelloWorldApp()
         def rcSources = app.sourceFiles.findAll {it.path == 'rc'}
@@ -339,7 +331,6 @@ model {
     }
 
     def "produces reasonable error message when generator task does not have sourceDir property"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
 apply plugin: 'c'
@@ -368,7 +359,6 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "can explicitly configure source and header directories from generator task"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CHelloWorldApp()
         app.writeSources(file("src/input"))
@@ -403,7 +393,6 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "can configure generator task properties after wiring"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CHelloWorldApp()
         app.writeSources(file("src/input"))
@@ -438,7 +427,6 @@ lateConfiguredGenerator {
 
     @ToBeFixedForConfigurationCache
     def "creates visual studio project including generated sources"() {
-        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CHelloWorldApp()
         app.writeSources(file("src/input"))
