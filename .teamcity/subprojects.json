@@ -1099,13 +1099,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "model-groovy",
-    "path": "platforms/core-configuration/model-groovy",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "name": "model-reflect",
     "path": "platforms/core-configuration/model-reflect",
     "unitTests": true,

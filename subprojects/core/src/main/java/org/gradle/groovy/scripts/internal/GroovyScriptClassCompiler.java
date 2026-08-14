@@ -62,7 +62,6 @@ import org.objectweb.asm.Type;
 
 import java.io.Closeable;
 import java.io.File;
-import java.net.URI;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;

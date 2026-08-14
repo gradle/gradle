@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
-import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildRequestMetaData;

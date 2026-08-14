@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -92,20 +91,6 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
-import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
-import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
-import org.gradle.model.internal.inspect.ModelRuleExtractor;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.manage.binding.DefaultStructBindingsStore;
-import org.gradle.model.internal.manage.binding.StructBindingsStore;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor;
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionStrategy;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStrategy;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
@@ -181,42 +166,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Provides
     CacheCleanupStrategyFactory createCacheCleanupStrategyFactory(BuildOperationRunner buildOperationRunner) {
         return new DefaultCacheCleanupStrategyFactory(buildOperationRunner);
-    }
-
-    @Provides
-    ModelRuleExtractor createModelRuleInspector(List<MethodModelRuleExtractor> extractors, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {
-        List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
-        return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
-    }
-
-    @Provides
-    protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(List<ModelSchemaAspectExtractionStrategy> strategies) {
-        return new ModelSchemaAspectExtractor(strategies);
-    }
-
-    @Provides
-    protected ManagedProxyFactory createManagedProxyFactory() {
-        return new ManagedProxyFactory();
-    }
-
-    @Provides
-    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, List<ModelSchemaExtractionStrategy> strategies) {
-        return DefaultModelSchemaExtractor.withDefaultStrategies(strategies, aspectExtractor);
-    }
-
-    @Provides
-    protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
-        return new DefaultModelSchemaStore(modelSchemaExtractor);
-    }
-
-    @Provides
-    protected StructBindingsStore createStructBindingsStore(ModelSchemaStore schemaStore) {
-        return new DefaultStructBindingsStore(schemaStore);
-    }
-
-    @Provides
-    protected ModelRuleSourceDetector createModelRuleSourceDetector() {
-        return new ModelRuleSourceDetector();
     }
 
     @Provides

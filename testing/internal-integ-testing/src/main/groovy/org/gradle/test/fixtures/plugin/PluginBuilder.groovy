@@ -19,13 +19,9 @@ package org.gradle.test.fixtures.plugin
 import com.google.common.base.Splitter
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.model.ModelMap
-import org.gradle.model.Mutate
-import org.gradle.model.RuleSource
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
@@ -266,25 +262,6 @@ class PluginBuilder {
 
     PluginBuilder addSettingsPluginWithCustomCode(String code, String id = "test-plugin", String className = "TestSettingsPlugin") {
         addSettingsPlugin(code, id, className)
-        this
-    }
-
-    PluginBuilder addRuleSource(String pluginId) {
-        String className = "TestRuleSource"
-        addPluginSource(pluginId, className, """
-            ${packageName ? "package $packageName" : ""}
-
-            class $className extends $RuleSource.name {
-                @$Mutate.name
-                void addTask($ModelMap.name<$Task.name> tasks) {
-                    tasks.create("fromModelRule") {
-                        it.doLast {
-                            println "Model rule provided task executed"
-                        }
-                    }
-                }
-            }
-        """)
         this
     }
 
