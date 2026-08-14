@@ -31,7 +31,6 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
     private static final Ordering<Iterable<String>> LEXICOGRAPHICAL_ORDERING = Ordering.<String>natural().lexicographical();
     private final SortedSet<String> exceptions = new TreeSet<>();
     private final SortedSet<AnnotationMember> parameterAnnotations = new TreeSet<>();
-    private final SortedSet<AnnotationMember> typeAnnotations = new TreeSet<>();
     @Nullable
     private AnnotationValue<?> annotationDefaultValue;
 
@@ -52,14 +51,6 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
 
     public void addParameterAnnotation(ParameterAnnotationMember parameterAnnotationMember) {
         parameterAnnotations.add(parameterAnnotationMember);
-    }
-
-    public SortedSet<AnnotationMember> getTypeAnnotations() {
-        return ImmutableSortedSet.copyOf(typeAnnotations);
-    }
-
-    public void addTypeAnnotation(TypeAnnotationMember typeAnnotationMember) {
-        typeAnnotations.add(typeAnnotationMember);
     }
 
     public Optional<@Nullable AnnotationValue<?>> getAnnotationDefaultValue() {
