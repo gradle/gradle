@@ -2093,7 +2093,7 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class AbstractPropertyBeanWithForwarderSetter {
+    public static abstract class AbstractUpgradedPropertyBean {
         @ReplacesEagerProperty
         public abstract Property<String> getProp();
 
@@ -2104,7 +2104,7 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class AbstractPropertyBeanWithUnannotatedForwarderSetter {
+    public static abstract class AbstractLazyPropertyBeanWithEagerSetter {
         public abstract Property<String> getProp();
 
         public void setProp(String value) {
@@ -2116,7 +2116,7 @@ public class AsmBackedClassGeneratorTest {
         Provider<String> getProp();
     }
 
-    public static abstract class AbstractCovariantPropertyBeanWithForwarderSetter implements BeanWithProviderProp {
+    public static abstract class AbstractCovariantUpgradedPropertyBean implements BeanWithProviderProp {
         // The covariant override makes javac emit a concrete bridge getter.
         // The bridge only delegates here, so it cannot be managing a backing field either.
         @Override
@@ -2134,7 +2134,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     // The annotation is only on the super-interface getter: an override does not inherit it.
-    public static abstract class AbstractCovariantPropertyBeanWithInheritedAnnotation implements BeanWithAnnotatedProviderProp {
+    public static abstract class AbstractCovariantUpgradedPropertyBeanWithInheritedAnnotation implements BeanWithAnnotatedProviderProp {
         @Override
         public abstract Property<String> getProp();
 
@@ -2143,7 +2143,7 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class AbstractFileCollectionBeanWithPropertyTypedForwarderSetter {
+    public static abstract class AbstractUpgradedFileCollectionBean {
         @ReplacesEagerProperty
         public abstract ConfigurableFileCollection getFiles();
 
@@ -2154,7 +2154,7 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static abstract class AbstractProviderPropBeanWithForwarderSetter {
+    public static abstract class AbstractUpgradedProviderPropertyBean {
         // Provider cannot be created as managed state, so there is no lazy property to forward into
         @ReplacesEagerProperty
         public abstract Provider<String> getProp();
@@ -2170,7 +2170,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     // The re-declared getter has the same signature as the annotated one, so it hides it from ClassDetails.
-    public static abstract class AbstractPropertyBeanRedeclaringAnnotatedGetter implements BeanWithAnnotatedProperty {
+    public static abstract class AbstractUpgradedPropertyBeanRedeclaringGetter implements BeanWithAnnotatedProperty {
         @Override
         public abstract Property<String> getProp();
 
@@ -2185,7 +2185,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     // The annotation is on the superclass getter, the forwarder setter is added further down the hierarchy.
-    public static abstract class AbstractPropertyBeanWithForwarderSetterInSubclass extends AbstractAnnotatedPropertyBean {
+    public static abstract class AbstractUpgradedPropertyBeanWithEagerSetterInSubclass extends AbstractAnnotatedPropertyBean {
         public void setProp(String value) {
             getProp().set(value);
         }
@@ -2195,7 +2195,7 @@ public class AsmBackedClassGeneratorTest {
         public abstract Property<String> getProp();
     }
 
-    public static abstract class AbstractPropertyBeanWithUnannotatedForwarderSetterInSubclass extends AbstractPropertyBean {
+    public static abstract class AbstractLazyPropertyBeanWithEagerSetterInSubclass extends AbstractPropertyBean {
         public void setProp(String value) {
             getProp().set(value);
         }

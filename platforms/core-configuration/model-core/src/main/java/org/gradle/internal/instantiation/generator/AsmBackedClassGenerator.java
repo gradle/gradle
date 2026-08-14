@@ -937,14 +937,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
-            // If the type already declares a set<Name>(Object) (e.g. an eager-style migration setter
-            // forwarding into the lazy container, or one synthesised by @ReplacesEagerProperty when the
-            // original type erases to Object), our setFromAnyValue-backed set<Name>(Object) would be a
-            // duplicate. Skip generation in that case.
-            if (property.getOverridableSetters().stream().anyMatch(setter ->
-                setter.getParameterCount() == 1
-                    && setter.getParameterTypes()[0].equals(Object.class)
-                    && setter.getReturnType().equals(Void.TYPE))) {
+            if (declaresSetterTakingObject(property)) {
                 return;
             }
 
@@ -958,6 +951,22 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(1);
                 _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
             }});
+        }
+
+        /**
+         * Does the type already declare a {@code set<Name>(Object)}? It may be an eager-style migration setter
+         * forwarding into the lazy container, or one synthesised by {@code @ReplacesEagerProperty} when the original
+         * type erases to Object. Either way our {@code setFromAnyValue}-backed overload would duplicate it.
+         */
+        private static boolean declaresSetterTakingObject(PropertyMetadata property) {
+            for (Method setter : property.getOverridableSetters()) {
+                if (setter.getParameterCount() == 1
+                    && setter.getParameterTypes()[0].equals(Object.class)
+                    && setter.getReturnType().equals(Void.TYPE)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**

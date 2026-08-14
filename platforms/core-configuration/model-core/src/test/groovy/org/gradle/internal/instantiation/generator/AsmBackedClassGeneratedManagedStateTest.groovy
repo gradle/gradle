@@ -29,17 +29,17 @@ import org.gradle.util.TestUtil
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantPropertyBeanWithForwarderSetter
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantPropertyBeanWithInheritedAnnotation
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantUpgradedPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantUpgradedPropertyBeanWithInheritedAnnotation
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractFileCollectionBeanWithPropertyTypedForwarderSetter
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractProviderPropBeanWithForwarderSetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedFileCollectionBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedProviderPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBean
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithForwarderSetter
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanRedeclaringAnnotatedGetter
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithForwarderSetterInSubclass
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithUnannotatedForwarderSetter
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBeanWithUnannotatedForwarderSetterInSubclass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanRedeclaringGetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithEagerSetterInSubclass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractLazyPropertyBeanWithEagerSetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractLazyPropertyBeanWithEagerSetterInSubclass
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Bean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BrokenConstructor
@@ -79,8 +79,8 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.name == "name"
     }
 
-    def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndConcreteForwarderSetter() {
-        def bean = create(AbstractPropertyBeanWithForwarderSetter)
+    def canConstructInstanceOfAbstractClassWithUpgradedPropertyAndEagerSetter() {
+        def bean = create(AbstractUpgradedPropertyBean)
 
         expect:
         bean instanceof Managed
@@ -91,8 +91,8 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.get() == "value"
     }
 
-    def canConstructInstanceOfAbstractClassWithCovariantAbstractPropertyGetterAndConcreteForwarderSetter() {
-        def bean = create(AbstractCovariantPropertyBeanWithForwarderSetter)
+    def canConstructInstanceOfAbstractClassWithCovariantUpgradedPropertyAndEagerSetter() {
+        def bean = create(AbstractCovariantUpgradedPropertyBean)
 
         expect:
         bean instanceof Managed
@@ -103,7 +103,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
     }
 
     def "claims property with a forwarder setter that takes the property type"() {
-        def bean = create(AbstractFileCollectionBeanWithPropertyTypedForwarderSetter)
+        def bean = create(AbstractUpgradedFileCollectionBean)
         def file = tmpDir.file("some-file")
 
         expect:
@@ -118,11 +118,11 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
     def "does not claim property with a forwarder setter when the property type cannot be created"() {
         when:
-        create(AbstractProviderPropBeanWithForwarderSetter)
+        create(AbstractUpgradedProviderPropertyBean)
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message.contains("Cannot have abstract method AbstractProviderPropBeanWithForwarderSetter.getProp()")
+        e.cause.message.contains("Cannot have abstract method AbstractUpgradedProviderPropertyBean.getProp()")
     }
 
     def "claims property when @ReplacesEagerProperty is inherited from a super-interface getter"() {
@@ -136,11 +136,11 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.get() == "value"
 
         where:
-        type << [AbstractCovariantPropertyBeanWithInheritedAnnotation, AbstractPropertyBeanRedeclaringAnnotatedGetter]
+        type << [AbstractCovariantUpgradedPropertyBeanWithInheritedAnnotation, AbstractUpgradedPropertyBeanRedeclaringGetter]
     }
 
     def "claims property when @ReplacesEagerProperty is on a superclass getter and the forwarder setter is in a subclass"() {
-        def bean = create(AbstractPropertyBeanWithForwarderSetterInSubclass)
+        def bean = create(AbstractUpgradedPropertyBeanWithEagerSetterInSubclass)
 
         expect:
         bean instanceof Managed
@@ -160,8 +160,8 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         where:
         type                                                          | declaringType
-        AbstractPropertyBeanWithUnannotatedForwarderSetter            | AbstractPropertyBeanWithUnannotatedForwarderSetter
-        AbstractPropertyBeanWithUnannotatedForwarderSetterInSubclass  | AbstractPropertyBean
+        AbstractLazyPropertyBeanWithEagerSetter            | AbstractLazyPropertyBeanWithEagerSetter
+        AbstractLazyPropertyBeanWithEagerSetterInSubclass  | AbstractPropertyBean
     }
 
     def canUnpackAndRecreateAbstractClassWithAbstractPropertyGetterAndSetter() {
