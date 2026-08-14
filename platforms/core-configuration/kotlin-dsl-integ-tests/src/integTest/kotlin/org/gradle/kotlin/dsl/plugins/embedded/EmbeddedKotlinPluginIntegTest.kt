@@ -82,6 +82,39 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    fun `does not warn when the Build Tools API is off and the plugin version is the embedded one`() {
+
+        withFile("gradle.properties", "kotlin.compiler.runViaBuildToolsApi=false")
+
+        // The Kotlin Gradle Plugin deprecated this property, and it reports that on each build
+        executer.noDeprecationChecks()
+
+        withBuildScript(
+            """
+            import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+            import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+            $repositoriesBlock
+
+            @OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalBuildToolsApi::class)
+            fun useDifferentCompiler() = kotlin {
+                compilerVersion.set("2.3.21")
+            }
+            useDifferentCompiler()
+
+            """
+        )
+
+        val result = build("classes")
+
+        assertThat(result.output, not(containsString("Unsupported Kotlin")))
+    }
+
+    @Test
     @Requires(
         TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Class path isolation, needed for the forced Kotlin Gradle Plugin version"
