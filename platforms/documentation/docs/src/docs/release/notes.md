@@ -14,7 +14,10 @@ Gradle @version@ is the first patch release for Gradle 9.7.0. (released [@releas
 
 The following issues were resolved:
 
-* TODO
+- [BaseExecSpec streams seem to no longer conform with API on Gradle 9.7.0](https://github.com/gradle/gradle/issues/38787)
+- [Gradle 9.7.0 breaks the "Click to see difference" format from failed unit tests](https://github.com/gradle/gradle/issues/38788)
+- [9.7 leaks bundled antlr into kapt classpath](https://github.com/gradle/gradle/issues/38791)
+- [Gradle 9.7.0 breaks a working Transformer implementation](https://github.com/gradle/gradle/issues/38792)
 
 We recommend upgrading to Gradle @version@.
 
