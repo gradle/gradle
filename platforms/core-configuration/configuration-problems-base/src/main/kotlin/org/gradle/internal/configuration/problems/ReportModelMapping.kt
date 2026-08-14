@@ -21,10 +21,10 @@ import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Ref
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Text
 import org.gradle.problems.internal.report.model.JsBuildLogic
 import org.gradle.problems.internal.report.model.JsBuildLogicClass
+import org.gradle.problems.internal.report.model.JsConfigurationCacheSummary
 import org.gradle.problems.internal.report.model.JsDiagnostic
 import org.gradle.problems.internal.report.model.JsError
 import org.gradle.problems.internal.report.model.JsMessageFragment
-import org.gradle.problems.internal.report.model.JsModel
 import org.gradle.problems.internal.report.model.JsStackTracePart
 import org.gradle.problems.internal.report.model.JsTrace
 import org.gradle.problems.internal.report.model.JsTraceBean
@@ -47,8 +47,8 @@ import org.gradle.problems.internal.report.model.JsTraceVirtualProperty
  */
 
 
-/** The top-level configuration cache report envelope, without its diagnostics (streamed separately). */
-fun ProblemReportDetails.toJsModel(): JsModel = JsModel(
+/** The configuration cache report summary, without its diagnostics (streamed separately). */
+fun ProblemReportDetails.toJsSummary(): JsConfigurationCacheSummary = JsConfigurationCacheSummary(
     buildName = buildDisplayName,
     cacheAction = cacheAction,
     requestedTasks = requestedTasks,
