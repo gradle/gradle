@@ -24,6 +24,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
+import org.objectweb.asm.RecordComponentVisitor;
 import org.objectweb.asm.Type;
 
 import java.util.Optional;
@@ -64,6 +65,9 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         for (String permittedSubclass : classMember.getPermittedSubclasses()) {
             apiMemberAdapter.visitPermittedSubclass(permittedSubclass);
         }
+        for (RecordComponentMember recordComponent : classMember.getRecordComponents()) {
+            writeRecordComponent(recordComponent);
+        }
         InnerClassMember declaringInnerClass = innerClasses.stream()
             .filter(innerClass -> innerClass.getName().equals(classMember.getName()))
             .findFirst()
@@ -86,10 +90,27 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     }
 
     @Override
+    public void writeRecordComponent(RecordComponentMember recordComponent) {
+        RecordComponentVisitor rcv = apiMemberAdapter.visitRecordComponent(
+            recordComponent.getName(), recordComponent.getTypeDesc(), recordComponent.getSignature());
+        for (AnnotationMember annotation : recordComponent.getAnnotations()) {
+            writeAnnotationValues(annotation, rcv.visitAnnotation(annotation.getName(), annotation.isVisible()));
+        }
+        for (AnnotationMember annotation : recordComponent.getTypeAnnotations()) {
+            writeAnnotationValues(annotation, visitTypeAnnotation(rcv, (TypeAnnotationMember) annotation));
+        }
+        rcv.visitEnd();
+    }
+
+    @Override
     public void writeMethod(ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method) {
         MethodVisitor mv = apiMemberAdapter.visitMethod(
             method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
             method.getExceptions().toArray(new String[0]));
+        // Parameters must be visited before any annotation, see the MethodVisitor contract.
+        for (ParameterMember parameter : method.getParameters()) {
+            mv.visitParameter(parameter.getName(), parameter.getAccess());
+        }
         writeMethodAnnotations(mv, method.getAnnotations());
         writeMethodAnnotations(mv, method.getTypeAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
@@ -175,6 +196,10 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     }
 
     private static AnnotationVisitor visitTypeAnnotation(FieldVisitor target, TypeAnnotationMember annotation) {
+        return target.visitTypeAnnotation(annotation.getTypeRef(), annotation.getTypePath(), annotation.getName(), annotation.isVisible());
+    }
+
+    private static AnnotationVisitor visitTypeAnnotation(RecordComponentVisitor target, TypeAnnotationMember annotation) {
         return target.visitTypeAnnotation(annotation.getTypeRef(), annotation.getTypePath(), annotation.getName(), annotation.isVisible());
     }
 
