@@ -382,6 +382,7 @@ dependencies {
         succeeds 'resolve'
     }
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
         given:
         repository {
