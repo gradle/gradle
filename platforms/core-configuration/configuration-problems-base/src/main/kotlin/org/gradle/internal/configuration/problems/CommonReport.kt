@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging.getLogger
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.cc.impl.problems.HtmlReportWriter
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -31,6 +30,7 @@ import org.gradle.internal.hash.HashingOutputStream
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.problems.internal.report.HtmlReportWriter
 import org.gradle.problems.internal.report.model.JsonSource
 import java.io.Closeable
 import java.io.File
@@ -38,7 +38,6 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
-import kotlinx.serialization.json.Json
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -65,11 +64,6 @@ class CommonReport(
 
     private
     val documentationRegistry = DocumentationRegistry()
-
-
-    private
-    val json = Json { }
-
 
     sealed class State {
 
@@ -119,8 +113,7 @@ class CommonReport(
             spoolFileProvider: TemporaryFileProvider,
             private val reportFileName: String,
             val executor: ManagedExecutor,
-            private val distinctReports: Boolean,
-            private val json: Json
+            private val distinctReports: Boolean
         ) : State() {
 
             private
@@ -130,7 +123,7 @@ class CommonReport(
             val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
 
             private
-            val writer = createHtmlReportWriter(hashingStream)
+            val writer = HtmlReportWriter(hashingStream.writer())
 
             init {
                 executor.submit {
@@ -138,15 +131,9 @@ class CommonReport(
                 }
             }
 
-            private fun createHtmlReportWriter(hashingStream: HashingOutputStream): HtmlReportWriter {
-                val htmlReportTemplateLoader = HtmlReportTemplateLoader().load()
-                val hashingWriter = hashingStream.writer()
-                return HtmlReportWriter(hashingWriter, htmlReportTemplateLoader)
-            }
-
             override fun onDiagnostic(problem: JsonSource): State {
                 executor.submit {
-                    writer.writeDiagnostic(problem.toJson(json))
+                    writer.writeDiagnostic(problem)
                 }
                 return this
             }
@@ -183,7 +170,7 @@ class CommonReport(
 
             private
             fun closeHtmlReport(details: JsonSource) {
-                writer.endHtmlReport(details.toJson(json))
+                writer.endHtmlReport(details)
                 writer.close()
             }
 
@@ -248,8 +235,7 @@ class CommonReport(
             temporaryFileProvider,
             reportFileName,
             executorFactory.create("${reportContext.capitalized()} writer", 1),
-            distinctReports,
-            json
+            distinctReports
         ).onDiagnostic(problem)
     }
 

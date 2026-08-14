@@ -454,8 +454,9 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
             """
             problemMarkup << fragment.toString()
         }
-        // Mirrors HtmlReportWriter: the diagnostics array and the envelope ("model") object are each
-        // wrapped in their own marker pair, and are valid JSON on their own.
+        // Mirrors HtmlReportWriter from the configuration-cache-report library: the diagnostics array
+        // and the envelope ("model") object are each wrapped in their own marker pair, and are valid
+        // JSON on their own.
         def reportData = """
 // begin-report-data
 const diagnostics =
