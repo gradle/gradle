@@ -17,15 +17,12 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
-import org.gradle.api.internal.tasks.TaskExecutor;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
@@ -34,7 +31,11 @@ import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
+import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.TaskNode;
+import org.gradle.execution.plan.TaskNodeExecutor;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
@@ -61,17 +62,16 @@ import org.slf4j.LoggerFactory;
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
 
 /**
- * Default implementation of {@link TaskExecutor}.
+ * Default implementation of {@link TaskNodeExecutor}.
  */
-public class DefaultTaskExecutor implements TaskExecutor {
+public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutor.class);
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(DefaultTaskNodeExecutor.class);
 
     @SuppressWarnings("deprecation")
     private final org.gradle.api.execution.TaskExecutionListener taskExecutionListener;
     private final TaskListenerInternal taskListener;
     private final TaskExecutionModeResolver executionModeResolver;
-    private final TaskExecutionGraph taskExecutionGraph;
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationRunner buildOperationRunner;
     private final AsyncWorkTracker asyncWorkTracker;
@@ -88,13 +88,12 @@ public class DefaultTaskExecutor implements TaskExecutor {
     private final PathToFileResolver fileResolver;
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
 
-    public DefaultTaskExecutor(
+    public DefaultTaskNodeExecutor(
         BuildOperationRunner buildOperationRunner,
         @SuppressWarnings("deprecation")
         org.gradle.api.execution.TaskExecutionListener taskExecutionListener,
         TaskListenerInternal taskListener,
         TaskExecutionModeResolver executionModeResolver,
-        TaskExecutionGraph taskExecutionGraph,
         ExecutionHistoryStore executionHistoryStore,
         AsyncWorkTracker asyncWorkTracker,
         @SuppressWarnings("deprecation")
@@ -113,7 +112,6 @@ public class DefaultTaskExecutor implements TaskExecutor {
         this.taskExecutionListener = taskExecutionListener;
         this.taskListener = taskListener;
         this.executionModeResolver = executionModeResolver;
-        this.taskExecutionGraph = taskExecutionGraph;
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationRunner = buildOperationRunner;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -131,18 +129,20 @@ public class DefaultTaskExecutor implements TaskExecutor {
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public void execute(LocalTaskNode node) {
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext operationContext) {
-                operationContext.setResult(executeWithLifecycle(task, state, context));
+                operationContext.setResult(executeWithLifecycle(node));
+                TaskStateInternal state = node.getTask().getState();
                 operationContext.setStatus(state.getFailure() != null ? "FAILED" : state.getSkipMessage());
                 operationContext.failed(state.getFailure());
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(context.getLocalTaskNode());
+                TaskInternal task = node.getTask();
+                ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(node);
                 return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
                     .name(task.getIdentityPath().asString())
                     .progressDisplayName(task.getIdentityPath().asString())
@@ -157,7 +157,8 @@ public class DefaultTaskExecutor implements TaskExecutor {
      * executing the task. A null result is returned when the task did not return due to a failure
      * executing a before-task listener.
      */
-    private @Nullable ExecuteTaskBuildOperationResult executeWithLifecycle(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    private @Nullable ExecuteTaskBuildOperationResult executeWithLifecycle(LocalTaskNode node) {
+        TaskInternal task = node.getTask();
         ContextAwareTaskLogger contextAwareTaskLogger = null;
         try {
             Logger logger = task.getLogger();
@@ -169,20 +170,21 @@ public class DefaultTaskExecutor implements TaskExecutor {
                 contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
             }
         } catch (Throwable t) {
-            state.setOutcome(new TaskExecutionException(task, t));
+            task.getState().setOutcome(new TaskExecutionException(task, t));
             return null;
         }
 
         ExecutionEngine.Result result;
         try {
-            result = executeCatchingFailures(task, state, context);
+            result = executeCatchingFailures(node);
         } finally {
             if (contextAwareTaskLogger != null) {
                 contextAwareTaskLogger.setFallbackBuildOperationId(null);
             }
         }
-        ExecuteTaskBuildOperationResult operationResult = toOperationResult(state, result);
+        ExecuteTaskBuildOperationResult operationResult = toOperationResult(task.getState(), result);
 
+        TaskStateInternal state = task.getState();
         try {
             taskExecutionListener.afterExecute(task, state);
             taskListener.afterExecute(task.getTaskIdentity(), state);
@@ -215,11 +217,12 @@ public class DefaultTaskExecutor implements TaskExecutor {
         );
     }
 
-    private ExecutionEngine.@Nullable Result executeCatchingFailures(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    private ExecutionEngine.@Nullable Result executeCatchingFailures(LocalTaskNode node) {
         try {
-            return executeSkippingOnlyIf(task, state, context);
+            return executeSkippingOnlyIf(node);
         } catch (RuntimeException e) {
-            state.setOutcome(new TaskExecutionException(task, e));
+            TaskInternal task = node.getTask();
+            task.getState().setOutcome(new TaskExecutionException(task, e));
             return null;
         }
     }
@@ -227,7 +230,9 @@ public class DefaultTaskExecutor implements TaskExecutor {
     /**
      * Skips tasks whose onlyIf predicate evaluates to false
      */
-    private ExecutionEngine.@Nullable Result executeSkippingOnlyIf(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    private ExecutionEngine.@Nullable Result executeSkippingOnlyIf(LocalTaskNode node) {
+        TaskInternal task = node.getTask();
+        TaskStateInternal state = task.getState();
         Spec<? super TaskInternal> unsatisfiedSpec = null;
         try {
             Spec<? super TaskInternal> onlyIf = task.getOnlyIf();
@@ -258,27 +263,36 @@ public class DefaultTaskExecutor implements TaskExecutor {
             return null;
         }
 
-        return executeSkippingWithNoActions(task, state, context);
+        return executeSkippingWithNoActions(node);
     }
 
     /**
      * Skips tasks that have no actions.
      */
-    private ExecutionEngine.@Nullable Result executeSkippingWithNoActions(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    private ExecutionEngine.@Nullable Result executeSkippingWithNoActions(LocalTaskNode node) {
+        TaskInternal task = node.getTask();
         if (!task.hasTaskActions()) {
             LOGGER.info("Skipping {} as it has no actions.", task);
-            boolean upToDate = true;
-            for (Task dependency : taskExecutionGraph.getDependencies(task)) {
-                if (!dependency.getState().getSkipped()) {
-                    upToDate = false;
-                    break;
-                }
-            }
+            TaskStateInternal state = task.getState();
             state.setActionable(false);
-            state.setOutcome(upToDate ? TaskExecutionOutcome.UP_TO_DATE : TaskExecutionOutcome.EXECUTED);
+            state.setOutcome(allDependencyTasksSkipped(node)
+                ? TaskExecutionOutcome.UP_TO_DATE
+                : TaskExecutionOutcome.EXECUTED);
             return null;
         }
-        return executeFinalizingProperties(task, state, context);
+        return executeFinalizingProperties(node);
+    }
+
+    /**
+     * Return true if every task the given node depends on was skipped, false otherwise.
+     */
+    private static boolean allDependencyTasksSkipped(LocalTaskNode node) {
+        for (Node dependency : node.getDependencySuccessors()) {
+            if (dependency instanceof TaskNode && !((TaskNode) dependency).getTask().getState().getSkipped()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -289,13 +303,13 @@ public class DefaultTaskExecutor implements TaskExecutor {
      * is validated. However, we should finalize and validate any property whose value is used to finalize the
      * value of another property.
      */
-    private ExecutionEngine.@Nullable Result executeFinalizingProperties(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        TaskProperties properties = context.getTaskProperties();
+    private ExecutionEngine.@Nullable Result executeFinalizingProperties(LocalTaskNode node) {
+        TaskProperties properties = node.getTaskProperties();
         for (LifecycleAwareValue value : properties.getLifecycleAwareValues()) {
             value.prepareValue();
         }
         try {
-            return executeResolvingExecutionMode(task, state, context);
+            return executeTrackingTaskIdentity(node);
         } finally {
             for (LifecycleAwareValue value : properties.getLifecycleAwareValues()) {
                 value.cleanupValue();
@@ -303,31 +317,24 @@ public class DefaultTaskExecutor implements TaskExecutor {
         }
     }
 
-    private ExecutionEngine.@Nullable Result executeResolvingExecutionMode(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        context.setTaskExecutionMode(executionModeResolver.getExecutionMode(task, context.getTaskProperties()));
-        try {
-            return executeTrackingTaskIdentity(task, state, context);
-        } finally {
-            context.setTaskExecutionMode(null);
-        }
-    }
-
     /**
      * Notifies the Problems API about which tasks is being executed.
      */
-    private ExecutionEngine.@Nullable Result executeTrackingTaskIdentity(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    private ExecutionEngine.@Nullable Result executeTrackingTaskIdentity(LocalTaskNode node) {
         try {
-            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(task.getTaskIdentity().getBuildTreePath().asString()));
-            return doExecute(task, state, context);
+            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(node.getTask().getTaskIdentity().getBuildTreePath().asString()));
+            return doExecute(node);
         } finally {
             ProblemTaskIdentityTracker.clear();
         }
     }
 
-    private ExecutionEngine.@Nullable Result doExecute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    private ExecutionEngine.@Nullable Result doExecute(LocalTaskNode node) {
+        TaskInternal task = node.getTask();
+        TaskExecutionMode taskExecutionMode = executionModeResolver.getExecutionMode(task, node.getTaskProperties());
         TaskExecution work = new TaskExecution(
-            task,
-            context,
+            node,
+            taskExecutionMode,
             actionListener,
             asyncWorkTracker,
             buildOperationRunner,
@@ -343,10 +350,11 @@ public class DefaultTaskExecutor implements TaskExecutor {
             missingTaskDependencyDetector
         );
 
+        TaskStateInternal state = task.getState();
         try {
             ExecutionEngine.Request request = executionEngine.createRequest(work);
-            context.getTaskExecutionMode().getRebuildReason().ifPresent(request::forceNonIncremental);
-            request.withValidationContext(context.getValidationContext());
+            taskExecutionMode.getRebuildReason().ifPresent(request::forceNonIncremental);
+            request.withValidationContext(node.getValidationContext());
             ExecutionEngine.Result result = request.execute();
             result.getExecution().ifSuccessfulOrElse(
                 success -> state.setOutcome(convertOutcome(success.getOutcome())),

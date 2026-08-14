@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.execution.plan;
 
-import org.gradle.api.internal.TaskInternal;
-
-public interface TaskExecutor {
+public interface TaskNodeExecutor {
 
     /**
-     * Executes the given task. If the task fails with an exception, the exception is packaged in the provided task
-     * state.
+     * Executes the task of the given node. If the task fails with an exception, the exception is
+     * packaged in the task's state.
      */
-    void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context);
+    void execute(LocalTaskNode node);
 
 }

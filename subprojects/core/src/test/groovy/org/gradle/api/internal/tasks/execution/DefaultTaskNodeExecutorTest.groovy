@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskActionListener
-import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal
@@ -31,7 +30,6 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
-import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.TaskProperties
@@ -39,7 +37,11 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.MissingTaskDependencyDetector
+import org.gradle.execution.plan.MutationInfo
+import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.TaskNode
 import org.gradle.execution.taskgraph.TaskListenerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Try
@@ -51,6 +53,7 @@ import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.file.PathToFileResolver
@@ -70,9 +73,9 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 
 /**
- * Tests {@link DefaultTaskExecutor}.
+ * Tests {@link DefaultTaskNodeExecutor}.
  */
-class DefaultTaskExecutorTest extends Specification {
+class DefaultTaskNodeExecutorTest extends Specification {
 
     def projectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
     def projectScriptSource = Mock(ScriptSource)
@@ -104,23 +107,24 @@ class DefaultTaskExecutorTest extends Specification {
     def action2 = Mock(InputChangesAwareTaskAction) {
         getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", TestHashCodes.hashCodeFrom(1234))
     }
-    def executionContext = Mock(TaskExecutionContext) {
-        getTaskExecutionMode() >> DefaultTaskExecutionMode.incremental()
-        getTaskProperties() >> Stub(TaskProperties) {
-            getInputFileProperties() >> ImmutableSortedSet.of()
-            getOutputFileProperties() >> ImmutableSortedSet.of()
-        }
-        getOutputDependencyCheckAction() >> { { c -> } as TaskExecutionContext.OutputDependencyCheckAction }
+    def taskProperties = Stub(TaskProperties) {
+        getInputFileProperties() >> ImmutableSortedSet.of()
+        getOutputFileProperties() >> ImmutableSortedSet.of()
+    }
+    Set<Node> dependencyNodes = new LinkedHashSet<>()
+    def node = Stub(LocalTaskNode) {
+        getTask() >> task
+        getTaskProperties() >> taskProperties
+        getValidationContext() >> Stub(WorkValidationContext)
+        getMutationInfo() >> MutationInfo.EMPTY
+        getDependencySuccessors() >> { dependencyNodes }
     }
 
     def buildOperationRunner = new TestBuildOperationRunner()
     def taskExecutionListener = Mock(TaskExecutionListener)
     def taskListener = Mock(TaskListenerInternal)
-    def taskExecutionModeResolver = Mock(TaskExecutionModeResolver)
-
-    Set<TaskInternal> dependencies = []
-    final TaskExecutionGraph taskExecutionGraph = Mock(TaskExecutionGraph) {
-        getDependencies(task) >> { dependencies }
+    def taskExecutionModeResolver = Mock(TaskExecutionModeResolver) {
+        getExecutionMode(_, _) >> DefaultTaskExecutionMode.incremental()
     }
 
     def asyncWorkTracker = Mock(AsyncWorkTracker)
@@ -140,12 +144,11 @@ class DefaultTaskExecutorTest extends Specification {
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def missingTaskDependencyDetector = Stub(MissingTaskDependencyDetector)
 
-    def executor = new DefaultTaskExecutor(
+    def executor = new DefaultTaskNodeExecutor(
         buildOperationRunner,
         taskExecutionListener,
         taskListener,
         taskExecutionModeResolver,
-        taskExecutionGraph,
         Mock(ExecutionHistoryStore),
         asyncWorkTracker,
         actionListener,
@@ -163,7 +166,7 @@ class DefaultTaskExecutorTest extends Specification {
 
     def doesNothingWhenTaskHasNoActions() {
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         state.outcome == TaskExecutionOutcome.UP_TO_DATE
@@ -174,14 +177,10 @@ class DefaultTaskExecutorTest extends Specification {
 
     def skipsTaskWithNoActionsAndMarksUpToDateIfAllItsDependenciesWereSkipped() {
         given:
-        dependencies.add(Mock(TaskInternal) {
-            getState() >> Mock(TaskStateInternal) {
-                getSkipped() >> true
-            }
-        })
+        dependencyNodes.add(dependencyTaskNode(true))
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         state.outcome == TaskExecutionOutcome.UP_TO_DATE
@@ -192,14 +191,10 @@ class DefaultTaskExecutorTest extends Specification {
 
     def skipsTaskWithNoActionsAndMarksOutOfDateDateIfAnyOfItsDependenciesWereNotSkipped() {
         given:
-        dependencies.add(Mock(TaskInternal) {
-            getState() >> Mock(TaskStateInternal) {
-                getSkipped() >> false
-            }
-        })
+        dependencyNodes.add(dependencyTaskNode(false))
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         state.outcome == TaskExecutionOutcome.EXECUTED
@@ -210,13 +205,38 @@ class DefaultTaskExecutorTest extends Specification {
         0 * standardOutputCapture._
     }
 
+    def "dependency nodes that are not tasks do not affect the outcome of a task with no actions"() {
+        given:
+        dependencyNodes.add(dependencyTaskNode(true))
+        dependencyNodes.add(Stub(Node))
+
+        when:
+        executor.execute(node)
+
+        then:
+        state.outcome == TaskExecutionOutcome.UP_TO_DATE
+        !state.actionable
+        0 * executionEngine._
+        0 * standardOutputCapture._
+    }
+
+    private TaskNode dependencyTaskNode(boolean skipped) {
+        Stub(TaskNode) {
+            getTask() >> Stub(TaskInternal) {
+                getState() >> Stub(TaskStateInternal) {
+                    getSkipped() >> skipped
+                }
+            }
+        }
+    }
+
     def executesEachActionInOrder() {
         given:
         expectExecution()
         taskActions.addAll([action1, action2])
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * standardOutputCapture.start()
@@ -256,7 +276,7 @@ class DefaultTaskExecutorTest extends Specification {
         taskActions.add(action1)
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * standardOutputCapture.start()
@@ -283,7 +303,7 @@ class DefaultTaskExecutorTest extends Specification {
         def failure = new RuntimeException("failure")
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * standardOutputCapture.start()
@@ -316,7 +336,7 @@ class DefaultTaskExecutorTest extends Specification {
         taskActions.addAll([action1, action2])
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * standardOutputCapture.start()
@@ -342,7 +362,7 @@ class DefaultTaskExecutorTest extends Specification {
         expectExecution()
         taskActions.addAll([action1, action2])
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * standardOutputCapture.start()
@@ -381,7 +401,7 @@ class DefaultTaskExecutorTest extends Specification {
         taskActions.addAll([action1, action2])
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * standardOutputCapture.start()
@@ -414,7 +434,7 @@ class DefaultTaskExecutorTest extends Specification {
         taskActions.addAll([action1, action2])
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * standardOutputCapture.start()
@@ -453,7 +473,7 @@ class DefaultTaskExecutorTest extends Specification {
         def failure = new RuntimeException("failure 1")
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * standardOutputCapture.start()
@@ -484,7 +504,7 @@ class DefaultTaskExecutorTest extends Specification {
         expectExecution()
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * taskListener.beforeExecute(taskIdentity)
@@ -508,7 +528,7 @@ class DefaultTaskExecutorTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * taskListener.beforeExecute(taskIdentity)
@@ -535,7 +555,7 @@ class DefaultTaskExecutorTest extends Specification {
         expectFailure(failure)
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * taskListener.beforeExecute(taskIdentity)
@@ -563,7 +583,7 @@ class DefaultTaskExecutorTest extends Specification {
         expectExecution()
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * taskExecutionListener.beforeExecute(task)
@@ -592,7 +612,7 @@ class DefaultTaskExecutorTest extends Specification {
         expectFailure(failure)
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * taskExecutionListener.beforeExecute(task)
@@ -617,7 +637,7 @@ class DefaultTaskExecutorTest extends Specification {
         def failure = new RuntimeException("Failure")
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * executionEngine.createRequest(_) >> {
@@ -630,7 +650,7 @@ class DefaultTaskExecutorTest extends Specification {
 
     def "skips task whose onlyIf predicate is false"() {
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * onlyIfSpec.findUnsatisfiedSpec(task) >> Mock(SelfDescribingSpec)
@@ -644,10 +664,14 @@ class DefaultTaskExecutorTest extends Specification {
         Spec<Task> oldStyleSpec = Mock(Spec)
         def otherTask = Stub(TaskInternal) {
             getOnlyIf() >> oldStyleSpec
+            getState() >> state
+        }
+        def otherNode = Stub(LocalTaskNode) {
+            getTask() >> otherTask
         }
 
         when:
-        executor.execute(otherTask, state, executionContext)
+        executor.execute(otherNode)
 
         then:
         1 * oldStyleSpec.isSatisfiedBy(otherTask) >> false
@@ -661,7 +685,7 @@ class DefaultTaskExecutorTest extends Specification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
         1 * onlyIfSpec.findUnsatisfiedSpec(task) >> { throw failure }
@@ -671,21 +695,30 @@ class DefaultTaskExecutorTest extends Specification {
         state.failure.message.startsWith('Could not evaluate onlyIf predicate for')
     }
 
-    def 'taskContext is initialized and cleaned as expected'() {
+    def "resolves the task execution mode and carries its rebuild reason to the engine"() {
         given:
         TaskExecutionMode executionMode = Mock(TaskExecutionMode)
+        def request = Mock(ExecutionEngine.Request)
         taskActions.add(action1)
-        expectExecution()
 
         when:
-        executor.execute(task, state, executionContext)
+        executor.execute(node)
 
         then:
-        1 * taskExecutionModeResolver.getExecutionMode(task, executionContext.taskProperties) >> executionMode
-        1 * executionContext.setTaskExecutionMode(executionMode)
+        1 * taskExecutionModeResolver.getExecutionMode(task, taskProperties) >> executionMode
 
         then:
-        1 * executionContext.setTaskExecutionMode(null)
+        1 * executionEngine.createRequest(_) >> request
+        1 * executionMode.getRebuildReason() >> Optional.of("because")
+        1 * request.forceNonIncremental("because")
+        1 * request.execute() >> Stub(ExecutionEngine.Result) {
+            getExecution() >> Try.successful(Stub(Execution) {
+                getOutcome() >> Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+            })
+        }
+
+        and:
+        state.outcome == TaskExecutionOutcome.EXECUTED
     }
 
     void expectExecution() {
@@ -698,7 +731,7 @@ class DefaultTaskExecutorTest extends Specification {
         def result = Stub(ExecutionEngine.Result)
         result.execution >> Try.successful(execution)
 
-        def request = Stub(ExecutionEngine.Request)
+        def request = Mock(ExecutionEngine.Request)
         request.execute() >> {
             def output = captured.execute(Stub(ExecutionContext))
             outcome = output.didWork == WorkOutput.WorkResult.DID_WORK
@@ -711,6 +744,7 @@ class DefaultTaskExecutorTest extends Specification {
             captured = w
             request
         }
+        1 * request.withValidationContext(node.validationContext)
     }
 
     void expectFailure(Throwable failure) {

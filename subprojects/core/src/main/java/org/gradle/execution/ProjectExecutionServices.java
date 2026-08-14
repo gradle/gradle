@@ -25,15 +25,14 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskExecutor;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
-import org.gradle.api.internal.tasks.execution.DefaultTaskExecutor;
+import org.gradle.api.internal.tasks.execution.DefaultTaskNodeExecutor;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
+import org.gradle.execution.plan.TaskNodeExecutor;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
@@ -86,9 +85,10 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    TaskExecutor createTaskExecutor(
+    TaskNodeExecutor createTaskNodeExecutor(
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationRunner buildOperationRunner,
+        TaskExecutionGraphInternal taskGraph,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
@@ -97,22 +97,16 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         TaskCacheabilityResolver taskCacheabilityResolver,
-        BuildState build,
         TaskExecutionModeResolver repository,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
         MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
-        // The task graph is deliberately resolved via the build rather than injected: the project-scope
-        // registry (our parent) shadows TaskExecutionGraphInternal with the cross-project-access-reporting
-        // view for user code, whereas the execution engine must use the raw build-scoped graph.
-        TaskExecutionGraphInternal taskExecutionGraph = build.getMutableModel().getTaskGraph();
-        return new DefaultTaskExecutor(
+        return new DefaultTaskNodeExecutor(
             buildOperationRunner,
-            taskExecutionGraph.getLegacyTaskListenerBroadcast(),
+            taskGraph.getLegacyTaskListenerBroadcast(),
             listenerManager.getBroadcaster(TaskListenerInternal.class),
             repository,
-            taskExecutionGraph,
             executionHistoryStore,
             asyncWorkTracker,
             listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class),
