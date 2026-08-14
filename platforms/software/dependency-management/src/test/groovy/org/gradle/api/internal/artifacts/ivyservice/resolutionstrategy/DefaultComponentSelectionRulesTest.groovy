@@ -39,7 +39,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
     RuleActionAdapter adapter = Mock(RuleActionAdapter)
     DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(new DefaultImmutableModuleIdentifierFactory(), adapter)
     def ruleAction = Mock(RuleAction)
-    def ruleSource = new Object()
 
     def "add closure rule that applies to all components"() {
         def input = { ComponentSelection cs ->  }

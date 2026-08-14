@@ -468,7 +468,7 @@ enableFeaturePreview("ENHANCED_GRAPH_ORDERING")
 [[deprecated_software_model]]
 ==== Deprecation of the software model
 
-The Gradle software model — including the `model { }` DSL, link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`] plugins, and the native and JVM component types built on top of them — is deprecated and will be removed in Gradle 10.
+The Gradle software model — including the `model { }` DSL, `RuleSource` plugins, and the native and JVM component types built on top of them — is deprecated and will be removed in Gradle 10.
 
 This affects the following groups of public API types:
 
@@ -2066,14 +2066,14 @@ Unlike `Project.container(Class)`, the `ObjectFactory` version decorates contain
 [[dependency_management_rules]]
 ==== Deprecation of ruleSource-based dependency management APIs
 
-The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
+The `RuleSource`-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
 
 Deprecated APIs include:
 
-- link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.all(Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.withModule(Object,Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#all(java.lang.Object)[`ComponentSelectionRules.all(Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#withModule(java.lang.Object,java.lang.Object)[`ComponentSelectionRules.withModule(Object,Object)`]
+- `ComponentMetadataHandler.all(Object)`
+- `ComponentMetadataHandler.withModule(Object,Object)`
+- `ComponentSelectionRules.all(Object)`
+- `ComponentSelectionRules.withModule(Object,Object)`
 
 Use the alternative methods that accept a `ComponentMetadataRule` class or an `Action`.
 
