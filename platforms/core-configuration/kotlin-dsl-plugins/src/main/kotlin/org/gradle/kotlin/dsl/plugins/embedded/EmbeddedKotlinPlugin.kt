@@ -95,11 +95,11 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
 }
 
 
-fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
-    if (kotlinVersion != embeddedKotlinVersion) {
+fun Logger.warnOnDifferentKotlinVersion(kotlinCompilerVersion: String?) {
+    if (kotlinCompilerVersion != embeddedKotlinVersion) {
         val warning =
             """|WARNING: Unsupported Kotlin compiler version.
-               |The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `$embeddedKotlinVersion` that might work differently than in the compiler version `$kotlinVersion`.
+               |The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `$embeddedKotlinVersion` that might work differently than in the compiler version `$kotlinCompilerVersion`.
                |Using the `kotlin-dsl` plugin together with a different Kotlin version (for example, by using the Kotlin Gradle plugin (`kotlin(jvm)`)) in the same project is not recommended.
                |
                |See https://docs.gradle.org/${GradleVersion.current().version}/userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin for more details on how the `kotlin-dsl` plugin works (same applies to `embedded-kotlin`).
