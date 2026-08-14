@@ -16,8 +16,6 @@
 
 package gradlebuild.packaging.tasks
 
-import java.io.File
-
 
 private
 val KOTLIN_MODULE_PATH = Regex("META-INF/.*\\.kotlin_module")
@@ -32,34 +30,24 @@ enum class ContentFilter {
 
 
 /**
- * What to do with [file] of a classes directory [classDir].
- */
-internal
-fun contentFilterFor(classDir: File, file: File): ContentFilter =
-    contentFilterFor(file.relativeTo(classDir).path)
-
-
-/**
  * What to do with the entry at [relativePath] of a classes directory.
  *
- * The path takes the separator of either operating system. The rules below need `/`, and
- * a relative path on Windows comes with `\`.
+ * The caller gives a path with `/` as separator on every operating system.
  */
 internal
 fun contentFilterFor(relativePath: String): ContentFilter {
-    val path = relativePath.replace('\\', '/')
     // Extraction keeps the module and the package annotations, so module-info and
     // package-info need no copy of their own
-    if (path.endsWith(".class")) {
+    if (relativePath.endsWith(".class")) {
         return ContentFilter.API_ONLY
     }
-    if (path == "META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule") {
+    if (relativePath == "META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule") {
         return ContentFilter.VERBATIM
     }
-    if (path == "META-INF/services/org.codehaus.groovy.transform.ASTTransformation") {
+    if (relativePath == "META-INF/services/org.codehaus.groovy.transform.ASTTransformation") {
         return ContentFilter.VERBATIM
     }
-    if (path.matches(KOTLIN_MODULE_PATH)) {
+    if (relativePath.matches(KOTLIN_MODULE_PATH)) {
         return ContentFilter.VERBATIM
     }
     return ContentFilter.SKIP

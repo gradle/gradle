@@ -23,15 +23,10 @@ import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.function.Executable
-import org.junit.jupiter.api.io.TempDir
-import java.io.File
 
 
 internal
 class ContentFilterTest {
-
-    @TempDir
-    lateinit var classDir: File
 
     @Test
     fun classifies_the_entries_of_a_classes_directory() {
@@ -49,23 +44,8 @@ class ContentFilterTest {
 
         assertAll(expectations.map { (relativePath, expected) ->
             Executable {
-                assertEquals(expected, contentFilterFor(classDir, fileAt(relativePath)), relativePath)
+                assertEquals(expected, contentFilterFor(relativePath), relativePath)
             }
         })
     }
-
-    @Test
-    fun classifies_the_entries_of_a_windows_classes_directory() {
-        assertEquals(
-            VERBATIM,
-            contentFilterFor("META-INF\\services\\org.codehaus.groovy.transform.ASTTransformation")
-        )
-    }
-
-    private
-    fun fileAt(relativePath: String): File =
-        classDir.resolve(relativePath).also {
-            it.parentFile.mkdirs()
-            it.writeText("")
-        }
 }

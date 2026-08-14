@@ -28,7 +28,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutor
-import java.io.File
 import javax.inject.Inject
 
 
@@ -91,8 +90,9 @@ abstract class ExtractJavaAbi : DefaultTask() {
             IsolatedApiClassExtractor.runUsing(parameters.extractorClasspath, parameters.packages.get()) { extractor ->
                 parameters.classesDirectories.forEach { classDir ->
                     classDir.walk().forEach { inputFile ->
-                        val outputFile = outputDirectory.resolve(inputFile.relativeTo(classDir).path)
-                        when (contentFilterFor(classDir, inputFile)) {
+                        val relativePath = inputFile.relativeTo(classDir).invariantSeparatorsPath
+                        val outputFile = outputDirectory.resolve(relativePath)
+                        when (contentFilterFor(relativePath)) {
                             ContentFilter.VERBATIM -> {
                                 outputFile.parentFile.mkdirs()
                                 inputFile.copyTo(outputFile, overwrite = true)
