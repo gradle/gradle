@@ -81,6 +81,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(ASSEMBLER, C)
+        expectModelDslDeprecation(2)
         run "installMainExecutable"
 
         then:
@@ -96,6 +97,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(C)
+        expectModelDslDeprecation(4)
         run "installMainExecutable"
 
         then:
@@ -112,6 +114,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(4)
         run "installMainExecutable"
 
         then:
@@ -130,6 +133,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(OBJECTIVE_C)
+        expectModelDslDeprecation(2)
         succeeds "installMainExecutable"
 
         then:
@@ -147,6 +151,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(OBJECTIVE_CPP)
+        expectModelDslDeprecation(2)
         succeeds "installMainExecutable"
 
         then:
@@ -165,6 +170,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP, WINDOWS_RESOURCES)
+        expectModelDslDeprecation(1)
         run "installMainExecutable"
 
         then:
@@ -178,6 +184,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         when:
         inDirectory(windowsResources.dir.file('only-dll'))
         expectSoftwareModelDeprecations(WINDOWS_RESOURCES)
+        expectModelDslDeprecation(1)
         run "helloResSharedLibrary"
 
         then:
@@ -190,6 +197,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP, C)
+        expectModelDslDeprecation(1)
         run "installMainExecutable"
 
         then:
@@ -206,6 +214,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(C)
+        expectModelDslDeprecation(1)
         run "installMainExecutable"
 
         then:
@@ -223,6 +232,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(3)
         run "installMainExecutable"
 
         then:
@@ -233,4 +243,10 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         and:
         installation(pch.dir.file("build/install/main")).exec().out == "Hello world!\n"
     }
+    private void expectModelDslDeprecation(int count = 1) {
+        count.times {
+            executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+
 }

@@ -31,6 +31,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectSoftwareModelDeprecations("DeclarationRules", "ManagedBinaryPlugin", "ManagedComponentPlugin", "ManagedLanguageSourceSetPlugin", "UnmanagedBinaryPlugin", "UnmanagedComponentPlugin", "UnmanagedLanguageSourceSetPlugin", "org.gradle.language.base.plugins.ComponentModelBasePlugin", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation()
         succeeds 'model'
 
         then:
@@ -98,6 +99,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectSoftwareModelDeprecations("DeclarationRules", "ManagedBinaryPlugin", "ManagedComponentPlugin", "ManagedLanguageSourceSetPlugin", "UnmanagedBinaryPlugin", "UnmanagedComponentPlugin", "UnmanagedLanguageSourceSetPlugin", "org.gradle.language.base.plugins.ComponentModelBasePlugin", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation()
         succeeds 'model'
 
         then:
@@ -179,6 +181,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectSoftwareModelDeprecations("DeclarationRules", "ManagedBinaryPlugin", "ManagedComponentPlugin", "ManagedLanguageSourceSetPlugin", "UnmanagedBinaryPlugin", "UnmanagedComponentPlugin", "UnmanagedLanguageSourceSetPlugin", "org.gradle.language.base.plugins.ComponentModelBasePlugin", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation()
         succeeds 'components'
 
         then:
@@ -365,5 +368,9 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         for (String name : pluginNames) {
             executer.expectDocumentedDeprecationWarning("The ${name} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
         }
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

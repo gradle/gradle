@@ -53,6 +53,7 @@ class SoftwareModelTaskReportIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         expectSoftwareModelDeprecations("org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(2)
         succeeds tasks
 
         output.contains("""
@@ -81,6 +82,12 @@ ${'-' * header.length()}"""
     private void expectSoftwareModelDeprecations(String... pluginNames) {
         for (String name : pluginNames) {
             executer.expectDocumentedDeprecationWarning("The ${name} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+
+    private void expectModelDslDeprecation(int count = 1) {
+        count.times {
+            executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
         }
     }
 }

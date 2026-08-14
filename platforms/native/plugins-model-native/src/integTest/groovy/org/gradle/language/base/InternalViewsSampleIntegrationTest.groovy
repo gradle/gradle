@@ -36,6 +36,7 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
         sample internalViewsSample
         when:
         expectSoftwareModelDeprecations("MyPlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(1)
         succeeds "model"
         then:
         println output
@@ -63,4 +64,10 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
             executer.expectDocumentedDeprecationWarning("The ${name} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
         }
     }
+    private void expectModelDslDeprecation(int count = 1) {
+        count.times {
+            executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+
 }

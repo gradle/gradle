@@ -82,6 +82,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "installMain"
 
         then:
@@ -101,6 +102,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "mainSharedLibrary"
 
         then:
@@ -112,6 +114,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         when:
         sample cppLib
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "mainStaticLibrary"
 
         then:
@@ -127,6 +130,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(2)
         run "installMainEnglishExecutable"
 
         then:
@@ -143,6 +147,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         when:
         sample flavors
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(2)
         run "installMainFrenchExecutable"
 
         then:
@@ -164,6 +169,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(5)
         run "assemble"
 
         then:
@@ -196,6 +202,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(2)
         run "installMainExecutable"
 
         then:
@@ -209,6 +216,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(2)
         run "installMainExecutable"
 
         then:
@@ -246,6 +254,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "installMainArmExecutable", "installMainSparcExecutable"
 
         then:
@@ -259,6 +268,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         given:
         inDirectory(prebuilt.dir.file("3rd-party-lib/util"))
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "assemble"
 
         and:
@@ -266,6 +276,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         succeeds "assemble"
 
         then:
@@ -301,6 +312,7 @@ Util build type: RELEASE
 
         when:
         expectSoftwareModelDeprecations(C)
+        expectModelDslDeprecation(1)
         run "installMainExecutable", "tasks"
 
         then:
@@ -317,6 +329,7 @@ Util build type: RELEASE
 
         when:
         expectSoftwareModelDeprecations(CPP, TESTING)
+        expectModelDslDeprecation(1)
         run 'check'
 
         then:
@@ -327,9 +340,16 @@ Util build type: RELEASE
 
         when:
         expectSoftwareModelDeprecations(CPP, TESTING)
+        expectModelDslDeprecation(1)
         run ':checkHelloSharedLibrary'
 
         then:
         executedAndNotSkipped(':myCustomCheck')
     }
+    private void expectModelDslDeprecation(int count = 1) {
+        count.times {
+            executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+
 }
