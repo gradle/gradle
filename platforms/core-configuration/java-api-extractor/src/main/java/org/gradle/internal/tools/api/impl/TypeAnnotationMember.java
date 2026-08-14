@@ -43,7 +43,16 @@ public class TypeAnnotationMember extends AnnotationMember {
     }
 
     @Override
+    protected int kindRank() {
+        return 2;
+    }
+
+    @Override
     public int compareTo(AnnotationMember o) {
+        if (!(o instanceof TypeAnnotationMember)) {
+            // The rank of the kinds decides, and it never leaves them equal
+            return super.compare(o).result();
+        }
         TypeAnnotationMember other = (TypeAnnotationMember) o;
         return super.compare(o)
             // The same annotation can appear on several types of the same member,
