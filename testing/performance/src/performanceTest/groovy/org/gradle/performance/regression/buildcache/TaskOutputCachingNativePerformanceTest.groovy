@@ -24,7 +24,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 
 // TODO: Merge with TaskOutputCachingJavaPerformanceTest
 @RunFor(
-    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["bigCppApp", "bigCppMulti", "bigNative"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["bigCppApp", "bigCppMulti"])
 )
 class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 

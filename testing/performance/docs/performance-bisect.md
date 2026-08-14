@@ -25,9 +25,9 @@ you need to
 
 There is no mapping between the result (i.e. the graph) and the test class, yet.
 Therefore, you need to search for it in the code base. For example, the test
-`native build medium header file change` is included in the class `RealWorldNativePluginPerformanceTest`.
+`assemble with header file change` is included in the class `NativeBuildPerformanceTest`.
 
-Moreover, we also need to know the sample used for the test. For this example, it is `mediumNativeMonolithic`.
+Moreover, we also need to know the sample used for the test. For this example, it is `bigCppMulti`.
 
 ## Modify test for regression search
 
@@ -37,9 +37,9 @@ First, you should change the test so that
  - tighten the regression limits to get significant results
  - only search for memory/execution time regressions depending on what you are interested in
  
-For our example, let's assume we want to track down a performance regression for `native build medium header file change`. 
+For our example, let's assume we want to track down a performance regression for `assemble with header file change`. 
 
-We modify `RealWorldNativePluginPerformanceTest` to only include the test we are interested in:
+We modify `NativeBuildPerformanceTest` to only include the test we are interested in:
 ```java
     @Ignore
     @Unroll("Project '#testProject' measuring incremental build speed")
@@ -119,19 +119,19 @@ usage:
 ```bash
 mkdir ~/.gradle-bisect-override
 # copy test class to override directory and make changes in that directory
-rsync -aRv subprojects/performance/src/integTest/groovy/org/gradle/performance/RealWorldNativePluginPerformanceTest.groovy \
+rsync -aRv subprojects/performance/src/integTest/groovy/org/gradle/performance/NativeBuildPerformanceTest.groovy \
            subprojects/performance/src/testFixtures/groovy/org/gradle/performance/fixture/{CrossVersionPerformanceResults,CrossVersionPerformanceTestRunner}.groovy \
            ~/.gradle-bisect-override
 
 # check revision
-./check_rev.sh RealWorldNativePluginPerformanceTest mediumNativeMonolithic
+./check_rev.sh NativeBuildPerformanceTest bigCppMulti
 ```
 
 Now you can use the script automatically with `git bisect`.
 
 ```bash
 git bisect start HEAD REL_2.14 --  # HEAD=bad REL_2.14=good
-git bisect run check_rev.sh RealWorldNativePluginPerformanceTest mediumNativeMonolithic
+git bisect run check_rev.sh NativeBuildPerformanceTest bigCppMulti
 ```
 
 This will take some time, depending on the number of commits. After each step, the test results will
@@ -141,13 +141,13 @@ of the bisect, you can easily use grep on that directory.
 ```bash
 mymachine:~$ grep -A 1 "^Speed" ~/.gradle-bisect-results/*.xml
 
-/home/vmadmin/.gradle-bisect-results/result_0_cd420bfd_2016-06-17-13:15:11.xml:Speed Results for test project 'mediumNativeMonolithic' with tasks build: we're slower than 2.14.
+/home/vmadmin/.gradle-bisect-results/result_0_cd420bfd_2016-06-17-13:15:11.xml:Speed Results for test project 'bigCppMulti' with tasks build: we're slower than 2.14.
 /home/vmadmin/.gradle-bisect-results/result_0_cd420bfd_2016-06-17-13:15:11.xml-Difference: 3.8 ms slower (3.8 ms), 0.39%, max regression: 140 ms
 --
-/home/vmadmin/.gradle-bisect-results/result_1_00f795e2_2016-06-17-13:10:45.xml:Speed Results for test project 'mediumNativeMonolithic' with tasks build: we're slower than 2.14.
+/home/vmadmin/.gradle-bisect-results/result_1_00f795e2_2016-06-17-13:10:45.xml:Speed Results for test project 'bigCppMulti' with tasks build: we're slower than 2.14.
 /home/vmadmin/.gradle-bisect-results/result_1_00f795e2_2016-06-17-13:10:45.xml-Difference: 170.4 ms slower (170.4 ms), 17.21%, max regression: 140 ms
 --
-/home/vmadmin/.gradle-bisect-results/result_1_29731dc5_2016-06-17-13:06:17.xml:Speed Results for test project 'mediumNativeMonolithic' with tasks build: we're slower than 2.14.
+/home/vmadmin/.gradle-bisect-results/result_1_29731dc5_2016-06-17-13:06:17.xml:Speed Results for test project 'bigCppMulti' with tasks build: we're slower than 2.14.
 /home/vmadmin/.gradle-bisect-results/result_1_29731dc5_2016-06-17-13:06:17.xml-Difference: 155.4 ms slower (155.4 ms), 15.62%, max regression: 140 ms
 ```
 

@@ -289,7 +289,6 @@ include::dependency_management_for_java_projects.adoc[leveloffset=+2]
 
 include::building_cpp_projects.adoc[leveloffset=+2]
 include::cpp_testing.adoc[leveloffset=+2]
-include::native_software.adoc[leveloffset=+2]
 
 == SWIFT BUILDS
 

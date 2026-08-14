@@ -204,9 +204,6 @@
   }, {
     "testProject" : "bigCppMulti",
     "linux" : 502
-  }, {
-    "testProject" : "bigNative",
-    "linux" : 266
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest.clean assemble with local cache (swift)",
@@ -352,9 +349,6 @@
 }, {
   "scenario" : "org.gradle.performance.regression.corefeature.RichConsolePerformanceTest.clean assemble with rich console",
   "durations" : [ {
-    "testProject" : "bigNative",
-    "linux" : 166
-  }, {
     "testProject" : "largeJavaMultiProject",
     "linux" : 799
   }, {
@@ -664,18 +658,6 @@
     "linux" : 435
   } ]
 }, {
-  "scenario" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.run libA0:buildDependentsLibA00",
-  "durations" : [ {
-    "testProject" : "nativeDependents",
-    "linux" : 940
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.run libA0:dependentComponents",
-  "durations" : [ {
-    "testProject" : "nativeDependents",
-    "linux" : 977
-  } ]
-}, {
   "scenario" : "org.gradle.performance.regression.nativeplatform.NativeBuildPerformanceTest.assemble with header file change",
   "durations" : [ {
     "testProject" : "bigCppApp",
@@ -703,12 +685,6 @@
     "linux" : 245
   } ]
 }, {
-  "scenario" : "org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest.clean assemble (native, parallel)",
-  "durations" : [ {
-    "testProject" : "manyProjectsNative",
-    "linux" : 741
-  } ]
-}, {
   "scenario" : "org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest.clean assemble (native)",
   "durations" : [ {
     "testProject" : "bigCppApp",
@@ -716,9 +692,6 @@
   }, {
     "testProject" : "bigCppMulti",
     "linux" : 1414
-  }, {
-    "testProject" : "bigNative",
-    "linux" : 646
   }, {
     "testProject" : "mediumCppApp",
     "linux" : 237
@@ -732,55 +705,10 @@
     "testProject" : "mediumCppMultiWithMacroIncludes",
     "linux" : 473
   }, {
-    "testProject" : "mediumNative",
-    "linux" : 266
-  }, {
-    "testProject" : "multiNative",
-    "linux" : 1556
-  }, {
     "testProject" : "smallCppApp",
     "linux" : 320
   }, {
     "testProject" : "smallCppMulti",
-    "linux" : 335
-  }, {
-    "testProject" : "smallNative",
-    "linux" : 339
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with 0 parallel workers",
-  "durations" : [ {
-    "testProject" : "nativeMonolithic",
-    "linux" : 1301
-  }, {
-    "testProject" : "nativeMonolithicOverlapping",
-    "linux" : 1364
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with 12 parallel workers",
-  "durations" : [ {
-    "testProject" : "nativeMonolithic",
-    "linux" : 659
-  }, {
-    "testProject" : "nativeMonolithicOverlapping",
-    "linux" : 671
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with build file change",
-  "durations" : [ {
-    "testProject" : "smallNativeMonolithic",
-    "linux" : 527
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with header file change",
-  "durations" : [ {
-    "testProject" : "mediumNativeMonolithic",
-    "linux" : 367
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with source file change",
-  "durations" : [ {
-    "testProject" : "mediumNativeMonolithic",
     "linux" : 335
   } ]
 }, {

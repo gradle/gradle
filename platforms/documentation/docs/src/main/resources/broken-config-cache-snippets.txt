@@ -10,7 +10,7 @@
 
 # --- Unsupported features ---
 # Features not planned to support CC in the first stable release
-# (Ant integration, deprecated native plugins, custom-logger snippet).
+# (Ant integration, custom-logger snippet).
 snippet-reference-other-topics-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget
 snippet-reference-other-topics-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget
 snippet-reference-other-topics-depends-on-ant-target_groovy_dependsOnAntTarget
@@ -27,14 +27,6 @@ snippet-reference-other-topics-ant-logging_groovy_antLogging
 snippet-reference-other-topics-ant-logging_kotlin_antLogging
 snippet-reference-runtime-configuration-custom-logger_groovy_customLogger.groovy
 snippet-reference-runtime-configuration-custom-logger_kotlin_customLogger.kotlin
-snippet-reference-platforms-native-cpp_groovy_nativeComponentReport
-snippet-reference-platforms-native-cunit_groovy_assembleDependentComponents
-snippet-reference-platforms-native-cunit_groovy_assembleDependentComponentsReport
-snippet-reference-platforms-native-cunit_groovy_buildDependentComponents
-snippet-reference-platforms-native-cunit_groovy_buildDependentComponentsReport
-snippet-reference-platforms-native-cunit_groovy_completeCUnitExample
-snippet-reference-platforms-native-cunit_groovy_dependentComponentsReport
-snippet-reference-platforms-native-cunit_groovy_dependentComponentsReportAll
 
 # --- Third-party failures ---
 # Add entries when a third-party plugin version blocks CC.
