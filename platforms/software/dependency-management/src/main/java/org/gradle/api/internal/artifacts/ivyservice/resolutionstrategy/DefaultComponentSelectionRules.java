@@ -96,16 +96,6 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     @Override
-    @Deprecated
-    public ComponentSelectionRules all(Object ruleSource) {
-        DeprecationLogger.deprecateMethod(ComponentSelectionRules.class, "all(Object)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_management_rules")
-            .nagUser();
-        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
-    }
-
-    @Override
     public ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction) {
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromAction(selectionAction)));
     }
@@ -113,16 +103,6 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     @Override
     public ComponentSelectionRules withModule(Object id, Closure<?> closure) {
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
-    }
-
-    @Override
-    @Deprecated
-    public ComponentSelectionRules withModule(Object id, Object ruleSource) {
-        DeprecationLogger.deprecateMethod(ComponentSelectionRules.class, "withModule(Object,Object)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_management_rules")
-            .nagUser();
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
     @Override
