@@ -19,6 +19,7 @@
       <option name="myOnlyPrivateOrFinal" value="true" />
     </inspection_tool>
     <inspection_tool class="JavadocBlankLines" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="KaptKotlinCompilerPlugin" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinUnusedImport" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="MethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
       <option name="m_onlyPrivateOrFinal" value="true" />
@@ -118,6 +119,9 @@
       <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Sets.newTreeSet()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.TreeSet&lt;&gt;()">
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>
+      <replaceConfiguration name="Use @ToBeImplemented annotation" suppressId="not_yet_implemented" problemDescriptor="Prefer '@ToBeImplemented' annotation" text="@NotYetImplemented" recursive="false" caseInsensitive="false" type="Groovy" pattern_context="File" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="@org.gradle.util.internal.ToBeImplemented">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
       <replaceConfiguration name="Use getBoolean() for InternalOption&lt;Boolean&gt;" suppressId="use_getBoolean" problemDescriptor="Use `getBoolean()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getBoolean($opt$)">
         <constraint name="__context__" within="" contains="" />
         <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
@@ -166,9 +170,6 @@
         <constraint name="__context__" within="" contains="" />
         <constraint name="receiver" nameOfExprType="org\.gradle\.util\.Path" exprTypeWithinHierarchy="true" within="" contains="" />
       </replaceConfiguration>
-      <replaceConfiguration name="Use @ToBeImplemented annotation" suppressId="not_yet_implemented" problemDescriptor="Prefer '@ToBeImplemented' annotation" text="@NotYetImplemented" recursive="false" caseInsensitive="false" type="Groovy" pattern_context="File" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="@org.gradle.util.internal.ToBeImplemented">
-        <constraint name="__context__" within="" contains="" />
-      </replaceConfiguration>
     </inspection_tool>
     <inspection_tool class="SafeVarargsDetector" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="UNUSED_IMPORT" enabled="true" level="ERROR" enabled_by_default="true" />
@@ -177,7 +178,7 @@
       <option name="ignoreParenthesesOnConditionals" value="true" />
       <option name="ignoreParenthesesOnLambdaParameter" value="false" />
     </inspection_tool>
-    <inspection_tool class="UnstableApiUsage" enabled="true" level="WARNING" enabled_by_default="true">
+    <inspection_tool class="UnstableApiUsage" enabled="false" level="WARNING" enabled_by_default="false">
       <option name="unstableApiAnnotations">
         <set>
           <option value="io.reactivex.annotations.Beta" />
