@@ -399,6 +399,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectModelDslDeprecation()
         succeeds "model"
     }
 
@@ -658,6 +659,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
         when: "we check the contents of the collection"
         expectSoftwareModelDeprecation("RulePlugin")
+        expectModelDslDeprecation()
         succeeds 'check'
 
         then: "the order is preserved"
@@ -699,6 +701,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
         when: "we check the contents of the collection"
         expectSoftwareModelDeprecation("RulePlugin")
+        expectModelDslDeprecation()
         succeeds 'check'
 
         then: "the order is preserved"
@@ -736,6 +739,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         expectSoftwareModelDeprecation("RulePlugin")
+        expectModelDslDeprecation()
         succeeds 'check'
     }
 
@@ -770,6 +774,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
         when: "we try to mutate a read-write collection explicitly set outside of a rule subject"
         expectSoftwareModelDeprecation("RulePlugin")
+        expectModelDslDeprecation()
         fails 'check'
 
         then: "mutation is not allowed"
@@ -779,5 +784,9 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     private void expectSoftwareModelDeprecation(String pluginName) {
         executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

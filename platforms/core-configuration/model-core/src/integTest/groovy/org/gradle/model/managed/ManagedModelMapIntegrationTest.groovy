@@ -67,6 +67,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         expectSoftwareModelDeprecation("Rules")
+        expectModelDslDeprecation()
         succeeds "print"
 
         and:
@@ -120,6 +121,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         expectSoftwareModelDeprecation("Rules")
+        expectModelDslDeprecation()
         succeeds "print"
 
         and:
@@ -172,6 +174,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         expectSoftwareModelDeprecation("Rules")
+        expectModelDslDeprecation()
         succeeds "print"
 
         and:
@@ -201,6 +204,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectModelDslDeprecation()
         fails "print"
 
         and:
@@ -406,6 +410,7 @@ A managed collection can not contain 'java.io.InputStream's""")
 
         then:
         expectSoftwareModelDeprecation("Rules")
+        expectModelDslDeprecation()
         succeeds "printParent"
         outputContains("""
 parent
@@ -485,6 +490,7 @@ parent
 
         then:
         expectSoftwareModelDeprecation("Rules")
+        expectModelDslDeprecation()
         succeeds "print"
 
         and:
@@ -494,5 +500,9 @@ parent
 
     private void expectSoftwareModelDeprecation(String pluginName) {
         executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }
