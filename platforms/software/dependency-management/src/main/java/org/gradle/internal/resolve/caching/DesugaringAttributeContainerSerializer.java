@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Attribu
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
@@ -37,8 +38,10 @@ import java.util.Optional;
 /**
  * A thread-safe and reusable attribute container serializer that will desugar typed attributes.
  *
- * Attributes that are of types different than {@code String} or {@code boolean} will be desugared
- * before serialization. The process requires the attribute type to implement {@link Named}.
+ * Attributes that are of types different than {@code String}, {@code boolean} or {@link Number} will
+ * be desugared to their name before serialization. The process requires the attribute value to
+ * implement {@link Named}, or — for the deprecated types {@code Attribute.of} still accepts — to be
+ * an {@link Enum}.
  */
 public class DesugaringAttributeContainerSerializer implements AttributeContainerSerializer {
     private final AttributesFactory attributesFactory;
@@ -107,12 +110,46 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
                 encoder.writeString(attribute.getType().getName());
                 encoder.writeString(attributeValue.toString());
             } else {
-                // Attribute.of only accepts String, Boolean, a Number subtype, or a Named subtype;
-                // the first three are handled above, so this branch is reached only via Named subtypes.
-                Named attributeValue = (Named) container.getAttribute(attribute);
                 encoder.writeByte(DESUGARED_ATTRIBUTE);
-                encoder.writeString(attributeValue.getName());
+                encoder.writeString(toSerializedString(attribute, container.getAttribute(attribute)));
             }
+        }
+    }
+
+    /**
+     * Converts an attribute value to the String form {@link #read} coerces back, mirroring
+     * {@link CoercingStringValueSnapshot#coerce(Class)}.
+     * <p>
+     * This is not a lossless representation of the value, only of the identity {@link #read} needs to
+     * recover it: for a {@link Named} value the name, and for a plain {@link Enum} the name of the
+     * constant. Any other state a value carries — fields on an enum constant, for instance — is not
+     * preserved, and a value read back is the constant itself rather than the instance written.
+     * <p>
+     * {@code Attribute.of} only <em>supports</em> {@code String}, {@code Boolean}, a {@link Number}
+     * subtype or a {@link Named} subtype — the first three are handled by the caller. Any other type
+     * is deprecated rather than rejected until Gradle 10, so a plain (non-{@link Named}) {@link Enum}
+     * can still reach this point, most commonly by way of a component metadata rule. Writing such a
+     * value as {@link Enum#name()} is the same representation the publishing path already uses for it
+     * (see {@code ModuleMetadataSpecBuilder#attributeValueFor}), and the one attribute matching produces
+     * when it desugars a value (see {@code DefaultImmutableAttributesEntry#desugar}).
+     */
+    private static String toSerializedString(Attribute<?> attribute, Object value) {
+        if (value instanceof Named) {
+            return ((Named) value).getName();
+        } else if (value instanceof Enum) {
+            // TODO: Remove support for raw Enums in Gradle 10.0.0
+            // Nagging here as well as at Attribute.of catches a consumer that only ever reads such a
+            // value back out of a cache written by an earlier build, and so never declares the
+            // attribute type itself.
+            Class<?> enumType = ((Enum<?>) value).getDeclaringClass();
+            DeprecationLogger.deprecate("Serializing the value of attribute '" + attribute.getName() + "', of the enum type '" + enumType.getName() + "', which does not implement " + Named.class.getName())
+                .withContext("The value is serialized as the name of the enum constant, so any other state the constant carries is lost, and the value cannot be read back if the constant is renamed. Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ".")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
+                .nagUser();
+            return ((Enum<?>) value).name();
+        } else {
+            throw new IllegalArgumentException("Cannot serialize attribute '" + attribute.getName() + "': values of type '" + attribute.getType().getName() + "' must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ".");
         }
     }
 
