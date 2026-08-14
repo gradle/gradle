@@ -21,7 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecutor
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
@@ -96,7 +96,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
             { context -> }
         )
         project.gradle.services.get(BuildOutputCleanupRegistry).resolveOutputs()
-        executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)
+        executionServices.get(TaskExecutor).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)
         task.state.rethrowFailure()
     }
 

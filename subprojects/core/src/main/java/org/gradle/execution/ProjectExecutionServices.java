@@ -25,16 +25,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutor;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
-import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
-import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
-import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
-import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
+import org.gradle.api.internal.tasks.execution.DefaultTaskExecutor;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
@@ -93,7 +86,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    TaskExecuter createTaskExecuter(
+    TaskExecutor createTaskExecutor(
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -114,9 +107,13 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         // registry (our parent) shadows TaskExecutionGraphInternal with the cross-project-access-reporting
         // view for user code, whereas the execution engine must use the raw build-scoped graph.
         TaskExecutionGraphInternal taskExecutionGraph = build.getMutableModel().getTaskGraph();
-        TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            executionHistoryStore,
+        return new DefaultTaskExecutor(
             buildOperationRunner,
+            taskExecutionGraph.getLegacyTaskListenerBroadcast(),
+            listenerManager.getBroadcaster(TaskListenerInternal.class),
+            repository,
+            taskExecutionGraph,
+            executionHistoryStore,
             asyncWorkTracker,
             listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class),
             taskCacheabilityResolver,
@@ -131,15 +128,6 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             fileOperations.getFileResolver(),
             missingTaskDependencyDetector
         );
-        executer = new ProblemsTaskPathTrackingTaskExecuter(executer);
-        executer = new ResolveTaskExecutionModeExecuter(repository, executer);
-        executer = new FinalizePropertiesTaskExecuter(executer);
-        executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
-        executer = new SkipOnlyIfTaskExecuter(executer);
-        executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(
-            buildOperationRunner, taskExecutionGraph.getLegacyTaskListenerBroadcast(), listenerManager.getBroadcaster(TaskListenerInternal.class), executer);
-        return executer;
     }
 
     @Provides

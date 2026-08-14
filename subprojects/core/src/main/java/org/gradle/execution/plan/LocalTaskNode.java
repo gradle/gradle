@@ -20,7 +20,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutor;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
@@ -241,8 +241,8 @@ public class LocalTaskNode extends TaskNode {
                     missingTaskDependencyDetector.visitOutputLocation(this, typeValidationContext, outputPath)
                 )
         );
-        TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
-        taskExecuter.execute(task, state, ctx);
+        TaskExecutor taskExecutor = context.getService(TaskExecutor.class);
+        taskExecutor.execute(task, state, ctx);
     }
 
 }
