@@ -69,6 +69,7 @@ import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.time.TimeSourceManager;
 
 import java.util.Collections;
 
@@ -119,8 +120,17 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     @Provides
-    Clock createClock() {
+    Clock createClock(TimeSourceManager timeSourceManager) {
+        // The clock does not consume the manager directly, but depending on it ensures the
+        // time manager's probe and ticker thread starts as soon as the clock service is first used.
         return Time.clock();
+    }
+
+    @Provides
+    TimeSourceManager createTimeSourceManager() {
+        // Only Windows is known to have an expensive high-resolution timer. On other
+        // platforms the manager is disabled.
+        return TimeSourceManager.start(OperatingSystem.current().isWindows());
     }
 
     @Provides({ClassCacheFactory.class, CrossBuildInMemoryCacheFactory.class})
