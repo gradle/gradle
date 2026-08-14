@@ -75,7 +75,7 @@ class ProblemBodyWriter implements PartialProblemWriter {
             indent(output, "Location: " + location.getPath(), 4);
             if (location instanceof LineInFileLocation) {
                 LineInFileLocation lineLocation = (LineInFileLocation) location;
-                output.printf(" line " + lineLocation.getLine());
+                output.printf(":" + lineLocation.getLine());
             }
         }
     }
