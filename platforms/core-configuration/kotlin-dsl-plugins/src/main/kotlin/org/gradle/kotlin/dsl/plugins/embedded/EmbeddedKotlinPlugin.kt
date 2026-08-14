@@ -22,12 +22,7 @@ import org.gradle.api.logging.Logger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
-import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import javax.inject.Inject
 
@@ -64,42 +59,12 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
         }
     }
 
-    /**
-     * A read of `compilerVersion` finalizes the value, so the read waits for the task configuration.
-     * A project can have several Kotlin compile tasks, and the warning appears one time.
-     */
     private fun Project.warnOnDifferentKotlinCompilerVersion() {
-        var warned = false
-        tasks.withType<KotlinCompile>().configureEach {
-            if (!warned) {
-                warned = true
-                logger.warnOnDifferentKotlinVersion(kotlinCompilerVersion())
-            }
+        val checkKotlinCompilerVersion = tasks.register<CheckKotlinCompilerVersion>("checkKotlinCompilerVersion")
+        tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
+            kotlinCompile.dependsOn(checkKotlinCompilerVersion)
         }
     }
-
-    /**
-     * The `compilerVersion` property selects the compiler only when the compilation runs through the
-     * Build Tools API. The legacy path always compiles with the compiler of the plugin version.
-     */
-    @OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalBuildToolsApi::class)
-    private fun Project.kotlinCompilerVersion(): String {
-        val kotlinPluginVersion = getKotlinPluginVersion()
-        if (!runsCompilerViaBuildToolsApi(kotlinPluginVersion)) {
-            return kotlinPluginVersion
-        }
-        return kotlinExtension.compilerVersion.orNull ?: kotlinPluginVersion
-    }
-
-    /**
-     * The Kotlin Gradle Plugin runs the compilation through the Build Tools API since version 2.3.20.
-     * Older versions need the Gradle property, and every version accepts it.
-     */
-    private fun Project.runsCompilerViaBuildToolsApi(kotlinPluginVersion: String): Boolean =
-        providers.gradleProperty(RUN_COMPILER_VIA_BUILD_TOOLS_API_PROPERTY)
-            .map { it.toBoolean() }
-            .orElse(VersionNumber.parse(kotlinPluginVersion).baseVersion >= FIRST_VERSION_WITH_BUILD_TOOLS_API_BY_DEFAULT)
-            .get()
 
     // See https://github.com/gradle/gradle/issues/35309
     // TODO remove once https://youtrack.jetbrains.com/issue/KT-81706/ is fixed
@@ -130,14 +95,6 @@ fun Logger.warnOnDifferentKotlinVersion(kotlinCompilerVersion: String?) {
         warn(warning)
     }
 }
-
-
-private
-const val RUN_COMPILER_VIA_BUILD_TOOLS_API_PROPERTY = "kotlin.compiler.runViaBuildToolsApi"
-
-
-private
-val FIRST_VERSION_WITH_BUILD_TOOLS_API_BY_DEFAULT = VersionNumber.parse("2.3.20")
 
 
 internal

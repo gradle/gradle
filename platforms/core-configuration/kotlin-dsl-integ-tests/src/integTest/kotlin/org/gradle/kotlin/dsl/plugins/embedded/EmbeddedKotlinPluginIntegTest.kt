@@ -82,6 +82,38 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    fun `does not read the compiler version while the project configures`() {
+
+        withBuildScript(
+            """
+            import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+            import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+            $repositoriesBlock
+
+            // Some plugins realize the Kotlin compile tasks while the project configures
+            tasks.withType<KotlinCompile>().all { }
+
+            @OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalBuildToolsApi::class)
+            fun useDifferentCompiler() = kotlin {
+                compilerVersion.set("2.3.21")
+            }
+            useDifferentCompiler()
+
+            """
+        )
+
+        val result = build("classes")
+
+        assertThat(result.output, containsString("Unsupported Kotlin compiler version"))
+    }
+
+    @Test
     fun `does not warn when the Build Tools API is off and the plugin version is the embedded one`() {
 
         withFile("gradle.properties", "kotlin.compiler.runViaBuildToolsApi=false")
