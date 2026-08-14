@@ -102,6 +102,7 @@ fun configureSourcesVariant() {
         isCanBeResolved = false
         isCanBeConsumed = true
         extendsFrom(configurations.implementation.get())
+        extendsFrom(configurations.runtimeOnly.get())
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
