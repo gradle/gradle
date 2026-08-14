@@ -43,9 +43,8 @@ import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.problems.internal.report.model.JsLocation
 import org.gradle.problems.internal.report.model.JsProblem
 import org.gradle.problems.internal.report.model.JsProblemIdElement
-import org.gradle.problems.internal.report.model.JsProblemSummary
-import org.gradle.problems.internal.report.model.JsProblemsModel
-import org.gradle.problems.internal.report.model.ProblemReportJsModel
+import org.gradle.problems.internal.report.model.JsProblemIdSummary
+import org.gradle.problems.internal.report.model.JsProblemsSummary
 import java.io.File
 
 private val logger: Logger = Logging.getLogger(DefaultProblemsReportCreator::class.java)
@@ -76,15 +75,13 @@ class DefaultProblemsReportCreator(
     }
 
     override fun createReportFile(reportDir: File, problemSummaries: List<ProblemSummaryData>) {
-        val envelope = JsProblemsModel(
-            problemsReport = ProblemReportJsModel(
-                buildName = buildStateRegistry.rootBuild.displayName.displayName,
-                requestedTasks = taskNames.joinToString(" "),
-                documentationLink = DocumentationRegistry().getDocumentationFor("reporting_problems"),
-                summaries = problemSummaries.map { it.toJsProblemSummary() },
-            )
+        val summary = JsProblemsSummary(
+            buildName = buildStateRegistry.rootBuild.displayName.displayName,
+            requestedTasks = taskNames.joinToString(" "),
+            documentationLink = DocumentationRegistry().getDocumentationFor("reporting_problems"),
+            summaries = problemSummaries.map { it.toJsProblemIdSummary() },
         )
-        val reportFile = report.writeReportFileTo(reportDir.resolve("reports/problems"), envelope)
+        val reportFile = report.writeReportFileTo(reportDir.resolve("reports/problems"), summary)
         if (reportFile != null && warningMode != WarningMode.None) {
             logger.warn(
                 "{}[Incubating] Problems report is available at: {}",
@@ -106,8 +103,8 @@ class DefaultProblemsReportCreator(
     )
 }
 
-private fun ProblemSummaryData.toJsProblemSummary(): JsProblemSummary =
-    JsProblemSummary(problemId = problemId.toJsProblemIdElements(), count = count)
+private fun ProblemSummaryData.toJsProblemIdSummary(): JsProblemIdSummary =
+    JsProblemIdSummary(problemId = problemId.toJsProblemIdElements(), count = count)
 
 @Suppress("USELESS_ELVIS")
 private fun ProblemId.toJsProblemIdElements(): List<JsProblemIdElement> {

@@ -21,7 +21,7 @@ import org.gradle.problems.internal.report.HtmlReportWriter
 import org.gradle.problems.internal.report.model.JsDiagnostic
 import org.gradle.problems.internal.report.model.JsError
 import org.gradle.problems.internal.report.model.JsMessageFragment
-import org.gradle.problems.internal.report.model.JsModel
+import org.gradle.problems.internal.report.model.JsConfigurationCacheSummary
 import org.gradle.problems.internal.report.model.JsStackTracePart
 import org.gradle.problems.internal.report.model.JsTrace
 import org.gradle.problems.internal.report.model.JsTraceField
@@ -477,8 +477,8 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         return new JsTraceField(name, "com.example.SomeBean")
     }
 
-    private static JsModel reportModel(int problemCount) {
-        return new JsModel(
+    private static JsConfigurationCacheSummary reportModel(int problemCount) {
+        return new JsConfigurationCacheSummary(
             null, // buildName
             "storing", // cacheAction
             null, // requestedTasks
@@ -486,8 +486,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
             "https://docs.gradle.org/current/userguide/configuration_cache.html",
             problemCount, // totalProblemCount
             problemCount, // uniqueProblemCount
-            0, // overflownProblemCount
-            [] // diagnostics, streamed separately
+            0 // overflownProblemCount
         )
     }
 }
