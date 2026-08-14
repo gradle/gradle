@@ -117,7 +117,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "logging-api",
         "messaging",
         "model-core",
-        "model-groovy",
         "model-reflect",
         "native",
         "normalization",

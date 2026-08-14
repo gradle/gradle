@@ -52,7 +52,7 @@ public class DefaultCompileOperationFactory implements CompileOperationFactory {
 
     @Override
     public CompileOperation<BuildScriptData> getScriptCompileOperation(ScriptSource scriptSource, ScriptTarget scriptTarget) {
-        BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
+        BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptTarget);
         String templateId = scriptTarget.getId();
         return new FactoryBackedCompileOperation<>(templateId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
     }

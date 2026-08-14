@@ -16,8 +16,6 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
-import org.codehaus.groovy.ast.ClassNode;
-import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
@@ -46,7 +44,7 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, Class<T> scriptBaseClass, Object target, ClassLoaderScope targetScope, CompileOperation<M> operation, Action<? super ClassNode> verifier) {
+    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, Class<T> scriptBaseClass, Object target, ClassLoaderScope targetScope, CompileOperation<M> operation) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), targetScope.getExportClassLoader(), operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
@@ -54,7 +52,7 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
             // can re-enter script compilation, which must not happen inside a mapping function.
             // Two threads racing on the same key may both compile, but the delegate cache is itself
             // thread-safe and returns the same result, so the duplicated work is the only cost.
-            compiledScript = cache.getOrCompile(target, source, targetScope, operation, scriptBaseClass, verifier, scriptClassCompiler);
+            compiledScript = cache.getOrCompile(target, source, targetScope, operation, scriptBaseClass, scriptClassCompiler);
             cachedCompiledScripts.put(key, compiledScript);
         }
         return compiledScript;

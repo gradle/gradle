@@ -22,7 +22,6 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
 import java.util.List;
 
@@ -49,10 +48,6 @@ public class ImperativeStatementDetectingTransformer extends AbstractScriptTrans
         List<Statement> statements = statementBlock.getStatements();
         for (Statement statement : statements) {
             if (!AstUtils.mayHaveAnEffect(statement)) {
-                continue;
-            }
-            ScriptBlock scriptBlock = AstUtils.detectScriptBlock(statement);
-            if (scriptBlock != null && scriptBlock.getName().equals(ModelBlockTransformer.MODEL)) {
                 continue;
             }
             imperativeStatementDetected = true;
