@@ -814,7 +814,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         val assertions: ExecutionFailure.() -> Unit = {
             assertHasFailure("An exception occurred applying plugin request [id: '$pluginId']") {
-                assertHasCause("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
+                assertHasCause("'InvalidPlugin' is not a plugin and cannot be applied.")
             }
         }
 

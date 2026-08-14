@@ -38,7 +38,6 @@ object PublicApi {
         "org/gradle/testing/jacoco/**",
         "org/gradle/tooling/**",
         "org/gradle/swiftpm/**",
-        "org/gradle/model/**",
         "org/gradle/testkit/**",
         "org/gradle/testing/**",
         "org/gradle/vcs/**",
