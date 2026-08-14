@@ -368,6 +368,9 @@ class CrossProjectConfigurationReportingGradle(
     override fun getBuildListenerBroadcaster(): BuildListener =
         delegate.buildListenerBroadcaster
 
+    override fun notifySettingsEvaluated(settings: SettingsInternal) =
+        delegate.notifySettingsEvaluated(settings)
+
     override fun getServices(): ServiceRegistry =
         delegate.services
 
