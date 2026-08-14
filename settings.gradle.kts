@@ -302,7 +302,6 @@ platform("native") {
     subproject("tooling-native")
     subproject("tooling-native-model-impls")
     subproject("testing-native")
-    subproject("plugins-model-native")
 }
 
 

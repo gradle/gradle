@@ -1,6 +1,0 @@
-#include "resources.h"
-
-STRINGTABLE
-{
-    IDS_HELLO,   "Hello world!"
-} 

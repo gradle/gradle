@@ -31,10 +31,6 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
     @RunFor([
         @Scenario(type = PER_DAY, operatingSystems = [LINUX],
             testProjects =  [
-                'smallNative',
-                'mediumNative',
-                'bigNative',
-                'multiNative',
                 'smallCppApp',
                 'mediumCppApp',
                 'mediumCppAppWithMacroIncludes',
@@ -47,27 +43,11 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
     ])
     def "clean assemble (native)"() {
         given:
-        def iterations = runner.testProject in ['smallNative', 'smallCppApp', 'smallCppMulti'] ? 40 : null
+        def iterations = runner.testProject in ['smallCppApp', 'smallCppMulti'] ? 40 : null
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
         runner.runs = iterations
         runner.warmUpRuns = iterations
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-    }
-
-    @RunFor([
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects =  ['manyProjectsNative'])
-    ])
-    def "clean assemble (native, parallel)"() {
-        given:
-        runner.tasksToRun = ["assemble"]
-        runner.cleanTasks = ["clean"]
-        runner.args = ["--parallel", "--max-workers=12"]
 
         when:
         def result = runner.run()

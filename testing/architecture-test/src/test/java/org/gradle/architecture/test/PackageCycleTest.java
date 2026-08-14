@@ -164,7 +164,6 @@ public class PackageCycleTest {
         entry("plugins-application", List.of("org/gradle/api/plugins/**")),
         entry("plugins-java", List.of("org/gradle/api/plugins/**")),
         entry("plugins-java-base", List.of("org/gradle/api/plugins/**")),
-        entry("plugins-model-native", List.of("org/gradle/**")),
         entry("plugins-version-catalog", List.of("org/gradle/**")),
         // ProblemId.create() and ProblemGroup.create() return internal types
         entry("problems-api", List.of("org/gradle/api/problems/**")),
