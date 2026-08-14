@@ -17,7 +17,6 @@
 package org.gradle.execution.plan
 
 import org.gradle.api.Task
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
@@ -38,10 +37,7 @@ class TaskNodeFactoryTest extends Specification {
     def e = task('e')
 
     def setup() {
-        def gradle = Mock(GradleInternal) {
-            getIdentityPath() >> Path.ROOT
-        }
-        factory = new TaskNodeFactory(gradle, Stub(BuildTreeWorkGraphController), Stub(BuildStateRegistry), Stub(NodeValidator), new TestBuildOperationRunner(), Stub(ExecutionNodeAccessHierarchies), TestUtil.problemsService())
+        factory = new TaskNodeFactory(Stub(BuildTreeWorkGraphController), Stub(BuildStateRegistry), Stub(NodeValidator), new TestBuildOperationRunner(), Stub(ExecutionNodeAccessHierarchies), TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
     }
 
     private TaskInternal task(String name) {
@@ -58,7 +54,7 @@ class TaskNodeFactoryTest extends Specification {
 
     void 'can create a node for a task'() {
         when:
-        def node = factory.getOrCreateNode(a)
+        def node = factory.getOrCreateLocalNode(a)
 
         then:
         !node.inKnownState
@@ -72,29 +68,31 @@ class TaskNodeFactoryTest extends Specification {
 
     void 'caches node for a given task'() {
         when:
-        def node = factory.getOrCreateNode(a)
+        def node = factory.getOrCreateLocalNode(a)
 
         then:
-        factory.getOrCreateNode(a).is(node)
+        factory.getOrCreateLocalNode(a).is(node)
     }
 
     void 'can add multiple nodes'() {
         when:
-        factory.getOrCreateNode(a)
-        factory.getOrCreateNode(b)
+        def first = factory.getOrCreateLocalNode(a)
+        def second = factory.getOrCreateLocalNode(b)
 
         then:
-        factory.tasks == [a, b] as Set
+        first != second
     }
 
     void 'reset state'() {
         when:
-        factory.getOrCreateNode(a)
-        factory.getOrCreateNode(b)
-        factory.getOrCreateNode(c)
-        factory.resetState()
+        def first = factory.getOrCreateLocalNode(a)
+        def second = factory.getOrCreateLocalNode(a)
+        factory.discardAll()
+        def afterReset = factory.getOrCreateLocalNode(a)
 
         then:
-        !factory.tasks
+        second.is(first)
+        !first.is(afterReset)
     }
+
 }

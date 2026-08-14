@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
@@ -55,6 +56,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -353,7 +355,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             // Before resolving, need to determine the full set of upstream dependencies that need to be built.
             // The full set is usually known when the work graph is built. However, in certain cases where a project dependency conflicts with an external dependency, this is not known
             // until the full graph resolution, which can happen at execution time.
-            return new CalculateFinalDependencies();
+            return new CalculateFinalDependencies(owner.getBuildPath());
         }
 
         @Override
@@ -369,7 +371,14 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
 
         public class CalculateFinalDependencies implements PostExecutionNodeAwareActionNode {
-            final List<TaskNode> tasks = new ArrayList<>();
+
+            private final Path owningBuildPath;
+
+            private final List<TaskNode> tasks = new ArrayList<>();
+
+            public CalculateFinalDependencies(Path owningBuildPath) {
+                this.owningBuildPath = owningBuildPath;
+            }
 
             @Override
             public boolean usesMutableProjectState() {
@@ -385,7 +394,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             @Override
             public void run(NodeExecutionContext context) {
                 TaskNodeFactory taskNodeFactory = context.getService(TaskNodeFactory.class);
-                selectedArtifacts().visitDependencies(new CollectingTaskDependencyResolveContext(tasks, taskNodeFactory));
+                selectedArtifacts().visitDependencies(new CollectingTaskDependencyResolveContext(tasks, taskNodeFactory, owningBuildPath));
             }
 
             @Override
@@ -396,18 +405,25 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private static class CollectingTaskDependencyResolveContext implements TaskDependencyResolveContext {
-        private final TaskNodeFactory taskNodeFactory;
-        private final Collection<TaskNode> tasks;
 
-        public CollectingTaskDependencyResolveContext(Collection<TaskNode> tasks, TaskNodeFactory taskNodeFactory) {
+        private final Collection<TaskNode> tasks;
+        private final TaskNodeFactory taskNodeFactory;
+        private final Path owningBuildPath;
+
+        public CollectingTaskDependencyResolveContext(
+            Collection<TaskNode> tasks,
+            TaskNodeFactory taskNodeFactory,
+            Path owningBuildPath
+        ) {
             this.tasks = tasks;
             this.taskNodeFactory = taskNodeFactory;
+            this.owningBuildPath = owningBuildPath;
         }
 
         @Override
         public void add(Object dependency) {
-            if (dependency instanceof Task) {
-                tasks.add(taskNodeFactory.getNode((Task) dependency));
+            if (dependency instanceof TaskInternal task) {
+                tasks.add(taskNodeFactory.getNode(task, owningBuildPath));
             }
         }
 
@@ -420,6 +436,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         public Task getTask() {
             return null;
         }
+
     }
 
     private class TransformUpstreamDependenciesImpl implements TransformUpstreamDependencies {

@@ -281,7 +281,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(IProjectFactory.class, ProjectFactory.class);
         registration.add(SettingsPreparer.class, DefaultSettingsPreparer.class);
         registration.add(ResolvedBuildLayout.class);
-        registration.add(TaskNodeFactory.class);
         registration.add(TaskNodeDependencyResolver.class);
         registration.add(WorkNodeDependencyResolver.class);
         registration.add(TaskDependencyResolver.class);
@@ -333,7 +332,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ResourceLockCoordinationService lockCoordinationService
     ) {
         return new ExecutionPlanFactory(
-            build.getDisplayName().getDisplayName(),
+            build,
             taskNodeFactory,
             ordinalGroupFactory,
             dependencyResolver,

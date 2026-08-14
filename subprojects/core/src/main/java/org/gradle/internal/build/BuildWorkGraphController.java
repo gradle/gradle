@@ -16,25 +16,14 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Collection;
 
 /**
  * Allows the work graph for a particular build in the build tree to be populated and executed.
  */
 @ServiceScope(Scope.Build.class)
 public interface BuildWorkGraphController {
-
-    /**
-     * Locates a task node in this build's work graph, for use from some other build's work graph.
-     *
-     * <p>This method does not schedule the task for execution, use {@link BuildWorkGraph#schedule(Collection)} to schedule the task.
-     */
-    TaskNode locateTaskNode(TaskInternal task);
 
     /**
      * Creates a new, empty work graph for this build.

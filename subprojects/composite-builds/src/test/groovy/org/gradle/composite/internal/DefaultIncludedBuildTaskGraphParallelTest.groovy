@@ -115,6 +115,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         CurrentBuildOperationRef.instance().clear()
     }
 
+    def taskNodeFactory = new TaskNodeFactory(Stub(BuildTreeWorkGraphController), buildStateRegistry, Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
+
     def "does nothing when nothing scheduled"() {
         when:
         def result = scheduleAndRun(new TreeServices(manyWorkers)) {
@@ -349,7 +351,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def buildOperation = Stub(BuildOperationRef) {
             getId() >> new OperationIdentifier(identityPath.hashCode())
         }
-        return new BuildServices(services, identityPath, gradle, buildOperation)
+        return new BuildServices(services, identityPath, gradle, buildOperation, this.taskNodeFactory)
     }
 
     Node task(BuildServices services, Node dependsOn) {
@@ -381,12 +383,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def lock = Stub(ResourceLock)
         _ * projectState.taskExecutionLock >> lock
         _ * lock.tryLock() >> true
-        return services.state.workGraph.locateTaskNode(task)
+        return this.taskNodeFactory.getOrCreateLocalNode(task)
     }
 
-    private BuildWorkGraphController buildWorkGraphController(String displayName, BuildServices services) {
+    private BuildWorkGraphController buildWorkGraphController(String displayName, BuildServices services, TaskNodeFactory taskNodeFactory) {
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
-        def nodeFactory = new TaskNodeFactory(services.gradle, Stub(BuildTreeWorkGraphController), buildStateRegistry, Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService())
+        def nodeFactory = taskNodeFactory
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
         def dependencyResolver = new TaskDependencyResolver([new DependencyResolver() {
             @Override
@@ -395,7 +397,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
                 return true
             }
         }])
-        def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService)
+        def plan = new DefaultExecutionPlan(displayName, services.gradle.identityPath, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService)
         def workPlan = Stub(BuildWorkPlan) {
             _ * stop() >> { plan.close() }
         }
@@ -407,7 +409,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         return new DefaultBuildWorkGraphController(
-            nodeFactory,
             controller,
             Stub(BuildState),
             services.services.workerLeaseService
@@ -535,12 +536,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         final Path identityPath
         final BuildOperationRef buildOperation
 
-        BuildServices(TreeServices services, Path identityPath, GradleInternal gradle, BuildOperationRef buildOperation) {
+        BuildServices(TreeServices services, Path identityPath, GradleInternal gradle, BuildOperationRef buildOperation, TaskNodeFactory factory) {
             this.identityPath = identityPath
             this.services = services
             this.gradle = gradle
             this.buildOperation = buildOperation
-            this.state = build(identityPath, buildWorkGraphController(new DefaultBuildIdentifier(identityPath).toString(), this))
+            this.state = build(identityPath, buildWorkGraphController(new DefaultBuildIdentifier(identityPath).toString(), this, factory))
         }
     }
 
@@ -560,7 +561,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             buildTaskGraph = new DefaultIncludedBuildTaskGraph(
                 execFactory,
                 new TestBuildOperationRunner(),
-                buildStateRegistry,
                 workerLeaseService,
                 planExecutor,
                 preparer,

@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.execution.plan;
-
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
@@ -31,6 +29,8 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
+import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -45,65 +45,119 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-@ServiceScope(Scope.Build.class)
-public class TaskNodeFactory {
-    private final Map<Task, TaskNode> nodes = new ConcurrentHashMap<>();
-    private final BuildTreeWorkGraphController workGraphController;
-    private final BuildStateRegistry buildRegistry;
-    private final ProblemsInternal problems;
-    private final GradleInternal thisBuild;
+@ServiceScope(Scope.BuildTree.class)
+public class TaskNodeFactory implements HoldsProjectState {
+
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
     private final Function<LocalTaskNode, ResolveMutationsNode> resolveMutationsNodeFactory;
 
+    private final InMemoryLoadingCache<TaskInternal, LocalTaskNode> localTaskNodes;
+    private final InMemoryLoadingCache<ExternalTaskKey, TaskInAnotherBuild> externalTaskNodes;
+
     public TaskNodeFactory(
-        GradleInternal thisBuild,
         BuildTreeWorkGraphController workGraphController,
         BuildStateRegistry buildRegistry,
         NodeValidator nodeValidator,
         BuildOperationRunner buildOperationRunner,
         ExecutionNodeAccessHierarchies accessHierarchies,
-        ProblemsInternal problems
+        ProblemsInternal problems,
+        InMemoryCacheFactory inMemoryCacheFactory
     ) {
-        this.thisBuild = thisBuild;
-        this.workGraphController = workGraphController;
-        this.buildRegistry = buildRegistry;
-        this.problems = problems;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
-        resolveMutationsNodeFactory = localTaskNode -> new ResolveMutationsNode(localTaskNode, nodeValidator, buildOperationRunner, accessHierarchies);
-    }
+        this.resolveMutationsNodeFactory = localTaskNode -> new ResolveMutationsNode(localTaskNode, nodeValidator, buildOperationRunner, accessHierarchies);
 
-    public Set<Task> getTasks() {
-        return nodes.keySet();
-    }
-
-    @Nullable
-    public TaskNode getNode(Task task) {
-        return nodes.get(task);
-    }
-
-    public TaskNode getOrCreateNode(Task task) {
-        return nodes.computeIfAbsent(task, it -> createTaskNode(Cast.uncheckedNonnullCast(it)));
-    }
-
-    private TaskNode createTaskNode(TaskInternal task) {
-        Path targetBuildPath = task.getTaskIdentity().getProjectIdentity().getBuildPath();
-        boolean sameBuild = targetBuildPath.equals(thisBuild.getIdentityPath());
-        if (sameBuild) {
-            return new LocalTaskNode(task, new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task), problems), resolveMutationsNodeFactory);
-        } else {
+        this.localTaskNodes = inMemoryCacheFactory.create(task ->
+            new LocalTaskNode(
+                task,
+                new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task), problems),
+                resolveMutationsNodeFactory
+            )
+        );
+        this.externalTaskNodes = inMemoryCacheFactory.create(key -> {
+            Path targetBuildPath = buildPathOf(key.task);
             BuildState targetBuild = buildRegistry.getBuild(targetBuildPath);
-            TaskNode targetNode = targetBuild.getWorkGraph().locateTaskNode(task);
+            TaskNode targetNode = localTaskNodes.get(key.task);
             return TaskInAnotherBuild.of(targetNode, targetBuild, workGraphController);
-        }
+        });
     }
 
-    public void resetState() {
+    private static Path buildPathOf(TaskInternal task) {
+        return task.getTaskIdentity().getProjectIdentity().getBuildPath();
+    }
+
+    public @Nullable TaskNode getNode(TaskInternal task, Path sourceBuildPath) {
+        return isLocalTo(task, sourceBuildPath)
+            ? localTaskNodes.getIfPresent(task)
+            : externalTaskNodes.getIfPresent(new ExternalTaskKey(sourceBuildPath, task));
+    }
+
+    public LocalTaskNode getOrCreateLocalNode(TaskInternal task) {
+        return localTaskNodes.get(task);
+    }
+
+    public TaskNode getOrCreateNode(TaskInternal task, Path sourceBuildPath) {
+        return isLocalTo(task, sourceBuildPath)
+            ? localTaskNodes.get(task)
+            : externalTaskNodes.get(new ExternalTaskKey(sourceBuildPath, task));
+    }
+
+    private static boolean isLocalTo(TaskInternal task, Path sourceBuildPath) {
+        return buildPathOf(task).equals(sourceBuildPath);
+    }
+
+    /**
+     * A reference to a task in another build, from the perspective of a particular build.
+     * <p>
+     * Each referencing build gets its own {@link TaskInAnotherBuild} node for a given target task, as a node
+     * carries state that belongs to the execution plan that contains it, such as its dependency predecessors.
+     * Sharing one node between the plans of two builds would let the completion of that node in one plan make
+     * the other plan's nodes ready in the wrong plan.
+     */
+    private static final class ExternalTaskKey {
+
+        private final Path sourceBuildPath;
+        private final TaskInternal task;
+
+        private final int hashCode;
+
+        ExternalTaskKey(Path sourceBuildPath, TaskInternal task) {
+            this.sourceBuildPath = sourceBuildPath;
+            this.task = task;
+
+            this.hashCode = computeHashCode(sourceBuildPath, task);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof ExternalTaskKey)) {
+                return false;
+            }
+            ExternalTaskKey other = (ExternalTaskKey) obj;
+            return task == other.task && sourceBuildPath.equals(other.sourceBuildPath);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        private static int computeHashCode(Path sourceBuildPath, TaskInternal task) {
+            return 31 * sourceBuildPath.hashCode() + task.hashCode();
+        }
+
+    }
+
+    @Override
+    public void discardAll() {
         typeOriginInspectorFactory.resetState();
-        nodes.clear();
+        localTaskNodes.invalidate();
+        externalTaskNodes.invalidate();
     }
 
     private static class DefaultTypeOriginInspectorFactory {
@@ -159,4 +213,5 @@ public class TaskNodeFactory {
             }
         }
     }
+
 }

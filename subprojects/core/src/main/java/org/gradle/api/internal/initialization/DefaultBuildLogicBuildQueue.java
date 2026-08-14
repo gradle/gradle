@@ -20,8 +20,11 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.execution.plan.TaskNode;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -30,6 +33,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.work.Synchronizer;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
@@ -46,6 +50,9 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final ProjectCacheDir projectCacheDir;
     private final Synchronizer resource;
+    private final BuildStateRegistry buildRegistry;
+    private final TaskNodeFactory taskNodeFactory;
+
     private FileLock fileLock = null;
 
     public DefaultBuildLogicBuildQueue(
@@ -53,13 +60,17 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         FileLockManager fileLockManager,
         BuildTreeWorkGraphController buildTreeWorkGraphController,
         ProjectCacheDir projectCacheDir,
-        WorkerLeaseService workerLeaseService
+        WorkerLeaseService workerLeaseService,
+        BuildStateRegistry buildRegistry,
+        TaskNodeFactory taskNodeFactory
     ) {
         this.runner = runner;
         this.fileLockManager = fileLockManager;
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.projectCacheDir = projectCacheDir;
         this.resource = workerLeaseService.newResource();
+        this.buildRegistry = buildRegistry;
+        this.taskNodeFactory = taskNodeFactory;
     }
 
     @Override
@@ -88,7 +99,19 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     private <T> T doBuild(List<TaskInternal> tasks, Supplier<T> continuationUnderLock) {
         buildTreeWorkGraphController.withNewWorkGraph(graph -> {
             graph
-                .scheduleWork(builder -> builder.scheduleTasks(tasks))
+                .scheduleWork(builder -> {
+                    for (TaskInternal task : tasks) {
+                        // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
+                        // running tasks at the same time
+                        if (task.getState().getExecuted()) {
+                            continue;
+                        }
+                        Path buildPath = task.getTaskIdentity().getProjectIdentity().getBuildPath();
+                        BuildState targetBuild = buildRegistry.getBuild(buildPath);
+                        TaskNode node = taskNodeFactory.getOrCreateLocalNode(task);
+                        builder.scheduleNode(targetBuild, node);
+                    }
+                })
                 .runWork()
                 .rethrow();
             return null;
