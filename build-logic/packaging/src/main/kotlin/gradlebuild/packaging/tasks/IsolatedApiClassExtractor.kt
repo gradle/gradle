@@ -20,7 +20,6 @@ import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
 import java.util.Optional
-import java.util.function.Predicate
 
 
 /**
@@ -34,8 +33,7 @@ import java.util.function.Predicate
  */
 internal
 class IsolatedApiClassExtractor private constructor(
-    private val classLoader: URLClassLoader,
-    packages: Set<String>
+    private val classLoader: URLClassLoader
 ) {
 
     private
@@ -48,7 +46,7 @@ class IsolatedApiClassExtractor private constructor(
     }
 
     private
-    val extractor = newExtractor(packages)
+    val extractor = newExtractor()
 
     private
     val extractApiClassFromMethod = extractorClass.getMethod("extractApiClassFrom", ByteArray::class.java)
@@ -66,23 +64,18 @@ class IsolatedApiClassExtractor private constructor(
      * Reflective equivalent of:
      * ```
      * ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())
-     *     .includePackagePrivateMembers() // or .includePackagesMatching(packages::contains)
+     *     .includePackagePrivateMembers()
      *     .build()
      * ```
      */
     private
-    fun newExtractor(packages: Set<String>): Any {
+    fun newExtractor(): Any {
         val writerAdapterClass = classLoader.loadClass("org.gradle.internal.tools.api.ApiMemberWriterAdapter")
         val writerClass = classLoader.loadClass("org.gradle.internal.tools.api.impl.JavaApiMemberWriter")
         val writerAdapter = writerClass.getMethod("adapter").invoke(null)
         val builder = extractorClass.getMethod("withWriter", writerAdapterClass).invoke(null, writerAdapter)
         val builderClass = builder.javaClass
-        val configuredBuilder = if (packages.isEmpty()) {
-            builderClass.getMethod("includePackagePrivateMembers").invoke(builder)
-        } else {
-            builderClass.getMethod("includePackagesMatching", Predicate::class.java)
-                .invoke(builder, Predicate<String> { it in packages })
-        }
+        val configuredBuilder = builderClass.getMethod("includePackagePrivateMembers").invoke(builder)
         return builderClass.getMethod("build").invoke(configuredBuilder)
     }
 
@@ -95,12 +88,12 @@ class IsolatedApiClassExtractor private constructor(
          * isolation check does on purpose. The extractor holds the class loader, so it stays inside
          * this scope.
          */
-        fun <T> runUsing(classpath: Iterable<File>, packages: Set<String>, block: (IsolatedApiClassExtractor) -> T): T =
+        fun <T> runUsing(classpath: Iterable<File>, block: (IsolatedApiClassExtractor) -> T): T =
             URLClassLoader(
                 classpath.map { it.toURI().toURL() }.toTypedArray(),
                 ClassLoader.getPlatformClassLoader()
             ).use { classLoader ->
-                block(IsolatedApiClassExtractor(classLoader, packages))
+                block(IsolatedApiClassExtractor(classLoader))
             }
     }
 }

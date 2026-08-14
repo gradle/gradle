@@ -36,8 +36,8 @@ enum class ContentFilter {
  */
 internal
 fun contentFilterFor(relativePath: String): ContentFilter {
-    // Extraction keeps the module and the package annotations, so module-info and
-    // package-info need no copy of their own
+    // The extractor includes the package-private members, so it keeps module-info and
+    // package-info with the module directives and the package annotations of those files
     if (relativePath.endsWith(".class")) {
         return ContentFilter.API_ONLY
     }

@@ -19,10 +19,8 @@ package gradlebuild.packaging.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.workers.WorkAction
@@ -36,16 +34,13 @@ import javax.inject.Inject
  *
  * Keeps only the following:
  *
- * -  API stubs of public classes in the specified packages
+ * - API stubs of the classes, including the package-private ones
  * - `META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule`
  * - `META-INF/services/org.codehaus.groovy.transform.ASTTransformation`
  * - `META-INF/\*.kotlin_module`
  */
 @CacheableTask
 abstract class ExtractJavaAbi : DefaultTask() {
-
-    @get:Input
-    abstract val packages: SetProperty<String>
 
     // Do not change this to CompileClasspath. It hashes the input with the ABI extractor of the
     // distribution that runs this build, and that extractor drops the details this task keeps.
@@ -69,7 +64,6 @@ abstract class ExtractJavaAbi : DefaultTask() {
         // The worker process keeps extraction failures and heap out of the build process,
         // IsolatedApiClassExtractor keeps the extractor away from the distribution running this build
         workerExecutor.processIsolation().submit(ExtractJavaAbiAction::class.java) {
-            packages.set(task.packages)
             classesDirectories.setFrom(task.classesDirectories)
             outputDirectory.set(task.outputDirectory)
             extractorClasspath.setFrom(task.extractorClasspath)
@@ -79,7 +73,6 @@ abstract class ExtractJavaAbi : DefaultTask() {
     abstract class ExtractJavaAbiAction @Inject constructor() : WorkAction<ExtractJavaAbiAction.Params> {
 
         interface Params : WorkParameters {
-            val packages: SetProperty<String>
             val classesDirectories: ConfigurableFileCollection
             val outputDirectory: DirectoryProperty
             val extractorClasspath: ConfigurableFileCollection
@@ -87,7 +80,7 @@ abstract class ExtractJavaAbi : DefaultTask() {
 
         override fun execute() {
             val outputDirectory = parameters.outputDirectory.get().asFile
-            IsolatedApiClassExtractor.runUsing(parameters.extractorClasspath, parameters.packages.get()) { extractor ->
+            IsolatedApiClassExtractor.runUsing(parameters.extractorClasspath) { extractor ->
                 parameters.classesDirectories.forEach { classDir ->
                     classDir.walk().forEach { inputFile ->
                         val relativePath = inputFile.relativeTo(classDir).invariantSeparatorsPath
