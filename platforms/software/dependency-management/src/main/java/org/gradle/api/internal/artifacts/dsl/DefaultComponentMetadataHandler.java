@@ -37,7 +37,6 @@ import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
 import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.rules.DefaultRuleActionAdapter;
 import org.gradle.internal.rules.DefaultRuleActionValidator;

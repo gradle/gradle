@@ -19,7 +19,7 @@ dependencies {
     }
 
     api(projects.logging)
-    api(projects.modelCore)
+    implementation(projects.modelCore)
     api(projects.reportRendering)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)

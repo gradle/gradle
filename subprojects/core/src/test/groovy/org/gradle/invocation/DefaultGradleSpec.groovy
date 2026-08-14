@@ -58,7 +58,6 @@ import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -86,7 +85,6 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ScriptHandler) >> Mock(ScriptHandler)
         _ * serviceRegistry.get(TaskExecutionGraphInternal) >> Mock(TaskExecutionGraphInternal)
         _ * serviceRegistry.get(TaskContainerInternal) >> Mock(TaskContainerInternal)
-        _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
         _ * serviceRegistry.get(InstantiatorFactory) >> Mock(InstantiatorFactory)
         _ * serviceRegistry.get(ListenerManager) >> listenerManager
         _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation

@@ -18,7 +18,6 @@ package org.gradle.execution;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
-import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;

@@ -16,9 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -27,24 +25,17 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
-// TODO: Rewrite this to not rely on ComponentSpec once that's been removed.
-@SuppressWarnings("deprecation")
-public class PreCompiledHeader extends AbstractBuildableComponentSpec {
-    FileCollection pchObjects;
-    File prefixHeaderFile;
-    String includeString;
-
-    public PreCompiledHeader(ComponentSpecIdentifier identifier) {
-        super(identifier, PreCompiledHeader.class);
-    }
+public class PreCompiledHeader {
+    private FileCollection pchObjects;
+    private File prefixHeaderFile;
+    private String includeString;
 
     @Internal
+    @Nullable
     public File getObjectFile() {
         return pchObjects == null ? null : pchObjects.getSingleFile();
     }
@@ -72,62 +63,14 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         this.prefixHeaderFile = prefixHeaderFile;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getIncludeString() {
         return includeString;
     }
 
     public void setIncludeString(@Nullable String includeString) {
         this.includeString = includeString;
-    }
-
-    @Internal
-    @Override
-    public ComponentSpecIdentifier getIdentifier() {
-        return super.getIdentifier();
-    }
-
-    @Internal
-    @Override
-    public String getName() {
-        return super.getName();
-    }
-
-    @Internal
-    @Override
-    public String getProjectPath() {
-        return super.getProjectPath();
-    }
-
-    @Internal
-    @Override
-    protected String getTypeName() {
-        return super.getTypeName();
-    }
-
-    @Internal
-    @Override
-    public String getDisplayName() {
-        return super.getDisplayName();
-    }
-
-    @Internal
-    @Nullable
-    @Override
-    public Task getBuildTask() {
-        return super.getBuildTask();
-    }
-
-    @Internal
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return super.getBuildDependencies();
-    }
-
-    @Internal
-    @Nullable
-    @Override
-    public Task getCheckTask() {
-        return super.getCheckTask();
     }
 }
