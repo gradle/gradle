@@ -2164,6 +2164,26 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static abstract class AbstractUpgradedPropertyBeanWithObjectSetter {
+        @ReplacesEagerProperty
+        public abstract Property<String> getProp();
+
+        // The eager accessor of an upgraded property whose original type erases to Object
+        public void setProp(Object value) {
+        }
+    }
+
+    // Not upgraded, so the generated set(Object) overload is a second method with the same signature and the JVM
+    // rejects the decorated class. Pre-existing on master and deliberately left alone, see the test for this bean.
+    public static class BeanWithLazyPropertyAndObjectSetter {
+        public Property<String> getProp() {
+            return null;
+        }
+
+        public void setProp(Object value) {
+        }
+    }
+
     public interface BeanWithAnnotatedProperty {
         @ReplacesEagerProperty
         Property<String> getProp();
@@ -2199,6 +2219,20 @@ public class AsmBackedClassGeneratorTest {
         public void setProp(String value) {
             getProp().set(value);
         }
+    }
+
+    // An abstract set(Object) has no body of its own, so the generated overload is its only implementation
+    public interface BeanWithLazyPropertyAndAbstractObjectSetter {
+        Property<String> getProp();
+
+        void setProp(Object value);
+    }
+
+    public interface UpgradedPropertyBeanWithAbstractObjectSetter {
+        @ReplacesEagerProperty
+        Property<String> getProp();
+
+        void setProp(Object value);
     }
 
     interface InterfaceWithTypeParameter<T> {

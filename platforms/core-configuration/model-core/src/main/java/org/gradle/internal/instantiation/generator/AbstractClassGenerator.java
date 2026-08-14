@@ -815,6 +815,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return overridableSetters;
         }
 
+        public List<Method> getSetters() {
+            return setters;
+        }
+
         @Nullable
         public Field getBackingField() {
             return backingField;
