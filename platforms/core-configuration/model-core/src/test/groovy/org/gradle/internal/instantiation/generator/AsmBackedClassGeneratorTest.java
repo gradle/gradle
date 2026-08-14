@@ -55,6 +55,7 @@ import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -2089,6 +2090,114 @@ public class AsmBackedClassGeneratorTest {
 
         void thing() {
             setName("thing");
+        }
+    }
+
+    public static abstract class AbstractPropertyBeanWithForwarderSetter {
+        @ReplacesEagerProperty
+        public abstract Property<String> getProp();
+
+        // A concrete setter that forwards into the lazy property. There is no backing field
+        // for the abstract getter to read, so this setter cannot be managing one itself.
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
+    public static abstract class AbstractPropertyBeanWithUnannotatedForwarderSetter {
+        public abstract Property<String> getProp();
+
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
+    public interface BeanWithProviderProp {
+        Provider<String> getProp();
+    }
+
+    public static abstract class AbstractCovariantPropertyBeanWithForwarderSetter implements BeanWithProviderProp {
+        // The covariant override makes javac emit a concrete bridge getter.
+        // The bridge only delegates here, so it cannot be managing a backing field either.
+        @Override
+        @ReplacesEagerProperty
+        public abstract Property<String> getProp();
+
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
+    public interface BeanWithAnnotatedProviderProp {
+        @ReplacesEagerProperty
+        Provider<String> getProp();
+    }
+
+    // The annotation is only on the super-interface getter: an override does not inherit it.
+    public static abstract class AbstractCovariantPropertyBeanWithInheritedAnnotation implements BeanWithAnnotatedProviderProp {
+        @Override
+        public abstract Property<String> getProp();
+
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
+    public static abstract class AbstractFileCollectionBeanWithPropertyTypedForwarderSetter {
+        @ReplacesEagerProperty
+        public abstract ConfigurableFileCollection getFiles();
+
+        // Takes the property type rather than the value type, so this is not a plain mutable property:
+        // the forwarder still writes through the lazy property.
+        public void setFiles(ConfigurableFileCollection files) {
+            getFiles().setFrom(files);
+        }
+    }
+
+    public static abstract class AbstractProviderPropBeanWithForwarderSetter {
+        // Provider cannot be created as managed state, so there is no lazy property to forward into
+        @ReplacesEagerProperty
+        public abstract Provider<String> getProp();
+
+        public void setProp(String value) {
+            throw new UnsupportedOperationException("should not be reachable");
+        }
+    }
+
+    public interface BeanWithAnnotatedProperty {
+        @ReplacesEagerProperty
+        Property<String> getProp();
+    }
+
+    // The re-declared getter has the same signature as the annotated one, so it hides it from ClassDetails.
+    public static abstract class AbstractPropertyBeanRedeclaringAnnotatedGetter implements BeanWithAnnotatedProperty {
+        @Override
+        public abstract Property<String> getProp();
+
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
+    public static abstract class AbstractAnnotatedPropertyBean {
+        @ReplacesEagerProperty
+        public abstract Property<String> getProp();
+    }
+
+    // The annotation is on the superclass getter, the forwarder setter is added further down the hierarchy.
+    public static abstract class AbstractPropertyBeanWithForwarderSetterInSubclass extends AbstractAnnotatedPropertyBean {
+        public void setProp(String value) {
+            getProp().set(value);
+        }
+    }
+
+    public static abstract class AbstractPropertyBean {
+        public abstract Property<String> getProp();
+    }
+
+    public static abstract class AbstractPropertyBeanWithUnannotatedForwarderSetterInSubclass extends AbstractPropertyBean {
+        public void setProp(String value) {
+            getProp().set(value);
         }
     }
 
