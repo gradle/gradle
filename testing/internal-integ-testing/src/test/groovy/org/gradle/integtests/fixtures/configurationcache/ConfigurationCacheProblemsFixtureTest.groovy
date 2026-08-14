@@ -16,8 +16,16 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
-import groovy.json.JsonOutput
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.problems.internal.report.HtmlReportWriter
+import org.gradle.problems.internal.report.model.JsDiagnostic
+import org.gradle.problems.internal.report.model.JsError
+import org.gradle.problems.internal.report.model.JsMessageFragment
+import org.gradle.problems.internal.report.model.JsModel
+import org.gradle.problems.internal.report.model.JsStackTracePart
+import org.gradle.problems.internal.report.model.JsTrace
+import org.gradle.problems.internal.report.model.JsTraceField
+import org.gradle.problems.internal.report.model.JsTraceTask
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -337,7 +345,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         when:
         generateReportFile(
             ["Some problem 1"],
-            [[[ kind: "Task", path: ":myTask1" ]]]
+            [[task(":myTask1")]]
         )
         report().assertContents {
             problemsWithStackTraceCount = 0
@@ -354,7 +362,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
             ["Some problem 1", "Some problem 2"],
             [
                 null,
-                [[ kind: "Task", path: ":myTask" ], [ kind: "Field", name: "field1" ]]
+                [task(":myTask"), field("field1")]
             ]
         )
         report().assertContents {
@@ -373,9 +381,9 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
                 "Some problem 1"
             ],
             [
-                [[ kind: "Task", path: ":myTask1" ], [ kind: "Field", name: "field1" ]],
-                [[ kind: "Task", path: ":myTask2" ], [ kind: "Field", name: "field1" ]],
-                [[ kind: "Task", path: ":myTask2" ], [ kind: "Field", name: "field2" ]],
+                [task(":myTask1"), field("field1")],
+                [task(":myTask2"), field("field1")],
+                [task(":myTask2"), field("field2")],
             ]
         )
         report().assertContents {
@@ -428,54 +436,59 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(problemMessages, [], problemStacktraces)
     }
 
-    private TestFile generateReportFile(List<String> problemMessages, List<List<String>> problemsAndPropertyTraces = [], List<List<String>> problemsAndStacktraceParts = []) {
-        List<String> problemMarkup = []
-        problemMessages.eachWithIndex { String problemText, int index ->
-            def fragment = """
-            {
-                    "problem": [{
-                        "text": "${problemText}"
-                    }]
-            """ +
-                (problemsAndPropertyTraces[index]?.with { problemTraces ->
-                    """,
-                    "trace": ${JsonOutput.prettyPrint(JsonOutput.toJson(problemTraces))}
-                    """
-                } ?: "") +
-                (problemsAndStacktraceParts[index]?.with { parts ->
-                    """,
-                    "error": {
-                        "parts": [ ${parts.collect { "\"${it}\"" }.join(", ")} ]
-                    }
-                    """
-                } ?: "") +
-            """
-            }
-            """
-            problemMarkup << fragment.toString()
+    private TestFile generateReportFile(List<String> problemMessages, List<List<JsTrace>> problemsAndPropertyTraces = [], List<List<String>> problemsAndStacktraceParts = []) {
+        def diagnostics = problemMessages.withIndex().collect { String problemText, int index ->
+            problemDiagnostic(problemText, problemsAndPropertyTraces[index], problemsAndStacktraceParts[index])
         }
-        // Mirrors HtmlReportWriter from the configuration-cache-report library: the diagnostics array
-        // and the envelope ("model") object are each wrapped in their own marker pair, and are valid
-        // JSON on their own.
-        def reportData = """
-// begin-report-data
-const diagnostics =
-// begin-report-diagnostics
-[
-    ${problemMarkup.join(",${NEWLINE}")}
-]
-// end-report-diagnostics
-;
-const report =
-// begin-report-model
-{
-    "totalProblemCount": ${problemMessages.size()}
-}
-// end-report-model
-;
-// end-report-data
-        """
-        reportFile.setText(reportData)
+
+        // Write the report the same way a build does, so that this test cannot drift away from the
+        // format the fixture has to read.
+        reportFile.parentFile.mkdirs()
+        def writer = new HtmlReportWriter(reportFile.newWriter("utf-8"))
+        writer.beginHtmlReport()
+        diagnostics.each { writer.writeDiagnostic(it) }
+        writer.endHtmlReport(reportModel(problemMessages.size()))
+        writer.close()
+
+        return reportFile
+    }
+
+    // The model classes are Kotlin data classes with default values, which Groovy cannot use, so
+    // every property has to be passed positionally.
+    private static JsDiagnostic problemDiagnostic(String problemText, List<JsTrace> traces, List<String> stacktraceParts) {
+        return new JsDiagnostic(
+            null, // input
+            [new JsMessageFragment(problemText, null)], // problem
+            null, // incompatibleTask
+            traces ?: [],
+            null, // documentationLink
+            stacktraceParts == null ? null : new JsError(
+                null, // summary
+                stacktraceParts.collect { new JsStackTracePart(it, null) }
+            )
+        )
+    }
+
+    private static JsTrace task(String path) {
+        return new JsTraceTask(path, "org.gradle.api.DefaultTask")
+    }
+
+    private static JsTrace field(String name) {
+        return new JsTraceField(name, "com.example.SomeBean")
+    }
+
+    private static JsModel reportModel(int problemCount) {
+        return new JsModel(
+            null, // buildName
+            "storing", // cacheAction
+            null, // requestedTasks
+            null, // cacheActionDescription
+            "https://docs.gradle.org/current/userguide/configuration_cache.html",
+            problemCount, // totalProblemCount
+            problemCount, // uniqueProblemCount
+            0, // overflownProblemCount
+            [] // diagnostics, streamed separately
+        )
     }
 }
 
