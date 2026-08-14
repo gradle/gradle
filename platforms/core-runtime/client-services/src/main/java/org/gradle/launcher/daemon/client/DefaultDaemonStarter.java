@@ -125,10 +125,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
             throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
         }
 
-        // We only need the :daemon-server jar as a -cp argument, since that jar includes
-        // the rest of the daemon server runtime classpath as a Class-Path manifest entry.
+        // We only need the daemon main jar for initial startup. The daemon is responsible for loading everything else.
         ModuleRegistry registry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
-        ClassPath classpath = registry.getModule("gradle-daemon-server").getImplementationClasspath();
+        ClassPath classpath = registry.getModule("gradle-daemon-main").getImplementationClasspath();
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }

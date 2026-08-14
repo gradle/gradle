@@ -144,16 +144,25 @@ The Gradle 9.4 release completes the daemon-side support for _resilient sync_: b
 
 When the build action queries models through `BuildController.fetch(...)`, the daemon will:
 
-* Continue model building for projects, `buildSrc`, and included builds that configured successfully even when other parts of the build fail.
+* Continue model building for `buildSrc` and included builds that configured successfully even when other parts of the build fail.
 * Return a partial link:{javadocPath}/org/gradle/tooling/model/gradle/GradleBuild.html[`GradleBuild`] model that includes every project Gradle was able to discover from the settings script, along with the collected failures, so the IDE can present a best-effort project structure.
 * Return a partial link:{javadocPath}/org/gradle/tooling/model/kotlin/dsl/KotlinDslScriptsModel.html[`KotlinDslScriptsModel`] that carries editor data for the Kotlin DSL scripts Gradle was able to resolve, with the unresolved scripts reported through `FetchModelResult.getFailures()`.
-* Serve any other tooling model for projects, `buildSrc`, and included builds whose configuration succeeded — for example, an IDE can still obtain an `EclipseProject` or `IdeaProject` model for the parts of a composite build that configured cleanly, while the failing parts are reported as failures on the corresponding `fetch(...)` calls.
+* Serve any other tooling model for `buildSrc` and included builds whose configuration succeeded — for example, an IDE can still obtain an `EclipseProject` or `IdeaProject` model for the parts of a composite build that configured cleanly, while the failing parts are reported as failures on the corresponding `fetch(...)` calls.
 
 There is no separate opt-in: using `fetch(...)` enables the resilient behaviour for that call.
 Calls made through `getModel(...)` or `findModel(...)` continue to fail fast as before.
 
 Resilient sync affects which models can be built, not whether the operation succeeds: starting with the Gradle 9.7 daemon, a broken part of the build still fails the operation as a whole.
 See <<sec:embedding_phased_action_example,Reading intermediate models with a phased build action>> for how a client receives the partial models in that case.
+
+[[sec:embedding_resilient_sync_compatibility]]
+==== Version compatibility
+
+Resilient sync requires Tooling API 9.3.0 or later and a target Gradle version that supports the behavior you rely on:
+
+* Gradle 9.3.0: The `fetch(...)` methods and `FetchModelResult` are available.
+* Gradle 9.4.0: Partial build models, returned when a settings script or a settings plugin fails.
+* Gradle 9.7.0: Reporting a resilient sync that partially failed as a failed operation. In earlier versions, such an operation could complete successfully, with the failures reported only through `FetchModelResult.getFailures()`.
 
 [[sec:embedding_phased_action_example]]
 === Reading intermediate models with a phased build action
