@@ -116,9 +116,10 @@ abstract class ConfigurationCacheReportFixture {
             assertTrue("HTML report HTML file '$reportFile' not found", reportFile.isFile())
 
             // The report data region is JavaScript that assembles the model object, not a single JSON
-            // value (see HtmlReportWriter). The producer wraps the two JSON pieces in their own markers
-            // so each is readable as plain JSON: the diagnostics array and the envelope ("model")
-            // object. We reassemble them the same way the generated JS does: model.diagnostics = [...].
+            // value (see HtmlReportWriter in the configuration-cache-report library). The producer wraps
+            // the two JSON pieces in their own markers so each is readable as plain JSON: the diagnostics
+            // array and the envelope ("model") object. We reassemble them the same way the generated JS
+            // does: model.diagnostics = [...].
             // TODO(mlopatkin): update this when HtmlReportWriter starts producing a string directly.
             def slurper = new JsonSlurper()
 
