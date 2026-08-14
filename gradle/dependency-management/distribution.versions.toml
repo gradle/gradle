@@ -69,6 +69,7 @@ commonsHttpclient = { group = "org.apache.httpcomponents", name = "httpclient", 
 commonsIo = { group = "commons-io", name = "commons-io", version.ref = "commonsIo" }
 commonsLang = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commonsLang" }
 configurationCacheReport = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report", version.ref = "configurationCacheReport" }
+configurationCacheReportFixtures = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report-fixtures", version.ref = "configurationCacheReport" }
 errorProneAnnotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorProne" }
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
 gcs = { group = "com.google.apis", name = "google-api-services-storage", version.ref = "gcs" }

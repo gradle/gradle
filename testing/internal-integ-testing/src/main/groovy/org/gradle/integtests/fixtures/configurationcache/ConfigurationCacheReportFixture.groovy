@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.configurationcache
 
 import groovy.json.JsonSlurper
+import org.gradle.problems.internal.report.fixtures.HtmlReportDataReader
 import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.Matcher
 
@@ -115,34 +116,15 @@ abstract class ConfigurationCacheReportFixture {
         protected static Map<String, Object> readJsModelFrom(File reportFile) {
             assertTrue("HTML report HTML file '$reportFile' not found", reportFile.isFile())
 
-            // The report data region is JavaScript that assembles the model object, not a single JSON
-            // value (see HtmlReportWriter in the configuration-cache-report library). The producer wraps
-            // the two JSON pieces in their own markers so each is readable as plain JSON: the diagnostics
-            // array and the envelope ("model") object. We reassemble them the same way the generated JS
-            // does: model.diagnostics = [...].
-            // TODO(mlopatkin): update this when HtmlReportWriter starts producing a string directly.
+            // The report data is not a single JSON value: the producer writes the model object and
+            // the diagnostics array as separate pieces, which HtmlReportDataReader knows how to find.
+            // We reassemble them the same way the generated JS does: model.diagnostics = [...].
+            def reader = new HtmlReportDataReader(reportFile)
             def slurper = new JsonSlurper()
 
-            def diagnosticsText = linesBetween(reportFile, '// begin-report-diagnostics', '// end-report-diagnostics')
-            assert diagnosticsText: "malformed report file: diagnostics region not found"
-
-            def modelText = linesBetween(reportFile, '// begin-report-model', '// end-report-model')
-            assert modelText: "malformed report file: model region not found"
-
-            def jsModel = slurper.parseText(modelText) as Map<String, Object>
-            jsModel.diagnostics = slurper.parseText(diagnosticsText)
+            def jsModel = slurper.parseText(reader.readModelJson()) as Map<String, Object>
+            jsModel.diagnostics = slurper.parseText(reader.readDiagnosticsJson())
             return jsModel
-        }
-
-        private static String linesBetween(File file, String beginLine, String endLine) {
-            return file.withReader('utf-8') { reader ->
-                reader.lines().iterator()
-                    .dropWhile { it != beginLine }
-                    .drop(1)
-                    .takeWhile { it != endLine }
-                    .collect()
-                    .join('\n')
-            }
         }
 
         @Override

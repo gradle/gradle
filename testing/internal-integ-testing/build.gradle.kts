@@ -100,6 +100,9 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.configurationCacheReportFixtures) {
+        because("The configuration cache report fixture reads the report data the library writes")
+    }
     implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.inject)
