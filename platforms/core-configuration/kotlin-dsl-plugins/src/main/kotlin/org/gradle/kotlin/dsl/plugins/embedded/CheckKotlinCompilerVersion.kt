@@ -75,6 +75,9 @@ internal abstract class CheckKotlinCompilerVersion : DefaultTask() {
     /**
      * The Kotlin Gradle Plugin runs the compilation through the Build Tools API since version 2.3.20.
      * Older versions need the Gradle property, and every version accepts it.
+     *
+     * This reads the Gradle properties only. The Kotlin Gradle Plugin also accepts the property from
+     * the extra properties of the project, and from the `local.properties` file of the root project.
      */
     private fun Project.runsCompilerViaBuildToolsApi(kotlinPluginVersion: String): Provider<Boolean> =
         providers.gradleProperty(RUN_COMPILER_VIA_BUILD_TOOLS_API_PROPERTY)
