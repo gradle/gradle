@@ -1,6 +1,6 @@
-package org.gradle.demos.plugindev.dsl
+package org.gradle.xdcl.ecosystem.plugindev.dsl
 
-import org.gradle.demos.common.dsl
+import org.gradle.xdcl.ecosystem.common.dsl
 
 // The declarative face of authoring an XDCL Gradle plugin. The template itself is deliberately
 // minimal: the plugin's identity, schemas, and defaults are single-sourced from the project's own

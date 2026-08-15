@@ -1,7 +1,7 @@
 # The plugin-development ecosystem — an XDCL face for the XDCL plugin itself
 
 `plugin-development-ecosystem` makes *authoring an XDCL plugin* declarative: a project declares `xdclGradlePlugin { }` (plus the common
-dependency/repository traits) and gets a working plugin build. It demonstrates a pattern the demo ecosystems deliberately avoid —
+dependency/repository traits) and gets a working plugin build. It demonstrates a pattern the other built-in ecosystems deliberately avoid —
 the carrier's reaction registers no model of its own but applies the **real** machinery by id: `java-library`, `java-gradle-plugin`,
 and the bundled `xdcl-gradle-plugin` (which is itself a distribution module, so `ModuleRegistry` resolves it like any other).
 

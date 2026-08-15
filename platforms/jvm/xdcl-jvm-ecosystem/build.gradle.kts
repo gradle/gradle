@@ -27,7 +27,7 @@ description = "Built-in XDCL JVM ecosystem: schema + generated facades, publishe
 // (applied by id) lives in the sibling :xdcl-jvm-ecosystem-plugin. Publishable because it carries
 // no internal-Gradle dependency — only the external org.xdcl facade API.
 dependencies {
-    // The shared schema java.xdsl `import`s (org.gradle.demos.common.dsl): dependency scopes,
+    // The shared schema java.xdsl `import`s (org.gradle.xdcl.ecosystem.common.dsl): dependency scopes,
     // repositories, and the HasDependencies/HasRepositories capability traits the JavaLibrary template
     // composes. `api` so consumers importing the JVM schema also see the common facades, and so
     // xdclCodegen resolves the import from this dependency's packed schema (importedSchemaDirectories).
