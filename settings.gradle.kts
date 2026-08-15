@@ -23,11 +23,9 @@ plugins {
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
-// Local-only (shadow mode): source the org.xdcl libraries straight from the sibling checkout —
-// no publish round-trip, no SNAPSHOT staleness. Substitution matches the
-// distribution.versions.toml coordinates by group:name and is the ONLY source of org.xdcl
-// artifacts, so a substitution gap fails resolution loudly instead of picking up stale jars.
-includeBuild("../xdcl")
+// org.xdcl composite (shadow mode) — declared once, shared with build-logic; the checkout
+// location comes from the git-ignored xdcl-checkout.txt (default: the sibling ../xdcl).
+apply(from = "gradle/shared-with-buildSrc/xdcl-composite.settings.gradle.kts")
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
