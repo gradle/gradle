@@ -44,13 +44,6 @@ dependencies {
     pluginsRuntimeOnly(projects.xdclEcosystemSupport)
     pluginsRuntimeOnly(projects.xdclJvmEcosystem)
     pluginsRuntimeOnly(projects.xdclJvmEcosystemPlugin)
-    pluginsRuntimeOnly(projects.xdclJvmCheckstyle)
-    pluginsRuntimeOnly(projects.xdclJvmCheckstylePlugin)
-    pluginsRuntimeOnly(projects.xdclJvmInstrumentation)
-    pluginsRuntimeOnly(projects.xdclJvmInstrumentationPlugin)
-    // The Groovy ecosystem — a sibling of the JVM one (shares the common schema, not the JVM schema).
-    pluginsRuntimeOnly(projects.xdclGroovyEcosystem)
-    pluginsRuntimeOnly(projects.xdclGroovyEcosystemPlugin)
     // The plugin-development ecosystem — the declarative face of authoring an XDCL plugin; its
     // reaction drives the real java-library/java-gradle-plugin/xdcl-gradle-plugin machinery.
     pluginsRuntimeOnly(projects.xdclPluginDevelopment)
@@ -62,9 +55,6 @@ dependencies {
     // when the XDCL provider injects built-in ecosystems into dependency resolution.
     distributionRepositoryOnly(projects.xdclCommonEcosystem)
     distributionRepositoryOnly(projects.xdclJvmEcosystem)
-    distributionRepositoryOnly(projects.xdclJvmCheckstyle)
-    distributionRepositoryOnly(projects.xdclJvmInstrumentation)
-    distributionRepositoryOnly(projects.xdclGroovyEcosystem)
     distributionRepositoryOnly(projects.xdclPluginDevelopment)
     distributionRepositoryOnly(libs.xdclGradleApi)
 }
