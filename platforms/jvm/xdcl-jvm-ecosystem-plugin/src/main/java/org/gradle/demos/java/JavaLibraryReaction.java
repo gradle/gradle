@@ -62,11 +62,11 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
 
         // The compiled bytecode of every non-test source set — the "production" classpath the test
         // source set compiles and runs against, so a test can exercise the other sources. Lazy: the
-        // byteCodeDir providers carry their compile-task dependencies.
+        // classesDir providers carry their compile-task dependencies.
         FileCollection productionClasses = project.files((Callable<Object>) () ->
             model.getClasses().stream()
                 .filter(classes -> !TEST_SOURCE.equals(classes.getName()))
-                .map(JavaClasses::getByteCodeDir)
+                .map(JavaClasses::getClassesDir)
                 .toList());
 
         for (JavaSource source : sources) {
@@ -99,11 +99,7 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
             });
 
             model.getClasses().create(name, classes -> {
-                classes.getInputSources().from(javaSrc);
                 classes.getClassesDir().set(compile.flatMap(JavaCompile::getDestinationDirectory));
-                // byteCodeDir is the canonical bytecode the jar and test tasks consume; by convention it is
-                // the raw compiler output, but a post-processing reaction (e.g. instrumentation) can override it.
-                classes.getByteCodeDir().convention(classes.getClassesDir());
                 classes.getProcessedResourcesDir().fileProvider(processResources.map(Copy::getDestinationDir));
             });
         }
@@ -113,7 +109,7 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
             TaskProvider<Jar> jar = project.getTasks().register("jar", Jar.class, task -> {
                 task.setGroup("build");
                 task.setDescription("Assembles a jar archive containing the main classes.");
-                task.from(mainClasses.getByteCodeDir());
+                task.from(mainClasses.getClassesDir());
                 task.from(mainClasses.getProcessedResourcesDir());
                 // A standalone Jar (no base plugin) has no archive conventions.
                 task.getArchiveBaseName().set(project.getName());
@@ -143,9 +139,9 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
             task.setGroup("verification");
             task.setDescription("Runs the test suite.");
             task.useJUnit();
-            task.setTestClassesDirs(project.files(testClasses.getByteCodeDir()));
+            task.setTestClassesDirs(project.files(testClasses.getClassesDir()));
             task.setClasspath(project.getConfigurations().getByName("testRuntimeClasspath")
-                .plus(project.files(testClasses.getByteCodeDir()))
+                .plus(project.files(testClasses.getClassesDir()))
                 .plus(productionClasses));
             // A standalone Test (no java plugin) has no convention for its binary results location.
             task.getBinaryResultsDirectory().set(project.getLayout().getBuildDirectory().dir("test-results/test/binary"));
