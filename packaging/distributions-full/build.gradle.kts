@@ -36,21 +36,10 @@ dependencies {
 
     pluginsRuntimeOnly(libs.xdclGradlePlugin)
 
-    // The shared schema foundation the JVM ecosystem (and future ecosystems) import. Also PUBLISHED as
+    // The shared schema foundation the built-in ecosystems import. Also PUBLISHED as
     // org.gradle:gradle-xdcl-common-ecosystem and served by the embedded repo (repo/); bundled so its
     // facade classes load parent-first from the distribution.
     pluginsRuntimeOnly(projects.xdclCommonEcosystem)
-    // Shared imperative carrier glue (DependencyScopes/Repositories) — distribution-only, not published.
-    pluginsRuntimeOnly(projects.xdclEcosystemSupport)
-    pluginsRuntimeOnly(projects.xdclJvmEcosystem)
-    pluginsRuntimeOnly(projects.xdclJvmEcosystemPlugin)
-    pluginsRuntimeOnly(projects.xdclJvmCheckstyle)
-    pluginsRuntimeOnly(projects.xdclJvmCheckstylePlugin)
-    pluginsRuntimeOnly(projects.xdclJvmInstrumentation)
-    pluginsRuntimeOnly(projects.xdclJvmInstrumentationPlugin)
-    // The Groovy ecosystem — a sibling of the JVM one (shares the common schema, not the JVM schema).
-    pluginsRuntimeOnly(projects.xdclGroovyEcosystem)
-    pluginsRuntimeOnly(projects.xdclGroovyEcosystemPlugin)
     // The plugin-development ecosystem — the declarative face of authoring an XDCL plugin; its
     // reaction drives the real java-library/java-gradle-plugin/xdcl-gradle-plugin machinery.
     pluginsRuntimeOnly(projects.xdclPluginDevelopment)
@@ -61,10 +50,6 @@ dependencies {
     // requires — the full offline-resolution closure a consumer build's settings classpath needs
     // when the XDCL provider injects built-in ecosystems into dependency resolution.
     distributionRepositoryOnly(projects.xdclCommonEcosystem)
-    distributionRepositoryOnly(projects.xdclJvmEcosystem)
-    distributionRepositoryOnly(projects.xdclJvmCheckstyle)
-    distributionRepositoryOnly(projects.xdclJvmInstrumentation)
-    distributionRepositoryOnly(projects.xdclGroovyEcosystem)
     distributionRepositoryOnly(projects.xdclPluginDevelopment)
     distributionRepositoryOnly(libs.xdclGradleApi)
 }

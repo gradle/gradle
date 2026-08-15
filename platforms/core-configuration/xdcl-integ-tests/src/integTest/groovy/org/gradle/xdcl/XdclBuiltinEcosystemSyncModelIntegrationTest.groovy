@@ -47,11 +47,11 @@ class XdclBuiltinEcosystemSyncModelIntegrationTest extends AbstractIntegrationSp
     '''
 
     def "the settings apply freezes the composed universe, with the applied ecosystems' libraries as ordinary classpath roots"() {
-        given: 'a declarative settings applying the JVM ecosystem, probed by an imperative root build script'
+        given: 'a declarative settings applying the plugin-development ecosystem, probed by an imperative root build script'
         file('settings.gradle.xdcl') << '''
             settings {
               plugins [
-                { id "java-ecosystem" }
+                { id "plugin-development-ecosystem" }
               ]
               rootProject { name "probe" }
             }
@@ -63,7 +63,7 @@ class XdclBuiltinEcosystemSyncModelIntegrationTest extends AbstractIntegrationSp
 
         then: 'the injected libraries arrive as resolution-owned roots: the applied module AND the common module it imports, at the distribution version'
         outputContains("xdcl-composition-frozen=true")
-        output.contains("xdcl-classpath-root-owner=org.gradle:gradle-xdcl-jvm-ecosystem:" + distribution.version.version)
+        output.contains("xdcl-classpath-root-owner=org.gradle:gradle-xdcl-plugin-development:" + distribution.version.version)
         output.contains("xdcl-classpath-root-owner=org.gradle:gradle-xdcl-common-ecosystem:" + distribution.version.version)
 
         and: 'the composition carries the distribution bootstrap text, not just the roots'

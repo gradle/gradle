@@ -41,7 +41,7 @@ dependencies {
 }
 
 // Opt this library's jar out of the generated Gradle API Kotlin DSL extensions: the generated
-// facades (org.gradle.demos.*) fall inside the public-API spec and would otherwise grow generated
+// facades (org.gradle.xdcl.ecosystem.*) fall inside the public-API spec and would otherwise grow generated
 // public API (see NO_KOTLIN_DSL_EXTENSIONS_MARKER). An empty presence-only marker; purely
 // distribution-BUILD metadata, the runtime never reads it.
 val noKotlinDslExtensionsMarkerDir = layout.buildDirectory.dir("generated/no-kotlin-dsl-extensions-marker")
