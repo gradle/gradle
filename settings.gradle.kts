@@ -289,12 +289,6 @@ val jvm = platform("jvm") {
     subproject("war")
     subproject("xdcl-jvm-ecosystem")
     subproject("xdcl-jvm-ecosystem-plugin")
-    subproject("xdcl-jvm-checkstyle")
-    subproject("xdcl-jvm-checkstyle-plugin")
-    subproject("xdcl-jvm-instrumentation")
-    subproject("xdcl-jvm-instrumentation-plugin")
-    subproject("xdcl-groovy-ecosystem")
-    subproject("xdcl-groovy-ecosystem-plugin")
 }
 
 // Extensibility Platform
