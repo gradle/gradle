@@ -28,8 +28,8 @@ plugins {
 }
 
 // The XDCL ecosystem conventions apply the org.xdcl `xdcl-gradle-plugin` codegen plugin, so build-logic
-// must be able to resolve it — sourced from the sibling checkout, matching the main build's includeBuild.
-includeBuild("../../xdcl")
+// must resolve org.xdcl too — the shared script declares the same composite as the main build.
+apply(from = "../gradle/shared-with-buildSrc/xdcl-composite.settings.gradle.kts")
 
 dependencyResolutionManagement {
     repositories {
