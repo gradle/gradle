@@ -20,6 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
@@ -125,6 +127,11 @@ public class Collectors {
         @Override
         public ValueProducer getProducer() {
             return provider.getProducer();
+        }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            provider.visitContentProducerTasks(visitor);
         }
 
         @Override
@@ -260,6 +267,11 @@ public class Collectors {
         }
 
         @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            provider.visitContentProducerTasks(visitor);
+        }
+
+        @Override
         public boolean isProvidedBy(Provider<?> provider) {
             return Objects.equal(this.provider, provider);
         }
@@ -380,6 +392,11 @@ public class Collectors {
         @Override
         public ValueProducer getProducer() {
             return delegate.getProducer();
+        }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            delegate.visitContentProducerTasks(visitor);
         }
 
         @Override

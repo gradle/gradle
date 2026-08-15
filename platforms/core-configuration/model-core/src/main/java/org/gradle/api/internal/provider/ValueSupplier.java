@@ -44,6 +44,18 @@ public interface ValueSupplier {
      */
     ValueProducer getProducer();
 
+    /**
+     * Visits the tasks that produce the content of this supplier's value.
+     * <p>
+     * Equivalent to {@code getProducer().visitContentProducerTasks(visitor)}, but implementations can
+     * override this to walk their inputs directly. That matters because this runs on every read of a
+     * mapped or filtered provider, where materializing the whole {@link ValueProducer} graph just to
+     * discover there is no producer task is pure overhead.
+     */
+    default void visitContentProducerTasks(Action<? super Task> visitor) {
+        getProducer().visitContentProducerTasks(visitor);
+    }
+
     boolean calculatePresence(ValueConsumer consumer);
 
     enum ValueConsumer {

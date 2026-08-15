@@ -17,12 +17,12 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 
 import javax.annotation.CheckReturnValue;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -119,7 +119,25 @@ class AppendOnceList<E> implements Iterable<E> {
      */
     @Override
     public Iterator<E> iterator() {
-        return Iterators.unmodifiableIterator(getItems().iterator());
+        // Deliberately not getItems().iterator(): this is iterated on every read of a collection
+        // property, and the subList + its iterator + the unmodifiable wrapper are three allocations
+        // where an index cursor over the shared buffer needs one.
+        return new Iterator<E>() {
+            private int index;
+
+            @Override
+            public boolean hasNext() {
+                return index < size;
+            }
+
+            @Override
+            public E next() {
+                if (index >= size) {
+                    throw new NoSuchElementException();
+                }
+                return buffer.get(index++);
+            }
+        };
     }
 
     @Override

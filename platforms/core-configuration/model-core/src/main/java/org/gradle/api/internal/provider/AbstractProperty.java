@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
@@ -236,6 +237,18 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         } else {
             try (EvaluationScopeContext context = openScope()) {
                 return getSupplier(context).getProducer();
+            }
+        }
+    }
+
+    @Override
+    public void visitContentProducerTasks(Action<? super Task> visitor) {
+        Task task = getProducerTask();
+        if (task != null) {
+            visitor.execute(task);
+        } else {
+            try (EvaluationScopeContext context = openScope()) {
+                getSupplier(context).visitContentProducerTasks(visitor);
             }
         }
     }
