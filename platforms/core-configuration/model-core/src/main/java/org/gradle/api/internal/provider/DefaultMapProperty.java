@@ -31,7 +31,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +57,11 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, MapPropertyInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
+
+    /**
+     * See AbstractCollectionProperty.DEFAULT_BUILDER_CAPACITY.
+     */
+    private static final int DEFAULT_BUILDER_CAPACITY = 4;
 
     private final Class<K> keyType;
     private final Class<V> valueType;
@@ -611,7 +615,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 // buildKeepingLast() gives the same last-wins semantics as putting into a LinkedHashMap,
                 // which is what MapProperty needs because a provider may override entries of earlier ones.
                 // Building straight into the ImmutableMap.Builder avoids materialising the map twice.
-                ImmutableMap.<K, V>builderWithExpectedSize(collectors.size()),
+                ImmutableMap.<K, V>builderWithExpectedSize(Math.max(collectors.size(), DEFAULT_BUILDER_CAPACITY)),
                 ImmutableMap.Builder::buildKeepingLast
             );
         }
@@ -636,7 +640,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             SideEffectBuilder<Map<K, V>> sideEffectBuilder
         ) {
             // See calculateOwnValue for why buildKeepingLast().
-            ImmutableMap.Builder<K, V> entries = ImmutableMap.builderWithExpectedSize(values.size());
+            ImmutableMap.Builder<K, V> entries = ImmutableMap.builderWithExpectedSize(Math.max(values.size(), DEFAULT_BUILDER_CAPACITY));
             for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
                 entryCollector.addAll(value.getFixedValue().entrySet(), entries);
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));

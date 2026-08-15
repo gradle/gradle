@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Supplier;
+import java.util.function.IntFunction;
 
 import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 
@@ -80,6 +80,12 @@ import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
  */
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>>
     implements CollectionPropertyInternal<T, C> {
+
+    /**
+     * Matches {@code ImmutableCollection.Builder.DEFAULT_INITIAL_CAPACITY}, which is what a builder created
+     * without a size hint starts with.
+     */
+    private static final int DEFAULT_BUILDER_CAPACITY = 4;
 
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
@@ -481,7 +487,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    protected abstract Supplier<ImmutableCollection.Builder<T>> getCollectionFactory();
+    protected abstract IntFunction<ImmutableCollection.Builder<T>> getCollectionFactory();
 
     private CollectingSupplier<T, C> newSupplierOf(Collector<T> value) {
         return new CollectingSupplier<>(getType(), getCollectionFactory(), valueCollector, value);
@@ -489,17 +495,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private static class CollectingSupplier<T, C extends Collection<T>> extends AbstractCollectingSupplier<Collector<T>, C> implements CollectionSupplier<T, C> {
         private final Class<C> type;
-        private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
+        private final IntFunction<ImmutableCollection.Builder<T>> collectionFactory;
         private final ValueCollector<T> valueCollector;
 
-        public CollectingSupplier(Class<C> type, Supplier<ImmutableCollection.Builder<T>> collectionFactory, ValueCollector<T> valueCollector, Collector<T> value) {
+        public CollectingSupplier(Class<C> type, IntFunction<ImmutableCollection.Builder<T>> collectionFactory, ValueCollector<T> valueCollector, Collector<T> value) {
             this(type, collectionFactory, valueCollector, AppendOnceList.of(value));
         }
 
         // A constructor for sharing.
         private CollectingSupplier(
             Class<C> type,
-            Supplier<ImmutableCollection.Builder<T>> collectionFactory,
+            IntFunction<ImmutableCollection.Builder<T>> collectionFactory,
             ValueCollector<T> valueCollector,
             AppendOnceList<Collector<T>> collectors
         ) {
@@ -520,9 +526,24 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             // TODO - don't make a copy when the collector already produces an immutable collection
             return calculateValue(
                 (builder, collector) -> collector.collectEntries(consumer, valueCollector, builder),
-                collectionFactory.get(),
+                collectionFactory.apply(sizeHint()),
                 builder -> Cast.uncheckedNonnullCast(builder.build())
             );
+        }
+
+        /**
+         * A lower bound on the element count, used to presize the builder so it does not grow from its
+         * default capacity. Never evaluates a collector, so an unknown contributor just means a smaller hint.
+         * <p>
+         * Floored at the capacity the builder would have started with anyway: contributors of unknown size
+         * hint zero, and presizing to that is worse than not presizing at all.
+         */
+        private int sizeHint() {
+            int hint = 0;
+            for (Collector<T> collector : collectors) {
+                hint += collector.sizeHint();
+            }
+            return Math.max(hint, DEFAULT_BUILDER_CAPACITY);
         }
 
         @Override
@@ -556,7 +577,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         private ExecutionTimeValue<? extends C> calculateFixedExecutionTimeValue(
             List<ExecutionTimeValue<? extends C>> executionTimeValues, SideEffectBuilder<C> sideEffectBuilder
         ) {
-            ImmutableCollection.Builder<T> entries = collectionFactory.get();
+            ImmutableCollection.Builder<T> entries = collectionFactory.apply(Math.max(executionTimeValues.size(), DEFAULT_BUILDER_CAPACITY));
             for (ExecutionTimeValue<? extends C> value : executionTimeValues) {
                 valueCollector.addAll(value.getFixedValue(), entries);
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));

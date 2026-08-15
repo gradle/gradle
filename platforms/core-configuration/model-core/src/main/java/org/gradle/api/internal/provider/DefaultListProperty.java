@@ -18,19 +18,19 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableIntFunction;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.IntFunction;
 
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T>> implements ListProperty<T> {
-    private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableList::builder;
+    private static final SerializableIntFunction<ImmutableCollection.Builder<Object>> FACTORY = ImmutableList::builderWithExpectedSize;
 
     public DefaultListProperty(PropertyHost host, Class<T> elementType) {
         super(host, new ValidatingValueCollector<>(List.class, elementType, ValueSanitizers.forType(elementType)), elementType);
@@ -42,7 +42,7 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
-    protected final Supplier<ImmutableCollection.Builder<T>> getCollectionFactory() {
+    protected final IntFunction<ImmutableCollection.Builder<T>> getCollectionFactory() {
         return Cast.uncheckedNonnullCast(FACTORY);
     }
 

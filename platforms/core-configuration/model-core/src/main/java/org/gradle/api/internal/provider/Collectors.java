@@ -26,6 +26,7 @@ import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
@@ -77,6 +78,11 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(element);
+        }
+
+        @Override
+        public int sizeHint() {
+            return 1;
         }
 
         @Override
@@ -152,6 +158,12 @@ public class Collectors {
         }
 
         @Override
+        public int sizeHint() {
+            // Exactly one element, and knowing that does not require evaluating the provider.
+            return 1;
+        }
+
+        @Override
         public int size() {
             return 1;
         }
@@ -216,6 +228,12 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(value);
+        }
+
+        @Override
+        public int sizeHint() {
+            // Only when it is O(1); a general Iterable would have to be traversed.
+            return value instanceof Collection ? ((Collection<?>) value).size() : 0;
         }
 
         @Override
@@ -339,6 +357,11 @@ public class Collectors {
         }
 
         @Override
+        public int sizeHint() {
+            return value.length;
+        }
+
+        @Override
         public int size() {
             return value.length;
         }
@@ -397,6 +420,11 @@ public class Collectors {
         @Override
         public void visitContentProducerTasks(Action<? super Task> visitor) {
             delegate.visitContentProducerTasks(visitor);
+        }
+
+        @Override
+        public int sizeHint() {
+            return delegate.sizeHint();
         }
 
         @Override

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.evaluation.EvaluationOwner;
 import org.gradle.internal.evaluation.EvaluationScopeContext;

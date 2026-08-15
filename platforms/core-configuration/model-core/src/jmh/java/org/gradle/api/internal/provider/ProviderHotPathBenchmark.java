@@ -62,6 +62,8 @@ public class ProviderHotPathBenchmark {
     private ListProperty<String> listProperty;
     private Provider<Integer> mappedListProperty;
     private MapProperty<String, String> mapProperty;
+    private ListProperty<String> listPropertyOfProviders;
+    private MapProperty<String, String> mapPropertyOfProviders;
     private EvaluationOwner scopeOwner;
 
     @Setup(Level.Trial)
@@ -81,6 +83,15 @@ public class ProviderHotPathBenchmark {
         mapProperty = new DefaultMapProperty<>(host, String.class, String.class);
         for (int i = 0; i < LIST_SIZE; i++) {
             mapProperty.put("key-" + i, "value-" + i);
+        }
+
+        // Elements contributed by providers: these cannot report a cheap size, so they exercise the
+        // path where the builder gets little or no size hint.
+        listPropertyOfProviders = new DefaultListProperty<>(host, String.class);
+        mapPropertyOfProviders = new DefaultMapProperty<>(host, String.class, String.class);
+        for (int i = 0; i < LIST_SIZE; i++) {
+            listPropertyOfProviders.add(Providers.of("element-" + i));
+            mapPropertyOfProviders.put("key-" + i, Providers.of("value-" + i));
         }
     }
 
@@ -127,6 +138,16 @@ public class ProviderHotPathBenchmark {
     @Benchmark
     public void getMapProperty(Blackhole bh) {
         bh.consume(mapProperty.get());
+    }
+
+    @Benchmark
+    public void getListPropertyOfProviders(Blackhole bh) {
+        bh.consume(listPropertyOfProviders.get());
+    }
+
+    @Benchmark
+    public void getMapPropertyOfProviders(Blackhole bh) {
+        bh.consume(mapPropertyOfProviders.get());
     }
 
     /**
