@@ -2,8 +2,8 @@ package org.gradle.demos.java.dsl
 
 import org.gradle.demos.common.dsl
 
-// Shared JVM types (Dependencies, Repository, NamedRepository) live in the common fragment so the
-// Java and Groovy demos declare them once. Package-import form (the form proven by codegen).
+// Shared types (Dependencies, Repository, NamedRepository) live in the common fragment so every
+// built-in ecosystem declares them once. Package-import form (the form proven by codegen).
 
 /// Capability contract shared by all JVM project types in the demo. Carries the configuration a
 /// reaction reads to wire a JVM component: its toolchain version, its named source sets, and its
@@ -18,29 +18,17 @@ trait JavaComponent {
   sources: [JavaSource]?
 }
 
-/// Capability trait for something that carries Java sources to analyse: exposes the source set's
-/// `name` and the source/resource directories it provides (`javaDirs` / `resourceDirs`). It is the
-/// binding surface for source-set-level xdcl extensions — `extension X for HasJavaSources` attaches to
-/// any record that composes it; the reaction recovers the source-set name via
-/// `scope.ancestor(HasJavaSources.class)` and reads the directories to analyse straight off the host
-/// facade (rather than deriving them from the name). An `extension` host must be a trait or template
-/// (never a bare record), so the per-source-set checkstyle demo binds to this trait rather than to the
-/// `JavaSource` record directly. Mirrors the project-features `HasJavaSources` capability.
-trait HasJavaSources {
+/// One named source set: the source-set `name`, the source/resource directories it provides, and
+/// `dependencies` (from `HasDependencies`), which map to per-source-set configurations
+/// (`<name>Api`, `<name>Implementation`, …) that extend the matching top-level configurations.
+record JavaSource with HasDependencies {
   /// Identifies the source set (e.g. `main`, `test`); drives task and configuration names.
   name: String
-  /// The Java source directories the source set provides. The reaction falls back to the conventional
-  /// `src/<name>/java` only where it owns the convention (the compile wiring); consumers that read the
-  /// facade (e.g. checkstyle) see exactly what is declared here.
+  /// The Java source directories the source set provides; the reaction falls back to the
+  /// conventional `src/<name>/java`.
   javaDirs: [String]?
   /// The resource directories the source set provides (conventionally `src/<name>/resources`).
   resourceDirs: [String]?
-}
-
-/// One named source set: a `HasJavaSources` (name + the source/resource directories it provides) that
-/// also carries `dependencies` (from `HasDependencies`), which map to per-source-set configurations
-/// (`<name>Api`, `<name>Implementation`, …) that extend the matching top-level configurations.
-record JavaSource with HasJavaSources & HasDependencies {
 }
 
 /// Top-level Java library project type.

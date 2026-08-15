@@ -29,14 +29,13 @@ import java.util.List;
 
 /**
  * Shared build logic for the {@code HasDependencies} capability: hand-rolls the slice of
- * {@code JavaBasePlugin} the demos need — the four dependency-scope configurations
+ * {@code JavaBasePlugin} the built-in ecosystems need — the four dependency-scope configurations
  * ({@code api}/{@code implementation}/{@code compileOnly}/{@code runtimeOnly}), the per-source-set
  * scopes that extend them, and the resolvable compile/runtime classpaths.
  *
  * <p>Every JVM project-type template and every source-set record is declared {@code with … &
  * HasDependencies}, so both their facades expose {@code dependencies()} and the same wiring serves the
- * project-wide scopes and each source set's scopes — used identically by {@code JavaLibraryReaction}
- * and {@code GroovyLibraryReaction}.
+ * project-wide scopes and each source set's scopes — see {@code JavaLibraryReaction}.
  */
 public final class DependencyScopes {
 

@@ -1,8 +1,8 @@
 package org.gradle.demos.common.dsl
 
 /// Library dependencies, mirroring the four JVM dependency scopes. Each is a list of coordinate
-/// notations (e.g. "group:name:version"). Shared by every JVM project type in the demo (Java, Groovy)
-/// so the wiring is declared once; both `java.xdsl` and `groovy.xdsl` `import org.gradle.demos.common.dsl`.
+/// notations (e.g. "group:name:version"). Shared so the wiring is declared once; every built-in
+/// ecosystem schema `import`s `org.gradle.demos.common.dsl`.
 record Dependencies {
   api: [String]?
   implementation: [String]?
@@ -22,8 +22,7 @@ type NamedRepository = Symbol where it in [:gradlePluginPortal, :mavenCentral]
 /// the wiring lives in common build logic that accepts this trait's facade (see
 /// `org.gradle.demos.common.Repositories`).
 trait HasRepositories {
-  /// Repositories the reaction configures on the project so `dependencies` (and, for Groovy, the
-  /// groovy library) resolve.
+  /// Repositories the reaction configures on the project so `dependencies` resolve.
   repositories: [Repository]?
 }
 

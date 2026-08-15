@@ -25,9 +25,9 @@ import java.util.List;
 
 /**
  * Shared build logic for the {@code HasRepositories} capability: configures a project's repositories
- * from the declared notations. Both {@code JavaLibraryReaction} and {@code GroovyLibraryReaction}
- * delegate here — their facades implement {@link HasRepositories} (each template is declared
- * {@code with … & HasRepositories}), so the wiring lives once.
+ * from the declared notations. The ecosystem reactions delegate here — their facades implement
+ * {@link HasRepositories} (each template is declared {@code with … & HasRepositories}), so the
+ * wiring lives once.
  */
 public final class Repositories {
 

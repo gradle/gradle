@@ -20,7 +20,7 @@ import org.gradle.api.file.DirectoryProperty;
 
 /**
  * The test report locations of a JVM build model, populated by the reaction from the registered
- * {@code test} task. Shared by the {@code JavaLibraryModel} and {@code GroovyLibraryModel}.
+ * {@code test} task. Exposed by the {@code JavaLibraryModel}.
  */
 public interface TestReports {
 
