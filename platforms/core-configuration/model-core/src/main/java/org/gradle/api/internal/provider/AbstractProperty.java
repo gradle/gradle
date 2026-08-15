@@ -53,13 +53,23 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private DisplayName displayName;
     private ValueState<S> state;
     private S value;
+    // Kept in sync with value by setValue(), so that reads test a field instead of the supplier.
+    private boolean valueIsSelfContained;
 
     public AbstractProperty(PropertyHost host) {
         state = ValueState.newState(host);
     }
 
+    /**
+     * The only place {@link #value} is assigned, so {@link #valueIsSelfContained} cannot drift out of sync.
+     */
+    private void setValue(S newValue) {
+        this.value = newValue;
+        this.valueIsSelfContained = newValue.isSelfContained();
+    }
+
     protected void init(S initialValue, S convention) {
-        this.value = initialValue;
+        setValue(initialValue);
         this.state.setConvention(convention);
     }
 
@@ -82,18 +92,41 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
+        if (canReadWithoutScope(consumer)) {
+            return doCalculatePresence(consumer);
+        }
         try (EvaluationScopeContext context = openScope()) {
             beforeRead(context, consumer); // may throw its own exception, which should not be wrapped.
-            try {
-                return getSupplier(context).calculatePresence(consumer);
-            } catch (Exception e) {
-                if (displayName != null) {
-                    throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
-                } else {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+            return doCalculatePresence(consumer);
+        }
+    }
+
+    private boolean doCalculatePresence(ValueConsumer consumer) {
+        try {
+            return value.calculatePresence(consumer);
+        } catch (Exception e) {
+            if (displayName != null) {
+                throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
+    }
+
+    /**
+     * Whether this read can skip the cycle-detection scope.
+     * <p>
+     * Safe only when the supplier {@link ValueSupplier#isSelfContained() evaluates nothing else}, so
+     * nothing can re-enter this property, and when the read has nothing to prepare - consulting the host
+     * or finalizing both have to happen inside a scope, the latter because {@link #finalValue} may
+     * evaluate upstream providers.
+     * <p>
+     * Deliberately asks {@link ValueState#needsReadPreparation} rather than calling
+     * {@code maybeFinalizeOnRead} here: that would consult the host, and the slow path consults it
+     * again, so the host would see two calls per read.
+     */
+    private boolean canReadWithoutScope(ValueConsumer consumer) {
+        return valueIsSelfContained && !state.needsReadPreparation(consumer);
     }
 
     @Override
@@ -157,24 +190,28 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
-        try (EvaluationScopeContext context = openScope()) {
-            beforeReadNoProducer(context, consumer);
-            return doCalculateValue(context, consumer);
-        }
+        return calculateOwnValue(null, consumer);
     }
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        return calculateOwnValue(producer, consumer);
+    }
+
+    private Value<? extends T> calculateOwnValue(@Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
+        if (canReadWithoutScope(consumer)) {
+            return doCalculateValue(consumer);
+        }
         try (EvaluationScopeContext context = openScope()) {
-            beforeRead(context, consumer);
-            return doCalculateValue(context, consumer);
+            beforeRead(context, effectiveProducer, consumer);
+            return doCalculateValue(consumer);
         }
     }
 
     @NonNull
-    private Value<? extends T> doCalculateValue(EvaluationScopeContext context, ValueConsumer consumer) {
+    private Value<? extends T> doCalculateValue(ValueConsumer consumer) {
         try {
-            return calculateValueFrom(context, value, consumer);
+            return calculateValueFrom(value, consumer);
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
@@ -198,7 +235,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         );
     }
 
-    protected abstract Value<? extends T> calculateValueFrom(EvaluationScopeContext context, S value, ValueConsumer consumer);
+    protected abstract Value<? extends T> calculateValueFrom(S value, ValueConsumer consumer);
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
@@ -297,12 +334,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     protected void setSupplier(S supplier) {
         assertCanMutate();
-        this.value = state.explicitValue(supplier);
+        setValue(state.explicitValue(supplier));
     }
 
     protected void setConvention(S convention) {
         assertCanMutate();
-        this.value = state.applyConvention(value, convention);
+        setValue(state.applyConvention(value, convention));
     }
 
     /**
@@ -322,7 +359,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     private void finalizeNow(EvaluationScopeContext context, ValueConsumer consumer) {
         try {
-            value = finalValue(context, value, state.forUpstream(consumer));
+            setValue(finalValue(context, value, state.forUpstream(consumer)));
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
@@ -348,10 +385,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         if (isDefaultConvention()) {
             // special case: discarding value without a convention restores the initial state
             state.implicitValue(getDefaultConvention());
-            value = getDefaultValue();
+            setValue(getDefaultValue());
         } else {
             // otherwise, the convention will become the new value
-            value = state.implicitValue(state.convention());
+            setValue(state.implicitValue(state.convention()));
         }
     }
 
@@ -360,7 +397,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      */
     protected void discardConvention() {
         assertCanMutate();
-        value = state.applyConvention(value, getDefaultConvention());
+        setValue(state.applyConvention(value, getDefaultConvention()));
     }
 
     @Override
@@ -383,7 +420,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      */
     protected SupportsConvention setToConvention() {
         assertCanMutate();
-        this.value = state.setToConvention();
+        setValue(state.setToConvention());
         return this;
     }
 
@@ -397,7 +434,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected SupportsConvention setToConventionIfUnset() {
         assertCanMutate();
         if (!isDefaultConvention()) {
-            this.value = state.setToConventionIfUnset(value);
+            setValue(state.setToConventionIfUnset(value));
         }
         return this;
     }
@@ -499,7 +536,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             try (EvaluationScopeContext context = openScope()) {
-                return calculateValueFrom(context, copiedValue, consumer);
+                return calculateValueFrom(copiedValue, consumer);
             }
         }
 

@@ -45,6 +45,22 @@ public interface ValueSupplier {
     ValueProducer getProducer();
 
     /**
+     * Whether obtaining this supplier's value evaluates nothing else.
+     * <p>
+     * True only for suppliers that already hold their value: computing it consults no other provider
+     * and runs no user code, so it cannot re-enter whatever is asking for it. A property backed by
+     * such a supplier can therefore be read without the {@link org.gradle.internal.evaluation.EvaluationContext}
+     * cycle-detection scope, which is around 60% of the cost of reading a property that holds a constant.
+     * <p>
+     * Defaults to false, and must stay false for anything that can reach user code. Note that
+     * finalization is <em>not</em> sufficient grounds to return true: a finalized property can still be
+     * backed by a supplier that instantiates something on read, such as a build service.
+     */
+    default boolean isSelfContained() {
+        return false;
+    }
+
+    /**
      * Visits the tasks that produce the content of this supplier's value.
      * <p>
      * Equivalent to {@code getProducer().visitContentProducerTasks(visitor)}, but implementations can

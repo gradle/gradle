@@ -345,7 +345,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected Value<? extends Map<K, V>> calculateValueFrom(EvaluationScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected Value<? extends Map<K, V>> calculateValueFrom(MapSupplier<K, V> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
@@ -441,6 +441,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public boolean isSelfContained() {
+            return true;
+        }
+
+        @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
             // nothing + something = nothing.
             return this;
@@ -476,6 +481,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return Value.of(ImmutableSet.of());
+        }
+
+        @Override
+        public boolean isSelfContained() {
+            return true;
         }
 
         @Override
@@ -522,6 +532,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return Value.of(entries.keySet());
+        }
+
+        @Override
+        public boolean isSelfContained() {
+            return true;
         }
 
         @Override

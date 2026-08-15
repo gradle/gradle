@@ -309,7 +309,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    protected Value<? extends C> calculateValueFrom(EvaluationScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
+    protected Value<? extends C> calculateValueFrom(CollectionSupplier<T, C> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
@@ -371,6 +371,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        public boolean isSelfContained() {
+            return true;
+        }
+
+        @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // No value + something = no value.
             return this;
@@ -402,6 +407,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public Value<? extends C> calculateValue(ValueConsumer consumer) {
             return Value.of(emptyCollection());
+        }
+
+        @Override
+        public boolean isSelfContained() {
+            return true;
         }
 
         @Override
@@ -443,6 +453,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public Value<? extends C> calculateValue(ValueConsumer consumer) {
             return Value.of(value).withSideEffect(sideEffect);
+        }
+
+        @Override
+        public boolean isSelfContained() {
+            return true;
         }
 
         @Override
