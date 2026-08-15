@@ -98,6 +98,10 @@ atlassian-ide-plugin.xml
 /incoming-distributions
 /intTestHomeDir
 
+# XDCL composite (local checkout location override)
+# -------------------------------------------------
+/xdcl-checkout.txt
+
 # Logs
 # ----
 /*.log
