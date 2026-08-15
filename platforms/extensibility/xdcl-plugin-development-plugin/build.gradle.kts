@@ -19,7 +19,7 @@ plugins {
     id("gradlebuild.xdcl-builtin-ecosystem")
 }
 
-description = "The built-in XDCL plugin-development ecosystem plugin (plugin-development-ecosystem): a carrier generated from plugin-development-ecosystem.xdcl that binds XdclGradlePluginReaction. Unlike the demo ecosystems it registers no model of its own — the reaction applies the REAL plugin-development machinery (java-library, java-gradle-plugin, and the bundled xdcl codegen plugin) by id. Shipped in the distribution and applied by id; the schema + facades it consumes live in the published :xdcl-plugin-development library."
+description = "The built-in XDCL plugin-development ecosystem plugin (plugin-development-ecosystem): a carrier generated from plugin-development-ecosystem.xdcl that binds XdclGradlePluginReaction. Unlike the java ecosystem it registers no model of its own — the reaction applies the REAL plugin-development machinery (java-library, java-gradle-plugin, and the bundled xdcl codegen plugin) by id. Shipped in the distribution and applied by id; the schema + facades it consumes live in the published :xdcl-plugin-development library."
 
 dependencies {
     api(projects.coreApi)
@@ -30,7 +30,7 @@ dependencies {
     // Shared imperative helpers (Repositories) for the common HasRepositories capability trait.
     // DependencyScopes is NOT used here: the reaction applies the real java-library plugin, which
     // owns the api/implementation/... configurations, so declared dependencies are added to those
-    // real configurations directly instead of creating demo dependency scopes.
+    // real configurations directly instead of creating ecosystem dependency scopes.
     implementation(projects.xdclEcosystemSupport)
 }
 

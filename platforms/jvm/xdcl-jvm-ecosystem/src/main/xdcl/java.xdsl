@@ -1,11 +1,11 @@
-package org.gradle.demos.java.dsl
+package org.gradle.xdcl.ecosystem.java.dsl
 
-import org.gradle.demos.common.dsl
+import org.gradle.xdcl.ecosystem.common.dsl
 
 // Shared types (Dependencies, Repository, NamedRepository) live in the common fragment so every
 // built-in ecosystem declares them once. Package-import form (the form proven by codegen).
 
-/// Capability contract shared by all JVM project types in the demo. Carries the configuration a
+/// Capability contract shared by the JVM project types. Carries the configuration a
 /// reaction reads to wire a JVM component: its toolchain version, its named source sets, and its
 /// dependencies. `dependencies` is a record PROPERTY (not an xdcl extension) so the single
 /// JavaLibraryReaction can read it off the JavaLibrary facade — an extension would emit a standalone
