@@ -239,17 +239,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        try (EvaluationScopeContext context = openScope()) {
-            ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(context, this.value);
-            if (getProducerTask() == null) {
-                return value;
-            } else {
-                return value.withChangingContent();
-            }
+        if (valueIsSelfContained) {
+            return withChangingContentIfProducedByTask(calculateOwnExecutionTimeValue(this.value));
+        }
+        try (EvaluationScopeContext ignored = openScope()) {
+            return withChangingContentIfProducedByTask(calculateOwnExecutionTimeValue(this.value));
         }
     }
 
-    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationScopeContext context, S value);
+    private ExecutionTimeValue<? extends T> withChangingContentIfProducedByTask(ExecutionTimeValue<? extends T> value) {
+        return getProducerTask() == null ? value : value.withChangingContent();
+    }
+
+    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(S value);
 
     /**
      * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
@@ -271,10 +273,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         Task task = getProducerTask();
         if (task != null) {
             return ValueProducer.task(task);
-        } else {
-            try (EvaluationScopeContext context = openScope()) {
-                return getSupplier(context).getProducer();
-            }
+        }
+        if (valueIsSelfContained) {
+            return value.getProducer();
+        }
+        try (EvaluationScopeContext context = openScope()) {
+            return getSupplier(context).getProducer();
         }
     }
 
@@ -283,10 +287,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         Task task = getProducerTask();
         if (task != null) {
             visitor.execute(task);
-        } else {
-            try (EvaluationScopeContext context = openScope()) {
-                getSupplier(context).visitContentProducerTasks(visitor);
-            }
+            return;
+        }
+        if (valueIsSelfContained) {
+            value.visitContentProducerTasks(visitor);
+            return;
+        }
+        try (EvaluationScopeContext context = openScope()) {
+            getSupplier(context).visitContentProducerTasks(visitor);
         }
     }
 
@@ -529,7 +537,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Override
         public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
             try (EvaluationScopeContext context = openScope()) {
-                return calculateOwnExecutionTimeValue(context, copiedValue);
+                return calculateOwnExecutionTimeValue(copiedValue);
             }
         }
 
