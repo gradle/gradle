@@ -608,11 +608,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             // TODO - don't make a copy when the collector already produces an immutable collection
             return calculateValue(
                 (builder, collector) -> collector.collectEntries(consumer, entryCollector, builder),
-                // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
-                // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
-                // with the same key
-                new LinkedHashMap<K, V>(),
-                ImmutableMap::copyOf
+                // buildKeepingLast() gives the same last-wins semantics as putting into a LinkedHashMap,
+                // which is what MapProperty needs because a provider may override entries of earlier ones.
+                // Building straight into the ImmutableMap.Builder avoids materialising the map twice.
+                ImmutableMap.<K, V>builderWithExpectedSize(collectors.size()),
+                ImmutableMap.Builder::buildKeepingLast
             );
         }
 
@@ -635,15 +635,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             List<ExecutionTimeValue<? extends Map<K, V>>> values,
             SideEffectBuilder<Map<K, V>> sideEffectBuilder
         ) {
-            // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
-            // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
-            // with the same key.
-            Map<K, V> entries = new LinkedHashMap<>();
+            // See calculateOwnValue for why buildKeepingLast().
+            ImmutableMap.Builder<K, V> entries = ImmutableMap.builderWithExpectedSize(values.size());
             for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
                 entryCollector.addAll(value.getFixedValue().entrySet(), entries);
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
-            return ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
+            return ExecutionTimeValue.fixedValue(entries.buildKeepingLast());
         }
 
         private ExecutionTimeValue<? extends Map<K, V>> calculateChangingExecutionTimeValue(
@@ -679,7 +677,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, ImmutableMap.Builder<K, V> dest) {
             collector.addAll(entries.entrySet(), dest);
             return sideEffect != null
                 ? Value.present().withSideEffect(SideEffect.fixed(entries, sideEffect))
