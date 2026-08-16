@@ -19,7 +19,6 @@ package org.gradle.xdcl.ecosystem.plugindev;
 import org.gradle.api.Project;
 import org.gradle.api.xdcl.Reaction;
 import org.gradle.api.xdcl.ReactionScope;
-import org.gradle.xdcl.ecosystem.support.Repositories;
 import org.gradle.xdcl.ecosystem.plugindev.dsl.XdclGradlePlugin;
 
 /**
@@ -37,8 +36,8 @@ import org.gradle.xdcl.ecosystem.plugindev.dsl.XdclGradlePlugin;
  *     project's {@code <plugin-id>.xdcl} plugin block (role 1).</li>
  * </ul>
  *
- * Declared {@code repositories} are configured through the shared {@link Repositories} helper;
- * declared {@code dependencies} go through {@link DeclaredDependencies}.
+ * Declared {@code dependencies} go through {@link DeclaredDependencies}; repositories come from the
+ * settings ({@code dependencyResolutionManagement}), not from the template.
  */
 public class XdclGradlePluginReaction implements Reaction<XdclGradlePlugin, Project> {
 
@@ -48,7 +47,6 @@ public class XdclGradlePluginReaction implements Reaction<XdclGradlePlugin, Proj
         project.getPluginManager().apply("java-gradle-plugin");
         project.getPluginManager().apply("xdcl-gradle-plugin");
 
-        Repositories.configure(data, project);
         DeclaredDependencies.configure(data, project);
     }
 }

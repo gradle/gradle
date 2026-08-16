@@ -25,9 +25,9 @@ description = "Built-in XDCL plugin-development ecosystem: schema (plugin-develo
 // and the facades generated from it. The reaction that activates it lives in the sibling carrier
 // :xdcl-plugin-development-plugin.
 dependencies {
-    // plugin-development.xdsl `import`s org.gradle.xdcl.ecosystem.common.dsl (the HasDependencies/
-    // HasRepositories traits the XdclGradlePlugin template composes). `api` so consumers see the
-    // common facades; also how xdclCodegen resolves the import (importedSchemaDirectories).
+    // plugin-development.xdsl `import`s org.gradle.xdcl.ecosystem.common.dsl (the HasDependencies
+    // trait the templates compose). `api` so consumers see the common facades; also how xdclCodegen
+    // resolves the import (importedSchemaDirectories).
     // Published, so the externally-available gate is satisfied.
     api(projects.xdclCommonEcosystem)
 }

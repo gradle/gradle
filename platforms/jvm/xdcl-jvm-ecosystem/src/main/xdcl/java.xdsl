@@ -32,7 +32,7 @@ record JavaSource with HasDependencies {
 }
 
 /// Top-level Java library project type.
-template JavaLibrary with JavaComponent & HasRepositories & HasDependencies {
+template JavaLibrary with JavaComponent & HasDependencies {
   javaLibrary {
   }
 }

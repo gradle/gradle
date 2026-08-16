@@ -18,13 +18,13 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Shared imperative build logic for the built-in XDCL ecosystem carriers: wiring the common HasDependencies/HasRepositories capability traits (dependency scopes + repositories) onto a project. Used by the built-in ecosystem carriers so the logic lives once; distribution-only, not published (prototype)"
+description = "Shared imperative build logic for the built-in XDCL ecosystem carriers: wiring the common HasDependencies capability trait (dependency scopes) onto a project. Used by the built-in ecosystem carriers so the logic lives once; distribution-only, not published (prototype)"
 
 // Distribution-only carrier glue (has internal-Gradle deps), so it is NOT a published library. The
 // helpers operate on the common capability-trait facades and configure a live project.
 dependencies {
     api(projects.coreApi)                // Project, Configuration(Container), Usage, FileCollection, Provider
-    api(projects.xdclCommonEcosystem)    // the common facades in the helper signatures (HasDependencies/HasRepositories/Repository/Dependencies)
+    api(projects.xdclCommonEcosystem)    // the common facades in the helper signatures (HasDependencies/Dependencies)
 
     implementation(projects.baseServices)
 }

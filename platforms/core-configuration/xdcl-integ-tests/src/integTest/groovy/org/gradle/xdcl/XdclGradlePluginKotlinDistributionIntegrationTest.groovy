@@ -42,17 +42,19 @@ class XdclGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrat
                 { id "plugin-development-ecosystem" }
                 $toolchainRequest
               ]
+              dependencyResolutionManagement {
+                repositories ["${RepoScriptBlockUtil.mavenCentralMirrorUrl}"]
+              }
               rootProject { name "demo-plugin" }
             }
         """
     }
 
     private void kotlinPluginProject() {
-        file('build.gradle.xdcl') << """
+        file('build.gradle.xdcl') << '''
             xdclGradlePluginKotlin {
-              repositories ["${RepoScriptBlockUtil.mavenCentralMirrorUrl}"]
             }
-        """
+        '''
         file('src/main/xdcl/demo.xdsl') << '''
             package com.example.demo
 
@@ -121,19 +123,21 @@ class XdclGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrat
 
     def "an included build-logic build authored with xdclGradlePluginKotlin supplies a plugin consumed by a declarative root build"() {
         given: 'an included build-logic build that is itself declarative, with a Kotlin reaction'
-        file('build-logic/settings.gradle.xdcl') << '''
+        file('build-logic/settings.gradle.xdcl') << """
             settings {
               plugins [
                 { id "plugin-development-ecosystem" }
                 { id "embedded-kotlin", apply false }
               ]
-            }
-        '''
-        file('build-logic/build.gradle.xdcl') << """
-            xdclGradlePluginKotlin {
-              repositories ["${RepoScriptBlockUtil.mavenCentralMirrorUrl}"]
+              dependencyResolutionManagement {
+                repositories ["${RepoScriptBlockUtil.mavenCentralMirrorUrl}"]
+              }
             }
         """
+        file('build-logic/build.gradle.xdcl') << '''
+            xdclGradlePluginKotlin {
+            }
+        '''
         file('build-logic/src/main/xdcl/demo.xdsl') << '''
             package com.example.demo
 

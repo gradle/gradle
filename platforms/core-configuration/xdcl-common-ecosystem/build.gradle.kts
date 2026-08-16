@@ -19,7 +19,7 @@ plugins {
     id("gradlebuild.xdcl-ecosystem-library")
 }
 
-description = "Shared XDCL schema common to the built-in ecosystems: dependency scopes, repositories, and the capability traits (HasDependencies/HasRepositories) that every ecosystem's project types compose. Published for plugin authors and shipped in the distribution (prototype)"
+description = "Shared XDCL schema common to the built-in ecosystems: dependency scopes and the HasDependencies capability trait every ecosystem's project types compose. Published for plugin authors and shipped in the distribution (prototype)"
 
 // A schema-only ecosystem foundation: common.xdsl (packed under META-INF/xdcl/ by xdcl-gradle-plugin)
 // and the Java facades generated from it. The JVM ecosystem (and future Native etc.) `import` this

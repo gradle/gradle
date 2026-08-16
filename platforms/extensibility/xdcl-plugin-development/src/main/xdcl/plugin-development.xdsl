@@ -5,14 +5,15 @@ import org.gradle.xdcl.ecosystem.common.dsl
 // The declarative face of authoring an XDCL Gradle plugin. The template itself is deliberately
 // minimal: the plugin's identity, schemas, and defaults are single-sourced from the project's own
 // `src/main/xdcl/` files (the `<plugin-id>.xdcl` plugin block — role 1), so the project type only has
-// to mark the project as an XDCL plugin build and carry the dependency/repository surface every
-// plugin project needs (e.g. to depend on a published ecosystem schema library).
+// to mark the project as an XDCL plugin build and carry the dependency surface every plugin project
+// needs (e.g. to depend on a published ecosystem schema library). Repositories are declared once in
+// the settings (`dependencyResolutionManagement`), not per project.
 
 /// Top-level project type for authoring an XDCL Gradle plugin: schemas and the plugin declaration
 /// live under `src/main/xdcl/`; the reaction wires the real Gradle plugin-development machinery
 /// (java-library, java-gradle-plugin, and the bundled xdcl codegen plugin) onto the project.
 template XdclGradlePlugin
- with HasRepositories & HasDependencies {
+ with HasDependencies {
   xdclGradlePlugin {
   }
 }
@@ -23,7 +24,7 @@ template XdclGradlePlugin
 /// toolchain; the front end fills in the version) or
 /// `{ id "org.jetbrains.kotlin.jvm", version "…", apply false }` for a specific Kotlin version.
 template XdclGradlePluginKotlin
- with HasRepositories & HasDependencies {
+ with HasDependencies {
   xdclGradlePluginKotlin {
   }
 }

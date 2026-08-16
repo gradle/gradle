@@ -18,16 +18,21 @@ settings {
   plugins [
     { id "plugin-development-ecosystem" }
   ]
+  dependencyResolutionManagement {
+    repositories [:mavenCentral]
+  }
 }
 
 // build.gradle.xdcl
 xdclGradlePlugin {
-  repositories [:mavenCentral]
   dependencies {
     implementation ["org.gradle:gradle-xdcl-jvm-ecosystem:9.7.0"]
   }
 }
 ```
+
+Repositories are settings-level (`dependencyResolutionManagement`, Gradle's default `PREFER_PROJECT`
+mode) — the project types deliberately expose no repository surface.
 
 Everything else is single-sourced from the project's own `src/main/xdcl/` files: the schemas generate the facades, and the
 `<plugin-id>.xdcl` plugin block feeds the `gradlePlugin` registration (role 1), from which `java-gradle-plugin` generates the
@@ -47,11 +52,13 @@ settings {
     { id "plugin-development-ecosystem" }
     { id "embedded-kotlin", apply false }
   ]
+  dependencyResolutionManagement {
+    repositories [:mavenCentral]
+  }
 }
 
 // build.gradle.xdcl
 xdclGradlePluginKotlin {
-  repositories [:mavenCentral]
 }
 ```
 
@@ -59,8 +66,8 @@ xdclGradlePluginKotlin {
 `org.gradle.kotlin.embedded-kotlin` and — only when the version is omitted — fills in the version the running
 distribution expects, keeping the toolchain distribution-matched. An explicit `version` wins. Alternatively declare
 `{ id "org.jetbrains.kotlin.jvm", version "…", apply false }` for a specific Kotlin. Either way `apply false` is
-required (the toolchain targets projects, not settings), `repositories` must cover the Kotlin artifacts (neither
-toolchain configures repositories), and the bundle resolves from the plugin portal — declaring
+required (the toolchain targets projects, not settings), the settings-level repositories must cover the Kotlin
+artifacts (neither toolchain configures repositories), and the bundle resolves from the plugin portal — declaring
 `pluginManagement.repositories` without the portal makes that resolution fail, loudly. With the embedded toolchain,
 a version-skew warning from `EmbeddedKotlinPlugin` is possible when the published bundle lags the distribution's
 embedded Kotlin; it is cosmetic.

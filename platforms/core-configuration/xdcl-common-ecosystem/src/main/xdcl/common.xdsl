@@ -10,21 +10,10 @@ record Dependencies {
   compileOnly: [String]?
 }
 
-/// A repository: a builtin marker symbol, or a String read as a maven repository URL. Declared under
-/// the ecosystem's own names (not the settings bootstrap's) so the `:mavenCentral`/`:gradlePluginPortal`
-/// symbols resolve to compilable facades in this package rather than colliding with the unshipped
-/// bootstrap types of the same simple name.
-type Repository = NamedRepository | String
-type NamedRepository = Symbol where it in [:gradlePluginPortal, :mavenCentral]
-
-/// Capability trait for project types that configure project repositories. Composed by every JVM
-/// project-type template (`with … & HasRepositories`) so the repository surface is declared once and
-/// the wiring lives in common build logic that accepts this trait's facade (see
-/// `org.gradle.xdcl.ecosystem.support.Repositories`).
-trait HasRepositories {
-  /// Repositories the reaction configures on the project so `dependencies` resolve.
-  repositories: [Repository]?
-}
+// Repositories are deliberately NOT part of the ecosystem surface: they are build mechanics, not
+// component description, and are declared once per build in the settings —
+// `settings { dependencyResolutionManagement { repositories [ … ] } }` (bootstrap schema) — which
+// Gradle's default PREFER_PROJECT mode serves to every project.
 
 /// Capability trait for anything carrying library dependencies, by scope. Composed both at the
 /// project-type level (every JVM template is `with … & HasDependencies`) and per source set (each
