@@ -16,3 +16,14 @@ template XdclGradlePlugin
   xdclGradlePlugin {
   }
 }
+
+/// `XdclGradlePlugin` for a plugin whose reactions are written in Kotlin: the same wiring plus a
+/// Kotlin toolchain. The toolchain is not part of the distribution, so the settings must put one on
+/// the build classpath — `{ id "embedded-kotlin", apply false }` (the distribution-matched
+/// toolchain; the front end fills in the version) or
+/// `{ id "org.jetbrains.kotlin.jvm", version "…", apply false }` for a specific Kotlin version.
+template XdclGradlePluginKotlin
+ with HasRepositories & HasDependencies {
+  xdclGradlePluginKotlin {
+  }
+}

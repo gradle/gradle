@@ -17,13 +17,10 @@
 package org.gradle.xdcl.ecosystem.plugindev;
 
 import org.gradle.api.Project;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.xdcl.Reaction;
 import org.gradle.api.xdcl.ReactionScope;
 import org.gradle.xdcl.ecosystem.support.Repositories;
 import org.gradle.xdcl.ecosystem.plugindev.dsl.XdclGradlePlugin;
-
-import java.util.List;
 
 /**
  * Reacts to an {@code xdclGradlePlugin { }} definition by wiring the REAL plugin-development
@@ -41,8 +38,7 @@ import java.util.List;
  * </ul>
  *
  * Declared {@code repositories} are configured through the shared {@link Repositories} helper;
- * declared {@code dependencies} are added to the real configurations {@code java-library} created
- * (which is why {@code DependencyScopes} is not used — it would try to create them again).
+ * declared {@code dependencies} go through {@link DeclaredDependencies}.
  */
 public class XdclGradlePluginReaction implements Reaction<XdclGradlePlugin, Project> {
 
@@ -53,17 +49,6 @@ public class XdclGradlePluginReaction implements Reaction<XdclGradlePlugin, Proj
         project.getPluginManager().apply("xdcl-gradle-plugin");
 
         Repositories.configure(data, project);
-        data.dependencies().ifPresent(dependencies -> {
-            addAll(project, "api", dependencies.api());
-            addAll(project, "implementation", dependencies.implementation());
-            addAll(project, "runtimeOnly", dependencies.runtimeOnly());
-            addAll(project, "compileOnly", dependencies.compileOnly());
-        });
-    }
-
-    private static void addAll(Project project, String configuration, Provider<List<String>> notations) {
-        for (String notation : notations.getOrElse(List.of())) {
-            project.getDependencies().add(configuration, notation);
-        }
+        DeclaredDependencies.configure(data, project);
     }
 }

@@ -19,12 +19,13 @@ plugins {
     id("gradlebuild.xdcl-builtin-ecosystem")
 }
 
-description = "The built-in XDCL plugin-development ecosystem plugin (plugin-development-ecosystem): a carrier generated from plugin-development-ecosystem.xdcl that binds XdclGradlePluginReaction. Unlike the java ecosystem it registers no model of its own — the reaction applies the REAL plugin-development machinery (java-library, java-gradle-plugin, and the bundled xdcl codegen plugin) by id. Shipped in the distribution and applied by id; the schema + facades it consumes live in the published :xdcl-plugin-development library."
+description = "The built-in XDCL plugin-development ecosystem plugin (plugin-development-ecosystem): a carrier generated from plugin-development-ecosystem.xdcl that binds XdclGradlePluginReaction and XdclGradlePluginKotlinReaction. Unlike the java ecosystem it registers no model of its own — the reactions apply the REAL plugin-development machinery (java-library, java-gradle-plugin, for Kotlin a settings-supplied Kotlin toolchain, and the bundled xdcl codegen plugin) by id. Shipped in the distribution and applied by id; the schema + facades it consumes live in the published :xdcl-plugin-development library."
 
 dependencies {
     api(projects.coreApi)
     api(projects.xdclPluginDevelopment)
 
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.xdclCommonEcosystem)
 
     // Shared imperative helpers (Repositories) for the common HasRepositories capability trait.
