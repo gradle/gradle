@@ -27,12 +27,10 @@ dependencies {
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.xdclCommonEcosystem)
-
-    // Shared imperative helpers (Repositories) for the common HasRepositories capability trait.
-    // DependencyScopes is NOT used here: the reaction applies the real java-library plugin, which
-    // owns the api/implementation/... configurations, so declared dependencies are added to those
-    // real configurations directly instead of creating ecosystem dependency scopes.
-    implementation(projects.xdclEcosystemSupport)
+    // xdcl-ecosystem-support is deliberately NOT used here: the reactions apply the real
+    // java-library plugin, which owns the api/implementation/... configurations, so declared
+    // dependencies are added to those real configurations directly (DeclaredDependencies)
+    // instead of creating ecosystem dependency scopes.
 }
 
 gradleModule {

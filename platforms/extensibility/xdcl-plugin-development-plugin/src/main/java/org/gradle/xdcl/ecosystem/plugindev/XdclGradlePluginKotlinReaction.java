@@ -22,7 +22,6 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.xdcl.Reaction;
 import org.gradle.api.xdcl.ReactionScope;
 import org.gradle.xdcl.ecosystem.plugindev.dsl.XdclGradlePluginKotlin;
-import org.gradle.xdcl.ecosystem.support.Repositories;
 
 import java.util.List;
 
@@ -43,8 +42,9 @@ import java.util.List;
  *     build that wants a specific Kotlin.</li>
  * </ul>
  *
- * <p>Neither toolchain configures repositories, so the template's declared {@code repositories}
- * (e.g. {@code [:mavenCentral]}) must cover the Kotlin artifacts.
+ * <p>Neither toolchain configures repositories, so the settings must declare them —
+ * {@code dependencyResolutionManagement { repositories [:mavenCentral] }} — to cover the Kotlin
+ * artifacts (and anything the plugin's own {@code dependencies} need).
  */
 public class XdclGradlePluginKotlinReaction implements Reaction<XdclGradlePluginKotlin, Project> {
 
@@ -63,7 +63,6 @@ public class XdclGradlePluginKotlinReaction implements Reaction<XdclGradlePlugin
         applyKotlinToolchain(project);
         project.getPluginManager().apply("xdcl-gradle-plugin");
 
-        Repositories.configure(data, project);
         DeclaredDependencies.configure(data, project);
     }
 

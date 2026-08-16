@@ -83,18 +83,20 @@ class XdclPluginDevelopmentEcosystemDistributionIntegrationTest extends Abstract
         mavenRepo.module("org.test", "compile-only-dep", "1.0").publish()
         mavenRepo.module("org.test", "runtime-only-dep", "1.0").publish()
 
-        and: 'a declarative plugin project declaring the repository and all four dependency scopes'
-        file('settings.gradle.xdcl') << '''
+        and: 'a declarative plugin project: the repository in settings, the four dependency scopes on the template'
+        file('settings.gradle.xdcl') << """
             settings {
               plugins [
                 { id "plugin-development-ecosystem" }
               ]
+              dependencyResolutionManagement {
+                repositories ["${mavenRepo.uri}"]
+              }
               rootProject { name "demo-plugin" }
             }
-        '''
-        file('build.gradle.xdcl') << """
+        """
+        file('build.gradle.xdcl') << '''
             xdclGradlePlugin {
-              repositories ["${mavenRepo.uri}"]
               dependencies {
                 api ["org.test:api-dep:1.0"]
                 implementation ["org.test:impl-dep:1.0"]
@@ -102,7 +104,7 @@ class XdclPluginDevelopmentEcosystemDistributionIntegrationTest extends Abstract
                 runtimeOnly ["org.test:runtime-only-dep:1.0"]
               }
             }
-        """
+        '''
 
         when:
         succeeds("dependencies", "--configuration", "compileClasspath")

@@ -25,7 +25,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.xdcl.Reaction;
 import org.gradle.api.xdcl.ReactionScope;
 import org.gradle.xdcl.ecosystem.support.DependencyScopes;
-import org.gradle.xdcl.ecosystem.support.Repositories;
 import org.gradle.xdcl.ecosystem.java.dsl.JavaLibrary;
 import org.gradle.xdcl.ecosystem.java.dsl.JavaSource;
 import org.gradle.jvm.tasks.Jar;
@@ -35,10 +34,11 @@ import java.util.concurrent.Callable;
 
 /**
  * The XDCL port of {@code JavaProjectTypePlugin.ApplyAction}: reacts to a {@code javaLibrary { }}
- * definition by configuring the live {@link Project} — registering project repositories, the
- * four-scope dependency configurations and resolvable classpaths, the per-source compile/resource
- * tasks, a jar, and a test task — and publishing the build outputs through a {@link JavaLibraryModel}
- * Project extension (XDCL's stand-in for the project-features build model).
+ * definition by configuring the live {@link Project} — the four-scope dependency configurations and
+ * resolvable classpaths, the per-source compile/resource tasks, a jar, and a test task — and
+ * publishing the build outputs through a {@link JavaLibraryModel} Project extension (XDCL's
+ * stand-in for the project-features build model). Repositories come from the settings
+ * ({@code dependencyResolutionManagement}), not from the template.
  *
  * <p>Stateless per the {@link Reaction} contract; idempotent via the extension's presence.
  */
@@ -54,7 +54,6 @@ public class JavaLibraryReaction implements Reaction<JavaLibrary, Project> {
         }
         JavaLibraryModel model = project.getExtensions().create("javaLibraryModel", JavaLibraryModel.class);
 
-        Repositories.configure(data, project);
         DependencyScopes.createShared(data, project);
 
         int javaVersion = data.javaVersion().get();
