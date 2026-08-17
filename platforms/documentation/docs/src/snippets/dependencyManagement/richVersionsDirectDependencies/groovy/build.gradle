@@ -46,8 +46,8 @@ dependencies {
 dependencies {
     implementation('com.google.guava:guava') {
         version {
-            require '[33.0, 34.0['
-            reject '33.4.4-jre', '33.5.0-jre'
+            require '[32.0, 33.0['
+            reject '32.1.1-jre', '32.1.2-jre'
         }
     }
 }
