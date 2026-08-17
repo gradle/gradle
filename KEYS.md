@@ -15,16 +15,12 @@ The same information is also available from the [Gradle website](https://gradle.
 
 Signing is done by a dedicated subkey rather than by the primary key:
 
-| Role            | Key ID             | Fingerprint                                |
-|-----------------|--------------------|--------------------------------------------|
+| Role            | Key ID             | Fingerprint                                  |
+|-----------------|--------------------|----------------------------------------------|
 | Primary (certify) | `2887F479B0B9771A` | `EA96F38569C044AAEF7FCF732887F479B0B9771A` |
-| Signing subkey  | `51FBF517CE6D6B80` | `F3FF33E96F18AA62DD580F9651FBF517CE6D6B80` |
+| Signing subkey  | `51FBF517CE6D6B80` | `F3FF33E96F18AA62DD580F9651FBF517CE6D6B80`   |
 
 Importing the key gives you both, so verification works without explicitly naming the subkey.
-
-Note that `gpg --verify` identifies the key that actually made the signature, hence the subkey `51FBF517CE6D6B80`.
-
-The `Good signature from "Gradle Inc. <maven-publishing@gradle.com>"` line, and the `Primary key fingerprint` line, when shown, still refer to the primary key.
 
 The full ASCII-armored block is at the bottom of this document, under [Public key blocks](#public-key-blocks).
 
@@ -36,18 +32,34 @@ The keys below were used to sign earlier Gradle artifacts. To verify a release t
 |---------------------|--------------------------------------------|-------------|-------------------------------------|
 | `E2F38302C8075E3D`  | `1BD97A6A154E7810EE0BC832E2F38302C8075E3D` | 2022-12-29  | Revoked 2026-08-08 (key superseded) |
 
-A revocation certificate was published for `E2F38302C8075E3D` on 2026-08-08, with the revocation reason *key is superseded*.
-Signatures made on artifacts while this key was active remain valid: the revocation records indicate that the key is retired from service, not that its private material was compromised.
+Handling of revoked keys:
+* A *key is superseded* revocation means that the key is retired from service, not that its private material was compromised.
+Signatures made on artifacts while this key was active remain valid.
 
-The preserved block below includes the revocation, so importing it tells your GPG installation that the key is retired.
+The preserved blocks below includes the revocation, when relevant, so importing it tells your GPG installation that the key is retired.
 
-You can also fetch the previous key, with its revocation, from `keyserver.ubuntu.com`:
+You can also fetch any previous key, with its revocation, from `keyserver.ubuntu.com`:
 
 ```bash
-gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 1BD97A6A154E7810EE0BC832E2F38302C8075E3D
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys <fingerprint>
 ```
 
 ## Verification instructions
+
+### Trusting the key in dependency verification
+
+If you use Gradle's [dependency verification](https://docs.gradle.org/current/userguide/dependency_verification.html) to verify Gradle's own artifacts, add a `<trusted-key>` entry.
+
+Gradle does not currently resolve a subkey to its primary key, so naming the primary fingerprint instead fails with `this key is not in your trusted key list`.
+Allowing a primary key to cover its subkeys is tracked in [gradle/gradle#37607](https://github.com/gradle/gradle/issues/37607).
+
+For the current key, use the signing subkey fingerprint, not the primary key one:
+
+```xml
+<trusted-key id="F3FF33E96F18AA62DD580F9651FBF517CE6D6B80" group="org.gradle"/>
+```
+
+> **Note**: The previous key signed with its primary key, so a `<trusted-key>` entry naming `1BD97A6A154E7810EE0BC832E2F38302C8075E3D` still matches for those releases.
 
 ### Importing a key
 
@@ -77,57 +89,39 @@ Once you've downloaded a Gradle JAR or distribution and its corresponding `.asc`
 gpg --verify <artifact>.asc <artifact>
 ```
 
-> **Note**: As of 2026-08-19, no publicly released Gradle artifacts are signed with the current key (`2887F479B0B9771A`); releases through Gradle 9.7.0 were signed with the previous key (`E2F38302C8075E3D`).
-> The worked example below, therefore, uses the previous key.
-> Once the current key is in use, run the same commands after importing it instead.
-
-The following worked example uses the previous key: download a distribution and its signature, import the previous key from the [preserved block](#previous-key-blocks) in this document, then verify:
+The following worked example: [import the current key](#importing-a-key), download a distribution and its signature, then verify:
 
 ```bash
-curl -O https://services.gradle.org/distributions/gradle-9.7.0-bin.zip
-curl -O https://services.gradle.org/distributions/gradle-9.7.0-bin.zip.asc
+curl -O https://services.gradle.org/distributions/gradle-9.7.1-bin.zip
+curl -O https://services.gradle.org/distributions/gradle-9.7.1-bin.zip.asc
 
-gpg --verify gradle-9.7.0-bin.zip.asc gradle-9.7.0-bin.zip
+gpg --verify gradle-9.7.1-bin.zip.asc gradle-9.7.1-bin.zip
 ```
 
-Because the previous key is revoked, GPG reports a good signature *and* warns that the key is retired:
+GPG reports a good signature, with a reference to the subkey:
 
 ```
-gpg: Signature made Thu  6 Aug 16:14:52 2026 CEST
-gpg:                using RSA key E2F38302C8075E3D
+gpg: Signature made mer. 19 août 16:28:22 2026 CEST
+gpg:                using RSA key 51FBF517CE6D6B80
 gpg: Good signature from "Gradle Inc. <maven-publishing@gradle.com>" [unknown]
-gpg: WARNING: This key has been revoked by its owner!
-gpg:          This could mean that the signature is forged.
-gpg: reason for revocation: Key is superseded
 ```
 
-`Good signature` is the result that matters, and the command exits with `0`.
-The `could mean that the signature is forged` line is text GPG prints for any revoked key regardless of why it was revoked; here, the reason is *key is superseded*, so the signature is intact, and the warning only reflects that the key is no longer in service.
+The `Good signature from "Gradle Inc. <maven-publishing@gradle.com>"` line is the result that matters, and the command exits `0`.
 
-### Trusting the key in dependency verification
+The `Primary key fingerprint` line, when shown, refers to the primary key.
 
-If you use Gradle's [dependency verification](https://docs.gradle.org/current/userguide/dependency_verification.html) to verify Gradle's own artifacts, a `<trusted-key>` entry must name the key that *made the signature*.
-For the current key, name the signing subkey, not the primary key:
+#### Trusting a key locally
 
-```xml
-<trusted-key id="F3FF33E96F18AA62DD580F9651FBF517CE6D6B80" group="org.gradle"/>
-```
-
-Gradle does not currently resolve a subkey to its primary key, so naming the primary fingerprint instead fails with `this key is not in your trusted key list`.
-Allowing a primary key to cover its subkeys is tracked in [gradle/gradle#37607](https://github.com/gradle/gradle/issues/37607).
-
-> **Note**: The previous key signed with its primary key, so a `<trusted-key>` entry naming `1BD97A6A154E7810EE0BC832E2F38302C8075E3D` still matches for those releases.
-> Configurations that trust the previous key by fingerprint will need the current key's subkey fingerprint added once artifacts signed with it are published.
-
-### Trusting a key locally
-
-If you see a warning like `gpg: WARNING: This key is not certified with a trusted signature!`, you can locally sign the imported Gradle key to suppress it. This tells your GPG installation that you trust the key.
+If you see a warning like `gpg: WARNING: This key is not certified with a trusted signature!`, you can locally sign the imported Gradle key to suppress it.
+This tells your GPG installation that you trust the key.
 
 ```bash
 gpg --sign-key <fingerprint>
 ```
 
-Replace `<fingerprint>` with the fingerprint of the key you imported, either the current key or a previous one.
+Replace `<fingerprint>` with the fingerprint of the key you imported — either the current key or a previous one.
+
+> **Note**: Once a key is trusted, GPG will no longer list the "Primary key fingerprint" line when verifying signatures made by that key.
 
 ## Public key blocks
 
