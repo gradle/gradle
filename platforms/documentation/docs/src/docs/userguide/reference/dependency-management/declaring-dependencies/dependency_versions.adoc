@@ -399,7 +399,7 @@ include::sample[dir="snippets/dependencyManagement/richVersionsDirectDependencie
 include::sample[dir="snippets/dependencyManagement/richVersionsDirectDependencies/groovy",files="build.gradle[tags=reject-multiple-versions]"]
 ====
 
-This resolves to the highest available version in the `[33.0, 34.0[` range that is neither `33.4.4-jre` nor `33.5.0-jre`.
+This resolves to the highest available version in the `[32.0, 33.0[` range that is neither `32.1.1-jre` nor `32.1.2-jre`.
 
 [[sec:strictly-in-constraints]]
 ==== Use `strictly` in dependency constraints to actually constrain
