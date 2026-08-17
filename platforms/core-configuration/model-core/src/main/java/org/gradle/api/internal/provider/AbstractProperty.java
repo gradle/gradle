@@ -53,23 +53,29 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private DisplayName displayName;
     private ValueState<S> state;
     private S value;
-    // Kept in sync with value by setValue(), so that reads test a field instead of the supplier.
-    private boolean valueIsSelfContained;
 
     public AbstractProperty(PropertyHost host) {
         state = ValueState.newState(host);
     }
 
     /**
-     * The only place {@link #value} is assigned, so {@link #valueIsSelfContained} cannot drift out of sync.
+     * Always false: a property never lets a consumer skip cycle detection.
+     * <p>
+     * Deliberately does not answer from the supplier. A property can be reachable from its own supplier -
+     * {@code p.set(p)} is enough, and {@code a.set(b)} with {@code b.set(a)} does it indirectly - so
+     * delegating would not terminate, and the self-reference the scope exists to report would instead
+     * arrive as a StackOverflowError.
+     * <p>
+     * This costs the fast path for a property wired to another property. Reading such a property still
+     * reaches the inner property's fast path once the scope is open.
      */
-    private void setValue(S newValue) {
-        this.value = newValue;
-        this.valueIsSelfContained = newValue.isSelfContained();
+    @Override
+    public boolean isSelfContained() {
+        return false;
     }
 
     protected void init(S initialValue, S convention) {
-        setValue(initialValue);
+        this.value = initialValue;
         this.state.setConvention(convention);
     }
 
@@ -126,7 +132,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      * again, so the host would see two calls per read.
      */
     private boolean canReadWithoutScope(ValueConsumer consumer) {
-        return valueIsSelfContained && !state.needsReadPreparation(consumer);
+        return value.isSelfContained() && !state.needsReadPreparation(consumer);
     }
 
     @Override
@@ -239,7 +245,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        if (valueIsSelfContained) {
+        if (value.isSelfContained()) {
             return withChangingContentIfProducedByTask(calculateOwnExecutionTimeValue(this.value));
         }
         try (EvaluationScopeContext ignored = openScope()) {
@@ -274,7 +280,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         if (task != null) {
             return ValueProducer.task(task);
         }
-        if (valueIsSelfContained) {
+        if (value.isSelfContained()) {
             return value.getProducer();
         }
         try (EvaluationScopeContext context = openScope()) {
@@ -289,7 +295,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             visitor.execute(task);
             return;
         }
-        if (valueIsSelfContained) {
+        if (value.isSelfContained()) {
             value.visitContentProducerTasks(visitor);
             return;
         }
@@ -342,12 +348,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     protected void setSupplier(S supplier) {
         assertCanMutate();
-        setValue(state.explicitValue(supplier));
+        this.value = state.explicitValue(supplier);
     }
 
     protected void setConvention(S convention) {
         assertCanMutate();
-        setValue(state.applyConvention(value, convention));
+        this.value = state.applyConvention(value, convention);
     }
 
     /**
@@ -367,7 +373,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     private void finalizeNow(EvaluationScopeContext context, ValueConsumer consumer) {
         try {
-            setValue(finalValue(context, value, state.forUpstream(consumer)));
+            value = finalValue(context, value, state.forUpstream(consumer));
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
@@ -393,10 +399,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         if (isDefaultConvention()) {
             // special case: discarding value without a convention restores the initial state
             state.implicitValue(getDefaultConvention());
-            setValue(getDefaultValue());
+            value = getDefaultValue();
         } else {
             // otherwise, the convention will become the new value
-            setValue(state.implicitValue(state.convention()));
+            value = state.implicitValue(state.convention());
         }
     }
 
@@ -405,7 +411,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      */
     protected void discardConvention() {
         assertCanMutate();
-        setValue(state.applyConvention(value, getDefaultConvention()));
+        value = state.applyConvention(value, getDefaultConvention());
     }
 
     @Override
@@ -428,7 +434,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      */
     protected SupportsConvention setToConvention() {
         assertCanMutate();
-        setValue(state.setToConvention());
+        this.value = state.setToConvention();
         return this;
     }
 
@@ -442,7 +448,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected SupportsConvention setToConventionIfUnset() {
         assertCanMutate();
         if (!isDefaultConvention()) {
-            setValue(state.setToConventionIfUnset(value));
+            this.value = state.setToConventionIfUnset(value);
         }
         return this;
     }

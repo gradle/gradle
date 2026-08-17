@@ -62,6 +62,9 @@ public class ProviderHotPathBenchmark {
     private ListProperty<String> listProperty;
     private Provider<Integer> mappedListProperty;
     private MapProperty<String, String> mapProperty;
+    private Property<String> propertyBackedByProperty;
+    private Property<String> propertyChainWithinLookahead;
+    private Property<String> propertyChainBeyondLookahead;
     private ListProperty<String> listPropertyOfProviders;
     private MapProperty<String, String> mapPropertyOfProviders;
     private EvaluationOwner scopeOwner;
@@ -77,6 +80,15 @@ public class ProviderHotPathBenchmark {
             listProperty.add("element-" + i);
         }
         mappedListProperty = listProperty.map(List::size);
+
+        // b.set(a) where a holds a constant: property-to-property wiring, very common in real builds.
+        propertyBackedByProperty = new DefaultProperty<>(host, String.class);
+        propertyBackedByProperty.set(fixedProperty);
+
+        // Chains of properties: the first stays within the lookahead bound, the second runs past it so
+        // the outer links pay the walk and open a scope anyway.
+        propertyChainWithinLookahead = chainOfLength(2);
+        propertyChainBeyondLookahead = chainOfLength(8);
 
         scopeOwner = (EvaluationOwner) fixedProperty;
 
@@ -109,6 +121,36 @@ public class ProviderHotPathBenchmark {
     @Benchmark
     public void getMappedFixedProperty(Blackhole bh) {
         bh.consume(mappedFixedProperty.get());
+    }
+
+    private Property<String> chainOfLength(int links) {
+        Property<String> head = new DefaultProperty<>(host, String.class);
+        head.set("explicit-value");
+        for (int i = 0; i < links; i++) {
+            Property<String> next = new DefaultProperty<>(host, String.class);
+            next.set(head);
+            head = next;
+        }
+        return head;
+    }
+
+    @Benchmark
+    public void getPropertyChainWithinLookahead(Blackhole bh) {
+        bh.consume(propertyChainWithinLookahead.get());
+    }
+
+    @Benchmark
+    public void getPropertyChainBeyondLookahead(Blackhole bh) {
+        bh.consume(propertyChainBeyondLookahead.get());
+    }
+
+    /**
+     * {@code b.set(a)} where {@code a} holds a constant. {@code a} is a property, not a value, so
+     * {@code b}'s supplier is not self-contained and {@code b} still opens a scope.
+     */
+    @Benchmark
+    public void getPropertyBackedByProperty(Blackhole bh) {
+        bh.consume(propertyBackedByProperty.get());
     }
 
     @Benchmark
