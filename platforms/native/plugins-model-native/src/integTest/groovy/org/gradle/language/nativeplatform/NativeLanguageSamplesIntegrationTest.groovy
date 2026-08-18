@@ -184,11 +184,11 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(windowsResources.dir.file("build/install/main")).exec().out == "Hello world!\n"
 
         when:
-        // Running from the only-dll subproject still configures the whole build (root + only-dll), so the
-        // root project's cpp plugin and both projects' model {} blocks are evaluated and nag.
+        // Running from the only-dll subproject only configures that project, so just its windows-resources
+        // plugin and its single model {} block nag (the root project's cpp plugin is not applied here).
         inDirectory(windowsResources.dir.file('only-dll'))
-        expectSoftwareModelDeprecations(CPP, WINDOWS_RESOURCES)
-        expectModelDslDeprecation(2)
+        expectSoftwareModelDeprecations(WINDOWS_RESOURCES)
+        expectModelDslDeprecation(1)
         run "helloResSharedLibrary"
 
         then:
