@@ -16,10 +16,6 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.cc.impl.problems.JsonSource
-import org.gradle.internal.cc.impl.problems.JsonWriter
-
 
 data class ProblemReportDetails(
     val buildDisplayName: String?,
@@ -30,23 +26,3 @@ data class ProblemReportDetails(
     val uniqueProblemCount: Int,
     val overflownProblemCount: Int
 )
-
-
-class ProblemReportDetailsJsonSource(private val details: ProblemReportDetails) : JsonSource {
-    override fun writeToJson(jsonWriter: JsonWriter) {
-        with(jsonWriter) {
-            property("totalProblemCount", details.totalProblemCount)
-            property("uniqueProblemCount", details.uniqueProblemCount)
-            property("overflownProblemCount", details.overflownProblemCount)
-            details.buildDisplayName?.let { property("buildName", it) }
-            details.requestedTasks?.let {
-                property("requestedTasks", it)
-            }
-            property("cacheAction", details.cacheAction)
-            property("cacheActionDescription") {
-                writeStructuredMessage(details.cacheActionDescription)
-            }
-            property("documentationLink", DocumentationRegistry().getDocumentationFor("configuration_cache"))
-        }
-    }
-}
