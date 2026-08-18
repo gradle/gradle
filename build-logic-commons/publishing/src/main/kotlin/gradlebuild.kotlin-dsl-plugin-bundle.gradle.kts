@@ -167,6 +167,8 @@ configurations.archives.get().allArtifacts.removeIf {
     it.name != "plugins"
 }
 
+// The key ID is required because the signing key is a subkey.
+val pgpSigningKeyId: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY_ID")
 val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
 val pgpSigningPassPhrase: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE")
 val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
@@ -174,7 +176,7 @@ val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
 tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
-    useInMemoryPgpKeys(pgpSigningKey.orNull, pgpSigningPassPhrase.orNull)
+    useInMemoryPgpKeys(pgpSigningKeyId.orNull, pgpSigningKey.orNull, pgpSigningPassPhrase.orNull)
     publishing.publications.configureEach {
         if (signArtifacts) {
             signing.sign(this)

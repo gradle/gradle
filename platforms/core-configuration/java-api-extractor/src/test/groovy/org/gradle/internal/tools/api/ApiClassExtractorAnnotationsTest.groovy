@@ -166,6 +166,158 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].annotations[0].path() == 'somePath'
     }
 
+    void "type annotations on every method param are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                public class A {
+                    public void foo(@Ann(path="first") String first, @Ann(path="second") String second) {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.getDeclaredMethod('foo', String, String).annotatedParameterTypes
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedAnnotations = extractedClass.getDeclaredMethod('foo', String, String).annotatedParameterTypes
+
+        then:
+        annotations.collect { it.annotations[0].path() } == ['first', 'second']
+        extractedAnnotations.collect { it.annotations[0].annotationType() } == [extractedAnn, extractedAnn]
+        extractedAnnotations.collect { it.annotations[0].path() } == ['first', 'second']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38792")
+    void "type annotations on class type parameter bounds are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                public class A<OUT extends @Ann(path="out") Object, IN extends @Ann(path="in") Object> {}
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def bounds = clazz.clazz.typeParameters.collect { it.annotatedBounds[0] }
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedBounds = extractedClass.typeParameters.collect { it.annotatedBounds[0] }
+
+        then:
+        bounds.collect { it.annotations[0].path() } == ['out', 'in']
+        extractedBounds.collect { it.annotations[0].annotationType() } == [extractedAnn, extractedAnn]
+        extractedBounds.collect { it.annotations[0].path() } == ['out', 'in']
+    }
+
+    void "type annotations on implemented interfaces are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                import java.util.concurrent.Callable;
+
+                public class A implements Callable<@Ann(path="somePath") String> {
+                    public String call() { return null; }
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def typeArgument = clazz.clazz.annotatedInterfaces[0].annotatedActualTypeArguments[0]
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedTypeArgument = extractedClass.annotatedInterfaces[0].annotatedActualTypeArguments[0]
+
+        then:
+        typeArgument.annotations.size() == 1
+        typeArgument.annotations[0].annotationType().name == 'Ann'
+        extractedTypeArgument.annotations.size() == 1
+        extractedTypeArgument.annotations[0].annotationType() == extractedAnn
+        extractedTypeArgument.annotations[0].path() == 'somePath'
+    }
+
+    void "type annotations on field are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                import java.util.List;
+
+                public class A {
+                    public @Ann(path="onType") String foo;
+                    public List<@Ann(path="onTypeArgument") String> bar;
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.getDeclaredField('foo').annotatedType.annotations
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def extractedAnnotations = extractedClass.getDeclaredField('foo').annotatedType.annotations
+        def extractedTypeArgumentAnnotations = extractedClass.getDeclaredField('bar').annotatedType.annotatedActualTypeArguments[0].annotations
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'Ann'
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotationType() == extractedAnn
+        extractedAnnotations[0].path() == 'onType'
+        extractedTypeArgumentAnnotations.size() == 1
+        extractedTypeArgumentAnnotations[0].annotationType() == extractedAnn
+        extractedTypeArgumentAnnotations[0].path() == 'onTypeArgument'
+    }
+
     void "mixed annotations on method params are retained"() {
         given:
         def api = toApi([

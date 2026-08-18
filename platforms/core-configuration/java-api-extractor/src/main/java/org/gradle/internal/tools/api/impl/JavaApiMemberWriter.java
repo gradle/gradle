@@ -60,6 +60,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             classMember.getVersion(), classMember.getAccess(), classMember.getName(), classMember.getSignature(),
             classMember.getSuperName(), classMember.getInterfaces());
         writeClassAnnotations(classMember.getAnnotations());
+        writeClassAnnotations(classMember.getTypeAnnotations());
         for (String permittedSubclass : classMember.getPermittedSubclasses()) {
             apiMemberAdapter.visitPermittedSubclass(permittedSubclass);
         }
@@ -74,6 +75,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             FieldVisitor fieldVisitor = apiMemberAdapter.visitField(
                 field.getAccess(), field.getName(), field.getTypeDesc(), field.getSignature(), field.getValue());
             writeFieldAnnotations(fieldVisitor, field.getAnnotations());
+            writeFieldAnnotations(fieldVisitor, field.getTypeAnnotations());
             fieldVisitor.visitEnd();
         }
         for (InnerClassMember innerClass : innerClasses) {
@@ -130,8 +132,9 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     @Override
     public void writeClassAnnotations(Set<AnnotationMember> annotationMembers) {
         for (AnnotationMember annotation : annotationMembers) {
-            AnnotationVisitor annotationVisitor =
-                apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
+            AnnotationVisitor annotationVisitor = annotation instanceof TypeAnnotationMember
+                ? visitTypeAnnotation(apiMemberAdapter, (TypeAnnotationMember) annotation)
+                : apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
             writeAnnotationValues(annotation, annotationVisitor);
         }
     }
@@ -145,10 +148,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
                     ((ParameterAnnotationMember) annotation).getParameter(), annotation.getName(),
                     annotation.isVisible());
             } else if (annotation instanceof TypeAnnotationMember) {
-                TypeAnnotationMember typeAnnotationMember = (TypeAnnotationMember) annotation;
-                annotationVisitor = mv.visitTypeAnnotation(
-                    typeAnnotationMember.getTypeRef(), typeAnnotationMember.getTypePath(),
-                    typeAnnotationMember.getName(), typeAnnotationMember.isVisible());
+                annotationVisitor = visitTypeAnnotation(mv, (TypeAnnotationMember) annotation);
             } else {
                 annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
             }
@@ -159,9 +159,23 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     @Override
     public void writeFieldAnnotations(FieldVisitor fv, Set<AnnotationMember> annotationMembers) {
         for (AnnotationMember annotation : annotationMembers) {
-            AnnotationVisitor annotationVisitor = fv.visitAnnotation(annotation.getName(), annotation.isVisible());
+            AnnotationVisitor annotationVisitor = annotation instanceof TypeAnnotationMember
+                ? visitTypeAnnotation(fv, (TypeAnnotationMember) annotation)
+                : fv.visitAnnotation(annotation.getName(), annotation.isVisible());
             writeAnnotationValues(annotation, annotationVisitor);
         }
+    }
+
+    private static AnnotationVisitor visitTypeAnnotation(ClassVisitor target, TypeAnnotationMember annotation) {
+        return target.visitTypeAnnotation(annotation.getTypeRef(), annotation.getTypePath(), annotation.getName(), annotation.isVisible());
+    }
+
+    private static AnnotationVisitor visitTypeAnnotation(MethodVisitor target, TypeAnnotationMember annotation) {
+        return target.visitTypeAnnotation(annotation.getTypeRef(), annotation.getTypePath(), annotation.getName(), annotation.isVisible());
+    }
+
+    private static AnnotationVisitor visitTypeAnnotation(FieldVisitor target, TypeAnnotationMember annotation) {
+        return target.visitTypeAnnotation(annotation.getTypeRef(), annotation.getTypePath(), annotation.getName(), annotation.isVisible());
     }
 
     @Override
