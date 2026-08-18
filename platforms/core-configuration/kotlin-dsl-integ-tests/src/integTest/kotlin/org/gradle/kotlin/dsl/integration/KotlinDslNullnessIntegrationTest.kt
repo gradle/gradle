@@ -18,12 +18,29 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
+import spock.lang.Issue
 
 
 /**
  * Integration tests for API usage specific to Kotlin DSL nullness detection.
  */
 class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/38792")
+    fun `Transformer can be implemented with a nullable OUT type argument in script`() {
+        withBuildScript(
+            """
+            class NullingTransformer : Transformer<String?, String> {
+                override fun transform(name: String): String? = null
+            }
+            tasks.register<Copy>("copyStuff") {
+                rename(NullingTransformer())
+            }
+            """
+        )
+        build("help")
+    }
 
     @Test
     fun `Provider#map works with a null return value in script`() {

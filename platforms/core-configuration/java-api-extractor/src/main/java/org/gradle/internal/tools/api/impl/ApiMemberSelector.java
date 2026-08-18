@@ -95,6 +95,13 @@ public class ApiMemberSelector extends ClassVisitor {
         return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
     }
 
+    @Override
+    public AnnotationVisitor visitTypeAnnotation(int typeRef, @Nullable TypePath typePath, String desc, boolean visible) {
+        TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
+        classMember.addTypeAnnotation(ann);
+        return new SortingAnnotationVisitor(ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
+    }
+
     @Nullable
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, @Nullable String signature, String @Nullable [] exceptions) {
@@ -114,7 +121,7 @@ public class ApiMemberSelector extends ClassVisitor {
                 }
 
                 @Override
-                public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+                public AnnotationVisitor visitTypeAnnotation(int typeRef, @Nullable TypePath typePath, String desc, boolean visible) {
                     TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
                     methodMember.addTypeAnnotation(ann);
                     return new SortingAnnotationVisitor(ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
@@ -149,6 +156,13 @@ public class ApiMemberSelector extends ClassVisitor {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
                     fieldMember.addAnnotation(ann);
                     return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
+                }
+
+                @Override
+                public AnnotationVisitor visitTypeAnnotation(int typeRef, @Nullable TypePath typePath, String desc, boolean visible) {
+                    TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
+                    fieldMember.addTypeAnnotation(ann);
+                    return new SortingAnnotationVisitor(ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
                 }
             };
         }
