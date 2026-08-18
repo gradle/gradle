@@ -21,8 +21,11 @@ import org.gradle.internal.build.ExecutionResult;
 import java.io.Closeable;
 
 interface BuildControllers extends Closeable {
+
     /**
-     * Finish populating work graphs, once all entry point tasks have been scheduled.
+     * Finish populating work graphs once all entry point tasks have been scheduled. Runs the cross-build
+     * scheduling protocol to a fixed point ensuring that execution plans for referenced nodes in other builds
+     * are populated.
      */
     void populateWorkGraphs();
 
@@ -39,4 +42,5 @@ interface BuildControllers extends Closeable {
 
     @Override
     void close();
+
 }

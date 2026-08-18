@@ -25,7 +25,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.file.Stat
@@ -46,7 +45,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskNodeFactory = new TaskNodeFactory(Stub(BuildTreeWorkGraphController), Stub(BuildStateRegistry), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
+    def taskNodeFactory = new TaskNodeFactory(Stub(BuildStateRegistry), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
     def build = Mock(BuildState) {
         getIdentityPath() >> Path.ROOT
     }

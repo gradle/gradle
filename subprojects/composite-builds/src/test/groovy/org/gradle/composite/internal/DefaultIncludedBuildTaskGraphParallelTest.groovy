@@ -112,7 +112,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         CurrentBuildOperationRef.instance().clear()
     }
 
-    def taskNodeFactory = new TaskNodeFactory(Stub(BuildTreeWorkGraphController), buildStateRegistry, Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
+    def taskNodeFactory = new TaskNodeFactory(buildStateRegistry, Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
 
     def "does nothing when nothing scheduled"() {
         when:

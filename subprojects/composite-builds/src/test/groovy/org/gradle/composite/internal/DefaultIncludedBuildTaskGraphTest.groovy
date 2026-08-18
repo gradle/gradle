@@ -16,9 +16,8 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.execution.plan.Node
+import com.google.common.collect.ImmutableList
 import org.gradle.execution.plan.PlanExecutor
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
@@ -65,99 +64,37 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
         1 * workGraphController.newWorkGraph() >> workGraph
         1 * preparer.prepareToScheduleTasks(_)
         1 * workGraph.populateWorkGraph(_)
+        _ * workGraph.takeCrossBuildReferences() >> ImmutableList.of()
         1 * workGraph.finalizeGraph()
         1 * workGraph.runWork() >> ExecutionResult.succeeded()
     }
 
-    def "cannot schedule tasks when graph has not been created"() {
-        when:
-        graph.queueForExecution(Stub(BuildState), Stub(Node))
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "No work graph available for this thread."
-    }
-
-    def "cannot schedule tasks when after graph has finished execution"() {
-        when:
-        graph.withNewWorkGraph { 12 }
-        graph.queueForExecution(Stub(BuildState), Stub(Node))
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "No work graph available for this thread."
-    }
-
-    def "cannot schedule tasks when graph is not yet being prepared for execution"() {
-        given:
-        def build = build(Path.ROOT)
-
-        when:
-        graph.withNewWorkGraph { g ->
-            graph.queueForExecution(build, Stub(Node))
-        }
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: NotPrepared, expected: Preparing"
-    }
-
-    def "cannot schedule tasks when graph has been prepared for execution"() {
-        given:
-        def build = build(Path.ROOT)
-
+    def "cannot schedule work more than once for a graph"() {
         when:
         graph.withNewWorkGraph { g ->
             g.scheduleWork {
             }
-            graph.queueForExecution(build, Stub(Node))
+            g.scheduleWork {
+            }
         }
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: ReadyToRun, expected: Preparing"
+        e.message == "Work graph is in an unexpected state: ReadyToRun, expected: NotPrepared"
     }
 
-    def "cannot schedule tasks when graph has started task execution"() {
-        given:
-        def buildPath = Path.ROOT
-        def workGraphController = Mock(BuildWorkGraphController)
-        def workGraph = Mock(BuildWorkGraph)
-        def build = build(buildPath, workGraphController)
-
-        workGraphController.newWorkGraph() >> workGraph
-        workGraph.runWork() >> {
-            graph.queueForExecution(build, Stub(Node))
-        }
-
+    def "cannot run the work of a graph more than once"() {
         when:
         graph.withNewWorkGraph { g ->
-            def f = g.scheduleWork { b ->
-                b.withWorkGraph(build) {}
+            def f = g.scheduleWork {
             }
             f.runWork().rethrow()
-        }
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "No work graph available for this thread."
-    }
-
-    def "cannot schedule tasks when graph has completed task execution"() {
-        given:
-        def build = build(Path.ROOT)
-
-        when:
-        graph.withNewWorkGraph { g ->
-            def f= g.scheduleWork {
-            }
             f.runWork()
-            graph.queueForExecution(build, Stub(Node))
         }
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: Finished, expected: Preparing"
+        e.message == "Work graph is in an unexpected state: Finished, expected: ReadyToRun"
     }
 
 }

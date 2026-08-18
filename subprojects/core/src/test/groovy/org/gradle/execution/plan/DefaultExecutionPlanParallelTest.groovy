@@ -32,7 +32,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.file.Stat
@@ -55,7 +54,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskNodeFactory = new TaskNodeFactory(Stub(BuildTreeWorkGraphController), Stub(BuildStateRegistry), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
+    def taskNodeFactory = new TaskNodeFactory(Stub(BuildStateRegistry), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
 
     def setup() {
         executionPlan = newExecutionPlan()
