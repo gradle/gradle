@@ -170,7 +170,9 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         expectSoftwareModelDeprecations(CPP, WINDOWS_RESOURCES)
-        expectModelDslDeprecation(1)
+        // The build is multi-project (root + only-dll subproject); configuring it evaluates both projects'
+        // model {} blocks, and the model DSL nag fires once per distinct block source location.
+        expectModelDslDeprecation(2)
         run "installMainExecutable"
 
         then:
@@ -182,9 +184,11 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(windowsResources.dir.file("build/install/main")).exec().out == "Hello world!\n"
 
         when:
+        // Running from the only-dll subproject still configures the whole build (root + only-dll), so the
+        // root project's cpp plugin and both projects' model {} blocks are evaluated and nag.
         inDirectory(windowsResources.dir.file('only-dll'))
-        expectSoftwareModelDeprecations(WINDOWS_RESOURCES)
-        expectModelDslDeprecation(1)
+        expectSoftwareModelDeprecations(CPP, WINDOWS_RESOURCES)
+        expectModelDslDeprecation(2)
         run "helloResSharedLibrary"
 
         then:
