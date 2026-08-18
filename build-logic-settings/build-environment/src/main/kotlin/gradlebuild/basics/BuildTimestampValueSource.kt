@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gradlebuild.identity.provider
+package gradlebuild.basics
 
 import org.gradle.api.Describable
 import org.gradle.api.provider.Property
@@ -26,6 +26,13 @@ import java.util.Date
 import java.util.TimeZone
 
 
+/**
+ * Computes the timestamp that identifies the distribution built by this build.
+ *
+ * On the [Date] paths below the result is *not* stable across invocations of [obtain], so this
+ * value source must be obtained exactly once per build and the result shared by every project.
+ * See [BuildEnvironmentService.buildTimestamp], which is the only place that may create it.
+ */
 abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampValueSource.Parameters>, Describable {
 
     interface Parameters : ValueSourceParameters {
