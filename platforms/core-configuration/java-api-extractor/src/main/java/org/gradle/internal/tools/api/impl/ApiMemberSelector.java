@@ -26,9 +26,12 @@ import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static org.objectweb.asm.Opcodes.ACC_ANNOTATION;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
@@ -45,7 +48,7 @@ import static org.objectweb.asm.Opcodes.ACC_SUPER;
  */
 public class ApiMemberSelector extends ClassVisitor {
 
-    private final SortedSet<MethodMember> methods = new TreeSet<>();
+    private Set<MethodMember> methods;
     private final SortedSet<FieldMember> fields = new TreeSet<>();
     private final SortedSet<InnerClassMember> innerClasses = new TreeSet<>();
 
@@ -73,6 +76,12 @@ public class ApiMemberSelector extends ClassVisitor {
         super.visit(version, access, name, signature, superName, interfaces);
         classMember = new ClassMember(version, access, name, signature, superName, interfaces);
         isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
+        if ((access & ACC_ANNOTATION) == ACC_ANNOTATION) {
+            // Kotlin binds positional annotation arguments by member declaration order
+            methods = new LinkedHashSet<>();
+        } else {
+            methods = new TreeSet<>();
+        }
     }
 
     @Override

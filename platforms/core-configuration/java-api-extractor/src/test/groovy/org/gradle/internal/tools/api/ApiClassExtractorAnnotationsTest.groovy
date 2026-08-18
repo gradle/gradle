@@ -16,6 +16,10 @@
 
 package org.gradle.internal.tools.api
 
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 import spock.lang.Issue
 
 import java.lang.annotation.ElementType
@@ -746,6 +750,38 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
         then:
         consumer.classes.Main.clazz.name == "Main"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38873")
+    def "annotation members keep their declaration order"() {
+        given:
+        def api = toApi([
+            Ann: '''
+                public @interface Ann {
+                    String option() default "";
+                    String description();
+                    int alpha() default 0;
+                }
+            '''
+        ])
+
+        when:
+        def extractedBytes = api.extractApiClassFrom(api.classes.Ann)
+
+        then:
+        methodNamesInOrder(extractedBytes) == ['option', 'description', 'alpha']
+    }
+
+    private static List<String> methodNamesInOrder(byte[] classBytes) {
+        def names = []
+        new ClassReader(classBytes).accept(new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                names << name
+                return null
+            }
+        }, 0)
+        names
     }
 
     private static Map<String, Method> mapMethods(Method[] methods) {
