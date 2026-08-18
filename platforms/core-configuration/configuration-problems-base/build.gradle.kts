@@ -36,7 +36,6 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(libs.guava)
-    implementation(libs.kotlinxSerializationJson)
 
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
