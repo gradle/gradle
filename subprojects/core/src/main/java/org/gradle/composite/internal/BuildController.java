@@ -15,11 +15,13 @@
  */
 package org.gradle.composite.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.concurrent.Stoppable;
@@ -56,6 +58,15 @@ public interface BuildController extends Stoppable {
      * @return true if any tasks were scheduled, false if not.
      */
     boolean scheduleQueuedTasks();
+
+    /**
+     * Returns the references to tasks in other builds that were discovered while scheduling the work of this build,
+     * then clears those references from state. The target of each reference must be queued for execution in the build
+     * that owns it.
+     *
+     * @see org.gradle.execution.plan.ExecutionPlan#takeCrossBuildReferences()
+     */
+    ImmutableList<TaskInAnotherBuild> takeCrossBuildReferences();
 
     /**
      * Prepares the work graph, once all tasks have been scheduled.

@@ -60,8 +60,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     private final int monitoringPollTime;
     private final TimeUnit monitoringPollTimeUnit;
     private final ManagedExecutor executorService;
-    @SuppressWarnings("ThreadLocalUsage") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private final ThreadLocal<DefaultBuildTreeWorkGraph> current = new ThreadLocal<>();
 
     @Inject
     public DefaultIncludedBuildTaskGraph(
@@ -99,40 +97,14 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
     @Override
     public <T> T withNewWorkGraph(Function<? super BuildTreeWorkGraph, T> action) {
-        DefaultBuildTreeWorkGraph previous = current.get();
-        DefaultBuildTreeWorkGraph workGraph = new DefaultBuildTreeWorkGraph(createControllers());
-        current.set(workGraph);
-        try {
-            try {
-                return action.apply(workGraph);
-            } finally {
-                workGraph.close();
-            }
-        } finally {
-            current.set(previous);
+        try (DefaultBuildTreeWorkGraph workGraph = new DefaultBuildTreeWorkGraph(createControllers())) {
+            return action.apply(workGraph);
         }
-    }
-
-    @Override
-    public void queueForExecution(BuildState targetBuild, Node node) {
-        withState(workGraph -> {
-            workGraph.queueForExecution(targetBuild, node);
-            return null;
-        });
     }
 
     @Override
     public void close() throws IOException {
         CompositeStoppable.stoppable(executorService).stop();
-    }
-
-    private <T> T withState(Function<DefaultBuildTreeWorkGraph, T> action) {
-        DefaultBuildTreeWorkGraph workGraph = current.get();
-        if (workGraph == null) {
-            throw new IllegalStateException("No work graph available for this thread.");
-        }
-        workGraph.assertIsOwner();
-        return action.apply(workGraph);
     }
 
     private class DefaultBuildTreeWorkGraphBuilder implements BuildTreeWorkGraph.Builder {
@@ -175,12 +147,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         public DefaultBuildTreeWorkGraph(DefaultBuildControllers controllers) {
             this.owner = Thread.currentThread();
             this.controllers = controllers;
-        }
-
-        public void queueForExecution(BuildState build, Node node) {
-            assertIsOwner();
-            assertCanQueueTask();
-            controllers.getBuildController(build).queueForExecution(node);
         }
 
         @Override
@@ -226,10 +192,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         public void close() {
             assertIsOwner();
             controllers.close();
-        }
-
-        private void assertCanQueueTask() {
-            expectInState(State.Preparing);
         }
 
         private void expectInState(State expectedState) {

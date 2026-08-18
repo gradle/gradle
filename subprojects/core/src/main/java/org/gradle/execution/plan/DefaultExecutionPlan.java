@@ -66,6 +66,13 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> finalizers = new LinkedHashSet<>();
+
+    /**
+     * The references to tasks in other builds discovered while walking the entry nodes of this plan. Each element is a
+     * node of this plan that stands in for a task owned by another build, rather than that task's own node.
+     */
+    private final Set<TaskInAnotherBuild> crossBuildReferences = new LinkedHashSet<>();
+
     private final OrdinalNodeAccess ordinalNodeAccess;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
@@ -204,6 +211,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             if (visiting.add(node)) {
                 // Have not seen this node before - add its dependencies to the head of the queue and leave this
                 // node in the queue
+                if (node instanceof TaskInAnotherBuild) {
+                    // The target of this dependency has to be scheduled in the work graph of the build that owns it.
+                    // Remember it so that the scheduler can queue it later.
+                    crossBuildReferences.add((TaskInAnotherBuild) node);
+                }
                 node.resolveDependencies(dependencyResolver);
                 for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup().asOrdinal());
@@ -235,6 +247,16 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             return filter.isSatisfiedBy(((LocalTaskNode) successor).getTask());
         }
         return true;
+    }
+
+    @Override
+    public ImmutableList<TaskInAnotherBuild> takeCrossBuildReferences() {
+        if (crossBuildReferences.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList<TaskInAnotherBuild> result = ImmutableList.copyOf(crossBuildReferences);
+        crossBuildReferences.clear();
+        return result;
     }
 
     @Override
@@ -331,6 +353,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         nodeMapping.clear();
         filteredNodes.clear();
         finalizers.clear();
+        crossBuildReferences.clear();
         scheduledNodes = null;
         ordinalNodeAccess.reset();
         dependencyResolver.clear();

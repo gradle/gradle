@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -63,6 +64,14 @@ public interface ExecutionPlan extends Describable, Closeable {
      * Returns a snapshot of the current contents of this plan. Note that this plan is mutable, so the contents may later change.
      */
     QueryableExecutionPlan getContents();
+
+    /**
+     * Returns the references to tasks in other builds that were discovered while populating this plan and forgets them.
+     * <p>
+     * A reference is discovered when its node is first visited, which does not necessarily mean that node ends up in this
+     * plan. Callers are expected to schedule the target of each reference in the work graph of the build that owns it.
+     */
+    ImmutableList<TaskInAnotherBuild> takeCrossBuildReferences();
 
     /**
      * Calculates the execution plan for the current entry tasks. May be called multiple times.
