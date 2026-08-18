@@ -168,7 +168,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
-    Location: /path/to/script line 20
+    Location: /path/to/script:20
     Possible solution: Look up the samples index for real-life examples.
         ''')
     }
@@ -192,7 +192,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         then:
         renderedProblem == denormalizeAndStrip('''
 Problem found: Project is a prototype (id: sample-problems:prototype-project)
-    Location: /path/to/script line 20
+    Location: /path/to/script:20
         ''')
     }
 
@@ -217,8 +217,8 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
-    Location: /path/to/script line 20
-    Location: /path/to/alternative line 30
+    Location: /path/to/script:20
+    Location: /path/to/alternative:30
     Possible solutions:
       1. Look up the samples index for real-life examples.
       2. Or read the documentation on the Gradle website.
