@@ -436,6 +436,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
 
         expect:
         expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause("broken")
@@ -472,6 +473,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
 
         expect:
         expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause("Exception thrown while executing model rule: CalculateName#defaultName")
         failure.assertHasCause("broken")
@@ -507,6 +509,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
 
         expect:
         expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause("broken")
@@ -571,6 +574,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
 
         expect:
         expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause('''Type BrokenRuleSource is not a valid rule source:
@@ -601,6 +605,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
 
         expect:
         expectSoftwareModelDeprecations("MyPlugin")
+        expectModelReportTaskDeprecation()
         fails "model"
         failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
 
@@ -690,5 +695,9 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
 
     private void expectModelDslDeprecation() {
         executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelReportTaskDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.api.reporting.model.ModelReport (used by the :model task) has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

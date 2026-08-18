@@ -39,6 +39,7 @@ apply plugin: 'component-model-base'
 
         when:
         expectSoftwareModelDeprecations("org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelReportTaskDeprecation()
         succeeds "model"
 
         then:
@@ -70,6 +71,7 @@ apply plugin: 'component-model-base'
         expect:
         expectSoftwareModelDeprecations("org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         succeeds "model"
 
         where:
@@ -85,5 +87,9 @@ apply plugin: 'component-model-base'
 
     private void expectModelDslDeprecation() {
         executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelReportTaskDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.api.reporting.model.ModelReport (used by the :model task) has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

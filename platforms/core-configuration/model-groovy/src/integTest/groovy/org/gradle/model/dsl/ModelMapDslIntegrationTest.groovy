@@ -268,6 +268,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         fails "model"
         failure.assertHasLineNumber(19)
         failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 18, column 9')
@@ -288,6 +289,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         succeeds "model"
     }
 
@@ -308,6 +310,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         succeeds "model"
     }
 
@@ -396,6 +399,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: main(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -416,6 +420,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: main { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -436,6 +441,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: all { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -456,6 +462,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: withType(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -476,6 +483,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: beforeEach(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -496,6 +504,7 @@ model {
         expect:
         expectSoftwareModelDeprecation("MyPlugin")
         expectModelDslDeprecation()
+        expectModelReportTaskDeprecation()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: afterEach(Thing) { ... } @ build.gradle line 18, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -507,5 +516,9 @@ model {
 
     private void expectModelDslDeprecation() {
         executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelReportTaskDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.api.reporting.model.ModelReport (used by the :model task) has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }
