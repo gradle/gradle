@@ -49,6 +49,34 @@ public interface MavenMirrorResolver {
 }
 ```
 
+### Why build scope and not build-tree scope
+
+Build scope means the parse and its memoized result are per build in the tree, so a
+composite parses `settings.xml` once per included build that declares a Maven repository.
+Build-tree scope would parse once for the whole tree.
+
+`MavenMirrorResolver` cannot simply move, though: it injects `ProviderFactory` for the
+configuration cache input, and both `ProviderFactory` and the underlying
+`ValueSourceProviderFactory` are `@ServiceScope(Scope.Build.class)`, registered in
+`BuildScopeServices`. Since `Scope.Build extends Scope.BuildTree`, a build-tree scoped
+service cannot see them. The fingerprint they ultimately write to is already tree-wide
+(`ConfigurationCacheFingerprintController` is build-tree scoped) — it is only the API for
+reaching it that is build scoped, and dependency-management cannot reach the controller
+directly.
+
+Tree-wide caching therefore means splitting along that seam: a build-tree scoped holder
+owning the parse and the memoized mirror list, plus a thin build-scoped
+`MavenMirrorResolver` that delegates to it and registers the CC input through its own
+`ProviderFactory`. Registering the value source once per build is harmless, since the
+fingerprint is tree-scoped and dedupes.
+
+Left at build scope for this cut. Widening only `MavenSettingsProvider` would not help —
+it is stateless and re-parses on every `buildSettings()` call, so all the memoization
+lives in the resolver. And `LocalMavenRepositoryLocator` is build scoped on `master` and
+already reads settings per build, so per-build settings reading is the existing
+convention rather than something this prototype introduces. Worth revisiting with a
+measurement from a large composite.
+
 ## 3. Repository identity
 
 `createDescriptor()` goes through the same `validateUrl()`, so the descriptor's root URI is the *mirror* URL. Consequences:
@@ -172,4 +200,7 @@ Notes:
 1. **Auth**: mostly closed in this cut (leak prevention + Option C hybrid credentials with decryption + first-header `<httpHeaders>` mapping). Remaining: multiple HTTP headers per mirror, and the Maven 4 encryption format.
 2. **`mirrorOf` matching**: closed in this cut (full Maven grammar, effective ids, blocked mirrors — see section 7). Remaining: the name-matching convention needs a real design discussion before anything user-visible ships, and match diagnostics for typos.
 3. **Repository identity/reporting**: descriptor should expose original + mirror; build scans and the resolution cache key need a deliberate decision.
-4. **Surface**: environment-variable/DSL opt-in story, interaction with `dependencyResolutionManagement` repositories and repository content filtering, Ivy repos, documentation.
+4. **Service scope**: the resolver is build scoped, so `settings.xml` is parsed once per
+   build rather than once per build tree (see section 2). The split that would fix it is
+   cheap but adds a layer; it needs a measurement from a large composite to justify.
+5. **Surface**: environment-variable/DSL opt-in story, interaction with `dependencyResolutionManagement` repositories and repository content filtering, Ivy repos, documentation.
