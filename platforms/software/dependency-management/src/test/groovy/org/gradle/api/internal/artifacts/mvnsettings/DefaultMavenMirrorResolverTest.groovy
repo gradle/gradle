@@ -19,6 +19,7 @@ import org.apache.maven.settings.Mirror
 import org.apache.maven.settings.Server
 import org.apache.maven.settings.Settings
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,12 +38,13 @@ class DefaultMavenMirrorResolverTest extends Specification {
 
     def settingsProvider = Mock(MavenSettingsProvider)
     def providerFactory = Mock(ProviderFactory)
+    def startParameter = new StartParameterInternal()
 
-    def resolver = new DefaultMavenMirrorResolver(settingsProvider, providerFactory)
+    def resolver = new DefaultMavenMirrorResolver(settingsProvider, providerFactory, startParameter)
 
     def "returns no mirror when feature flag is not set"() {
         given:
-        providerFactory.gradleProperty(DefaultMavenMirrorResolver.ENABLE_PROPERTY) >> Providers.notDefined()
+        assert !startParameter.sharedMavenSettings
 
         when:
         def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
@@ -374,7 +376,7 @@ class DefaultMavenMirrorResolverTest extends Specification {
         gradleProperties.each { name, value ->
             providerFactory.gradleProperty(name) >> Providers.of(value)
         }
-        providerFactory.gradleProperty(DefaultMavenMirrorResolver.ENABLE_PROPERTY) >> Providers.of("true")
+        startParameter.sharedMavenSettings = true
         providerFactory.gradleProperty(_) >> Providers.notDefined()
         providerFactory.of(MavenSettingsChecksumValueSource, _) >> Providers.notDefined()
     }

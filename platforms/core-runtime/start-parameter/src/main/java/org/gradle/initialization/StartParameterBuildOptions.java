@@ -64,6 +64,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigureOnDemandOption(),
         new BuildCacheOption(),
         new BuildCacheDebugLoggingOption(),
+        new SharedMavenSettingsOption(),
         new WatchFileSystemOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
@@ -392,6 +393,27 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         protected OptionCategory getCategory() {
             return OptionCategory.LOGGING;
+        }
+    }
+
+    /**
+     * Opts the build in to the mirrors and server entries declared in the local Maven settings.xml.
+     */
+    public static class SharedMavenSettingsOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.mirror.maven.settings";
+
+        public SharedMavenSettingsOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setSharedMavenSettings(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 

@@ -26,7 +26,7 @@ import java.util.Optional;
  * Resolves the mirror to use for a remote Maven repository URL, based on the
  * mirrors declared in the local Maven {@code settings.xml} files.
  *
- * <p>Prototype: only enabled when the {@code org.gradle.internal.mavenMirrors}
+ * <p>Prototype: only enabled when the {@code org.gradle.mirror.maven.settings}
  * Gradle property is set to {@code true}.
  */
 @ServiceScope(Scope.Build.class)

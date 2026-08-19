@@ -21,6 +21,7 @@ import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.ProviderFactory;
@@ -36,21 +37,21 @@ import java.util.List;
 import java.util.Optional;
 
 public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
-    public static final String ENABLE_PROPERTY = "org.gradle.internal.mavenMirrors";
-
     private static final Logger LOGGER = Logging.getLogger(DefaultMavenMirrorResolver.class);
     private static final String CENTRAL_REPOSITORY_ID = "central";
     private static final String CENTRAL_REPOSITORY_URL = normalizeUrl(ArtifactRepositoryContainer.MAVEN_CENTRAL_URL);
 
     private final MavenSettingsProvider settingsProvider;
     private final ProviderFactory providerFactory;
+    private final StartParameterInternal startParameter;
 
     private volatile boolean computed;
     private List<MirrorCandidate> mirrors = ImmutableList.of();
 
-    public DefaultMavenMirrorResolver(MavenSettingsProvider settingsProvider, ProviderFactory providerFactory) {
+    public DefaultMavenMirrorResolver(MavenSettingsProvider settingsProvider, ProviderFactory providerFactory, StartParameterInternal startParameter) {
         this.settingsProvider = settingsProvider;
         this.providerFactory = providerFactory;
+        this.startParameter = startParameter;
     }
 
     @Override
@@ -106,8 +107,8 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
         }
         // Obtaining the value source registers the settings.xml and settings-security.xml
         // checksums as a build input, so that the configuration cache is invalidated when
-        // the Maven settings change. This only happens when the feature is enabled: the
-        // property read above is the only input registered otherwise.
+        // the Maven settings change. This only happens when the feature is enabled, so a
+        // build with the option off registers no input at all.
         providerFactory.of(MavenSettingsChecksumValueSource.class, spec -> {}).getOrNull();
         ImmutableList.Builder<MirrorCandidate> result = ImmutableList.builder();
         try {
@@ -258,6 +259,6 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
     }
 
     private boolean isEnabled() {
-        return "true".equals(providerFactory.gradleProperty(ENABLE_PROPERTY).getOrNull());
+        return startParameter.isSharedMavenSettings();
     }
 }

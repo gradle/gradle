@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.server.http.AuthScheme
 
 /**
  * Prototype coverage for Maven settings.xml mirror support, behind the
- * {@code org.gradle.internal.mavenMirrors} Gradle property.
+ * {@code org.gradle.mirror.maven.settings} Gradle property.
  */
 class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutionTest {
     // Generated with plexus-cipher 2.0: the master password 'gradle-prototype-master' encrypted
@@ -59,7 +59,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -112,7 +112,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -138,7 +138,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -168,7 +168,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -204,7 +204,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         fails 'retrieve'
 
         then:
@@ -236,7 +236,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         fails 'retrieve'
 
         then:
@@ -268,7 +268,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -295,7 +295,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -323,7 +323,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -363,7 +363,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArgument("-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -393,7 +393,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArguments("-Porg.gradle.internal.mavenMirrors=true", "-Ptest-mirrorUsername=prop-user", "-Ptest-mirrorPassword=prop-secret")
+        executer.withArguments("-Dorg.gradle.mirror.maven.settings=true", "-Ptest-mirrorUsername=prop-user", "-Ptest-mirrorPassword=prop-secret")
         run 'retrieve'
 
         then:
@@ -417,7 +417,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -426,7 +426,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         when:
         writeMirrorSettings(mirrorRepo2.uri.toString())
         using m2
-        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -483,7 +483,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -492,7 +492,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when: "nothing changes"
         using m2
-        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then: "the settings checksum is stable, so the entry is not invalidated"
@@ -515,7 +515,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -524,7 +524,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         when: "settings-security.xml changes but settings.xml does not"
         securityFile.text = securitySettings("<!-- rotated -->")
         using m2
-        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
         run 'retrieve'
 
         then:
@@ -550,7 +550,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         using m2
-        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true", "-Dsettings.security=${relocatedSecurityFile.absolutePath}")
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true", "-Dsettings.security=${relocatedSecurityFile.absolutePath}")
         run 'retrieve'
 
         then:
@@ -559,7 +559,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         when: "the file named by the settings.security system property changes"
         relocatedSecurityFile.text = securitySettings("<!-- rotated -->")
         using m2
-        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true", "-Dsettings.security=${relocatedSecurityFile.absolutePath}")
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true", "-Dsettings.security=${relocatedSecurityFile.absolutePath}")
         run 'retrieve'
 
         then:
@@ -568,6 +568,37 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
     private static String securitySettings(String extra = "") {
         return "<settingsSecurity>${extra}<master>${ENCRYPTED_MASTER}</master></settingsSecurity>"
+    }
+
+    def "turning the feature on does not reuse a configuration cache entry stored with it off"() {
+        given:
+        def originalRepo = mavenHttpRepo("original")
+        def mirrorRepo = mavenHttpRepo("mirror")
+        originalRepo.module("org.test", "projectA", "1.0").publish().allowAll()
+        mirrorRepo.module("org.test", "projectA", "1.0").publish().allowAll()
+        writeMirrorSettings(mirrorRepo.uri.toString())
+
+        buildFile << """
+            repositories {
+                maven { url = '${originalRepo.uri}' }
+            }
+        """
+
+        when: "the feature is off"
+        using m2
+        executer.withArgument("--configuration-cache")
+        run 'retrieve'
+
+        then:
+        outputDoesNotContain("Applying Maven mirror")
+
+        when: "the feature is turned on"
+        using m2
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then: "the stale entry is not reused, so the mirror actually applies"
+        outputContains("Applying Maven mirror 'test-mirror' for repository 'maven': ${originalRepo.uri} -> ${mirrorRepo.uri}")
     }
 
     private void writeMirrorSettings(String mirrorUrl, String mirrorOf = "*", String id = "test-mirror", String serversXml = "") {

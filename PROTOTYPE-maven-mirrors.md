@@ -1,6 +1,6 @@
 # Prototype: Maven settings.xml mirror support
 
-Status: design note + spike. Not for merge. Feature flag: `org.gradle.internal.mavenMirrors` (Gradle property, off by default).
+Status: design note + spike. Not for merge. Feature flag: `org.gradle.mirror.maven.settings` (Gradle property, off by default), implemented as `StartParameterBuildOptions.SharedMavenSettingsOption`.
 
 Scope of this cut:
 
@@ -40,7 +40,7 @@ Known imperfections of the chosen hook (accepted for the prototype):
 - registers `MavenMirrorResolver` as a **build-scoped service** (`DependencyManagementBuildScopeServices`, right next to `MavenSettingsProvider`), and
 - computes the wildcard mirror **lazily, once, on first `mirrorFor()` call**, caching the result for the rest of the build.
 
-The feature-flag check happens *before* the parse: with the flag off (the default), `settings.xml` is never read and the overhead is one property lookup. `mirrorFor()` is only called from `validateUrl()`, i.e. only when a Maven repository is actually used, so builds without Maven repos never parse settings either.
+The feature-flag check happens *before* the parse: with the flag off (the default), `settings.xml` is never read and the overhead is one boolean read off the start parameter. `mirrorFor()` is only called from `validateUrl()`, i.e. only when a Maven repository is actually used, so builds without Maven repos never parse settings either.
 
 ```java
 @ServiceScope(Scope.Build.class)
@@ -144,7 +144,7 @@ How the prototype implements it:
 - Passwords from the `<server>` entry go through `DefaultSecDispatcher` + `DefaultPlexusCipher` — the same classes Maven uses, already shipped in the distribution. Plaintext values pass through without touching settings-security.xml; `{...}`-wrapped values decrypt against the master password in `~/.m2/settings-security.xml` (the `settings.security` system property relocates it, as in Maven). A failed decryption logs a lifecycle warning naming the `<mirrorId>Username`/`<mirrorId>Password` remedy and the mirror is used *without* credentials (deterministic 401 instead of sending the undecrypted blob).
 - `DefaultMavenArtifactRepository` wraps the credentials in an `AllSchemesAuthentication` — the same type Gradle uses for plain `credentials {}` blocks, so basic/digest/NTLM negotiation works — host-scoped to the **mirror** host only.
 - When the matching `<server>` entry has no username/password but declares `<configuration><httpHeaders>`, the first header is applied as an `HttpHeaderAuthentication`/`HttpHeaderCredentials` pair (token auth), also host-scoped to the mirror. Only the first header can be honored — Gradle's transport attaches one header credential per host — so additional headers log a lifecycle warning and are ignored. Malformed header configuration (missing name or value) warns and is skipped. Username/password on the same server entry win over headers.
-- CC: the Gradle property reads are tracked by `ProviderFactory`; settings-security.xml content is folded into the existing `MavenSettingsChecksumValueSource` (only fingerprinted while the feature flag is on).
+- CC: the per-mirror credential property reads are tracked by `ProviderFactory`; settings-security.xml content is folded into the existing `MavenSettingsChecksumValueSource` (only fingerprinted while the feature flag is on).
 - Verified by unit tests (property override, partial-pair fallback, real decryption against a generated settings-security.xml, decryption-failure fallback) and integration tests against a BASIC-auth mirror (plaintext server entry, encrypted server entry, property override), in both forking and configuration-cache variants.
 
 Not applicable: interactive password prompting (Maven can prompt; the Gradle daemon is non-interactive).
@@ -160,7 +160,9 @@ Not applicable: interactive password prompting (Maven can prompt; the Gradle dae
 
 Two inputs need to be CC-safe; both are handled in this cut:
 
-- **The feature flag** — read via `ProviderFactory.gradleProperty("org.gradle.internal.mavenMirrors")`. The build-scoped `ProviderFactory` (registered in `BuildScopeServices`) is injected into the resolver service. Gradle-property reads through `ProviderFactory` are tracked CC inputs.
+- **The feature flag** — a build option (`SharedMavenSettingsOption`, following `BuildCacheDebugLoggingOption`), so it lands on `StartParameterInternal.isSharedMavenSettings()` rather than being read through `ProviderFactory`. Two consequences:
+  - Build options resolve from `gradle.properties` and system properties, **not** `-P` project properties, so the flag is set with `-Dorg.gradle.mirror.maven.settings=true` or a `gradle.properties` entry.
+  - Reading it off the start parameter is not a fingerprint input, so it is hashed into the CC *entry key* instead (`ConfigurationCacheKey.putBoolean(startParameter.isSharedMavenSettings)`, alongside `isOffline`). This is required for correctness, not tidiness: with the feature off nothing reads the settings, so there is no fingerprint input that turning it *on* could invalidate — without the key component a build would reuse an entry stored with mirrors off and silently skip the mirror. Keying rather than invalidating also means toggling back and forth hits both entries.
 - **The settings contents** — tracked via `MavenSettingsChecksumValueSource`, a `ValueSource` that hashes the user and global settings.xml files plus settings-security.xml (without parsing any of them), honouring the `settings.security` system property for the last one's location. The resolver obtains it *only when the feature flag is on*, so builds with the flag off carry no settings entry in their CC fingerprint. Value sources are re-evaluated at cache-load time, so editing any of those files invalidates the cached configuration with the reason `Maven settings content has changed` (the value source implements `Describable`). The name is deliberately not `settings.xml`: three files feed the checksum, and naming one of them made the reason point at the wrong file when only settings-security.xml changed.
 
 Design choices worth noting:
@@ -190,6 +192,8 @@ Notes:
 ## What the spike changes
 
 - New: `mvnsettings/MavenMirrorResolver.java` (internal interface + `MirroredRepository` value), `mvnsettings/DefaultMavenMirrorResolver.java`, `mvnsettings/MirrorOfMatcher.java` (port of Maven's pattern matcher), `mvnsettings/MavenSettingsChecksumValueSource.java` (CC input tracking).
+- `StartParameterBuildOptions`: new `SharedMavenSettingsOption` for `org.gradle.mirror.maven.settings`, with the flag stored on `StartParameterInternal` and carried over the daemon wire by `BuildActionSerializer`.
+- `ConfigurationCacheKey`: the flag is part of the entry key, so toggling it cannot reuse a stale entry.
 - `DependencyManagementBuildScopeServices`: registers the resolver (build scope).
 - `DefaultDependencyManagementServices.createBaseRepositoryFactory` / `DefaultBaseRepositoryFactory`: thread the resolver through to Maven repo construction.
 - `DefaultMavenArtifactRepository`: nullable resolver field; `validateUrl()` applies the mirror and logs `Applying Maven mirror '<id>' for repository '<name>': <original> -> <mirror>` (once per rewrite target); `getTransport()` replaces the repository's configured authentication (with a lifecycle warning when it had any) by the mirror's own credentials, host-scoped to the mirror.
