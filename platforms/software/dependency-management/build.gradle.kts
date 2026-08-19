@@ -85,7 +85,6 @@ dependencies {
     testImplementation(testLibs.asmUtil)
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
-    testImplementation(libs.jsoup)
 
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.baseServices))

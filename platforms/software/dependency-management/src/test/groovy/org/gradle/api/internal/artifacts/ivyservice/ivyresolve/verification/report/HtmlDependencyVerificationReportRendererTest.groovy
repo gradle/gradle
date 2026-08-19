@@ -34,16 +34,14 @@ import org.gradle.internal.component.external.model.ModuleComponentFileArtifactI
 import org.gradle.security.internal.PublicKeyResultBuilder
 import org.gradle.security.internal.PublicKeyService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static java.nio.charset.StandardCharsets.UTF_8
+import java.util.regex.Pattern
+
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.FAILED
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.IGNORED_KEY
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.MISSING_KEY
@@ -53,6 +51,15 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     static private File dummyFile = new File("dummy")
     static private File dummyFileSig = new File("dummy.asc")
 
+    private static final Pattern TAG = ~/(?s)<[^>]*>/
+    private static final Pattern BODY = ~/(?s)<body>(.*)<\/body>/
+    private static final Pattern SECTION = ~/(?s)<a class="uk-accordion-title"[^>]*>(.*?)<\/a>(.*?)<\/table>/
+    private static final Pattern TABLE_BODY = ~/(?s)<tbody>(.*?)<\/tbody>/
+    private static final Pattern ROW = ~/(?s)<tr>(.*?)<\/tr>/
+    private static final Pattern CELL = ~/(?s)<td[^>]*>(.*?)<\/td>/
+    private static final Pattern TOOLTIP = ~/uk-tooltip="title: ([^"]*)"/
+    private static final Pattern PROBLEM = ~/(?s)<p>(.*?)<\/p>/
+
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
@@ -60,7 +67,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     File reportsDir = temporaryFolder.testDirectory
     File currentReportDir
     File currentReportFile
-    Document report
+    String reportHtml
 
     @Subject
     HtmlDependencyVerificationReportRenderer noKeyServerRenderer = new HtmlDependencyVerificationReportRenderer(
@@ -103,18 +110,14 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         generateReport(noKeyServerRenderer)
 
         then:
-        bodyContains("First section")
-        bodyContainsExact("First section 0 error")
+        sectionSummaries() == ["First section 0 error"]
 
         when:
         noKeyServerRenderer.startNewSection("Second section")
         generateReport(noKeyServerRenderer)
 
         then:
-        bodyContains("First section")
-        bodyContains("Second section")
-        bodyContainsExact("First section 0 error")
-        bodyContainsExact("Second section 0 error")
+        sectionSummaries() == ["First section 0 error", "Second section 0 error"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20135")
@@ -416,57 +419,60 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     private void generateReport(HtmlDependencyVerificationReportRenderer renderer) {
         currentReportFile = renderer.writeReport()
         currentReportDir = currentReportFile.parentFile
-        Jsoup.parse(currentReportFile, UTF_8.name())
-        report = Jsoup.parse(currentReportFile, UTF_8.name())
+        reportHtml = currentReportFile.getText("UTF-8")
     }
 
     private boolean bodyContains(String text) {
-        def node = report.body().select("*").find { norm(it).contains(text) }
-        node != null // this is just so that we can put a breakpoint for debugging
+        // extracted into a variable so that we can put a breakpoint for debugging
+        def body = textOf(reportHtml.find(BODY) { it[1] })
+        body.contains(text)
     }
 
-    private boolean bodyContainsExact(String text) {
-        def node = report.body().select("*").find { norm(it) == text }
-        node != null // this is just so that we can put a breakpoint for debugging
-    }
-
-    private static String norm(Element node) {
-        norm(node.text())
-    }
-
-    private static String norm(String s) {
-        // replaces non-breaking space with space, makes testing easier
-        s.replace(' ', ' ').trim()
+    /**
+     * The rendered title of every section, in report order, e.g. {@code "First section 0 error"}.
+     */
+    private List<String> sectionSummaries() {
+        sections().collect { it.title }
     }
 
     private List<ReportedError> errorsFor(String section) {
-        Element handle = report.body().select(".uk-accordion-title").find { it.text().startsWith(section) }
-        handle.parent().select("tbody tr").collect {
-            new ReportedError(it)
-        }
+        def match = sections().find { it.title.startsWith(section) }
+        assert match != null : "No section titled '$section' in the report"
+        match.table.find(TABLE_BODY) { it[1] }.findAll(ROW) { it[1] }.collect { new ReportedError(it) }
+    }
+
+    private List<Map<String, String>> sections() {
+        reportHtml.findAll(SECTION) { [title: textOf(it[1]), table: it[2]] }
+    }
+
+    /**
+     * Turns a fragment of the generated report into the text a browser would show for it:
+     * markup dropped, entities decoded and whitespace collapsed.
+     */
+    private static String textOf(String html) {
+        html.replaceAll(TAG, ' ')
+            .replace('&nbsp;', ' ')
+            .replace('&lt;', '<')
+            .replace('&gt;', '>')
+            .replace('&quot;', '"')
+            .replace('&#39;', "'")
+            .replace('&amp;', '&')
+            .replaceAll(/\s+/, ' ')
+            .trim()
     }
 
     private static class ReportedError {
-        final Element row
         final String module
         final String artifact
-        final List<String> problems = []
-        final boolean hasSignature
+        final String artifactTooltip
+        final List<String> problems
 
-        ReportedError(Element row) {
-            this.row = row
-            def tableDataElements = row.select("td")
-            module = norm(tableDataElements.get(0))
-            def artifactText = norm(tableDataElements.get(1))
-            artifact = artifactText - ' (.asc)'
-            hasSignature = artifactText.contains(" (.asc)")
-            tableDataElements.get(2).select("p").collect(problems) {
-                norm(it)
-            }
-        }
-
-        String getArtifactTooltip() {
-            row.select("td > div[uk-tooltip]").attr("uk-tooltip") - 'title: '
+        ReportedError(String row) {
+            def cells = row.findAll(CELL) { it[1] }
+            module = textOf(cells[0])
+            artifact = textOf(cells[1]) - ' (.asc)'
+            artifactTooltip = cells[1].find(TOOLTIP) { it[1] }
+            problems = cells[2].findAll(PROBLEM) { textOf(it[1]) }
         }
 
         String getProblem() {
