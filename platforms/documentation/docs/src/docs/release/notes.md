@@ -18,6 +18,8 @@ The following issues were resolved:
 - [Gradle 9.7.0 breaks the "Click to see difference" format from failed unit tests](https://github.com/gradle/gradle/issues/38788)
 - [9.7 leaks bundled antlr into kapt classpath](https://github.com/gradle/gradle/issues/38791)
 - [Gradle 9.7.0 breaks a working Transformer implementation](https://github.com/gradle/gradle/issues/38792)
+- [ant.taskdef with an explicit classpath resolves task classes parent-first against Gradle's bundled jars since 9.7.0 (9.6.1 isolated them)](https://github.com/gradle/gradle/issues/38861)
+- [Gradle 9.7.0 expects `Option` annotation arguments in a different order than before in build.gradle.kts](https://github.com/gradle/gradle/issues/38873)
 
 We recommend upgrading to Gradle @version@.
 
