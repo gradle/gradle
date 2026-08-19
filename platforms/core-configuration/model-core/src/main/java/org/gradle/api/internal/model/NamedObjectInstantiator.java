@@ -36,8 +36,6 @@ import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.model.internal.asm.ClassVisitorScope;
 import org.gradle.model.internal.asm.MethodVisitorScope;
-import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
-import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.Type;
 

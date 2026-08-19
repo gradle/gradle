@@ -23,7 +23,6 @@ import org.gradle.api.problems.Problems
 import org.gradle.configuration.ImportsReader
 import org.gradle.configuration.ScriptTarget
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.internal.Actions
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.hash.Hashing
@@ -76,9 +75,9 @@ class BuildScriptTransformerSpec extends Specification {
             createChild(_ as String) >> Stub(ClassLoaderScope)
         }
         def loader = getClass().getClassLoader()
-        def transformer = new BuildScriptTransformer(source, target)
+        def transformer = new BuildScriptTransformer(target)
         def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", 'stage', transformer, transformer, new BuildScriptDataSerializer())
-        scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
+        scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript)
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, DefaultClassPath.of(scriptCacheDir), metadataCacheDir, operation, ProjectScript)
     }
 
@@ -160,46 +159,6 @@ buildscript {
         !scriptData.runDoesSomething
         !scriptData.data.hasImperativeStatements
         !scriptData.hasMethods
-    }
-
-    def "model blocks are not considered imperative code"() {
-        given:
-        def scriptData = parse("""
-model {
-    task { foo(Task) { println "hi" } }
-}
-
-model { thing { println "hi" } }
-""")
-
-        expect:
-        scriptData.runDoesSomething
-        !scriptData.data.hasImperativeStatements
-        !scriptData.hasMethods
-    }
-
-    def "model blocks combined with other non imperative elements are not considered imperative code"() {
-        given:
-        def scriptData = parse("""
-model {
-    task { foo(Task) { println "hi" } }
-}
-
-"constant"
-
-def something() { return 12 }
-
-model { thing { println "hi" } }
-
-class Thing { }
-
-return null
-""")
-
-        expect:
-        scriptData.runDoesSomething
-        !scriptData.data.hasImperativeStatements
-        scriptData.hasMethods
     }
 
     def "imports are not considered imperative code"() {

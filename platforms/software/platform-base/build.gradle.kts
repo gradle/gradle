@@ -7,7 +7,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.files)
-    api(projects.modelCore)
     api(projects.baseCompilerWorker)
 
     api(libs.guava)

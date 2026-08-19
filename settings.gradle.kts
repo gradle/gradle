@@ -143,7 +143,6 @@ val core = platform("core") {
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
         subproject("model-reflect")
-        subproject("model-groovy")
         subproject("project-features")
         subproject("project-features-api")
         subproject("project-features-demos")
@@ -302,7 +301,6 @@ platform("native") {
     subproject("tooling-native")
     subproject("tooling-native-model-impls")
     subproject("testing-native")
-    subproject("plugins-model-native")
 }
 
 

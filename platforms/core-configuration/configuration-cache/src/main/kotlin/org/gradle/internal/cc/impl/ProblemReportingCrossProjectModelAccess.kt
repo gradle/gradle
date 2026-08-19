@@ -71,11 +71,9 @@ import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.metaobject.HierarchicalDynamicObject
-import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.GradleLifecycleActionExecutor
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
 import java.io.File
 import java.net.URI
@@ -419,23 +417,11 @@ class ProblemReportingCrossProjectModelAccess(
             shouldNotBeUsed()
         }
 
-        override fun bindAllModelRules(): ProjectInternal {
-            shouldNotBeUsed()
-        }
-
         override fun getBuildScriptSource(): ScriptSource {
             shouldNotBeUsed()
         }
 
         override fun getProjectEvaluationBroadcaster(): ProjectEvaluationListener {
-            shouldNotBeUsed()
-        }
-
-        override fun addRuleBasedPluginListener(listener: RuleBasedPluginListener) {
-            shouldNotBeUsed()
-        }
-
-        override fun prepareForRuleBasedPlugins() {
             shouldNotBeUsed()
         }
 
@@ -456,10 +442,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getConfigurationActions(): ProjectConfigurationActionContainer {
-            shouldNotBeUsed()
-        }
-
-        override fun getModelRegistry(): ModelRegistry {
             shouldNotBeUsed()
         }
 

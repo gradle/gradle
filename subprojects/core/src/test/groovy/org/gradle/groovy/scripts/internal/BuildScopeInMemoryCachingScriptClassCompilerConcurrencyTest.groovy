@@ -121,8 +121,7 @@ class BuildScopeInMemoryCachingScriptClassCompilerConcurrencyTest extends Specif
             new Object(),
             [getExportClassLoader: { classLoader }] as ClassLoaderScope,
             // Constant id: keeps every key's hash equal, leaving the class name as the only difference.
-            [getId: { "test" }] as CompileOperation,
-            null
+            [getId: { "test" }] as CompileOperation
         )
     }
 
@@ -136,7 +135,6 @@ class BuildScopeInMemoryCachingScriptClassCompilerConcurrencyTest extends Specif
                 ClassLoaderScope targetScope,
                 CompileOperation operation,
                 Class scriptBaseClass,
-                org.gradle.api.Action verifier,
                 ScriptClassCompiler delegate
             ) {
                 compiledScripts[source.className]

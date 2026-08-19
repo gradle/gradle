@@ -58,11 +58,6 @@ public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> 
     }
 
     @Override
-    public boolean isHasRules() {
-        return potentialPlugin.isHasRules();
-    }
-
-    @Override
     public Type getType() {
         return potentialPlugin.getType();
     }

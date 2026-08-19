@@ -91,7 +91,6 @@ dependencies {
     implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
     implementation(projects.daemonLogging)
-    implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.processMemoryServices)
     implementation(projects.serviceRegistryBuilder)

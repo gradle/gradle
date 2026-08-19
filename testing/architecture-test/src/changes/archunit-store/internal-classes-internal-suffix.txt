@@ -34,8 +34,6 @@ Class <org.gradle.internal.extensions.core.TaskInternalExtensionsKt> does not ha
 Class <org.gradle.internal.problems.failure.InternalStackTraceClassifier> does not have simple name ending with 'Internal' in (InternalStackTraceClassifier.java:0)
 Class <org.gradle.internal.problems.failure.InternalStackTraceClassifier> has simple name starting with 'Internal' in (InternalStackTraceClassifier.java:0)
 Class <org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata.internal.protobuf.Internal> has simple name starting with 'Internal' in (Internal.java:0)
-Class <org.gradle.model.internal.typeregistration.BaseInstanceFactory$InternalViewRegistration> does not have simple name ending with 'Internal' in (BaseInstanceFactory.java:0)
-Class <org.gradle.model.internal.typeregistration.BaseInstanceFactory$InternalViewRegistration> has simple name starting with 'Internal' in (BaseInstanceFactory.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.IsolatedGradleProjectInternalBuilder> does not have simple name ending with 'Internal' in (IsolatedGradleProjectInternalBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.IsolatedIdeaModuleInternalBuilder> does not have simple name ending with 'Internal' in (IsolatedIdeaModuleInternalBuilder.java:0)
 Class <org.gradle.tooling.internal.provider.action.BuildActionSerializer$InternalTaskSpecSerializer> does not have simple name ending with 'Internal' in (BuildActionSerializer.java:0)

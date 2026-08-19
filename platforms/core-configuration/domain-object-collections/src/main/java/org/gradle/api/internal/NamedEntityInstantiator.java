@@ -16,11 +16,6 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.PolymorphicDomainObjectContainer;
-
-import java.util.Set;
-
-public interface PolymorphicDomainObjectContainerInternal<T> extends PolymorphicDomainObjectContainer<T> {
-
-    Set<? extends Class<? extends T>> getCreateableTypes();
+public interface NamedEntityInstantiator<T> {
+    <S extends T> S create(String name, Class<S> type);
 }

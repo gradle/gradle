@@ -79,17 +79,6 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
     }
 
     @Override
-    public void applyRules(@Nullable String pluginId, Class<?> clazz) {
-        String message = String.format("Cannot apply model rules of plugin '%s' as the target '%s' is not model rule aware", clazz.getName(), target.toString());
-        throw new UnsupportedOperationException(message);
-    }
-
-    @Override
-    public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass) {
-        applyRules(pluginId, declaringClass);
-    }
-
-    @Override
     public String toString() {
         return target.toString();
     }

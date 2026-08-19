@@ -40,7 +40,6 @@ dependencies {
     implementation(projects.maven)
     implementation(projects.messaging)
     implementation(projects.modelCore)
-    implementation(projects.modelGroovy)
     implementation(projects.normalizationApi)
     implementation(projects.pluginUse)
     implementation(projects.pluginsGroovy)
