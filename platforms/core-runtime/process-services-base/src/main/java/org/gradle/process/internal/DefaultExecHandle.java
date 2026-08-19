@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import jnr.constants.platform.Signal;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
@@ -87,7 +88,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     /**
      * Arguments to pass to the executable.
      */
-    private final List<String> arguments;
+    private final ImmutableList<String> arguments;
 
     /**
      * The variables to set in the environment the executable is run in.
@@ -130,10 +131,14 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
                       Executor executor, BuildCancellationToken buildCancellationToken) {
+        if (command == null) {
+            throw new IllegalArgumentException("Cannot start a process with a null command.");
+        }
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
-        this.arguments = arguments;
+        // Defensive copy and null-check arguments.
+        this.arguments = ImmutableList.copyOf(arguments);
         this.environment = environment;
         this.outputHandler = outputHandler;
         this.inputHandler = inputHandler;
@@ -172,7 +177,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     @Override
     public List<String> getArguments() {
-        return Collections.unmodifiableList(arguments);
+        return arguments;
     }
 
     @Override
@@ -211,31 +216,38 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
-        ShutdownHooks.removeShutdownHook(shutdownHookAction);
-        buildCancellationToken.removeCallback(shutdownHookAction);
-        ExecHandleState currentState;
-        lock.lock();
+        ExecResultImpl newResult = null;
         try {
-            currentState = this.state;
-        } finally {
-            lock.unlock();
-        }
-
-        ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
-        if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED) {
+            ExecHandleState currentState;
+            lock.lock();
             try {
-                broadcast.getSource().executionFinished(this, newResult);
-            } catch (Exception e) {
-                newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState), displayName);
+                currentState = this.state;
+            } finally {
+                lock.unlock();
             }
-        }
 
-        lock.lock();
-        try {
-            setState(newState);
-            this.execResult = newResult;
+            newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
+
+            ShutdownHooks.removeShutdownHook(shutdownHookAction);
+            buildCancellationToken.removeCallback(shutdownHookAction);
+
+            if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED) {
+                try {
+                    broadcast.getSource().executionFinished(this, newResult);
+                } catch (Exception e) {
+                    newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState), displayName);
+                }
+            }
+        } catch (Throwable t) {
+            LOGGER.debug("Failed to finalize state for process '{}'; recording terminal state anyway.", displayName, t);
         } finally {
-            lock.unlock();
+            lock.lock();
+            try {
+                setState(newState);
+                this.execResult = newResult;
+            } finally {
+                lock.unlock();
+            }
         }
 
         LOGGER.debug("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
