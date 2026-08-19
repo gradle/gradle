@@ -22,20 +22,20 @@ dependencies {
 // end::dependency-full-bom[]
 
 // tag::dependency-full-platform[]
-abstract class JacksonAlignmentRule : ComponentMetadataRule {
+abstract class KafkaAlignmentRule : ComponentMetadataRule {
     override fun execute(ctx: ComponentMetadataContext) {
         ctx.details.run {
-            if (id.group.startsWith("com.fasterxml.jackson")) {
-                belongsTo("com.fasterxml.jackson:jackson-virtual-platform:${id.version}")
+            if (id.group == "org.apache.kafka") {
+                belongsTo("org.apache.kafka:kafka-virtual-platform:${id.version}")
             }
         }
     }
 }
 
 dependencies {
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.8.9")
-    implementation("io.vertx:vertx-core:3.5.3")
+    implementation("org.apache.kafka:kafka-streams:3.6.0")
+    implementation("org.apache.kafka:kafka-clients:3.7.0")
 
-    components.all<JacksonAlignmentRule>()
+    components.all<KafkaAlignmentRule>()
 }
 // end::dependency-full-platform[]
