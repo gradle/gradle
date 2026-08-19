@@ -430,6 +430,37 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     }
 
+    def "extracted class does not depend on the order in which members are declared"() {
+        given: "the same API, with fields and methods declared in different order"
+        def declaredInOneOrder = compileTo(new File(temporaryFolder, 'one'), ['com.acme.A': '''
+            package com.acme;
+
+            public class A {
+                public int b = 1;
+                public int a = 2;
+                public void bar() {}
+                public void foo() {}
+            }
+        '''], [])
+        def declaredInAnotherOrder = compileTo(new File(temporaryFolder, 'another'), ['com.acme.A': '''
+            package com.acme;
+
+            public class A {
+                public int a = 2;
+                public int b = 1;
+                public void foo() {}
+                public void bar() {}
+            }
+        '''], [])
+
+        when:
+        def one = declaredInOneOrder.extractApiClassFrom(declaredInOneOrder.classes['com.acme.A'])
+        def another = declaredInAnotherOrder.extractApiClassFrom(declaredInAnotherOrder.classes['com.acme.A'])
+
+        then: "the extracted classes are byte-identical, so reordering members does not invalidate compile avoidance"
+        one == another
+    }
+
     def "stubs should not contain any source or debug information"() {
         given:
         def api = toApi 'com.acme.A': '''
