@@ -44,13 +44,9 @@ public class ApacheDirectoryListingParser {
             throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
         }
         Charset contentEncoding = UriTextResource.extractCharacterEncoding(contentType, StandardCharsets.UTF_8);
-        List<String> hrefs = anchorScanner.scan(stripByteOrderMark(IOUtils.toString(content, contentEncoding)));
+        List<String> hrefs = anchorScanner.scan(IOUtils.toString(content, contentEncoding));
         List<URI> uris = resolveURIs(baseURI, hrefs);
         return filterNonDirectChilds(baseURI, uris);
-    }
-
-    private static String stripByteOrderMark(String html) {
-        return !html.isEmpty() && html.charAt(0) == '\uFEFF' ? html.substring(1) : html;
     }
 
     private URI addTrailingSlashes(URI uri) throws IOException, URISyntaxException {

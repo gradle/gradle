@@ -93,7 +93,6 @@ class HtmlAnchorHrefScanner {
         boolean anchor = tagName.equals("a");
 
         String href = null;
-        boolean hrefSeen = false;
         while (position < html.length()) {
             position = skipWhitespace(html, position);
             if (position == html.length()) {
@@ -116,14 +115,14 @@ class HtmlAnchorHrefScanner {
             }
             String attributeName = html.substring(attributeNameStart, position).toLowerCase(Locale.ROOT);
 
-            boolean anchorHref = anchor && !hrefSeen && attributeName.equals("href");
+            // Duplicate attributes are dropped by the HTML parser, so only the first href counts
+            boolean anchorHref = anchor && href == null && attributeName.equals("href");
             int afterName = skipWhitespace(html, position);
             if (afterName == html.length() || html.charAt(afterName) != '=') {
                 // A valueless attribute has the empty string as its value. Leave the position
                 // alone, so that the character stopping the name starts the next attribute.
                 if (anchorHref) {
                     href = "";
-                    hrefSeen = true;
                 }
                 continue;
             }
@@ -150,7 +149,6 @@ class HtmlAnchorHrefScanner {
 
             if (anchorHref) {
                 href = resolveCharacterReferences(html.substring(valueStart, valueEnd));
-                hrefSeen = true;
             }
         }
 
