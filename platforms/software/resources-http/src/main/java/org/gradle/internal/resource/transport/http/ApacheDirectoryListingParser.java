@@ -16,11 +16,9 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.UriTextResource;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,11 +31,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ApacheDirectoryListingParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheDirectoryListingParser.class);
+
+    private final HtmlAnchorHrefScanner anchorScanner = new HtmlAnchorHrefScanner();
 
     public List<String> parse(URI baseURI, InputStream content, String contentType) throws Exception {
         baseURI = addTrailingSlashes(baseURI);
@@ -45,13 +44,13 @@ public class ApacheDirectoryListingParser {
             throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
         }
         Charset contentEncoding = UriTextResource.extractCharacterEncoding(contentType, StandardCharsets.UTF_8);
-        Document document = Jsoup.parse(content, contentEncoding.name(), baseURI.toString());
-        Elements elements = document.select("a[href]");
-        List<String> hrefs = elements.stream()
-            .map(it -> it.attr("href"))
-            .collect(Collectors.toList());
+        List<String> hrefs = anchorScanner.scan(stripByteOrderMark(IOUtils.toString(content, contentEncoding)));
         List<URI> uris = resolveURIs(baseURI, hrefs);
         return filterNonDirectChilds(baseURI, uris);
+    }
+
+    private static String stripByteOrderMark(String html) {
+        return !html.isEmpty() && html.charAt(0) == '\uFEFF' ? html.substring(1) : html;
     }
 
     private URI addTrailingSlashes(URI uri) throws IOException, URISyntaxException {
