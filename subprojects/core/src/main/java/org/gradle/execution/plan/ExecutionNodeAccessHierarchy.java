@@ -114,7 +114,7 @@ public class ExecutionNodeAccessHierarchy {
         root = root.empty();
     }
 
-    private <T> T visitValues(String location, AbstractNodeAccessVisitor<T> visitor) {
+    private <T extends @Nullable Object> T visitValues(String location, AbstractNodeAccessVisitor<T> visitor) {
         root.visitValues(location, visitor);
         return visitor.getResult();
     }

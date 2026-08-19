@@ -18,13 +18,10 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
@@ -54,7 +51,6 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * consuming a parent directory of the produced output.
  * </p>
  */
-@ServiceScope(Scope.BuildTree.class)
 public class MissingTaskDependencyDetector {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy;
@@ -89,35 +85,50 @@ public class MissingTaskDependencyDetector {
     }
 
     private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
-        producers.stream()
-            .filter(producerNode -> hasNoSpecifiedOrder(producerNode, consumer))
-            .filter(MissingTaskDependencyDetector::isEnabled)
-            .forEach(producerWithoutDependency -> collectValidationProblem(
-                producerWithoutDependency,
-                consumer,
-                validationContext,
-                locationConsumedByThisTask
-            ));
+        for (Node producerNode : producers) {
+            if (!hasNoSpecifiedOrder(producerNode, consumer)) {
+                continue;
+            }
+            LocalTaskNode producerWithoutDependency = asEnabledTaskNode(producerNode);
+            if (producerWithoutDependency != null) {
+                collectValidationProblem(
+                    producerWithoutDependency,
+                    consumer,
+                    validationContext,
+                    locationConsumedByThisTask
+                );
+            }
+        }
     }
 
     private static void collectValidationProblemsForProducer(LocalTaskNode node, TypeValidationContext validationContext, String outputPath, Collection<Node> consumers) {
-        consumers.stream()
-            .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
-            .filter(MissingTaskDependencyDetector::isEnabled)
-            .forEach(consumerWithoutDependency -> collectValidationProblem(
-                node,
-                consumerWithoutDependency,
-                validationContext,
-                outputPath)
-            );
+        for (Node consumerNode : consumers) {
+            if (!hasNoSpecifiedOrder(node, consumerNode)) {
+                continue;
+            }
+            LocalTaskNode consumerWithoutDependency = asEnabledTaskNode(consumerNode);
+            if (consumerWithoutDependency != null) {
+                collectValidationProblem(
+                    node,
+                    consumerWithoutDependency,
+                    validationContext,
+                    outputPath
+                );
+            }
+        }
     }
 
-    private static boolean isEnabled(Node node) {
-        if (node instanceof LocalTaskNode) {
-            TaskInternal task = ((LocalTaskNode) node).getTask();
-            return task.getOnlyIf().isSatisfiedBy(task);
+    /**
+     * Returns the given node as a task node, or null when it is not a task node, or it
+     * is not enabled.
+     */
+    private static @Nullable LocalTaskNode asEnabledTaskNode(Node node) {
+        if (!(node instanceof LocalTaskNode)) {
+            return null;
         }
-        return false;
+        LocalTaskNode taskNode = (LocalTaskNode) node;
+        TaskInternal task = taskNode.getTask();
+        return task.getOnlyIf().isSatisfiedBy(task) ? taskNode : null;
     }
 
     // In a perfect world, the consumer should depend on the producer.
@@ -174,8 +185,8 @@ public class MissingTaskDependencyDetector {
 
     private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
 
-    private static void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
-        if (mayBeDifferentBuilds(producer, consumer)) {
+    private static void collectValidationProblem(LocalTaskNode producer, LocalTaskNode consumer, TypeValidationContext validationContext, String consumerProducerPath) {
+        if (areInDifferentBuilds(producer, consumer)) {
             // Historically, we did not detect overlapping outputs between nodes in different builds.
             // Emit a deprecation warning instead of a failure until Gradle 10.
             // In Gradle 10, we can remove this branch entirely and fall back to the problem-emitting branch below.
@@ -209,29 +220,12 @@ public class MissingTaskDependencyDetector {
         );
     }
 
-    private static boolean mayBeDifferentBuilds(Node producer, Node consumer) {
-        Path producerBuild = buildPathOf(producer);
-        if (producerBuild == null) {
-            return true;
-        }
-        Path consumerBuild = buildPathOf(consumer);
-        if (consumerBuild == null) {
-            return true;
-        }
-        return !consumerBuild.equals(producerBuild);
+    private static boolean areInDifferentBuilds(LocalTaskNode producer, LocalTaskNode consumer) {
+        return !buildPathOf(producer).equals(buildPathOf(consumer));
     }
 
-    private static @Nullable Path buildPathOf(Node node) {
-        if (node instanceof TaskNode) {
-            return ((TaskNode) node).getTask().getTaskIdentity().getProjectIdentity().getBuildPath();
-        }
-
-        ProjectInternal owningProject = node.getOwningProject();
-        if (owningProject != null) {
-            return owningProject.getOwner().getOwner().getIdentityPath();
-        }
-
-        return null;
+    private static Path buildPathOf(LocalTaskNode node) {
+        return node.getTask().getTaskIdentity().getProjectIdentity().getBuildPath();
     }
 
 }
