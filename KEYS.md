@@ -20,7 +20,7 @@ Signing is done by a dedicated subkey rather than by the primary key:
 | Primary (certify) | `2887F479B0B9771A` | `EA96F38569C044AAEF7FCF732887F479B0B9771A` |
 | Signing subkey  | `51FBF517CE6D6B80` | `F3FF33E96F18AA62DD580F9651FBF517CE6D6B80` |
 
-Importing the key gives you both, so verification works without naming the subkey explicitly.
+Importing the key gives you both, so verification works without explicitly naming the subkey.
 
 Note that `gpg --verify` identifies the key that actually made the signature, hence the subkey `51FBF517CE6D6B80`.
 
@@ -53,7 +53,7 @@ gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 1BD97A6A154E7810EE0BC832
 
 You can import a Gradle signing key into your GPG keyring in one of two ways.
 
-**From an ascii-armored block in this document.** Copy the relevant block into a file called `gradle_pubkey.asc`, then run:
+**From an ASCII-armored block in this document.** Copy the relevant block into a file called `gradle_pubkey.asc`, then run:
 
 ```bash
 gpg --import gradle_pubkey.asc
@@ -78,7 +78,7 @@ gpg --verify <artifact>.asc <artifact>
 ```
 
 > **Note**: As of 2026-08-19, no publicly released Gradle artifacts are signed with the current key (`2887F479B0B9771A`); releases through Gradle 9.7.0 were signed with the previous key (`E2F38302C8075E3D`).
-> The worked example below therefore uses the previous key.
+> The worked example below, therefore, uses the previous key.
 > Once the current key is in use, run the same commands after importing it instead.
 
 The following worked example uses the previous key: download a distribution and its signature, import the previous key from the [preserved block](#previous-key-blocks) in this document, then verify:
