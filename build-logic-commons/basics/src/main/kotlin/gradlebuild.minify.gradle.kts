@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.basics.DEFAULT_TARGET_JVM_VERSION
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
 import org.gradle.api.internal.attributes.AttributesFactory
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -37,7 +40,9 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap",
         // For Java compilation incremental analysis
         "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
+        "it.unimi.dsi.fastutil.ints.IntSet",
         "it.unimi.dsi.fastutil.ints.IntSets",
+        "it.unimi.dsi.fastutil.ints.IntIterator",
         // For the embedded Kotlin compiler
         "it.unimi.dsi.fastutil.ints.Int2ObjectMap",
         "it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap",
@@ -57,15 +62,26 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.longs.Long2ObjectMap",
         "it.unimi.dsi.fastutil.longs.Long2ObjectMaps",
         "it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap",
+        "it.unimi.dsi.fastutil.longs.Long2IntMap",
+        "it.unimi.dsi.fastutil.longs.LongArrayList",
+        "it.unimi.dsi.fastutil.longs.LongList",
         "it.unimi.dsi.fastutil.ints.Int2IntMap",
         "it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap",
         "it.unimi.dsi.fastutil.ints.Int2LongMap",
         "it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap",
+        "it.unimi.dsi.fastutil.ints.IntArrayList",
+        "it.unimi.dsi.fastutil.ints.IntList",
+        "it.unimi.dsi.fastutil.ints.IntStack",
+        "it.unimi.dsi.fastutil.Stack",
         // For the configuration cache module
         "it.unimi.dsi.fastutil.objects.ReferenceArrayList",
         "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
         "it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap",
         "it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap",
+        // For the execution plan
+        "it.unimi.dsi.fastutil.objects.ObjectIterators",
+        // For the evaluation context of the functional module
+        "it.unimi.dsi.fastutil.objects.ReferenceList",
     ),
     "com.github.jnr:jnr-constants" to setOf(
         // For signal codes
@@ -80,7 +96,15 @@ val keepPatterns = mapOf(
         "jnr.constants.ConstantResolver",
     ),
 )
+
+val minifier = configurations.resolvable("minifier") {
+    versionCatalogs.find("buildLibs").ifPresent { dependencies.addLater(it.findLibrary("r8").orElseThrow()) }
+}
+
 plugins.withId("java-base") {
+    val minifierJdkLauncher = the<JavaToolchainService>().launcherFor {
+        languageVersion = JavaLanguageVersion.of(DEFAULT_TARGET_JVM_VERSION)
+    }
     dependencies {
         attributesSchema {
             attribute(minified)
@@ -99,6 +123,9 @@ plugins.withId("java-base") {
             to.attribute(minified, true).attribute(artifactType, "jar")
             parameters {
                 keepClassesByCoordinates = keepPatterns
+                minifierClasspath.from(minifier)
+                minifierJavaVersion = DEFAULT_TARGET_JVM_VERSION
+                minifierJdkHome = minifierJdkLauncher.map { it.metadata.installationPath }
             }
         }
     }

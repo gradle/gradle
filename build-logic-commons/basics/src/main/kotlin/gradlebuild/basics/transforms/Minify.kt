@@ -17,26 +17,25 @@
 package gradlebuild.basics.transforms
 
 import com.google.common.io.Files
-import gradlebuild.basics.classanalysis.ClassAnalysisException
-import gradlebuild.basics.classanalysis.ClassDetails
-import gradlebuild.basics.classanalysis.ClassGraph
-import gradlebuild.basics.classanalysis.JarAnalyzer
-import gradlebuild.basics.classanalysis.addJarEntry
 import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import java.io.BufferedOutputStream
+import org.gradle.process.ExecOperations
+import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
-import java.util.jar.JarFile
-import java.util.jar.JarOutputStream
+import javax.inject.Inject
 
 
 @CacheableTransform
@@ -45,11 +44,23 @@ abstract class Minify : TransformAction<Minify.Parameters> {
     interface Parameters : TransformParameters {
         @get:Input
         var keepClassesByCoordinates: Map<String, Set<String>>
+
+        @get:Classpath
+        val minifierClasspath: ConfigurableFileCollection
+
+        @get:Input
+        val minifierJavaVersion: Property<Int>
+
+        @get:Internal
+        val minifierJdkHome: DirectoryProperty
     }
 
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputArtifact
     abstract val artifact: Provider<FileSystemLocation>
+
+    @get:Inject
+    abstract val execOperations: ExecOperations
 
     private
     val jarArtifactRegex = Regex("""^(.*?)-\d+(\.\d+)*([.-][A-Za-z0-9]+)*\.jar$""")
@@ -79,53 +90,40 @@ abstract class Minify : TransformAction<Minify.Parameters> {
     }
 
     private
-    fun minify(artifact: File, keepClasses: Set<String>, jarFile: File): File {
-        val tempDirectory = java.nio.file.Files.createTempDirectory(jarFile.name).toFile()
-        val classesDir = tempDirectory.resolve("classes")
-        val manifestFile = tempDirectory.resolve("MANIFEST.MF")
-        val buildReceiptFile = tempDirectory.resolve("build-receipt.properties")
-        val classGraph = JarAnalyzer("", keepClasses, keepClasses, setOf()).analyze(artifact, classesDir, manifestFile, buildReceiptFile)
-
-        createJar(classGraph, classesDir, manifestFile, jarFile)
-
-        return jarFile
-    }
-
-    private
-    fun createJar(classGraph: ClassGraph, classesDir: File, manifestFile: File, jarFile: File) {
+    fun minify(artifact: File, keepClasses: Set<String>, output: File) {
+        val rules = File.createTempFile("minify", ".pro")
+        rules.writeText(keepRules(keepClasses).joinToString("\n"))
+        val log = ByteArrayOutputStream()
         try {
-            JarOutputStream(BufferedOutputStream(FileOutputStream(jarFile))).use { jarOutputStream ->
-                if (manifestFile.exists()) {
-                    jarOutputStream.addJarEntry(JarFile.MANIFEST_NAME, manifestFile)
-                }
-                val visited = linkedSetOf<ClassDetails>()
-                for (classDetails in classGraph.entryPoints) {
-                    visitTree(classDetails, classesDir, jarOutputStream, visited)
-                }
+            val result = execOperations.javaexec {
+                classpath = parameters.minifierClasspath
+                mainClass.set("com.android.tools.r8.R8")
+                args(
+                    "--classfile",
+                    "--no-desugaring",
+                    "--lib", parameters.minifierJdkHome.get().asFile.absolutePath,
+                    "--pg-conf", rules.absolutePath,
+                    "--output", output.absolutePath,
+                    artifact.absolutePath
+                )
+                standardOutput = log
+                errorOutput = log
+                isIgnoreExitValue = true
             }
-        } catch (exception: Exception) {
-            throw ClassAnalysisException("Could not write shaded Jar $jarFile", exception)
+            if (result.exitValue != 0) {
+                throw IllegalStateException("Could not minify $artifact:\n$log")
+            }
+        } finally {
+            rules.delete()
         }
     }
 
     private
-    fun visitTree(
-        classDetails: ClassDetails,
-        classesDir: File,
-        jarOutputStream: JarOutputStream,
-        visited: MutableSet<ClassDetails>
-    ) {
-
-        if (!visited.add(classDetails)) {
-            return
-        }
-        if (classDetails.visited) {
-            val fileName = classDetails.outputClassFilename
-            val classFile = classesDir.resolve(fileName)
-            jarOutputStream.addJarEntry(fileName, classFile)
-            for (dependency in classDetails.dependencies) {
-                visitTree(dependency, classesDir, jarOutputStream, visited)
-            }
-        }
-    }
+    fun keepRules(keepClasses: Set<String>) = listOf(
+        "-dontobfuscate",
+        "-dontoptimize",
+        "-keepattributes *",
+        "-keep,allowshrinking class ** { *; }",
+        "-dontwarn"
+    ) + keepClasses.map { "-keep,includedescriptorclasses class $it { *; }" }
 }

@@ -102,6 +102,10 @@ val shadowedWrapperJar = gr8.create("gr") {
     }
 }
 
+configurations.named("gr8Gr") {
+    resolutionStrategy.force(buildLibs.r8.get())
+}
+
 // https://github.com/gradle/gradle/issues/26658
 // Before introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper.jar and used in promotion build
 // After introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper-executable.jar and processed

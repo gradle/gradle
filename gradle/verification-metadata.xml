@@ -603,9 +603,9 @@
             <sha256 value="f518445fc8a2defc443aac1c53ca60d07cd991a20063c275a322f1668acd67c4" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="com.android.tools" name="r8" version="8.5.35">
-         <artifact name="r8-8.5.35.jar">
-            <sha256 value="4733945987ee0a840fafc34080b135259e01678412e07212b23f706334290294" reason="Artifact is not signed"/>
+      <component group="com.android.tools" name="r8" version="8.11.18">
+         <artifact name="r8-8.11.18.jar">
+            <sha256 value="fbe6f7d59d46d6296919f6cc4793536439921d357c9a6bbf45ea4acc3c8736a7" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.android.tools" name="repository" version="26.0.0">

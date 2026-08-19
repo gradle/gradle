@@ -17,6 +17,7 @@
 package gradlebuild.identity.extension
 
 import org.gradle.api.GradleException
+import gradlebuild.basics.DEFAULT_TARGET_JVM_VERSION
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -27,12 +28,6 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.util.GradleVersion
 import java.util.Optional
 import javax.inject.Inject
-
-/**
- * The JVM version everything compiles to by default, and the minimum JVM the test
- * tasks run on.
- */
-const val DEFAULT_TARGET_JVM_VERSION: Int = 17
 
 /**
  * A project extension which describes a module of a Gradle distribution.
