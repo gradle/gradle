@@ -17,47 +17,45 @@
 package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.publish.internal.PublishOperation;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDuplicatePublicationTracker;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.work.DisableCachingByDefault;
-import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.io.Serializable;
 import java.net.URI;
-import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
- * Publishes an IvyPublication to an IvyArtifactRepository.
+ * Publishes an Ivy publication to an Ivy repository.
  *
  * @since 1.3
  */
@@ -65,8 +63,11 @@ import static org.gradle.internal.serialization.Transient.varOf;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PublishToIvyRepository extends DefaultTask {
     private final Transient.Var<IvyPublicationInternal> publication = varOf();
+
+    @Deprecated
     private final Transient.Var<DefaultIvyArtifactRepository> repository = varOf();
-    private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
+
+    private final Cached<IvyNormalizedPublication> cachedNormalizedPublication = Cached.of(this::computeNormalizedPublication);
 
     /**
      * Creates a new {@code PublishToIvyRepository}.
@@ -134,30 +135,148 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     }
 
     /**
+     * The name of the repository to publish to.
+     *
+     * @since 9.8.0
+     */
+    @Input
+    @Incubating
+    public abstract Property<String> getRepositoryName();
+
+    /**
+     * The URI of the repository to publish to.
+     * <p>
+     * May not be present if the repository has artifact or ivy patterns configured.
+     *
+     * @since 9.8.0
+     */
+    @Input
+    @Optional
+    @Incubating
+    public abstract Property<URI> getRepositoryUri();
+
+    /**
+     * Whether to allow insecure protocols when publishing to the repository.
+     *
+     * @since 9.8.0
+     */
+    @Input
+    @Incubating
+    public abstract Property<Boolean> getAllowInsecureProtocol();
+
+    /**
+     * The authentication schemes to use when publishing to the repository.
+     *
+     * @since 9.8.0
+     */
+    @Nested
+    @Incubating
+    public abstract SetProperty<Authentication> getAuthenticationSchemes();
+
+    /**
+     * The credentials to use when publishing to the repository.
+     *
+     * @since 9.8.0
+     */
+    @Nested
+    @Optional
+    @Incubating
+    public abstract Property<Credentials> getCredentials();
+
+    /**
+     * Additional artifact patterns to use when publishing to the repository.
+     *
+     * @since 9.8.0
+     *
+     * @see IvyArtifactRepository#artifactPattern(String)
+     */
+    @Input
+    @Incubating
+    public abstract SetProperty<String> getAdditionalArtifactPatterns();
+
+    /**
+     * Additional ivy patterns to use when publishing to the repository.
+     *
+     * @since 9.8.0
+     *
+     * @see IvyArtifactRepository#ivyPattern(String)
+     */
+    @Input
+    @Incubating
+    public abstract SetProperty<String> getAdditionalIvyPatterns();
+
+    /**
+     * The layout to use when publishing to the repository.
+     *
+     * @since 9.8.0
+     *
+     * @see IvyArtifactRepository#layout(String)
+     */
+    @Nested
+    @Incubating
+    public abstract Property<RepositoryLayout> getRepositoryLayout();
+
+    /**
      * The repository to publish to.
      *
      * @return The repository to publish to
+     *
      * @since 1.3
+     *
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public IvyArtifactRepository getRepository() {
+        DeprecationLogger.deprecateMethod(PublishToIvyRepository.class, "getRepository")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_publish_repository")
+            .nagUser();
+
         return repository.get();
     }
-
-    @Nested
-    @Optional
-    abstract Property<Credentials> getCredentials();
 
     /**
      * Sets the repository to publish to.
      *
      * @param repository The repository to publish to
+     *
      * @since 1.3
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #configureFromRepository(IvyArtifactRepository)} instead.
      */
+    @Deprecated
     public void setRepository(IvyArtifactRepository repository) {
+        DeprecationLogger.deprecateMethod(PublishToIvyRepository.class, "setRepository")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_publish_repository")
+            .nagUser();
+
+        configureFromRepository(repository);
+    }
+
+    /**
+     * Configure this task to publish to the given repository.
+     *
+     * @param repository The repository to publish to.
+     *
+     * @since 9.8.0
+     */
+    @Incubating
+    public void configureFromRepository(IvyArtifactRepository repository) {
+        // We can stop calling `this.repository.set` in Gradle 10 and remove
+        // the repository field.
         this.repository.set((DefaultIvyArtifactRepository) repository);
-        this.getCredentials().set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
+
+        DefaultIvyArtifactRepository repositoryInternal = (DefaultIvyArtifactRepository) repository;
+        this.getRepositoryName().set(repository.getName());
+        this.getRepositoryUri().set(new DefaultProvider<>(repository::getUrl));
+        this.getAllowInsecureProtocol().set(new DefaultProvider<>(repository::isAllowInsecureProtocol));
+        this.getAdditionalArtifactPatterns().set(new DefaultProvider<>(repositoryInternal::additionalArtifactPatterns));
+        this.getAdditionalIvyPatterns().set(new DefaultProvider<>(repositoryInternal::additionalIvyPatterns));
+        this.getRepositoryLayout().set(new DefaultProvider<>(repositoryInternal::getRepositoryLayout));
+        this.getCredentials().set(repositoryInternal.getConfiguredCredentials());
+        this.getAuthenticationSchemes().set(repositoryInternal.getConfiguredAuthenticationProvider());
     }
 
     /**
@@ -167,159 +286,47 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      */
     @TaskAction
     public void publish() {
-        PublishSpec spec = this.spec.get();
-        IvyNormalizedPublication publication = spec.publication;
-        IvyArtifactRepository repository = spec.repository.get(getServices());
+        IvyNormalizedPublication publication = cachedNormalizedPublication.get();
+        IvyArtifactRepository repository = createRepository();
         getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
-        doPublish(publication, repository);
+
+        IvyPublisher publisher = getIvyPublisher();
+        try {
+            publisher.publish(publication, repository);
+        } catch (Exception e) {
+            throw new PublishException(
+                "Failed to publish publication '" + publication.getName() + "' to repository '" + repository.getName() + "'",
+                e
+            );
+        }
     }
 
-    private PublishSpec computeSpec() {
+    private IvyNormalizedPublication computeNormalizedPublication() {
         IvyPublicationInternal publicationInternal = getPublicationInternal();
         if (publicationInternal == null) {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
+        return publicationInternal.asNormalisedPublication();
+    }
 
-        DefaultIvyArtifactRepository repository = this.repository.get();
-        if (repository == null) {
-            throw new InvalidUserDataException("The 'repository' property is required");
+    private IvyArtifactRepository createRepository() {
+        DefaultIvyArtifactRepository repository = (DefaultIvyArtifactRepository) getServices().get(BaseRepositoryFactory.class).createIvyRepository();
+        repository.setName(getRepositoryName().get());
+        repository.setUrl(getRepositoryUri().getOrNull());
+        getAdditionalArtifactPatterns().get().forEach(repository::artifactPattern);
+        getAdditionalIvyPatterns().get().forEach(repository::ivyPattern);
+        repository.setAllowInsecureProtocol(getAllowInsecureProtocol().get());
+        repository.setRepositoryLayout((AbstractRepositoryLayout) getRepositoryLayout().get());
+        Credentials credentials = getCredentials().getOrNull();
+        if (credentials != null) {
+            repository.setConfiguredCredentials(credentials);
         }
-        IvyNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
-        return new PublishSpec(
-            RepositorySpec.of(repository),
-            normalizedPublication
-        );
+        repository.authentication(container -> container.addAll(getAuthenticationSchemes().get()));
+        return repository;
     }
 
     @Inject
     protected abstract IvyPublisher getIvyPublisher();
-
-    private void doPublish(final IvyNormalizedPublication normalizedPublication, final IvyArtifactRepository repository) {
-        new PublishOperation(normalizedPublication.getName(), repository.getName()) {
-            @Override
-            protected void publish() {
-                IvyPublisher publisher = getIvyPublisher();
-                publisher.publish(normalizedPublication, repository);
-            }
-        }.run();
-    }
-
-    static class PublishSpec {
-
-        private final RepositorySpec repository;
-        private final IvyNormalizedPublication publication;
-
-        public PublishSpec(
-            RepositorySpec repository,
-            IvyNormalizedPublication publication
-        ) {
-            this.repository = repository;
-            this.publication = publication;
-        }
-    }
-
-    static abstract class RepositorySpec {
-
-        static RepositorySpec of(DefaultIvyArtifactRepository repository) {
-            return new Configured(repository);
-        }
-
-        abstract IvyArtifactRepository get(ServiceRegistry services);
-
-        static class Configured extends RepositorySpec implements Serializable {
-            final DefaultIvyArtifactRepository repository;
-
-            public Configured(DefaultIvyArtifactRepository repository) {
-                this.repository = repository;
-            }
-
-            @Override
-            IvyArtifactRepository get(ServiceRegistry services) {
-                return repository;
-            }
-
-            private Object writeReplace() {
-                return new DefaultRepositorySpec(
-                    repository.getName(),
-                    repository.getUrl(),
-                    repository.isAllowInsecureProtocol(),
-                    credentialsSpec(),
-                    repository.getRepositoryLayout(),
-                    repository.additionalArtifactPatterns(),
-                    repository.additionalIvyPatterns(),
-                    repository.getConfiguredAuthentication());
-            }
-
-            @Nullable
-            private CredentialsSpec credentialsSpec() {
-                return repository.getConfiguredCredentials().map(
-                    credentials -> CredentialsSpec.of(repository.getName(), credentials)
-                ).getOrNull();
-            }
-        }
-
-        static class DefaultRepositorySpec extends RepositorySpec {
-            private final URI repositoryUrl;
-            private final CredentialsSpec credentials;
-            private final AbstractRepositoryLayout layout;
-            private final boolean allowInsecureProtocol;
-            private final String name;
-            private final Set<String> artifactPatterns;
-            private final Set<String> ivyPatterns;
-            private final Collection<Authentication> authentications;
-
-            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials, AbstractRepositoryLayout layout, Set<String> artifactPatterns, Set<String> ivyPatterns, Collection<Authentication> authentications) {
-                this.name = name;
-                this.repositoryUrl = repositoryUrl;
-                this.allowInsecureProtocol = allowInsecureProtocol;
-                this.credentials = credentials;
-                this.layout = layout;
-                this.artifactPatterns = artifactPatterns;
-                this.ivyPatterns = ivyPatterns;
-                this.authentications = authentications;
-            }
-
-            @Override
-            IvyArtifactRepository get(ServiceRegistry services) {
-                DefaultIvyArtifactRepository repository = (DefaultIvyArtifactRepository) services.get(BaseRepositoryFactory.class).createIvyRepository();
-                repository.setName(name);
-                repository.setUrl(repositoryUrl);
-                artifactPatterns.forEach(repository::artifactPattern);
-                ivyPatterns.forEach(repository::ivyPattern);
-                repository.setAllowInsecureProtocol(allowInsecureProtocol);
-                repository.setRepositoryLayout(layout);
-                if (credentials != null) {
-                    Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
-                    repository.setConfiguredCredentials(provider.get());
-                }
-                repository.authentication(container -> container.addAll(authentications));
-                return repository;
-            }
-        }
-
-        static class CredentialsSpec {
-            private final String identity;
-            private final Class<? extends Credentials> type;
-
-            private CredentialsSpec(String identity, Class<? extends Credentials> type) {
-                this.identity = identity;
-                this.type = type;
-            }
-
-            @SuppressWarnings("unchecked")
-            public static CredentialsSpec of(String identity, Credentials credentials) {
-                return new CredentialsSpec(identity, (Class<? extends Credentials>) GeneratedSubclasses.unpackType(credentials));
-            }
-
-            public Class<? extends Credentials> getType() {
-                return type;
-            }
-
-            public String getIdentity() {
-                return identity;
-            }
-        }
-    }
 
     @Inject
     protected abstract IvyDuplicatePublicationTracker getDuplicatePublicationTracker();

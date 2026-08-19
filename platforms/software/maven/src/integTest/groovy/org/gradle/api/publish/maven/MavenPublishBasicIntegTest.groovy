@@ -506,6 +506,41 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
         executedAndNotSkipped ':generateMetadataFileForMavenPublication', ':publishMavenPublicationToMavenRepository'
     }
 
+    def "using the repository property on the publish task is deprecated"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            plugins {
+                id("maven-publish")
+            }
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication)
+                }
+            }
+
+            tasks.named('publishMavenPublicationToMavenRepository') {
+                def repo = repository
+                repository = repo
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The PublishToMavenRepository.getRepository method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_publish_repository")
+        executer.expectDocumentedDeprecationWarning("The PublishToMavenRepository.setRepository method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_publish_repository")
+        succeeds 'publish'
+
+        and:
+        mavenRepo.module('group', 'root', '1.0').assertPublished()
+    }
+
     def "can publish a custom component"() {
         buildKotlinFile << """
             plugins {

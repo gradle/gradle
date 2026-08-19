@@ -6,8 +6,11 @@ description = "Internal API for Gradle authentication schemes"
 
 dependencies {
     api(projects.baseServices)
+    api(projects.coreApi)
     api(projects.credentialsApi)
     api(projects.stdlibJavaExtensions)
+
+    api(libs.jspecify)
 }
 
 gradleModule {

@@ -55,6 +55,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Input;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -385,6 +386,7 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
      * Layout for applying additional patterns added via {@link #artifactPatterns} and {@link #ivyPatterns}.
      */
     private static class AdditionalPatternsRepositoryLayout extends AbstractRepositoryLayout {
+
         private final FileResolver fileResolver;
         private final Set<String> artifactPatterns = new LinkedHashSet<>();
         private final Set<String> ivyPatterns = new LinkedHashSet<>();
@@ -420,6 +422,19 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
                 schemes.add(new ResolvedPattern(pattern, fileResolver).scheme);
             }
         }
+
+        @Input
+        @SuppressWarnings("unused")
+        public Set<String> getArtifactPatterns() {
+            return artifactPatterns;
+        }
+
+        @Input
+        @SuppressWarnings("unused")
+        public Set<String> getIvyPatterns() {
+            return ivyPatterns;
+        }
+
     }
 
     private static class MetaDataProvider implements IvyArtifactRepositoryMetaDataProvider {
