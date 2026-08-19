@@ -31,6 +31,7 @@ class CppLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
     def "build fails when compilation fails"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -55,6 +56,7 @@ model {
     }
 
     def "finds C and C++ standard library headers"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         // https://github.com/gradle/gradle-native/issues/282
         Assume.assumeFalse(toolChain.id == "gcccygwin")
         given:
@@ -81,6 +83,7 @@ model {
     }
 
     def "sources are compiled with C++ compiler"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def app = new CppCompilerDetectingTestApp()
 
         given:
@@ -101,6 +104,7 @@ model {
     }
 
     def "can manually define C++ source sets"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         helloWorldApp.library.headerFiles.each { it.writeToDir(file("src/shared")) }
 
@@ -149,6 +153,7 @@ model {
 
     @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
     def "system headers are not evaluated when compiler warnings are enabled"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def app = new CppCompilerDetectingTestApp()
 
         given:

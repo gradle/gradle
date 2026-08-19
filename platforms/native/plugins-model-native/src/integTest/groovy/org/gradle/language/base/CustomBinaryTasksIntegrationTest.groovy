@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         @Managed interface SampleLibrary extends GeneralComponentSpec {}
         @Managed interface SampleBinary extends BinarySpec {}
@@ -54,6 +55,7 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "executing #taskdescr triggers custom task"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         class BinaryTasksPlugin extends RuleSource {
@@ -77,6 +79,7 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "details of rule-added tasks are visible in model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
         class BinaryTasksPlugin extends RuleSource {
@@ -97,6 +100,7 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can reference rule-added tasks in model"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
         class BinaryTasksPlugin extends RuleSource {
@@ -124,6 +128,7 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "rule can declare task with type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         class BinaryCreationTask extends DefaultTask {
@@ -152,6 +157,7 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "rule applies only to specified binary type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         @Managed interface OtherBinary extends SampleBinary {}
@@ -187,6 +193,7 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can use additional parameters as rule inputs"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         class CustomModel {
@@ -227,6 +234,7 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create multiple tasks for each of multiple binaries for same component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         class BinaryTasksPlugin extends RuleSource {
@@ -262,6 +270,7 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "reports failure in rule method"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
         class BinaryTasksPlugin extends RuleSource {

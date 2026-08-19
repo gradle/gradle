@@ -25,7 +25,7 @@ import org.gradle.language.base.LanguageSourceSet;
  *
  * <p>A Windows Resource set contains a set of script files, together with an optional set of header files.</p>
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'windows-resources'
  * }

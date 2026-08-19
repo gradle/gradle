@@ -33,6 +33,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can configure the binaries of a C++ application"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: "cpp"
@@ -69,6 +70,7 @@ model {
     }
 
     def "can build debug binaries for a C++ executable"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: "cpp"
@@ -111,6 +113,7 @@ model {
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "can configure the binaries of a C++ library"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 apply plugin: "cpp"
@@ -168,6 +171,7 @@ model {
 
     @ToBeFixedForConfigurationCache
     def "can customize binaries before and after linking"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def helloWorldApp = new CppHelloWorldApp()
         given:
         buildFile << '''
@@ -214,6 +218,7 @@ model {
     @Issue("GRADLE-2973")
     @Requires(TestExecutionPreconditions.IsParallelExecutor)
     def "releases cache lock when compilation fails with --parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def helloWorldApp = new CppHelloWorldApp()
         given:
         settingsFile << "include ':a', ':b'"
@@ -242,6 +247,7 @@ subprojects {
     }
 
     def "can configure output file for binaries"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.writeSources(file("src/main"))
@@ -285,6 +291,7 @@ model {
     @RequiresInstalledToolChain(VISUALCPP)
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "can configure output file for shared library on MSVC"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.writeSources(file("src/main"))
@@ -324,6 +331,7 @@ model {
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "can link to #linkage library binary with custom output file"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -366,6 +374,7 @@ model {
     @Issue("GRADLE-3332")
     @NotYetImplemented
     def "can create helper task to install buildable executables"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def helloWorldApp = new CppHelloWorldApp()
         given:
         buildFile << '''

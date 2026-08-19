@@ -1439,6 +1439,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     // Not part of the public API
     public void model(Closure<?> modelRules) {
+        DeprecationLogger.deprecate("The model DSL")
+            .withContext("Rule-based/software model plugins are no longer supported.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_software_model")
+            .nagUser();
         prepareForRuleBasedPlugins();
         ModelRegistry modelRegistry = getModelRegistry();
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {

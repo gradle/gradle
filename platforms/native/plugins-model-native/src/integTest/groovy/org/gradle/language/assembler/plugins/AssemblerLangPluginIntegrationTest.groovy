@@ -19,4 +19,8 @@ package org.gradle.language.assembler.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class AssemblerLangPluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
+    }
+
 }
