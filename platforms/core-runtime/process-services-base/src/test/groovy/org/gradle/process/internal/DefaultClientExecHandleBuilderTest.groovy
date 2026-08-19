@@ -63,4 +63,29 @@ class DefaultClientExecHandleBuilderTest extends Specification {
         builder.args == ['1', '2', '3']
         builder.allArguments == ['1', '2', '3']
     }
+
+    def "build fails fast when the command is null"() {
+        given:
+        builder.setWorkingDir(new File(".").absoluteFile)
+
+        when:
+        builder.build()
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot start a process with a null command."
+    }
+
+    def "build fails fast when an argument is null"() {
+        given:
+        builder.setExecutable("cmd")
+        builder.setWorkingDir(new File(".").absoluteFile)
+
+        when:
+        builder.buildWithEffectiveArguments([null])
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot start a process with a null command argument."
+    }
 }

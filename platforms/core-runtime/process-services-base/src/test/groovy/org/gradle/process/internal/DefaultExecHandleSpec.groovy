@@ -174,6 +174,20 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         e.message == "A problem occurred starting process 'awesome'"
     }
 
+    void "does not deadlock when end state bookkeeping throws while start is failing"() {
+        given:
+        def execHandle = handle().setDisplayName("awesome").setExecutable("no_such_command").build()
+        buildCancellationToken.removeCallback(_) >> { throw new RuntimeException("boom") }
+
+        when:
+        execHandle.start()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "A problem occurred starting process 'awesome'"
+        execHandle.state == ExecHandleState.FAILED
+    }
+
     void "aborts process"() {
         def execHandle = handle().args(args(SlowApp.class)).build()
 
