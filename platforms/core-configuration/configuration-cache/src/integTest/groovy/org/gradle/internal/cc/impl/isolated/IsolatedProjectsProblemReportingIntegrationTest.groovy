@@ -22,7 +22,7 @@ import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCac
 
 class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    def "stops reporting problems at certain limits collecting all stacktraces"() {
+    def "reports problems with locations past the stack-capture cap using bounded captures"() {
         settingsFile """
             include(":a")
         """
@@ -38,6 +38,10 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         then:
         outputContains("Configuration cache entry discarded with 530 problems.")
 
+        // The IP-specific 5000 full-stacktrace cap has been removed: IP now uses the standard 50 full-stack
+        // cap and the cheap bounded location capture past it (#32362). Every problem still resolves to its
+        // line: the first 50 carry a full stacktrace, the rest a bounded capture. Both populate a stacktrace
+        // in the report, so all 530 are still counted as having one and each shows a distinct line.
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file 'build.gradle': line 1: Project ':' cannot access 'Project.version' functionality on another project ':a'")
             withProblem("Build file 'build.gradle': line 10: Project ':' cannot access 'Project.version' functionality on another project ':a'")

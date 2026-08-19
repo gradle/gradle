@@ -19,7 +19,6 @@ package org.gradle.internal.problems;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.problems.failure.Failure;
@@ -48,7 +47,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
 
     private static final int MAX_STACKTRACE_COUNT = 50;
-    private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
 
     // Budget for bounded location captures past the cap: capping the count keeps the stack walk cost
     // bounded and negligible at scale. Builds with more distinct call sites lose locations past it.
@@ -66,14 +64,9 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
-        BuildModelParameters buildModelParameters,
         BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
-        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters), MAX_BOUNDED_CAPTURES, boundedCallerStackCapturer);
-    }
-
-    private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
-        return buildModelParameters.isIsolatedProjects() ? ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT : MAX_STACKTRACE_COUNT;
+        this(failureFactory, locationAnalyzer, userCodeContext, MAX_STACKTRACE_COUNT, MAX_BOUNDED_CAPTURES, boundedCallerStackCapturer);
     }
 
     @VisibleForTesting
@@ -152,7 +145,14 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         @Override
         public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
-            return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true, NO_OP);
+            Throwable supplied = capturer.captureSupplied(exceptionFactory);
+            if (supplied != null) {
+                // Within the full budget: keep the supplied throwable as the problem's exception.
+                return locationFromStackTrace(supplied, false, true, NO_OP);
+            }
+            // Past the full budget: infer a location from a cheap bounded capture, but never surface it as
+            // the exception (a supplied throwable must be preserved or dropped, never replaced by a bounded one).
+            return locationFromStackTrace(capturer.captureBoundedFallback(), false, false, NO_OP);
         }
 
         @Override
@@ -163,11 +163,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         @Nullable
         private Throwable getImplicitCallerThrowable() {
             return capturer.captureCaller();
-        }
-
-        @Nullable
-        private Throwable getImplicitThrowable(Supplier<? extends Throwable> factory) {
-            return capturer.captureSupplied(factory);
         }
     }
 
