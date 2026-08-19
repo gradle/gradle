@@ -308,7 +308,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         def mirrorRepo = mavenHttpRepo("mirror")
         def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
         writeMirrorSettings(mirrorRepo.uri.toString(), "*", "test-mirror", serverXml("test-mirror", "mirror-user", ENCRYPTED_PASSWORD))
-        m2.userM2Directory.file("settings-security.xml").text = "<settingsSecurity><master>${ENCRYPTED_MASTER}</master></settingsSecurity>"
+        m2.userM2Directory.file("settings-security.xml").text = securitySettings()
 
         buildFile << """
             repositories {
@@ -467,6 +467,107 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         postBuildOutputContains("Configuration cache entry reused.")
         outputDoesNotContain("Applying Maven mirror")
+    }
+
+    def "configuration cache is reused when the maven settings are unchanged and mirrors are enabled"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        mirrorRepo.module("org.test", "projectA", "1.0").publish().allowAll()
+        writeMirrorSettings(mirrorRepo.uri.toString())
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        when:
+        using m2
+        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+        outputContains("Applying Maven mirror 'test-mirror' for repository 'MavenRepo': ${RepositoryHandler.MAVEN_CENTRAL_URL} -> ${mirrorRepo.uri}")
+
+        when: "nothing changes"
+        using m2
+        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then: "the settings checksum is stable, so the entry is not invalidated"
+        postBuildOutputContains("Configuration cache entry reused.")
+    }
+
+    def "changing the maven settings security file invalidates the configuration cache when mirrors are enabled"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        mirrorRepo.module("org.test", "projectA", "1.0").publish().allowAll()
+        writeMirrorSettings(mirrorRepo.uri.toString())
+        def securityFile = m2.userM2Directory.file("settings-security.xml")
+        securityFile.text = securitySettings()
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        when:
+        using m2
+        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+
+        when: "settings-security.xml changes but settings.xml does not"
+        securityFile.text = securitySettings("<!-- rotated -->")
+        using m2
+        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+
+        and: "the invalidation reason is only logged when not in quiet configuration cache mode"
+        GradleContextualExecuter.configCache || output.contains("Maven settings.xml content has changed")
+    }
+
+    def "changing a relocated maven settings security file invalidates the configuration cache"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        mirrorRepo.module("org.test", "projectA", "1.0").publish().allowAll()
+        writeMirrorSettings(mirrorRepo.uri.toString())
+        def relocatedSecurityFile = file("secure/settings-security.xml")
+        relocatedSecurityFile.text = securitySettings()
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        when:
+        using m2
+        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true", "-Dsettings.security=${relocatedSecurityFile.absolutePath}")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+
+        when: "the file named by the settings.security system property changes"
+        relocatedSecurityFile.text = securitySettings("<!-- rotated -->")
+        using m2
+        executer.withArguments("--configuration-cache", "-Porg.gradle.internal.mavenMirrors=true", "-Dsettings.security=${relocatedSecurityFile.absolutePath}")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+    }
+
+    private static String securitySettings(String extra = "") {
+        return "<settingsSecurity>${extra}<master>${ENCRYPTED_MASTER}</master></settingsSecurity>"
     }
 
     private void writeMirrorSettings(String mirrorUrl, String mirrorOf = "*", String id = "test-mirror", String serversXml = "") {
