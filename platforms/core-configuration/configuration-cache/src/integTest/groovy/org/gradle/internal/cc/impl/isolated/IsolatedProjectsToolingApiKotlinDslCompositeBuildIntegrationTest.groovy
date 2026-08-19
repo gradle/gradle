@@ -53,7 +53,6 @@ class IsolatedProjectsToolingApiKotlinDslCompositeBuildIntegrationTest extends A
         """)
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchBuildTreeScriptModels()
 
         then:
@@ -147,7 +146,6 @@ class IsolatedProjectsToolingApiKotlinDslCompositeBuildIntegrationTest extends A
         """)
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchBuildTreeScriptModels()
 
         then:
@@ -203,7 +201,6 @@ class IsolatedProjectsToolingApiKotlinDslCompositeBuildIntegrationTest extends A
         """)
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchBuildTreeScriptModels()
 
         then:

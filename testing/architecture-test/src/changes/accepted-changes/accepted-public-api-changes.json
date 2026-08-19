@@ -60,14 +60,6 @@
             "changes": [
                 "org.gradle.api.services.TaskService"
             ]
-        },
-        {
-            "type": "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel",
-            "member": "Field SCRIPTS_GRADLE_PROPERTY_NAME",
-            "acceptation": "The explicit-scripts property is no longer supported: the model is always built for all the Kotlin DSL scripts of the build. No known TAPI client (IntelliJ, Android Studio, Buildship) uses it, and as a compile-time String constant it is inlined into client bytecode, so removal cannot break existing binaries.",
-            "changes": [
-                "Field has been removed"
-            ]
         }
     ]
 }

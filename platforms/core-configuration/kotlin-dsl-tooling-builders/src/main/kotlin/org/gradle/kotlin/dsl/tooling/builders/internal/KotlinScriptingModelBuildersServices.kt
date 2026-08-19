@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
-import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -52,10 +51,9 @@ class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
         @Provides
         fun createToolingModelBuilderRegistrar(
             modelParameters: BuildModelParameters,
-            internalOptions: InternalOptions,
             intermediateModelProvider: IntermediateToolingModelProvider
         ): ToolingModelBuilderRegistrant {
-            return KotlinScriptingModelBuildersRegistrant(modelParameters, internalOptions, intermediateModelProvider)
+            return KotlinScriptingModelBuildersRegistrant(modelParameters, intermediateModelProvider)
         }
     }
 }

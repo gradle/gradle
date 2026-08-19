@@ -46,7 +46,6 @@ class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends Ab
         }
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchScriptsModelLeniently()
 
         then:
@@ -86,7 +85,6 @@ class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends Ab
         withBuildScriptIn("a", ScriptError.RUNTIME.snippet)
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchBuildTreeScriptsModelsLeniently()
 
         then:
@@ -119,7 +117,6 @@ class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends Ab
         withBuildScript(ScriptError.COMPILE.snippet)
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchBuildTreeScriptsModelsLeniently()
 
         then:

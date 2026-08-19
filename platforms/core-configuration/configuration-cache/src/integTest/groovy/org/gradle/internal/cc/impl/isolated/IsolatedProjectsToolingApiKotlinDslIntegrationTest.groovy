@@ -37,7 +37,6 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         withBuildScriptIn("a")
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchModel(KotlinDslScriptsModel)
 
         then:
@@ -77,7 +76,6 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         withBuildScriptIn("d")
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchModel(KotlinDslScriptsModel)
 
         then:
@@ -110,7 +108,6 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         withBuildScriptIn("a/b")
 
         when:
-        withLegacyKotlinDslScriptsModelBuilder()
         def originalModel = fetchModel(KotlinDslScriptsModel)
 
         then:

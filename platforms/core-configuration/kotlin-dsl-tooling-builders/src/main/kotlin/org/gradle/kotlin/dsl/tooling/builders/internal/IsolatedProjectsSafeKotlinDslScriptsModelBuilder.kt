@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -70,11 +71,11 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 ) : AbstractKotlinDslScriptsModelBuilder() {
 
     override fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter {
-        require(rootProject.findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) == null) {
-            "Property $SCRIPTS_GRADLE_PROPERTY_NAME is no longer supported: " +
-                "the model is always built for all the Kotlin DSL scripts of the build. " +
-                "Set the '${KotlinScriptingModelBuildersRegistrant.LEGACY_SCRIPTS_MODEL_BUILDER.propertyName}' system property to 'true' " +
-                "to temporarily restore the previous behavior."
+        if (rootProject.findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) != null) {
+            throw InvalidUserDataException(
+                "Property $SCRIPTS_GRADLE_PROPERTY_NAME is not supported with Isolated Projects: " +
+                    "the model is always built for all the Kotlin DSL scripts of the build."
+            )
         }
 
         return KotlinDslScriptsParameter(rootProject.resolveCorrelationIdParameter(), emptyList())
