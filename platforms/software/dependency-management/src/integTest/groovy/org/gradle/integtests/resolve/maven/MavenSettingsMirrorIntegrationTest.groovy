@@ -434,7 +434,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         outputContains("Applying Maven mirror 'test-mirror' for repository 'MavenRepo': ${RepositoryHandler.MAVEN_CENTRAL_URL} -> ${mirrorRepo2.uri}")
 
         and: "the invalidation reason is only logged when not in quiet configuration cache mode"
-        GradleContextualExecuter.configCache || output.contains("Maven settings.xml content has changed")
+        GradleContextualExecuter.configCache || output.contains("Maven settings content has changed")
     }
 
     def "changing maven settings does not invalidate the configuration cache when mirrors are disabled"() {
@@ -531,7 +531,7 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         postBuildOutputContains("Configuration cache entry stored.")
 
         and: "the invalidation reason is only logged when not in quiet configuration cache mode"
-        GradleContextualExecuter.configCache || output.contains("Maven settings.xml content has changed")
+        GradleContextualExecuter.configCache || output.contains("Maven settings content has changed")
     }
 
     def "changing a relocated maven settings security file invalidates the configuration cache"() {

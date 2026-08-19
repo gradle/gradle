@@ -37,7 +37,7 @@ public abstract class MavenSettingsChecksumValueSource implements ValueSource<St
 
     @Override
     public String getDisplayName() {
-        return "Maven settings.xml content";
+        return "Maven settings content";
     }
 
     @Override
