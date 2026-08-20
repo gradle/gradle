@@ -126,6 +126,7 @@ kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-comp
 kotlinCompilerRunner = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-runner", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinGradlePluginApi = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-api", version.ref = "kotlin" }
+kotlinGradlePluginAnnotations = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-annotations", version.ref = "kotlin" }
 kotlinMetadataJvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
 kotlinReflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver", version.ref = "kotlin" }
