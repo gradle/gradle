@@ -101,12 +101,7 @@ class DefaultTaskNodeExecutorTest extends Specification {
         hasTaskActions() >> { !taskActions.isEmpty() }
         getStandardOutputCapture() >> standardOutputCapture
     }
-    def action1 = Mock(InputChangesAwareTaskAction) {
-        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))
-    }
-    def action2 = Mock(InputChangesAwareTaskAction) {
-        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", TestHashCodes.hashCodeFrom(1234))
-    }
+
     def taskProperties = Stub(TaskProperties) {
         getInputFileProperties() >> ImmutableSortedSet.of()
         getOutputFileProperties() >> ImmutableSortedSet.of()
@@ -120,19 +115,24 @@ class DefaultTaskNodeExecutorTest extends Specification {
         getDependencySuccessors() >> { dependencyNodes }
     }
 
+    def action1 = Mock(InputChangesAwareTaskAction) {
+        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))
+    }
+    def action2 = Mock(InputChangesAwareTaskAction) {
+        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", TestHashCodes.hashCodeFrom(1234))
+    }
+
     def buildOperationRunner = new TestBuildOperationRunner()
     def taskExecutionListener = Mock(TaskExecutionListener)
     def taskListener = Mock(TaskListenerInternal)
     def taskExecutionModeResolver = Mock(TaskExecutionModeResolver) {
         getExecutionMode(_, _) >> DefaultTaskExecutionMode.incremental()
     }
-
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def actionListener = Stub(TaskActionListener)
     def taskCacheabilityResolver = Stub(TaskCacheabilityResolver) {
         shouldDisableCaching(_) >> Optional.empty()
     }
-
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
         @Override
         HashCode getClassLoaderHash(ClassLoader classLoader) {
@@ -218,16 +218,6 @@ class DefaultTaskNodeExecutorTest extends Specification {
         !state.actionable
         0 * executionEngine._
         0 * standardOutputCapture._
-    }
-
-    private TaskNode dependencyTaskNode(boolean skipped) {
-        Stub(TaskNode) {
-            getTask() >> Stub(TaskInternal) {
-                getState() >> Stub(TaskStateInternal) {
-                    getSkipped() >> skipped
-                }
-            }
-        }
     }
 
     def executesEachActionInOrder() {
@@ -719,6 +709,16 @@ class DefaultTaskNodeExecutorTest extends Specification {
 
         and:
         state.outcome == TaskExecutionOutcome.EXECUTED
+    }
+
+    private TaskNode dependencyTaskNode(boolean skipped) {
+        Stub(TaskNode) {
+            getTask() >> Stub(TaskInternal) {
+                getState() >> Stub(TaskStateInternal) {
+                    getSkipped() >> skipped
+                }
+            }
+        }
     }
 
     void expectExecution() {

@@ -52,8 +52,8 @@ import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.jspecify.annotations.Nullable;
@@ -154,37 +154,23 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
 
     /**
      * Executes before-task and after-task listeners, returning the build operation result of
-     * executing the task. A null result is returned when the task did not return due to a failure
+     * executing the task. A null result is returned when the task did not execute due to a failure
      * executing a before-task listener.
      */
     private @Nullable ExecuteTaskBuildOperationResult executeWithLifecycle(LocalTaskNode node) {
         TaskInternal task = node.getTask();
-        ContextAwareTaskLogger contextAwareTaskLogger = null;
         try {
-            Logger logger = task.getLogger();
             taskListener.beforeExecute(task.getTaskIdentity());
             taskExecutionListener.beforeExecute(task);
-            if (logger instanceof ContextAwareTaskLogger) {
-                contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
-                BuildOperationRef currentOperation = buildOperationRunner.getCurrentOperation();
-                contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
-            }
         } catch (Throwable t) {
             task.getState().setOutcome(new TaskExecutionException(task, t));
             return null;
         }
 
-        ExecutionEngine.Result result;
-        try {
-            result = executeCatchingFailures(node);
-        } finally {
-            if (contextAwareTaskLogger != null) {
-                contextAwareTaskLogger.setFallbackBuildOperationId(null);
-            }
-        }
-        ExecuteTaskBuildOperationResult operationResult = toOperationResult(task.getState(), result);
-
         TaskStateInternal state = task.getState();
+        ExecutionEngine.@Nullable Result result = executeWithFallbackOperationId(node);
+        ExecuteTaskBuildOperationResult operationResult = toOperationResult(state, result);
+
         try {
             taskExecutionListener.afterExecute(task, state);
             taskListener.afterExecute(task.getTaskIdentity(), state);
@@ -192,6 +178,26 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
             state.addFailure(new TaskExecutionException(task, t));
         }
         return operationResult;
+    }
+
+    /**
+     * Executes the task, attributing log messages emitted outside a build operation to the
+     * build operation currently executing the task.
+     */
+    private ExecutionEngine.@Nullable Result executeWithFallbackOperationId(LocalTaskNode node) {
+        Logger logger = node.getTask().getLogger();
+        if (!(logger instanceof ContextAwareTaskLogger)) {
+            return executeCatchingFailures(node);
+        }
+
+        ContextAwareTaskLogger taskLogger = (ContextAwareTaskLogger) logger;
+        OperationIdentifier currentOperationId = buildOperationRunner.getCurrentOperation().getId();
+        taskLogger.setFallbackBuildOperationId(currentOperationId);
+        try {
+            return executeCatchingFailures(node);
+        } finally {
+            taskLogger.setFallbackBuildOperationId(null);
+        }
     }
 
     private static ExecuteTaskBuildOperationResult toOperationResult(TaskStateInternal taskState, ExecutionEngine.@Nullable Result result) {
