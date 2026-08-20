@@ -169,6 +169,17 @@ Whether the Build Cache is enabled is determined by the Gradle invocation (`--bu
 Enable or disable the Build Cache with the `org.gradle.caching` Gradle property instead.
 See <<build_cache.adoc#sec:build_cache_enable,Enable the Build Cache>> for details.
 
+[[configuration_cache_recovers_from_corrupted_entries]]
+==== The Configuration Cache recovers from corrupted entries
+
+When a Configuration Cache entry cannot be loaded (for example because it is corrupted), Gradle now discards the broken entry so the requested work is recomputed as a cache miss, instead of failing repeatedly.
+
+If you rely on the previous behavior — for example to surface corruption as a build failure rather than silently recomputing — you can restore it by setting:
+
+[source,properties]
+----
+org.gradle.internal.configuration-cache.recover-from-corruption=false
+----
 
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier

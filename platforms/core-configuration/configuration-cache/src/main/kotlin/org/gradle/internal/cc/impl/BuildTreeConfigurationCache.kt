@@ -36,10 +36,17 @@ interface BuildTreeConfigurationCache {
     fun initializeCacheEntry()
 
     /**
-     * Loads the scheduled tasks from cache, if available, or else runs the given function to schedule the tasks and then
-     * writes the result to the cache.
+     * Loads the scheduled tasks from the cache entry, when there is one to reuse.
+     *
+     * An entry that cannot be read is discarded.
      */
-    fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): WorkGraphResult
+    fun maybeLoadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): LoadOutcome
+
+    /**
+     * Schedules the requested tasks by running the given function, and writes the result to the cache unless the
+     * entry is being skipped or discarded.
+     */
+    fun scheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): ScheduleOutcome
 
     /**
      * Loads the scheduled tasks from cache.
@@ -85,7 +92,21 @@ interface BuildTreeConfigurationCache {
     // This is a temporary property to allow migration from a root build scoped cache to a build tree scoped cache
     val isLoaded: Boolean
 
-    class WorkGraphResult(val graph: BuildTreeWorkGraph.FinalizedGraph, val wasLoadedFromCache: Boolean, val entryDiscarded: Boolean)
+    sealed interface LoadOutcome {
+        data class Reused(val graph: BuildTreeWorkGraph.FinalizedGraph) : LoadOutcome
+
+        object Missed : LoadOutcome
+
+        data class Discarded(val failure: Throwable) : LoadOutcome
+    }
+
+    sealed interface ScheduleOutcome {
+        val graph: BuildTreeWorkGraph.FinalizedGraph
+
+        data class Stored(override val graph: BuildTreeWorkGraph.FinalizedGraph) : ScheduleOutcome
+
+        data class NotStored(override val graph: BuildTreeWorkGraph.FinalizedGraph) : ScheduleOutcome
+    }
 
     data class LoadRequestedTasksResult(val graph: BuildTreeWorkGraph.FinalizedGraph, val workGraphRestorationFailed: Boolean)
 }

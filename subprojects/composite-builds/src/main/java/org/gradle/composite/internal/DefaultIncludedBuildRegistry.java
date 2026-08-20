@@ -213,6 +213,12 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
     }
 
+    @Override
+    public void resetModels() {
+        visitBuilds(build -> build.beforeModelReset().rethrow());
+        visitBuilds(BuildState::resetModel);
+    }
+
     private static void validateNameIsNotBuildSrc(String name, File dir) {
         if (SettingsInternal.BUILD_SRC.equals(name)) {
             throw new GradleException("Included build " + dir + " has build name 'buildSrc' which cannot be used as it is a reserved name.");

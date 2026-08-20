@@ -177,6 +177,8 @@ class KnownProblemIds {
         // Dynamic fqid until the CC class-encoding failure path emits a stable problem ID.
         'validation:configuration-cache:class-.*-cannot-be-encoded-because.*': ['(?s)Class .* cannot be encoded because.*'],
         'validation:configuration-cache:configuration-cache-warn-mode': ['Configuration Cache warn mode is enabled'],
+        'validation:configuration-cache:configuration-cache-entry-discarded': ['Configuration cache entry discarded'],
+        'validation:configuration-cache:configuration-cache-entry-unreadable': ['Configuration cache entry could not be read'],
         'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
         'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 

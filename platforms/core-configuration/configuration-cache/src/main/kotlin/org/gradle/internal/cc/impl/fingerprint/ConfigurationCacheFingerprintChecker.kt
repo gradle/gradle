@@ -30,6 +30,7 @@ import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheInputFileChecker.FileUpToDateStatus
+import org.gradle.internal.cc.impl.readStoredState
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.core.fileSystemEntryType
@@ -79,7 +80,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
         while (true) {
-            when (val input = read()) {
+            val input = readStoredState(isIntegrityCheckEnabled) { read() }
+            when (input) {
                 null -> break
                 is ConfigurationCacheFingerprint -> {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
@@ -101,7 +103,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         var firstInvalidatedPath: Path? = null
         val projects = hashMapOf<Path, ProjectInvalidationState>()
         while (true) {
-            when (val input = read()) {
+            val input = readStoredState(isIntegrityCheckEnabled) { read() }
+            when (input) {
                 null -> break
                 is ProjectSpecificFingerprint.ProjectIdentity -> {
                     val state = projects.entryFor(input.identityPath)
