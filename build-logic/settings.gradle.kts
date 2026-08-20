@@ -27,6 +27,10 @@ plugins {
     id("gradlebuild.default-settings-plugins")
 }
 
+// The XDCL ecosystem conventions apply the org.xdcl `xdcl-gradle-plugin` codegen plugin, so build-logic
+// must resolve org.xdcl too — the shared script declares the same composite as the main build.
+apply(from = "../gradle/shared-with-buildSrc/xdcl-composite.settings.gradle.kts")
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()

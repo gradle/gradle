@@ -1,0 +1,38 @@
+package org.gradle.xdcl.ecosystem.java.dsl
+
+import org.gradle.xdcl.ecosystem.common.dsl
+
+// Shared types (Dependencies, Repository, NamedRepository) live in the common fragment so every
+// built-in ecosystem declares them once. Package-import form (the form proven by codegen).
+
+/// Capability contract shared by the JVM project types. Carries the configuration a
+/// reaction reads to wire a JVM component: its toolchain version, its named source sets, and its
+/// dependencies. `dependencies` is a record PROPERTY (not an xdcl extension) so the single
+/// JavaLibraryReaction can read it off the JavaLibrary facade — an extension would emit a standalone
+/// ExtensionFacade with no accessor on the host facade, forcing a second reaction.
+trait JavaComponent {
+  /// JDK source/target version. e.g. 8, 17, 21.
+  javaVersion: Int = 17
+  /// Named source sets. Supplied by the plugin-shipped default (`main`/`test`); a build may override
+  /// the whole list to add more.
+  sources: [JavaSource]?
+}
+
+/// One named source set: the source-set `name`, the source/resource directories it provides, and
+/// `dependencies` (from `HasDependencies`), which map to per-source-set configurations
+/// (`<name>Api`, `<name>Implementation`, …) that extend the matching top-level configurations.
+record JavaSource with HasDependencies {
+  /// Identifies the source set (e.g. `main`, `test`); drives task and configuration names.
+  name: String
+  /// The Java source directories the source set provides; the reaction falls back to the
+  /// conventional `src/<name>/java`.
+  javaDirs: [String]?
+  /// The resource directories the source set provides (conventionally `src/<name>/resources`).
+  resourceDirs: [String]?
+}
+
+/// Top-level Java library project type.
+template JavaLibrary with JavaComponent & HasDependencies {
+  javaLibrary {
+  }
+}

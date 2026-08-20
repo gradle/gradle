@@ -23,6 +23,10 @@ plugins {
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
+// org.xdcl composite (shadow mode) — declared once, shared with build-logic; the checkout
+// location comes from the git-ignored xdcl-checkout.txt (default: the sibling ../xdcl).
+apply(from = "gradle/shared-with-buildSrc/xdcl-composite.settings.gradle.kts")
+
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
@@ -139,6 +143,9 @@ val core = platform("core") {
         subproject("kotlin-dsl-tooling-models")
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
+        subproject("xdcl-integ-tests")
+        subproject("xdcl-common-ecosystem")
+        subproject("xdcl-ecosystem-support")
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
@@ -277,6 +284,8 @@ val jvm = platform("jvm") {
     subproject("toolchains-jvm")
     subproject("toolchains-jvm-shared")
     subproject("war")
+    subproject("xdcl-jvm-ecosystem")
+    subproject("xdcl-jvm-ecosystem-plugin")
 }
 
 // Extensibility Platform
@@ -287,6 +296,8 @@ platform("extensibility") {
     subproject("plugin-development")
     subproject("unit-test-fixtures")
     subproject("test-kit")
+    subproject("xdcl-plugin-development")
+    subproject("xdcl-plugin-development-plugin")
 }
 
 // Native Platform

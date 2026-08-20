@@ -1,0 +1,25 @@
+package org.gradle.xdcl.ecosystem.common.dsl
+
+/// Library dependencies, mirroring the four JVM dependency scopes. Each is a list of coordinate
+/// notations (e.g. "group:name:version"). Shared so the wiring is declared once; every built-in
+/// ecosystem schema `import`s `org.gradle.xdcl.ecosystem.common.dsl`.
+record Dependencies {
+  api: [String]?
+  implementation: [String]?
+  runtimeOnly: [String]?
+  compileOnly: [String]?
+}
+
+// Repositories are deliberately NOT part of the ecosystem surface: they are build mechanics, not
+// component description, and are declared once per build in the settings —
+// `settings { dependencyResolutionManagement { repositories [ … ] } }` (bootstrap schema) — which
+// Gradle's default PREFER_PROJECT mode serves to every project.
+
+/// Capability trait for anything carrying library dependencies, by scope. Composed both at the
+/// project-type level (every JVM template is `with … & HasDependencies`) and per source set (each
+/// source record is `with HasDependencies`), so the shared scope/resolvable wiring in
+/// `org.gradle.xdcl.ecosystem.support.DependencyScopes` accepts either facade uniformly.
+trait HasDependencies {
+  /// Library dependencies, by scope.
+  dependencies: Dependencies?
+}

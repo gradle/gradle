@@ -35,7 +35,9 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    protected static final THIRD_PARTY_LIB_COUNT = 116
+    // 116 stock third-party jars + the org.xdcl closure on the core runtime (xdcl-provider,
+    // xdcl-gradle, xdcl-gradle-api and their data, defaults, eval, schema, text transitives).
+    protected static final THIRD_PARTY_LIB_COUNT = 116 + 8
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -186,7 +188,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        97
+        // 97 stock plugins + the XDCL codegen plugin, ecosystem-support glue, and the
+        // built-in ecosystem libraries and carriers (common, jvm, plugin-development).
+        97 + 7
     }
 
     /**

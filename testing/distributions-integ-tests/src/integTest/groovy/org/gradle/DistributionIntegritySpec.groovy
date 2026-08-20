@@ -38,7 +38,8 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 144
+        // 144 MiB stock + the XDCL modules and the embedded Maven repository (repo/).
+        return 154
     }
 
     /**
@@ -58,9 +59,12 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         def classesIndex = [:] as HashMap<String, List<String>> // class name -> list of containing jars
         jars.each { jar ->
             // The ABI jars (signature stubs) purposely duplicate class entries that also live in other distro jars.
-            // They are excluded from the cross-jar duplicate-class check below.
+            // The embedded Maven repository (repo/) serves byte-identical copies of distribution modules to
+            // consumer builds' dependency resolution, so its jars duplicate lib/plugins jars by design.
+            // Both are excluded from the cross-jar duplicate-class check below.
             // They are checked for intra-jar duplicate entries.
-            def skipCrossJarCheck = jar.name.startsWith("gradle-public-api-")
+            def skipCrossJarCheck = jar.name.startsWith("gradle-public-api-") ||
+                (jar.absolutePath - testDirectory.absolutePath).replace(File.separatorChar, '/' as char).contains("/repo/")
             new ZipFile(jar).withCloseable {
                 def names = it.entries()*.name
                 def groupedNames = names.groupBy { it }

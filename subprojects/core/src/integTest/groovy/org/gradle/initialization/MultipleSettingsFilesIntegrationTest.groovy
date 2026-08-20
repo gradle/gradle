@@ -33,7 +33,9 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
      * Please update the tests in this file, and add the new extension to the list below.
      */
     def "list of extensions are what we expect"() {
+        expect:
         ScriptingLanguages.all().collect {it.extension} == [
+            ".gradle.xdcl",
             ".gradle",
             ".gradle.kts",
             ".gradle.dcl"
@@ -73,7 +75,7 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not warn when only one settings file exists: #settingsFile"() {
         given:
-        file(settingsFile) << "// This is the only settings file"
+        file(settingsFile) << content
 
         when:
         succeeds('help')
@@ -82,7 +84,11 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
         collectedProblems.empty
 
         where:
-        settingsFile << ['settings.gradle', 'settings.gradle.kts', 'settings.gradle.dcl']
+        settingsFile            | content
+        'settings.gradle'       | '// This is the only settings file'
+        'settings.gradle.kts'   | '// This is the only settings file'
+        'settings.gradle.dcl'   | '// This is the only settings file'
+        'settings.gradle.xdcl'  | 'settings {\n}' // an xdcl settings script must declare its top-level body
     }
 
     def "warns about all ignored files when three settings files exist"() {
