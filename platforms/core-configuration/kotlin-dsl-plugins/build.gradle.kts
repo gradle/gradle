@@ -35,6 +35,7 @@ dependencies {
 
     implementation(libs.kotlinGradlePlugin.relaxRestriction())
     implementation(libs.kotlinGradlePluginApi.relaxRestriction())
+    implementation(libs.kotlinGradlePluginAnnotations.relaxRestriction())
     implementation(libs.kotlinSamWithReceiver.relaxRestriction())
     implementation(libs.kotlinAssignment.relaxRestriction())
 
