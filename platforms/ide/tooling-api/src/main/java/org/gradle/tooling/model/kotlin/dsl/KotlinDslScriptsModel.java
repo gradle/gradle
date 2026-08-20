@@ -28,9 +28,9 @@ import java.util.Map;
  * Requires the <code>prepareKotlinBuildScriptModel</code> task to be executed before building the model.
  * See {@link KotlinDslModelsParameters#PREPARATION_TASK_NAME}
  * <p>
- * The model is built for all the Kotlin DSL scripts known to belong to this build.
+ * By default, the model is built for all the Kotlin DSL scripts known to belong to this build.
  * Restricting the model to an explicit set of scripts via {@link #SCRIPTS_GRADLE_PROPERTY_NAME} is deprecated
- * and is scheduled for removal in Gradle 10.
+ * and will be removed in Gradle 10.
  * <p>
  * The Gradle Kotlin DSL script provider must be running in "classpath" mode.
  * This is done by providing the system property <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath</code>.
@@ -52,8 +52,8 @@ public interface KotlinDslScriptsModel {
      * Gradle property name for the set of scripts to be queried for.
      *
      * @since 6.0
-     * @deprecated Restricting the model to an explicit set of scripts is deprecated and is scheduled for removal in Gradle 10.
-     * The model is always built for all the Kotlin DSL scripts of the build.
+     * @deprecated Restricting the model to an explicit set of scripts is deprecated and will be removed in Gradle 10.
+     * In Gradle 10, the model will always be built for all the Kotlin DSL scripts of the build.
      */
     @Deprecated
     String SCRIPTS_GRADLE_PROPERTY_NAME = "org.gradle.tooling.model.kotlin.dsl.scripts";
