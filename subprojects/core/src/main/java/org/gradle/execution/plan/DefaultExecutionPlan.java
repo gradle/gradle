@@ -104,6 +104,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     @Override
+    public boolean contains(Node node) {
+        return nodeMapping.contains(node);
+    }
+
+    @Override
     public void setScheduledWork(ScheduledWork work) {
         if (scheduledNodes != null) {
             throw new IllegalStateException("This execution plan already has nodes scheduled.");
