@@ -14,8 +14,9 @@ set -e
 #   GITHUB_TOKEN    - GitHub bot token
 #   TRIGGERED_BY    - Optional. If it's "Release - Final", version will be from version-info-final-release/version-info.properties
 #                     If it's "Release - Release Candidate", version will be from version-info-release-candidate/version-info.properties
+#                     If it's "Release - Milestone", version will be from version-info-milestone/version-info.properties
 #
-# Both version-info.properties artifact dependencies are optional ("?:" rules), because the
+# All version-info.properties artifact dependencies are optional ("?:" rules), because the
 # artifacts of an older lastSuccessful() promotion build may already have been cleaned up.
 # Only the one belonging to the triggering build is actually needed, and it is always fresh.
 
@@ -92,6 +93,8 @@ main() {
         source_promoted_version version-info-final-release checksums-final-release
     elif [[ "$TRIGGERED_BY" == *"Release - Release Candidate"* ]]; then
         source_promoted_version version-info-release-candidate checksums-release-candidate
+    elif [[ "$TRIGGERED_BY" == *"Release - Milestone"* ]]; then
+        source_promoted_version version-info-milestone checksums-milestone
     else
         resolve_manual_version
     fi
