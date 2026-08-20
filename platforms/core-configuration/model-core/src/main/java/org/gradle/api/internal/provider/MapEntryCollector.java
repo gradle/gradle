@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 
 public interface MapEntryCollector<K, V> {
 
-    void add(K key, V value, Map<K, V> dest);
+    void add(K key, V value, ImmutableMap.Builder<K, V> dest);
 
-    void addAll(Iterable<? extends Map.Entry<? extends K, ? extends V>> entries, Map<K, V> dest);
+    void addAll(Iterable<? extends Map.Entry<? extends K, ? extends V>> entries, ImmutableMap.Builder<K, V> dest);
 }

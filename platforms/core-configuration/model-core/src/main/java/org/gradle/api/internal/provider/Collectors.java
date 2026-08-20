@@ -20,10 +20,13 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
@@ -78,6 +81,11 @@ public class Collectors {
         }
 
         @Override
+        public int sizeHint() {
+            return 1;
+        }
+
+        @Override
         public int size() {
             return 1;
         }
@@ -128,6 +136,11 @@ public class Collectors {
         }
 
         @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            provider.visitContentProducerTasks(visitor);
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -142,6 +155,12 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(provider);
+        }
+
+        @Override
+        public int sizeHint() {
+            // Exactly one element, and knowing that does not require evaluating the provider.
+            return 1;
         }
 
         @Override
@@ -212,6 +231,12 @@ public class Collectors {
         }
 
         @Override
+        public int sizeHint() {
+            // Only when it is O(1); a general Iterable would have to be traversed.
+            return value instanceof Collection ? ((Collection<?>) value).size() : 0;
+        }
+
+        @Override
         public int size() {
             return Iterables.size(value);
         }
@@ -257,6 +282,11 @@ public class Collectors {
         @Override
         public ValueProducer getProducer() {
             return provider.getProducer();
+        }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            provider.visitContentProducerTasks(visitor);
         }
 
         @Override
@@ -327,6 +357,11 @@ public class Collectors {
         }
 
         @Override
+        public int sizeHint() {
+            return value.length;
+        }
+
+        @Override
         public int size() {
             return value.length;
         }
@@ -380,6 +415,16 @@ public class Collectors {
         @Override
         public ValueProducer getProducer() {
             return delegate.getProducer();
+        }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            delegate.visitContentProducerTasks(visitor);
+        }
+
+        @Override
+        public int sizeHint() {
+            return delegate.sizeHint();
         }
 
         @Override

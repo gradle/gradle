@@ -67,6 +67,13 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
     }
 
     @Override
+    public void visitContentProducerTasks(Action<? super Task> visitor) {
+        for (COLLECTOR collector : collectors) {
+            collector.visitContentProducerTasks(visitor);
+        }
+    }
+
+    @Override
     public final boolean calculatePresence(ValueConsumer consumer) {
         for (COLLECTOR collector : collectors) {
             if (!collector.calculatePresence(consumer)) {
@@ -82,16 +89,24 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
         BUILDER builder,
         Function<BUILDER, ENTRIES> buildEntries
     ) {
-        SideEffectBuilder<ENTRIES> sideEffects = SideEffect.builder();
+        // Side effects are rare, so the builder (and its backing list) is only created once one shows up.
+        SideEffectBuilder<ENTRIES> sideEffects = null;
         for (COLLECTOR collector : collectors) {
             Value<Void> result = collectEntriesForCollector.apply(builder, collector);
             if (result.isMissing()) {
                 // When any contributor is missing, the whole property is missing.
                 return result.asType();
             }
-            sideEffects.add(SideEffect.fixedFrom(result));
+            SideEffect<ENTRIES> sideEffect = SideEffect.fixedFrom(result);
+            if (sideEffect != null) {
+                if (sideEffects == null) {
+                    sideEffects = SideEffect.builder();
+                }
+                sideEffects.add(sideEffect);
+            }
         }
-        return Value.of(buildEntries.apply(builder)).withSideEffect(sideEffects.build());
+        Value<ENTRIES> value = Value.of(buildEntries.apply(builder));
+        return sideEffects == null ? value : value.withSideEffect(sideEffects.build());
     }
 
     protected ExecutionTimeValue<? extends TYPE> calculateExecutionTimeValue(

@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 /**
@@ -105,6 +106,9 @@ public class SerializableLambdas {
     /**
      * A {@link Serializable} version of {@link Supplier}.
      */
+    public interface SerializableIntFunction<T> extends IntFunction<T>, Serializable {
+    }
+
     public interface SerializableSupplier<T> extends Supplier<T>, Serializable {
     }
 
