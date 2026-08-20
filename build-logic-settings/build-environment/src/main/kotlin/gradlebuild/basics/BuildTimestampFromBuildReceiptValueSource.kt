@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package gradlebuild.identity.provider
+package gradlebuild.basics
 
-import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.Describable
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.Optional
+import java.util.Properties
 
 
 abstract class BuildTimestampFromBuildReceiptValueSource : ValueSource<String, BuildTimestampFromBuildReceiptValueSource.Parameters>, Describable {
+
+    companion object {
+        const val BUILD_RECEIPT_FILE_NAME = "build-receipt.properties"
+    }
 
     interface Parameters : ValueSourceParameters {
 
@@ -36,7 +40,7 @@ abstract class BuildTimestampFromBuildReceiptValueSource : ValueSource<String, B
 
     override fun obtain(): String? = parameters.run {
         buildReceiptString()
-            ?.let(BuildReceipt::readBuildReceiptFromString)
+            ?.let { Properties().apply { load(it.reader()) } }
             ?.let { buildReceipt ->
                 buildReceipt["buildTimestamp"] as String
             }
