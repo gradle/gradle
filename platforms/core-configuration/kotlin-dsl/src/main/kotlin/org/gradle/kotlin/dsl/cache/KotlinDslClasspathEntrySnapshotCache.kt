@@ -22,6 +22,7 @@ import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.ATOMIC_MOVE
@@ -58,18 +59,26 @@ internal class KotlinDslClasspathEntrySnapshotCache(
     private val snapshotsCacheDirectory: Path,
     private val fileAccessTracker: FileAccessTracker,
 ) {
-    private val abiHashInMemoryMap: Cache<HashCode, HashCode> =
+    // Values keep the resolved sidecar file: lookups run per script per classpath entry, and
+    // re-resolving the path dominated their profile.
+    private class CachedAbiHash(val hash: HashCode, val file: File)
+
+    private val abiHashInMemoryMap: Cache<HashCode, CachedAbiHash> =
         CacheBuilder.newBuilder().maximumSize(MAX_ABI_HASHES_IN_MEMORY).build()
 
     /**
      * The ABI hash for compile avoidance.
      */
     fun abiHashFor(contentHash: HashCode, generate: (Path) -> HashCode): HashCode {
+        abiHashInMemoryMap.getIfPresent(contentHash)?.let { cached ->
+            fileAccessTracker.markAccessed(cached.file)
+            return cached.hash
+        }
         val abiFile = abiFile(contentHash)
-        fileAccessTracker.markAccessed(abiFile.toFile())
-        abiHashInMemoryMap.getIfPresent(contentHash)?.let { return it }
+        val abiIoFile = abiFile.toFile()
+        fileAccessTracker.markAccessed(abiIoFile)
         readAbiHash(abiFile)?.let {
-            abiHashInMemoryMap.put(contentHash, it)
+            abiHashInMemoryMap.put(contentHash, CachedAbiHash(it, abiIoFile))
             return it
         }
         return generateAndPersist(contentHash, generate)
@@ -97,7 +106,7 @@ internal class KotlinDslClasspathEntrySnapshotCache(
     private fun generateAndPersist(contentHash: HashCode, generate: (Path) -> HashCode): HashCode {
         val abiHash = publishSnapshot(contentHash, generate)
         publishAbiHash(contentHash, abiHash)
-        abiHashInMemoryMap.put(contentHash, abiHash)
+        abiHashInMemoryMap.put(contentHash, CachedAbiHash(abiHash, abiFile(contentHash).toFile()))
         return abiHash
     }
 
