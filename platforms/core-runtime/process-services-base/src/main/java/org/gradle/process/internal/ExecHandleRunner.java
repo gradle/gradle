@@ -25,7 +25,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.process.internal.streams.StreamsHandler;
+import org.gradle.process.internal.streams.FinishNotifyingStreamsHandler;
 
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
@@ -47,13 +47,13 @@ public class ExecHandleRunner implements Runnable {
     private final ProcessLauncher processLauncher;
     private final Executor executor;
 
-    private Process process;
-    private boolean aborted;
-    private final StreamsHandler streamsHandler;
+    private volatile Process process;
+    private volatile boolean aborted;
+    private final FinishNotifyingStreamsHandler streamsHandler;
     private volatile BuildOperationRef associatedBuildOperation;
 
     public ExecHandleRunner(
-        DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor,
+        DefaultExecHandle execHandle, FinishNotifyingStreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor,
         BuildOperationRef associatedBuildOperation
     ) {
         if (execHandle == null) {
@@ -154,33 +154,36 @@ public class ExecHandleRunner implements Runnable {
 
     @Override
     public void run() {
-        // Split the `with` operation so that the `associatedBuildOperation` can be discarded when we wait in `process.waitFor()`
-        try {
-            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+        CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+            try {
                 startProcess();
 
                 execHandle.started();
 
                 LOGGER.debug("waiting until streams are handled...");
                 streamsHandler.start();
-            });
 
-            if (execHandle.isDaemon()) {
-                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                if (execHandle.isDaemon()) {
                     streamsHandler.stop();
                     detached();
-                });
-            } else {
-                int exitValue = process.waitFor();
-                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
-                    streamsHandler.stop();
-                    completed(exitValue);
-                });
-            }
-        } catch (Throwable t) {
-            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                } else {
+                    streamsHandler.whenStreamsFinished(this::completeProcess);
+                }
+            } catch (Throwable t) {
                 execHandle.failed(t);
+            }
+        });
+    }
+
+    private void completeProcess() {
+        try {
+            int exitValue = process.waitFor();
+            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                streamsHandler.stop();
+                completed(exitValue);
             });
+        } catch (Throwable t) {
+            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> execHandle.failed(t));
         }
     }
 

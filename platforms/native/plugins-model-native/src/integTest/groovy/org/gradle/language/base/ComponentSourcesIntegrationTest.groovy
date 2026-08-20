@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         withCustomComponentType()
         withCustomLanguageType()
         buildFile << """
@@ -49,6 +50,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
     }
 
     def "can reference sources container for a component in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << '''
@@ -72,6 +74,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
     }
 
     def "elements of component sources container should be visible in model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -125,6 +128,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
     }
 
     def "can reference sources container elements in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << '''
@@ -148,6 +152,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
     }
 
     def "can reference sources container elements using specialized type in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << '''
@@ -173,6 +178,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
     }
 
     def "elements in component.sources should not be created when defined"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             model {

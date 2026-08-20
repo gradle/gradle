@@ -30,7 +30,7 @@ import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
-import org.gradle.internal.time.Time
+import org.gradle.internal.time.FixedClock
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.TempDir
@@ -46,7 +46,11 @@ class OutputEventRendererTest extends OutputSpecification {
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(Time.clock(), Stub(GlobalUserInputReceiver), TestFiles.tmpDirTemporaryFileProvider(tempDir))
+        // Use a clock fixed at the same instant as the timestamps of the events fed in by the tests below. Otherwise the
+        // periodic UpdateNowEvent emitted by ThrottlingOutputEventListener carries a real "now" that is years ahead of
+        // the event timestamps, which makes GroupingProgressLogEventGenerator consider its flush timeouts expired and
+        // flush grouped output early.
+        renderer = new OutputEventRenderer(FixedClock.createAt(tenAm), Stub(GlobalUserInputReceiver), TestFiles.tmpDirTemporaryFileProvider(tempDir))
         renderer.configure(LogLevel.INFO)
     }
 

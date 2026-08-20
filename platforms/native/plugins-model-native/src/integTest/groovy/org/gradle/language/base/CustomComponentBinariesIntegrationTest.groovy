@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
     @Managed interface SampleLibrary extends GeneralComponentSpec {}
     @Managed interface SampleBinary extends BinarySpec {}
@@ -63,6 +64,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "binaries registered using @ComponentBinaries rule are visible in model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << withSimpleComponentBinaries()
 
@@ -99,6 +101,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register binaries using @ComponentBinaries rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << withSimpleComponentBinaries()
         buildFile << '''
@@ -126,6 +129,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "links binaries to component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << withSimpleComponentBinaries()
         when:
@@ -148,6 +152,7 @@ Binaries
     }
 
     def "links components sourceSets to binaries"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << withSimpleComponentBinaries()
         buildFile << '''
@@ -172,6 +177,7 @@ Binaries
     }
 
     def "can execute #taskdescr to build binary"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << withSimpleComponentBinaries()
         when:
@@ -185,6 +191,7 @@ Binaries
     }
 
     def "can access lifecycle task of binary via BinarySpec.buildTask"(){
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << withSimpleComponentBinaries()
         buildFile << '''
@@ -205,6 +212,7 @@ Binaries
     }
 
     def "@ComponentBinaries rule supports additional parameters as rule inputs"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         class CustomModel {
@@ -260,6 +268,7 @@ Binaries
     }
 
     def "@ComponentBinaries rule operates with fully configured component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 @Managed
@@ -348,6 +357,7 @@ model {
     }
 
     def "subject of @ComponentBinaries rule is Groovy decorated"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             class GroovyComponentBinariesRules extends RuleSource {
                 @ComponentBinaries
@@ -371,6 +381,7 @@ Binaries
     }
 
     def "attempt to mutate the subject of a @ComponentBinaries after the method has finished results in an error"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             class BinariesHolder {
                 ModelMap<SampleBinary> binaries
@@ -403,6 +414,7 @@ Binaries
     }
 
     def "reports failure in @ComponentBinaries rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             class MyComponentBinariesPlugin extends RuleSource {

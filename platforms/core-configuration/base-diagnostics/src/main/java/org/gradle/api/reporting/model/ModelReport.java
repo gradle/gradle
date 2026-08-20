@@ -127,6 +127,11 @@ public abstract class ModelReport extends DefaultTask {
      */
     @TaskAction
     public void report() {
+        DeprecationLogger.deprecateTaskType(ModelReport.class, getPath())
+            .withContext("Rule-based/software model plugins are no longer supported.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_software_model")
+            .nagUser();
         DeprecationLogger.whileDisabled(this::doReport);
     }
 

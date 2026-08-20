@@ -2309,9 +2309,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
             def node = selectNextNode()
             // ignore nodes that aren't tasks
             if (!(node instanceof LocalTaskNode)) {
-                if (node instanceof SelfExecutingNode) {
-                    node.execute(null)
-                }
+                node.execute(null)
                 finalizedPlan.finishedExecuting(node, null)
                 result = selectNextTaskNode()
                 return
@@ -2351,9 +2349,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
                 assert !selection.noMoreWorkToStart
                 def node = selection.item
                 assert !(node instanceof LocalTaskNode)
-                if (node instanceof SelfExecutingNode) {
-                    node.execute(null)
-                }
+                node.execute(null)
                 finalizedPlan.finishedExecuting(node, null)
             }
             assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
@@ -2415,7 +2411,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         return executionPlan.scheduledNodes.scheduledNodes
     }
 
-    private static class TestNode extends CreationOrderedNode implements SelfExecutingNode {
+    private static class TestNode extends CreationOrderedNode {
         final Throwable failure
         final String name
         final List<Node> preExecuteNodes
@@ -2470,7 +2466,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
     }
 
-    private static class TestPriorityNode extends TestNode implements SelfExecutingNode {
+    private static class TestPriorityNode extends TestNode {
         TestPriorityNode(@Nullable Throwable failure) {
             super("test node", [], [], [], failure)
         }

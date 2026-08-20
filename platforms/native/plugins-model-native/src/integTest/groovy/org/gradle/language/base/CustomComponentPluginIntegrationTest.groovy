@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 @UnsupportedWithConfigurationCache(because = "software model")
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 @Managed
 interface SampleComponent extends ComponentSpec {
@@ -33,6 +34,7 @@ interface SampleComponent extends ComponentSpec {
     }
 
     def "plugin declares custom component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildWithCustomComponentPlugin()
 
@@ -55,11 +57,11 @@ model {
 }
 '''
         then:
-        expectTaskGetProjectDeprecations()
         succeeds "checkModel"
     }
 
     def "can configure component declared by model rule method using model rules DSL"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildWithCustomComponentPlugin()
 
@@ -86,6 +88,7 @@ model {
     }
 
     def "can configure component declared by model rule DSL using model rule method"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             class MySamplePlugin extends RuleSource {
@@ -124,6 +127,7 @@ model {
     }
 
     def "can register custom component model without creating"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
             class MySamplePlugin extends RuleSource {
@@ -150,6 +154,7 @@ model {
     }
 
     def "custom component listed in components report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildWithCustomComponentPlugin()
 
@@ -172,6 +177,7 @@ BUILD SUCCESSFUL"""
     }
 
     def "can have component declaration and creation in separate plugins"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
             class MyComponentDeclarationModel extends RuleSource {
@@ -212,11 +218,11 @@ BUILD SUCCESSFUL"""
 '''
 
         then:
-        expectTaskGetProjectDeprecations()
         succeeds "checkModel"
     }
 
     def "Can define and create multiple component types in the same plugin"(){
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
             interface SampleLibrary extends LibrarySpec {}
@@ -268,11 +274,11 @@ BUILD SUCCESSFUL"""
 '''
 
         then:
-        expectTaskGetProjectDeprecations(2)
         succeeds "checkModel"
     }
 
     def "reports failure for invalid component type method"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         settingsFile << """rootProject.name = 'custom-component'"""
         buildFile << """
@@ -296,6 +302,7 @@ BUILD SUCCESSFUL"""
     }
 
     def "cannot register same unmanaged component type implementation multiple times"(){
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildWithCustomComponentPlugin()
 

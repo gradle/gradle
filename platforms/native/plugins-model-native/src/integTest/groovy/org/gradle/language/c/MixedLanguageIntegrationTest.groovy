@@ -32,6 +32,7 @@ class MixedLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest
     }
 
     def "can have all source files co-located in a common directory"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -80,6 +81,7 @@ model {
     }
 
     def "build and execute program with non-conventional source layout"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {

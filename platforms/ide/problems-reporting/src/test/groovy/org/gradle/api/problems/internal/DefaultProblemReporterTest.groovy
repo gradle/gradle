@@ -83,7 +83,7 @@ class DefaultProblemReporterTest extends Specification {
         expect:
         with(DefaultProblemReporter.discardedProblemMessage(problem)) {
             it.contains("/path/to/build.gradle")
-            it.contains("line 14")
+            it.contains(":14")
         }
     }
 

@@ -25,7 +25,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.jacksonDatabind)
     implementation(libs.jcifs)
-    implementation(libs.jsoup)
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.core)

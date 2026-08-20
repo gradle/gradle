@@ -30,6 +30,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
+import org.gradle.process.internal.streams.FinishNotifyingStreamsHandler;
 import org.gradle.process.internal.streams.StreamsHandler;
 import org.jspecify.annotations.Nullable;
 
@@ -503,11 +504,20 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
     }
 
-    private class CompositeStreamsHandler implements StreamsHandler {
+    private class CompositeStreamsHandler implements FinishNotifyingStreamsHandler {
         @Override
         public void connectStreams(Process process, String processName, Executor executor) {
             inputHandler.connectStreams(process, processName, executor);
             outputHandler.connectStreams(process, processName, executor);
+        }
+
+        @Override
+        public void whenStreamsFinished(Runnable callback) {
+            if (outputHandler instanceof FinishNotifyingStreamsHandler) {
+                ((FinishNotifyingStreamsHandler) outputHandler).whenStreamsFinished(callback);
+            } else {
+                throw new IllegalStateException("Output handler does not support whenStreamsFinished callback");
+            }
         }
 
         @Override

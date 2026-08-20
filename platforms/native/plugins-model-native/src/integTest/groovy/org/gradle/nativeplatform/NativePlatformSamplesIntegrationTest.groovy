@@ -45,8 +45,30 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample sourcesetVariant = sample(testDirectoryProvider, "sourceset-variant")
     @Rule public final Sample customCheck = sample(testDirectoryProvider, "custom-check")
 
+    private static final String CPP = "org.gradle.language.cpp.plugins.CppLangPlugin"
+    private static final String C = "org.gradle.language.c.plugins.CLangPlugin"
+    private static final String TESTING = "org.gradle.testing.base.plugins.TestingModelBasePlugin"
+
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "integration-tests/native-binaries/${name}/groovy", name)
+    }
+
+    /**
+     * The samples apply the deprecated rule-based/software model native plugins, which nag once per applied
+     * rule source plugin. The set of base plugins is always the same; the language plugins vary per sample.
+     * Expectations are cleared after each build invocation, so this must be called before each one.
+     */
+    private void expectSoftwareModelDeprecations(String... languagePlugins) {
+        def plugins = [
+            "org.gradle.platform.base.plugins.ComponentBasePlugin",
+            "org.gradle.language.base.plugins.LanguageBasePlugin",
+            "org.gradle.platform.base.plugins.BinaryBasePlugin",
+            "org.gradle.language.base.plugins.ComponentModelBasePlugin",
+            "org.gradle.nativeplatform.plugins.NativeComponentModelPlugin",
+        ] + (languagePlugins as List)
+        plugins.each { plugin ->
+            executer.expectDocumentedDeprecationWarning("The ${plugin} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
     }
 
     @ToBeFixedForConfigurationCache
@@ -59,6 +81,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample cppExe
 
         when:
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "installMain"
 
         then:
@@ -77,6 +101,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample cppLib
 
         when:
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "mainSharedLibrary"
 
         then:
@@ -87,6 +113,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         sample cppLib
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "mainStaticLibrary"
 
         then:
@@ -101,6 +129,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample flavors
 
         when:
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(2)
         run "installMainEnglishExecutable"
 
         then:
@@ -116,6 +146,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         when:
         sample flavors
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(2)
         run "installMainFrenchExecutable"
 
         then:
@@ -136,6 +168,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample variants
 
         when:
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(5)
         run "assemble"
 
         then:
@@ -167,6 +201,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample toolChains
 
         when:
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(2)
         run "installMainExecutable"
 
         then:
@@ -179,6 +215,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample multiProject
 
         when:
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(2)
         run "installMainExecutable"
 
         then:
@@ -215,6 +253,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 """
 
         when:
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "installMainArmExecutable", "installMainSparcExecutable"
 
         then:
@@ -227,12 +267,16 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     def prebuilt() {
         given:
         inDirectory(prebuilt.dir.file("3rd-party-lib/util"))
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         run "assemble"
 
         and:
         sample prebuilt
 
         when:
+        expectSoftwareModelDeprecations(CPP)
+        expectModelDslDeprecation(1)
         succeeds "assemble"
 
         then:
@@ -267,6 +311,8 @@ Util build type: RELEASE
         }
 
         when:
+        expectSoftwareModelDeprecations(C)
+        expectModelDslDeprecation(1)
         run "installMainExecutable", "tasks"
 
         then:
@@ -282,6 +328,8 @@ Util build type: RELEASE
         sample customCheck
 
         when:
+        expectSoftwareModelDeprecations(CPP, TESTING)
+        expectModelDslDeprecation(1)
         run 'check'
 
         then:
@@ -291,9 +339,17 @@ Util build type: RELEASE
         sample customCheck
 
         when:
+        expectSoftwareModelDeprecations(CPP, TESTING)
+        expectModelDslDeprecation(1)
         run ':checkHelloSharedLibrary'
 
         then:
         executedAndNotSkipped(':myCustomCheck')
     }
+    private void expectModelDslDeprecation(int count = 1) {
+        count.times {
+            executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+
 }

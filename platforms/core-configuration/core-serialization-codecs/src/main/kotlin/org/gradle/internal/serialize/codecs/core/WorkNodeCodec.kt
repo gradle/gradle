@@ -434,6 +434,10 @@ class WorkNodeCodec(
                 override fun <T : Any> getService(type: Class<T>): T {
                     return ownerService(type)
                 }
+
+                override fun isPartOfExecutionGraph(): Boolean {
+                    return false
+                }
             })
             val postExecutionNodes = setupNode.postExecutionNodes
             if (postExecutionNodes.isNotEmpty()) {

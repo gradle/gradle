@@ -87,7 +87,9 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
      * The model task.
      *
      * @since 2.4
+     * @deprecated The software model is deprecated and will be removed in Gradle 10.
      */
+    @Deprecated
     public static final String MODEL_TASK = DiagnosticsTaskNames.MODEL_TASK;
 
 

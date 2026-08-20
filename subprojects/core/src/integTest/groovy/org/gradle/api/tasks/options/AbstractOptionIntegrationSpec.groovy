@@ -17,8 +17,10 @@
 package org.gradle.api.tasks.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 
-abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec implements PolyglotTestFixture {
     String taskWithSingleOption(String optionType) {
         """
             import org.gradle.api.DefaultTask;
@@ -98,6 +100,31 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
+    String kotlinTaskWithSingleOption(String optionType) {
+        String kotlinType = kotlinType(optionType)
+        String initialValue = optionType == 'boolean' ? 'false' : 'null'
+        """
+            abstract class SampleTask : DefaultTask() {
+                @get:Internal
+                @set:Option("myProp", "Configures command line option 'myProp'.")
+                var myProp: $kotlinType = $initialValue
+
+                @TaskAction
+                fun renderOptionValue() {
+                    println("Value of myProp: " + myProp)
+                }
+
+                enum class TestEnum {
+                    OPT_1, OPT_2, OPT_3
+                }
+            }
+        """
+    }
+
+    String buildScriptTaskWithSingleOption(String optionType) {
+        currentDsl() == GradleDsl.KOTLIN ? kotlinTaskWithSingleOption(optionType) : groovyTaskWithSingleOption(optionType)
+    }
+
     String taskWithSinglePropertyOption(String propertyType, String optionType) {
         String methodName = propertyType.substring(0, 1).toLowerCase() + propertyType.substring(1)
 
@@ -152,6 +179,29 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
+    String kotlinTaskWithSinglePropertyOption(String propertyType, String optionType) {
+        """
+            abstract class SampleTask : DefaultTask() {
+                @get:Internal
+                @get:Option("myProp", "Configures command line option 'myProp'.")
+                abstract val myProp: $propertyType<${kotlinType(optionType, false)}>
+
+                @TaskAction
+                fun renderOptionValue() {
+                    println("Value of myProp: " + myProp.orNull)
+                }
+
+                enum class TestEnum {
+                    OPT_1, OPT_2, OPT_3
+                }
+            }
+        """
+    }
+
+    String buildScriptTaskWithSinglePropertyOption(String propertyType, String optionType) {
+        currentDsl() == GradleDsl.KOTLIN ? kotlinTaskWithSinglePropertyOption(propertyType, optionType) : groovyTaskWithSinglePropertyOption(propertyType, optionType)
+    }
+
     String taskWithUnparameterizedPropertyOption(String propertyType, String methodName) {
         """
             import org.gradle.api.DefaultTask;
@@ -192,6 +242,36 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
         """
+    }
+
+    String kotlinTaskWithUnparameterizedPropertyOption(String propertyType) {
+        """
+            abstract class SampleTask : DefaultTask() {
+                @get:Internal
+                @get:Option("myProp", "Configures command line option 'myProp'.")
+                abstract val myProp: $propertyType
+
+                @TaskAction
+                fun renderOptionValue() {
+                    println("Value of myProp: " + myProp.orNull)
+                }
+            }
+        """
+    }
+
+    String buildScriptTaskWithUnparameterizedPropertyOption(String propertyType, String methodName) {
+        currentDsl() == GradleDsl.KOTLIN ? kotlinTaskWithUnparameterizedPropertyOption(propertyType) : groovyTaskWithUnparameterizedPropertyOption(propertyType, methodName)
+    }
+
+    /**
+     * Maps a Java type as used in the Groovy fixtures to its Kotlin spelling.
+     */
+    static String kotlinType(String javaType, boolean nullable = true) {
+        String type = javaType.replace('Integer', 'Int').replace('Object', 'Any')
+        if (javaType == 'boolean') {
+            return 'Boolean'
+        }
+        nullable ? "$type?" : type
     }
 
     String taskWithMultipleOptions() {
