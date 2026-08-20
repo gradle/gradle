@@ -67,6 +67,9 @@ public class CurrentBuildPlatform {
                 return Architecture.X86_64;
             case aarch64:
                 return Architecture.AARCH64;
+// uncomment after merging - https://github.com/gradle/native-platform/pull/360
+//          case e2k:
+//              return Architecture.E2K;
         }
         throw new GradleException("Unhandled system architecture: " + architecture);
     }
