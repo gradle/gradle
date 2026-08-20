@@ -129,13 +129,22 @@ class FlakyTestQuarantine(
             gradleWrapper {
                 name =
                     "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
+                val defaultTestTaskName = "${testCoverage.testType.asCamelCase()}Test"
                 val testTaskName =
-                    if (testCoverage.testType ==
-                        TestType.ISOLATED_PROJECTS
-                    ) {
-                        "isolatedProjectsIntegTest"
-                    } else {
-                        "${testCoverage.testType.asCamelCase()}Test"
+                    when (testCoverage.testType) {
+                        TestType.ISOLATED_PROJECTS -> "isolatedProjectsIntegTest"
+                        // Cross-version test tasks are registered per tested Gradle version *per subproject*, so this
+                        // coverage schedules ~1000 of them unqualified. Under `-PflakyTests=ONLY` the tag filter is
+                        // evaluated during JUnit discovery inside the test JVM, so Gradle cannot know up front that a
+                        // task selects nothing - it forks a JVM for each one anyway. Qualify the task with the
+                        // subprojects that actually have an `@Flaky` cross-version test, which subprojects.json tracks
+                        // and `:checkSubprojectsInfo` keeps up to date.
+                        TestType.ALL_VERSIONS_CROSS_VERSION, TestType.QUICK_FEEDBACK_CROSS_VERSION ->
+                            model.subprojects.subprojects
+                                .filter { it.flakyCrossVersionTests }
+                                .joinToString(" ") { ":${it.name}:$defaultTestTaskName" }
+                                .ifEmpty { defaultTestTaskName }
+                        else -> defaultTestTaskName
                     }
                 tasks = "clean $testTaskName"
                 gradleParams = parameters
