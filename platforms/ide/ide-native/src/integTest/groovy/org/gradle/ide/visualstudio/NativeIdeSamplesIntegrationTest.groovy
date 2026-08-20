@@ -37,6 +37,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
     @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/36854")
     def "visual studio"() {
         given:
+        executer.beforeExecute { it.noDeprecationChecks() }
         sample visualStudio
 
         when:
@@ -62,6 +63,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         useMsbuildTool()
 
         given:
+        executer.beforeExecute { it.noDeprecationChecks() }
         sample visualStudio
         run "visualStudio"
 
