@@ -91,6 +91,10 @@ abstract class Minify : TransformAction<Minify.Parameters> {
 
     private
     fun minify(artifact: File, spec: MinifySpec, output: File) {
+        if (!spec.removesUnreachable) {
+            MinifyPreprocessor.preprocess(artifact, output, spec, parameters.minifierJavaVersion.get())
+            return
+        }
         val shrunk = if (spec.needsPreprocessing) {
             File.createTempFile("preprocessed", ".jar").apply {
                 MinifyPreprocessor.preprocess(artifact, this, spec, parameters.minifierJavaVersion.get())

@@ -24,15 +24,23 @@ import java.io.Serializable
  *
  * @param keepClasses class name patterns to keep, along with everything they reach
  * @param excludedClasses class name patterns to subtract from [keepClasses]
+ * @param removesUnreachable whether R8 runs to drop what no kept class reaches
+ * @param dropsLocalVariables drops the local variable tables, which only a debugger reads
  * @param forceRemovePackages packages taken off before minifier runs, with their classes and their resources
  * @param erasedMethods `some.Class#method` to replace with a stub
  */
 data class MinifySpec(
-    val keepClasses: Set<String>,
+    val keepClasses: Set<String> = emptySet(),
     val excludedClasses: Set<String> = emptySet(),
+    val removesUnreachable: Boolean = true,
+    val dropsLocalVariables: Boolean = false,
     val forceRemovePackages: Set<String> = emptySet(),
     val erasedMethods: Set<String> = emptySet()
 ) : Serializable {
+
+    init {
+        require(!removesUnreachable || keepClasses.isNotEmpty()) { "Nothing to keep in $this" }
+    }
 
     val needsPreprocessing: Boolean
         get() = forceRemovePackages.isNotEmpty() || erasedMethods.isNotEmpty()

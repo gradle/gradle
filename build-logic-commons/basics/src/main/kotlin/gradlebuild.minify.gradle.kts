@@ -117,6 +117,37 @@ val minifyPatterns = mapOf(
             "org.bouncycastle.jce.provider.BouncyCastleProvider#loadPQCKeys",
         ),
     ),
+    "org.jetbrains.kotlin:kotlin-compiler-embeddable" to MinifySpec(
+        // The compiler resolves its own services by name, so nothing here is unreachable. R8 cannot
+        // process it either
+        removesUnreachable = false,
+        dropsLocalVariables = true,
+        forceRemovePackages = setOf(
+            "org.jetbrains.kotlin.analysis.decompiler.js",
+            "org.jetbrains.kotlin.analysis.decompiler.konan",
+            "org.jetbrains.kotlin.backend.konan",
+            "org.jetbrains.kotlin.backend.wasm",
+            "org.jetbrains.kotlin.builtins.konan",
+            "org.jetbrains.kotlin.descriptors.konan",
+            "org.jetbrains.kotlin.fir.analysis.diagnostics.js",
+            "org.jetbrains.kotlin.fir.analysis.diagnostics.native",
+            "org.jetbrains.kotlin.fir.analysis.diagnostics.wasm",
+            "org.jetbrains.kotlin.fir.analysis.js",
+            "org.jetbrains.kotlin.fir.analysis.native",
+            "org.jetbrains.kotlin.fir.analysis.wasm",
+            "org.jetbrains.kotlin.fir.backend.native",
+            "org.jetbrains.kotlin.frontend.js",
+            "org.jetbrains.kotlin.incremental.js",
+            "org.jetbrains.kotlin.ir.backend.js",
+            "org.jetbrains.kotlin.ir.inline.konan",
+            "org.jetbrains.kotlin.js",
+            "org.jetbrains.kotlin.metadata.js",
+            "org.jetbrains.kotlin.native",
+            "org.jetbrains.kotlin.resolve.konan",
+            "org.jetbrains.kotlin.serialization.js",
+            "org.jetbrains.kotlin.wasm",
+        ),
+    ),
     "com.github.jnr:jnr-constants" to MinifySpec(setOf(
         // For signal codes
         "jnr.constants.platform.Signal",

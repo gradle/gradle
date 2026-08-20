@@ -19,6 +19,7 @@ package gradlebuild.basics.transforms
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -60,11 +61,12 @@ object MinifyPreprocessor {
                         out.putNextEntry(ZipEntry(entry.name.withoutVersionPrefix()).apply { time = entry.time })
                         val bytes = jar.getInputStream(entry).readBytes()
                         val methodsToEraseInClass = methodsToErase[entry.name.withoutVersionPrefix()].orEmpty()
+                        val rewrites = spec.dropsLocalVariables || methodsToEraseInClass.isNotEmpty()
                         out.write(
-                            if (methodsToEraseInClass.isEmpty()) {
-                                bytes
+                            if (rewrites && entry.name.endsWith(".class")) {
+                                rewriteClass(bytes, methodsToEraseInClass, spec.dropsLocalVariables, entry.name, source)
                             } else {
-                                eraseMethods(bytes, methodsToEraseInClass, entry.name, source)
+                                bytes
                             }
                         )
                         out.closeEntry()
@@ -74,12 +76,13 @@ object MinifyPreprocessor {
     }
 
     private
-    fun eraseMethods(bytes: ByteArray, methods: List<String>, entryName: String, source: File): ByteArray {
+    fun rewriteClass(bytes: ByteArray, methods: List<String>, dropsLocalVariables: Boolean, entryName: String, source: File): ByteArray {
         val erased = mutableSetOf<String>()
         val writer = ClassWriter(0)
         ClassReader(bytes).accept(object : ClassVisitor(Opcodes.ASM9, writer) {
             override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<String>?): MethodVisitor? {
-                val method = super.visitMethod(access, name, descriptor, signature, exceptions)
+                val visited = super.visitMethod(access, name, descriptor, signature, exceptions)
+                val method = if (dropsLocalVariables) withoutLocalVariables(visited) else visited
                 if (name !in methods) {
                     return method
                 }
@@ -103,6 +106,12 @@ object MinifyPreprocessor {
 
     private
     fun String.toEntryName() = "${toInternalName()}.class"
+
+    private
+    fun withoutLocalVariables(method: MethodVisitor) =
+        object : MethodVisitor(Opcodes.ASM9, method) {
+            override fun visitLocalVariable(name: String, descriptor: String, signature: String?, start: Label, end: Label, index: Int) = Unit
+        }
 
     /** The JDK a multi-release copy is meant for, or 0 for the copy that any JDK reads. */
     private
