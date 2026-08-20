@@ -17,6 +17,7 @@ import gradlebuild.basics.DEFAULT_TARGET_JVM_VERSION
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
+import gradlebuild.basics.transforms.MinifySpec
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
@@ -34,8 +35,8 @@ import org.gradle.kotlin.dsl.support.serviceOf
  * reflection, dynamic loading, etc. and understand how the library works internally.
  * These changes might break things in subtle ways otherwise.
  */
-val keepPatterns = mapOf(
-    "it.unimi.dsi:fastutil" to setOf(
+val minifyPatterns = mapOf(
+    "it.unimi.dsi:fastutil" to MinifySpec(setOf(
         // For persistence cache
         "it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap",
         // For Java compilation incremental analysis
@@ -82,8 +83,41 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.objects.ObjectIterators",
         // For the evaluation context of the functional module
         "it.unimi.dsi.fastutil.objects.ReferenceList",
+    )),
+    "org.bouncycastle:bcprov-jdk18on" to MinifySpec(
+        keepClasses = setOf(
+            "org.bouncycastle.**",
+            // used by Apache MINA sshd and jsch
+            "org.bouncycastle.pqc.crypto.mlkem.**",
+            "org.bouncycastle.pqc.crypto.ntruprime.**",
+        ),
+        excludedClasses = setOf(
+            "org.bouncycastle.pqc.**",
+            "org.bouncycastle.jcajce.provider.asymmetric.Dilithium**",
+            "org.bouncycastle.jcajce.provider.asymmetric.Falcon**",
+            "org.bouncycastle.jcajce.provider.asymmetric.NTRU**",
+            "org.bouncycastle.jcajce.provider.asymmetric.SLHDSA**",
+            "org.bouncycastle.jcajce.provider.asymmetric.SPHINCSPlus**",
+            "org.bouncycastle.jcajce.provider.asymmetric.mldsa.**",
+            "org.bouncycastle.jcajce.provider.asymmetric.slhdsa.**",
+            "org.bouncycastle.jcajce.provider.asymmetric.mlkem.**",
+            "org.bouncycastle.crypto.signers.mldsa.**",
+            "org.bouncycastle.crypto.signers.slhdsa.**",
+            "org.bouncycastle.crypto.signers.Hash**",
+            "org.bouncycastle.crypto.signers.SLHDSASigner",
+            "org.bouncycastle.crypto.kems.mlkem.**",
+        ),
+        forceRemovePackages = setOf(
+            "org.bouncycastle.pqc.jcajce",
+            "org.bouncycastle.pqc.legacy",
+        ),
+        erasedMethods = setOf(
+            // The provider skips algorithms whose classes are absent, because it looks them up by name.
+            // This is the one place where it names post-quantum classes directly.
+            "org.bouncycastle.jce.provider.BouncyCastleProvider#loadPQCKeys",
+        ),
     ),
-    "com.github.jnr:jnr-constants" to setOf(
+    "com.github.jnr:jnr-constants" to MinifySpec(setOf(
         // For signal codes
         "jnr.constants.platform.Signal",
         "jnr.constants.platform.aix.Signal",
@@ -94,11 +128,11 @@ val keepPatterns = mapOf(
         "jnr.constants.platform.solaris.Signal",
         "jnr.constants.Constant",
         "jnr.constants.ConstantResolver",
-    ),
+    )),
 )
 
 val minifier = configurations.resolvable("minifier") {
-    versionCatalogs.find("buildLibs").ifPresent { dependencies.addLater(it.findLibrary("r8").orElseThrow()) }
+    versionCatalogs.find("buildLibs").flatMap { it.findLibrary("r8") }.ifPresent(dependencies::addLater)
 }
 
 plugins.withId("java-base") {
@@ -122,7 +156,7 @@ plugins.withId("java-base") {
             from.attribute(minified, false).attribute(artifactType, "jar")
             to.attribute(minified, true).attribute(artifactType, "jar")
             parameters {
-                keepClassesByCoordinates = keepPatterns
+                minifySpecsByCoordinates = minifyPatterns
                 minifierClasspath.from(minifier)
                 minifierJavaVersion = DEFAULT_TARGET_JVM_VERSION
                 minifierJdkHome = minifierJdkLauncher.map { it.metadata.installationPath }
@@ -139,7 +173,7 @@ plugins.withId("java-base") {
             if (isCanBeResolved && !isCanBeConsumed) {
                 resolutionStrategy.dependencySubstitution.all {
                     val requested = this.requested as? ModuleComponentSelector ?: return@all
-                    keepPatterns.forEach { coordinates, _ ->
+                    minifyPatterns.forEach { coordinates, _ ->
                         if ("${requested.group}:${requested.module}" == coordinates) {
                             val updated = DefaultModuleComponentSelector.withAttributes(
                                 requested,

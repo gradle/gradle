@@ -43,7 +43,7 @@ abstract class Minify : TransformAction<Minify.Parameters> {
 
     interface Parameters : TransformParameters {
         @get:Input
-        var keepClassesByCoordinates: Map<String, Set<String>>
+        var minifySpecsByCoordinates: Map<String, MinifySpec>
 
         @get:Classpath
         val minifierClasspath: ConfigurableFileCollection
@@ -65,19 +65,19 @@ abstract class Minify : TransformAction<Minify.Parameters> {
     private
     val jarArtifactRegex = Regex("""^(.*?)-\d+(\.\d+)*([.-][A-Za-z0-9]+)*\.jar$""")
 
-    private val keepClassesByArtifacts: Map<String, Set<String>> by lazy {
-        parameters.keepClassesByCoordinates.mapKeys { it.key.substringAfter(":") }
+    private val specsByArtifacts: Map<String, MinifySpec> by lazy {
+        parameters.minifySpecsByCoordinates.mapKeys { it.key.substringAfter(":") }
     }
 
     override fun transform(outputs: TransformOutputs) {
         val fileName = artifact.get().asFile.name
         val artifactName = extractArtifactName(fileName)
-        val classesFilter = keepClassesByArtifacts[artifactName]
-        if (classesFilter != null) {
-            val nameWithoutExtension = Files.getNameWithoutExtension(fileName)
-            minify(artifact.get().asFile, classesFilter, outputs.file("$nameWithoutExtension-min.jar"))
-        } else {
+        val spec = specsByArtifacts[artifactName]
+        if (spec == null) {
             outputs.file(artifact)
+        } else {
+            val nameWithoutExtension = Files.getNameWithoutExtension(fileName)
+            minify(artifact.get().asFile, spec, outputs.file("$nameWithoutExtension-min.jar"))
         }
     }
 
@@ -90,9 +90,16 @@ abstract class Minify : TransformAction<Minify.Parameters> {
     }
 
     private
-    fun minify(artifact: File, keepClasses: Set<String>, output: File) {
+    fun minify(artifact: File, spec: MinifySpec, output: File) {
+        val shrunk = if (spec.needsPreprocessing) {
+            File.createTempFile("preprocessed", ".jar").apply {
+                MinifyPreprocessor.preprocess(artifact, this, spec, parameters.minifierJavaVersion.get())
+            }
+        } else {
+            artifact
+        }
         val rules = File.createTempFile("minify", ".pro")
-        rules.writeText(keepRules(keepClasses).joinToString("\n"))
+        rules.writeText(minifyRules(spec).joinToString("\n"))
         val log = ByteArrayOutputStream()
         try {
             val result = execOperations.javaexec {
@@ -104,7 +111,7 @@ abstract class Minify : TransformAction<Minify.Parameters> {
                     "--lib", parameters.minifierJdkHome.get().asFile.absolutePath,
                     "--pg-conf", rules.absolutePath,
                     "--output", output.absolutePath,
-                    artifact.absolutePath
+                    shrunk.absolutePath
                 )
                 standardOutput = log
                 errorOutput = log
@@ -115,15 +122,22 @@ abstract class Minify : TransformAction<Minify.Parameters> {
             }
         } finally {
             rules.delete()
+            if (shrunk !== artifact) {
+                shrunk.delete()
+            }
         }
     }
 
     private
-    fun keepRules(keepClasses: Set<String>) = listOf(
+    fun minifyRules(spec: MinifySpec) = listOf(
         "-dontobfuscate",
         "-dontoptimize",
         "-keepattributes *",
         "-keep,allowshrinking class ** { *; }",
         "-dontwarn"
-    ) + keepClasses.map { "-keep,includedescriptorclasses class $it { *; }" }
+    ) + spec.keepClasses.map { keepClass ->
+        // R8 takes the first pattern of the list that matches, so the exclusions have to come first.
+        val exclusions = spec.excludedClasses.filterNot { keepClass.startsWith(it.substringBefore("*")) }
+        "-keep,includedescriptorclasses class ${(exclusions.map { "!$it" } + keepClass).joinToString(",")} { *; }"
+    }
 }
