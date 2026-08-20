@@ -26,6 +26,7 @@ import org.gradle.process.internal.worker.MultiRequestClient;
 import org.gradle.process.internal.worker.WorkerProcess;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class WorkerDaemonClient implements Stoppable, Describable {
     public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
@@ -35,6 +36,8 @@ class WorkerDaemonClient implements Stoppable, Describable {
     private final LogLevel logLevel;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private int uses;
+    private final AtomicBoolean executing = new AtomicBoolean();
+    private final AtomicBoolean abandoned = new AtomicBoolean();
     private boolean cannotBeExpired = Boolean.getBoolean(DISABLE_EXPIRATION_PROPERTY_KEY);
 
     public WorkerDaemonClient(DaemonForkOptions forkOptions, MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerClient, WorkerProcess workerProcess, LogLevel logLevel, ActionExecutionSpecFactory actionExecutionSpecFactory) {
@@ -55,7 +58,37 @@ class WorkerDaemonClient implements Stoppable, Describable {
 
     public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec) {
         uses++;
-        return workerClient.run(actionExecutionSpecFactory.newTransportableSpec(spec));
+        executing.set(true);
+        boolean completed = false;
+        try {
+            DefaultWorkResult result = workerClient.run(actionExecutionSpecFactory.newTransportableSpec(spec));
+            completed = true;
+            return result;
+        } finally {
+            executing.set(false);
+            if (!completed) {
+                // The request never produced a response, typically because the thread waiting on it was
+                // interrupted when the owning task exceeded its timeout. The build has given up on the result,
+                // but the worker process is still running the work item, so this client is neither safe to
+                // reuse nor safe to stop gracefully.
+                abandoned.set(true);
+            }
+        }
+    }
+
+    /**
+     * Whether this client is currently executing a work item, i.e. the worker process is busy running it.
+     */
+    public boolean isExecuting() {
+        return executing.get();
+    }
+
+    /**
+     * Whether a work item submitted to this client was abandoned before the worker reported a result.
+     * The worker process may still be running that work item.
+     */
+    public boolean isAbandoned() {
+        return abandoned.get();
     }
 
     public boolean isCompatibleWith(DaemonForkOptions required) {

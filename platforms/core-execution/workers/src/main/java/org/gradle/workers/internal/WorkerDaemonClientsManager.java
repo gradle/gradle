@@ -129,7 +129,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
 
     void release(WorkerDaemonClient client) {
         synchronized (lock) {
-            if (!client.isFailed()) {
+            if (!client.isFailed() && !client.isAbandoned()) {
                 idleClients.add(client);
             }
         }
@@ -171,7 +171,25 @@ public class WorkerDaemonClientsManager implements Stoppable {
     }
 
     private void stopWorkers(List<WorkerDaemonClient> clientsToStop) {
-        stopWorkers(clientsToStop, STOP_CLIENT);
+        stopWorkers(clientsToStop, this::stopOrKillClient);
+    }
+
+    /**
+     * Stops a client, killing it instead if it is still executing a work item.
+     *
+     * <p>By the time workers are stopped, a client that is still executing a work item is executing one that
+     * nothing is waiting for any more, for example because the owning task exceeded its {@code timeout}. Asking
+     * such a worker to stop gracefully only queues the stop request behind the abandoned work item, and the build
+     * then blocks in {@code WorkerProcess.waitForStop()} until that work item finishes on its own. Kill those
+     * workers instead, so that the build is not held up by work whose result is already being discarded.</p>
+     */
+    private void stopOrKillClient(WorkerDaemonClient client) {
+        if (client.isExecuting() || client.isAbandoned()) {
+            LOGGER.info("Worker daemon '{}' is still executing work that is no longer being waited for, stopping it immediately.", client.getDisplayName());
+            client.kill();
+        } else {
+            client.stop();
+        }
     }
 
     private void stopWorkers(List<WorkerDaemonClient> clientsToStop, Consumer<WorkerDaemonClient> stopAction) {
@@ -210,7 +228,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
     }
 
     public void stopAllWorkers() {
-        stopAllWorkers(STOP_CLIENT);
+        stopAllWorkers(this::stopOrKillClient);
     }
 
     public void killAllWorkers() {
@@ -237,6 +255,5 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    private static final Consumer<WorkerDaemonClient> STOP_CLIENT = WorkerDaemonClient::stop;
     private static final Consumer<WorkerDaemonClient> KILL_CLIENT = WorkerDaemonClient::kill;
 }
