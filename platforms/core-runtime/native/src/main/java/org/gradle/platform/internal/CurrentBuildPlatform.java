@@ -67,6 +67,8 @@ public class CurrentBuildPlatform {
                 return Architecture.X86_64;
             case aarch64:
                 return Architecture.AARCH64;
+            case e2k:
+                return Architecture.E2K;
         }
         throw new GradleException("Unhandled system architecture: " + architecture);
     }
