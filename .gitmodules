@@ -1,0 +1,3 @@
+[submodule "xdcl"]
+	path = xdcl
+	url = https://github.com/gradle/xdcl.git

@@ -18,11 +18,31 @@
 // directory instead.
 val repoRoot = generateSequence(settings.rootDir) { it.parentFile }
     .first { File(it, "gradle/shared-with-buildSrc").isDirectory }
+
+fun candidate(path: String): File =
+    File(path).takeIf { it.isAbsolute } ?: File(repoRoot, path)
+
+fun File.isXdclCheckout(): Boolean = File(this, "settings.gradle.kts").isFile
+
 val overrideFile = File(repoRoot, "xdcl-checkout.txt")
-val checkout = overrideFile.takeIf { it.isFile }?.readText()?.trim()?.takeIf { it.isNotEmpty() } ?: "../xdcl"
-val xdclDir = File(checkout).takeIf { it.isAbsolute } ?: File(repoRoot, checkout)
-require(File(xdclDir, "settings.gradle.kts").isFile) {
-    "xdcl checkout not found at $xdclDir (from ${if (overrideFile.isFile) overrideFile else "the ../xdcl default"}); " +
-        "point xdcl-checkout.txt at your xdcl checkout (path relative to $repoRoot, or absolute)"
+val override = overrideFile.takeIf { it.isFile }?.readText()?.trim()?.takeIf { it.isNotEmpty() }
+
+val xdclDir = if (override != null) {
+    candidate(override).also {
+        require(it.isXdclCheckout()) {
+            "xdcl checkout not found at $it (from $overrideFile); " +
+                "point xdcl-checkout.txt at your xdcl checkout (path relative to $repoRoot, or absolute)"
+        }
+    }
+} else {
+    val submodule = candidate("xdcl")
+    val sibling = candidate("../xdcl")
+    listOf(submodule, sibling).firstOrNull { it.isXdclCheckout() }
+        ?: throw GradleException(
+            "xdcl checkout not found — looked at the `xdcl/` submodule ($submodule) and the sibling " +
+                "checkout ($sibling). Run `git submodule update --init xdcl`, or point a git-ignored " +
+                "$overrideFile at your own checkout (path relative to $repoRoot, or absolute)."
+        )
 }
+
 includeBuild(xdclDir.canonicalFile)
