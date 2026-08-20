@@ -24,6 +24,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.io.File
+import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -54,6 +55,7 @@ object MinifyPreprocessor {
                 "Nothing to remove from $source - the library changed, revisit the minify configuration"
             }
             ZipOutputStream(target.outputStream().buffered()).use { out ->
+                out.setLevel(Deflater.BEST_COMPRESSION)
                 kept.asSequence()
                     // A signed Jar states the digest of every entry, and this one is no longer that Jar.
                     .filterNot { signatureFile.matches(it.name) }
