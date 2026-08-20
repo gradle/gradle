@@ -23,8 +23,8 @@ plugins {
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
-// org.xdcl composite (shadow mode) — declared once, shared with build-logic; the checkout
-// location comes from the git-ignored xdcl-checkout.txt (default: the sibling ../xdcl).
+// org.xdcl composite (shadow mode) — declared once, shared with build-logic; the checkout is the
+// `xdcl/` submodule, a sibling ../xdcl, or whatever the git-ignored xdcl-checkout.txt points at.
 apply(from = "gradle/shared-with-buildSrc/xdcl-composite.settings.gradle.kts")
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
