@@ -150,12 +150,9 @@ abstract class TestFilesCleanupService @Inject constructor(
      * Reads what a test task recorded, or `null` if the task isn't a test task.
      *
      * A test task can finish successfully without running a single test, because a filter excluded
-     * every test it would have run. `-PflakyTests=ONLY` does that to almost every task of the flaky
-     * test quarantine build for AllVersionsCrossVersion: it has one task per tested Gradle version
-     * per subproject, over a thousand of them, and only the handful in subprojects that actually
-     * have flaky cross-version tests select anything. The reports of the rest are empty, and
-     * archiving them used to blow past TeamCity's limit on the number of artifacts a build may
-     * publish.
+     * every test it would have run. `-PflakyTests=ONLY` does that whenever a Test task is scheduled
+     * in a project with no `@Flaky` tests: the reports are empty, and archiving them used to blow
+     * past TeamCity's limit on the number of artifacts a build may publish.
      *
      * Note that an empty run is not the same as an empty result store: the store always holds the
      * root result of a task whose test JVM started, so [SerializableTestResultStore.hasResults] is

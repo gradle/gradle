@@ -78,10 +78,9 @@ class FlakyTestQuarantine(
         description = "Run all flaky tests skipped multiple times"
 
         // Unlike the regular functional test builds, a quarantine build is not split into buckets and does not use
-        // test distribution, so it runs every test task of its coverage on a single agent. For AllVersionsCrossVersion
-        // that is one task per tested Gradle version per subproject - over a thousand of them - and how long they take
-        // depends entirely on how much of that the build cache can serve. Runs have landed anywhere between 45 minutes
-        // and well past an hour, so the timeout has to accommodate a cold cache.
+        // test distribution, so it runs every test task of its coverage on a single agent. Cross-version coverage
+        // registers one task per tested Gradle version per subproject; under -PflakyTests=ONLY,
+        // gradlebuild.cross-version-tests skips wiring those tasks in subprojects with no @Flaky test.
         applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 120)
 
         if (os == Os.LINUX) {
