@@ -37,7 +37,7 @@ import gradlebuild.basics.testing.excludeSpockAnnotation
 import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.identity.extension.GradleModuleExtension
-import gradlebuild.basics.DEFAULT_TARGET_JVM_VERSION
+import gradlebuild.identity.extension.DEFAULT_TARGET_JVM_VERSION
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import org.gradle.internal.jvm.JpmsConfiguration
