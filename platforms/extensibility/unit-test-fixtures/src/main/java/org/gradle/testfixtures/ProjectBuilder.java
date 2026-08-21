@@ -81,8 +81,8 @@ public class ProjectBuilder {
     }
 
     /**
-     * Specifies the Gradle user home for the builder. If not set, an empty directory under the project directory
-     * will be used.
+     * Specifies the Gradle user home for the builder. Persistent Gradle caches, including the dependency cache,
+     * are stored in this directory. If not set, an empty directory under the project directory will be used.
      *
      * @return The builder
      * @since 3.0
