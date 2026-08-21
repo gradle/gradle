@@ -17,16 +17,15 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 
-import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -51,15 +50,16 @@ public interface BuildTreeWorkGraph {
     }
 
     interface Builder {
+
         /**
          * Adds nodes to the work graph for the given build.
          */
         void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 
         /**
-         * Adds the given tasks and their dependencies to the work graph.
+         * Adds the given node and their dependencies to the work graph for the given build.
          */
-        void scheduleTasks(Collection<TaskInternal> tasksToBuild);
+        void scheduleNode(BuildState target, Node node);
 
         /**
          * Adds add task filter to the given build.
@@ -70,5 +70,6 @@ public interface BuildTreeWorkGraph {
          * Adds a {@link ExecutionPlan} finalization step to the given build.
          */
         void addFinalization(BuildState target, BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
+
     }
 }

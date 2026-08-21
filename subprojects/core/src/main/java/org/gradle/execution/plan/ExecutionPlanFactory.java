@@ -16,13 +16,16 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 
 @ServiceScope(Scope.Build.class)
 public class ExecutionPlanFactory {
-    private final String displayName;
+
+    private final BuildState owningBuild;
     private final TaskNodeFactory taskNodeFactory;
     private final OrdinalGroupFactory ordinalGroupFactory;
     private final TaskDependencyResolver dependencyResolver;
@@ -31,7 +34,7 @@ public class ExecutionPlanFactory {
     private final ResourceLockCoordinationService lockCoordinationService;
 
     public ExecutionPlanFactory(
-        String displayName,
+        BuildState owningBuild,
         TaskNodeFactory taskNodeFactory,
         OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
@@ -39,7 +42,7 @@ public class ExecutionPlanFactory {
         ExecutionNodeAccessHierarchy destroyableHierarchy,
         ResourceLockCoordinationService lockCoordinationService
     ) {
-        this.displayName = displayName;
+        this.owningBuild = owningBuild;
         this.taskNodeFactory = taskNodeFactory;
         this.ordinalGroupFactory = ordinalGroupFactory;
         this.dependencyResolver = dependencyResolver;
@@ -49,6 +52,9 @@ public class ExecutionPlanFactory {
     }
 
     public ExecutionPlan createPlan() {
-        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService);
+        String displayName = owningBuild.getDisplayName().getDisplayName();
+        Path owningBuildPath = owningBuild.getIdentityPath();
+        return new DefaultExecutionPlan(displayName, owningBuildPath, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService);
     }
+
 }
