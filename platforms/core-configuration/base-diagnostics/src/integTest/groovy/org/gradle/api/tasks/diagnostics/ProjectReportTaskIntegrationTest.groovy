@@ -410,4 +410,94 @@ For example, try running gradle :tasks
         expect:
         succeeds "projects"
     }
+
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.description for another project")
+    @Issue("https://github.com/gradle/gradle/issues/36676")
+    def "reports nested project features in project hierarchy"() {
+        given: "a build-logic build registering an ecosystem plugin with nested features"
+        testScenario {
+            projectType("application") {
+                definition {
+                    property "name", String
+                    buildModel {
+                        property "name", String
+                        // Nested feature inside application
+                        nested("server", "ServerConfig") {
+                            property "port", Integer
+                        }
+                    }
+                }
+            }
+            projectType("library") {
+                definition {
+                    property "name", String
+                    buildModel {
+                        property "name", String
+                        // Nested feature inside library
+                        nested("publishing", "PublishingConfig") {
+                            property "enabled", Boolean
+                        }
+                    }
+                }
+            }
+        }.prepareToExecute()
+
+        and: "a multi-project build using project types with nested features"
+        settingsFile << """
+            ${pluginsFromIncludedBuild}
+
+            rootProject.name = 'example'
+
+            include("app")
+            include("lib")
+        """
+        buildFile << """
+            project(":app") {
+                description = "Application with nested server config"
+            }
+            project(":lib") {
+                description = "Library with nested publishing config"
+            }
+        """
+
+        file("app/build.gradle.dcl") << """
+            application {
+                name = "my-app"
+                server {
+                    port = 8080
+                }
+            }
+        """
+        file("lib/build.gradle.dcl") << """
+            library {
+                name = "my-lib"
+                publishing {
+                    enabled = true
+                }
+            }
+        """
+
+        when:
+        succeeds("projects")
+
+        then: "the output includes all project types and nested features"
+        outputContains("""
+
+Available project types:
+
+application (org.gradle.test.ApplicationDefinition)
+        Defined in: org.gradle.test.ApplicationImplPlugin
+        Registered by: org.gradle.test.ProjectTypeRegistrationPlugin
+library (org.gradle.test.LibraryDefinition)
+        Defined in: org.gradle.test.LibraryImplPlugin
+        Registered by: org.gradle.test.ProjectTypeRegistrationPlugin
+""")
+
+        and: "the project hierarchy shows all features including nested ones"
+        outputContains("""
+Root project 'example'
++--- Project ':app' (application, server) - Application with nested server config
+\\--- Project ':lib' (library, publishing) - Library with nested publishing config
+""")
+    }
 }
