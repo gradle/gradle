@@ -27,6 +27,8 @@ import org.junit.Rule
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
+
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties systemProperties
     @Rule HttpServer server
@@ -35,6 +37,7 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        System.setProperty(REUSE_USER_HOME_SERVICES, "false")
         file("settings.gradle") << """
             rootProject.name = 'test'
         """
@@ -73,6 +76,44 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         then:
         compileFiles.size() == 1
         runtimeFiles.size() == 1
+    }
+
+    def "reuses dependency cache from the configured Gradle user home"() {
+        def repo = new MavenHttpRepository(server, mavenRepo)
+        repo.module("org.gradle", "a", "1.0").publish().allowAll()
+        server.start()
+        def gradleUserHome = temporaryFolder.createDir('gradle-user-home')
+
+        when:
+        project = ProjectBuilder.builder().withGradleUserHomeDir(gradleUserHome).build()
+        project.repositories {
+            maven { url = repo.uri }
+        }
+        project.configurations {
+            compile
+        }
+        project.dependencies {
+            compile "org.gradle:a:1.0"
+        }
+        def firstResolution = project.configurations.compile.files
+        ProjectBuilderImpl.stop(project)
+
+        project = ProjectBuilder.builder().withGradleUserHomeDir(gradleUserHome).build()
+        project.gradle.startParameter.offline = true
+        project.repositories {
+            maven { url = repo.uri }
+        }
+        project.configurations {
+            compile
+        }
+        project.dependencies {
+            compile "org.gradle:a:1.0"
+        }
+        def secondResolution = project.configurations.compile.files
+
+        then:
+        firstResolution.size() == 1
+        secondResolution.size() == 1
     }
 
     def "can provide custom Gradle user home"() {
