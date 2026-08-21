@@ -25,6 +25,7 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.work.Synchronizer;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
@@ -47,14 +48,12 @@ class DefaultProjectState implements ProjectState, Closeable {
     private final ProjectIdentity identity;
     private final IProjectFactory projectFactory;
     private final ProjectLifecycleController controller;
-    private final WorkerLeaseService workerLeaseService;
     private final ProjectStateLookup projectStateLookup;
 
-    private final ResourceLock allProjectsLock;
     private final ResourceLock projectLock;
     private final ResourceLock taskLock;
 
-    private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
+    private final ProjectLockSynchronizer synchronizer;
 
     DefaultProjectState(
         BuildState owner,
@@ -69,12 +68,14 @@ class DefaultProjectState implements ProjectState, Closeable {
         this.descriptor = descriptor;
         this.identity = descriptor.getIdentity();
         this.projectFactory = projectFactory;
-        this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, this::withProjectLock, buildServices);
-        this.workerLeaseService = workerLeaseService;
         this.projectStateLookup = projectStateLookup;
-        this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
+
         this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identity.getBuildTreePath());
         this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identity.getBuildTreePath());
+
+        ResourceLock allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
+        this.synchronizer = new ProjectLockSynchronizer(workerLeaseService, projectLock, allProjectsLock);
+        this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, synchronizer, buildServices);
     }
 
     @Override
@@ -172,12 +173,12 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public ProjectInternal getMutableModel() {
-        return controller.getMutableModel();
+        return controller.getModel().unsafeGet();
     }
 
     @Override
     public ProjectInternal getMutableModelEvenAfterFailure() {
-        return controller.getMutableModelEvenAfterFailure();
+        return controller.getModelEvenAfterFailure().unsafeGet();
     }
 
     @Override
@@ -201,7 +202,11 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public void ensureTasksDiscovered() {
-        controller.ensureTasksDiscovered();
+        controller.ensureSelfConfigured();
+        applyToMutableState(project -> {
+            project.getTasks().discoverTasks();
+            project.bindAllModelRules();
+        });
     }
 
     // endregion
@@ -218,72 +223,103 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public void applyToMutableState(Consumer<? super ProjectInternal> action) {
-        fromMutableState(p -> {
-            action.accept(p);
-            return null;
-        });
+        controller.getModel().runWithValue(action);
     }
 
     @Override
     public <S extends @Nullable Object> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
-        return runWithModelLock(() -> function.apply(getMutableModel()));
-    }
-
-    private void withProjectLock(Runnable action) {
-        runWithModelLock(() -> {
-            action.run();
-            return null;
-        });
+        return controller.getModel().fromValue(function);
     }
 
     @Override
-    public <S extends @Nullable Object> S runWithModelLock(Supplier<S> action) {
-        Thread currentThread = Thread.currentThread();
-        if (canDoAnythingToThisProject.contains(currentThread)) {
-            // Current thread is allowed to access anything at any time, so run the action
-            return action.get();
-        }
-
-        Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
-        if (currentLocks.contains(projectLock) || currentLocks.contains(allProjectsLock)) {
-            // if we already hold the project lock for this project
-            if (currentLocks.size() == 1) {
-                // the lock for this project is the only lock we hold, can run the action
-                return action.get();
-            } else {
-                throw new IllegalStateException("Current thread holds more than one project lock. It should hold only one project lock at any given time.");
-            }
-        } else {
-            return workerLeaseService.withReplacedLocks(currentLocks, projectLock, action::get);
-        }
+    public <S extends @Nullable Object> S fromMutableStateEvenAfterFailure(Function<? super ProjectInternal, ? extends S> function) {
+        return controller.getModelEvenAfterFailure().fromValue(function);
     }
 
     @Override
     public <S> S forceAccessToMutableState(Function<? super ProjectInternal, ? extends S> factory) {
-        Thread currentThread = Thread.currentThread();
-        boolean added = canDoAnythingToThisProject.add(currentThread);
-        try {
-            return factory.apply(getMutableModel());
-        } finally {
-            if (added) {
-                canDoAnythingToThisProject.remove(currentThread);
-            }
-        }
+        return synchronizer.withForcedAccess(() -> controller.getModel().fromValue(factory));
     }
 
     @Override
     public boolean hasMutableState() {
-        Thread currentThread = Thread.currentThread();
-        if (canDoAnythingToThisProject.contains(currentThread)) {
-            return true;
-        }
-        Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-        return locks.contains(projectLock) || locks.contains(allProjectsLock);
+        return synchronizer.hasLock();
     }
 
     @Override
     public void close() {
         controller.close();
+    }
+
+    private static class ProjectLockSynchronizer implements Synchronizer {
+
+        private final WorkerLeaseService workerLeaseService;
+        private final ResourceLock projectLock;
+        private final ResourceLock allProjectsLock;
+
+        private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
+
+        public ProjectLockSynchronizer(
+            WorkerLeaseService workerLeaseService,
+            ResourceLock projectLock,
+            ResourceLock allProjectsLock
+        ) {
+            this.workerLeaseService = workerLeaseService;
+            this.projectLock = projectLock;
+            this.allProjectsLock = allProjectsLock;
+        }
+
+        @Override
+        public void withLock(Runnable action) {
+            withLock(() -> {
+                action.run();
+                return null;
+            });
+        }
+
+        @Override
+        public <T extends @Nullable Object> T withLock(Supplier<T> action) {
+            Thread currentThread = Thread.currentThread();
+            if (canDoAnythingToThisProject.contains(currentThread)) {
+                // Current thread is allowed to access anything at any time, so run the action
+                return action.get();
+            }
+
+            Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
+            if (currentLocks.contains(projectLock) || currentLocks.contains(allProjectsLock)) {
+                // if we already hold the project lock for this project
+                if (currentLocks.size() == 1) {
+                    // the lock for this project is the only lock we hold, can run the action
+                    return action.get();
+                } else {
+                    throw new IllegalStateException("Current thread holds more than one project lock. It should hold only one project lock at any given time.");
+                }
+            } else {
+                return workerLeaseService.withReplacedLocks(currentLocks, projectLock, action::get);
+            }
+        }
+
+        public <T> T withForcedAccess(Supplier<T> action) {
+            Thread currentThread = Thread.currentThread();
+            boolean added = canDoAnythingToThisProject.add(currentThread);
+            try {
+                return action.get();
+            } finally {
+                if (added) {
+                    canDoAnythingToThisProject.remove(currentThread);
+                }
+            }
+        }
+
+        public boolean hasLock() {
+            Thread currentThread = Thread.currentThread();
+            if (canDoAnythingToThisProject.contains(currentThread)) {
+                return true;
+            }
+            Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
+            return locks.contains(projectLock) || locks.contains(allProjectsLock);
+        }
+
     }
 
 }

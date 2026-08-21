@@ -20,7 +20,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Encapsulates some mutable model, and provides synchronized access to the model.
@@ -34,10 +33,9 @@ public interface ModelContainer<T> {
     <S extends @Nullable Object> S fromMutableState(Function<? super T, ? extends S> factory);
 
     /**
-     * Runs the given supplier, while synchronizing on the project.
-     * The mutable state of the project can be used by the calculation, if a reference to it has been retrieved earlier.
+     * {@link #fromMutableState(Function)} but allows the function to be run even if the model is in an invalid state.
      */
-    <S extends @Nullable Object> S runWithModelLock(Supplier<S> action);
+    <S extends @Nullable Object> S fromMutableStateEvenAfterFailure(Function<? super T, ? extends S> function);
 
     /**
      * DO NOT USE THIS METHOD. It is here to provide some specific backwards compatibility.

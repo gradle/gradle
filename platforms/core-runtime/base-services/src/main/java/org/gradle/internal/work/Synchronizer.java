@@ -16,10 +16,14 @@
 
 package org.gradle.internal.work;
 
-import org.gradle.internal.Factory;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Supplier;
+
+@NullMarked
 public interface Synchronizer {
+
     /**
      * Runs the given action while holding the associated resource lock, blocking until the lock can be acquired.
      *
@@ -32,5 +36,6 @@ public interface Synchronizer {
      *
      * Fails if the current thread is already holding the resource lock. May release project locks prior to blocking, as per {@link WorkerLeaseService#blocking(Runnable)}.
      */
-    <T extends @Nullable Object> T withLock(Factory<T> action);
+    <T extends @Nullable Object> T withLock(Supplier<T> action);
+
 }

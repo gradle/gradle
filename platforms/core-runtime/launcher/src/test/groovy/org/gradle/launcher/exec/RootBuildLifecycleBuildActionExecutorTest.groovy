@@ -26,7 +26,6 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.work.ProjectParallelExecutionController
 import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
 
@@ -49,7 +48,6 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
 
         def executor = new RootBuildLifecycleBuildActionExecutor(
             Stub(BuildModelParameters),
-            Stub(ProjectParallelExecutionController),
             listener,
             Stub(ProblemsInternal),
             Stub(BuildOperationProgressEventEmitter),
@@ -74,7 +72,6 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
         given:
         def executor = new RootBuildLifecycleBuildActionExecutor(
             Stub(BuildModelParameters),
-            Stub(ProjectParallelExecutionController),
             Stub(BuildTreeLifecycleListener),
             Stub(ProblemsInternal),
             Stub(BuildOperationProgressEventEmitter),

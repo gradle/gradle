@@ -26,6 +26,7 @@ import org.jspecify.annotations.NullMarked
 import org.jspecify.annotations.Nullable
 
 import java.util.function.BooleanSupplier
+import java.util.function.Supplier
 
 @NullMarked
 class TestWorkerLeaseService implements WorkerLeaseService {
@@ -111,8 +112,8 @@ class TestWorkerLeaseService implements WorkerLeaseService {
             }
 
             @Override
-            <T> T withLock(Factory<T> action) {
-                return action.create()
+            <T> T withLock(Supplier<T> action) {
+                return action.get()
             }
         }
     }
