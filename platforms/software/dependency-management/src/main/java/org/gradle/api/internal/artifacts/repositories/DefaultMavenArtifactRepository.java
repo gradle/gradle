@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
 import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
@@ -50,9 +52,15 @@ import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
+import org.gradle.internal.authentication.AbstractAuthentication;
+import org.gradle.internal.authentication.AllSchemesAuthentication;
+import org.gradle.internal.authentication.DefaultHttpHeaderAuthentication;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -71,17 +79,21 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @SuppressWarnings("this-escape")
 public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository<MavenRepositoryDescriptor> implements MavenArtifactRepository, ResolutionAwareRepository {
+    private static final Logger LOGGER = Logging.getLogger(DefaultMavenArtifactRepository.class);
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = (repoName, metadata, artifactResolver) -> true;
 
     private final Transformer<String, MavenArtifactRepository> describer;
@@ -100,6 +112,9 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     private final ChecksumService checksumService;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
+    private final MavenMirrorResolver mavenMirrorResolver;
+    private @Nullable URI mirrorAppliedTo;
+    private boolean mirrorCredentialsWarningLogged;
 
     @Inject
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -119,7 +134,8 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                           ChecksumService checksumService,
                                           ProviderFactory providerFactory,
-                                          VersionParser versionParser
+                                          VersionParser versionParser,
+                                          MavenMirrorResolver mavenMirrorResolver
     ) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, versionParser);
         this.describer = describer;
@@ -137,6 +153,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         this.checksumService = checksumService;
         this.metadataSources.setDefaults();
         this.instantiatorFactory = instantiatorFactory;
+        this.mavenMirrorResolver = mavenMirrorResolver;
     }
 
     @Override
@@ -247,7 +264,22 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
     @NonNull
     protected URI validateUrl() {
-        return urlArtifactRepository.validateUrl();
+        return applyMavenMirror(urlArtifactRepository.validateUrl());
+    }
+
+    private URI applyMavenMirror(URI url) {
+        return mavenMirrorResolver.mirrorFor(url, getName())
+            .map(mirror -> {
+                if (mirror.isBlocked()) {
+                    throw new InvalidUserDataException(String.format("Repository '%s' (%s) is blocked by Maven mirror '%s' declared in the Maven settings.", getName(), url, mirror.getId()));
+                }
+                if (!url.equals(mirrorAppliedTo)) {
+                    mirrorAppliedTo = url;
+                    LOGGER.lifecycle("Applying Maven mirror '{}' for repository '{}': {} -> {}", mirror.getId(), getName(), url, mirror.getUrl());
+                }
+                return mirror.getUrl();
+            })
+            .orElse(url);
     }
 
     @Override
@@ -333,7 +365,115 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     public RepositoryTransport getTransport(String scheme) {
-        return transportFactory.createTransport(scheme, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier());
+        return transportFactory.createTransport(scheme, getName(), getAuthenticationsForUrlInUse(), urlArtifactRepository.createRedirectVerifier());
+    }
+
+    /**
+     * The authentications to use for the URL the transport will actually contact.
+     *
+     * <p>When a Maven mirror replaces this repository's URL, the credentials configured on
+     * this repository belong to the original host and must not be sent to the mirror.
+     * Instead, following Maven semantics, the mirror's own credentials are used: the
+     * settings.xml {@code <server>} entry matching the mirror id, or the
+     * {@code <mirrorId>Username}/{@code <mirrorId>Password} Gradle property override.
+     */
+    private Collection<Authentication> getAuthenticationsForUrlInUse() {
+        URI originalUrl = urlArtifactRepository.getUrl();
+        if (originalUrl == null) {
+            return getConfiguredAuthentication();
+        }
+        Optional<MavenMirrorResolver.MirroredRepository> mirror = mavenMirrorResolver.mirrorFor(originalUrl, getName());
+        if (!mirror.isPresent()) {
+            return getConfiguredAuthentication();
+        }
+        if (mirror.get().isBlocked()) {
+            // Resolution fails in validateUrl() before the transport is used
+            return Collections.emptyList();
+        }
+        if (usesCredentials() && !mirrorCredentialsWarningLogged) {
+            mirrorCredentialsWarningLogged = true;
+            LOGGER.lifecycle("Ignoring credentials configured for repository '{}': its URL is rewritten by Maven mirror '{}' and the repository credentials do not apply to the mirror.", getName(), mirror.get().getId());
+        }
+        return mirrorAuthentication(mirror.get());
+    }
+
+    private Collection<Authentication> mirrorAuthentication(MavenMirrorResolver.MirroredRepository mirror) {
+        URI mirrorUrl = mirror.getUrl();
+        if (!mirrorUrl.getScheme().startsWith("http")) {
+            return Collections.emptyList();
+        }
+        MavenMirrorResolver.MirrorCredentials credentials = mirror.getCredentials();
+        if (credentials != null) {
+            return hostScoped(new AllSchemesAuthentication(new MirrorPasswordCredentials(credentials)), mirrorUrl);
+        }
+        MavenMirrorResolver.MirrorHttpHeader httpHeader = mirror.getHttpHeader();
+        if (httpHeader != null) {
+            DefaultHttpHeaderAuthentication authentication = new DefaultHttpHeaderAuthentication("header");
+            authentication.setCredentials(new MirrorHttpHeaderCredentials(httpHeader));
+            return hostScoped(authentication, mirrorUrl);
+        }
+        return Collections.emptyList();
+    }
+
+    private static Collection<Authentication> hostScoped(AbstractAuthentication authentication, URI mirrorUrl) {
+        authentication.addHost(mirrorUrl.getHost(), mirrorUrl.getPort());
+        return Collections.singleton(authentication);
+    }
+
+    private static class MirrorPasswordCredentials implements org.gradle.api.credentials.PasswordCredentials {
+        private final MavenMirrorResolver.MirrorCredentials credentials;
+
+        MirrorPasswordCredentials(MavenMirrorResolver.MirrorCredentials credentials) {
+            this.credentials = credentials;
+        }
+
+        @Override
+        public @Nullable String getUsername() {
+            return credentials.username();
+        }
+
+        @Override
+        public @Nullable String getPassword() {
+            return credentials.password();
+        }
+
+        @Override
+        public void setUsername(@Nullable String userName) {
+            throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
+        }
+
+        @Override
+        public void setPassword(@Nullable String password) {
+            throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
+        }
+    }
+
+    private static class MirrorHttpHeaderCredentials implements org.gradle.api.credentials.HttpHeaderCredentials {
+        private final MavenMirrorResolver.MirrorHttpHeader httpHeader;
+
+        MirrorHttpHeaderCredentials(MavenMirrorResolver.MirrorHttpHeader httpHeader) {
+            this.httpHeader = httpHeader;
+        }
+
+        @Override
+        public @Nullable String getName() {
+            return httpHeader.name();
+        }
+
+        @Override
+        public @Nullable String getValue() {
+            return httpHeader.value();
+        }
+
+        @Override
+        public void setName(@Nullable String name) {
+            throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
+        }
+
+        @Override
+        public void setValue(@Nullable String value) {
+            throw new UnsupportedOperationException("Maven mirror credentials cannot be modified");
+        }
     }
 
     protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> getLocallyAvailableResourceFinder() {

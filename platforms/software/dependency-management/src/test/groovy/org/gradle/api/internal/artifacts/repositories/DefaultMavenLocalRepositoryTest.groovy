@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -67,9 +68,14 @@ class DefaultMavenLocalRepositoryTest extends Specification {
             TestUtil.objectFactory(),
             urlArtifactRepositoryFactory,
             TestUtil.checksumService,
-            new VersionParser()
-
+            new VersionParser(),
+            noMirrors()
         )
+    }
+
+    @CompileStatic
+    static MavenMirrorResolver noMirrors() {
+        return { URI original, String name -> Optional.empty() } as MavenMirrorResolver
     }
 
     def "creates local repository"() {

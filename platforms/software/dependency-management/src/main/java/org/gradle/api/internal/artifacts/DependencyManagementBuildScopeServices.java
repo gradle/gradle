@@ -22,6 +22,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
@@ -50,8 +51,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenMirrorResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
@@ -78,6 +81,7 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
@@ -267,6 +271,11 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     @Provides
     MavenSettingsProvider createMavenSettingsProvider() {
         return new DefaultMavenSettingsProvider(new DefaultMavenFileLocations());
+    }
+
+    @Provides
+    MavenMirrorResolver createMavenMirrorResolver(MavenSettingsProvider mavenSettingsProvider, ProviderFactory providerFactory, StartParameterInternal startParameter, FileResourceListener fileResourceListener) {
+        return new DefaultMavenMirrorResolver(mavenSettingsProvider, new DefaultMavenFileLocations(), providerFactory, startParameter, fileResourceListener);
     }
 
     @Provides
