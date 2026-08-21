@@ -16,16 +16,14 @@
 
 package gradlebuild.basics.transforms
 
-import com.google.common.io.Files
 import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.provider.Property
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -35,6 +33,11 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.net.URI
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 
@@ -48,14 +51,14 @@ abstract class Minify : TransformAction<Minify.Parameters> {
         @get:Classpath
         val minifierClasspath: ConfigurableFileCollection
 
+        @get:Internal
+        val platformLibrary: RegularFileProperty
+
         @get:Classpath
         val minifiedLibraries: ConfigurableFileCollection
 
-        @get:Input
-        val minifierJavaVersion: Property<Int>
-
-        @get:Internal
-        val minifierJdkHome: DirectoryProperty
+        @get:Classpath
+        val minifierJmods: ConfigurableFileCollection
     }
 
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
@@ -80,8 +83,7 @@ abstract class Minify : TransformAction<Minify.Parameters> {
         if (spec == null) {
             outputs.file(artifact)
         } else {
-            val nameWithoutExtension = Files.getNameWithoutExtension(fileName)
-            minify(artifact.get().asFile, spec, outputs.file("$nameWithoutExtension-min.jar"))
+            minify(artifact.get().asFile, spec, outputs.file("${artifact.get().asFile.nameWithoutExtension}-min.jar"))
         }
     }
 
@@ -117,6 +119,33 @@ abstract class Minify : TransformAction<Minify.Parameters> {
     }
 
     private
+    fun generatedJdkJmods(): File {
+        val library = parameters.platformLibrary.asFile.get()
+        if (library.isFile) {
+            return library
+        }
+        val modules = FileSystems.getFileSystem(URI.create("jrt:/")).getPath("modules")
+        val written = mutableSetOf<String>()
+        val partial = File.createTempFile("platform", ".jar", library.parentFile.apply { mkdirs() })
+        ZipOutputStream(partial.outputStream().buffered()).use { out ->
+            Files.walk(modules).use { paths ->
+                paths.filter { it.toString().endsWith(".class") }.forEach { path ->
+                    val name = modules.relativize(path).toString().substringAfter('/')
+                    if (name != "module-info.class" && written.add(name)) {
+                        out.putNextEntry(ZipEntry(name))
+                        Files.copy(path, out)
+                        out.closeEntry()
+                    }
+                }
+            }
+        }
+        if (!partial.renameTo(library)) {
+            error("Minification: could not move the class library of the current JVM to $library")
+        }
+        return library
+    }
+
+    private
     fun minifyRules(artifact: File, spec: MinifySpec, output: File) = buildList {
         val removedPackages = spec.removePackages.map { "**${it.replace('.', '/')}/**" }
 
@@ -124,7 +153,7 @@ abstract class Minify : TransformAction<Minify.Parameters> {
             removedPackages.map { "!$it" }
         add("-injars '${artifact.absolutePath}'(${inputFilters.joinToString(",")})")
         add("-outjars '${output.absolutePath}'")
-        add("-libraryjars '${parameters.minifierJdkHome.get().asFile.absolutePath}/jmods'")
+        add("-libraryjars '${generatedJdkJmods().absolutePath}'")
         if (removedPackages.isNotEmpty()) {
             add("-libraryjars '${artifact.absolutePath}'(${removedPackages.joinToString(",")})")
         }

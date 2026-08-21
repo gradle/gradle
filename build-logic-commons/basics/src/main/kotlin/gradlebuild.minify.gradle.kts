@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.basics.DEFAULT_TARGET_JVM_VERSION
+import org.gradle.api.JavaVersion
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
 import gradlebuild.basics.transforms.MinifySpec
 import org.gradle.api.internal.attributes.AttributesFactory
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -222,9 +220,6 @@ val minifier = configurations.resolvable("minifier") {
 }
 
 plugins.withId("java-base") {
-    val minifierJdkLauncher = the<JavaToolchainService>().launcherFor {
-        languageVersion = JavaLanguageVersion.of(DEFAULT_TARGET_JVM_VERSION)
-    }
     dependencies {
         attributesSchema {
             attribute(minified)
@@ -245,8 +240,7 @@ plugins.withId("java-base") {
                 minifySpecsByCoordinates = minifyPatterns
                 minifierClasspath.from(minifier)
                 minifiedLibraries.from(libraryDependencies)
-                minifierJavaVersion = DEFAULT_TARGET_JVM_VERSION
-                minifierJdkHome = minifierJdkLauncher.get().metadata.installationPath
+                platformLibrary = layout.settingsDirectory.file("build/minifier/platform-${JavaVersion.current().majorVersion}.jar")
             }
         }
     }
