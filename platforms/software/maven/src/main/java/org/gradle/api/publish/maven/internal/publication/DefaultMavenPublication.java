@@ -21,7 +21,6 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
@@ -58,6 +57,8 @@ import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtif
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
+import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
+import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
@@ -97,7 +98,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     private final Set<String> silencedVariants = new HashSet<>();
     private MavenArtifact pomArtifact;
     private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
-    private TaskProvider<? extends Task> moduleDescriptorGenerator;
+    private TaskProvider<? extends GenerateModuleMetadata> moduleDescriptorGenerator;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
     private boolean populated;
@@ -196,16 +197,16 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     }
 
     @Override
-    public void setPomGenerator(TaskProvider<? extends Task> pomGenerator) {
+    public void setPomGenerator(TaskProvider<? extends GenerateMavenPom> pomGenerator) {
         if (pomArtifact != null) {
             metadataArtifacts.remove(pomArtifact);
         }
-        pomArtifact = new SingleOutputTaskMavenArtifact(pomGenerator, "pom", null, taskDependencyFactory);
+        pomArtifact = new SingleOutputTaskMavenArtifact(pomGenerator, pomGenerator.flatMap(GenerateMavenPom::getDestinationFile), "pom", null, taskDependencyFactory);
         metadataArtifacts.add(pomArtifact);
     }
 
     @Override
-    public void setModuleDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator) {
+    public void setModuleDescriptorGenerator(TaskProvider<? extends GenerateModuleMetadata> descriptorGenerator) {
         moduleDescriptorGenerator = descriptorGenerator;
         if (moduleMetadataArtifact != null) {
             metadataArtifacts.remove(moduleMetadataArtifact);
@@ -221,7 +222,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         if (moduleDescriptorGenerator == null) {
             return;
         }
-        moduleMetadataArtifact = new SingleOutputTaskMavenArtifact(moduleDescriptorGenerator, "module", null, taskDependencyFactory);
+        moduleMetadataArtifact = new SingleOutputTaskMavenArtifact(moduleDescriptorGenerator, moduleDescriptorGenerator.flatMap(GenerateModuleMetadata::getOutputFile), "module", null, taskDependencyFactory);
         metadataArtifacts.add(moduleMetadataArtifact);
         moduleDescriptorGenerator = null;
     }

@@ -17,9 +17,11 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -30,15 +32,17 @@ import java.io.File;
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     private final TaskProvider<? extends Task> generator;
+    private final Provider<RegularFile> file;
     private final IvyPublicationCoordinates coordinates;
     private final String extension;
     private final String type;
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationCoordinates coordinates, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
+    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, Provider<RegularFile> file, IvyPublicationCoordinates coordinates, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.generator = generator;
+        this.file = file;
         this.coordinates = coordinates;
         this.extension = extension;
         this.type = type;
@@ -80,7 +84,7 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     public File getFile() {
-        return generator.get().getOutputs().getFiles().getSingleFile();
+        return file.get().getAsFile();
     }
 
     public boolean isEnabled() {

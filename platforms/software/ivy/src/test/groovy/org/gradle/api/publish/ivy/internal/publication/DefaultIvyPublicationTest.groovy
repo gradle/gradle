@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -40,13 +40,13 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates
-import org.gradle.api.tasks.TaskOutputs
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -388,13 +388,8 @@ class DefaultIvyPublicationTest extends Specification {
 
     def createArtifactGenerator(File file) {
         return Stub(TaskProvider) {
-            get() >> Stub(Task) {
-                getOutputs() >> Stub(TaskOutputs) {
-                    getFiles() >> Stub(FileCollection) {
-                        getSingleFile() >> file
-                    }
-                }
-            }
+            get() >> Stub(Task)
+            flatMap(_) >> Providers.of({ file } as RegularFile)
         }
     }
 

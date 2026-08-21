@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -44,6 +44,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
@@ -53,7 +54,6 @@ import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInte
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskOutputs
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestFile
@@ -627,13 +627,8 @@ class DefaultMavenPublicationTest extends Specification {
 
     def createArtifactGenerator(File file) {
         return Stub(TaskProvider) {
-            get() >> Stub(Task) {
-                getOutputs() >> Stub(TaskOutputs) {
-                    getFiles() >> Stub(FileCollection) {
-                        getSingleFile() >> file
-                    }
-                }
-            }
+            get() >> Stub(Task)
+            flatMap(_) >> Providers.of({ file } as RegularFile)
         }
     }
 
