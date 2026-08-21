@@ -33,6 +33,7 @@ import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.internal.Describables;
@@ -415,9 +416,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addEntryTasks(List<? extends Task> tasks) {
-            for (Task task : tasks) {
-                plan.addEntryTask(task);
+        public void addEntryNodes(List<? extends Node> nodes) {
+            for (Node node : nodes) {
+                plan.addEntryNode(node);
             }
         }
 
