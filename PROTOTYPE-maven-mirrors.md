@@ -1,6 +1,6 @@
 # Prototype: Maven settings.xml mirror support
 
-Status: design note + spike. Not for merge. Feature flag: `org.gradle.mirror.maven.settings` (Gradle property, off by default), implemented as `StartParameterBuildOptions.SharedMavenSettingsOption`.
+Status: design note + spike. Not for merge. Feature flag: `org.gradle.mirror.maven.settings` (Gradle property, off by default), implemented as `StartParameterBuildOptions.SharedMavenMirrorSettingsOption`.
 
 Scope of this cut:
 
@@ -55,20 +55,19 @@ Build scope means the parse and its memoized result are per build in the tree, s
 composite parses `settings.xml` once per included build that declares a Maven repository.
 Build-tree scope would parse once for the whole tree.
 
-`MavenMirrorResolver` cannot simply move, though: it injects `ProviderFactory` for the
-configuration cache input, and both `ProviderFactory` and the underlying
-`ValueSourceProviderFactory` are `@ServiceScope(Scope.Build.class)`, registered in
-`BuildScopeServices`. Since `Scope.Build extends Scope.BuildTree`, a build-tree scoped
-service cannot see them. The fingerprint they ultimately write to is already tree-wide
-(`ConfigurationCacheFingerprintController` is build-tree scoped) — it is only the API for
-reaching it that is build scoped, and dependency-management cannot reach the controller
-directly.
+`MavenMirrorResolver` cannot simply move, though: it injects `ProviderFactory` to read the
+`<mirrorId>Username`/`<mirrorId>Password` credential overrides, and `ProviderFactory` is
+`@ServiceScope(Scope.Build.class)`, registered in `BuildScopeServices`. Since
+`Scope.Build extends Scope.BuildTree`, a build-tree scoped service cannot see it.
+
+The configuration cache input is *not* what pins the scope: `FileResourceListener` is
+already `@ServiceScope(Scope.BuildTree)`, so declaring the settings files works from either
+scope. Only the credential property reads are build scoped.
 
 Tree-wide caching therefore means splitting along that seam: a build-tree scoped holder
-owning the parse and the memoized mirror list, plus a thin build-scoped
-`MavenMirrorResolver` that delegates to it and registers the CC input through its own
-`ProviderFactory`. Registering the value source once per build is harmless, since the
-fingerprint is tree-scoped and dedupes.
+owning the parse, the memoized mirror list and the input declaration, plus a thin
+build-scoped `MavenMirrorResolver` that delegates to it and layers the property overrides
+on top through its own `ProviderFactory`.
 
 Left at build scope for this cut. Widening only `MavenSettingsProvider` would not help —
 it is stateless and re-parses on every `buildSettings()` call, so all the memoization
@@ -118,7 +117,7 @@ Maven's model: a `<server>` entry in settings.xml whose `<id>` equals the mirror
 - `MavenMirrorResolver` grows `credentialsFor(mirrorId)`; `Settings.getServers()` is already parsed by `MavenSettingsProvider`, so no new parsing.
 - In `getAuthenticationsForUrlInUse()`, instead of returning an empty collection, return a `BasicAuthentication` carrying the server's username/password, host-scoped to the **mirror** host via `AuthenticationInternal.addHost(...)`.
 - Decryption comes for free dependency-wise: the dependency-management runtime classpath already ships what Maven itself uses — `org.apache.maven.settings.crypto.DefaultSettingsDecrypter` (maven-settings-builder 3.9.5) backed by `org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher` + plexus-cipher 2.0. Non-`{...}` values pass through as plaintext; `{...}` values decrypt against `settings-security.xml` (honoring `-Dsettings.security`). A failed decryption should warn at lifecycle and resolve *without* credentials (deterministic 401) rather than send the undecrypted blob.
-- CC story is already in place: the server entries live in settings.xml, whose checksum is a CC input while the feature flag is on. `settings-security.xml` would need adding to the same checksum value source.
+- CC story is already in place: the server entries live in settings.xml, which is declared as a CC input while the feature flag is on. `settings-security.xml` would need declaring alongside it.
 - Limits: HTTP basic auth only (no wagon `privateKey`/scp, no NTLM config, no `<configuration>` HTTP headers). Fine for the realistic use case (Artifactory/Nexus/Sonatype mirrors).
 
 **Beyond basic auth: what Maven's `<server>` can declare.** The settings.xml server model (verified against the `maven-settings` 3.9.5 jar Gradle ships) is: `username`/`password`, `privateKey`/`passphrase`, `filePermissions`/`directoryPermissions`, and a free-form `configuration` block. What that means for auth:
@@ -141,34 +140,36 @@ The realistic parity target for Option A is therefore: `username`/`password` (wi
 How the prototype implements it:
 
 - `MirroredRepository` carries optional `MirrorCredentials`, resolved once with the wildcard mirror. Precedence: `<mirrorId>Username`/`<mirrorId>Password` Gradle properties (both must be set; a partial pair warns and is ignored) > the settings.xml `<server>` entry whose id matches the mirror id > none.
-- Passwords from the `<server>` entry go through `DefaultSecDispatcher` + `DefaultPlexusCipher` — the same classes Maven uses, already shipped in the distribution. Plaintext values pass through without touching settings-security.xml; `{...}`-wrapped values decrypt against the master password in `~/.m2/settings-security.xml` (the `settings.security` system property relocates it, as in Maven). A failed decryption logs a lifecycle warning naming the `<mirrorId>Username`/`<mirrorId>Password` remedy and the mirror is used *without* credentials (deterministic 401 instead of sending the undecrypted blob).
+- Passwords from the `<server>` entry go through `DefaultSecDispatcher` + `DefaultPlexusCipher` — the same classes Maven uses, already shipped in the distribution. Plaintext values pass through without touching settings-security.xml; `{...}`-wrapped values decrypt against the master password in `~/.m2/settings-security.xml`. Only that default location is supported: plexus-sec-dispatcher still honours its own `settings.security` system property internally, so a build that sets it decrypts against a file this cut neither points at nor declares as a configuration cache input. A failed decryption logs a lifecycle warning naming the `<mirrorId>Username`/`<mirrorId>Password` remedy and the mirror is used *without* credentials (deterministic 401 instead of sending the undecrypted blob).
 - `DefaultMavenArtifactRepository` wraps the credentials in an `AllSchemesAuthentication` — the same type Gradle uses for plain `credentials {}` blocks, so basic/digest/NTLM negotiation works — host-scoped to the **mirror** host only.
 - When the matching `<server>` entry has no username/password but declares `<configuration><httpHeaders>`, the first header is applied as an `HttpHeaderAuthentication`/`HttpHeaderCredentials` pair (token auth), also host-scoped to the mirror. Only the first header can be honored — Gradle's transport attaches one header credential per host — so additional headers log a lifecycle warning and are ignored. Malformed header configuration (missing name or value) warns and is skipped. Username/password on the same server entry win over headers.
-- CC: the per-mirror credential property reads are tracked by `ProviderFactory`; settings-security.xml content is folded into the existing `MavenSettingsChecksumValueSource` (only fingerprinted while the feature flag is on).
+- CC: the per-mirror credential property reads are tracked by `ProviderFactory`; settings-security.xml is declared as a build input alongside the two settings.xml files (only while the feature flag is on).
 - Verified by unit tests (property override, partial-pair fallback, real decryption against a generated settings-security.xml, decryption-failure fallback) and integration tests against a BASIC-auth mirror (plaintext server entry, encrypted server entry, property override), in both forking and configuration-cache variants.
 
 Not applicable: interactive password prompting (Maven can prompt; the Gradle daemon is non-interactive).
 
 ## 5. `mavenLocal()` interaction
 
-`DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository` and its `createResolver()` calls the inherited `validateUrl()` — so it *would* inherit mirror rewriting if nothing were done. Two guards make the exclusion airtight:
+`DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository` and its `createResolver()` calls the inherited `validateUrl()` — so it inherits mirror rewriting like any other Maven repository. It is excluded by the rule rather than by the wiring: the resolver only rewrites `http`/`https` URLs, and `mavenLocal()` is always a `file://` URL, as is any other file-based Maven repo. (Maven's own `*` matches file repos too, but rewriting local paths to a remote mirror is more surprising than useful; `external:*` semantics are a follow-up anyway.)
 
-1. `DefaultBaseRepositoryFactory.createMavenLocalRepository()` constructs the local repo via the `DefaultMavenLocalArtifactRepository` constructor, which passes a `null` mirror resolver to the parent — mirroring is structurally impossible for `mavenLocal()` regardless of URL.
-2. Defense in depth: the resolver only rewrites `http`/`https` URLs. `mavenLocal()` is always a `file://` URL, as is any other file-based Maven repo. (Maven's own `*` matches file repos too, but rewriting local paths to a remote mirror is more surprising than useful; `external:*` semantics are a follow-up anyway.)
+The local repository is therefore constructed with the same injected resolver as every other Maven repo — no `null` special case in the constructor chain — and `mirrorFor` checks the URL scheme before it computes any mirrors, so a file-based repository never pays for reading the Maven settings. `MavenSettingsMirrorIntegrationTest` covers this end to end: with a `mirrorOf=*` mirror configured and no HTTP expectations registered for it, `mavenLocal()` still resolves, and contacting the mirror would fail the build.
 
 ## 6. Configuration cache
 
 Two inputs need to be CC-safe; both are handled in this cut:
 
-- **The feature flag** — a build option (`SharedMavenSettingsOption`, following `BuildCacheDebugLoggingOption`), so it lands on `StartParameterInternal.isSharedMavenSettings()` rather than being read through `ProviderFactory`. Two consequences:
+- **The feature flag** — a build option (`SharedMavenMirrorSettingsOption`, following `BuildCacheDebugLoggingOption`), so it lands on `StartParameterInternal.isSharedMavenMirrorSettings()` rather than being read through `ProviderFactory`. Two consequences:
   - Build options resolve from `gradle.properties` and system properties, **not** `-P` project properties, so the flag is set with `-Dorg.gradle.mirror.maven.settings=true` or a `gradle.properties` entry.
-  - Reading it off the start parameter is not a fingerprint input, so it is hashed into the CC *entry key* instead (`ConfigurationCacheKey.putBoolean(startParameter.isSharedMavenSettings)`, alongside `isOffline`). This is required for correctness, not tidiness: with the feature off nothing reads the settings, so there is no fingerprint input that turning it *on* could invalidate — without the key component a build would reuse an entry stored with mirrors off and silently skip the mirror. Keying rather than invalidating also means toggling back and forth hits both entries.
-- **The settings contents** — tracked via `MavenSettingsChecksumValueSource`, a `ValueSource` that hashes the user and global settings.xml files plus settings-security.xml (without parsing any of them), honouring the `settings.security` system property for the last one's location. The resolver obtains it *only when the feature flag is on*, so builds with the flag off carry no settings entry in their CC fingerprint. Value sources are re-evaluated at cache-load time, so editing any of those files invalidates the cached configuration with the reason `Maven settings content has changed` (the value source implements `Describable`). The name is deliberately not `settings.xml`: three files feed the checksum, and naming one of them made the reason point at the wrong file when only settings-security.xml changed.
+  - Reading it off the start parameter is not a fingerprint input, so it is hashed into the CC *entry key* instead (`ConfigurationCacheKey.putBoolean(startParameter.isSharedMavenMirrorSettings)`, alongside `isOffline`). This is required for correctness, not tidiness: with the feature off nothing reads the settings, so there is no fingerprint input that turning it *on* could invalidate — without the key component a build would reuse an entry stored with mirrors off and silently skip the mirror. Keying rather than invalidating also means toggling back and forth hits both entries.
+- **The settings contents** — declared with `FileResourceListener.fileObserved`, the same mechanism dependency-management already uses for `verification-metadata.xml` (`StartParameterResolutionOverride`) and dependency lock files (`LockFileReaderWriter`). `DefaultMavenMirrorResolver.observeSettingsFiles()` declares the user settings.xml, the global settings.xml, and `~/.m2/settings-security.xml`. The call sits inside `computeMirrors()` after the `isEnabled()` early return, so builds with the flag off register no settings input at all. Editing any of the three invalidates the cached configuration with a per-file reason: `file '<path>/settings.xml' has changed`.
 
 Design choices worth noting:
 
-- The value source returns a *checksum*, not the parsed mirror. The fingerprint check on every CC-hit build therefore only hashes two small files; the expensive `buildSettings()` parse still happens at most once per build and only when a Maven repository URL is actually finalized.
-- Value sources cannot inject build-scoped services, so the value source constructs `DefaultMavenFileLocations` itself to locate the files. This duplicates the location logic entry point (not the logic), and means the `M2_HOME`/`user.home` inputs behind it are not individually tracked — acceptable for the prototype.
+- `FileResourceListener` rather than a `ValueSource`. An earlier cut used a `MavenSettingsChecksumValueSource` that hashed all three files into one string. `FileResourceListener` is `@ServiceScope(Scope.BuildTree)` and Build scope is a child of it, so the resolver can simply inject it. That is better on three counts: the invalidation reason names the file that actually changed rather than a deliberately vague combined name; the CC-hit check is a file-hash comparison instead of instantiating a class and re-running `obtain()`; and the value source no longer has to re-locate the settings files itself, which it did only because value sources cannot inject services.
+- Files are declared even when absent, so creating a settings.xml that was previously missing invalidates the cache just as editing one does — a missing file fingerprints as missing rather than not at all.
+- Nothing parses the settings during the fingerprint check. The expensive `buildSettings()` parse still happens at most once per build and only when a Maven repository URL is actually finalized.
+- Still untracked: `buildSettings()` passes `System.getProperties()` to Maven, which interpolates system properties into the settings. Neither this nor the earlier value source captured that. The `M2_HOME`/`user.home` inputs behind `DefaultMavenFileLocations` are likewise not individually tracked — acceptable for the prototype.
+- `MavenSettingsProvider` stays build scoped. Moving it to build-tree scope and declaring the input there would also cover `mavenLocal()`, whose `<localRepository>` is read from settings.xml and is *not* tracked today — but that would fingerprint settings.xml for every `mavenLocal()` user regardless of this feature flag. That is arguably a bug worth fixing, and is deliberately left as a separate change.
 
 ## 7. `mirrorOf` matching
 
@@ -191,13 +192,13 @@ Notes:
 
 ## What the spike changes
 
-- New: `mvnsettings/MavenMirrorResolver.java` (internal interface + `MirroredRepository` value), `mvnsettings/DefaultMavenMirrorResolver.java`, `mvnsettings/MirrorOfMatcher.java` (port of Maven's pattern matcher), `mvnsettings/MavenSettingsChecksumValueSource.java` (CC input tracking).
-- `StartParameterBuildOptions`: new `SharedMavenSettingsOption` for `org.gradle.mirror.maven.settings`, with the flag stored on `StartParameterInternal` and carried over the daemon wire by `BuildActionSerializer`.
+- New: `mvnsettings/MavenMirrorResolver.java` (internal interface + `MirroredRepository` value), `mvnsettings/DefaultMavenMirrorResolver.java` (also declares the settings files as CC inputs via `FileResourceListener`), `mvnsettings/MirrorOfMatcher.java` (port of Maven's pattern matcher).
+- `StartParameterBuildOptions`: new `SharedMavenMirrorSettingsOption` for `org.gradle.mirror.maven.settings`, with the flag stored on `StartParameterInternal` and carried over the daemon wire by `BuildActionSerializer`.
 - `ConfigurationCacheKey`: the flag is part of the entry key, so toggling it cannot reuse a stale entry.
 - `DependencyManagementBuildScopeServices`: registers the resolver (build scope).
 - `DefaultDependencyManagementServices.createBaseRepositoryFactory` / `DefaultBaseRepositoryFactory`: thread the resolver through to Maven repo construction.
-- `DefaultMavenArtifactRepository`: nullable resolver field; `validateUrl()` applies the mirror and logs `Applying Maven mirror '<id>' for repository '<name>': <original> -> <mirror>` (once per rewrite target); `getTransport()` replaces the repository's configured authentication (with a lifecycle warning when it had any) by the mirror's own credentials, host-scoped to the mirror.
-- `DefaultMavenLocalArtifactRepository`: passes `null` resolver.
+- `DefaultMavenArtifactRepository`: resolver field; `validateUrl()` applies the mirror and logs `Applying Maven mirror '<id>' for repository '<name>': <original> -> <mirror>` (once per rewrite target); `getTransport()` replaces the repository's configured authentication (with a lifecycle warning when it had any) by the mirror's own credentials, host-scoped to the mirror.
+- `DefaultMavenLocalArtifactRepository`: passes the injected resolver through to the parent, which declines to mirror its `file://` URL.
 
 ## Gaps before this could be a real feature
 

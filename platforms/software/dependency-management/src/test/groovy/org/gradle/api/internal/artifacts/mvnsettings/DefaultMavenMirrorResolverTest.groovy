@@ -22,6 +22,7 @@ import org.codehaus.plexus.util.xml.Xpp3DomBuilder
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,14 +38,16 @@ class DefaultMavenMirrorResolverTest extends Specification {
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def settingsProvider = Mock(MavenSettingsProvider)
+    def fileLocations = Mock(MavenFileLocations)
     def providerFactory = Mock(ProviderFactory)
     def startParameter = new StartParameterInternal()
+    def fileResourceListener = Mock(FileResourceListener)
 
-    def resolver = new DefaultMavenMirrorResolver(settingsProvider, providerFactory, startParameter)
+    def resolver = new DefaultMavenMirrorResolver(settingsProvider, fileLocations, providerFactory, startParameter, fileResourceListener)
 
     def "returns no mirror when feature flag is not set"() {
         given:
-        assert !startParameter.sharedMavenSettings
+        assert !startParameter.sharedMavenMirrorSettings
 
         when:
         def result = resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
@@ -52,6 +55,32 @@ class DefaultMavenMirrorResolverTest extends Specification {
         then:
         !result.present
         0 * settingsProvider.buildSettings()
+    }
+
+    def "declares the settings files as build inputs when enabled"() {
+        given:
+        def userSettings = tmpDir.file("user-settings.xml")
+        def globalSettings = tmpDir.file("global-settings.xml")
+        featureEnabled()
+        mirrors(mirror("corp-mirror", "*", "https://mirror.example.com/maven2"))
+        fileLocations.getUserSettingsFile() >> userSettings
+        fileLocations.getGlobalSettingsFile() >> globalSettings
+
+        when:
+        resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
+
+        then:
+        1 * fileResourceListener.fileObserved(userSettings)
+        1 * fileResourceListener.fileObserved(globalSettings)
+        1 * fileResourceListener.fileObserved({ File it -> it.name == "settings-security.xml" })
+    }
+
+    def "declares no build inputs when the feature flag is not set"() {
+        when:
+        resolver.mirrorFor(URI.create("https://repo1.maven.org/maven2/"), "test-repo")
+
+        then:
+        0 * fileResourceListener.fileObserved(_)
     }
 
     def "returns no mirror when settings declare no mirrors"() {
@@ -376,9 +405,8 @@ class DefaultMavenMirrorResolverTest extends Specification {
         gradleProperties.each { name, value ->
             providerFactory.gradleProperty(name) >> Providers.of(value)
         }
-        startParameter.sharedMavenSettings = true
+        startParameter.sharedMavenMirrorSettings = true
         providerFactory.gradleProperty(_) >> Providers.notDefined()
-        providerFactory.of(MavenSettingsChecksumValueSource, _) >> Providers.notDefined()
     }
 
     private void mirrors(Mirror... mirrors) {

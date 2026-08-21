@@ -138,7 +138,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshDependencies());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
-            encoder.writeBoolean(startParameter.isSharedMavenSettings());
+            encoder.writeBoolean(startParameter.isSharedMavenMirrorSettings());
             encoder.writeString(startParameter.getWatchFileSystemMode().name());
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             valueSerializer.write(encoder, startParameter.getConfigurationCache());
@@ -242,7 +242,7 @@ public class BuildActionSerializer {
             startParameter.setRefreshDependencies(decoder.readBoolean());
             startParameter.setBuildCacheEnabledInternal(decoder.readBoolean(), false);
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
-            startParameter.setSharedMavenSettings(decoder.readBoolean());
+            startParameter.setSharedMavenMirrorSettings(decoder.readBoolean());
             startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(valueSerializer.read(decoder));

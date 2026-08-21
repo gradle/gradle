@@ -25,7 +25,9 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.util.internal.MavenUtil;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
@@ -36,33 +38,40 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 
+@NullMarked
 public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
     private static final Logger LOGGER = Logging.getLogger(DefaultMavenMirrorResolver.class);
     private static final String CENTRAL_REPOSITORY_ID = "central";
     private static final String CENTRAL_REPOSITORY_URL = normalizeUrl(ArtifactRepositoryContainer.MAVEN_CENTRAL_URL);
 
     private final MavenSettingsProvider settingsProvider;
+    private final MavenFileLocations fileLocations;
     private final ProviderFactory providerFactory;
+    private final FileResourceListener fileResourceListener;
     private final StartParameterInternal startParameter;
 
     private volatile boolean computed;
     private List<MirrorCandidate> mirrors = ImmutableList.of();
 
-    public DefaultMavenMirrorResolver(MavenSettingsProvider settingsProvider, ProviderFactory providerFactory, StartParameterInternal startParameter) {
+    public DefaultMavenMirrorResolver(MavenSettingsProvider settingsProvider, MavenFileLocations fileLocations, ProviderFactory providerFactory, StartParameterInternal startParameter, FileResourceListener fileResourceListener) {
         this.settingsProvider = settingsProvider;
+        this.fileLocations = fileLocations;
         this.providerFactory = providerFactory;
+        this.fileResourceListener = fileResourceListener;
         this.startParameter = startParameter;
     }
 
     @Override
     public Optional<MirroredRepository> mirrorFor(URI original, String repositoryName) {
-        List<MirrorCandidate> candidates = getMirrors();
-        if (candidates.isEmpty()) {
-            return Optional.empty();
-        }
         String scheme = original.getScheme();
         if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
-            // Only remote repositories are mirrored, in particular this excludes mavenLocal()
+            // Only remote repositories are mirrored, in particular this excludes mavenLocal().
+            // Checked before the mirrors are computed so that a file based repository does not
+            // pay for reading the Maven settings at all.
+            return Optional.empty();
+        }
+        List<MirrorCandidate> candidates = getMirrors();
+        if (candidates.isEmpty()) {
             return Optional.empty();
         }
         String effectiveId = effectiveIdOf(original, repositoryName);
@@ -105,11 +114,10 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
         if (!isEnabled()) {
             return ImmutableList.of();
         }
-        // Obtaining the value source registers the settings.xml and settings-security.xml
-        // checksums as a build input, so that the configuration cache is invalidated when
-        // the Maven settings change. This only happens when the feature is enabled, so a
-        // build with the option off registers no input at all.
-        providerFactory.of(MavenSettingsChecksumValueSource.class, spec -> {}).getOrNull();
+        // Declare the settings files as build inputs, so that editing any of them invalidates
+        // the configuration cache. Only reached when the feature is enabled, so a build with
+        // the option off registers no input at all.
+        observeSettingsFiles();
         ImmutableList.Builder<MirrorCandidate> result = ImmutableList.builder();
         try {
             Settings settings = settingsProvider.buildSettings();
@@ -241,24 +249,44 @@ public class DefaultMavenMirrorResolver implements MavenMirrorResolver {
 
     /**
      * Decrypts a Maven-encrypted ({@code {...}}-wrapped) password using the same mechanism as
-     * Maven itself: the master password from settings-security.xml, honoring the
-     * {@code settings.security} system property for its location. Plaintext values pass through
-     * untouched, without reading settings-security.xml at all.
+     * Maven itself: the master password from {@code ~/.m2/settings-security.xml}. Plaintext values
+     * pass through untouched, without reading settings-security.xml at all.
+     *
+     * <p>Only the default location is supported. plexus-sec-dispatcher still lets its own
+     * {@code settings.security} system property redirect the read, and a build that sets it
+     * decrypts against a file this prototype does not declare as a configuration cache input.
      */
     private static @Nullable String decryptPassword(@Nullable String password) throws Exception {
         if (password == null) {
             return null;
         }
         DefaultSecDispatcher secDispatcher = new DefaultSecDispatcher(new DefaultPlexusCipher());
-        secDispatcher.setConfigurationFile(defaultSecuritySettingsFile().getAbsolutePath());
+        secDispatcher.setConfigurationFile(securitySettingsFile().getAbsolutePath());
         return secDispatcher.decrypt(password);
     }
 
-    static File defaultSecuritySettingsFile() {
+    private static File securitySettingsFile() {
         return new File(MavenUtil.getUserMavenDir(), "settings-security.xml");
     }
 
+    /**
+     * Registers the files the mirror configuration is read from as build inputs. Both settings.xml
+     * files are declared even when absent: creating one has to invalidate the cache just as editing
+     * one does, and a missing file fingerprints as missing rather than not at all.
+     */
+    private void observeSettingsFiles() {
+        observe(fileLocations.getUserSettingsFile());
+        observe(fileLocations.getGlobalSettingsFile());
+        observe(securitySettingsFile());
+    }
+
+    private void observe(@Nullable File settingsFile) {
+        if (settingsFile != null) {
+            fileResourceListener.fileObserved(settingsFile);
+        }
+    }
+
     private boolean isEnabled() {
-        return startParameter.isSharedMavenSettings();
+        return startParameter.isSharedMavenMirrorSettings();
     }
 }

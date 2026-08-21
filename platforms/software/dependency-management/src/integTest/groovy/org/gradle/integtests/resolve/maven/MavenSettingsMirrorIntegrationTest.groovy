@@ -176,6 +176,30 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         file('libs').assertHasDescendants('projectA-1.0.jar')
     }
 
+    def "mavenLocal is never mirrored"() {
+        given:
+        def mirrorRepo = mavenHttpRepo("mirror")
+        // No HTTP expectations are declared for the mirror, so contacting it fails the build
+        mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        m2.mavenRepo().module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString())
+
+        buildFile << """
+            repositories {
+                mavenLocal()
+            }
+        """
+
+        when:
+        using m2
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then: "the wildcard mirror does not apply to the file based local repository"
+        outputDoesNotContain("Applying Maven mirror")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
     def "blocked mirror fails resolution of the repositories it matches"() {
         given:
         def originalRepo = mavenHttpRepo("original")
@@ -433,8 +457,8 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         postBuildOutputContains("Configuration cache entry stored.")
         outputContains("Applying Maven mirror 'test-mirror' for repository 'MavenRepo': ${RepositoryHandler.MAVEN_CENTRAL_URL} -> ${mirrorRepo2.uri}")
 
-        and: "the invalidation reason is only logged when not in quiet configuration cache mode"
-        GradleContextualExecuter.configCache || output.contains("Maven settings content has changed")
+        and: "the invalidation reason names the settings file that changed"
+        GradleContextualExecuter.configCache || output.contains("settings.xml' has changed")
     }
 
     def "changing maven settings does not invalidate the configuration cache when mirrors are disabled"() {
@@ -530,44 +554,67 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         postBuildOutputContains("Configuration cache entry stored.")
 
-        and: "the invalidation reason is only logged when not in quiet configuration cache mode"
-        GradleContextualExecuter.configCache || output.contains("Maven settings content has changed")
-    }
-
-    def "changing a relocated maven settings security file invalidates the configuration cache"() {
-        given:
-        def mirrorRepo = mavenHttpRepo("mirror")
-        mirrorRepo.module("org.test", "projectA", "1.0").publish().allowAll()
-        writeMirrorSettings(mirrorRepo.uri.toString())
-        def relocatedSecurityFile = file("secure/settings-security.xml")
-        relocatedSecurityFile.text = securitySettings()
-
-        buildFile << """
-            repositories {
-                mavenCentral()
-            }
-        """
-
-        when:
-        using m2
-        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true", "-Dsettings.security=${relocatedSecurityFile.absolutePath}")
-        run 'retrieve'
-
-        then:
-        postBuildOutputContains("Configuration cache entry stored.")
-
-        when: "the file named by the settings.security system property changes"
-        relocatedSecurityFile.text = securitySettings("<!-- rotated -->")
-        using m2
-        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true", "-Dsettings.security=${relocatedSecurityFile.absolutePath}")
-        run 'retrieve'
-
-        then:
-        postBuildOutputContains("Configuration cache entry stored.")
+        and: "the invalidation reason names the settings file that changed"
+        GradleContextualExecuter.configCache || output.contains("settings-security.xml' has changed")
     }
 
     private static String securitySettings(String extra = "") {
         return "<settingsSecurity>${extra}<master>${ENCRYPTED_MASTER}</master></settingsSecurity>"
+    }
+
+    def "changing maven settings re-mirrors every project, not only the first one configured"() {
+        given: "two projects that each declare their own mirrored repository"
+        def originalRepo = mavenHttpRepo("original")
+        def mirrorRepo1 = mavenHttpRepo("mirror1")
+        def mirrorRepo2 = mavenHttpRepo("mirror2")
+        mirrorRepo1.module("org.test", "projectA", "1.0").publish().allowAll()
+        mirrorRepo2.module("org.test", "projectA", "1.0").publish().allowAll()
+        writeMirrorSettings(mirrorRepo1.uri.toString())
+
+        createDirs("a", "b")
+        settingsFile << "include 'a', 'b'"
+        file("a/build.gradle").text = mirroredProject("repo-a", originalRepo.uri.toString())
+        file("b/build.gradle").text = mirroredProject("repo-b", originalRepo.uri.toString())
+
+        when:
+        using m2
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
+        run ':a:retrieve', ':b:retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+        outputContains("Applying Maven mirror 'test-mirror' for repository 'repo-a': ${originalRepo.uri} -> ${mirrorRepo1.uri}")
+        outputContains("Applying Maven mirror 'test-mirror' for repository 'repo-b': ${originalRepo.uri} -> ${mirrorRepo1.uri}")
+
+        when: "the settings name a different mirror"
+        writeMirrorSettings(mirrorRepo2.uri.toString())
+        using m2
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
+        run ':a:retrieve', ':b:retrieve'
+
+        then: "the whole entry is invalidated, so neither project keeps the old mirror"
+        postBuildOutputContains("Configuration cache entry stored.")
+        outputContains("Applying Maven mirror 'test-mirror' for repository 'repo-a': ${originalRepo.uri} -> ${mirrorRepo2.uri}")
+        outputContains("Applying Maven mirror 'test-mirror' for repository 'repo-b': ${originalRepo.uri} -> ${mirrorRepo2.uri}")
+        file('a/libs').assertHasDescendants('projectA-1.0.jar')
+        file('b/libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    private static String mirroredProject(String repositoryName, String repositoryUrl) {
+        return """
+            configurations { compile }
+            dependencies { compile 'org.test:projectA:1.0' }
+            repositories {
+                maven {
+                    name = '${repositoryName}'
+                    url = '${repositoryUrl}'
+                }
+            }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
     }
 
     def "turning the feature on does not reuse a configuration cache entry stored with it off"() {

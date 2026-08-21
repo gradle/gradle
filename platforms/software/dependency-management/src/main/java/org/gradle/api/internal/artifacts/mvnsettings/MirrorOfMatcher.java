@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
@@ -30,6 +31,7 @@ import java.net.URI;
  * does this matcher. A matching negation short-circuits to "no match"; positive tokens keep
  * scanning so a later negation can override an earlier wildcard ({@code *,!central}).
  */
+@NullMarked
 final class MirrorOfMatcher {
     private static final String WILDCARD = "*";
     private static final String EXTERNAL_WILDCARD = "external:*";

@@ -112,7 +112,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     private final ChecksumService checksumService;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
-    private final @Nullable MavenMirrorResolver mavenMirrorResolver;
+    private final MavenMirrorResolver mavenMirrorResolver;
     private @Nullable URI mirrorAppliedTo;
     private boolean mirrorCredentialsWarningLogged;
 
@@ -135,7 +135,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
                                           ChecksumService checksumService,
                                           ProviderFactory providerFactory,
                                           VersionParser versionParser,
-                                          @Nullable MavenMirrorResolver mavenMirrorResolver
+                                          MavenMirrorResolver mavenMirrorResolver
     ) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, versionParser);
         this.describer = describer;
@@ -268,9 +268,6 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     private URI applyMavenMirror(URI url) {
-        if (mavenMirrorResolver == null) {
-            return url;
-        }
         return mavenMirrorResolver.mirrorFor(url, getName())
             .map(mirror -> {
                 if (mirror.isBlocked()) {
@@ -381,9 +378,6 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
      * {@code <mirrorId>Username}/{@code <mirrorId>Password} Gradle property override.
      */
     private Collection<Authentication> getAuthenticationsForUrlInUse() {
-        if (mavenMirrorResolver == null) {
-            return getConfiguredAuthentication();
-        }
         URI originalUrl = urlArtifactRepository.getUrl();
         if (originalUrl == null) {
             return getConfiguredAuthentication();
@@ -435,12 +429,12 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
         @Override
         public @Nullable String getUsername() {
-            return credentials.getUsername();
+            return credentials.username();
         }
 
         @Override
         public @Nullable String getPassword() {
-            return credentials.getPassword();
+            return credentials.password();
         }
 
         @Override
@@ -462,13 +456,13 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         }
 
         @Override
-        public String getName() {
-            return httpHeader.getName();
+        public @Nullable String getName() {
+            return httpHeader.name();
         }
 
         @Override
-        public String getValue() {
-            return httpHeader.getValue();
+        public @Nullable String getValue() {
+            return httpHeader.value();
         }
 
         @Override

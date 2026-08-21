@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
@@ -29,6 +30,7 @@ import java.util.Optional;
  * <p>Prototype: only enabled when the {@code org.gradle.mirror.maven.settings}
  * Gradle property is set to {@code true}.
  */
+@NullMarked
 @ServiceScope(Scope.Build.class)
 public interface MavenMirrorResolver {
 
@@ -106,42 +108,13 @@ public interface MavenMirrorResolver {
     /**
      * An HTTP header used to authenticate against a mirror.
      */
-    final class MirrorHttpHeader {
-        private final String name;
-        private final String value;
-
-        public MirrorHttpHeader(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getValue() {
-            return value;
-        }
+    record MirrorHttpHeader(String name, String value) {
     }
 
     /**
-     * Username and password for a mirror.
+     * Username and password for a mirror. Either may be absent: Maven allows a {@code <server>}
+     * entry to declare only one of them.
      */
-    final class MirrorCredentials {
-        private final @Nullable String username;
-        private final @Nullable String password;
-
-        public MirrorCredentials(@Nullable String username, @Nullable String password) {
-            this.username = username;
-            this.password = password;
-        }
-
-        public @Nullable String getUsername() {
-            return username;
-        }
-
-        public @Nullable String getPassword() {
-            return password;
-        }
+    record MirrorCredentials(@Nullable String username, @Nullable String password) {
     }
 }

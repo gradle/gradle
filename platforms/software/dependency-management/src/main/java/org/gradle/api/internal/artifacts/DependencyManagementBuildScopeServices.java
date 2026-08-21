@@ -274,8 +274,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    MavenMirrorResolver createMavenMirrorResolver(MavenSettingsProvider mavenSettingsProvider, ProviderFactory providerFactory, StartParameterInternal startParameter) {
-        return new DefaultMavenMirrorResolver(mavenSettingsProvider, providerFactory, startParameter);
+    MavenMirrorResolver createMavenMirrorResolver(MavenSettingsProvider mavenSettingsProvider, ProviderFactory providerFactory, StartParameterInternal startParameter, FileResourceListener fileResourceListener) {
+        return new DefaultMavenMirrorResolver(mavenSettingsProvider, new DefaultMavenFileLocations(), providerFactory, startParameter, fileResourceListener);
     }
 
     @Provides

@@ -139,8 +139,8 @@ class ConfigurationCacheStartParameter internal constructor(
      * key rather than a fingerprint input: with the feature off nothing reads the settings, so there is no
      * input to invalidate when it is turned on.
      */
-    val isSharedMavenSettings
-        get() = startParameter.isSharedMavenSettings
+    val isSharedMavenMirrorSettings
+        get() = startParameter.isSharedMavenMirrorSettings
 
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies

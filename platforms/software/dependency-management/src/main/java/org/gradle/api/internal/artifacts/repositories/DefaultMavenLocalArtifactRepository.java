@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenLocalPomMetadataSource;
@@ -65,10 +66,12 @@ public abstract class DefaultMavenLocalArtifactRepository extends DefaultMavenAr
                                                ObjectFactory objectFactory,
                                                DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                                ChecksumService checksumService,
-                                               VersionParser versionParser
+                                               VersionParser versionParser,
+                                               MavenMirrorResolver mavenMirrorResolver
     ) {
-        // mavenLocal() is the local repository, not a remote one: never apply Maven mirrors to it (null MavenMirrorResolver)
-        super(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser, null);
+        // mavenLocal() is the local repository, not a remote one. The resolver is passed through
+        // like any other Maven repository, and declines to mirror it because its URL is file based.
+        super(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser, mavenMirrorResolver);
         this.checksumService = checksumService;
     }
 
