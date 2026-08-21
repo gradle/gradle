@@ -53,15 +53,19 @@ publishing {
     configurePublishingTasks()
 }
 
+// The key ID is required because the signing key is a subkey.
+val pgpSigningKeyId: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY_ID")
 val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
+val pgpSigningPassPhrase: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE")
 val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
 
 tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
     useInMemoryPgpKeys(
-        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
-        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
+        pgpSigningKeyId.orNull,
+        pgpSigningKey.orNull,
+        pgpSigningPassPhrase.orNull
     )
     publishing.publications.configureEach {
         if (signArtifacts) {
