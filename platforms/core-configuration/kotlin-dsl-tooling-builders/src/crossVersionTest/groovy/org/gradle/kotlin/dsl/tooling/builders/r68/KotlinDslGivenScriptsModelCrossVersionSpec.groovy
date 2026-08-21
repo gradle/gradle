@@ -22,7 +22,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters.setModelParameters
 
-@TargetGradleVersion(">=6.8 <9.8")
+@TargetGradleVersion(">=6.8")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
 class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsModelCrossVersionSpec {
 
@@ -33,6 +33,7 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
         def requestedScripts = spec.scripts.values()
 
         when:
+        maybeExpectExplicitScriptsDeprecation()
         def model = loadToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, false, true, requestedScripts)
         }
@@ -56,6 +57,7 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
         """
 
         when:
+        maybeExpectExplicitScriptsDeprecation()
         def model = loadToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, true, true, [buildFileKts])
         }

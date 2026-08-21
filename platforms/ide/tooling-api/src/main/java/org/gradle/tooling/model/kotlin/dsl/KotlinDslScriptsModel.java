@@ -60,6 +60,7 @@ public interface KotlinDslScriptsModel {
 
     /**
      * Script models by file.
+     *
      * @since 6.0
      */
     Map<File, KotlinDslScriptModel> getScriptModels();

@@ -60,9 +60,6 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
         }
     }
 
-    // Since Gradle 9.8 the scripts property passed below emits a deprecation warning.
-    // The r980 spec covers current versions, expecting the warning.
-    @TargetGradleVersion(">=6.0 <9.8")
     def "multi-scripts model is dehydrated over the wire"() {
 
         given:
@@ -70,6 +67,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
         buildFileKts << ""
 
         when:
+        maybeExpectExplicitScriptsDeprecation()
         def model = loadToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, true, true, [buildFileKts])
         }
