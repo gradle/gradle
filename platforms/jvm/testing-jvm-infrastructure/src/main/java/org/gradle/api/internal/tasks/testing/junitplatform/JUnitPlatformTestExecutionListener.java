@@ -222,12 +222,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        executionSkipped(testIdentifier);
-    }
-
-    private void executionSkipped(TestIdentifier testIdentifier) {
         executionStarted(testIdentifier);
-        reportSkipped(testIdentifier);
+        reportSkipped(testIdentifier, normalizeSkipReason(reason));
     }
 
     @Override
@@ -246,7 +242,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testExecutionResult.getStatus() == ABORTED) {
             testExecutionResult.getThrowable().ifPresent(throwable -> resultProcessor.failure(getId(testIdentifier), DefaultTestFailure.fromTestAssumptionFailure(throwable)));
-            reportSkipped(testIdentifier);
+            reportSkipped(testIdentifier, null);
             return;
         }
         if (testExecutionResult.getStatus() == FAILED) {
@@ -285,13 +281,13 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
     }
 
-    private void reportSkipped(TestIdentifier testIdentifier) {
+    private void reportSkipped(TestIdentifier testIdentifier, @Nullable String reason) {
         Objects.requireNonNull(currentTestPlan);
         currentTestPlan.getChildren(testIdentifier).stream()
             .filter(child -> !wasStarted(child))
-            .forEach(this::executionSkipped);
+            .forEach(child -> executionSkipped(child, reason));
         if (testIdentifier.isTest()) {
-            resultProcessor.completed(getId(testIdentifier), completeEvent(SKIPPED));
+            resultProcessor.completed(getId(testIdentifier), completeEvent(SKIPPED, reason));
         } else if (hasClassSource(testIdentifier)) {
             resultProcessor.completed(getId(testIdentifier), completeEvent());
         }
@@ -338,11 +334,19 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private TestCompleteEvent completeEvent() {
-        return completeEvent(null);
+        return completeEvent(null, null);
     }
 
-    private TestCompleteEvent completeEvent(@Nullable ResultType resultType) {
-        return new TestCompleteEvent(clock.getCurrentTime(), resultType);
+    private TestCompleteEvent completeEvent(@Nullable ResultType resultType, @Nullable String skipReason) {
+        return new TestCompleteEvent(clock.getCurrentTime(), resultType, skipReason);
+    }
+
+    @Nullable
+    private static String normalizeSkipReason(@Nullable String reason) {
+        if (reason == null || reason.trim().isEmpty()) {
+            return null;
+        }
+        return reason;
     }
 
     private boolean wasStarted(TestIdentifier testIdentifier) {

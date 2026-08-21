@@ -85,9 +85,9 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> im
     }
 
     @Override
-    public void skipped(Instant endTime, @Nullable TestFailure assumptionFailure) {
+    public void skipped(Instant endTime, @Nullable TestFailure assumptionFailure, @Nullable String skipReason) {
         markCompleted();
-        delegate.skipped(endTime, assumptionFailure);
+        delegate.skipped(endTime, assumptionFailure, skipReason);
     }
 
     @Override
