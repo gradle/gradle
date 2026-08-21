@@ -56,6 +56,7 @@ import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.event.AbstractBroadcastDispatch
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.flow.services.BuildWorkResultProvider
+import org.gradle.internal.flow.services.ConfigurationCacheOutcomeProvider
 import org.gradle.internal.scripts.GradleScript
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
@@ -192,6 +193,27 @@ object UnsupportedFingerprintFlowProviders : Codec<BuildWorkResultProvider> {
         logUnsupported(action) {
             text(" ")
             reference(BuildWorkResultProvider::class)
+            text(" used at configuration time")
+        }
+    }
+}
+
+
+object UnsupportedFingerprintConfigurationCacheOutcomeProvider : Codec<ConfigurationCacheOutcomeProvider> {
+    override suspend fun WriteContext.encode(value: ConfigurationCacheOutcomeProvider) {
+        logUnsupported("serialize")
+    }
+
+    override suspend fun ReadContext.decode(): ConfigurationCacheOutcomeProvider? {
+        logUnsupported("deserialize")
+        return null
+    }
+
+    private
+    fun IsolateContext.logUnsupported(action: String) {
+        logUnsupported(action) {
+            text(" ")
+            reference(ConfigurationCacheOutcomeProvider::class)
             text(" used at configuration time")
         }
     }

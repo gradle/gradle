@@ -49,6 +49,8 @@ import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessLis
 import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
+import org.gradle.internal.cc.impl.problems.DefaultConfigurationCacheOutcomeSource
+import org.gradle.internal.flow.services.ConfigurationCacheOutcomeSource
 import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
 import org.gradle.internal.cc.impl.promo.PromoInputsListener
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
@@ -114,7 +116,10 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         when {
             // Collect and report problems. Don't suggest enabling CC if it is on, even if implicitly (e.g. enabled by isolated projects).
             // Most likely, the user who tries IP is already aware of CC and nudging will be just noise.
-            modelParameters.isConfigurationCache -> add(ConfigurationCacheProblems::class.java)
+            modelParameters.isConfigurationCache -> {
+                add(ConfigurationCacheProblems::class.java)
+                add(ConfigurationCacheOutcomeSource::class.java, DefaultConfigurationCacheOutcomeSource::class.java)
+            }
             // Allow nudging to enable CC if it is off and there is no explicit decision. CC doesn't work for model building so do not nudge there.
             !requirements.startParameter.configurationCache.isExplicit && !requirements.isCreatesModel -> add(ConfigurationCachePromoHandler::class.java)
             // Do not nudge if CC is explicitly disabled or if models are requested.

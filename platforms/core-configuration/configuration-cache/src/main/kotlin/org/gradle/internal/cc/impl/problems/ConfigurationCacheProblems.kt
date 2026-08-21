@@ -206,6 +206,28 @@ class ConfigurationCacheProblems(
         cacheActionDescription = actionDescription
     }
 
+    /**
+     * Records the actual fate of the entry as decided when the entry was finalized.
+     * The last recorded value wins: an entry committed before the execution phase can
+     * still be discarded when the entry is finalized again at the end of the build.
+     */
+    fun entryCommitted() {
+        entryFinalizeResult = EntryFinalizeResult.COMMITTED
+    }
+
+    fun entryDiscarded() {
+        entryFinalizeResult = EntryFinalizeResult.DISCARDED
+    }
+
+    private
+    enum class EntryFinalizeResult {
+        NONE, COMMITTED, DISCARDED
+    }
+
+    @Volatile
+    private
+    var entryFinalizeResult = EntryFinalizeResult.NONE
+
     fun onStoreSerializationError() {
         seenSerializationErrorOnStore = true
     }
@@ -511,11 +533,9 @@ class ConfigurationCacheProblems(
         }
 
         override fun beforeComplete(failure: Throwable?) {
-            val summary = summarizer.get()
-
-            val fateOfEntryInBuild = fateOfEntryInBuild(summary)
-            fateOfEntryInBuild.message?.let { log(it) }
-            buildOperationRunner.emitConfigurationCacheEntryOutcomeOperation(fateOfEntryInBuild.outcome, summary.consoleProblemCount)
+            val (fateMessage, consoleProblemCount, entryOutcomeKind) = memoizedFateOfEntryInBuild
+            fateMessage?.let { log(it) }
+            buildOperationRunner.emitConfigurationCacheEntryOutcomeOperation(entryOutcomeKind.toOperationOutcome(), consoleProblemCount)
 
             if (isIsolatedProjectsDangerouslyIgnoreProblems) {
                 logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
@@ -524,13 +544,68 @@ class ConfigurationCacheProblems(
     }
 
     /**
-     * The final fate of a configuration caching entry for this build invocation, and the console message reporting it.
+     * The final fate of a configuration caching entry for this build invocation: the console
+     * message reporting it, the problem count, and the outcome classification.
      */
     private
-    data class FateOfEntryInBuild(val outcome: Outcome, val message: String?)
+    data class FateOfEntryInBuild(val message: String?, val consoleProblemCount: Int, val entryOutcomeKind: EntryOutcomeKind?)
+
+    /**
+     * The fate is computed once, from the problem summary at the time of the first query, and every
+     * consumer — the console message, the build operation and any earlier query — observes that same value.
+     * Late problems remain visible in the report but no longer change the reported outcome, which is
+     * decided at [org.gradle.internal.cc.impl.DefaultConfigurationCache.finalizeCacheEntry] anyway.
+     */
+    private
+    val memoizedFateOfEntryInBuild: FateOfEntryInBuild by lazy {
+        val summary = summarizer.get()
+        FateOfEntryInBuild(fateMessageOf(summary), summary.consoleProblemCount, entryOutcomeKindOf(summary))
+    }
+
+    /**
+     * The outcome for the configuration cache entry of this build invocation, as exposed to
+     * build logic.
+     *
+     * Unlike the console message, this classifies the outcome along user-facing lines,
+     * consuming the actual commit/discard decision recorded when the entry was finalized:
+     * a deliberately skipped store (incompatible tasks, graceful degradation, read-only miss)
+     * is distinguished from a failed one (problems, serialization error, build failure before
+     * the entry could be stored).
+     *
+     * Must only be queried once the scheduled work of the build has completed. Querying memoizes
+     * the fate, so the console message and the entry outcome build operation report the same value.
+     */
+    internal
+    fun queryEntryOutcomeKind(): EntryOutcomeKind = checkNotNull(memoizedFateOfEntryInBuild.entryOutcomeKind) {
+        // Unreachable from build logic: the cache action is determined before any user code runs,
+        // so a build in which a flow action was registered always has one.
+        "The configuration cache outcome is not available because the cache action was never determined."
+    }
+
+    private
+    fun EntryOutcomeKind?.toOperationOutcome(): Outcome = when (this) {
+        null -> Outcome.UNDETERMINED
+        EntryOutcomeKind.REUSED -> Outcome.REUSED
+        EntryOutcomeKind.STORED -> Outcome.STORED
+        EntryOutcomeKind.STORE_SKIPPED -> Outcome.STORE_SKIPPED
+        EntryOutcomeKind.STORE_FAILED -> Outcome.STORE_FAILED
+    }
+
+    private
+    fun entryOutcomeKindOf(summary: Summary): EntryOutcomeKind? = when {
+        !::cacheAction.isInitialized -> null
+        cacheAction is Load -> EntryOutcomeKind.REUSED
+        cacheAction == SkipStore -> EntryOutcomeKind.STORE_SKIPPED
+        entryFinalizeResult == EntryFinalizeResult.COMMITTED -> EntryOutcomeKind.STORED
+        seenSerializationErrorOnStore -> EntryOutcomeKind.STORE_FAILED
+        shouldDegradeGracefully() -> EntryOutcomeKind.STORE_SKIPPED
+        incompatibleTasks.isNotEmpty() && summary.consoleProblemCount == 0 -> EntryOutcomeKind.STORE_SKIPPED
+        summary.consoleProblemCount > 0 && isWarningMode -> EntryOutcomeKind.STORE_SKIPPED
+        else -> EntryOutcomeKind.STORE_FAILED
+    }
 
     @Suppress("CyclomaticComplexMethod")
-    private fun fateOfEntryInBuild(summary: Summary): FateOfEntryInBuild {
+    private fun fateMessageOf(summary: Summary): String? {
         val consoleProblemCount = summary.consoleProblemCount
         val deferredProblemCount = summary.deferredProblemCount
         val hasProblems = consoleProblemCount > 0
@@ -541,32 +616,29 @@ class ConfigurationCacheProblems(
         val updatedProjectsString = updatedProjects.counter("project")
         return when {
             // The build finished before the cache action was determined, e.g. because it failed early.
-            !::cacheAction.isInitialized -> FateOfEntryInBuild(
-                Outcome.UNDETERMINED,
-                when {
-                    hasTooManyProblems -> "Too many configuration cache problems found ($problemCountString)."
-                    hasProblems -> "Configuration cache problems found ($problemCountString)."
-                    else -> null
-                }
-            )
-            seenSerializationErrorOnStore && deferredProblemCount == 0 -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded due to serialization error.")
-            seenSerializationErrorOnStore -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded with $problemCountString.")
+            !::cacheAction.isInitialized -> when {
+                hasTooManyProblems -> "Too many configuration cache problems found ($problemCountString)."
+                hasProblems -> "Configuration cache problems found ($problemCountString)."
+                else -> null
+            }
+            seenSerializationErrorOnStore && deferredProblemCount == 0 -> "Configuration cache entry discarded due to serialization error."
+            seenSerializationErrorOnStore -> "Configuration cache entry discarded with $problemCountString."
             else -> when (cacheAction) {
                 Store -> when {
-                    shouldDegradeGracefully() -> FateOfEntryInBuild(Outcome.NOT_STORED, "Configuration cache disabled${degradationSummary()}")
-                    discardStateDueToProblems && !hasProblems -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded${incompatibleTasksSummary()}")
-                    discardStateDueToProblems -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded with $problemCountString.")
-                    hasTooManyProblems -> FateOfEntryInBuild(Outcome.DISCARDED, "Configuration cache entry discarded with too many problems ($problemCountString).")
-                    !hasProblems -> FateOfEntryInBuild(Outcome.STORED, "Configuration cache entry stored.")
-                    else -> FateOfEntryInBuild(Outcome.STORED, "Configuration cache entry stored with $problemCountString.")
+                    shouldDegradeGracefully() -> "Configuration cache disabled${degradationSummary()}"
+                    discardStateDueToProblems && !hasProblems -> "Configuration cache entry discarded${incompatibleTasksSummary()}"
+                    discardStateDueToProblems -> "Configuration cache entry discarded with $problemCountString."
+                    hasTooManyProblems -> "Configuration cache entry discarded with too many problems ($problemCountString)."
+                    !hasProblems -> "Configuration cache entry stored."
+                    else -> "Configuration cache entry stored with $problemCountString."
                 }
                 is Update ->
-                    if (!hasProblems) FateOfEntryInBuild(Outcome.UPDATED, "Configuration cache entry updated for $updatedProjectsString, $reusedProjectsString up-to-date.")
-                    else FateOfEntryInBuild(Outcome.UPDATED, "Configuration cache entry updated for $updatedProjectsString with $problemCountString, $reusedProjectsString up-to-date.")
+                    if (!hasProblems) "Configuration cache entry updated for $updatedProjectsString, $reusedProjectsString up-to-date."
+                    else "Configuration cache entry updated for $updatedProjectsString with $problemCountString, $reusedProjectsString up-to-date."
                 is Load ->
-                    if (!hasProblems) FateOfEntryInBuild(Outcome.REUSED, "Configuration cache entry reused.")
-                    else FateOfEntryInBuild(Outcome.REUSED, "Configuration cache entry reused with $problemCountString.")
-                SkipStore -> FateOfEntryInBuild(Outcome.NOT_STORED, "Configuration cache disabled as cache is in read-only mode.")
+                    if (!hasProblems) "Configuration cache entry reused."
+                    else "Configuration cache entry reused with $problemCountString."
+                SkipStore -> "Configuration cache disabled as cache is in read-only mode."
             }
         }
     }

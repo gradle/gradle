@@ -27,6 +27,7 @@ dependencies {
     api(projects.coreFlowServicesApi)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
 
     api(libs.kotlinStdlib)
@@ -36,7 +37,6 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.modelReflect)
     implementation(projects.problemsApi)
-    implementation(projects.serviceLookup)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibKotlinExtensions)
 

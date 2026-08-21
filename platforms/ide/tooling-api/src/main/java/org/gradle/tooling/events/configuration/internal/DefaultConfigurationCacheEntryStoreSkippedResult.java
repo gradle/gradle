@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.configuration;
+package org.gradle.tooling.events.configuration.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoreSkippedResult;
 import org.jspecify.annotations.NullMarked;
 
-/**
- * A configuration cache entry was found and partially reused; the invalidated projects were re-configured and the entry was updated.
- *
- * @since 9.8.0
- */
-@Incubating
 @NullMarked
-public interface ConfigurationCacheEntryUpdatedResult extends ConfigurationCacheEntryOutcomeResult {
+public class DefaultConfigurationCacheEntryStoreSkippedResult extends AbstractConfigurationCacheEntryOutcomeResult implements ConfigurationCacheEntryStoreSkippedResult {
+    public DefaultConfigurationCacheEntryStoreSkippedResult(long startTime, long endTime, int problemCount) {
+        super(startTime, endTime, problemCount);
+    }
 }

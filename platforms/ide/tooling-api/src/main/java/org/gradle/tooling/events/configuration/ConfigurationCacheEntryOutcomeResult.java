@@ -28,9 +28,8 @@ import org.jspecify.annotations.NullMarked;
  *
  * @see ConfigurationCacheEntryStoredResult
  * @see ConfigurationCacheEntryReusedResult
- * @see ConfigurationCacheEntryUpdatedResult
- * @see ConfigurationCacheEntryDiscardedResult
- * @see ConfigurationCacheEntryNotStoredResult
+ * @see ConfigurationCacheEntryStoreFailedResult
+ * @see ConfigurationCacheEntryStoreSkippedResult
  * @see ConfigurationCacheEntryUndeterminedResult
  * @since 9.8.0
  */

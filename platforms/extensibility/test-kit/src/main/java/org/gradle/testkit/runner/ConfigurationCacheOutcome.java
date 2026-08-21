@@ -51,29 +51,21 @@ public enum ConfigurationCacheOutcome {
     REUSED,
 
     /**
-     * A configuration cache entry was found and partially reused; the invalidated projects were
-     * re-configured and the entry was updated.
+     * Storing a configuration cache entry failed, e.g. because of problems, a serialization
+     * error, or because the build failed before the entry could be stored.
      *
      * @since 9.8.0
      */
-    UPDATED,
+    STORE_FAILED,
 
     /**
-     * A configuration cache entry was written but discarded at the end of the build,
-     * e.g. because of problems, a serialization error or incompatible tasks.
+     * Storing a configuration cache entry was deliberately skipped, e.g. because an incompatible
+     * task was scheduled, configuration caching was degraded gracefully, or no reusable entry
+     * was found while the cache is in read-only mode.
      *
      * @since 9.8.0
      */
-    DISCARDED,
-
-    /**
-     * No configuration cache entry was stored on purpose: no reusable entry was found while the cache
-     * is in read-only mode, or configuration caching was degraded gracefully because incompatible
-     * tasks were scheduled.
-     *
-     * @since 9.8.0
-     */
-    NOT_STORED,
+    STORE_SKIPPED,
 
     /**
      * The configuration cache was enabled, but the outcome could not be determined,
