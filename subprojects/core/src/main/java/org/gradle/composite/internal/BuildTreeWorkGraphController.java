@@ -16,14 +16,11 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.execution.plan.Node;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -31,11 +28,6 @@ import java.util.function.Function;
  */
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeWorkGraphController {
-
-    /**
-     * Queues the given node of the given build for execution, but does not schedule it. Use {@link BuildTreeWorkGraph#scheduleWork(Consumer)} to schedule queued tasks.
-     */
-    void queueForExecution(BuildState targetBuild, Node node);
 
     /**
      * Runs the given action against a new, empty work graph. This allows tasks to be run while calculating the task graph of the build tree, for example to run `buildSrc` tasks or

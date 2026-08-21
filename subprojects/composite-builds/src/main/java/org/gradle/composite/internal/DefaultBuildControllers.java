@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
@@ -65,18 +66,51 @@ class DefaultBuildControllers implements BuildControllers {
 
     @Override
     public void populateWorkGraphs() {
-        boolean tasksDiscovered = true;
-        while (tasksDiscovered) {
-            tasksDiscovered = false;
-            for (BuildController buildController : ImmutableList.copyOf(controllers.values())) {
-                if (buildController.scheduleQueuedTasks()) {
-                    tasksDiscovered = true;
-                }
-            }
-        }
+        // Scheduling the work of a build can discover references to tasks in other builds. The target of each such
+        // reference has to be queued in the work graph of the build that owns it, which can in turn discover further
+        // references, and so on until no build has anything left to schedule.
+        boolean tasksScheduled;
+        do {
+            queueForeignNodesInOwningGraphs();
+            tasksScheduled = scheduleQueuedWork();
+        } while (tasksScheduled);
+
         for (BuildController buildController : controllers.values()) {
             buildController.finalizeWorkGraph();
         }
+    }
+
+    /**
+     * Queues the target of every reference discovered so far in the work graph of the build that owns it.
+     */
+    private void queueForeignNodesInOwningGraphs() {
+        // Queuing a target can add a controller for a build that is not yet present, so iterate over a copy
+        for (BuildController buildController : ImmutableList.copyOf(controllers.values())) {
+            for (TaskInAnotherBuild reference : buildController.takeCrossBuildReferences()) {
+                BuildState targetBuild = reference.getTargetBuild();
+                if (targetBuild == null) {
+                    throw new IllegalStateException("No target build is known for " + reference + ".");
+                }
+                getBuildController(targetBuild).queueForExecution(reference.getTargetNode());
+            }
+        }
+    }
+
+    /**
+     * Schedules the work queued for each build, including any build whose controller was just added by
+     * {@link #queueForeignNodesInOwningGraphs()}. Scheduling work can discover further references, which is why the
+     * caller has to keep queuing and scheduling until there is nothing left to schedule.
+     *
+     * @return true if any work was scheduled.
+     */
+    private boolean scheduleQueuedWork() {
+        boolean tasksScheduled = false;
+        for (BuildController buildController : controllers.values()) {
+            if (buildController.scheduleQueuedTasks()) {
+                tasksScheduled = true;
+            }
+        }
+        return tasksScheduled;
     }
 
     @Override

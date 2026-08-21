@@ -23,7 +23,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.problems.internal.ProblemsInternal;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -58,7 +57,6 @@ public class TaskNodeFactory implements HoldsProjectState {
     private final InMemoryLoadingCache<ExternalTaskKey, TaskInAnotherBuild> externalTaskNodes;
 
     public TaskNodeFactory(
-        BuildTreeWorkGraphController workGraphController,
         BuildStateRegistry buildRegistry,
         NodeValidator nodeValidator,
         BuildOperationRunner buildOperationRunner,
@@ -80,7 +78,7 @@ public class TaskNodeFactory implements HoldsProjectState {
             Path targetBuildPath = buildPathOf(key.task);
             BuildState targetBuild = buildRegistry.getBuild(targetBuildPath);
             TaskNode targetNode = localTaskNodes.get(key.task);
-            return TaskInAnotherBuild.of(targetNode, targetBuild, workGraphController);
+            return TaskInAnotherBuild.of(targetNode, targetBuild);
         });
     }
 

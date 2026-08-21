@@ -16,11 +16,13 @@
 
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Collection;
@@ -47,6 +49,14 @@ public interface BuildWorkGraph extends Stoppable {
      * Adds a finalization step to this work graph.
      */
     void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
+
+    /**
+     * See {@link org.gradle.execution.plan.ExecutionPlan#takeCrossBuildReferences()}.
+     * <p>
+     * Returns an empty list when nothing has been added to this work graph yet, so that asking for the discovered
+     * references does not create a plan for a build that has none.
+     */
+    ImmutableList<TaskInAnotherBuild> takeCrossBuildReferences();
 
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.
