@@ -134,6 +134,9 @@ abstract class JvmCompileExtension {
             }
             shouldRunAfter(tasks.named("test"))
         }
+        tasks.named("check") {
+            dependsOn(versionedTestTask)
+        }
         anyMultiReleaseTestTaskRegistered = true
         multiReleaseTestTaskActions.forEach { it.execute(versionedTestTask) }
     }
@@ -192,9 +195,6 @@ abstract class JvmCompileExtension {
 
         addCompilationFrom(versionedTest) {
             targetJvmVersion.set(testJvmVersion)
-        }
-        tasks.named("check") {
-            dependsOn(versionedTest)
         }
         return versionedTest
     }
