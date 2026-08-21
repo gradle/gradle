@@ -16,10 +16,14 @@
 
 package org.gradle.tooling.internal.consumer
 
-
+import org.gradle.tooling.GradleConnector
 import spock.lang.Specification
 
 class ConnectorServicesTest extends Specification {
+
+    def cleanup() {
+        ConnectorServices.reset()
+    }
 
     def "services sharing configuration"() {
         when:
@@ -43,5 +47,59 @@ class ConnectorServicesTest extends Specification {
 
         then:
         connector != null
+    }
+
+    def "discards the shared factory when closing it fails"() {
+        given:
+        def failure = new RuntimeException("cannot stop services")
+        //noinspection GroovyAccessibility
+        ConnectorServices.sharedConnectorFactory = new BrokenConnectorFactory(failure)
+
+        when:
+        ConnectorServices.close()
+
+        then:
+        def e = thrown(RuntimeException)
+        e === failure
+
+        when: "a connector is requested after the failed close"
+        def connector = ConnectorServices.createConnector()
+
+        then: "the broken factory is gone and a fresh one is used"
+        connector != null
+    }
+
+    def "resets the active connector count when closing the shared factory fails"() {
+        given:
+        //noinspection GroovyAccessibility
+        ConnectorServices.sharedConnectorFactory = new BrokenConnectorFactory(new RuntimeException("cannot stop services"))
+
+        when:
+        ConnectorServices.reset()
+
+        then:
+        thrown(RuntimeException)
+
+        and:
+        //noinspection GroovyAccessibility
+        ConnectorServices.activeConnectors == 0
+    }
+
+    private static class BrokenConnectorFactory implements GradleConnectorFactory {
+        private final RuntimeException failure
+
+        BrokenConnectorFactory(RuntimeException failure) {
+            this.failure = failure
+        }
+
+        @Override
+        GradleConnector createConnector() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void close() {
+            throw failure
+        }
     }
 }
