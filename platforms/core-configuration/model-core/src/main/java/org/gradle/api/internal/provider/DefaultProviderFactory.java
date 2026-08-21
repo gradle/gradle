@@ -32,6 +32,7 @@ import org.gradle.api.internal.provider.sources.process.DefaultExecOutput;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.PresentProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
@@ -98,7 +99,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
-    public <T> Provider<T> some(T value) {
+    public <T> PresentProvider<T> some(T value) {
         if (value == null) {
             throw new IllegalArgumentException("Value cannot be null");
         }

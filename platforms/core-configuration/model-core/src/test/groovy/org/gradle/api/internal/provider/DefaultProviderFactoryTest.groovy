@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Task
+import org.gradle.api.provider.PresentProvider
 import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -83,11 +84,22 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
 
         then:
         provider instanceof Providers.FixedValueProvider
+        provider instanceof PresentProvider
         provider.present
         provider.get() == value
+        provider.getOrNull() == value
 
         where:
         value << [true, 4L, 'hello', TEST_FILE]
+    }
+
+    def "some() provider ignores orElse"() {
+        given:
+        def provider = providerFactory.some('value')
+
+        expect:
+        provider.orElse('other').is(provider)
+        provider.orElse(providerFactory.none()).is(provider)
     }
 
     def "cannot create some() provider for null value"() {
