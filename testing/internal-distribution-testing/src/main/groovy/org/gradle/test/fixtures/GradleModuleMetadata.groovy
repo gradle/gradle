@@ -186,6 +186,15 @@ class GradleModuleMetadata {
             this
         }
 
+        /**
+         * Asserts the exact set of dependency constraints of this variant, in the order they are declared in the metadata.
+         */
+        Variant assertHasConstraintsInOrder(String... expected) {
+            assert getDependencyConstraints()*.coords == expected as List
+            checkedDependencyConstraints.addAll(getDependencyConstraints())
+            this
+        }
+
         List<DependencyConstraint> getDependencyConstraints() {
             if (dependencyConstraints == null) {
                 dependencyConstraints = (values.dependencyConstraints ?: []).collect {

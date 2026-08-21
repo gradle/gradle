@@ -70,6 +70,13 @@ class MavenScope {
         }
     }
 
+    /**
+     * Asserts the exact set of dependency management entries, in the order they are declared in the POM.
+     */
+    void assertDependencyManagementInOrder(String... expected) {
+        assert new ArrayList<String>(dependencyManagement.keySet()) == Arrays.asList(expected)
+    }
+
     boolean hasDependencyExclusion(String dependency, MavenDependencyExclusion exclusion) {
         def dep = expectDependency(dependency)
         dep.exclusions.contains(exclusion)
