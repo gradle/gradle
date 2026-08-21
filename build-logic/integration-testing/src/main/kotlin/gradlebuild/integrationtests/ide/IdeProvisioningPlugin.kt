@@ -131,7 +131,7 @@ class IdeProvisioningPlugin : Plugin<Project> {
         val arch = System.getProperty("os.arch").takeIf { it == "aarch64" }
         val (extension, classifier) = when {
             os.isWindows -> ArtifactType.ZIP to "win"
-            os.isLinux -> ArtifactType.TAR_GZ to arch
+            os.isLinux || os.name.contains("freebsd", ignoreCase = true) -> ArtifactType.TAR_GZ to arch
             os.isMacOsX -> ArtifactType.DMG to arch
             else -> error("Unsupported operating system for IntelliJ IDEA installer: $os")
         }
