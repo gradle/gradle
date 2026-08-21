@@ -93,6 +93,24 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
+    public <T> Provider<T> none() {
+        return Providers.notDefined();
+    }
+
+    @Override
+    public <T> Provider<T> some(T value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Value cannot be null");
+        }
+        return Providers.of(value);
+    }
+
+    @Override
+    public <T> Provider<T> nullable(@Nullable T value) {
+        return Providers.ofNullable(value);
+    }
+
+    @Override
     public Provider<String> environmentVariable(String variableName) {
         return environmentVariable(Providers.of(variableName));
     }
