@@ -71,6 +71,17 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository == repo2
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37492")
+    def "throws exception when system property value is a relative path"() {
+        when:
+        1 * system.getProperty("maven.repo.local") >> "repo"
+        locator.localMavenRepository
+
+        then:
+        def ex = thrown(CannotLocateLocalMavenRepositoryException)
+        ex.message == "The value of the 'maven.repo.local' system property must be an absolute path, but was a relative path: 'repo'. Specify an absolute path, or configure a custom Maven repository in your build instead."
+    }
+
     def "throws exception on broken global settings file with decent error message"() {
         given:
         def settingsFile = locations.globalSettingsFile
