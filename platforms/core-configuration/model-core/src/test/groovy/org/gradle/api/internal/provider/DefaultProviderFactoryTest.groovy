@@ -62,6 +62,61 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         File      | TEST_FILE
     }
 
+    def "none() returns a provider that has no value"() {
+        given:
+        def provider = providerFactory.none()
+
+        expect:
+        !provider.present
+        provider.getOrNull() == null
+
+        when:
+        provider.get()
+
+        then:
+        thrown(MissingValueException)
+    }
+
+    def "some() returns a fixed value provider for #value"() {
+        when:
+        def provider = providerFactory.some(value)
+
+        then:
+        provider instanceof Providers.FixedValueProvider
+        provider.present
+        provider.get() == value
+
+        where:
+        value << [true, 4L, 'hello', TEST_FILE]
+    }
+
+    def "cannot create some() provider for null value"() {
+        when:
+        providerFactory.some(null)
+
+        then:
+        def t = thrown(IllegalArgumentException)
+        t.message == 'Value cannot be null'
+    }
+
+    def "nullable() returns a provider with the given value when non-null"() {
+        given:
+        def provider = providerFactory.nullable('hello')
+
+        expect:
+        provider.present
+        provider.get() == 'hello'
+    }
+
+    def "nullable() returns a provider that has no value for null"() {
+        given:
+        def provider = providerFactory.nullable(null)
+
+        expect:
+        !provider.present
+        provider.getOrNull() == null
+    }
+
     def "can zip two providers"() {
         def big = withValues("big")
         def black = withValues("black")
