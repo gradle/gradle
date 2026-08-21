@@ -54,6 +54,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         printAttribute(indent, "Language Version", metadata.getLanguageVersion().getMajorVersion());
         printAttribute(indent, "Vendor", metadata.getVendor().getDisplayName());
         printAttribute(indent, "Architecture", metadata.getArchitecture());
+        printAttribute(indent, "Impl. Version", metadata.getJavaVersion());
         printAttribute(indent, "Is JDK", String.valueOf(metadata.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES)));
     }
 
