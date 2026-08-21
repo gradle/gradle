@@ -94,7 +94,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
     <T> Provider<T> none();
 
     /**
-     * Returns a {@link Provider} that always has the given value.
+     * Returns a {@link PresentProvider} that always has the given value.
      *
      * <p>Unlike {@link #provider(Callable)}, the value is not computed on demand: querying the returned provider simply returns the given value.
      * Prefer this method over {@link #provider(Callable)} when the value is already known.
@@ -107,7 +107,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @since 9.8.0
      */
     @Incubating
-    <T> Provider<T> some(T value);
+    <T> PresentProvider<T> some(T value);
 
     /**
      * Returns a {@link Provider} that always has the given value when it is non-null, or a provider that has no value otherwise,
