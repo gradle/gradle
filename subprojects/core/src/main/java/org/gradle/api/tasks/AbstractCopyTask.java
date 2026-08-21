@@ -42,6 +42,7 @@ import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
@@ -93,11 +94,12 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             CopySpecResolver resolver = spec.buildResolverRelativeToParent(parentResolver);
             String specPropertyName = specPropertyNameBuilder.toString();
 
-            getInputs().files((Callable<FileTree>) resolver::getSource)
-                .withPropertyName(specPropertyName)
+            TaskInputFilePropertyBuilderInternal sourceProperty =
+                (TaskInputFilePropertyBuilderInternal) getInputs().files((Callable<FileTree>) resolver::getSource);
+            sourceProperty.withPropertyName(specPropertyName)
                 .withPathSensitivity(PathSensitivity.RELATIVE)
-                .ignoreEmptyDirectories(false)
-                .skipWhenEmpty();
+                .skipWhenEmpty(this::shouldSkipWhenSourceIsEmpty)
+                .ignoreEmptyDirectories(false);
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
@@ -131,6 +133,13 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * @since 1.8
      */
     protected abstract CopyAction createCopyAction();
+
+    /**
+     * Whether this task should be skipped when its source files are empty.
+     */
+    /* package */ boolean shouldSkipWhenSourceIsEmpty() {
+        return true;
+    }
 
     @Inject
     protected abstract Instantiator getInstantiator();

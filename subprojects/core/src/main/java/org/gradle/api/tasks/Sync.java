@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
@@ -73,6 +74,38 @@ import java.io.File;
 public abstract class Sync extends AbstractCopyTask {
 
     private final PatternFilterable preserveInDestination = new PatternSet();
+
+    @SuppressWarnings("this-escape")
+    public Sync() {
+        getSkipWhenSourceIsEmpty().convention(true);
+    }
+
+    /**
+     * Whether this task is skipped when its source contains no files and no directories.
+     *
+     * <p>
+     * When this is {@code true}, which is the default, a task with an empty source does not run and its
+     * destination directory is not synchronized. What is left in the destination then depends on where it is:
+     * a destination inside the build directory is cleaned up, while one outside it keeps the files the source
+     * no longer contains.
+     *
+     * <p>
+     * When this is {@code false}, the task always runs its copy action, so an empty source empties the
+     * destination. Note that this task always deletes the entire contents of its destination directory, not
+     * only the files it copied there, except for anything matched by {@link #preserve(Action)}; disabling this
+     * extends that to a source that is empty, including one that is empty by mistake.
+     *
+     * @return whether this task is skipped when its source is empty
+     * @since 9.8.0
+     */
+    @Incubating
+    @Input
+    public abstract Property<Boolean> getSkipWhenSourceIsEmpty();
+
+    @Override
+    boolean shouldSkipWhenSourceIsEmpty() {
+        return getSkipWhenSourceIsEmpty().get();
+    }
 
     @Override
     protected CopyAction createCopyAction() {

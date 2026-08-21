@@ -494,6 +494,46 @@ include::sample[dir="snippets/reference/gradle-types/sync/groovy",files="build.g
 
 You can also perform the same function in your own tasks with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:sync(org.gradle.api.Action)[Project.sync(org.gradle.api.Action)] method.
 
+[[sec:sync_task_empty_source]]
+==== Synchronizing from an empty source
+
+A `Sync` task whose source contains no files and no directories does not run, so its destination directory is not synchronized.
+What is left in the destination then depends on where it is: a destination inside the build directory is cleaned up, while one outside it keeps the files the source no longer contains.
+
+Set `skipWhenSourceIsEmpty` to `false` to have the task synchronize its destination even then, so that an empty source empties the destination directory, honoring `preserve { ... }`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.named<Sync>("mySync") {
+    skipWhenSourceIsEmpty = false
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.named('mySync', Sync) {
+    skipWhenSourceIsEmpty = false
+}
+----
+=====
+====
+
+NOTE: `skipWhenSourceIsEmpty` is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature and is subject to change.
+
+[WARNING]
+====
+`Sync` always deletes the entire contents of its destination directory, not only the files it previously copied there.
+With `skipWhenSourceIsEmpty` disabled, that also happens when the source is empty - including when it is empty by mistake.
+Disable it only where nothing other than this task writes to the destination, and use `preserve { ... }` to retain anything the task does not manage.
+====
+
 [[sec:copying_single_file_example]]
 === Using the `Copy` task
 
