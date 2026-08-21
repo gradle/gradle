@@ -15,7 +15,7 @@ googleApiClient = "1.34.0!!" # our GCS version requires 1.34.0
 googleHttpClient = "1.42.2!!" # Covers googleHttpClient, googleHttpClientGson, googleHttpClientApacheV2, our Google API Client version requires it
 googleOauthClient = "1.34.1!!" # our Google API Client version requires 1.34.1
 gradleFileEvents = "0.2.8!!"
-gson = "2.13.1!!"
+gson = "2.14.0!!"
 guava = "33.4.6-jre"
 httpcore = "4.4.16!!"
 inject = "1!!"
@@ -35,7 +35,7 @@ jsch = "0.2.16!!"
 jsoup = "1.22.2!!"
 jspecify = "1.0.0!!"
 jsr305 = "3.0.2!!"
-kotlin = "2.4.10!!"
+kotlin = "2.4.20-RC!!"
 kotlinxSerialization = "1.11.0!!"
 kryo = "2.24.0!!"
 minlog = "1.2!!"
@@ -123,8 +123,10 @@ kotlinAssignmentCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "k
 kotlinBuildToolsApi = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-api", version.ref = "kotlin" }
 kotlinBuildToolsImpl = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-impl", version.ref = "kotlin" }
 kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
+kotlinCompilerRunner = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-runner", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinGradlePluginApi = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-api", version.ref = "kotlin" }
+kotlinGradlePluginAnnotations = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-annotations", version.ref = "kotlin" }
 kotlinMetadataJvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
 kotlinReflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver", version.ref = "kotlin" }
@@ -136,6 +138,7 @@ kotlinScriptingCompilerImplEmbeddable = { group = "org.jetbrains.kotlin", name =
 kotlinScriptingJvm = { group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm", version.ref = "kotlin" }
 kotlinScriptingJvmHost = { group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm-host", version.ref = "kotlin" }
 kotlinStdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlinToolingCore = { group = "org.jetbrains.kotlin", name = "kotlin-tooling-core", version.ref = "kotlin" }
 kotlinxCoroutinesJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinCoroutines" }
 kotlinxSerializationCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
 kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }

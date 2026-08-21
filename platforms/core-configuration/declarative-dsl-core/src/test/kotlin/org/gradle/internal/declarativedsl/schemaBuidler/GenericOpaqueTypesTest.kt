@@ -102,7 +102,7 @@ class GenericOpaqueTypesTest {
             """
             Using a parameterized type as a configured type is not supported
               in configured type 'org.gradle.internal.declarativedsl.schemaBuidler.GenericOpaqueTypesTest.GenericType<kotlin.String>'
-              in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericOpaqueTypesTest.OuterTypeWithGenericInside.configure((org.gradle.internal.declarativedsl.schemaBuidler.GenericOpaqueTypesTest.GenericType<kotlin.String>) -> kotlin.Unit): kotlin.Unit'
+              in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericOpaqueTypesTest.OuterTypeWithGenericInside.configure(org.gradle.internal.declarativedsl.schemaBuidler.GenericOpaqueTypesTest.GenericType<kotlin.String>.() -> kotlin.Unit): kotlin.Unit'
               in class 'org.gradle.internal.declarativedsl.schemaBuidler.GenericOpaqueTypesTest.OuterTypeWithGenericInside'
             """.trimIndent(),
             exception.message

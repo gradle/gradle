@@ -177,9 +177,12 @@ tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
     useInMemoryPgpKeys(pgpSigningKeyId.orNull, pgpSigningKey.orNull, pgpSigningPassPhrase.orNull)
-    publishing.publications.configureEach {
-        if (signArtifacts) {
-            signing.sign(this)
+    // Deferred: since Gradle 9.8 sign() realizes the POM artifact, which resolves the version-mapped classpaths and locks this project's variants
+    afterEvaluate {
+        publishing.publications.configureEach {
+            if (signArtifacts) {
+                signing.sign(this)
+            }
         }
     }
 }
