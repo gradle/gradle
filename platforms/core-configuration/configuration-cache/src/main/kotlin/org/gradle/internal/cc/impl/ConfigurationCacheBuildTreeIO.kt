@@ -22,14 +22,15 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
-import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.MutableReadContext
+import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SpecialDecoders
 import org.gradle.internal.serialize.graph.SpecialEncoders
 import org.gradle.internal.serialize.graph.WriteContext
@@ -96,29 +97,6 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         specialDecoders: SpecialDecoders = SpecialDecoders(),
         customClassDecoder: ClassDecoder? = null,
         readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
-    ): R =
-        withReadContextFor(
-            stateFile.stateFile.name,
-            stateFile.stateType,
-            stateFile::inputStream,
-            specialDecoders,
-            customClassDecoder,
-            readOperation
-        )
-
-    fun <R> withReadContextFor(
-        name: String,
-        stateType: StateType,
-        inputStream: () -> InputStream,
-        specialDecoders: SpecialDecoders = SpecialDecoders(),
-        customClassDecoder: ClassDecoder? = null,
-        readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
-    ): R
-
-    fun <R> withReadContextFor(
-        readContext: CloseableReadContext,
-        codecs: ConfigurationCacheCodecs,
-        readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
     ): R
 
     fun <R> withWriteContextFor(
@@ -150,6 +128,12 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
 
     fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry>
     fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>)
+
+    fun <T> readFingerprintFrom(
+        stateFileName: String,
+        decoder: Decoder,
+        action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
+    ): T
 }
 
 data class CandidateEntry(
