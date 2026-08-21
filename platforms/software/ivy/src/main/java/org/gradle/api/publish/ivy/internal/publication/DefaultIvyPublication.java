@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.VersionMappingStrategy;
@@ -52,7 +54,6 @@ import org.gradle.api.publish.ivy.internal.artifact.NormalizedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
-import org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
@@ -193,11 +194,19 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void setIvyDescriptorGenerator(TaskProvider<? extends GenerateIvyDescriptor> descriptorGenerator) {
+    public void setIvyDescriptorGenerator(Provider<RegularFile> descriptorFile, Provider<Boolean> generatorEnabled) {
         if (ivyDescriptorArtifact != null) {
             metadataArtifacts.remove(ivyDescriptorArtifact);
         }
-        ivyDescriptorArtifact = new SingleOutputTaskIvyArtifact(descriptorGenerator, descriptorGenerator.flatMap(GenerateIvyDescriptor::getDestinationFile), publicationCoordinates, "xml", "ivy", null, taskDependencyFactory);
+        ivyDescriptorArtifact = new SingleOutputTaskIvyArtifact(
+            descriptorFile,
+            generatorEnabled,
+            publicationCoordinates,
+            "xml",
+            "ivy",
+            null,
+            taskDependencyFactory
+        );
         ivyDescriptorArtifact.setName("ivy");
         metadataArtifacts.add(ivyDescriptorArtifact);
     }
@@ -219,7 +228,15 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         if (moduleDescriptorGenerator == null) {
             return;
         }
-        gradleModuleDescriptorArtifact = new SingleOutputTaskIvyArtifact(moduleDescriptorGenerator, moduleDescriptorGenerator.flatMap(GenerateModuleMetadata::getOutputFile), publicationCoordinates, "module", "json", null, taskDependencyFactory);
+        gradleModuleDescriptorArtifact = new SingleOutputTaskIvyArtifact(
+            moduleDescriptorGenerator.flatMap(GenerateModuleMetadata::getOutputFile),
+            moduleDescriptorGenerator.map(task -> task.getOnlyIf().isSatisfiedBy(task)),
+            publicationCoordinates,
+            "module",
+            "json",
+            null,
+            taskDependencyFactory
+        );
         metadataArtifacts.add(gradleModuleDescriptorArtifact);
         moduleDescriptorGenerator = null;
     }

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -39,6 +40,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.VersionMappingStrategy;
@@ -57,7 +59,6 @@ import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtif
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
-import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -197,11 +198,17 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     }
 
     @Override
-    public void setPomGenerator(TaskProvider<? extends GenerateMavenPom> pomGenerator) {
+    public void setPomGenerator(Provider<RegularFile> pomFile, Provider<Boolean> generatorEnabled) {
         if (pomArtifact != null) {
             metadataArtifacts.remove(pomArtifact);
         }
-        pomArtifact = new SingleOutputTaskMavenArtifact(pomGenerator, pomGenerator.flatMap(GenerateMavenPom::getDestinationFile), "pom", null, taskDependencyFactory);
+        pomArtifact = new SingleOutputTaskMavenArtifact(
+            pomFile,
+            generatorEnabled,
+            "pom",
+            null,
+            taskDependencyFactory
+        );
         metadataArtifacts.add(pomArtifact);
     }
 
@@ -222,7 +229,13 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         if (moduleDescriptorGenerator == null) {
             return;
         }
-        moduleMetadataArtifact = new SingleOutputTaskMavenArtifact(moduleDescriptorGenerator, moduleDescriptorGenerator.flatMap(GenerateModuleMetadata::getOutputFile), "module", null, taskDependencyFactory);
+        moduleMetadataArtifact = new SingleOutputTaskMavenArtifact(
+            moduleDescriptorGenerator.flatMap(GenerateModuleMetadata::getOutputFile),
+            moduleDescriptorGenerator.map(GenerateModuleMetadata::getEnabled),
+            "module",
+            null,
+            taskDependencyFactory
+        );
         metadataArtifacts.add(moduleMetadataArtifact);
         moduleDescriptorGenerator = null;
     }

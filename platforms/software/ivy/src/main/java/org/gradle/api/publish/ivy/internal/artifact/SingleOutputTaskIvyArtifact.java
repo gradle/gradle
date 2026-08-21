@@ -16,39 +16,44 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskProvider;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
-    private final TaskProvider<? extends Task> generator;
     private final Provider<RegularFile> file;
+    private final Provider<Boolean> enabled;
     private final IvyPublicationCoordinates coordinates;
     private final String extension;
     private final String type;
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, Provider<RegularFile> file, IvyPublicationCoordinates coordinates, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
+    public SingleOutputTaskIvyArtifact(
+        Provider<RegularFile> file,
+        Provider<Boolean> enabled,
+        IvyPublicationCoordinates coordinates,
+        String extension,
+        String type,
+        @Nullable String classifier,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
         super(taskDependencyFactory);
-        this.generator = generator;
         this.file = file;
+        this.enabled = enabled;
         this.coordinates = coordinates;
         this.extension = extension;
         this.type = type;
         this.classifier = classifier;
         this.buildDependencies = taskDependencyFactory.visitingDependencies(context -> {
-            context.add(generator.get());
+            context.add(file);
         });
     }
 
@@ -88,8 +93,7 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     public boolean isEnabled() {
-        TaskInternal task = (TaskInternal) generator.get();
-        return task.getOnlyIf().isSatisfiedBy(task);
+        return enabled.get();
     }
 
     @Override

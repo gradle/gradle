@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.publication
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -296,7 +295,7 @@ class DefaultIvyPublicationTest extends Specification {
     def "resolving the publishable files does not throw if gradle metadata is not activated"() {
         given:
         def publication = createPublication()
-        publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
+        publication.setIvyDescriptorGenerator(createFileProvider(ivyDescriptorFile), Providers.of(true))
 
         when:
         publication.publishableArtifacts.files.files
@@ -381,15 +380,19 @@ class DefaultIvyPublicationTest extends Specification {
             notationParser,
             versionMappingStrategy
         )
-        publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
+        publication.setIvyDescriptorGenerator(createFileProvider(ivyDescriptorFile), Providers.of(true))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(moduleDescriptorFile))
         return publication
     }
 
+    def createFileProvider(File file) {
+        return Providers.of({ file } as RegularFile)
+    }
+
     def createArtifactGenerator(File file) {
         return Stub(TaskProvider) {
-            get() >> Stub(Task)
-            flatMap(_) >> Providers.of({ file } as RegularFile)
+            flatMap(_) >> createFileProvider(file)
+            map(_) >> Providers.of(true)
         }
     }
 

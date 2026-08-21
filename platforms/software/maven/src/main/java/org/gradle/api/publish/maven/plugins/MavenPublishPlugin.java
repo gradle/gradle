@@ -194,7 +194,10 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 buildDir.file("publications/" + publication.getName() + "/pom-default.xml")
             );
         });
-        publication.setPomGenerator(generatorTask);
+        publication.setPomGenerator(
+            generatorTask.flatMap(GenerateMavenPom::getDestinationFile),
+            generatorTask.map(GenerateMavenPom::getEnabled)
+        );
     }
 
     private void createGenerateMetadataTask(final TaskContainer tasks, final MavenPublicationInternal publication, final Set<? extends MavenPublicationInternal> publications, final DirectoryProperty buildDir) {
