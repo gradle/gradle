@@ -62,9 +62,9 @@ public class Providers {
         return Cast.uncheckedCast(NULL_PROVIDER);
     }
 
-    public static <T> ProviderInternal<T> of(T value) {
+    public static <T> FixedValueProvider<T> of(T value) {
         if (value == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Value cannot be null");
         }
         return new FixedValueProvider<>(value);
     }
@@ -102,8 +102,8 @@ public class Providers {
      * The returned provider has the same dependencies as the given provider, but only until computed.
      *
      * @param provider the provider of value to cache
-     * @return the caching provider
      * @param <T> the type of the value
+     * @return the caching provider
      */
     public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider) {
         return memoizing(provider, null);
@@ -117,8 +117,8 @@ public class Providers {
      *
      * @param provider the provider of value to cache
      * @param displayName the optional supplier of display name for the returned provider
-     * @return the caching provider
      * @param <T> the type of the value
+     * @return the caching provider
      */
     public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
         return new MemoizingProvider<>(provider, displayName);
