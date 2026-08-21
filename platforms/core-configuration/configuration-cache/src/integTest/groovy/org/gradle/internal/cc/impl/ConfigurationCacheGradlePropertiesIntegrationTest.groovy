@@ -24,7 +24,6 @@ import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements GradlePropertiesFixture {
-
     def configurationCache = newConfigurationCacheFixture()
 
     def "detects dynamic Gradle property access in settings script"() {
@@ -743,4 +742,5 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         outputContains "Bar: one"
         // Must be cache miss
     }
+
 }

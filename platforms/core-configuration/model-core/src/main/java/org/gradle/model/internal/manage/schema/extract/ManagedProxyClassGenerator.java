@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
-import org.gradle.internal.reflect.UnsupportedPropertyValueException;
+import org.gradle.internal.reflect.UnsupportedTypeException;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.asm.AsmClassGenerator;
@@ -996,8 +996,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     // Called from generated code on failure to convert the supplied value for a property to the property type
     @SuppressWarnings("unused")
-    public static void propertyValueConvertFailure(Class<?> viewType, String propertyName, Object value, TypeConversionException failure) throws UnsupportedPropertyValueException {
-        throw new UnsupportedPropertyValueException(String.format("Cannot set property: %s for class: %s to value: %s.", propertyName, viewType.getName(), value), failure);
+    public static void propertyValueConvertFailure(Class<?> viewType, String propertyName, Object value, TypeConversionException failure) throws UnsupportedTypeException {
+        throw new UnsupportedTypeException(String.format("Cannot set property: %s for class: %s to value: %s.", propertyName, viewType.getName(), value), failure);
     }
 
     public interface GeneratedView {

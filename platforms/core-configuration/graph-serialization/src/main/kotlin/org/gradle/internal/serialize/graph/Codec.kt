@@ -69,6 +69,33 @@ interface WriteContext : MutableIsolateContext, Encoder {
      * @see ClassEncoder.encodeClassLoader
      */
     fun writeClassLoader(classLoader: ClassLoader?) = Unit
+
+    /**
+     * Returns the encoding that will handle a value of the given runtime [type] under
+     * the codec currently active on the isolate's codec stack, or null when the active
+     * codec is not a [org.gradle.internal.serialize.graph.CodecLookup] or has no codec
+     * registered for [type]. The active codec is fully responsible for dispatch within
+     * its scope; a nested / transient codec that has no entry for [type] means no
+     * encoding will happen for [type] in this scope, so the lookup correctly returns
+     * null without falling back to a root registry.
+     *
+     * This call does not write to the encoder, so it is safe during diagnostic checks
+     * — for example, checking whether the codec is a
+     * [org.gradle.internal.serialize.graph.codecs.WideningCodec] whose decoded type
+     * cannot fit a field.
+     *
+     * Implementations backed by a `BindingsBackedCodec` (a
+     * [org.gradle.internal.serialize.graph.CodecLookup]) should override this to
+     * enable store-time widening checks for their encoded values.
+     *
+     * Conceptually equivalent to `CodecLookup.encodingForType` — that is the
+     * underlying mechanism a `BindingsBackedCodec` exposes; this method is the
+     * higher-level Context-API alias used by callers that already hold a
+     * [WriteContext] reference. Both return `Any?` to keep package-layer
+     * decoupling: callers cast to a concrete codec interface (typically
+     * [org.gradle.internal.serialize.graph.codecs.WideningCodec]) themselves.
+     */
+    fun codecForRuntimeType(type: Class<*>): Any? = null
 }
 
 
@@ -150,11 +177,6 @@ fun <I, R> CloseableReadContext.readWith(argument: I, readOperation: suspend Mut
             finish()
         }
     }
-
-
-inline
-fun <reified T : Any> ReadContext.getSingletonProperty(): T =
-    getSingletonProperty(T::class.java)
 
 
 suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()

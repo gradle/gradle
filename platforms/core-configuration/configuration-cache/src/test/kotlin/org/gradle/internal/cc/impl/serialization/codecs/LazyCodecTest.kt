@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
@@ -52,12 +54,45 @@ class LazyCodecTest : AbstractFunctionalTypeTest() {
         }
     }
 
+    /**
+     * Demonstrates the uninitialized-Lazy bypass in
+     * `BeanPropertyWriter.reportIfUnsupportedKotlinDelegate`: when a `by lazy`
+     * delegate has not been forced before configuration cache store, the widening
+     * check is skipped without forcing the delegate itself. The encode pass then
+     * forces the lazy via [Lazy]'s `writeReplace` and the cached value is the
+     * forced one — verified by reading `value` after roundtrip and seeing the
+     * pre-roundtrip [Runtime.value].
+     */
+    @Test
+    fun `uninitialized by lazy delegate is not forced by the widening check, only by the codec's writeReplace`() {
+        val bean = ByLazyBean()
+        assertThat(
+            "precondition: the delegate is uninitialized at the moment we hand it to the configuration cache",
+            bean.delegateIsInitialized,
+            equalTo(false)
+        )
+        Runtime.value = "before"
+        val roundtripped = configurationCacheRoundtripOf(bean)
+
+        Runtime.value = "after"
+        assertThat(
+            "value must reflect the store-time Runtime.value, proving writeReplace forced the lazy during encode",
+            roundtripped.value,
+            equalTo("before")
+        )
+    }
+
     private
     fun lazy(): Lazy<Any?> = lazy { Runtime.value }
 
     data class LazyBean(val value: Lazy<Any?>)
 
     class ByLazyBean {
-        val value by lazy { Runtime.value }
+        private val delegate = lazy { Runtime.value }
+        // Compiles to a synthetic `value$delegate` field holding `delegate`.
+        val value by delegate
+
+        val delegateIsInitialized: Boolean
+            get() = delegate.isInitialized()
     }
 }

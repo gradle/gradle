@@ -82,6 +82,10 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.project.IsolatedProject
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.SourceSet
@@ -92,8 +96,11 @@ import org.gradle.initialization.DefaultSettings
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
+import spock.lang.Issue
 import spock.lang.Shared
 
 import java.util.concurrent.CountDownLatch
@@ -111,6 +118,8 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def configurationCache = newConfigurationCacheFixture()
 
     @Shared
     private def disallowedServiceTypesAtExecution = [Project, ProjectInternal, Gradle, GradleInternal]
@@ -360,47 +369,104 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         """
 
         when:
-        configurationCacheRunLenient "broken"
+        if (failsAtStore) {
+            configurationCacheFails "broken"
+        } else {
+            configurationCacheRunLenient "broken"
+        }
 
         then:
-        problems.assertResultHasProblems(result) {
-            totalProblemsCount = 9
-            withUniqueProblems(
-                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
-                "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
-                "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
+        if (failsAtStore) {
+            // WideningCodec-driven check rejects the incompatible round-trip at store time.
+            failure.assertHasCause(
+                "Cannot serialize value of type ${concreteType.name}_Decorated into field badField of SomeTask in task :broken of type SomeTask. Values of this type are restored from the configuration cache as ${decodedTypeName}, which cannot be assigned to a field of type ${baseType.name}."
             )
-            problemsWithStackTraceCount = 0
+            failure.assertHasResolution(resolution)
+        } else {
+            // No WideningCodec fires for this type; the only signal is the read-time
+            // type-assignment check that rejects the decoded value on load.
+            problems.assertResultHasProblems(result) {
+                totalProblemsCount = 3
+                withUniqueProblems(
+                    "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
+                )
+                problemsWithStackTraceCount = 0
+            }
         }
+
+        when:
+        if (!failsAtStore) {
+            configurationCacheRunLenient "broken"
+        }
+
+        and:
+        if (!failsAtStore) {
+            outputContains("this.reference = null")
+            outputContains("bean.reference = null")
+            outputContains("beanWithSameType.reference = null")
+        }
+
+        then:
+        if (!failsAtStore) {
+            problems.assertResultHasProblems(result) {
+                totalProblemsCount = 3
+                withUniqueProblems(
+                    "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
+                )
+                problemsWithStackTraceCount = 0
+            }
+        }
+
+        where:
+        concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue | failsAtStore | decodedTypeName                      | resolution
+        DefaultLegacyConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection' | true         | 'org.gradle.api.file.FileCollection' | 'Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.'
+        DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection' | true         | 'org.gradle.api.file.FileCollection' | 'Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.'
+        DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'       | true         | 'org.gradle.api.file.FileTree'       | 'Use a ConfigurableFileCollection or ConfigurableFileTree instead.'
+    }
+
+    def "tolerates incompatible roundtrip field of type #baseType in warn mode"() {
+        buildFile << """
+            plugins { id "java" }
+
+            class SomeTask extends DefaultTask {
+                private final ${baseType.name} badField
+
+                SomeTask() {
+                    ${creator}
+                    badField = ${reference}
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.reference = " + badField
+                }
+            }
+
+            ${mavenCentralRepository()}
+
+            task other
+            task broken(type: SomeTask)
+        """
 
         when:
         configurationCacheRunLenient "broken"
 
-        and:
-        outputContains("this.reference = null")
-        outputContains("bean.reference = null")
-        outputContains("beanWithSameType.reference = null")
-
         then:
         problems.assertResultHasProblems(result) {
-            totalProblemsCount = 6
+            totalProblemsCount = 1
             withUniqueProblems(
-                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
-                "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
+                "Task `:broken` of type `SomeTask`: failed to serialize value of field 'badField' of task ':broken' of type 'SomeTask'"
             )
             problemsWithStackTraceCount = 0
         }
 
         and:
         outputContains("this.reference = null")
-        outputContains("bean.reference = null")
-        outputContains("beanWithSameType.reference = null")
 
         where:
-        concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue
-        DefaultLegacyConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
-        DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
-        DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+        baseType           | creator                                     | reference
+        Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"
+        SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')"
     }
 
     @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
@@ -524,9 +590,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            totalProblemsCount = 6
+            totalProblemsCount = 4
             withUniqueProblems(
-                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
@@ -542,9 +607,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            totalProblemsCount = 4
+            totalProblemsCount = 2
             withUniqueProblems(
-                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
             problemsWithStackTraceCount = 0
@@ -559,5 +623,963 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultLegacyConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
         DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
         DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+    }
+
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
+    @Issue("https://github.com/gradle/gradle/issues/16177")
+    def "reports when Kotlin #delegateKind delegate wraps an unsupported type, when the type is implicit (#configSource)"() {
+        given:
+        file("buildSrc/settings.gradle.kts").text = ""
+        file("buildSrc/build.gradle.kts").text = """
+            plugins { `kotlin-dsl` }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+        """
+        file("buildSrc/src/main/kotlin/BrokenTask.kt").text = """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+            import kotlin.properties.Delegates
+
+            open class BrokenTask : DefaultTask() {
+                $delegateDeclaration
+
+                @TaskAction
+                fun run() {
+                    println("task executed")
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            tasks.register("broken", BrokenTask) {
+                println("configured classPath type: " + classPath.class.name)
+            }
+        """
+
+        when:
+        configurationCacheFails "broken"
+
+        then: "CC detects the unsupported type inside the delegate with a clear cause and resolution"
+        // WideningCodec-driven check reports both the user's declared property type
+        // (Configuration) and the restored type (FileCollection), so the user can see
+        // the mismatch between what they wrote and how it comes back from the cache.
+        failure.assertHasCause(
+            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :broken of type BrokenTask. " +
+            "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
+            "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
+        )
+        failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
+
+        where:
+        delegateKind | configSource | delegateLabel         | delegateDeclaration
+        "lazy"       | "detached"   | "lazy"                | '@get:Internal val classPath by lazy { project.configurations.detachedConfiguration() }'
+        "lazy"       | "created"    | "lazy"                | '@get:Internal val classPath by lazy { project.configurations.create("myConf") }'
+        "observable" | "detached"   | "observable/vetoable" | '@get:Internal var classPath by Delegates.observable(project.configurations.detachedConfiguration()) { _, _, _ -> }'
+        "observable" | "created"    | "observable/vetoable" | '@get:Internal var classPath by Delegates.observable(project.configurations.create("myConf")) { _, _, _ -> }'
+        "vetoable"   | "detached"   | "observable/vetoable" | '@get:Internal var classPath by Delegates.vetoable(project.configurations.detachedConfiguration()) { _, _, _ -> true }'
+        "vetoable"   | "created"    | "observable/vetoable" | '@get:Internal var classPath by Delegates.vetoable(project.configurations.create("myConf")) { _, _, _ -> true }'
+    }
+
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
+    @Issue("https://github.com/gradle/gradle/issues/16177")
+    def "Kotlin #delegateKind delegate with explicit FileCollection type works with configuration cache (#configSource)"() {
+        given:
+        file("buildSrc/settings.gradle.kts").text = ""
+        file("buildSrc/build.gradle.kts").text = """
+            plugins { `kotlin-dsl` }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+        """
+        file("buildSrc/src/main/kotlin/WorkingTask.kt").text = """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.file.FileCollection
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+            import kotlin.properties.Delegates
+
+            open class WorkingTask : DefaultTask() {
+                $delegateDeclaration
+
+                @TaskAction
+                fun run() {
+                    println("classPath files: " + classPath.files)
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            tasks.register("working", WorkingTask) {
+                println("configured classPath type: " + classPath.class.name)
+            }
+        """
+
+        when: "first run stores to configuration cache"
+        configurationCacheRun "working"
+
+        then:
+        outputContains("classPath files: []")
+
+        when: "second run loads from cache and succeeds"
+        configurationCacheRun "working"
+
+        then: "no error because FileCollection checkcast succeeds"
+        outputContains("classPath files: []")
+
+        where:
+        delegateKind | configSource   | delegateDeclaration
+        "lazy"       | "detached"     | '@get:Internal val classPath: FileCollection by lazy { project.configurations.detachedConfiguration() }'
+        "lazy"       | "created"      | '@get:Internal val classPath: FileCollection by lazy { project.configurations.create("myConf") }'
+        "observable" | "detached"     | '@get:Internal var classPath: FileCollection by Delegates.observable(project.configurations.detachedConfiguration()) { _, _, _ -> }'
+        "observable" | "created"      | '@get:Internal var classPath: FileCollection by Delegates.observable(project.configurations.create("myConf")) { _, _, _ -> }'
+        "vetoable"   | "detached"     | '@get:Internal var classPath: FileCollection by Delegates.vetoable(project.configurations.detachedConfiguration()) { _, _, _ -> true }'
+        "vetoable"   | "created"      | '@get:Internal var classPath: FileCollection by Delegates.vetoable(project.configurations.create("myConf")) { _, _, _ -> true }'
+    }
+
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
+    @Issue("https://github.com/gradle/gradle/issues/16177")
+    def "Kotlin #delegateKind fails sensibly with explicit Configuration type with configuration cache (#configSource)"() {
+        given:
+        file("buildSrc/settings.gradle.kts").text = ""
+        file("buildSrc/build.gradle.kts").text = """
+            plugins { `kotlin-dsl` }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+        """
+        file("buildSrc/src/main/kotlin/FailingTask.kt").text = """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.artifacts.Configuration
+            import org.gradle.api.file.FileCollection
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+            import kotlin.properties.Delegates
+
+            open class FailingTask : DefaultTask() {
+                $delegateDeclaration
+
+                @TaskAction
+                fun run() {
+                    println("classPath files: " + classPath.files)
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            tasks.register("failing", FailingTask) {
+                println("configured classPath type: " + classPath.class.name)
+            }
+        """
+
+        when:
+        configurationCacheFails "failing"
+
+        then:
+        // WideningCodec-driven check reports both the user's declared property type
+        // (Configuration) and the restored type (FileCollection), so the user can see
+        // the mismatch between what they wrote and how it comes back from the cache.
+        failure.assertHasCause(
+            "Cannot serialize $delegateLabel delegate for property 'classPath: Configuration' in task :failing of type FailingTask. " +
+            "Values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection, " +
+            "which cannot be assigned to a property of type org.gradle.api.artifacts.Configuration."
+        )
+        failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
+
+        where:
+        delegateKind | configSource | delegateLabel         | delegateDeclaration
+        "lazy"       | "detached"   | "lazy"                | '@get:Internal val classPath: Configuration by lazy { project.configurations.detachedConfiguration() }'
+        "lazy"       | "created"    | "lazy"                | '@get:Internal val classPath: Configuration by lazy { project.configurations.create("myConf") }'
+        "observable" | "detached"   | "observable/vetoable" | '@get:Internal var classPath: Configuration by Delegates.observable(project.configurations.detachedConfiguration()) { _, _, _ -> }'
+        "observable" | "created"    | "observable/vetoable" | '@get:Internal var classPath: Configuration by Delegates.observable(project.configurations.create("myConf")) { _, _, _ -> }'
+        "vetoable"   | "detached"   | "observable/vetoable" | '@get:Internal var classPath: Configuration by Delegates.vetoable(project.configurations.detachedConfiguration()) { _, _, _ -> true }'
+        "vetoable"   | "created"    | "observable/vetoable" | '@get:Internal var classPath: Configuration by Delegates.vetoable(project.configurations.create("myConf")) { _, _, _ -> true }'
+    }
+
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
+    def "warn mode tolerates Kotlin #delegateKind delegate with unsupported type (#configSource)"() {
+        // Companion to "Kotlin #delegateKind fails sensibly with explicit Configuration type"
+        // above. Verifies that in warn mode the delegate-site widening check emits a deferred
+        // problem (with stack trace) and drops the value rather than hard-failing — preserving
+        // the same `--configuration-cache-problems=warn` escape hatch the bean-field and
+        // managed-property check sites already honor.
+        given:
+        file("buildSrc/settings.gradle.kts").text = ""
+        file("buildSrc/build.gradle.kts").text = """
+            plugins { `kotlin-dsl` }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+        """
+        file("buildSrc/src/main/kotlin/LenientTask.kt").text = """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.artifacts.Configuration
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+            import kotlin.properties.Delegates
+
+            open class LenientTask : DefaultTask() {
+                $delegateDeclaration
+
+                @TaskAction
+                fun run() {
+                    // Avoid reading classPath here: warn-mode drops the delegate field to null
+                    // before tasks execute (the cold-store run already serves from the cached
+                    // state), so reading the property would NPE on the load-side null delegate.
+                    println("task ran with dropped delegate")
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            tasks.register("lenient", LenientTask) {
+                // Force the delegate at configuration time so the widening check has a value
+                // to inspect; without this, an un-forced lazy would bypass the check entirely
+                // (see "uninitialized Kotlin `by lazy` delegate ... bypasses the widening check").
+                println("configured classPath type: " + classPath.class.name)
+            }
+        """
+
+        when:
+        configurationCacheRunLenient "lenient"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 1
+            withUniqueProblems(
+                "Task `:lenient` of type `LenientTask`: failed to serialize value of field 'classPath\$delegate' of task ':lenient' of type 'LenientTask'"
+            )
+            problemsWithStackTraceCount = 0
+        }
+
+        and: "the task body ran — the build was not interrupted at store"
+        outputContains("task ran with dropped delegate")
+
+        where:
+        delegateKind | configSource | delegateDeclaration
+        "lazy"       | "detached"   | '@get:Internal val classPath: Configuration by lazy { project.configurations.detachedConfiguration() }'
+        "lazy"       | "created"    | '@get:Internal val classPath: Configuration by lazy { project.configurations.create("myConf") }'
+        "observable" | "detached"   | '@get:Internal var classPath: Configuration by Delegates.observable(project.configurations.detachedConfiguration()) { _, _, _ -> }'
+        "observable" | "created"    | '@get:Internal var classPath: Configuration by Delegates.observable(project.configurations.create("myConf")) { _, _, _ -> }'
+        "vetoable"   | "detached"   | '@get:Internal var classPath: Configuration by Delegates.vetoable(project.configurations.detachedConfiguration()) { _, _, _ -> true }'
+        "vetoable"   | "created"    | '@get:Internal var classPath: Configuration by Delegates.vetoable(project.configurations.create("myConf")) { _, _, _ -> true }'
+    }
+
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
+    @Issue("https://github.com/gradle/gradle/issues/16177")
+    def "Kotlin field declared with Lazy type is not treated as a by-delegate"() {
+        // Regression test: classes like org.jetbrains.kotlin.gradle.plugin.SubpluginOption declare
+        // regular fields whose type is Lazy<T> (without `by lazy`). Such fields must not be
+        // misidentified as Kotlin compiled `$delegate` fields by the CC delegate-inspection logic.
+        given:
+        file("buildSrc/settings.gradle.kts").text = ""
+        file("buildSrc/build.gradle.kts").text = """
+            plugins { `kotlin-dsl` }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+        """
+        file("buildSrc/src/main/kotlin/LazyFieldTask.kt").text = """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+
+            open class LazyFieldTask : DefaultTask() {
+                @get:Internal
+                val lazyValue: Lazy<String> = lazy { "computed" }
+
+                @TaskAction
+                fun run() {
+                    println("lazyValue: " + lazyValue.value)
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            tasks.register("doLazy", LazyFieldTask)
+        """
+
+        when: "first run stores to configuration cache"
+        configurationCacheRun "doLazy"
+
+        then:
+        outputContains("lazyValue: computed")
+
+        when: "second run loads from cache"
+        configurationCacheRun "doLazy"
+
+        then:
+        outputContains("lazyValue: computed")
+    }
+
+    def "reports sensible error when task has @Internal Property of Configuration"() {
+        buildFile << """
+            abstract class BrokenPrintTask extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getConf()
+
+                @TaskAction
+                void run() {
+                    println "Files: = " + conf.get().files
+                }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("printFiles", BrokenPrintTask) {
+                conf.set(configurations.getByName('myConf'))
+            }
+        """
+
+        when:
+        configurationCacheFails "printFiles"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "printFiles", "BrokenPrintTask")
+    }
+
+    def "reports sensible error when concrete task has concrete Property of Configuration"() {
+        buildFile << """
+            import javax.inject.Inject
+
+            class ConcreteConfTask extends DefaultTask {
+                @Internal
+                final Property<Configuration> conf
+
+                @Inject
+                ConcreteConfTask(ObjectFactory objects) {
+                    conf = objects.property(Configuration)
+                }
+
+                @TaskAction
+                void run() {
+                    println "Conf: " + conf.get().name
+                }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("concreteConf", ConcreteConfTask) {
+                conf.set(configurations.getByName('myConf'))
+            }
+        """
+
+        when:
+        configurationCacheFails "concreteConf"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "concreteConf", "ConcreteConfTask")
+    }
+
+    def "reports sensible error when task has @Internal Property of SourceDirectorySet"() {
+        buildFile << """
+            abstract class SdsTask extends DefaultTask {
+                @Internal
+                abstract Property<SourceDirectorySet> getSds()
+
+                @TaskAction
+                void run() {
+                    println "SDS: " + sds.get().name
+                }
+            }
+
+            tasks.register("sdsTask", SdsTask) {
+                sds.set(objects.sourceDirectorySet('sources', 'source files'))
+            }
+        """
+
+        when:
+        configurationCacheFails "sdsTask"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, SourceDirectorySet, "sdsTask", "SdsTask")
+    }
+
+    def "reports sensible error task indirectly holds a Property of unsupported type"() {
+        buildFile << """
+            abstract class ConfHolder {
+                @Internal
+                abstract Property<Configuration> getConf()
+            }
+
+            abstract class BeanHolderTask extends DefaultTask {
+                @Nested
+                abstract ConfHolder getHolder()
+
+                @TaskAction
+                void run() {
+                    println "Conf: " + holder.conf.get().name
+                }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("beanHolder", BeanHolderTask) {
+                holder.conf.set(configurations.getByName('myConf'))
+            }
+        """
+
+        when:
+        configurationCacheFails "beanHolder"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "beanHolder", "BeanHolderTask")
+    }
+
+    def "reports sensible error when Property of unsupported type is captured without custom task"() {
+        buildFile << """
+            interface ConfHolder {
+                Property<Configuration> getConf()
+            }
+
+            tasks.named("tasks") {
+                def holder = objects.newInstance(ConfHolder)
+                holder.conf.set(configurations.create('myConf'))
+
+                doLast {
+                    println "Conf: " + holder.conf.get().name
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails "tasks"
+
+        then:
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "tasks", "TaskReportTask")
+    }
+
+    def "reports each property of an unsupported type independently"() {
+        // Every field's PropertyCodec.encodeThis runs the widening check and emits
+        // its own deferred problem. The CC problem aggregator dedupes by
+        // (message + trace); since the trace names the specific field, the four
+        // problems have distinct traces and all survive dedup — one bullet per
+        // field in the CC-problems summary.
+        //
+        // The exception message (which is what assertHasCause matches against)
+        // does NOT distinguish the fields — every one produces the same
+        // "Cannot serialize Property<Configuration> in task :multiConf ..."
+        // cause. So the strong assertion has to look at the summary bullets by
+        // field name, not at the cause chain.
+        buildFile << """
+            abstract class MultiConfTask extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getFirst()
+
+                @Input
+                abstract Property<Configuration> getSecond()
+
+                @InputFiles
+                abstract Property<Configuration> getThird()
+
+                @Classpath
+                abstract Property<Configuration> getFourth()
+
+                @TaskAction
+                void run() {
+                    println "First: " + first.get().name
+                    println "Second: " + second.get().name
+                    println "Third: " + third.get().name
+                    println "Fourth: " + fourth.get().name
+                }
+            }
+
+            configurations.create('confA')
+            configurations.create('confB')
+            configurations.create('confC')
+            configurations.create('confD')
+
+            tasks.register("multiConf", MultiConfTask) {
+                first.set(configurations.getByName('confA'))
+                second.set(configurations.getByName('confB'))
+                third.set(configurations.getByName('confC'))
+                fourth.set(configurations.getByName('confD'))
+            }
+        """
+
+        when:
+        configurationCacheFails "multiConf"
+
+        then: "the CC problems summary reports exactly one bullet per field"
+        outputContains("Configuration cache entry discarded with 4 problems.")
+        outputContains("failed to serialize value of field '__first__' of task ':multiConf' of type 'MultiConfTask'")
+        outputContains("failed to serialize value of field '__second__' of task ':multiConf' of type 'MultiConfTask'")
+        outputContains("failed to serialize value of field '__third__' of task ':multiConf' of type 'MultiConfTask'")
+        outputContains("failed to serialize value of field '__fourth__' of task ':multiConf' of type 'MultiConfTask'")
+
+        and: "each problem carries the widening-cause + resolution surfaced by the exception"
+        assertHasUnsupportedPropertyValueType(Property, Configuration, "multiConf", "MultiConfTask")
+    }
+
+    def "empty #propertyKind of unsupported type does not cause an error"() {
+        // A collection Property that is set but empty — no element of the
+        // unsupported type will actually flow through the roundtrip, so the
+        // widening check is skipped even though the property is 'present'.
+        // This is the same "no widening will happen" story as the unset-case
+        // above, applied to the empty-collection state.
+        buildFile << buildScript
+
+        when:
+        configurationCacheRun taskName
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Present: true"
+
+        where:
+        propertyKind   | taskName          | buildScript
+        "ListProperty" | "emptyListConf"   | emptyListPropertyBuildScript()
+        "SetProperty"  | "emptySetConf"    | emptySetPropertyBuildScript()
+    }
+
+    def "widening check for allow-listed task types (ShadowJar) is downgraded to a deprecation warning"() {
+        // Pragmatic escape hatch: WideningTypeSerializationFailureHelper carries a
+        // hardcoded allow-list of third-party task types whose SetProperty<Configuration>
+        // usage is known to widen safely in practice. Rather than fail the build, the
+        // widening report is downgraded to a deprecation nag that will become a hard
+        // error in Gradle 10. The suppression matches on the task's DECLARED class name
+        // (GeneratedSubclasses.unpackType), so a locally declared Groovy task with the
+        // exact FQN is enough to trigger it.
+        //
+        // Guards against regressions that either drop the allow-list, drop the
+        // deprecation nag, or check against the wrong trace frame.
+        file("buildSrc/src/main/groovy/com/github/jengelman/gradle/plugins/shadow/tasks/ShadowJar.groovy") << """
+            package com.github.jengelman.gradle.plugins.shadow.tasks
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.artifacts.Configuration
+            import org.gradle.api.provider.SetProperty
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+
+            abstract class ShadowJar extends DefaultTask {
+                @Internal
+                abstract SetProperty<Configuration> getConfigurations()
+
+                @TaskAction
+                void run() { println "ShadowJar ran with " + configurations.get().size() + " configuration(s)" }
+            }
+        """
+
+        buildFile << """
+            import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+            configurations.create('shadow')
+
+            tasks.register("shadowJar", ShadowJar) {
+                configurations.set([project.configurations.getByName('shadow')] as Set)
+            }
+        """
+
+        when: "CC store would normally fire the widening report for SetProperty<Configuration>"
+        executer.expectDocumentedDeprecationWarning("Serializing SetProperty<Configuration> in task :shadowJar of type ShadowJar has been deprecated. " +
+            "This will fail with an error in Gradle 10. The value type of this property (org.gradle.api.artifacts.Configuration) is not supported with the configuration cache: values of this type are restored from the configuration cache as org.gradle.api.file.FileCollection. " +
+            "Use a ConfigurableFileCollection instead, or change the captured type to FileCollection. " +
+            "For more information, please refer to https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements:disallowed_types in the Gradle documentation."
+        )
+        configurationCacheRun "shadowJar"
+
+        then: "no CC problem is reported and the entry stores cleanly"
+        configurationCache.assertStateStored()
+        outputContains "ShadowJar ran with 1 configuration(s)"
+        outputDoesNotContain "failed to serialize value of"
+    }
+
+    def "unset #propertyKind of unsupported type does not cause an error (#description)"() {
+        // An unset Property is stored to the cache as a missing marker, so the
+        // widening-type check that PropertyCodec would fire on load is skipped.
+        // Covers all four ways an unset Property of an unsupported type can enter
+        // the store — abstract managed (never accessed), abstract managed (accessed
+        // but never set), explicitly constructed via ObjectFactory (never set),
+        // and explicitly constructed and read at execution time.
+        buildFile << buildScript
+
+        when:
+        configurationCacheRun taskName
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains expectedOutput
+
+        where:
+        propertyKind      | description                                                     | taskName          | expectedOutput    | buildScript
+        "Property"        | "abstract managed, never accessed"                              | "unsetConf"       | "task ran"        | unsetAbstractPropertyBuildScript()
+        "Property"        | "abstract managed, accessed"                                    | "presenceConf"    | "Present: false"  | presenceAbstractPropertyBuildScript()
+        "Property"        | "explicit objects.property, never set"                          | "explicitUnset"   | "Present: false"  | unsetExplicitPropertyBuildScript()
+        "ListProperty"    | "abstract managed, never accessed"                              | "unsetListConf"   | "task ran"        | unsetAbstractListPropertyBuildScript()
+        "SetProperty"     | "abstract managed, never accessed"                              | "unsetSetConf"    | "task ran"        | unsetAbstractSetPropertyBuildScript()
+        "MapProperty"     | "abstract managed, unsupported key and value, never accessed"   | "unsetMapConf"    | "task ran"        | unsetAbstractMapPropertyBuildScript()
+    }
+
+    private static String unsetAbstractPropertyBuildScript() {
+        """
+            abstract class UnsetConfTask extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getConf()
+
+                @TaskAction
+                void run() { println "task ran" }
+            }
+
+            tasks.register("unsetConf", UnsetConfTask)
+        """
+    }
+
+    private static String presenceAbstractPropertyBuildScript() {
+        """
+            abstract class PresenceConfTask extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getConf()
+
+                @TaskAction
+                void run() { println "Present: " + conf.isPresent() }
+            }
+
+            tasks.register("presenceConf", PresenceConfTask)
+        """
+    }
+
+    private static String unsetExplicitPropertyBuildScript() {
+        """
+            import javax.inject.Inject
+
+            abstract class ExplicitUnsetConfTask extends DefaultTask {
+                @Internal
+                final Property<Configuration> conf
+
+                @Inject
+                ExplicitUnsetConfTask(ObjectFactory objects) {
+                    conf = objects.property(Configuration)
+                }
+
+                @TaskAction
+                void run() { println "Present: " + conf.isPresent() }
+            }
+
+            tasks.register("explicitUnset", ExplicitUnsetConfTask)
+        """
+    }
+
+    private static String unsetAbstractListPropertyBuildScript() {
+        """
+            abstract class UnsetListConfTask extends DefaultTask {
+                @Internal
+                abstract ListProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "task ran" }
+            }
+
+            tasks.register("unsetListConf", UnsetListConfTask)
+        """
+    }
+
+    private static String unsetAbstractSetPropertyBuildScript() {
+        """
+            abstract class UnsetSetConfTask extends DefaultTask {
+                @Internal
+                abstract SetProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "task ran" }
+            }
+
+            tasks.register("unsetSetConf", UnsetSetConfTask)
+        """
+    }
+
+    private static String emptyListPropertyBuildScript() {
+        """
+            abstract class EmptyListConfTask extends DefaultTask {
+                @Internal
+                abstract ListProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Present: " + confs.isPresent() }
+            }
+
+            tasks.register("emptyListConf", EmptyListConfTask) {
+                confs.empty()
+            }
+        """
+    }
+
+    private static String emptySetPropertyBuildScript() {
+        """
+            abstract class EmptySetConfTask extends DefaultTask {
+                @Internal
+                abstract SetProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Present: " + confs.isPresent() }
+            }
+
+            tasks.register("emptySetConf", EmptySetConfTask) {
+                confs.empty()
+            }
+        """
+    }
+
+    private static String unsetAbstractMapPropertyBuildScript() {
+        """
+            abstract class UnsetMapConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<Configuration, SourceDirectorySet> getConfs()
+
+                @TaskAction
+                void run() { println "task ran" }
+            }
+
+            tasks.register("unsetMapConf", UnsetMapConfTask)
+        """
+    }
+
+    def "following resolution advice fixes Property of #typeName"() {
+        def buildScript = { String propertyDeclaration, String wiring ->
+            """
+            abstract class PrintFiles extends DefaultTask {
+                ${propertyDeclaration}
+
+                @TaskAction
+                void run() {
+                    println "task ran"
+                }
+            }
+
+            ${sourceSetup}
+
+            tasks.register("printFiles", PrintFiles) {
+                ${wiring}
+            }
+            """
+        }
+
+        given: "a broken build using Property<$typeName>"
+        buildFile << buildScript(
+            "@Internal abstract Property<${typeName}> getInputFiles()",
+            "inputFiles.set(${sourceExpression})"
+        )
+
+        when: "configuration cache store fails"
+        configurationCacheFails "printFiles"
+
+        then: "error identifies the problem and suggests a fix"
+        assertHasUnsupportedPropertyValueType(Property, unsupportedType, "printFiles", "PrintFiles")
+
+        when: "the property type is changed following the resolution advice"
+        buildFile.text = buildScript(
+            "@InputFiles abstract ConfigurableFileCollection getInputFiles()",
+            "inputFiles.from(${sourceExpression})"
+        )
+
+        and: "configuration cache stores successfully"
+        configurationCacheRun "printFiles"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: "configuration cache loads successfully"
+        configurationCacheRun "printFiles"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        where:
+        typeName             | unsupportedType    | sourceSetup                                                                                    | sourceExpression
+        "Configuration"      | Configuration      | "configurations.create('myConf')"                                                              | "configurations.getByName('myConf')"
+        "SourceDirectorySet" | SourceDirectorySet | "def sds = objects.sourceDirectorySet('sources', 'source files')\nsds.srcDir('src/main/java')" | "sds"
+    }
+
+    // region Collection Properties with unsupported element types
+    def "reports sensible error when task has #propertyKind.simpleName of unsupported #typeSimpleName"() {
+        buildFile << buildScript
+
+        when:
+        configurationCacheFails taskName
+
+        then:
+        assertHasUnsupportedPropertyValueType(propertyKind, unsupportedType, taskName, taskType, mapKeyOrValue)
+
+        where:
+        propertyKind | unsupportedType | typeSimpleName  | taskName         | taskType            | mapKeyOrValue | buildScript
+        ListProperty | Configuration   | "Configuration" | "listConfTask"   | "ListConfTask"      | null          | listPropertyBuildScript()
+        SetProperty  | Configuration   | "Configuration" | "setConfTask"    | "SetConfTask"       | null          | setPropertyBuildScript()
+        MapProperty  | Configuration   | "Configuration" | "mapConfTask"    | "MapConfTask"       | "value"       | mapPropertyValueBuildScript()
+        MapProperty  | Configuration   | "Configuration" | "mapKeyConfTask" | "MapKeyConfTask"    | "key"         | mapPropertyKeyBuildScript()
+    }
+
+    private static String listPropertyBuildScript() {
+        """
+            abstract class ListConfTask extends DefaultTask {
+                @Internal
+                abstract ListProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([])*.name }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("listConfTask", ListConfTask) {
+                confs.add(configurations.getByName('myConf'))
+            }
+        """
+    }
+
+    private static String setPropertyBuildScript() {
+        """
+            abstract class SetConfTask extends DefaultTask {
+                @Internal
+                abstract SetProperty<Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([])*.name }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("setConfTask", SetConfTask) {
+                confs.add(configurations.getByName('myConf'))
+            }
+        """
+    }
+
+    private static String mapPropertyValueBuildScript() {
+        """
+            abstract class MapConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<String, Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([:]) }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("mapConfTask", MapConfTask) {
+                confs.put("main", configurations.getByName('myConf'))
+            }
+        """
+    }
+
+    private static String mapPropertyKeyBuildScript() {
+        """
+            abstract class MapKeyConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<Configuration, String> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([:]) }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("mapKeyConfTask", MapKeyConfTask) {
+                confs.put(configurations.getByName('myConf'), "main")
+            }
+        """
+    }
+    // endregion Collection Properties with unsupported element types
+
+    def "warn mode tolerates #description with unsupported value type"() {
+        buildFile << buildScript
+
+        when:
+        configurationCacheRunLenient taskName
+
+        then:
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 1
+            withUniqueProblems(uniqueProblem)
+            problemsWithStackTraceCount = 0
+        }
+
+        and:
+        outputContains expectedOutput
+
+        where:
+        description                              | taskName         | buildScript                          | uniqueProblem                                                                                                                                                   | expectedOutput
+        "Property<Configuration>"                | "printFiles"     | propertyOfConfigurationBuildScript() | "Task `:printFiles` of type `PrintFiles`: failed to serialize value of field '__conf__' of task ':printFiles' of type 'PrintFiles'"                            | "Present: false"
+        "Property<SourceDirectorySet>"           | "sdsTask"        | propertyOfSdsBuildScript()           | "Task `:sdsTask` of type `SdsTask`: failed to serialize value of field '__sds__' of task ':sdsTask' of type 'SdsTask'"                                         | "Present: false"
+        "ListProperty<Configuration>"            | "listConfTask"   | listPropertyBuildScript()            | "Task `:listConfTask` of type `ListConfTask`: failed to serialize value of field '__confs__' of task ':listConfTask' of type 'ListConfTask'"                   | "Confs: []"
+        "SetProperty<Configuration>"             | "setConfTask"    | setPropertyBuildScript()             | "Task `:setConfTask` of type `SetConfTask`: failed to serialize value of field '__confs__' of task ':setConfTask' of type 'SetConfTask'"                       | "Confs: []"
+        "MapProperty<String, Configuration>"     | "mapConfTask"    | mapPropertyValueBuildScript()        | "Task `:mapConfTask` of type `MapConfTask`: failed to serialize value of field '__confs__' of task ':mapConfTask' of type 'MapConfTask'"                       | "Confs: [:]"
+        "MapProperty<Configuration, String>"     | "mapKeyConfTask" | mapPropertyKeyBuildScript()          | "Task `:mapKeyConfTask` of type `MapKeyConfTask`: failed to serialize value of field '__confs__' of task ':mapKeyConfTask' of type 'MapKeyConfTask'"           | "Confs: [:]"
+    }
+
+    def "MapProperty with both key and value of unsupported types reports a problem for each"() {
+        // Distinct key (Configuration) and value (SourceDirectorySet) types — the build
+        // script exercises both code paths by construction. Since the widening
+        // details are now folded into the problem StructuredMessage, the KEY-side
+        // and VALUE-side problems render as distinct messages (each names its own
+        // type), so both survive dedup — no longer a single deduped problem.
+        //
+        // The console-summary extractor cannot parse the multi-line problem
+        // messages, so the assertion targets the raw output for each per-type
+        // summary line — this gives a defence-in-depth against a regression that
+        // drops one of the two checks.
+        buildFile << """
+            abstract class MapKeyValueConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<Configuration, SourceDirectorySet> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([:]) }
+            }
+
+            configurations.create('keyConf')
+
+            tasks.register("mapKeyValueConfTask", MapKeyValueConfTask) {
+                confs.put(configurations.getByName('keyConf'), objects.sourceDirectorySet('sources', 'source files'))
+            }
+        """
+
+        when:
+        configurationCacheRunLenient "mapKeyValueConfTask"
+
+        then: "each of the two widening checks emits a distinct problem"
+        outputContains(
+            "Cannot serialize MapProperty<Configuration> in task :mapKeyValueConfTask of type MapKeyValueConfTask."
+        )
+        outputContains(
+            "Cannot serialize MapProperty<SourceDirectorySet> in task :mapKeyValueConfTask of type MapKeyValueConfTask."
+        )
+
+        and:
+        outputContains "Confs: [:]"
+    }
+
+    private static String propertyOfConfigurationBuildScript() {
+        """
+            abstract class PrintFiles extends DefaultTask {
+                @Internal
+                abstract Property<Configuration> getConf()
+
+                @TaskAction
+                void run() { println "Present: " + conf.isPresent() }
+            }
+
+            configurations.create('myConf')
+
+            tasks.register("printFiles", PrintFiles) {
+                conf.set(configurations.getByName('myConf'))
+            }
+        """
+    }
+
+    private static String propertyOfSdsBuildScript() {
+        """
+            abstract class SdsTask extends DefaultTask {
+                @Internal
+                abstract Property<SourceDirectorySet> getSds()
+
+                @TaskAction
+                void run() { println "Present: " + sds.isPresent() }
+            }
+
+            tasks.register("sdsTask", SdsTask) {
+                sds.set(objects.sourceDirectorySet('sources', 'source files'))
+            }
+        """
+    }
+
+    private void assertHasUnsupportedPropertyValueType(Class<?> propertyKind, Class<?> unsupportedType, String taskPath, String taskType, String mapKeyOrValue = null) {
+        failure.assertHasCause(
+            "Cannot serialize ${propertyKind.simpleName}<${unsupportedType.simpleName}> in task :${taskPath} of type ${taskType}. The value type of this property (${unsupportedType.name}) is not supported with the configuration cache:"
+        )
+        if (MapProperty.isAssignableFrom(propertyKind)) {
+            assert mapKeyOrValue in ['key', 'value']: "MapProperty assertions must declare whether the problem is with the key or the value"
+            failure.assertHasResolution("Avoid using ${unsupportedType.simpleName} as a MapProperty ${mapKeyOrValue}.")
+        } else if (SourceDirectorySet.isAssignableFrom(unsupportedType)) {
+            failure.assertHasResolution("Use a ConfigurableFileCollection or ConfigurableFileTree instead.")
+        } else {
+            failure.assertHasResolution("Use a ConfigurableFileCollection instead, or change the captured type to FileCollection.")
+        }
     }
 }
