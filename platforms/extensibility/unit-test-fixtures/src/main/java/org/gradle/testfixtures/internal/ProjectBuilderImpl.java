@@ -99,6 +99,8 @@ import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
     private static @Nullable ServiceRegistry globalServices;
+    private static @Nullable ServiceRegistry persistentGlobalServices;
+    private static boolean legacyTypesInjected;
 
     private static final Logger LOGGER = Logging.getLogger(ProjectBuilderImpl.class);
 
@@ -159,7 +161,7 @@ public class ProjectBuilderImpl {
             : NativeServicesMode.DISABLED;
         NativeServices.initializeOnDaemon(userHomeDir, nativeServicesMode);
 
-        final ServiceRegistry globalServices = getGlobalServices();
+        final ServiceRegistry globalServices = getGlobalServices(gradleUserHomeDir != null);
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         File userActionRootDir = globalServices.get(BuildLayoutFactory.class).getLayoutFor(startParameter.toBuildLayoutConfiguration()).getRootDirectory();
@@ -258,26 +260,44 @@ public class ProjectBuilderImpl {
     }
 
     public synchronized static ServiceRegistry getGlobalServices() {
+        return getGlobalServices(false);
+    }
+
+    private synchronized static ServiceRegistry getGlobalServices(boolean usePersistentCache) {
+        if (usePersistentCache) {
+            if (persistentGlobalServices == null) {
+                persistentGlobalServices = createGlobalServices(true);
+                injectLegacyTypes(persistentGlobalServices);
+            }
+            return persistentGlobalServices;
+        }
         if (globalServices == null) {
-            globalServices = createGlobalServices();
+            globalServices = createGlobalServices(false);
+            injectLegacyTypes(globalServices);
+        }
+        return globalServices;
+    }
+
+    private static void injectLegacyTypes(ServiceRegistry services) {
+        if (!legacyTypesInjected) {
             // Inject missing interfaces to support the usage of plugins compiled with older Gradle versions.
             // A normal gradle build does this by adding the MixInLegacyTypesClassLoader to the class loader hierarchy.
             // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
             // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
             // in ApplicationClassesInSystemClassLoaderWorkerImplementationFactory, BootstrapSecurityManager and GradleWorkerMain.)
             // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
-            globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(ProjectBuilderImpl.class.getClassLoader());
+            services.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(ProjectBuilderImpl.class.getClassLoader());
+            legacyTypesInjected = true;
         }
-        return globalServices;
     }
 
-    private static ServiceRegistry createGlobalServices() {
+    private static ServiceRegistry createGlobalServices(boolean usePersistentCache) {
         return ServiceRegistryBuilder
             .builder()
             .displayName("global services")
             .parent(LoggingServiceRegistry.newNestedLogging())
             .parent(NativeServices.getInstance())
-            .provider(new TestGlobalScopeServices())
+            .provider(new TestGlobalScopeServices(usePersistentCache))
             .provider(new BuildProcessScopeServices())
             .build();
     }
