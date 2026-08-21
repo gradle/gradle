@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.capitalize
+import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.testing.TestType
 import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.integrationtests.CROSSVERSION_TEST_MODELS
@@ -164,6 +166,16 @@ fun createAggregateTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersion
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
+    // Under -PflakyTests=ONLY the JUnit tag filter is evaluated inside the test JVM, so Gradle cannot tell
+    // up front that a task will select nothing. These aggregates register one task per tested Gradle version,
+    // and the flaky test quarantine build runs them in every subproject - over a thousand JVM forks that
+    // discover nothing and exit, except in the handful of subprojects that actually have an @Flaky test.
+    // Skip that wiring here so annotating a cross-version test anywhere is enough to include it. The match
+    // is loose: a false positive only restores the old behaviour for one subproject.
+    if (flakyTestStrategy == FlakyTestStrategy.ONLY && !sourceSet.hasFlakyTest()) {
+        return
+    }
+
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
@@ -181,4 +193,13 @@ fun createAggregateTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersion
             quickFeedbackCrossVersionTests.configure { dependsOn(crossVersionTest) }
         }
     }
+}
+
+private
+fun SourceSet.hasFlakyTest(): Boolean {
+    val flakyAnnotation = "org.gradle.test.fixtures.Flaky"
+    return allSource
+        .filter { it.extension in setOf("groovy", "java", "kt") }
+        .files
+        .any { file -> file.useLines { lines -> lines.any { "@Flaky" in it || flakyAnnotation in it } } }
 }

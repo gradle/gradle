@@ -420,12 +420,6 @@ data class GradleSubproject(
     val unitTests: Boolean = true,
     val functionalTests: Boolean = true,
     val crossVersionTests: Boolean = false,
-    /**
-     * Whether this subproject has a cross-version test that `-PflakyTests=ONLY` could select. Generated into
-     * subprojects.json by `:generateSubprojectsInfo` and kept honest by `:checkSubprojectsInfo` in `sanityCheck`,
-     * so annotating a cross-version test anywhere adds its subproject to the flaky test quarantine build.
-     */
-    val flakyCrossVersionTests: Boolean = false,
 ) {
     fun hasTestsOf(testType: TestType) =
         (unitTests && testType.unitTests) ||

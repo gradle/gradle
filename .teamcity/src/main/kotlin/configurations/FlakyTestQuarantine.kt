@@ -78,10 +78,9 @@ class FlakyTestQuarantine(
         description = "Run all flaky tests skipped multiple times"
 
         // Unlike the regular functional test builds, a quarantine build is not split into buckets and does not use
-        // test distribution, so it runs every test task of its coverage on a single agent. For AllVersionsCrossVersion
-        // that is one task per tested Gradle version per subproject - over a thousand of them - and how long they take
-        // depends entirely on how much of that the build cache can serve. Runs have landed anywhere between 45 minutes
-        // and well past an hour, so the timeout has to accommodate a cold cache.
+        // test distribution, so it runs every test task of its coverage on a single agent. Cross-version coverage
+        // registers one task per tested Gradle version per subproject; under -PflakyTests=ONLY,
+        // gradlebuild.cross-version-tests skips wiring those tasks in subprojects with no @Flaky test.
         applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 120)
 
         if (os == Os.LINUX) {
@@ -129,22 +128,13 @@ class FlakyTestQuarantine(
             gradleWrapper {
                 name =
                     "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
-                val defaultTestTaskName = "${testCoverage.testType.asCamelCase()}Test"
                 val testTaskName =
-                    when (testCoverage.testType) {
-                        TestType.ISOLATED_PROJECTS -> "isolatedProjectsIntegTest"
-                        // Cross-version test tasks are registered per tested Gradle version *per subproject*, so this
-                        // coverage schedules ~1000 of them unqualified. Under `-PflakyTests=ONLY` the tag filter is
-                        // evaluated during JUnit discovery inside the test JVM, so Gradle cannot know up front that a
-                        // task selects nothing - it forks a JVM for each one anyway. Qualify the task with the
-                        // subprojects that actually have an `@Flaky` cross-version test, which subprojects.json tracks
-                        // and `:checkSubprojectsInfo` keeps up to date.
-                        TestType.ALL_VERSIONS_CROSS_VERSION, TestType.QUICK_FEEDBACK_CROSS_VERSION ->
-                            model.subprojects.subprojects
-                                .filter { it.flakyCrossVersionTests }
-                                .joinToString(" ") { ":${it.name}:$defaultTestTaskName" }
-                                .ifEmpty { defaultTestTaskName }
-                        else -> defaultTestTaskName
+                    if (testCoverage.testType ==
+                        TestType.ISOLATED_PROJECTS
+                    ) {
+                        "isolatedProjectsIntegTest"
+                    } else {
+                        "${testCoverage.testType.asCamelCase()}Test"
                     }
                 tasks = "clean $testTaskName"
                 gradleParams = parameters

@@ -29,9 +29,6 @@ import kotlin.io.path.invariantSeparatorsPathString
 abstract class SubprojectsInfo : DefaultTask() {
 
     private
-    val FLAKY_ANNOTATION = "org.gradle.test.fixtures.Flaky"
-
-    private
     val rootPath = project.layout.projectDirectory.asFile.toPath()
 
     private
@@ -86,32 +83,8 @@ abstract class SubprojectsInfo : DefaultTask() {
             rootPath.relativize(subprojectDir.toPath()).invariantSeparatorsPathString,
             subprojectDir.hasDescendantDirWithFiles("src/test"),
             subprojectDir.hasDescendantDirWithFiles("src/integTest"),
-            subprojectDir.hasDescendantDirWithFiles("src/crossVersionTest"),
-            subprojectDir.hasFlakyCrossVersionTest()
+            subprojectDir.hasDescendantDirWithFiles("src/crossVersionTest")
         )
-    }
-
-    /**
-     * Whether this subproject has a cross-version test that `-PflakyTests=ONLY` could select.
-     *
-     * That filter is a JUnit Platform tag include, evaluated during discovery inside the test JVM, so Gradle cannot
-     * tell up front that a task will select nothing - it forks a JVM for every one regardless. Cross-version test
-     * tasks are registered per tested Gradle version per subproject, so scheduling the subprojects without any
-     * `@Flaky` cross-version test costs ~1000 JVM forks that discover nothing and exit, which does not fit in the
-     * flaky test quarantine build's timeout unless the build cache happens to serve nearly all of it.
-     *
-     * The match is deliberately loose: a false positive only restores the old behaviour for one subproject, while a
-     * false negative would silently drop a test from the quarantine build.
-     */
-    private
-    fun File.hasFlakyCrossVersionTest(): Boolean {
-        val dir = resolve("src/crossVersionTest")
-        if (!dir.isDirectory) {
-            return false
-        }
-        return dir.walk()
-            .filter { it.isFile && it.extension in setOf("groovy", "java", "kt") }
-            .any { file -> file.useLines { lines -> lines.any { "@Flaky" in it || FLAKY_ANNOTATION in it } } }
     }
 
     private
