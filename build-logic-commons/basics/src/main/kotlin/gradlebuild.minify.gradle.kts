@@ -36,54 +36,98 @@ import org.gradle.kotlin.dsl.support.serviceOf
  * These changes might break things in subtle ways otherwise.
  */
 val minifyPatterns = mapOf(
-    "it.unimi.dsi:fastutil" to MinifySpec(setOf(
-        // For persistence cache
-        "it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap",
-        // For Java compilation incremental analysis
-        "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
-        "it.unimi.dsi.fastutil.ints.IntSet",
-        "it.unimi.dsi.fastutil.ints.IntSets",
-        "it.unimi.dsi.fastutil.ints.IntIterator",
-        // For the embedded Kotlin compiler
-        "it.unimi.dsi.fastutil.ints.Int2ObjectMap",
-        "it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap",
-        "it.unimi.dsi.fastutil.objects.Object2IntMap",
-        "it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap",
-        "it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap",
-        "it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap",
-        "it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap",
-        "it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet",
-        "it.unimi.dsi.fastutil.objects.ObjectOpenHashSet",
-        "it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap",
-        // For build operation listener and logging
-        "it.unimi.dsi.fastutil.longs.LongSet",
-        "it.unimi.dsi.fastutil.longs.LongOpenHashSet",
-        "it.unimi.dsi.fastutil.longs.LongSets",
-        // For dependency management
-        "it.unimi.dsi.fastutil.longs.Long2ObjectMap",
-        "it.unimi.dsi.fastutil.longs.Long2ObjectMaps",
-        "it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap",
-        "it.unimi.dsi.fastutil.longs.Long2IntMap",
-        "it.unimi.dsi.fastutil.longs.LongArrayList",
-        "it.unimi.dsi.fastutil.longs.LongList",
-        "it.unimi.dsi.fastutil.ints.Int2IntMap",
-        "it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap",
-        "it.unimi.dsi.fastutil.ints.Int2LongMap",
-        "it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap",
-        "it.unimi.dsi.fastutil.ints.IntArrayList",
-        "it.unimi.dsi.fastutil.ints.IntList",
-        "it.unimi.dsi.fastutil.ints.IntStack",
-        "it.unimi.dsi.fastutil.Stack",
-        // For the configuration cache module
-        "it.unimi.dsi.fastutil.objects.ReferenceArrayList",
-        "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
-        "it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap",
-        "it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap",
-        // For the execution plan
-        "it.unimi.dsi.fastutil.objects.ObjectIterators",
-        // For the evaluation context of the functional module
-        "it.unimi.dsi.fastutil.objects.ReferenceList",
-    )),
+    "it.unimi.dsi:fastutil" to MinifySpec(
+        keepClasses = setOf(
+            // What the distribution refers to, and what declares the members it inherits: the
+            // minifier keeps every member of a class named here, and only what is reachable of the
+            // rest. Derived by reading the references to this library out of the distribution.
+            "it.unimi.dsi.fastutil.Function",
+            "it.unimi.dsi.fastutil.Stack",
+            "it.unimi.dsi.fastutil.ints.AbstractInt2LongFunction",
+            "it.unimi.dsi.fastutil.ints.AbstractInt2LongMap",
+            "it.unimi.dsi.fastutil.ints.AbstractInt2ObjectFunction",
+            "it.unimi.dsi.fastutil.ints.AbstractInt2ObjectMap",
+            "it.unimi.dsi.fastutil.ints.AbstractInt2ReferenceFunction",
+            "it.unimi.dsi.fastutil.ints.AbstractInt2ReferenceMap",
+            "it.unimi.dsi.fastutil.ints.AbstractIntCollection",
+            "it.unimi.dsi.fastutil.ints.AbstractIntList",
+            "it.unimi.dsi.fastutil.ints.AbstractIntSet",
+            "it.unimi.dsi.fastutil.ints.Int2IntFunction",
+            "it.unimi.dsi.fastutil.ints.Int2IntMap",
+            "it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap",
+            "it.unimi.dsi.fastutil.ints.Int2LongFunction",
+            "it.unimi.dsi.fastutil.ints.Int2LongMap",
+            "it.unimi.dsi.fastutil.ints.Int2LongMap\$Entry",
+            "it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap",
+            "it.unimi.dsi.fastutil.ints.Int2ObjectFunction",
+            "it.unimi.dsi.fastutil.ints.Int2ObjectMap",
+            "it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap",
+            "it.unimi.dsi.fastutil.ints.Int2ReferenceFunction",
+            "it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap",
+            "it.unimi.dsi.fastutil.ints.IntArrayList",
+            "it.unimi.dsi.fastutil.ints.IntCollection",
+            "it.unimi.dsi.fastutil.ints.IntIterable",
+            "it.unimi.dsi.fastutil.ints.IntIterator",
+            "it.unimi.dsi.fastutil.ints.IntList",
+            "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
+            "it.unimi.dsi.fastutil.ints.IntSet",
+            "it.unimi.dsi.fastutil.ints.IntSets",
+            "it.unimi.dsi.fastutil.ints.IntStack",
+            "it.unimi.dsi.fastutil.longs.AbstractLong2IntFunction",
+            "it.unimi.dsi.fastutil.longs.AbstractLong2IntMap",
+            "it.unimi.dsi.fastutil.longs.AbstractLong2ObjectFunction",
+            "it.unimi.dsi.fastutil.longs.AbstractLong2ObjectMap",
+            "it.unimi.dsi.fastutil.longs.AbstractLongCollection",
+            "it.unimi.dsi.fastutil.longs.AbstractLongList",
+            "it.unimi.dsi.fastutil.longs.AbstractLongSet",
+            "it.unimi.dsi.fastutil.longs.Long2IntFunction",
+            "it.unimi.dsi.fastutil.longs.Long2IntMap",
+            "it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap",
+            "it.unimi.dsi.fastutil.longs.Long2ObjectFunction",
+            "it.unimi.dsi.fastutil.longs.Long2ObjectMap",
+            "it.unimi.dsi.fastutil.longs.Long2ObjectMaps",
+            "it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap",
+            "it.unimi.dsi.fastutil.longs.LongArrayList",
+            "it.unimi.dsi.fastutil.longs.LongCollection",
+            "it.unimi.dsi.fastutil.longs.LongList",
+            "it.unimi.dsi.fastutil.longs.LongOpenHashSet",
+            "it.unimi.dsi.fastutil.longs.LongSet",
+            "it.unimi.dsi.fastutil.longs.LongSets",
+            "it.unimi.dsi.fastutil.objects.AbstractObject2IntFunction",
+            "it.unimi.dsi.fastutil.objects.AbstractObject2IntMap",
+            "it.unimi.dsi.fastutil.objects.AbstractObjectCollection",
+            "it.unimi.dsi.fastutil.objects.AbstractObjectSet",
+            "it.unimi.dsi.fastutil.objects.AbstractReference2IntFunction",
+            "it.unimi.dsi.fastutil.objects.AbstractReference2IntMap",
+            "it.unimi.dsi.fastutil.objects.AbstractReference2ObjectFunction",
+            "it.unimi.dsi.fastutil.objects.AbstractReference2ObjectMap",
+            "it.unimi.dsi.fastutil.objects.AbstractReferenceCollection",
+            "it.unimi.dsi.fastutil.objects.AbstractReferenceList",
+            "it.unimi.dsi.fastutil.objects.AbstractReferenceSet",
+            "it.unimi.dsi.fastutil.objects.Object2IntFunction",
+            "it.unimi.dsi.fastutil.objects.Object2IntMap",
+            "it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap",
+            "it.unimi.dsi.fastutil.objects.ObjectCollection",
+            "it.unimi.dsi.fastutil.objects.ObjectIterable",
+            "it.unimi.dsi.fastutil.objects.ObjectIterators",
+            "it.unimi.dsi.fastutil.objects.ObjectListIterator",
+            "it.unimi.dsi.fastutil.objects.ObjectOpenHashSet",
+            "it.unimi.dsi.fastutil.objects.ObjectSet",
+            "it.unimi.dsi.fastutil.objects.Reference2IntFunction",
+            "it.unimi.dsi.fastutil.objects.Reference2IntMap",
+            "it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap",
+            "it.unimi.dsi.fastutil.objects.Reference2ObjectFunction",
+            "it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap",
+            "it.unimi.dsi.fastutil.objects.ReferenceArrayList",
+            "it.unimi.dsi.fastutil.objects.ReferenceList",
+            "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
+        ),
+        removePackages = setOf(
+            // Reading and writing collections as files, which the distribution never asks for.
+            "it.unimi.dsi.fastutil.io",
+        ),
+        dropLocalVariables = true,
+    ),
     "org.bouncycastle:bcprov-jdk18on" to MinifySpec(
         keepClasses = setOf(
             "org.bouncycastle.**",
@@ -107,22 +151,23 @@ val minifyPatterns = mapOf(
             "org.bouncycastle.crypto.signers.SLHDSASigner",
             "org.bouncycastle.crypto.kems.mlkem.**",
         ),
-        forceRemovePackages = setOf(
+        removePackages = setOf(
             "org.bouncycastle.pqc.jcajce",
             "org.bouncycastle.pqc.legacy",
         ),
-        erasedMethods = setOf(
+        dropLocalVariables = true,
+        sideEffectFreeCalls = setOf(
             // The provider skips algorithms whose classes are absent, because it looks them up by name.
             // This is the one place where it names post-quantum classes directly.
-            "org.bouncycastle.jce.provider.BouncyCastleProvider#loadPQCKeys",
+            "org.bouncycastle.jce.provider.BouncyCastleProvider#void loadPQCKeys()",
         ),
     ),
     "org.jetbrains.kotlin:kotlin-compiler-embeddable" to MinifySpec(
         // The compiler resolves its own services by name, so nothing here is unreachable. R8 cannot
         // process it either
-        removesUnreachable = false,
-        dropsLocalVariables = true,
-        forceRemovePackages = setOf(
+        removeUnreachable = false,
+        dropLocalVariables = true,
+        removePackages = setOf(
             "org.jetbrains.kotlin.analysis.decompiler.js",
             "org.jetbrains.kotlin.analysis.decompiler.konan",
             "org.jetbrains.kotlin.backend.konan",
@@ -148,22 +193,32 @@ val minifyPatterns = mapOf(
             "org.jetbrains.kotlin.wasm",
         ),
     ),
-    "com.github.jnr:jnr-constants" to MinifySpec(setOf(
-        // For signal codes
-        "jnr.constants.platform.Signal",
-        "jnr.constants.platform.aix.Signal",
-        "jnr.constants.platform.darwin.Signal",
-        "jnr.constants.platform.freebsd.Signal",
-        "jnr.constants.platform.openbsd.Signal",
-        "jnr.constants.platform.linux.Signal",
-        "jnr.constants.platform.solaris.Signal",
-        "jnr.constants.Constant",
-        "jnr.constants.ConstantResolver",
-    )),
+    "com.github.jnr:jnr-constants" to MinifySpec(
+        dropLocalVariables = true,
+        keepClasses = setOf(
+            // For signal codes
+            "jnr.constants.platform.Signal",
+            "jnr.constants.platform.aix.Signal",
+            "jnr.constants.platform.darwin.Signal",
+            "jnr.constants.platform.freebsd.Signal",
+            "jnr.constants.platform.openbsd.Signal",
+            "jnr.constants.platform.linux.Signal",
+            "jnr.constants.platform.solaris.Signal",
+            "jnr.constants.Constant",
+            "jnr.constants.ConstantResolver",
+        ),
+    ),
 )
 
+val libraryDependencies = configurations.resolvable("minifierLibraries") {
+    // Of the libraries that are minified, the Kotlin compiler is the only one that refers to anything
+    // outside itself, and the minifier stops at the first supertype it cannot find
+    versionCatalogs.find("libs").flatMap { it.findLibrary("kotlinCompilerEmbeddable") }.ifPresent(dependencies::addLater)
+}
+
 val minifier = configurations.resolvable("minifier") {
-    versionCatalogs.find("buildLibs").flatMap { it.findLibrary("r8") }.ifPresent(dependencies::addLater)
+    versionCatalogs.find("buildLibs").flatMap { it.findLibrary("proguard") }.ifPresent(dependencies::addLater)
+    exclude(group = "org.json")
 }
 
 plugins.withId("java-base") {
@@ -189,8 +244,9 @@ plugins.withId("java-base") {
             parameters {
                 minifySpecsByCoordinates = minifyPatterns
                 minifierClasspath.from(minifier)
+                minifiedLibraries.from(libraryDependencies)
                 minifierJavaVersion = DEFAULT_TARGET_JVM_VERSION
-                minifierJdkHome = minifierJdkLauncher.map { it.metadata.installationPath }
+                minifierJdkHome = minifierJdkLauncher.get().metadata.installationPath
             }
         }
     }
@@ -201,7 +257,7 @@ plugins.withId("java-base") {
         // note: constraints can't be used here because they end up in gradle module metadata
         val attributesFactory = gradle.serviceOf<AttributesFactory>()
         configurations.all {
-            if (isCanBeResolved && !isCanBeConsumed) {
+            if (isCanBeResolved && !isCanBeConsumed && name != libraryDependencies.name && !name.startsWith("jmh")) {
                 resolutionStrategy.dependencySubstitution.all {
                     val requested = this.requested as? ModuleComponentSelector ?: return@all
                     minifyPatterns.forEach { coordinates, _ ->

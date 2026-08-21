@@ -427,7 +427,10 @@
          <trusted-key id="C8D37E9675158FF5B29B6D6452FC3551DA8DC57E" group="com.mysql" name="mysql-connector-j"/>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
          <trusted-key id="C9F5BB47FCF51250930BD8E22F73DAE490984549" group="com.uber.nullaway"/>
-         <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141" group="net.sf.proguard"/>
+         <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141">
+            <trusting group="com.guardsquare"/>
+            <trusting group="net.sf.proguard"/>
+         </trusted-key>
          <trusted-key id="CB3190CA7842439E57F3712E44CE7BF2825EA2CD" group="com.ibm.icu" name="icu4j"/>
          <trusted-key id="CD5464315F0B98C77E6E8ECD9DAADC1C9FCC82D0">
             <trusting group="commons-cli"/>
@@ -603,9 +606,9 @@
             <sha256 value="f518445fc8a2defc443aac1c53ca60d07cd991a20063c275a322f1668acd67c4" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="com.android.tools" name="r8" version="8.11.18">
-         <artifact name="r8-8.11.18.jar">
-            <sha256 value="fbe6f7d59d46d6296919f6cc4793536439921d357c9a6bbf45ea4acc3c8736a7" reason="Artifact is not signed"/>
+      <component group="com.android.tools" name="r8" version="8.5.35">
+         <artifact name="r8-8.5.35.jar">
+            <sha256 value="4733945987ee0a840fafc34080b135259e01678412e07212b23f706334290294" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.android.tools" name="repository" version="26.0.0">

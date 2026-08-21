@@ -48,6 +48,9 @@ abstract class Minify : TransformAction<Minify.Parameters> {
         @get:Classpath
         val minifierClasspath: ConfigurableFileCollection
 
+        @get:Classpath
+        val minifiedLibraries: ConfigurableFileCollection
+
         @get:Input
         val minifierJavaVersion: Property<Int>
 
@@ -65,7 +68,8 @@ abstract class Minify : TransformAction<Minify.Parameters> {
     private
     val jarArtifactRegex = Regex("""^(.*?)-\d+(\.\d+)*([.-][A-Za-z0-9]+)*\.jar$""")
 
-    private val specsByArtifacts: Map<String, MinifySpec> by lazy {
+    private
+    val specsByArtifacts: Map<String, MinifySpec> by lazy {
         parameters.minifySpecsByCoordinates.mapKeys { it.key.substringAfter(":") }
     }
 
@@ -91,32 +95,15 @@ abstract class Minify : TransformAction<Minify.Parameters> {
 
     private
     fun minify(artifact: File, spec: MinifySpec, output: File) {
-        if (!spec.removesUnreachable) {
-            MinifyPreprocessor.preprocess(artifact, output, spec, parameters.minifierJavaVersion.get())
-            return
-        }
-        val shrunk = if (spec.needsPreprocessing) {
-            File.createTempFile("preprocessed", ".jar").apply {
-                MinifyPreprocessor.preprocess(artifact, this, spec, parameters.minifierJavaVersion.get())
-            }
-        } else {
-            artifact
-        }
         val rules = File.createTempFile("minify", ".pro")
-        rules.writeText(minifyRules(spec).joinToString("\n"))
+        rules.writeText(minifyRules(artifact, spec, output).joinToString("\n"))
         val log = ByteArrayOutputStream()
         try {
             val result = execOperations.javaexec {
                 classpath = parameters.minifierClasspath
-                mainClass.set("com.android.tools.r8.R8")
-                args(
-                    "--classfile",
-                    "--no-desugaring",
-                    "--lib", parameters.minifierJdkHome.get().asFile.absolutePath,
-                    "--pg-conf", rules.absolutePath,
-                    "--output", output.absolutePath,
-                    shrunk.absolutePath
-                )
+                mainClass.set("proguard.ProGuard")
+                maxHeapSize = "3g"
+                args("@${rules.absolutePath}")
                 standardOutput = log
                 errorOutput = log
                 isIgnoreExitValue = true
@@ -126,22 +113,48 @@ abstract class Minify : TransformAction<Minify.Parameters> {
             }
         } finally {
             rules.delete()
-            if (shrunk !== artifact) {
-                shrunk.delete()
-            }
         }
     }
 
     private
-    fun minifyRules(spec: MinifySpec) = listOf(
-        "-dontobfuscate",
-        "-dontoptimize",
-        "-keepattributes *",
-        "-keep,allowshrinking class ** { *; }",
-        "-dontwarn"
-    ) + spec.keepClasses.map { keepClass ->
-        // R8 takes the first pattern of the list that matches, so the exclusions have to come first.
-        val exclusions = spec.excludedClasses.filterNot { keepClass.startsWith(it.substringBefore("*")) }
-        "-keep,includedescriptorclasses class ${(exclusions.map { "!$it" } + keepClass).joinToString(",")} { *; }"
+    fun minifyRules(artifact: File, spec: MinifySpec, output: File) = buildList {
+        val removedPackages = spec.removePackages.map { "**${it.replace('.', '/')}/**" }
+
+        val inputFilters = listOf("!META-INF/*.SF", "!META-INF/*.RSA", "!META-INF/*.DSA", "!META-INF/*.EC") +
+            removedPackages.map { "!$it" }
+        add("-injars '${artifact.absolutePath}'(${inputFilters.joinToString(",")})")
+        add("-outjars '${output.absolutePath}'")
+        add("-libraryjars '${parameters.minifierJdkHome.get().asFile.absolutePath}/jmods'")
+        if (removedPackages.isNotEmpty()) {
+            add("-libraryjars '${artifact.absolutePath}'(${removedPackages.joinToString(",")})")
+        }
+        for (library in parameters.minifiedLibraries.files - artifact) {
+            add("-libraryjars '${library.absolutePath}'")
+        }
+
+        add("-keepnames class ** { *; }")
+        if (spec.dropLocalVariables) {
+            add("-keepattributes !LocalVariableTable,!LocalVariableTypeTable,*")
+        } else {
+            add("-keepattributes *")
+        }
+        add("-dontwarn")
+        add("-dontnote")
+        if (!spec.removeUnreachable) {
+            add("-dontshrink")
+        }
+        if (spec.sideEffectFreeCalls.isEmpty()) {
+            add("-dontoptimize")
+        }
+
+        for (keepClass in spec.keepClasses) {
+            val exclusions = spec.excludedClasses.filterNot { keepClass.startsWith(it.substringBefore("*")) }
+            val patterns = exclusions.map { "!$it" } + keepClass
+            add("-keep,includedescriptorclasses class ${patterns.joinToString(",")} { *; }")
+        }
+
+        for (call in spec.sideEffectFreeCalls) {
+            add("-assumenosideeffects class ${call.substringBefore('#')} { ${call.substringAfter('#')}; }")
+        }
     }
 }
