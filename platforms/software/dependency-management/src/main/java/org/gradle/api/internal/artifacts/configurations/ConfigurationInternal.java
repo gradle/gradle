@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.DomainObjectContext;
@@ -90,6 +91,18 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      * Visits the variants of this configuration.
      */
     void collectVariants(VariantVisitor visitor);
+
+    /**
+     * The outgoing publications of this configuration, or {@code null} if they have not been
+     * realized yet.
+     *
+     * <p>Unlike {@link #getOutgoing()}, this does not realize the publications. Since any state
+     * of the publications (artifacts, variants, capabilities) can only be mutated through
+     * {@link #getOutgoing()}, a {@code null} result implies the publications are in their
+     * default, empty state.</p>
+     */
+    @Nullable
+    ConfigurationPublications getOutgoingIfInitialized();
 
     boolean isCanBeMutated();
 

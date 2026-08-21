@@ -46,7 +46,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.ConfigurationServicesBundle;
@@ -62,7 +61,6 @@ import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
@@ -165,7 +163,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final String name;
     private final boolean isDetached;
-    private final DefaultConfigurationPublications outgoing;
+
+    // Created lazily on first access: most configurations (resolvable or declarable ones) never
+    // publish anything, so their publications object is never realized. Anything that needs to
+    // observe mutation state without realizing the publications must use getOutgoingIfInitialized().
+    private volatile @Nullable DefaultConfigurationPublications outgoing;
 
     private boolean visible = true;
     private boolean transitive = true;
@@ -196,7 +198,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable FileCollectionInternal intrinsicFiles;
 
     private final DisplayName displayName;
-    private final UserCodeApplicationContext userCodeApplicationContext;
 
     private final AtomicInteger copyCount = new AtomicInteger();
 
@@ -208,10 +209,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable ConfigurationInternal consistentResolutionSource;
     private @Nullable String consistentResolutionReason;
 
-    /** This factory can't be extracted to the services bundle, as it would create a circular dependency between those two types. */
+    /**
+     * This factory can't be extracted to the services bundle, as it would create a circular dependency between those two types.
+     */
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
-    /** This factory has some unique usages during copy, so it can't be extracted to the services bundle. */
+    /**
+     * This factory has some unique usages during copy, so it can't be extracted to the services bundle.
+     */
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private @Nullable ResolutionStrategyInternal resolutionStrategy;
 
@@ -228,15 +233,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        PublishArtifactNotationParser artifactNotationParser,
-        NotationParser<Object, Capability> capabilityNotationParser,
-        UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ConfigurationRole roleAtCreation,
         boolean lockUsage
     ) {
         super(configurationServices.getTaskDependencyFactory());
-        this.userCodeApplicationContext = userCodeApplicationContext;
         this.identityPath = getIdentityPath(domainObjectContext, name);
         this.name = name;
         this.isDetached = isDetached;
@@ -264,7 +265,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
 
-        this.outgoing = configurationServices.getObjectFactory().newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, configurationServices.getFileCollectionFactory(), configurationServices.getAttributesFactory(), configurationServices.getDomainObjectCollectionFactory(), taskDependencyFactory);
         this.currentResolveState = new DefaultCalculatedModelValue<>(domainObjectContext.getModel(), configurationServices.getProjectLeaseRegistry(), Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
@@ -946,7 +946,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Set<ExcludeRule> getAllExcludeRules() {
         Set<ExcludeRule> result = new LinkedHashSet<>(getExcludeRules());
-        extendsFrom.visitConfigurations(configuration -> result.addAll(((ConfigurationInternal)configuration.get()).getAllExcludeRules()));
+        extendsFrom.visitConfigurations(configuration -> {
+                ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration.get();
+                result.addAll(configurationInternal.getAllExcludeRules());
+            }
+        );
         return result;
     }
 
@@ -988,12 +992,49 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ConfigurationPublications getOutgoing() {
+        return getOrCreateOutgoing();
+    }
+
+    @Override
+    public @Nullable ConfigurationPublications getOutgoingIfInitialized() {
         return outgoing;
+    }
+
+    private DefaultConfigurationPublications getOrCreateOutgoing() {
+        if (outgoing == null) {
+            initOutgoing();
+        }
+        return outgoing;
+    }
+
+    private synchronized void initOutgoing() {
+        if (outgoing != null) {
+            return;
+        }
+
+        DefaultConfigurationPublications publications = configurationServices.getObjectFactory().newInstance(
+            DefaultConfigurationPublications.class,
+            displayName,
+            artifacts,
+            new AllArtifactsProvider(),
+            configurationAttributes,
+            configurationServices.getArtifactNotationParser(),
+            configurationServices.getCapabilityNotationParser(),
+            configurationServices.getFileCollectionFactory(),
+            configurationServices.getAttributesFactory(),
+            configurationServices.getDomainObjectCollectionFactory(),
+            taskDependencyFactory);
+        if (observationReason != null) {
+            // The configuration was already observed before the publications were
+            // realized, so they must start out immutable.
+            publications.preventFromFurtherMutation(observationReason);
+        }
+        outgoing = publications;
     }
 
     @Override
     public void collectVariants(VariantVisitor visitor) {
-        outgoing.collectVariants(visitor);
+        getOrCreateOutgoing().collectVariants(visitor);
     }
 
     @Override
@@ -1019,7 +1060,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 conf.observedState = InternalState.OBSERVED;
 
                 conf.configurationAttributes.freeze();
-                conf.outgoing.preventFromFurtherMutation(conf.observationReason);
+                if (conf.outgoing != null) {
+                    // Publications that were never realized have no mutable state to guard.
+                    // If they are realized later, initOutgoing() applies the observation.
+                    conf.outgoing.preventFromFurtherMutation(conf.observationReason);
+                }
                 conf.preventUsageMutation();
             }
         });
@@ -1063,7 +1108,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
-        action.execute(outgoing);
+        action.execute(getOrCreateOutgoing());
     }
 
     /**
@@ -1724,7 +1769,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("beforeResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            UserCodeApplicationContext userCodeApplicationContext = configuration.configurationServices.getUserCodeApplicationContext();
+            configuration.dependencyResolutionListeners.add("beforeResolve", userCodeApplicationContext.reapplyCurrentLater(action));
         }
 
         @Override
@@ -1734,7 +1780,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("afterResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            UserCodeApplicationContext userCodeApplicationContext = configuration.configurationServices.getUserCodeApplicationContext();
+            configuration.dependencyResolutionListeners.add("afterResolve", userCodeApplicationContext.reapplyCurrentLater(action));
         }
 
         @Override
