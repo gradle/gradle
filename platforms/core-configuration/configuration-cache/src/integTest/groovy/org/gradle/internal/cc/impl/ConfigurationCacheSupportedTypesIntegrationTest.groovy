@@ -276,7 +276,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         type          | reference                         | output
         ImmutableList | "ImmutableList.of('a', 'b', 'c')" | "[a, b, c]"
         ImmutableSet  | "ImmutableSet.of('a', 'b', 'c')"  | "[a, b, c]"
-        ImmutableMap | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
+        ImmutableMap  | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
     }
 
     def "serializing a Guava #type.simpleName does not report a problem"() {
