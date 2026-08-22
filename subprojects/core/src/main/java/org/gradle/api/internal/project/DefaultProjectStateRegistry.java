@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -266,23 +267,36 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public <T extends @Nullable Object> T fromMutableStateOfAllProjects(Function<AllProjectsAccess, T> factory) {
-            ResourceLock allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
-            Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-            return workerLeaseService.withReplacedLocks(locks, allProjectsLock, () ->
-                factory.apply(new AllProjectsAccessImpl(owner, workerLeaseService, allProjectsLock))
+            Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
+            return workerLeaseService.withReplacedLocks(currentLocks, accessLocksOfAllProjects(), () ->
+                factory.apply(new AllProjectsAccessImpl(owner, workerLeaseService))
             );
         }
+
+        /**
+         * The state locks of every project of this build, which may be acquired together to gain
+         * exclusive access to all of them without requiring individual lock acquisitions for each.
+         */
+        private Set<ResourceLock> accessLocksOfAllProjects() {
+            // Use a set to deduplicate, since when parallel execution is disabled, projects in
+            // the same build share a lock.
+            Set<ResourceLock> locks = new HashSet<>();
+            for (ProjectState project : projectsByPath.values()) {
+                locks.add(project.getAccessLock());
+            }
+            return locks;
+        }
+
     }
 
     private static final class AllProjectsAccessImpl implements AllProjectsAccess {
+
         private final BuildState owner;
         private final WorkerLeaseService workerLeaseService;
-        private final ResourceLock allProjectsLock;
 
-        private AllProjectsAccessImpl(BuildState owner, WorkerLeaseService workerLeaseService, ResourceLock allProjectsLock) {
+        private AllProjectsAccessImpl(BuildState owner, WorkerLeaseService workerLeaseService) {
             this.owner = owner;
             this.workerLeaseService = workerLeaseService;
-            this.allProjectsLock = allProjectsLock;
         }
 
         @Override
@@ -292,11 +306,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
                     "Attempting to access mutable state of " + project.getIdentityPath() + " using AllProjectsAccess for " + owner.getIdentityPath() + "." +
                         " AllProjectsAccess can only be used to access the mutable state of projects in the same build.");
             }
-            if (!workerLeaseService.getCurrentProjectLocks().contains(allProjectsLock)) {
-                throw new IllegalStateException("Cannot access mutable project state without holding the all projects lock for " + owner.getDisplayName() + ".");
+            if (!workerLeaseService.holdsProjectLock(project.getAccessLock())) {
+                throw new IllegalStateException("Cannot access mutable state of " + project.getIdentityPath() + " without holding its state lock.");
             }
-            // SAFETY: The caller is only allowed to call this method while holding the all projects lock
+            // SAFETY: The caller is only allowed to call this method while holding the state lock of the project
             return project.getMutableModel();
         }
+
     }
 }

@@ -18,41 +18,26 @@ package org.gradle.internal.resources;
 
 import org.gradle.util.Path;
 
-public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ProjectLock> {
-    private final boolean parallelEnabled;
-    private final LockCache<Path, AllProjectsLock> allProjectsLocks;
+public class ProjectLockRegistry extends MultiLockRegistry<Path, ExclusiveAccessResourceLock> {
 
-    @SuppressWarnings("this-escape")
+    private final boolean parallelEnabled;
+
     public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
         super(coordinationService);
         this.parallelEnabled = parallelEnabled;
-        allProjectsLocks = new LockCache<>(coordinationService, this);
     }
 
     public boolean getAllowsParallelExecution() {
         return parallelEnabled;
     }
 
-    public ResourceLock getAllProjectsLock(final Path buildIdentityPath) {
-        return getAllProjectsLockInternal(buildIdentityPath);
-    }
-
-    // Provides more specific return type that can't be public
-    private AllProjectsLock getAllProjectsLockInternal(Path buildIdentityPath) {
-        return allProjectsLocks.getOrRegisterResourceLock(buildIdentityPath, (key, coordinationService, owner) -> {
-            String displayName = "All projects of " + buildIdentityPath;
-            return new AllProjectsLock(displayName, coordinationService, owner, this::getCachedResourceLocks);
-        });
-    }
-
-    public ProjectLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
-        return doGetResourceLock(buildIdentityPath, parallelEnabled ? projectIdentityPath : buildIdentityPath);
-    }
-
-    private ProjectLock doGetResourceLock(final Path buildIdentityPath, final Path lockPath) {
-        return getOrRegisterResourceLock(lockPath, (projectPath, coordinationService, owner) -> {
+    public ExclusiveAccessResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
+        // When not running in parallel, all projects of a build share a single lock.
+        Path lockPath = parallelEnabled ? projectIdentityPath : buildIdentityPath;
+        return getOrRegisterResourceLock(lockPath, (key, coordinationService, owner) -> {
             String displayName = parallelEnabled ? "state of project " + lockPath : "state of build " + lockPath;
-            return new ProjectLock(displayName, coordinationService, owner, getAllProjectsLockInternal(buildIdentityPath));
+            return new ExclusiveAccessResourceLock(displayName, coordinationService, owner);
         });
     }
+
 }

@@ -44,7 +44,7 @@ class FlowScheduler(
 
     fun schedule(scheduled: List<RegisteredFlowAction>) {
         if (buildState.isProjectsLoaded) {
-            // Grab the allprojects lock to run the flow actions.
+            // Grab the state lock of every project to run the flow actions.
             // This is a workaround for parameters that may require dependency resolution under the hood.
             // TODO(mlopatkin) replace this with proper isolation
             buildState.projects.withMutableStateOfAllProjects {
