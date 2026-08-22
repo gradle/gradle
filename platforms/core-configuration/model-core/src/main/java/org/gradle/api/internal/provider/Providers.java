@@ -62,7 +62,7 @@ public class Providers {
         return Cast.uncheckedCast(NULL_PROVIDER);
     }
 
-    public static <T> ProviderInternal<T> of(T value) {
+    public static <T> FixedValueProvider<T> of(T value) {
         if (value == null) {
             throw new IllegalArgumentException();
         }
