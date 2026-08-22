@@ -15,7 +15,9 @@
  */
 package org.gradle.testfixtures;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 import org.jspecify.annotations.Nullable;
 
@@ -69,6 +71,20 @@ public class ProjectBuilder {
     }
 
     /**
+     * Returns the default Gradle user home directory.
+     *
+     * <p>Use the returned directory with {@link #withGradleUserHomeDir(File)} when a ProjectBuilder project should
+     * share the default Gradle dependency cache.</p>
+     *
+     * @return The default Gradle user home directory
+     * @since 9.8.0
+     */
+    @Incubating
+    public static File getDefaultGradleUserHomeDir() {
+        return new BuildLayoutParameters().getGradleUserHomeDir();
+    }
+
+    /**
      * Specifies the project directory for the project to build.
      *
      * @param dir The project directory
@@ -81,8 +97,8 @@ public class ProjectBuilder {
     }
 
     /**
-     * Specifies the Gradle user home for the builder. If not set, an empty directory under the project directory
-     * will be used.
+     * Specifies the Gradle user home for the builder. Persistent Gradle caches, including the dependency cache,
+     * are stored in this directory. If not set, an empty directory under the project directory will be used.
      *
      * @return The builder
      * @since 3.0

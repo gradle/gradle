@@ -22,6 +22,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.UnknownModuleException;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -44,14 +45,23 @@ import java.util.Collections;
 import java.util.List;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
+    private final boolean usePersistentCache;
+
     public TestGlobalScopeServices() {
+        this(false);
+    }
+
+    public TestGlobalScopeServices(boolean usePersistentCache) {
         super(false, AgentStatus.disabled(), CurrentGradleInstallation.locate());
+        this.usePersistentCache = usePersistentCache;
     }
 
     @Provides
     @Override
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
-        return new TestInMemoryCacheFactory();
+        return usePersistentCache
+            ? new DefaultCacheFactory(fileLockManager, executorFactory)
+            : new TestInMemoryCacheFactory();
     }
 
     @Override
