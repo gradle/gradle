@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
+import org.gradle.api.provider.PresentProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
@@ -182,11 +183,26 @@ public class Providers {
         }
     }
 
-    public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {
+    public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> implements PresentProvider<T> {
         protected final T value;
 
         FixedValueProvider(T value) {
             this.value = value;
+        }
+
+        @Override
+        public T getOrNull() {
+            return get();
+        }
+
+        @Override
+        public PresentProvider<T> orElse(T value) {
+            return this;
+        }
+
+        @Override
+        public PresentProvider<T> orElse(Provider<? extends T> provider) {
+            return this;
         }
 
         @Nullable
