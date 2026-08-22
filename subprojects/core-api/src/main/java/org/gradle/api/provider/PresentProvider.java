@@ -17,6 +17,8 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A {@link Provider} that always has a value present.
@@ -31,6 +33,8 @@ import org.gradle.api.Incubating;
  * @param <T> Type of value represented by the provider
  * @since 9.8.0
  */
+@HasInternalProtocol
+@NonExtensible
 @Incubating
 public interface PresentProvider<T> extends Provider<T> {
 
