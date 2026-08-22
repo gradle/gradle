@@ -67,6 +67,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
         buildFileKts << ""
 
         when:
+        maybeExpectExplicitScriptsDeprecation()
         def model = loadToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, true, true, [buildFileKts])
         }

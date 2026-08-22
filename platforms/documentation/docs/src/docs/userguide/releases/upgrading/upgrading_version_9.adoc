@@ -159,6 +159,18 @@ The same guidance about wiring the provider lazily to task inputs applies.
 
 This behavior will become an error in Gradle 11.
 
+[[kotlin_dsl_scripts_model_explicit_scripts]]
+==== Deprecation of restricting the `KotlinDslScriptsModel` to explicit scripts
+
+The `KotlinDslScriptsModel` is the Tooling API model that IDEs use to provide editing assistance for Kotlin DSL scripts.
+
+Restricting the model to an explicit set of scripts by setting the `org.gradle.tooling.model.kotlin.dsl.scripts` Gradle property is now deprecated and will be removed in Gradle 10.
+The corresponding `KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME` constant in the Tooling API is deprecated on the same schedule.
+Setting the property still works and emits a deprecation warning, so the behavior of such requests is unchanged in Gradle 9.x.
+With <<isolated_projects.adoc#isolated_projects,Isolated Projects>> enabled, setting the property fails the model request, as it always has.
+
+In Gradle 10, the property will be ignored, and the model will always be built for all the Kotlin DSL scripts of the build.
+
 [[deprecation_enabling_build_cache_from_build_logic]]
 ==== Deprecation of enabling the Build Cache from build logic
 
