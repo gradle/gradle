@@ -437,11 +437,15 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         outputContains("bean.value = ${output}")
 
         where:
-        type               | reference                                 | output
-        "Provider<String>" | "providers.provider { 'value' }"          | "value"
-        "Provider<String>" | "providers.provider { null }"             | "null"
-        "Provider<String>" | "objects.property(String).value('value')" | "value"
-        "Provider<String>" | "objects.property(String)"                | "null"
+        type                      | reference                                 | output
+        "Provider<String>"        | "providers.provider { 'value' }"          | "value"
+        "Provider<String>"        | "providers.provider { null }"             | "null"
+        "PresentProvider<String>" | "providers.some('value')"                 | "value"
+        "Provider<String>"        | "providers.none()"                        | "null"
+        "Provider<String>"        | "providers.nullable('value')"             | "value"
+        "Provider<String>"        | "providers.nullable(null)"                | "null"
+        "Provider<String>"        | "objects.property(String).value('value')" | "value"
+        "Provider<String>"        | "objects.property(String)"                | "null"
     }
 
     def "restores task fields whose value is broken #type"() {
