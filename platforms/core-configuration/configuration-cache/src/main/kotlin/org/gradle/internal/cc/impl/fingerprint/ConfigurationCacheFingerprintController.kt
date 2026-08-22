@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
@@ -64,7 +65,18 @@ import org.gradle.util.internal.BuildCommencedTimeProvider
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Supplier
+
+
+/**
+ * Opens a [ReadContext] over a fingerprint [ConfigurationCacheStateFile] (the manifest or one of the
+ * per-project files) and runs the given [action] within the fingerprint isolate.
+ */
+internal
+fun interface FingerprintFileReader {
+    fun readFingerprintFile(file: ConfigurationCacheStateFile, action: suspend ReadContext.() -> Unit)
+}
 
 
 /**
@@ -126,8 +138,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         ): WritingState =
             illegalStateFor("commit")
 
-        open fun append(fingerprint: ProjectSpecificFingerprint): Unit =
-            illegalStateFor("append")
+        open fun appendRelation(fingerprint: ProjectSpecificFingerprint): Unit =
+            illegalStateFor("appendRelation")
+
+        open fun appendProjectValue(projectPath: Path, value: ConfigurationCacheFingerprint): Unit =
+            illegalStateFor("appendProjectValue")
 
         open fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T =
             illegalStateFor("resolveScriptsForProject")
@@ -152,10 +167,18 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
             val buildScopedFile = parameters.assignBuildScopedSpoolFile()
             val projectScopedFile = parameters.assignProjectScopedSpoolFile()
+            // Spool file for each project that gets its own fingerprint file, keyed by the project identity path.
+            // Populated lazily as projects are encountered by the writer, and drained at commit/dispose time.
+            val perProjectSpoolFiles = ConcurrentHashMap<Path, StateFile>()
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintWriterHost(),
                 parameters.writerContextFor(buildScopedFile),
                 parameters.writerContextFor(projectScopedFile),
+                { projectPath ->
+                    val projectScopedSpoolFile = parameters.assignProjectScopedSpoolFile()
+                    perProjectSpoolFiles[projectPath] = projectScopedSpoolFile
+                    parameters.writerContextFor(projectScopedSpoolFile)
+                },
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 workExecutionTracker,
@@ -166,12 +189,20 @@ class ConfigurationCacheFingerprintController internal constructor(
             return Writing(
                 fingerprintWriter,
                 buildScopedFile,
-                projectScopedFile
+                projectScopedFile,
+                perProjectSpoolFiles
             )
         }
 
         override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
             // Ignore scripts resolved while loading from cache
+            return action()
+        }
+
+        override fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
+            // TODO(mlopatkin): a project can be configured while no fingerprint is being collected, e.g. when a
+            //  GradleBuild task runs its nested build. Skipping collection is safe, but it isn't clear if it is
+            //  the correct behavior.
             return action()
         }
 
@@ -183,7 +214,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     inner class Writing(
         private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
         private val buildScopedSpoolFile: StateFile,
-        private val projectScopedSpoolFile: StateFile
+        private val projectScopedSpoolFile: StateFile,
+        private val perProjectSpoolFiles: Map<Path, StateFile>
     ) : WritingState() {
 
         override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
@@ -200,7 +232,7 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun pause(): WritingState {
             removeListener(fingerprintWriter)
-            return Paused(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
+            return Paused(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile, perProjectSpoolFiles)
         }
 
         override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
@@ -215,21 +247,33 @@ class ConfigurationCacheFingerprintController internal constructor(
     inner class Paused(
         private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
         private val buildScopedSpoolFile: StateFile,
-        private val projectScopedSpoolFile: StateFile
+        private val projectScopedSpoolFile: StateFile,
+        private val perProjectSpoolFiles: Map<Path, StateFile>
     ) : WritingState() {
 
         override fun maybeStart(parameters: ConfigurationCacheFingerprintStartParameters): WritingState {
             addListener(fingerprintWriter)
             // Continue with the current spool file, rather than starting a new one
-            return Writing(fingerprintWriter, this.buildScopedSpoolFile, this.projectScopedSpoolFile)
+            return Writing(fingerprintWriter, this.buildScopedSpoolFile, this.projectScopedSpoolFile, this.perProjectSpoolFiles)
         }
 
         override fun pause(): WritingState {
             return this
         }
 
-        override fun append(fingerprint: ProjectSpecificFingerprint) {
-            fingerprintWriter.append(fingerprint)
+        override fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
+            // TODO(mlopatkin): a project can be configured while fingerprint collection is paused, e.g. when a
+            //  GradleBuild task runs its nested build at execution time. Skipping collection is safe, but it isn't
+            //  clear if it is the correct behavior.
+            return action()
+        }
+
+        override fun appendRelation(fingerprint: ProjectSpecificFingerprint) {
+            fingerprintWriter.appendRelation(fingerprint)
+        }
+
+        override fun appendProjectValue(projectPath: Path, value: ConfigurationCacheFingerprint) {
+            fingerprintWriter.appendProjectValue(projectPath, value)
         }
 
         override fun commit(
@@ -238,7 +282,12 @@ class ConfigurationCacheFingerprintController internal constructor(
         ): WritingState {
             closeStreams()
             buildScopedFingerprint.moveFrom(buildScopedSpoolFile.file)
+            // The project-scoped fingerprint file acts as the manifest; each project's fingerprint values
+            // are committed to a file related to it (a sibling in the cache entry directory).
             projectScopedFingerprint.moveFrom(projectScopedSpoolFile.file)
+            perProjectSpoolFiles.forEach { (projectPath, spoolFile) ->
+                projectScopedFingerprint.relatedStateFile(projectPath).moveFrom(spoolFile.file)
+            }
             return Committed()
         }
 
@@ -246,6 +295,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             closeStreams()
             buildScopedSpoolFile.delete()
             projectScopedSpoolFile.delete()
+            perProjectSpoolFiles.values.forEach { it.delete() }
             return Idle()
         }
 
@@ -345,26 +395,100 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.dispose()
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host) =
-        fingerprintChecker(host).run {
+    /**
+     * The system properties reconstructed by the build-scoped fingerprint check, reused by the per-project
+     * checks and by [applyCheckedSystemProperties]. Replaced by every build-scoped check, as more than one
+     * candidate entry can be checked in turn.
+     */
+    private
+    var checkedSystemProperties: VersionedSystemProperties? = null
+
+    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host): InvalidationReason? {
+        val systemProperties = VersionedSystemProperties(System.getProperties())
+        checkedSystemProperties = systemProperties
+        return fingerprintChecker(host, systemProperties).run {
             checkBuildScopedFingerprint()
         }
+    }
 
-    suspend fun ReadContext.checkProjectScopedFingerprint(host: Host) =
-        fingerprintChecker(host).run {
-            checkProjectScopedFingerprint()
+    /**
+     * Puts the system properties into the state the build that stored the entry left them in.
+     *
+     * The changes the build logic made to them are not applied while the entry is checked, so that a check
+     * that fails leaves the process alone. They have to be applied before the entry is used, though: the
+     * loaded build never runs the configuration that made them, and nothing else re-establishes them.
+     */
+    fun applyCheckedSystemProperties() {
+        checkedSystemProperties?.let {
+            System.setProperties(it.finalSnapshot().toProperties())
         }
+    }
 
-    suspend fun ReadContext.collectFingerprintForReusedProjects(host: Host, reusedProjects: Set<Path>): Unit =
-        fingerprintChecker(host).run {
-            visitEntriesForProjects(reusedProjects) { fingerprint ->
-                writingState.append(fingerprint)
+    /**
+     * Checks the project-scoped fingerprint. The [manifestFile] lists all projects that have their own
+     * fingerprint file (a file related to [manifestFile]) plus the cross-project dependency information;
+     * the fingerprint values of each project are then checked from its dedicated file.
+     */
+    fun checkProjectScopedFingerprint(
+        host: Host,
+        manifestFile: ConfigurationCacheStateFile,
+        reader: FingerprintFileReader
+    ): CheckedFingerprint.InvalidProjects? {
+        val checker = fingerprintCheckerAfterBuildScopedCheck(host)
+        reader.readFingerprintFile(manifestFile) {
+            checker.run { readProjectFingerprintManifest() }
+        }
+        checker.projectsWithFingerprintFile.forEach { projectPath ->
+            // Skip projects already invalidated transitively (e.g. via a dependency), matching the
+            // behavior of not checking values of an out-of-date project.
+            if (checker.requiresProjectFingerprintCheck(projectPath)) {
+                reader.readFingerprintFile(manifestFile.relatedStateFile(projectPath)) {
+                    checker.run { checkProjectFingerprintFile(projectPath) }
+                }
             }
         }
+        return checker.projectFingerprintInvalidationResult()
+    }
+
+    fun collectFingerprintForReusedProjects(
+        host: Host,
+        manifestFile: ConfigurationCacheStateFile,
+        reusedProjects: Set<Path>,
+        reader: FingerprintFileReader
+    ) {
+        val checker = fingerprintCheckerAfterBuildScopedCheck(host)
+        val reusedProjectsWithFile = mutableListOf<Path>()
+        reader.readFingerprintFile(manifestFile) {
+            checker.run {
+                visitManifestEntriesForProjects(reusedProjects) { fingerprint ->
+                    writingState.appendRelation(fingerprint)
+                    if (fingerprint is ProjectSpecificFingerprint.ProjectIdentity) {
+                        reusedProjectsWithFile.add(fingerprint.identityPath)
+                    }
+                }
+            }
+        }
+        reusedProjectsWithFile.forEach { projectPath ->
+            reader.readFingerprintFile(manifestFile.relatedStateFile(projectPath)) {
+                checker.run {
+                    visitProjectFingerprintFile { value ->
+                        writingState.appendProjectValue(projectPath, value)
+                    }
+                }
+            }
+        }
+    }
 
     private
-    fun fingerprintChecker(host: Host): ConfigurationCacheFingerprintChecker =
-        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host))
+    fun fingerprintChecker(host: Host, systemProperties: VersionedSystemProperties): ConfigurationCacheFingerprintChecker =
+        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host), systemProperties)
+
+    /**
+     * A checker for a pass that follows the build-scoped one, reusing the system properties it reconstructed.
+     */
+    private
+    fun fingerprintCheckerAfterBuildScopedCheck(host: Host): ConfigurationCacheFingerprintChecker =
+        fingerprintChecker(host, checkedSystemProperties ?: VersionedSystemProperties(System.getProperties()))
 
     private
     fun addListener(fingerprintWriter: ConfigurationCacheFingerprintWriter) {
@@ -512,10 +636,10 @@ class ConfigurationCacheFingerprintController internal constructor(
             return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
         }
 
-        override fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File) {
+        override fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File): Map<String, String> {
             when (propertyScope) {
                 is GradlePropertyScope.Build -> {
-                    propertiesController.loadGradleProperties(
+                    return propertiesController.loadGradleProperties(
                         propertyScope.buildIdentifier,
                         propertiesDir,
                         true
@@ -527,6 +651,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                         propertyScope.projectIdentity,
                         propertiesDir,
                     )
+                    // Only build-scoped properties can declare system properties.
+                    return emptyMap()
                 }
 
                 else -> error("Unsupported propertyScope $propertyScope")

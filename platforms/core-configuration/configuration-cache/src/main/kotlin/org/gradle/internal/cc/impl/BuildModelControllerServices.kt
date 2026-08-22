@@ -85,7 +85,7 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             // endregion
         } else error("no other modes are supported")
 
-        if (buildModelParameters.isCachingModelBuilding) {
+        if (buildModelParameters.isConfigurationCache) {
             addProvider(ConfigurationCacheModelProvider())
         } else {
             addProvider(VintageModelProvider())

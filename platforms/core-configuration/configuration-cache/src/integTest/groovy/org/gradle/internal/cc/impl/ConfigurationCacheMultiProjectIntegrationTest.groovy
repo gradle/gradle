@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+
 class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "reuses cache for absolute task invocation from subproject dir across dirs"() {
@@ -50,6 +51,91 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
 
         then:
         configurationCache.assertStateLoaded()
+    }
+
+    def "reuses cache when project reads a mutated system property during nested evaluation"() {
+        given:
+        settingsFile """
+            include "a", "b"
+        """
+
+        buildFile("a/build.gradle", """
+            def captured = System.getProperty('my.prop')
+            tasks.register('printProp') {
+                doLast { println("my.prop in :a = \${captured}") }
+            }
+        """)
+
+        buildFile("b/build.gradle", """
+            def captured = System.setProperty('my.prop', 'mutated')
+            tasks.register('printProp') {
+                // Forces nested evaluation of `:a`
+                dependsOn(':a:printProp')
+                doLast {
+                    println("my.prop in :b before mutation = \${captured}")
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun "--configure-on-demand", ":b:printProp", "-Dmy.prop=original"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("my.prop in :b before mutation = original")
+        outputContains("my.prop in :a = mutated")
+
+        when:
+        configurationCacheRun "--configure-on-demand", ":b:printProp", "-Dmy.prop=original"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("my.prop in :b before mutation = original")
+        outputContains("my.prop in :a = mutated")
+    }
+
+    def "reuses cache when project reads a system property that the depending project mutates after the nested evaluation"() {
+        given:
+        settingsFile """
+            include "a", "b"
+        """
+
+        // 'a' is evaluated from within the evaluation of 'b', before the mutation, so it observes the original value
+        buildFile("a/build.gradle", """
+            def captured = System.getProperty('my.prop')
+            tasks.register('printProp') {
+                doLast { println("my.prop in :a = \${captured}") }
+            }
+        """)
+
+        buildFile("b/build.gradle", """
+            evaluationDependsOn(":a") // Forces nested evaluation immediately
+            def captured = System.setProperty('my.prop', 'mutated')
+            tasks.register('printProp') {
+                dependsOn(':a:printProp')
+                doLast {
+                    println("my.prop in :b before mutation = \${captured}")
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun "--configure-on-demand", ":b:printProp", "-Dmy.prop=original"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("my.prop in :b before mutation = original")
+        outputContains("my.prop in :a = original")
+
+        when:
+        configurationCacheRun "--configure-on-demand", ":b:printProp", "-Dmy.prop=original"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("my.prop in :b before mutation = original")
+        outputContains("my.prop in :a = original")
     }
 
     def "reuses cache for relative task invocation from subproject dir"() {

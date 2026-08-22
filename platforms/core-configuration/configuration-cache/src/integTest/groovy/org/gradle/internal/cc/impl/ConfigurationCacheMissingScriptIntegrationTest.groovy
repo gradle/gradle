@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.internal.cc.impl.fixtures.MissingScriptFixture
 import spock.lang.Issue
 
@@ -57,5 +58,35 @@ class ConfigurationCacheMissingScriptIntegrationTest extends AbstractConfigurati
 
         where:
         missingScriptsSpec << MissingScriptFixture.specs()
+    }
+
+    def "picking up formerly-missing root build script recreates the entry"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        def configCache = new ConfigurationCacheFixture(this)
+        settingsFile << ""
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        configCache.assertStateStored()
+
+        when:
+        buildFile << "tasks.register('ok')"
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        configCache.assertStateRecreated {
+            fileChanged("build.gradle")
+        }
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        configCache.assertStateLoaded()
     }
 }

@@ -20,8 +20,23 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Map;
+
 @ServiceScope(Scope.BuildTree.class)
 public interface SystemPropertiesInstaller {
 
-    void setSystemPropertiesFrom(GradleProperties gradleProperties);
+    /**
+     * Computes the system properties declared by the given Gradle properties and by the start parameter,
+     * without applying them to the JVM.
+     * <p>
+     * Computing and applying are separate steps so that a caller can observe the properties that are about
+     * to be installed. The configuration cache needs this to record them as an environment change, in
+     * addition to having them applied.
+     */
+    Map<String, String> systemPropertiesFrom(GradleProperties gradleProperties);
+
+    /**
+     * Applies the properties computed by {@link #systemPropertiesFrom} to the JVM.
+     */
+    void applySystemProperties(Map<String, String> systemProperties);
 }

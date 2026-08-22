@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.initialization.properties.DefaultGradleProperties;
 import org.gradle.initialization.properties.GradlePropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
+import org.gradle.internal.Pair;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -64,8 +65,8 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     }
 
     @Override
-    public void loadGradleProperties(BuildIdentifier buildId, File buildRootDir, boolean setSystemProperties) {
-        getOrCreateGradleProperties(buildId).loadProperties(buildRootDir, setSystemProperties);
+    public Map<String, String> loadGradleProperties(BuildIdentifier buildId, File buildRootDir, boolean setSystemProperties) {
+        return getOrCreateGradleProperties(buildId).loadProperties(buildRootDir, setSystemProperties);
     }
 
     @Override
@@ -204,12 +205,15 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             return loaded;
         }
 
-        private void loadProperties(File buildRootDir, boolean setSystemProperties) {
+        /**
+         * Loads the properties, returning the system properties this installed.
+         */
+        private Map<String, String> loadProperties(File buildRootDir, boolean setSystemProperties) {
             LoadedBuildScopedState loaded = this.loaded;
             if (loaded != null) {
                 if (loaded.buildRootDir.equals(buildRootDir)) {
                     // Ignore repeated loads from the same location
-                    return;
+                    return ImmutableMap.of();
                 }
                 throw new IllegalStateException(String.format(
                     "GradleProperties has already been loaded from '%s' and cannot be loaded from '%s'.",
@@ -218,14 +222,17 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             }
 
             onGradlePropertiesLoaded(buildRootDir);
-            this.loaded = loadNewState(buildRootDir, setSystemProperties);
+            Pair<LoadedBuildScopedState, Map<String, String>> newState = loadNewState(buildRootDir, setSystemProperties);
+            this.loaded = newState.getLeft();
+            return newState.getRight();
         }
 
-        private LoadedBuildScopedState loadNewState(File buildRootDir, boolean setSystemProperties) {
+        private Pair<LoadedBuildScopedState, Map<String, String>> loadNewState(File buildRootDir, boolean setSystemProperties) {
             Map<String, String> fromGradleHome = loader.loadFromGradleHome();
             Map<String, String> fromBuildRoot = loader.loadFrom(buildRootDir);
             Map<String, String> fromGradleUserHome = loader.loadFromGradleUserHome();
 
+            Map<String, String> systemProperties = ImmutableMap.of();
             if (setSystemProperties) {
                 GradleProperties systemPropertiesSource = new DefaultGradleProperties(mergeMaps(
                     fromGradleHome,
@@ -233,21 +240,27 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                     fromGradleUserHome
                 ));
                 // TODO:configuration-cache consider whether to track property access from here (perhaps tracking system property consumers is enough?)
-                systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource);
+                systemProperties = systemPropertiesInstaller.systemPropertiesFrom(systemPropertiesSource);
+                // These have to be applied before loading the Gradle properties from system properties below,
+                // as the loaded properties are expected to see them.
+                systemPropertiesInstaller.applySystemProperties(systemProperties);
             }
 
             Map<String, String> fromEnvVariables = loader.loadFromEnvironmentVariables();
             Map<String, String> fromSystemProperties = loader.loadFromSystemProperties();
             Map<String, String> fromStartParamProjectProperties = loader.loadFromStartParameterProjectProperties();
 
-            return LoadedBuildScopedState.from(
-                buildRootDir,
-                fromGradleHome,
-                fromBuildRoot,
-                fromGradleUserHome,
-                fromEnvVariables,
-                fromSystemProperties,
-                fromStartParamProjectProperties
+            return Pair.of(
+                LoadedBuildScopedState.from(
+                    buildRootDir,
+                    fromGradleHome,
+                    fromBuildRoot,
+                    fromGradleUserHome,
+                    fromEnvVariables,
+                    fromSystemProperties,
+                    fromStartParamProjectProperties
+                ),
+                systemProperties
             );
         }
 

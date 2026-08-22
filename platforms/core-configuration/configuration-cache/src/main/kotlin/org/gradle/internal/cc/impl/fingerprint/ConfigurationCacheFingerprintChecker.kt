@@ -50,7 +50,14 @@ typealias InvalidationReason = StructuredMessage
 
 
 internal
-class ConfigurationCacheFingerprintChecker(private val host: Host) {
+class ConfigurationCacheFingerprintChecker(
+    private val host: Host,
+    /**
+     * The system properties as the build that stored the entry saw them, reconstructed while the
+     * build-scoped fingerprint is checked and then reused for every project.
+     */
+    private val systemProperties: VersionedSystemProperties
+) {
 
     interface Host : ConfigurationCacheInputFileChecker.Host {
         val isEncrypted: Boolean
@@ -68,7 +75,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
         fun isRemoteScriptUpToDate(uri: URI): Boolean
         fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
-        fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File)
+        /**
+         * Loads the Gradle properties from the given directory, returning the system properties this
+         * installed, if any. See `GradlePropertiesController.loadGradleProperties`.
+         */
+        fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File): Map<String, String>
         fun gradleProperty(propertyScope: GradlePropertyScope, propertyName: String): Any?
         fun gradlePropertiesPrefixedBy(propertyScope: GradlePropertyScope, prefix: String): Map<String, String>
     }
@@ -76,14 +87,39 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     val inputFileChecker = ConfigurationCacheInputFileChecker(host)
 
+    /**
+     * State shared between the manifest pass ([readProjectFingerprintManifest]) and the per-project
+     * fingerprint file passes ([checkProjectFingerprintFile]). A single checker instance is used to
+     * check the whole project-scoped fingerprint of an entry.
+     */
+    private
+    val projects = hashMapOf<Path, ProjectInvalidationState>()
+
+    private
+    val projectFingerprintFiles = LinkedHashSet<Path>()
+
+    /**
+     * The identity paths of the projects that have their own fingerprint file, in the order they were
+     * declared in the manifest. Only populated after [readProjectFingerprintManifest].
+     */
+    val projectsWithFingerprintFile: Set<Path>
+        get() = projectFingerprintFiles
+
+    private
+    var firstInvalidatedPath: Path? = null
+
     suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
+        ensureGroovyRuntimeInitialized()
+        // Values that observed the system properties at a version we haven't reconstructed yet. The change
+        // that produces that version is recorded in this same file, but not necessarily before them.
+        val awaitingSystemProperties = mutableListOf<ConfigurationCacheFingerprint>()
         while (true) {
             when (val input = read()) {
                 null -> break
                 is ConfigurationCacheFingerprint -> {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
-                    val reason = check(input)
+                    val reason = checkOrAwaitSystemProperties(input, awaitingSystemProperties)
                     if (reason != null) {
                         return reason
                     }
@@ -92,14 +128,40 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return null
+        systemProperties.ingestionFinished()
+        return awaitingSystemProperties.firstNotNullOfOrNull { check(it) }
     }
 
-    @Suppress("NestedBlockDepth")
-    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint.InvalidProjects? {
+    /**
+     * Checks the given value, unless it observed a version of the system properties that isn't known yet, in
+     * which case it is set aside until the change producing that version is read.
+     */
+    private
+    fun checkOrAwaitSystemProperties(
+        input: ConfigurationCacheFingerprint,
+        awaiting: MutableList<ConfigurationCacheFingerprint>
+    ): InvalidationReason? {
+        if (input is ReadsSystemProperties && !systemProperties.isReadyFor(input.systemPropertiesVersion)) {
+            awaiting.add(input)
+            return null
+        }
+        val reason = check(input)
+        if (reason != null || input !is ChangesSystemProperties) {
+            return reason
+        }
+        // This change may be the one some of the awaiting values were waiting for.
+        val ready = awaiting.filter { systemProperties.isReadyFor((it as ReadsSystemProperties).systemPropertiesVersion) }
+        awaiting.removeAll(ready)
+        return ready.firstNotNullOfOrNull { check(it) }
+    }
+
+    /**
+     * Reads the project-scoped fingerprint manifest: the identity of every project that has its own
+     * fingerprint file, and the cross-project dependency/coupling relationships. The fingerprint values
+     * are checked separately, per project, by [checkProjectFingerprintFile].
+     */
+    suspend fun ReadContext.readProjectFingerprintManifest() {
         // TODO: log some debug info
-        var firstInvalidatedPath: Path? = null
-        val projects = hashMapOf<Path, ProjectInvalidationState>()
         while (true) {
             when (val input = read()) {
                 null -> break
@@ -107,21 +169,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     val state = projects.entryFor(input.identityPath)
                     state.buildPath = input.buildPath
                     state.projectPath = input.projectPath
-                }
-
-                is ProjectSpecificFingerprint.ProjectFingerprint -> {
-                    // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
-                    // Don't check a value for a project that is already out-of-date
-                    val state = projects.entryFor(input.projectIdentityPath)
-                    if (!state.isInvalid) {
-                        val reason = check(input.value)
-                        if (reason != null) {
-                            if (firstInvalidatedPath == null) {
-                                firstInvalidatedPath = input.projectIdentityPath
-                            }
-                            state.invalidate(reason)
-                        }
-                    }
+                    projectFingerprintFiles.add(input.identityPath)
                 }
 
                 is ProjectSpecificFingerprint.ProjectDependency -> {
@@ -142,7 +190,43 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return firstInvalidatedPath?.let { path ->
+    }
+
+    /**
+     * Whether the given project still needs its fingerprint file checked, i.e. it hasn't already been
+     * invalidated (for example, transitively via a dependency).
+     */
+    fun requiresProjectFingerprintCheck(projectPath: Path): Boolean = !projects.entryFor(projectPath).isInvalid
+
+    /**
+     * Checks the fingerprint values stored in a single project's fingerprint file. If any value is
+     * out-of-date, the project is invalidated (which transitively invalidates its consumers).
+     */
+    suspend fun ReadContext.checkProjectFingerprintFile(projectPath: Path) {
+        val state = projects.entryFor(projectPath)
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ConfigurationCacheFingerprint -> {
+                    // Don't check a value for a project that is already out-of-date
+                    if (!state.isInvalid) {
+                        val reason = check(input)
+                        if (reason != null) {
+                            if (firstInvalidatedPath == null) {
+                                firstInvalidatedPath = projectPath
+                            }
+                            state.invalidate(reason)
+                        }
+                    }
+                }
+
+                else -> error("Unexpected configuration cache fingerprint: $input")
+            }
+        }
+    }
+
+    fun projectFingerprintInvalidationResult(): CheckedFingerprint.InvalidProjects? =
+        firstInvalidatedPath?.let { path ->
             CheckedFingerprint.InvalidProjects(
                 path,
                 projects
@@ -150,9 +234,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     .mapValues { it.value.toProjectInvalidationData() }
             )
         }
-    }
 
-    suspend fun ReadContext.visitEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
+    /**
+     * Visits the manifest records (project identity and cross-project relationships) that belong to any
+     * of the [reusedProjects]. The fingerprint values of a reused project are visited separately by
+     * [visitProjectFingerprintFile].
+     */
+    suspend fun ReadContext.visitManifestEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
         while (true) {
             // TODO(mlopatkin): this implementation duplicates some inputs, e.g. a build file input is stored even if the project is reused.
             when (val input = read()) {
@@ -160,11 +248,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
                 is ProjectSpecificFingerprint.ProjectIdentity ->
                     if (reusedProjects.contains(input.identityPath)) {
-                        consumer.accept(input)
-                    }
-
-                is ProjectSpecificFingerprint.ProjectFingerprint ->
-                    if (reusedProjects.contains(input.projectIdentityPath)) {
                         consumer.accept(input)
                     }
 
@@ -177,6 +260,21 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     if (reusedProjects.contains(input.referringProject)) {
                         consumer.accept(input)
                     }
+
+                else -> error("Unexpected configuration cache fingerprint: $input")
+            }
+        }
+    }
+
+    /**
+     * Visits all the fingerprint values stored in a single project's fingerprint file.
+     */
+    suspend fun ReadContext.visitProjectFingerprintFile(consumer: Consumer<ConfigurationCacheFingerprint>) {
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ConfigurationCacheFingerprint -> consumer.accept(input)
+                else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
     }
@@ -185,25 +283,58 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = computeIfAbsent(path, ::ProjectInvalidationState)
 
     /**
-     * Forces Groovy's runtime to initialize before we replay configuration-time removals of
-     * system properties (see the [ConfigurationCacheFingerprint.SystemPropertyRemoved] and
-     * [ConfigurationCacheFingerprint.SystemPropertiesCleared] branches of [check]).
+     * Forces Groovy's runtime to initialize before checking anything, because checking an entry can
+     * remove system properties from the process that is loading it.
      *
-     * Replaying those side effects mutates the live `System.getProperties()` of the process that is
-     * loading the cache entry. Removing or clearing JVM-standard properties such as `file.encoding`
-     * or `java.home` breaks the static initializer of any class that reads them lazily. In
-     * particular, Groovy's `VMPluginFactory` is initialized the first time the cached project model
-     * is realized (when a `DefaultProject` is created); with `file.encoding` gone its initialization
-     * fails with "Null charset name", leaving the class permanently unusable ("Could not initialize
-     * class org.codehaus.groovy.vmplugin.VMPluginFactory").
+     * Removing or clearing JVM-standard properties such as `file.encoding` or `java.home` breaks the
+     * static initializer of any class that reads them lazily. In particular, Groovy's `VMPluginFactory`
+     * is initialized the first time the cached project model is realized (when a `DefaultProject` is
+     * created); with `file.encoding` gone its initialization fails with "Null charset name", leaving the
+     * class permanently unusable ("Could not initialize class org.codehaus.groovy.vmplugin.VMPluginFactory").
      *
      * A non-cached build never hits this because executing the Groovy build scripts initializes the
      * Groovy runtime before any such mutation runs; we mirror that ordering here. This only matters
      * in a fresh JVM (e.g. `--no-daemon`); with a reused daemon the runtime is already initialized.
+     *
+     * Doing this once up front, rather than at each site that changes the properties, keeps the guard
+     * from being forgotten when a new one is added.
      */
     private
     fun ensureGroovyRuntimeInitialized() {
         VMPluginFactory.getPlugin()
+    }
+
+    /**
+     * The system properties as of the given version, as an ordinary map.
+     */
+    private
+    fun systemPropertiesAt(version: Long): Map<String, Any> =
+        systemProperties.snapshotAt(version).associate { (key, value) -> key.toString() to value }
+
+    /**
+     * The value the given property had at the given version, as [System.getProperty] would report it: the
+     * properties table can hold non-string values, but reading one back through the regular API yields null.
+     */
+    private
+    fun systemPropertyAt(version: Long, key: String): String? =
+        systemProperties.snapshotAt(version).get(key) as? String
+
+    /**
+     * Runs the given action with the process' system properties set to the state they were in at the given
+     * version, restoring them afterwards.
+     *
+     * Only needed for the values that read the system properties themselves rather than through a recorded
+     * value, i.e. value sources.
+     */
+    private
+    fun <T> withSystemPropertiesAt(version: Long, action: () -> T): T {
+        val current = System.getProperties()
+        System.setProperties(systemProperties.snapshotAt(version).toProperties())
+        try {
+            return action()
+        } finally {
+            System.setProperties(current)
+        }
     }
 
     @Suppress("CyclomaticComplexMethod", "LongMethod")
@@ -244,7 +375,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.ValueSource -> input.run {
-                val reason = checkFingerprintValueIsUpToDate(obtainedValue)
+                // The value source reads the system properties directly, so it has to run against the state
+                // they were in when it was obtained.
+                val reason = withSystemPropertiesAt(systemPropertiesVersion) {
+                    checkFingerprintValueIsUpToDate(obtainedValue)
+                }
                 reason?.let { message(it) }
             }
 
@@ -254,24 +389,22 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.SystemPropertyChanged -> input.run {
-                System.getProperties()[key] = value
+                systemProperties.setProperty(systemPropertiesVersion, key, value)
                 null
             }
 
             is ConfigurationCacheFingerprint.SystemPropertyRemoved -> input.run {
-                ensureGroovyRuntimeInitialized()
-                System.getProperties().remove(key)
+                systemProperties.removeProperty(systemPropertiesVersion, key)
                 null
             }
 
             is ConfigurationCacheFingerprint.SystemPropertiesCleared -> input.run {
-                ensureGroovyRuntimeInitialized()
-                System.getProperties().clear()
+                systemProperties.clearProperties(systemPropertiesVersion)
                 null
             }
 
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
-                ifOrNull(System.getProperty(key) != value) {
+                ifOrNull(systemPropertyAt(systemPropertiesVersion, key) != value) {
                     text("system property ").reference(key).text(" has changed")
                 }
             }
@@ -327,20 +460,12 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy -> input.run {
-                val currentWithoutIgnored = System.getProperties().uncheckedCast<Map<String, Any>>().filterKeysByPrefix(prefix).filterKeys {
-                    // remove properties that are known to be modified by the build logic at the moment of obtaining this, as their initial
-                    // values doesn't matter.
-                    snapshot[it] != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
-                }
-                val snapshotWithoutIgnored = snapshot.filterValues {
-                    // remove placeholders of modified properties to only compare relevant values.
-                    it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
-                }
-                ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
+                val current = systemPropertiesAt(systemPropertiesVersion).filterKeysByPrefix(prefix)
+                ifOrNull(current != snapshot) {
                     text("the set of system properties prefixed by ")
                         .reference(prefix)
                         .text(" has changed: ")
-                        .text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
+                        .text(detailedMessageForChanges(snapshot, current))
                 }
             }
 
@@ -353,7 +478,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.GradlePropertiesLoaded -> input.run {
-                host.loadProperties(propertyScope, propertiesDir)
+                // Loading the properties installs the system properties they declare, which is part of the
+                // environment the values recorded after this observed.
+                systemProperties.installProperties(systemPropertiesVersion, host.loadProperties(propertyScope, propertiesDir))
                 null
             }
 

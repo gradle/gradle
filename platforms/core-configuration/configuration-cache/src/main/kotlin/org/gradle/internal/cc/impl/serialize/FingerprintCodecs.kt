@@ -69,18 +69,20 @@ internal object ValueSourceFingerprintCodec : Codec<ConfigurationCacheFingerprin
 
     override suspend fun WriteContext.encode(value: ConfigurationCacheFingerprint.ValueSource) {
         writeClass(value.obtainedValue.valueSourceType)
+        writeLong(value.systemPropertiesVersion)
         encodeBean(value.obtainedValue)
     }
 
     override suspend fun ReadContext.decode(): ConfigurationCacheFingerprint.ValueSource {
         val valueSourceType = readClass()
+        val systemPropertiesVersion = readLong()
         val obtainedValue = withPropertyTrace(PropertyTrace.BuildLogicClass(valueSourceType.name)) {
             tryReading(
                 { decodeBean() },
                 { ValueSourceFingerprintLoadFailure(valueSourceType, it) }
             )
         }
-        return ConfigurationCacheFingerprint.ValueSource(obtainedValue.uncheckedCast())
+        return ConfigurationCacheFingerprint.ValueSource(obtainedValue.uncheckedCast(), systemPropertiesVersion)
     }
 }
 
@@ -105,16 +107,18 @@ internal object SystemPropertyChangedFingerprintCodec : Codec<ConfigurationCache
 
     override suspend fun WriteContext.encode(value: ConfigurationCacheFingerprint.SystemPropertyChanged) {
         write(value.key)
+        writeLong(value.systemPropertiesVersion)
         write(value.value)
     }
 
     override suspend fun ReadContext.decode(): ConfigurationCacheFingerprint.SystemPropertyChanged {
         val key = readNonNull<Any>()
+        val systemPropertiesVersion = readLong()
         val value = tryReading(
             { read() },
             { SystemPropertyChangedLoadFailure(key, it) }
         )
-        return ConfigurationCacheFingerprint.SystemPropertyChanged(key, value)
+        return ConfigurationCacheFingerprint.SystemPropertyChanged(key, value, systemPropertiesVersion)
     }
 }
 

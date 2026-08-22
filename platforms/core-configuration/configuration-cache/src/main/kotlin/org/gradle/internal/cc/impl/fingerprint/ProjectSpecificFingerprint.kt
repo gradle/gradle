@@ -28,11 +28,6 @@ sealed class ProjectSpecificFingerprint : ValueObject {
         val projectPath: Path
     ) : ProjectSpecificFingerprint()
 
-    data class ProjectFingerprint(
-        val projectIdentityPath: Path,
-        val value: ConfigurationCacheFingerprint
-    ) : ProjectSpecificFingerprint()
-
     data class ProjectDependency(
         val consumingProject: Path,
         val targetProject: Path
