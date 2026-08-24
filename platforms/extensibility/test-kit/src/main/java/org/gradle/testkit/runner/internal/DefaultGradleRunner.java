@@ -379,7 +379,8 @@ public class DefaultGradleRunner extends GradleRunner {
         return new FeatureCheckBuildResult(
             execResult.getBuildOperationParameters(),
             execResult.getOutputSource(),
-            execResult.getTasks()
+            execResult.getTasks(),
+            execResult.getConfigurationCacheOutcome()
         );
     }
 

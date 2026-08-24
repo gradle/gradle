@@ -29,16 +29,19 @@ import java.util.List;
 public interface LinkageDetails {
     /**
      * Returns details of the link task for the binary. This is the task that should be run to produce the binary output, but may not necessarily be the task that links the binary. For example, the task may do some post processing of the binary.
+     * @since 4.10
      */
     Task getLinkTask();
 
     /**
      * Returns the output location of this binary.
+     * @since 4.10
      */
     File getOutputLocation();
 
     /**
      * Returns any additional linker arguments.
+     * @since 4.10
      */
     List<String> getAdditionalArgs();
 }

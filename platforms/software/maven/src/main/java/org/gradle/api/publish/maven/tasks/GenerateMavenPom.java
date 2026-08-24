@@ -26,33 +26,32 @@ import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.serialization.Cached;
-import org.gradle.internal.serialization.Transient;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
 
-import static org.gradle.internal.serialization.Transient.varOf;
-
 /**
  * Generates a Maven module descriptor (POM) file.
  *
- * @since 1.4
+ * @since 1.5
  */
 @SuppressWarnings("this-escape")
-@UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
+@DisableCachingByDefault(because = "Not worth caching")
 public abstract class GenerateMavenPom extends DefaultTask {
 
-    private final Transient.Var<MavenPom> pom = varOf();
-    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
-        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
-    );
+    private MavenPom pom;
+
+    public GenerateMavenPom() {
+        this.doNotTrackStateIf(
+            "withXml actions cannot be snapshotted",
+            task -> !((MavenPomInternal) ((GenerateMavenPom) task).getPom()).getXmlAction().isEmpty()
+        );
+    }
 
     @Inject
     protected abstract FileResolver getFileResolver();
@@ -64,15 +63,20 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * The Maven POM.
      *
      * @return The Maven POM.
+     * @since 1.5
      */
-    @Internal
-    @ToBeReplacedByLazyProperty
+    @Nested
     public MavenPom getPom() {
-        return pom.get();
+        return pom;
     }
 
+    /**
+     * Sets the pom.
+     *
+     * @since 1.5
+     */
     public void setPom(MavenPom pom) {
-        this.pom.set(pom);
+        this.pom = pom;
     }
 
     /**
@@ -89,6 +93,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * The file the POM will be written to.
      *
      * @return The file the POM will be written to
+     * @since 1.5
      */
     @ReplacedBy("destinationFile")
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationFile() instead", willBeDeprecated = true)
@@ -113,6 +118,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * The value is resolved with {@link Project#file(Object)}
      *
      * @param destination The file the descriptor will be written to.
+     * @since 1.5
      */
     public void setDestination(Object destination) {
         File resolved = getFileResolver().resolve(destination);
@@ -120,9 +126,14 @@ public abstract class GenerateMavenPom extends DefaultTask {
         getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(resolved));
     }
 
+    /**
+     * Do generate.
+     *
+     * @since 1.5
+     */
     @TaskAction
     public void doGenerate() {
-        mavenPomSpec.get().writeTo(getDestinationFile().get().getAsFile());
+        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom()).writeTo(getDestinationFile().get().getAsFile());
     }
 
 }

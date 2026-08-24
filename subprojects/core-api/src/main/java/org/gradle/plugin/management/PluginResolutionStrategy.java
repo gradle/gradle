@@ -32,6 +32,7 @@ public interface PluginResolutionStrategy {
      * The {@link PluginResolveDetails} parameter contains information about
      * the plugin that was requested and allows the rule to modify which plugin
      * will actually be resolved.
+     * @since 3.5
      */
     void eachPlugin(Action<? super PluginResolveDetails> rule);
 

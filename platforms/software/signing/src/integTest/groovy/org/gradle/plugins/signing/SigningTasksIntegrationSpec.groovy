@@ -27,6 +27,27 @@ import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.OPEN_
 
 class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
+    def "Sign.sign with classifier is deprecated"() {
+        given:
+        buildFile << """
+            ${keyInfo.addAsPropertiesScript()}
+            signing {
+                ${signingConfiguration()}
+            }
+            task signCustomFile(type: Sign) {
+                sign("ignored-classifier", file("input.txt"))
+            }
+        """
+        file("input.txt").text = "content"
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Sign.sign(String, File...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use sign(File...) instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_sign_classifier")
+        run "help"
+
+        then:
+        noExceptionThrown()
+    }
+
     def "sign jar with default signatory"() {
         given:
         buildFile << """

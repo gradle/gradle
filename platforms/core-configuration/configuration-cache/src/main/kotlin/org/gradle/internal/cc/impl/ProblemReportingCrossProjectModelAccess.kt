@@ -23,6 +23,7 @@ import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
+import org.gradle.api.services.ProjectService
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -39,11 +40,9 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
-import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectOrderingUtil
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateLookup
 import org.gradle.api.internal.tasks.TaskDependencyFactory
@@ -59,6 +58,7 @@ import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.ALLPROJECTS
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.CHILD
@@ -71,7 +71,6 @@ import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.metaobject.HierarchicalDynamicObject
-import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -90,7 +89,7 @@ class ProblemReportingCrossProjectModelAccess(
     private val buildModelParameters: BuildModelParameters,
     private val instantiator: Instantiator,
     private val projectStateLookup: ProjectStateLookup,
-    projectRegistry: ProjectRegistry,
+    projectRegistry: BuildProjectRegistry,
     gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
 ) : CrossProjectModelAccess {
 
@@ -314,6 +313,11 @@ class ProblemReportingCrossProjectModelAccess(
             return super.getObjects()
         }
 
+        override fun <T : ProjectService> service(serviceType: Class<T>): T {
+            onIsolationViolation("service")
+            return delegate.service(serviceType)
+        }
+
         override fun mkdir(path: Any): File {
             onIsolationViolation("mkdir")
             return super.mkdir(path)
@@ -399,34 +403,6 @@ class ProblemReportingCrossProjectModelAccess(
             return super.getGradle()
         }
 
-        override fun identityPath(name: String): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun projectPath(name: String): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun getModel(): ModelContainer<*> {
-            shouldNotBeUsed()
-        }
-
-        override fun getBuildPath(): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun isScript(): Boolean {
-            shouldNotBeUsed()
-        }
-
-        override fun isRootScript(): Boolean {
-            shouldNotBeUsed()
-        }
-
-        override fun isPluginContext(): Boolean {
-            shouldNotBeUsed()
-        }
-
         override fun getFileOperations(): FileOperations {
             shouldNotBeUsed()
         }
@@ -436,10 +412,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier {
-            shouldNotBeUsed()
-        }
-
-        override fun getParentIdentifier(): ProjectIdentifier {
             shouldNotBeUsed()
         }
 

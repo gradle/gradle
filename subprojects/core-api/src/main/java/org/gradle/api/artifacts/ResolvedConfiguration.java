@@ -28,16 +28,19 @@ import java.util.Set;
  *     <li>Returned file sets do not track task dependencies.</li>
  *     <li>The returned types do not reflect the variant-aware nature of the dependency resolution engine.</li>
  * </ul>
+ * @since 0.7
  */
 public interface ResolvedConfiguration {
 
     /**
      * Returns whether all dependencies were successfully retrieved or not.
+     * @since 0.7
      */
     boolean hasError();
 
     /**
      * Provides configuration that does not fail eagerly when some dependencies are not resolved.
+     * @since 1.0
      */
     LenientConfiguration getLenientConfiguration();
 
@@ -49,6 +52,7 @@ public interface ResolvedConfiguration {
      * <p>This method does nothing when resolution was successful.</p>
      *
      * @throws ResolveException when the resolve was not successful.
+     * @since 0.7
      */
     void rethrowFailure() throws ResolveException;
 
@@ -62,6 +66,7 @@ public interface ResolvedConfiguration {
      *
      * @return A {@code ResolvedDependency} instance for each direct dependency.
      * @throws ResolveException when the resolve was not successful.
+     * @since 0.8
      */
     Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException;
 
@@ -72,6 +77,7 @@ public interface ResolvedConfiguration {
      *
      * @return The set of artifacts.
      * @throws ResolveException when the resolve was not successful.
+     * @since 0.8
      */
     Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException;
 

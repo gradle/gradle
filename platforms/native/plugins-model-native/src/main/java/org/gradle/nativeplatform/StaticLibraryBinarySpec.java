@@ -27,32 +27,38 @@ import java.io.File;
  * A static library binary built by Gradle for a native library.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @Deprecated
 public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * Provides access to key tasks used for building the binary.
+     * @since 2.3
      */
     interface TasksCollection extends BinaryTasksCollection {
         /**
          * The create static library task.
+         * @since 2.3
          */
         Task getCreateStaticLib();
     }
 
     /**
      * The static library file.
+     * @since 2.2
      */
     File getStaticLibraryFile();
 
     /**
      * The static library binary file.
+     * @since 2.2
      */
     void setStaticLibraryFile(File staticLibraryFile);
 
     /**
      * Add some additional files required by consumers of this library at link time.
+     * @since 2.2
      */
     void additionalLinkFiles(FileCollection files);
 

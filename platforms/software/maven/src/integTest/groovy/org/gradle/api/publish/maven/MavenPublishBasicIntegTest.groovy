@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -537,5 +538,130 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
 
         expect:
         succeeds("publish")
+    }
+
+    def "GenerateMavenPom is cacheable"() {
+        mavenRepo.module("org", "foo", "1.1").publish()
+
+        settingsFile << """
+            rootProject.name = "bar"
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1+")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                        versionMapping {
+                            allVariants {
+                                fromResolutionResult()
+                            }
+                        }
+                        pom {
+                            description = "custom-description"
+                        }
+                    }
+                }
+            }
+        """
+
+        def expected = """
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId></groupId>
+  <artifactId>bar</artifactId>
+  <version>unspecified</version>
+  <description>custom-description</description>
+  <dependencies>
+    <dependency>
+      <groupId>org</groupId>
+      <artifactId>foo</artifactId>
+      <version>1.1</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>
+""".trim()
+
+        expect:
+        succeeds("dependencies", "--configuration", "runtimeClasspath")
+
+        when:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        TextUtil.convertLineSeparatorsToUnix(file("build/publications/maven/pom-default.xml").text.trim()) == expected
+
+        when:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        result.assertAllTasksSkipped()
+
+        when:
+        buildFile << """
+            publishing.publications.maven.pom {
+                description = "another-description"
+            }
+        """
+
+        and:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        TextUtil.convertLineSeparatorsToUnix(file("build/publications/maven/pom-default.xml").text.trim()) == expected.replace("<description>custom-description</description>", "<description>another-description</description>")
+    }
+
+    // Eventually, we will want to serialize the XML action and allow the task to be be up-to-date
+    def "GenerateMavenPom with a withXml block is never up-to-date"() {
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                        pom {
+                            withXml {
+                                asNode().appendNode("description", "custom-description")
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        executedAndNotSkipped(":generatePomFileForMavenPublication")
+
+        when:
+        succeeds("generatePomFileForMavenPublication")
+
+        then:
+        executedAndNotSkipped(":generatePomFileForMavenPublication")
     }
 }

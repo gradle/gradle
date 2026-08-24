@@ -46,6 +46,7 @@ public interface BuildCacheService extends Closeable {
      * @param reader the reader to read the data corresponding to the cache key.
      * @return {@code true} if an entry was found, {@code false} otherwise.
      * @throws BuildCacheException if the cache fails to load a cache entry for the given key
+     * @since 3.5
      */
     boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException;
 
@@ -55,6 +56,7 @@ public interface BuildCacheService extends Closeable {
      * @param key the cache key.
      * @param writer the writer to write the data corresponding to the cache key.
      * @throws BuildCacheException if the cache fails to store a cache entry for the given key
+     * @since 3.5
      */
     void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException;
 

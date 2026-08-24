@@ -32,6 +32,7 @@ public interface BuildCacheEntryReader {
      *
      * @param input input stream that contains the build cache entry
      * @throws IOException when an I/O error occurs when reading the cache entry from the given input stream
+     * @since 3.3
      */
     void readFrom(InputStream input) throws IOException;
 }

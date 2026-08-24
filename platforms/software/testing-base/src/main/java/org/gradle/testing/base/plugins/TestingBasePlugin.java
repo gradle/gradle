@@ -35,7 +35,17 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
  * @since 4.4
  */
 public abstract class TestingBasePlugin implements Plugin<Project> {
+    /**
+     * The test results dir name.
+     *
+     * @since 4.4
+     */
     public static final String TEST_RESULTS_DIR_NAME = "test-results";
+    /**
+     * The tests dir name.
+     *
+     * @since 4.4
+     */
     public static final String TESTS_DIR_NAME = "tests";
 
     @Override

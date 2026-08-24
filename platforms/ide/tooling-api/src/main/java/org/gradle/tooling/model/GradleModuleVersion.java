@@ -25,16 +25,19 @@ public interface GradleModuleVersion {
 
     /**
      * The group of the module, for example 'org.gradle'.
+     * @since 1.1
      */
     String getGroup();
 
     /**
      * The name of the module, for example 'gradle-tooling-api'.
+     * @since 1.1
      */
     String getName();
 
     /**
      * The version, for example '1.0'.
+     * @since 1.1
      */
     String getVersion();
 

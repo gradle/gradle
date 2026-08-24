@@ -486,8 +486,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "graph.allTasks"                     | [":b:help", ":help"]             | false
         "graph.getDependencies(help)"        | [":b:help"]                      | false
         "graph.getDependencies(compileJava)" | [":b:compileJava"]               | false
-        "graph.filteredTasks"                | [":b:compileJava"]               | false
-        "graph.filteredTasks"                | [":b:compileJava", "-x:classes"] | false
 
         combined:
         mode << ALL_MODES

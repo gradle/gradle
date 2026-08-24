@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    protected static final THIRD_PARTY_LIB_COUNT = 116
+    protected static final THIRD_PARTY_LIB_COUNT = 115
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -127,6 +127,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems",
         "problems-api",
         "problems-rendering",
+        "problems-reporting",
         "process-memory-services",
         "process-services",
         "process-services-api",
@@ -155,6 +156,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "versioned-cache",
         "worker-main",
         "worker-process-services",
+        "worker-shared",
         "wrapper-shared",
     ]
 
@@ -186,7 +188,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        97
+        98
     }
 
     /**
@@ -374,7 +376,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 603 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 625 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

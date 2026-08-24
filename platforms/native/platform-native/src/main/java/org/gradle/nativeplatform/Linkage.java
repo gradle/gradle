@@ -26,11 +26,13 @@ import org.gradle.api.Named;
 public enum Linkage implements Named {
     /**
      * Statically link binaries together.
+     * @since 4.5
      */
     STATIC,
 
     /**
      * Dynamically link binaries together.
+     * @since 4.5
      */
     SHARED;
 

@@ -22,10 +22,14 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import spock.lang.Issue
 
 import java.lang.reflect.Modifier
 
 class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
+
+    // Records require Java 16, and the tests always run on a newer JVM than that
+    private static final String RECORD_TARGET_VERSION = '17'
 
     def "should not remove public method"() {
         given:
@@ -540,5 +544,127 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         !api.isApiClassExtractedFrom(clazz)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38827")
+    def "method parameter names are retained"() {
+        given:
+        additionalCompilerArgs = ['-parameters']
+        def api = toApi([A: '''
+            public class A {
+                public void greet(String firstName, int repeatCount) {}
+            }
+        '''])
+
+        when:
+        def extracted = api.extractAndLoadApiClassFrom(api.classes.A)
+        def parameters = extracted.getDeclaredMethod('greet', String, int).parameters
+
+        then:
+        parameters*.namePresent == [true, true]
+        parameters*.name == ['firstName', 'repeatCount']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38827")
+    def "extracted class changes when a method parameter is renamed"() {
+        given:
+        additionalCompilerArgs = ['-parameters']
+        def before = toApi([A: 'public class A { public void greet(String firstName, int repeatCount) {} }'])
+        def beforeBytes = before.extractApiClassFrom(before.classes.A)
+        def after = toApi([A: 'public class A { public void greet(String givenName, int times) {} }'])
+        def afterBytes = after.extractApiClassFrom(after.classes.A)
+
+        expect:
+        beforeBytes != afterBytes
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38823")
+    def "record components are retained in declaration order"() {
+        given:
+        def api = toApi(RECORD_TARGET_VERSION, [Point: 'public record Point(int x, int y) {}'])
+
+        when:
+        def extracted = api.extractAndLoadApiClassFrom(api.classes.Point)
+
+        then:
+        extracted.recordComponents*.name == ['x', 'y']
+        extracted.recordComponents*.type == [int, int]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38823")
+    def "extracted class changes when the record component order changes"() {
+        given:
+        def before = toApi(RECORD_TARGET_VERSION, [Point: 'public record Point(int x, int y) {}'])
+        def beforeBytes = before.extractApiClassFrom(before.classes.Point)
+        def after = toApi(RECORD_TARGET_VERSION, [Point: 'public record Point(int y, int x) {}'])
+        def afterBytes = after.extractApiClassFrom(after.classes.Point)
+
+        expect:
+        beforeBytes != afterBytes
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38825")
+    def "type annotations in a throws clause stay on the exception they annotate"() {
+        given:
+        def api = toApi([
+            A  : '''
+                import java.io.IOException;
+
+                public class A {
+                    public void foo() throws @Ann ArithmeticException, IOException {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {}
+            '''
+        ])
+
+        when:
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extracted = api.extractAndLoadApiClassFrom(api.classes.A)
+        // The extractor writes the exceptions sorted, so IOException comes first
+        def annotatedExceptionTypes = extracted.getDeclaredMethod('foo').annotatedExceptionTypes
+
+        then:
+        annotatedExceptionTypes*.type == [IOException, ArithmeticException]
+        annotatedExceptionTypes[0].annotations.length == 0
+        annotatedExceptionTypes[1].annotations*.annotationType() == [extractedAnn]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38825")
+    def "extracted class changes when a type annotation moves to another exception"() {
+        given:
+        def annotation = [Ann: '''
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target({ElementType.TYPE_USE})
+            public @interface Ann {}
+        ''']
+        // Both variants annotate the first declared exception, and both extract to the same sorted
+        // throws clause, so only a mapped type_index tells them apart
+        def before = toApi(annotation + [A: '''
+            import java.io.IOException;
+            public class A { public void foo() throws @Ann ArithmeticException, IOException {} }
+        '''])
+        def beforeBytes = before.extractApiClassFrom(before.classes.A)
+        def after = toApi(annotation + [A: '''
+            import java.io.IOException;
+            public class A { public void foo() throws @Ann IOException, ArithmeticException {} }
+        '''])
+        def afterBytes = after.extractApiClassFrom(after.classes.A)
+
+        expect:
+        beforeBytes != afterBytes
     }
 }

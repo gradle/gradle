@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 
 /**
  * A container of {@link Platform}s.
+ * @since 2.2
  */
 @Incubating
 public interface PlatformContainer extends ExtensiblePolymorphicDomainObjectContainer<Platform> {

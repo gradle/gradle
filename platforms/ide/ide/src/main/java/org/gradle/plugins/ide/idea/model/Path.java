@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 
 /**
  * Represents a path in a format as used often in ipr and iml files.
+ * @since 1.0
  */
 public class Path {
 
@@ -26,10 +27,20 @@ public class Path {
     private final String relPath;
     private final String canonicalUrl;
 
+    /**
+     * Creates a new {@code Path}.
+     *
+     * @since 1.0
+     */
     public Path(String url) {
         this(url, url, null);
     }
 
+    /**
+     * Creates a new {@code Path}.
+     *
+     * @since 1.0
+     */
     public Path(String url, String canonicalUrl, String relPath) {
         this.relPath = relPath;
         this.url = url;
@@ -38,6 +49,7 @@ public class Path {
 
     /**
      * The url of the path. Must not be null.
+     * @since 1.0
      */
     public String getUrl() {
         return url;
@@ -45,6 +57,7 @@ public class Path {
 
     /**
      * The relative path of the path. Must not be null.
+     * @since 1.0
      */
     public String getRelPath() {
         return relPath;
@@ -52,6 +65,7 @@ public class Path {
 
     /**
      * Canonical url.
+     * @since 1.0
      */
     public String getCanonicalUrl() {
         return canonicalUrl;

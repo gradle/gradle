@@ -25,12 +25,11 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
-import org.gradle.process.internal.streams.StreamsHandler
+import org.gradle.process.internal.streams.FinishNotifyingStreamsHandler
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
-
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.TextUtil
@@ -39,6 +38,7 @@ import spock.lang.Ignore
 import spock.lang.Timeout
 
 import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 
 @UsesNativeServices
@@ -219,6 +219,38 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.ABORTED
         and:
         execHandle.waitForFinish().exitValue != 0
+    }
+
+    void "waits for the process to exit before stopping the streams"() {
+        given:
+        def marker = tmpDir.file("outputs-closed")
+        def stdinReady = new CountDownLatch(1)
+        def content = "42\n".bytes
+        def pos = 0
+        def stdin = new InputStream() {
+            @Override
+            int read() {
+                stdinReady.await()
+                pos < content.length ? (content[pos++] & 0xff) : -1
+            }
+        }
+        def execHandle = handle()
+            .args(args(StdinAfterOutputsClosedApp.class, marker.absolutePath))
+            .setStandardInput(stdin)
+            .build()
+
+        when:
+        execHandle.start()
+        def deadline = System.currentTimeMillis() + 30000
+        while (!marker.exists()) {
+            assert System.currentTimeMillis() < deadline
+            Thread.sleep(20)
+        }
+        stdinReady.countDown()
+        def result = execHandle.waitForFinish()
+
+        then:
+        result.exitValue == 42
     }
 
     void "can abort after process has completed"() {
@@ -475,7 +507,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "exec handle collaborates with streams handler"() {
         given:
-        def streamsHandler = Mock(StreamsHandler)
+        def streamsHandler = Mock(FinishNotifyingStreamsHandler)
         def execHandle = handle().args(args(TestApp.class)).setDisplayName("foo proc").streamsHandler(streamsHandler).build()
 
         when:
@@ -486,6 +518,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         result.rethrowFailure()
         1 * streamsHandler.connectStreams(_ as Process, "foo proc", _ as Executor)
         1 * streamsHandler.start()
+        1 * streamsHandler.whenStreamsFinished(_) >> { Runnable callback -> callback.run() }
         1 * streamsHandler.stop()
         0 * streamsHandler._
     }
@@ -563,6 +596,20 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     public static class SlowApp {
         public static void main(String[] args) throws InterruptedException {
             Thread.sleep(10000L)
+        }
+    }
+
+    public static class StdinAfterOutputsClosedApp {
+        public static void main(String[] args) throws Exception {
+            System.out.close()
+            System.err.close()
+            new File(args[0]).createNewFile()
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))
+            String line = reader.readLine()
+            if (line == null) {
+                System.exit(99)
+            }
+            System.exit(Integer.parseInt(line.trim()))
         }
     }
 

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.SubstitutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -63,7 +62,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -276,7 +274,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public String getDisplayName() {
-        return String.format("'%s' (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
+        return String.format("%s (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
     }
 
     public boolean isTransitive() {
@@ -416,8 +414,8 @@ public class NodeState implements DependencyGraphNode {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
                 ModuleResolveState module = resolveState.getModule(identifier);
                 for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
-                    if (!unattachedEdge.getSelector().isResolved()) {
-                        // Unresolved - we have a selector that was deferred but the constraint has been removed in between
+                    if (unattachedEdge.getSelector().requiresSelection()) {
+                        // We have a selector that was deferred but the constraint has been removed in between
                         NodeState from = unattachedEdge.getFrom();
                         from.prepareToRecomputeEdge(unattachedEdge);
                     }
@@ -431,7 +429,7 @@ public class NodeState implements DependencyGraphNode {
             // Let's clear that state since it is no longer part of selection
             for (EdgeState edge : cachedFilteredEdges) {
                 if (edge.getDependencyMetadata().isConstraint()) {
-                    ModuleResolveState targetModule = resolveState.getModule(edge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter()));
+                    ModuleResolveState targetModule = resolveState.getModule(edge.getTargetModuleIdentifier());
                     if (targetModule.isPending()) {
                         targetModule.unregisterConstraintProvider(this);
                     }
@@ -476,7 +474,7 @@ public class NodeState implements DependencyGraphNode {
         EdgeState dependencyEdge
     ) {
         boolean constraint = dependencyEdge.getDependencyMetadata().isConstraint();
-        ModuleIdentifier moduleId = dependencyEdge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter());
+        ModuleIdentifier moduleId = dependencyEdge.getTargetModuleIdentifier();
         ModuleResolveState module = resolveState.getModule(moduleId);
 
         boolean deferSelection = false;
@@ -666,8 +664,7 @@ public class NodeState implements DependencyGraphNode {
             return false;
         }
 
-        ComponentSelectorConverter componentSelectorConverter = resolveState.getComponentSelectorConverter();
-        ModuleIdentifier targetModuleId = edgeState.getDependencyState().getModuleIdentifier(componentSelectorConverter);
+        ModuleIdentifier targetModuleId = edgeState.getTargetModuleIdentifier();
 
         if (excludeSpec.excludes(targetModuleId)) {
             LOGGER.debug("{} is excluded from {} by {}.", targetModuleId, this, excludeSpec);
@@ -675,9 +672,9 @@ public class NodeState implements DependencyGraphNode {
         }
 
         // If we were substituted, apply the exclusion to the original selector as well.
-        ComponentSelector requestedSelector = edgeState.getDependencyState().getRequested();
-        if (requestedSelector != edgeState.getDependencyState().getDependency().getSelector()) {
-            return excludeSpec.excludes(componentSelectorConverter.getModuleVersionId(requestedSelector).getModule());
+        ComponentSelector requestedSelector = edgeState.getRequested();
+        if (requestedSelector != edgeState.getDependencyMetadata().getSelector()) {
+            return excludeSpec.excludes(resolveState.getComponentSelectorConverter().getModuleVersionId(requestedSelector).getModule());
         }
 
         return false;
@@ -850,10 +847,15 @@ public class NodeState implements DependencyGraphNode {
         return formatCapabilityRejectMessage(getComponent().getModule().getId(), capabilityReject);
     }
 
+    @SuppressWarnings("DataFlowIssue") // Conflict nodes are not null when this is called
     private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        var conflictNodes = capabilityConflict.right;
+        var multipleConflicts = conflictNodes.size() > 1;
+        var conflictMsg = multipleConflicts ? "conflicts" : "conflict";
+        var providedByMsg = multipleConflicts ? conflictNodes.stream().map(NodeState::getDisplayName).sorted().toList().toString() : conflictNodes.iterator().next().getDisplayName();
+        var groupNameMsg = multipleConflicts ? "All" : "Both";
         return "Module '" + id + "' has been rejected:\n" +
-            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
-            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+            "   Cannot select module because of " + conflictMsg + " with " + providedByMsg + ". " + groupNameMsg + " provide capability '" + formatCapability(capabilityConflict.left) + "'.";
     }
 
     private static String formatCapability(Capability capability) {

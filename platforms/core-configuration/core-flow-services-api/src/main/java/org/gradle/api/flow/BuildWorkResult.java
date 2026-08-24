@@ -34,6 +34,7 @@ public interface BuildWorkResult {
      * scheduled work.
      *
      * @return {@link Optional#empty() empty} when no failures occur.
+     * @since 8.1
      */
     Optional<Throwable> getFailure();
 }

@@ -28,6 +28,7 @@ import java.lang.annotation.*;
  *
  * <p>This will cause the task to be considered out-of-date when the file path or contents
  * are different to when the task was last run.</p>
+ * @since 0.8
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

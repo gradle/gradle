@@ -29,7 +29,7 @@ class ExecOutputHandleRunnerTest extends Specification {
         def input = new ByteArrayInputStream("hello".bytes)
         def output = new ByteArrayOutputStream()
         def completed = new CountDownLatch(1)
-        def runner = new ExecOutputHandleRunner("test", input, output, 4, completed)
+        def runner = new ExecOutputHandleRunner("test", input, output, 4, completed.&countDown)
 
         when:
         runner.run()
@@ -50,7 +50,7 @@ class ExecOutputHandleRunnerTest extends Specification {
         def lineSeparator = SystemProperties.instance.lineSeparator
         def output = new LineBufferingOutputStream(action, lineSeparator)
         def input = new ByteArrayInputStream(text.getBytes("utf-8"))
-        def runner = new ExecOutputHandleRunner("test", input, output, bufferLength, new CountDownLatch(1))
+        def runner = new ExecOutputHandleRunner("test", input, output, bufferLength, {})
 
         when:
         runner.run()

@@ -29,7 +29,7 @@ include::sample[dir="snippets/reference/core-plugins/codeQuality/groovy",files="
 
 The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
 
-Note that Checkstyle will run with the same Java version used to run Gradle.
+Note that, by default, Checkstyle runs with the same Java version used to run Gradle, or with the project's Java toolchain if one is configured. To run Checkstyle on a specific JDK regardless, see <<#sec:checkstyle_configuration_toolchains,Configuring Checkstyle with Java Toolchains>>.
 
 [[sec:checkstyle_tasks]]
 == Tasks
@@ -91,12 +91,12 @@ The Checkstyle plugin adds the following dependency configurations:
 |===
 
 By default, the `checkstyle` configuration uses link:https://mvnrepository.com/artifact/com.puppycrawl.tools/checkstyle[`com.puppycrawl.tools:checkstyle`].
-The version of `com.puppycrawl.tools:checkstyle` used is derived from the extension's tool version:
+The version of `com.puppycrawl.tools:checkstyle` used is derived from the extension's tool version, which defaults to `10.24.0`. You can override it:
 
 [source,kotlin]
 ----
 checkstyle {
-    toolVersion = "10.12.4"
+    toolVersion = "10.24.0"
 }
 ----
 
@@ -117,12 +117,56 @@ include::sample[dir="snippets/reference/core-plugins/checkstylePlugin-dependenci
 [[sec:checkstyle_configuration]]
 == Configuration
 
+The Checkstyle plugin is configured through the link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.html[CheckstyleExtension] (the `checkstyle {}` block). The most commonly used properties and their default values are:
+
+.Gradle defaults for Checkstyle properties
+[%header%autowidth,compact]
+|===
+| Property | Description | Gradle default
+
+| `toolVersion`
+| The version of Checkstyle to use.
+| `10.24.0`
+
+| `configDirectory`
+| Directory containing the Checkstyle configuration files (exposed as `config_loc`).
+| `config/checkstyle` (relative to the root project)
+
+| `config`
+| The Checkstyle configuration to use.
+| `checkstyle.xml` in `configDirectory`
+
+| `configProperties`
+| Properties substituted into the configuration file.
+| _(empty)_
+
+| `maxErrors`
+| The maximum number of errors allowed before failing the build.
+| `0`
+
+| `maxWarnings`
+| The maximum number of warnings allowed before failing the build.
+| `Integer.MAX_VALUE` (unlimited)
+
+| `showViolations`
+| Whether rule violations are shown on the console.
+| `true`
+
+| `enableExternalDtdLoad`
+| Whether to allow loading external DTD files referenced from the configuration (disabled by default for security).
+| `false`
+
+| `reportsDirectory`
+| The directory where reports are generated.
+| `layout.buildDirectory.dir("reports/checkstyle")`
+|===
+
 See the link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.html[CheckstyleExtension] class in the API documentation for comprehensive configuration options.
 
 [[sec:checkstyle_configuration_toolchains]]
 === Configuring Checkstyle with Java Toolchains
 
-Checkstyle imposes a minimum requirement of JDK 11, with an anticipated transition to JDK 17 in forthcoming releases. For projects targeting earlier JDK versions, such as JDK 8, this presents a compatibility challenge. Historically, users have resorted to backport dependencies (e.g., `com.puppycrawl.tools:checkstyle-backport-jre8`) to bridge this gap. However, as both Checkstyle and Gradle align with modern Java versions, a more robust and future-proof solution is available through Gradle's Java toolchains.
+Checkstyle's minimum required JDK depends on its version: the default version (`10.24.0`) requires JDK 11, while Checkstyle 13.0.0 and later require JDK 21. For projects targeting earlier JDK versions, such as JDK 8, this presents a compatibility challenge. Historically, users have resorted to backport dependencies (e.g., `com.puppycrawl.tools:checkstyle-backport-jre8`) to bridge this gap. However, as both Checkstyle and Gradle align with modern Java versions, a more robust and future-proof solution is available through Gradle's Java toolchains.
 
 By leveraging the `javaLauncher` property, you can explicitly configure Checkstyle tasks to execute with a designated JDK version, independent of the JDK used for your project’s compilation or Gradle’s runtime. The following configuration ensures that Checkstyle operates with JDK 17:
 
@@ -141,7 +185,7 @@ This approach offers several advantages:
 - **Automation**: Gradle’s toolchain support automatically provisions the specified JDK, streamlining setup and ensuring consistency across environments.
 - **Sustainability**: It eliminates reliance on community-maintained backports, which may lag behind official releases or introduce maintenance overhead.
 
-We strongly recommend adopting this configuration as the preferred method for managing Checkstyle’s JDK requirements, particularly as the ecosystem progresses toward JDK 17 and beyond.
+We strongly recommend adopting this configuration as the preferred method for managing Checkstyle’s JDK requirements, particularly as the ecosystem progresses toward newer JDK versions.
 
 [[sec:checkstyle_built_in_variables]]
 === Built-in variables

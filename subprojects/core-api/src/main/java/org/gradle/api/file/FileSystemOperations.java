@@ -19,6 +19,10 @@ package org.gradle.api.file;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.GradleService;
+import org.gradle.api.services.ProjectService;
+import org.gradle.api.services.SettingsService;
+import org.gradle.api.services.TaskService;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,7 +36,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 6.0
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
-public interface FileSystemOperations {
+public interface FileSystemOperations extends GradleService, ProjectService, SettingsService, TaskService {
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
@@ -60,6 +64,7 @@ public interface FileSystemOperations {
      *
      * @param action Action to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
+     * @since 6.0
      */
     WorkResult copy(Action<? super CopySpec> action);
 
@@ -69,6 +74,7 @@ public interface FileSystemOperations {
      *
      * @param action action Action to configure the SyncSpec.
      * @return {@link WorkResult} that can be used to check if the sync did any work.
+     * @since 6.0
      */
     WorkResult sync(Action<? super SyncSpec> action);
 
@@ -78,6 +84,7 @@ public interface FileSystemOperations {
      *
      * @param action Action to configure the DeleteSpec
      * @return {@link WorkResult} that can be used to check if delete did any work.
+     * @since 6.0
      */
     WorkResult delete(Action<? super DeleteSpec> action);
 

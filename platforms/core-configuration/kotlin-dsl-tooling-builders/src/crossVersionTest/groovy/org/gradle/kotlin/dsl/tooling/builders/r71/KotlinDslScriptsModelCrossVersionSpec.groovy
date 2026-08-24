@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.tooling.builders.r71
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters.setModelParameters
@@ -26,7 +25,6 @@ import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters
 @TargetGradleVersion(">=7.1")
 class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3708")
     def "kotlin-dsl project with pre-compiled script plugins should import without errors"() {
 
         given:

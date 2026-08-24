@@ -27,6 +27,7 @@ public interface TargetJvmVersion {
 
     /**
      * The minimal target version for a Java library. Any consumer below this version would not be able to consume it.
+     * @since 5.3
      */
     Attribute<Integer> TARGET_JVM_VERSION_ATTRIBUTE = Attribute.of("org.gradle.jvm.version", Integer.class);
 }

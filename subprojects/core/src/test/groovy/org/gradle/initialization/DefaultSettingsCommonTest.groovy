@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
@@ -55,7 +56,7 @@ class DefaultSettingsCommonTest extends Specification {
 
     def createSettings(String path = '/somepath/root') {
         settingsDir = new File(path).absoluteFile
-        startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
+        startParameter = new StartParameterInternal(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
 
         fileResolver.resolve(_) >> { args -> args[0].canonicalFile }
 

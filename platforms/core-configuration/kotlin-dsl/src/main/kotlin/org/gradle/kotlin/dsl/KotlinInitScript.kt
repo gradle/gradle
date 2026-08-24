@@ -34,6 +34,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
  * Legacy base class for Gradle Kotlin DSL standalone [Gradle] scripts IDE support, aka. init scripts.
  *
  * @see KotlinGradleScriptTemplate
+ *
+ * @since 4.6
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
@@ -59,6 +61,8 @@ abstract class KotlinInitScript(
 
     /**
      * The [ScriptHandler] for this script.
+     *
+     * @since 4.7
      */
     val initscript: ScriptHandler
         get() = host.scriptHandler

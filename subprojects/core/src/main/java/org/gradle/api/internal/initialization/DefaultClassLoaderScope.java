@@ -36,7 +36,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     private boolean locked;
 
-    protected ClassPath export = ClassPath.EMPTY;
+    private ClassPath export = ClassPath.EMPTY;
     private List<ClassLoader> exportLoaders; // if not null, is not empty
     private ClassPath local = ClassPath.EMPTY;
     private List<ClassLoader> ownLoaders;
@@ -45,7 +45,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private MultiParentClassLoader exportingClassLoader;
     private MultiParentClassLoader localClassLoader;
 
-    // What is actually exposed
+    // Effective loaders, materialized once on the first query. `built` guards the memoization
+    private boolean built;
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
@@ -85,8 +86,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return loader(classLoaderId, parent, classPath);
     }
 
-    private void buildEffectiveLoaders() {
-        if (effectiveLocalClassLoader == null) {
+    private synchronized void buildEffectiveLoaders() {
+        if (!built) {
             boolean hasExports = !export.isEmpty() || exportLoaders != null;
             boolean hasLocals = !local.isEmpty();
             if (locked) {
@@ -120,17 +121,18 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             }
 
             exportLoaders = null;
+            built = true;
         }
     }
 
     @Override
-    public ClassLoader getExportClassLoader() {
+    public synchronized ClassLoader getExportClassLoader() {
         buildEffectiveLoaders();
         return effectiveExportClassLoader;
     }
 
     @Override
-    public ClassLoader getLocalClassLoader() {
+    public synchronized ClassLoader getLocalClassLoader() {
         buildEffectiveLoaders();
         return effectiveLocalClassLoader;
     }
@@ -141,7 +143,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     @Override
-    public boolean defines(Class<?> clazz) {
+    public synchronized boolean defines(Class<?> clazz) {
         if (ownLoaders != null) {
             for (ClassLoader ownLoader : ownLoaders) {
                 if (ownLoader.equals(clazz.getClassLoader())) {
@@ -152,7 +154,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return false;
     }
 
-    protected ClassLoader loader(ClassLoaderId classLoaderId, ClassLoader parent, ClassPath classPath) {
+    private synchronized ClassLoader loader(ClassLoaderId classLoaderId, ClassLoader parent, ClassPath classPath) {
         if (classPath.isEmpty()) {
             return parent;
         }
@@ -166,7 +168,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     @Override
-    public ClassLoaderScope local(ClassPath classPath) {
+    public synchronized ClassLoaderScope local(ClassPath classPath) {
         if (classPath.isEmpty()) {
             return this;
         }
@@ -183,7 +185,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     @Override
-    public ClassLoaderScope export(ClassPath classPath) {
+    public synchronized ClassLoaderScope export(ClassPath classPath) {
         if (classPath.isEmpty()) {
             return this;
         }
@@ -199,7 +201,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     @Override
-    public ClassLoaderScope export(ClassLoader classLoader) {
+    public synchronized ClassLoaderScope export(ClassLoader classLoader) {
         assertNotLocked();
         if (exportingClassLoader != null) {
             exportingClassLoader.addParent(classLoader);
@@ -220,25 +222,38 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     @Override
-    public ClassLoaderScope lock() {
+    public synchronized ClassLoaderScope lock() {
         locked = true;
         return this;
     }
 
     @Override
-    public boolean isLocked() {
+    public synchronized boolean isLocked() {
         return locked;
     }
 
     @Override
     public void onReuse() {
         parent.onReuse();
-        listener.childScopeCreated(parent.getId(), id, origin);
-        if (!export.isEmpty()) {
-            listener.classloaderCreated(this.id, id.exportId(), effectiveExportClassLoader, export, null);
+
+        // As this method runs under a cross-build cache lock, we minimize monitor holding time
+        ClassPath exportSnapshot;
+        ClassPath localSnapshot;
+        ClassLoader exportLoader;
+        ClassLoader localLoader;
+        synchronized (this) {
+            exportSnapshot = export;
+            localSnapshot = local;
+            exportLoader = effectiveExportClassLoader;
+            localLoader = effectiveLocalClassLoader;
         }
-        if (!local.isEmpty()) {
-            listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader, local, null);
+
+        listener.childScopeCreated(parent.getId(), id, origin);
+        if (!exportSnapshot.isEmpty()) {
+            listener.classloaderCreated(this.id, id.exportId(), exportLoader, exportSnapshot, null);
+        }
+        if (!localSnapshot.isEmpty()) {
+            listener.classloaderCreated(this.id, id.localId(), localLoader, localSnapshot, null);
         }
     }
 }

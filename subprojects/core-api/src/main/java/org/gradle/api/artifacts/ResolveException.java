@@ -24,6 +24,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
  * <p>An opaque exception, thrown when dependency resolution fails for some reason.</p>
  *
  * <strong>This type should only be extended and/or thrown by Gradle internal code.</strong>
+ * @since 0.7
  */
 @Contextual
 @HasInternalProtocol
@@ -31,6 +32,7 @@ public class ResolveException extends DefaultMultiCauseException {
 
     /**
      * Should not be called except from Gradle internal code.
+     * @since 2.6
      */
     protected ResolveException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);

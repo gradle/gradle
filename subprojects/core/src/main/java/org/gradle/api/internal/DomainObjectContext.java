@@ -16,78 +16,25 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Describable;
-import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
-import org.jspecify.annotations.Nullable;
 
 /**
- * The owner/context of a Dependency Management instance.
+ * Models and controls access to an abstract set of related mutable objects.
  */
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface DomainObjectContext extends Describable {
 
     /**
-     * Creates a path from the root of the build tree to the current context + name.
+     * The identity of the build that this context belongs to.
      */
-    Path identityPath(String name);
-
-    /**
-     * Creates a path from the root of the project tree to the current context + name.
-     */
-    Path projectPath(String name);
-
-    /**
-     * If this context represents a project, its identity.
-     */
-    @Nullable
-    ProjectIdentity getProjectIdentity();
-
-    /**
-     * If this context represents a project, the project.
-     *
-     * NOTE: This method should be avoided if at all possible. Instead, rely on
-     * {@link #getProjectIdentity()}, or if not possible, prefer {@code getProject().getOwner()}.
-     */
-    @Nullable
-    ProjectInternal getProject();
+    Path getBuildPath();
 
     /**
      * The container that holds the model for this context, to allow synchronized access to the model.
      */
     ModelContainer<?> getModel();
 
-    /**
-     * The path to the build that is associated with this object.
-     */
-    Path getBuildPath();
-
-    /**
-     * Whether the context is a script.
-     *
-     * Some objects are associated with a script, that is associated with a domain object.
-     */
-    boolean isScript();
-
-    /**
-     * Whether the context is a root script.
-     *
-     * `Settings` is such a context.
-     *
-     * Some objects are associated with a script, that is associated with a domain object.
-     */
-    boolean isRootScript();
-
-    /**
-     * Indicates if the context is plugin resolution
-     */
-    boolean isPluginContext();
-
-    /**
-     * Returns true if the context represents a detached state, for
-     * example detached dependency resolution
-     */
-    default boolean isDetachedState() {
-        return false;
-    }
 }

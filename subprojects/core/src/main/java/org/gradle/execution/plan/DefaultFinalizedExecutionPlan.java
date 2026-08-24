@@ -85,9 +85,17 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private final OrdinalNodeAccess ordinalNodeAccess;
     private final Consumer<LocalTaskNode> completionHandler;
 
-    // When true, there may be nodes that are both ready and "selectable", which means their project and resources are able to be locked
-    // When false, there are definitely no nodes that are "selectable"
+    // When true, there may be nodes that are both ready and "selectable", which means their project and resources are able to be locked.
+    // When false, there are definitely no nodes that are "selectable", and some event that this plan can observe must happen before any
+    // node can become selectable: a node of this plan completing, a resource being unlocked, or a node being added to this plan.
+    // A selection scan must therefore leave this flag set when it rejected a node for a reason whose resolution this plan cannot
+    // observe, such as a mutation conflict with a node that belongs to another plan. See NodeStartResult.
     private boolean maybeNodesSelectable;
+
+    /**
+     * The pre- and post-execution nodes added to this plan while it is executing.
+     */
+    private final Set<Node> nodesAddedDuringExecution = new HashSet<>();
 
     private boolean buildCancelled;
 
@@ -151,6 +159,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         readyNodes.clear();
         runningNodes.clear();
         reachableCache.clear();
+        nodesAddedDuringExecution.clear();
     }
 
     private void resourceUnlocked(ResourceLock resourceLock) {
@@ -238,6 +247,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         }
 
         List<ResourceLock> resources = new ArrayList<>();
+        boolean nodeBlockedByConflictInOtherPlan = false;
         readyNodes.restart();
         while (readyNodes.hasNext()) {
             Node node = readyNodes.next();
@@ -276,11 +286,15 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 }
 
                 // Node is ready to execute and all dependencies and pre-execution nodes have completed
-                if (attemptToStart(node, resources)) {
+                NodeStartResult startResult = attemptToStart(node, resources);
+                if (startResult == NodeStartResult.STARTED) {
                     readyNodes.remove();
                     waitingToStartNodes.remove(node);
                     node.getConsumerState().started();
                     return Selection.of(node);
+                }
+                if (startResult == NodeStartResult.BLOCKED_BY_NODE_IN_ANOTHER_PLAN) {
+                    nodeBlockedByConflictInOtherPlan = true;
                 }
             }
             if (node.isComplete()) {
@@ -290,7 +304,11 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             }
         }
 
-        maybeNodesSelectable = false;
+        // The plan must remain selectable while a node is blocked by a conflict with a node in another plan. The completion
+        // of the conflicting node does not reset maybeNodesSelectable. When the conflicting node holds no locks (for example,
+        // when its plan was loaded from CC) it also does not fire the resource unlock listener. So, no event observable by this
+        // plan would mark the end of the conflict. The blocked node is re-attempted on the next scan instead.
+        maybeNodesSelectable = nodeBlockedByConflictInOtherPlan;
         if (waitingToStartNodes.isEmpty()) {
             return Selection.noMoreWorkToStart();
         }
@@ -303,29 +321,57 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     }
 
     private void addNodeToPlan(Node node) {
+        nodesAddedDuringExecution.add(node);
         maybeNodeReady(node);
         maybeWaitingForNewNode(node, "runtime");
     }
 
-    private boolean attemptToStart(Node node, List<ResourceLock> resources) {
+    private enum NodeStartResult {
+        /**
+         * The node was started.
+         */
+        STARTED,
+        /**
+         * The node cannot start yet. Some event that this plan can observe will make it startable, for example,
+         * a node of this plan completing or a resource lock being released.
+         */
+        BLOCKED,
+        /**
+         * The node cannot start because its mutations conflict with a node that belongs to another plan.
+         * No event that this plan can observe fires when that node completes.
+         */
+        BLOCKED_BY_NODE_IN_ANOTHER_PLAN
+    }
+
+    private NodeStartResult attemptToStart(Node node, List<ResourceLock> resources) {
         resources.clear();
         if (!tryAcquireLocksForNode(node, resources)) {
             releaseLocks(resources);
-            return false;
+            return NodeStartResult.BLOCKED;
         }
 
         MutationInfo mutations = node.getMutationInfo();
 
-        if (conflictsWithOtherNodes(node, mutations)) {
+        if (!canRunWithCurrentlyExecutedNodes(mutations)) {
+            LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
             releaseLocks(resources);
-            return false;
+            return NodeStartResult.BLOCKED;
+        }
+
+        Node conflictingNode = findNodeConflictingWith(node, mutations);
+        if (conflictingNode != null) {
+            LOGGER.debug("Node {} cannot start, as it conflicts with {}", node, conflictingNode);
+            releaseLocks(resources);
+            return isPartOfThisPlan(conflictingNode)
+                ? NodeStartResult.BLOCKED
+                : NodeStartResult.BLOCKED_BY_NODE_IN_ANOTHER_PLAN;
         }
 
         node.startExecution(this::recordNodeExecutionStarted);
         if (mutations.hasValidationProblem()) {
             invalidNodeRunning = true;
         }
-        return true;
+        return NodeStartResult.STARTED;
     }
 
     private void releaseLocks(List<ResourceLock> resources) {
@@ -345,17 +391,20 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         return true;
     }
 
-    private boolean conflictsWithOtherNodes(Node node, MutationInfo mutations) {
-        if (!canRunWithCurrentlyExecutedNodes(mutations)) {
-            LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
-            return true;
-        } else if (mutationConflictsWithOtherNodes(node, mutations)) {
-            return true;
-        } else if (destroysNotYetConsumedOutputOfAnotherNode(node, mutations.getDestroyablePaths())) {
-            LOGGER.debug("Node {} destroys not yet consumed output of another node", node);
-            return true;
+    /**
+     * Finds a node whose recorded mutations prevent the given node from starting, or null when there is none.
+     * The returned node may belong to another plan, as the node access hierarchies span all builds in the tree.
+     */
+    private @Nullable Node findNodeConflictingWith(Node node, MutationInfo mutations) {
+        Node conflictingNode = findMutationConflict(node, mutations);
+        if (conflictingNode != null) {
+            return conflictingNode;
         }
-        return false;
+        return findConsumerOfDestroyedOutput(node, mutations.getDestroyablePaths());
+    }
+
+    private boolean isPartOfThisPlan(Node node) {
+        return contents.contains(node) || nodesAddedDuringExecution.contains(node);
     }
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
@@ -408,58 +457,80 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         }
     }
 
-    private boolean mutationConflictsWithOtherNodes(Node node, MutationInfo mutations) {
+    /**
+     * Finds the first node accessing the locations mutated by the given node that must complete
+     * before the given node can start, or null when there is none.
+     */
+    private @Nullable Node findMutationConflict(Node node, MutationInfo mutations) {
         Set<String> nodeOutputPaths = mutations.getOutputPaths();
         Set<String> nodeDestroysPaths = mutations.getDestroyablePaths();
         if (nodeOutputPaths.isEmpty() && nodeDestroysPaths.isEmpty()) {
-            return false;
+            return null;
         }
 
-        BiFunction<Boolean, Node, Boolean> conflictsWithRunning = (current, candidate) -> current || candidate.isExecuting();
+        BiFunction<@Nullable Node, Node, @Nullable Node> executingNode = (found, candidate) -> {
+            if (found != null) {
+                return found;
+            }
+            return candidate.isExecuting() ? candidate : null;
+        };
 
         OrdinalGroup nodeOrdinal = node.getOrdinal();
-        BiFunction<Boolean, Node, Boolean> conflictsWithNodeInEarlierOrdinal = (current, candidate) -> {
-            if (current || candidate.isComplete()) {
-                return current;
+        BiFunction<@Nullable Node, Node, @Nullable Node> nodeInEarlierOrdinal = (found, candidate) -> {
+            if (found != null) {
+                return found;
+            }
+            if (candidate.isComplete()) {
+                return null;
             }
             OrdinalGroup otherOrdinal = candidate.getOrdinal();
-            return otherOrdinal != null && otherOrdinal.getOrdinal() < nodeOrdinal.getOrdinal();
+            if (otherOrdinal != null && otherOrdinal.getOrdinal() < nodeOrdinal.getOrdinal()) {
+                return candidate;
+            }
+            return null;
         };
 
         for (String path : nodeOutputPaths) {
-            if (outputHierarchy.visitNodesAccessing(path, false, conflictsWithRunning)) {
-                return true;
+            Node conflict = outputHierarchy.visitNodesAccessing(path, null, executingNode);
+            if (conflict != null) {
+                return conflict;
             }
             if (nodeOrdinal != null) {
-                if (destroyableHierarchy.visitNodesAccessing(path, false, conflictsWithNodeInEarlierOrdinal)) {
-                    return true;
+                conflict = destroyableHierarchy.visitNodesAccessing(path, null, nodeInEarlierOrdinal);
+                if (conflict != null) {
+                    return conflict;
                 }
             }
         }
         for (String path : nodeDestroysPaths) {
-            if (destroyableHierarchy.visitNodesAccessing(path, false, conflictsWithRunning)) {
-                return true;
+            Node conflict = destroyableHierarchy.visitNodesAccessing(path, null, executingNode);
+            if (conflict != null) {
+                return conflict;
             }
             if (nodeOrdinal != null) {
-                if (outputHierarchy.visitNodesAccessing(path, false, conflictsWithNodeInEarlierOrdinal)) {
-                    return true;
+                conflict = outputHierarchy.visitNodesAccessing(path, null, nodeInEarlierOrdinal);
+                if (conflict != null) {
+                    return conflict;
                 }
             }
         }
-        return false;
+        return null;
     }
 
-    private boolean destroysNotYetConsumedOutputOfAnotherNode(Node destroyer, Set<String> destroyablePaths) {
+    /**
+     * Finds the first node that has not yet consumed an output that the given node destroys, or null when there is none.
+     */
+    private @Nullable Node findConsumerOfDestroyedOutput(Node destroyer, Set<String> destroyablePaths) {
         if (destroyablePaths.isEmpty()) {
-            return false;
+            return null;
         }
 
-        BiFunction<Boolean, Node, Boolean> conflicts = (current, producingNode) -> {
-            if (current) {
-                return current;
+        BiFunction<@Nullable Node, Node, @Nullable Node> conflictingConsumer = (found, producingNode) -> {
+            if (found != null) {
+                return found;
             }
             if (!producingNode.getConsumerState().isOutputProducedButNotYetConsumed()) {
-                return false;
+                return null;
             }
             ConsumerState producingNodeConsumerState = producingNode.getConsumerState();
             for (Node consumer : producingNodeConsumerState.getNodesYetToConsumeOutput()) {
@@ -468,18 +539,18 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                     // then we accept that as the will of the user
                     continue;
                 }
-                LOGGER.debug("Node {} destroys output of consumer {}", destroyer, consumer);
-                return true;
+                return consumer;
             }
-            return false;
+            return null;
         };
 
         for (String destroyablePath : destroyablePaths) {
-            if (outputHierarchy.visitNodesAccessing(destroyablePath, false, conflicts)) {
-                return true;
+            Node conflict = outputHierarchy.visitNodesAccessing(destroyablePath, null, conflictingConsumer);
+            if (conflict != null) {
+                return conflict;
             }
         }
-        return false;
+        return null;
     }
 
     private boolean doesConsumerDependOnDestroyer(Node consumer, Node destroyer) {

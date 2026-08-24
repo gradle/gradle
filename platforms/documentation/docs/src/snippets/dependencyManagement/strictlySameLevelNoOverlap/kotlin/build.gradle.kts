@@ -1,0 +1,24 @@
+plugins {
+    `java-library`
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::same-level-no-overlap[]
+dependencies {
+    api("org.apache.httpcomponents:httpclient") {
+        version {
+            strictly("[4.0, 4.5[")  // 4.0 through 4.4.x
+        }
+    }
+    constraints {
+        api("org.apache.httpcomponents:httpclient") {
+            version {
+                strictly("[4.5, 5.0[")  // 4.5 through 4.5.14 — disjoint from above
+            }
+        }
+    }
+}
+// end::same-level-no-overlap[]

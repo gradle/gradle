@@ -85,12 +85,33 @@ import java.util.concurrent.Callable;
  * <p>A plugin which generates Eclipse files.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
+ * @since 1.0
  */
 public abstract class EclipsePlugin extends IdePlugin {
 
+    /**
+     * The eclipse task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_TASK_NAME = "eclipse";
+    /**
+     * The eclipse project task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";
+    /**
+     * The eclipse cp task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath";
+    /**
+     * The eclipse jdt task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt";
 
     private final UniqueProjectNameProvider uniqueProjectNameProvider;

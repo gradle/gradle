@@ -52,7 +52,7 @@ The Distribution Plugin adds a number of tasks to your project, as shown below.
 `distZip` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip]::
 Creates a ZIP archive of the distribution contents.
 
-`distTar` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+`distTar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Tar.html[Tar]::
 Creates a TAR archive of the distribution contents.
 
 `assembleDist` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
@@ -88,7 +88,7 @@ include::sample[dir="snippets/reference/core-plugins/distribution/groovy",files=
 
 Given that the project name is `myproject` and version `1.2`, running `gradle customDistZip` will produce a ZIP file named `myproject-custom-1.2.zip`.
 
-Running `gradle installCustomDist` will install the distribution contents into `__layout.buildDirectory.dir__("install/custom")`.
+Running `gradle installCustomDist` will install the distribution contents into `__layout.buildDirectory.dir__("install/myproject-custom")`.
 
 [[sec:distribution_contents]]
 == Distribution contents

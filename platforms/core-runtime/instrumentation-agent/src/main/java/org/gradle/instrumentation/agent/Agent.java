@@ -48,6 +48,9 @@ public class Agent {
     public static boolean installTransformer(ClassFileTransformer transformer) {
         Instrumentation inst = instrumentation;
         if (inst != null) {
+            // We have some assumptions about the order in which transformations are applied, when there are multiple agents/transforms.
+            // Changing the transformer to be retransform-capable here will change the order and break those assumptions.
+            // See DefaultClassFileTransformer and AgentUtils for more information.
             inst.addTransformer(transformer);
             return true;
         }

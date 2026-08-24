@@ -20,6 +20,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A repository for resolving and publishing artifacts.
+ * @since 1.0
  */
 @HasInternalProtocol
 public interface ArtifactRepository {
@@ -30,6 +31,7 @@ public interface ArtifactRepository {
      * <p>The name is used in logging output and error reporting to point to information related to this repository.
      *
      * @return The name.
+     * @since 1.0
      */
     String getName();
 
@@ -42,6 +44,7 @@ public interface ArtifactRepository {
      *
      * @param name The name. Must not be null.
      * @throws IllegalStateException If the name is set after it has been added to the container.
+     * @since 1.0
      */
     void setName(String name);
 

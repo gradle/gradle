@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::three-levels-root[]
+dependencies {
+    api(project(":moduleA"))
+    api('org.apache.httpcomponents:httpclient') {
+        version {
+            // Level 1 (root): widest strict range.
+            strictly '[4.0, 5.0['
+        }
+    }
+}
+// end::three-levels-root[]

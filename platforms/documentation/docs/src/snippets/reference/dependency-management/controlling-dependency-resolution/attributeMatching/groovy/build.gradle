@@ -87,6 +87,14 @@ configurations {
 def myAttribute = Attribute.of("my.attribute.name", String)
 // An attribute of type `Usage`
 def myUsage = Attribute.of("my.usage.attribute", Usage)
+// An attribute of an `Enum` type that implements `Named` (plain enums are not supported)
+enum MyEnum implements Named {
+    FOO, BAR
+
+    @Override
+    String getName() { return name() }
+}
+def myEnumAttribute = Attribute.of("my.enum.attribute", MyEnum)
 // end::define_attribute[]
 
 // tag::register-attributes[]

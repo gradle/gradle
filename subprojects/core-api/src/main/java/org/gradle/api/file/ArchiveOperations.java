@@ -17,6 +17,10 @@ package org.gradle.api.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.services.GradleService;
+import org.gradle.api.services.ProjectService;
+import org.gradle.api.services.SettingsService;
+import org.gradle.api.services.TaskService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -29,7 +33,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 6.6
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
-public interface ArchiveOperations {
+public interface ArchiveOperations extends GradleService, ProjectService, SettingsService, TaskService {
 
     /**
      * Creates resource that points to a gzip compressed file at the given path.
@@ -54,6 +58,7 @@ public interface ArchiveOperations {
      *
      * @param zipPath The ZIP file. Evaluated as per {@link Project#file(Object)}.
      * @return the file tree. Never returns null.
+     * @since 6.6
      */
     FileTree zipTree(Object zipPath);
 
@@ -62,6 +67,7 @@ public interface ArchiveOperations {
      *
      * @param tarPath The TAR file. Evaluated as per {@link Project#file(Object)}.
      * @return the file tree. Never returns null.
+     * @since 6.6
      */
     FileTree tarTree(Object tarPath);
 }

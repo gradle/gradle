@@ -148,6 +148,7 @@ When running tasks, the configuration phase consists of multiple steps.
 . Configure projects
 +
 Isolated Projects makes this step run in **parallel**, which can significantly improve performance for builds with many projects.
+Configuring a project includes compiling its build script, so project build scripts are <<sec:faq_parallel_script_compilation,compiled in parallel>> as well.
 In the current implementation, all projects are always configured; there is no project configuration avoidance yet, whether by skipping unneeded projects or by using cached results.
 
 . Discover the work graph
@@ -179,6 +180,7 @@ From Gradle's point of view, an IDE sync or a tooling invocation in general cons
 . Configure projects
 +
 Isolated Projects makes this step run in **parallel**, which can significantly improve performance for builds with many projects.
+Configuring a project includes compiling its build script, so project build scripts are <<sec:faq_parallel_script_compilation,compiled in parallel>> as well.
 In the current implementation, all projects are always configured; there is no project configuration avoidance yet, whether by skipping unneeded projects or by using cached results.
 
 . Run model builders
@@ -265,7 +267,7 @@ Rather than predicting the gain from the structure of your build, the most relia
 
 . Enable the feature
 +
-Make the build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, then enable Isolated Projects.
+Make the build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>> first, then enable Isolated Projects.
 
 . Get an early estimate before completing the migration
 +
@@ -554,7 +556,7 @@ By using the latest versions you reduce the risks of dealing with problems that 
 Newer IDE versions can bring better performance as well as a better user experience when adopting Isolated Projects.
 It is recommended to use IntelliJ IDEA 2026.1.1 or later.
 
-* Make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>>
+* Make your build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>>
 +
 The Isolated Projects feature builds on top of the Configuration Cache feature and requires the build to be compatible with it.
 
@@ -1031,7 +1033,7 @@ When executed, the configuration phase runs sequentially, configuring one projec
 Isolated Projects relies on the Configuration Cache infrastructure, and it also extends the set of constraints imposed by Configuration Cache.
 
 Configuration Cache is enabled automatically when Isolated Projects is enabled.
-You should make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
+You should make your build <<configuration_cache_adoption.adoc#config_cache:adoption_guide,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
 
 [IMPORTANT]
 ====
@@ -1091,3 +1093,15 @@ All projects are always configured regardless of how they depend on each other, 
 
 The benefit varies from build to build, so the best way to find out what you'll gain is to <<sec:evaluating,measure it for your build>>.
 
+[[sec:faq_parallel_script_compilation]]
+=== Does Isolated Projects compile build scripts in parallel?
+
+Yes.
+Compiling a project's build script is part of <<sec:perf_tasks,configuring that project>>.
+Because Isolated Projects runs project configuration in parallel, the build scripts of different projects are compiled in parallel too.
+
+Without Isolated Projects, build scripts are compiled sequentially, one project after another.
+This can be a noticeable cost in large multi-project builds, especially when a change to shared build logic (such as `buildSrc` or a <<composite_builds.adoc#composite_builds,build-logic composite build>>) invalidates the compiled scripts and forces them all to be recompiled.
+
+Note that this applies only to project build scripts, which are compiled during project configuration.
+Settings and init scripts are compiled earlier during the initialization phase, and remain sequential even with Isolated Projects enabled.

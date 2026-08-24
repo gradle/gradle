@@ -26,18 +26,25 @@ import org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurat
  * Represents the Eclipse JDT settings.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 public class Jdt extends PropertiesPersistableConfigurationObject {
     private JavaVersion sourceCompatibility;
     private JavaVersion targetCompatibility;
 
+    /**
+     * Creates a new {@code Jdt}.
+     *
+     * @since 1.0
+     */
     public Jdt(PropertiesTransformer transformer) {
         super(transformer);
     }
 
     /**
      * Sets the source compatibility for the compiler.
+     * @since 1.0
      */
     public void setSourceCompatibility(JavaVersion sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;
@@ -45,6 +52,7 @@ public class Jdt extends PropertiesPersistableConfigurationObject {
 
     /**
      * Sets the target compatibility for the compiler.
+     * @since 1.0
      */
     public void setTargetCompatibility(JavaVersion targetCompatibility) {
         this.targetCompatibility = targetCompatibility;

@@ -21,13 +21,23 @@ import org.gradle.api.InvalidUserDataException;
 /**
  * Thrown when attempting to publish with an invalid {@link MavenPublication}.
  *
- * @since 1.4
+ * @since 1.5
  */
 public class InvalidMavenPublicationException extends InvalidUserDataException {
+    /**
+     * Creates a new {@code InvalidMavenPublicationException}.
+     *
+     * @since 1.5
+     */
     public InvalidMavenPublicationException(String publicationName, String error) {
         super(formatMessage(publicationName, error));
     }
 
+    /**
+     * Creates a new {@code InvalidMavenPublicationException}.
+     *
+     * @since 1.5
+     */
     public InvalidMavenPublicationException(String publicationName, String error, Throwable cause) {
         super(formatMessage(publicationName, error), cause);
     }

@@ -19,6 +19,8 @@ package org.gradle.api.publish.maven;
 import org.gradle.api.Incubating;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -32,11 +34,15 @@ public interface MavenPomDistributionManagement {
 
     /**
      * The download URL of the corresponding Maven publication.
+     * @since 4.8
      */
+    @Input
+    @Optional
     Property<String> getDownloadUrl();
 
     /**
      * Configures the relocation information.
+     * @since 4.8
      */
     void relocation(Action<? super MavenPomRelocation> action);
 

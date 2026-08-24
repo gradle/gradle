@@ -17,9 +17,12 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.nio.file.InvalidPathException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -28,6 +31,8 @@ import java.util.stream.Collectors;
 public class EnvironmentVariableListInstallationSupplier implements InstallationSupplier {
 
     public static final String JAVA_INSTALLATIONS_FROM_ENV_PROPERTY = "org.gradle.java.installations.fromEnv";
+
+    private static final Logger LOGGER = Logging.getLogger(EnvironmentVariableListInstallationSupplier.class);
 
     private final ToolchainConfiguration buildOptions;
     private final FileResolver fileResolver;
@@ -57,7 +62,11 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
         if (value != null) {
             final String path = value.trim();
             if (!path.isEmpty()) {
-                return Optional.of(InstallationLocation.userDefined(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
+                try {
+                    return Optional.of(InstallationLocation.userDefined(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
+                } catch (UnsupportedOperationException | InvalidPathException e) {
+                    LOGGER.warn("Invalid path '{}' from environment variable '{}' could not be resolved: {}", path, environmentVariable, e.getMessage());
+                }
             }
         }
         return Optional.empty();

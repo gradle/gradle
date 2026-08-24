@@ -37,16 +37,19 @@ public interface CppLibrary extends ProductionCppComponent {
      * Defines the public header file directories of this library.
      *
      * <p>When this collection is empty, the directory {@code src/main/public} is used by default.</p>
+     * @since 4.2
      */
     ConfigurableFileCollection getPublicHeaders();
 
     /**
      * Configures the public header directories for this component.
+     * @since 4.2
      */
     void publicHeaders(Action<? super ConfigurableFileCollection> action);
 
     /**
      * Returns the public header file directories of this component, as defined in {@link #getPublicHeaders()}.
+     * @since 4.2
      */
     FileCollection getPublicHeaderDirs();
 
@@ -67,6 +70,7 @@ public interface CppLibrary extends ProductionCppComponent {
 
     /**
      * Returns the API dependencies of this library.
+     * @since 4.2
      */
     Configuration getApiDependencies();
 

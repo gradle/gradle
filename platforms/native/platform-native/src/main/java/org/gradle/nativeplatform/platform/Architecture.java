@@ -61,6 +61,7 @@ import org.gradle.internal.HasInternalProtocol;
  *         <td>"e2k"</td>
  *     </tr>
  * </table>
+ * @since 2.2
  */
 @HasInternalProtocol
 public interface Architecture extends Named {
@@ -70,6 +71,7 @@ public interface Architecture extends Named {
 
     /**
      * Returns a human-consumable display name for this architecture.
+     * @since 2.2
      */
     @Internal
     String getDisplayName();

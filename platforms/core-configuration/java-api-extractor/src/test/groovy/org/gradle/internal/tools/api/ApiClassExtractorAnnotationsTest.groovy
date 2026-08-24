@@ -16,6 +16,7 @@
 
 package org.gradle.internal.tools.api
 
+import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
@@ -752,6 +753,93 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         consumer.classes.Main.clazz.name == "Main"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38828")
+    void "annotation value member is retained next to an array member"() {
+        given:
+        def api = toApi([
+            A  : '''
+                @Ann(value = "v", names = {"x", "y"})
+                public class A {}
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface Ann {
+                    String value();
+                    String[] names();
+                }
+            '''
+        ])
+
+        when:
+        def extractedAnn = api.extractAndLoadApiClassFrom(api.classes.Ann)
+        def extractedClass = api.extractAndLoadApiClassFrom(api.classes.A)
+        def extractedAnnotations = extractedClass.annotations
+
+        then:
+        extractedAnnotations.size() == 1
+        def annotation = extractedAnnotations[0]
+        annotation.annotationType() == extractedAnn
+        annotation.value() == 'v'
+        annotation.names() == ['x', 'y']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38828")
+    void "an array member does not add a value member to the extracted annotation"() {
+        given:
+        def api = toApi([
+            A  : '''
+                @Ann(names = {"x", "y"})
+                public class A {}
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface Ann {
+                    String[] names();
+                }
+            '''
+        ])
+
+        expect:
+        classAnnotationMemberNames(api.extractApiClassFrom(api.classes.A)) == ['names']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38828")
+    void "extracted class changes when an annotation value member changes"() {
+        given:
+        def annotation = [Ann: '''
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target({ElementType.TYPE})
+            public @interface Ann {
+                String value();
+                String[] names();
+            }
+        ''']
+        def before = toApi(annotation + [A: '@Ann(value = "v", names = {"x", "y"}) public class A {}'])
+        def beforeBytes = before.extractApiClassFrom(before.classes.A)
+        def after = toApi(annotation + [A: '@Ann(value = "w", names = {"x", "y"}) public class A {}'])
+        def afterBytes = after.extractApiClassFrom(after.classes.A)
+
+        expect:
+        beforeBytes != afterBytes
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/38873")
     def "annotation members keep their declaration order"() {
         given:
@@ -770,6 +858,42 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
         then:
         methodNamesInOrder(extractedBytes) == ['option', 'description', 'alpha']
+    }
+
+    /**
+     * The names of the members of every annotation on the given class, in the order they are written.
+     */
+    private static List<String> classAnnotationMemberNames(byte[] apiClassBytes) {
+        List<String> names = []
+        new ClassReader(apiClassBytes).accept(new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                return new AnnotationVisitor(Opcodes.ASM9) {
+                    @Override
+                    void visit(String name, Object value) {
+                        names << name
+                    }
+
+                    @Override
+                    void visitEnum(String name, String desc, String value) {
+                        names << name
+                    }
+
+                    @Override
+                    AnnotationVisitor visitAnnotation(String name, String desc) {
+                        names << name
+                        return null
+                    }
+
+                    @Override
+                    AnnotationVisitor visitArray(String name) {
+                        names << name
+                        return null
+                    }
+                }
+            }
+        }, 0)
+        return names
     }
 
     private static List<String> methodNamesInOrder(byte[] classBytes) {

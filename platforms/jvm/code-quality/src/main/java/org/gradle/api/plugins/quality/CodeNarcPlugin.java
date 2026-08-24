@@ -40,9 +40,15 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * CodeNarc Plugin.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/codenarc_plugin.html">CodeNarc plugin reference</a>
+ * @since 1.0
  */
 public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
+    /**
+     * The default codenarc version.
+     *
+     * @since 2.4
+     */
     public static final String DEFAULT_CODENARC_VERSION = "3.7.0-groovy-4.0";
     private static final String DEFAULT_CONFIG_FILE_PATH = "config/codenarc/codenarc.xml";
 

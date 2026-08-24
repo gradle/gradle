@@ -55,6 +55,7 @@ public interface MutableVersionConstraint extends VersionConstraint {
      * This clears any set rejected versions.
      *
      * @param version the strict version to be used for this module
+     * @since 4.4
      */
     void strictly(String version);
 
@@ -86,6 +87,7 @@ public interface MutableVersionConstraint extends VersionConstraint {
      * This clears any set rejected versions.
      *
      * @param version the preferred version of this module
+     * @since 4.4
      */
     void prefer(String version);
 

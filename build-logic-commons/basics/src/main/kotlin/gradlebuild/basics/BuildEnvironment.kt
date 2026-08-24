@@ -59,6 +59,39 @@ fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnv
 fun Project.scriptTemplateCommitIdViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.scriptTemplateCommitId ?: objects.property(String::class.java)
 
 
+/**
+ * The build timestamp, computed once per build and identical in every project.
+ *
+ * Do not compute this per project: on the `install`, `:docs:docsTest` and CI paths the timestamp is
+ * the current instant, so every project computing its own would build a distribution whose projects
+ * disagree about its version.
+ *
+ * @see gradlebuild.basics.BuildEnvironmentService.buildTimestamp
+ */
+fun Project.buildTimestamp(): Provider<String> =
+    getBuildEnvironmentExtensionOrNull()?.buildTimestamp ?: localMidnightBuildTimestamp()
+
+
+/**
+ * The timestamp to use where `gradlebuild.build-environment` is not applied, which is the case for the
+ * `build-logic`/`build-logic-commons` builds and for the synthetic projects that
+ * `generatePrecompiledScriptPluginAccessors` configures. Those still resolve
+ * `gradleModule.identity.version`, which is derived from the build timestamp, so a value must be present.
+ *
+ * None of them produce a distribution, so the exact instant does not matter — but it must be the same in
+ * every project of the build. Local midnight is stable by construction, so per-project value sources agree.
+ */
+private
+fun Project.localMidnightBuildTimestamp(): Provider<String> =
+    providers.of(BuildTimestampValueSource::class) {
+        parameters {
+            runningOnCi.set(false)
+            runningInstallTask.set(false)
+            runningDocsTestTask.set(false)
+        }
+    }
+
+
 // gh-readonly-queue/master/pr-1234-5678abcdef -> master
 fun toMergeQueueBaseBranch(actualBranch: String): String = when {
     actualBranch.startsWith("gh-readonly-queue/") -> actualBranch.substringAfter("/").substringBefore("/")

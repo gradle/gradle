@@ -26,8 +26,20 @@ package org.gradle.api.tasks.javadoc;
  * @since 7.5
  */
 public enum GroovydocAccess {
+    /**
+     * @since 7.5
+     */
     PRIVATE,
+    /**
+     * @since 7.5
+     */
     PACKAGE,
+    /**
+     * @since 7.5
+     */
     PROTECTED,
+    /**
+     * @since 7.5
+     */
     PUBLIC,
 }

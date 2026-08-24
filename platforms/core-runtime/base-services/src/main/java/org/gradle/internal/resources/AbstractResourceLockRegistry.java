@@ -54,17 +54,6 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         }
     }
 
-    public <S> S allowUncontrolledAccessToAnyResource(Factory<S> factory) {
-        ThreadLockDetails<T> lockDetails = detailsForCurrentThread();
-        boolean previous = lockDetails.canAccessAnything;
-        lockDetails.canAccessAnything = true;
-        try {
-            return factory.create();
-        } finally {
-            lockDetails.canAccessAnything = previous;
-        }
-    }
-
     @Override
     public boolean hasOpenLocks() {
         for (ResourceLock resourceLock : resourceLocks.values()) {
@@ -119,12 +108,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     public boolean mayAttemptToChangeLocks() {
-        ThreadLockDetails<T> details = detailsForCurrentThread();
-        return details.mayChange && !details.canAccessAnything;
-    }
-
-    public boolean isAllowedUncontrolledAccessToAnyResource() {
-        return detailsForCurrentThread().canAccessAnything;
+        return detailsForCurrentThread().mayChange;
     }
 
     public interface ResourceLockProducer<K, T extends ResourceLock> {
@@ -134,7 +118,6 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     private static class ThreadLockDetails<T extends ResourceLock> {
         // Only accessed by the thread itself, so does not require synchronization
         private boolean mayChange = true;
-        private boolean canAccessAnything = false;
         private final List<T> locks = new ArrayList<T>();
     }
 }

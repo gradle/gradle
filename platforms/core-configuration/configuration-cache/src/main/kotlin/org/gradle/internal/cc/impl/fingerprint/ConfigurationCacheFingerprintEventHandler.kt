@@ -35,6 +35,7 @@ import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.cc.impl.CoupledProjectsListener
+import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListener
@@ -61,7 +62,8 @@ import java.util.EnumSet
 @ServiceScope(Scope.BuildTree::class)
 internal class ConfigurationCacheFingerprintEventHandler(
     private val workInputListeners: WorkInputListeners,
-    private val scriptFileResolverListeners: ScriptFileResolverListeners
+    private val scriptFileResolverListeners: ScriptFileResolverListeners,
+    private val inputTrackingState: InputTrackingState
 ) :
 // For these listeners this class is the only "real" implementation.
 // Event sources get our instance through ServiceRegistry.
@@ -125,11 +127,15 @@ internal class ConfigurationCacheFingerprintEventHandler(
     }
 
     override fun beforeValueObtained() {
-        delegate?.beforeValueObtained()
+        // A value source computes its own value, so reads made while it runs are not build
+        // configuration inputs. Input tracking is disabled here in all modes for consistency.
+        // Some infrastructure relies on the input tracking state even in Vintage builds to emit/suppress
+        // deprecations.
+        inputTrackingState.disableForCurrentThread()
     }
 
     override fun afterValueObtained() {
-        delegate?.afterValueObtained()
+        inputTrackingState.restoreForCurrentThread()
     }
 
     override fun onExecute(work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {

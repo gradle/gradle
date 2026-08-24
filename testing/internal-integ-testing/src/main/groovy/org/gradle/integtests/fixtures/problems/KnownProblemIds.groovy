@@ -57,6 +57,7 @@ class KnownProblemIds {
         'configuration-usage': 'Configuration usage',
         'compilation': 'Compilation',
         'daemon-toolchain' : 'Daemon toolchain',
+        'jvm-toolchain': 'JVM Toolchain',
         'dependency-version-catalog': 'Version catalog',
         'deprecation': 'Deprecation',
         'packaging': 'Packaging',
@@ -80,6 +81,7 @@ class KnownProblemIds {
 
         // groups from integration tests
         'generic': 'Generic',
+        'issues': 'issues',
         'sample-problems': 'Sample Problems',
         'scripts': 'Scripts',
         'root': 'root',
@@ -102,6 +104,7 @@ class KnownProblemIds {
         'compilation:java:initialization-failed': ['Java compilation initialization error'],
         'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
         'dependency-version-catalog:accessor-name-clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.displayName],
+        'jvm-toolchain:invalid-jvm-installation': ['Invalid JVM installation'],
         'dependency-version-catalog:alias-not-finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.displayName],
         'dependency-version-catalog:invalid-dependency-notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.displayName],
         'dependency-version-catalog:invalid-toml-definition': [VersionCatalogProblemId.INVALID_TOML_DEFINITION.displayName],
@@ -112,6 +115,7 @@ class KnownProblemIds {
         'dependency-version-catalog:too-many-import-files': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName],
         'dependency-version-catalog:too-many-import-invocation': [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.displayName],
         'dependency-version-catalog:no-import-files': [VersionCatalogProblemId.NO_IMPORT_FILES.displayName],
+        'deprecation:implicit-dependency-between-tasks-in-different-builds': ['Implicit dependency between tasks in different builds'],
         'deprecation:implicit-lookup-of-methods-in-parent-projects': ['Implicit lookup of methods in parent projects has been deprecated.'],
         'deprecation:implicit-lookup-of-properties-in-parent-projects': ['Implicit lookup of properties in parent projects has been deprecated.'],
         'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
@@ -173,6 +177,7 @@ class KnownProblemIds {
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
         // Dynamic fqid until the CC class-encoding failure path emits a stable problem ID.
         'validation:configuration-cache:class-.*-cannot-be-encoded-because.*': ['(?s)Class .* cannot be encoded because.*'],
+        'validation:configuration-cache:configuration-cache-warn-mode': ['Configuration Cache warn mode is enabled'],
         'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
         'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 
@@ -226,7 +231,9 @@ class KnownProblemIds {
         'deprecation:typed-task': ['Typed task has been deprecated.'],
         'deprecation:type-invalidtask-property-inputfile-test-problem-.*' : ['.*'],
         'generic:deprecation:plugin': ['DisplayName'],
+        'generic:spawned': ['problem from spawned thread'],
         'generic:type': ['label'],
+        'issues:finished': ['task finished'],
         'generic:type0': ['This is the heading problem text0'],
         'generic:type1': ['This is the heading problem text1'],
         'generic:type2': ['This is the heading problem text2'],

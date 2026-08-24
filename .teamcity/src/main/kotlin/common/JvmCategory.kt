@@ -22,6 +22,6 @@ enum class JvmCategory(
 ) : Jvm {
     MIN_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_17),
     MAX_LTS_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_25),
-    MAX_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_26),
+    MAX_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_27),
     ANDROID_PROJECT_SMOKE_TEST_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_17),
 }

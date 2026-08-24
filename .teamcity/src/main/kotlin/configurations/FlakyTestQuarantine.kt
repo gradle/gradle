@@ -53,7 +53,7 @@ class FlakyTestQuarantineProject(
         model.stages
             .filter { it.stageName <= StageName.READY_FOR_RELEASE }
             .flatMap { it.functionalTests }
-            .filter { it.os == os && !it.testType.crossVersionTests }
+            .filter { it.os == os }
             .forEach {
                 buildType(FlakyTestQuarantine(model, stage, it))
             }
@@ -77,7 +77,14 @@ class FlakyTestQuarantine(
         name = "Flaky Test Quarantine - ${testCoverage.asName()}"
         description = "Run all flaky tests skipped multiple times"
 
-        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 60)
+        // Unlike the regular functional test builds, a quarantine build is not split into buckets and does not use
+        // test distribution, so it runs every test task of its coverage on a single agent. For AllVersionsCrossVersion
+        // that is one task per tested Gradle version per subproject - over a thousand of them - and how long they take
+        // depends entirely on how much of that the build cache can serve. The runs that do pass land between 60 and
+        // 119 minutes, i.e. right at the 120 minute limit, and on Windows 20 of the last 25 runs were killed by it,
+        // so that coverage gets double the headroom until the amount of work itself is reduced.
+        val timeout = if (testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION) 240 else 120
+        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = timeout)
 
         if (os == Os.LINUX) {
             steps {

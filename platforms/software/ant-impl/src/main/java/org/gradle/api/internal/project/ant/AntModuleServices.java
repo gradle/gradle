@@ -17,13 +17,8 @@
 package org.gradle.api.internal.project.ant;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.project.AntBuilderFactory;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -34,20 +29,8 @@ import org.jspecify.annotations.NullMarked;
 public class AntModuleServices extends AbstractGradleModuleServices {
 
     @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new AntBuildScopeServices());
-    }
-
-    @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new AntProjectScopeServices());
-    }
-
-    private static class AntBuildScopeServices implements ServiceRegistrationProvider {
-        @Provides
-        IsolatedAntBuilder createIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
-            return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
-        }
     }
 
     private static class AntProjectScopeServices implements ServiceRegistrationProvider {

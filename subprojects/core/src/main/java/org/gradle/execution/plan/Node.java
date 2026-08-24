@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.execution.plan.edges.DependencyNodesSet;
 import org.gradle.execution.plan.edges.DependentNodesSet;
@@ -281,6 +282,8 @@ public abstract class Node {
      */
     @Nullable
     public abstract Throwable getNodeFailure();
+
+    public abstract void execute(NodeExecutionContext context);
 
     public void startExecution(Consumer<Node> nodeStartAction) {
         assert state == ExecutionState.SHOULD_RUN && allDependenciesComplete() && allDependenciesSuccessful();

@@ -28,6 +28,7 @@ import java.io.File;
  * <p>TODO:HH resolve naming conflict with existing NativeExecutableSpec</p>
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.9
  */
 @Incubating @UnmanagedStruct
 @Deprecated
@@ -36,10 +37,20 @@ public class NativeExecutableFileSpec {
     private File file;
     private NativeToolChain toolChain;
 
+    /**
+     * Returns the file.
+     *
+     * @since 2.9
+     */
     public File getFile() {
         return file;
     }
 
+    /**
+     * Sets the file.
+     *
+     * @since 2.9
+     */
     public void setFile(File file) {
         this.file = file;
     }

@@ -26,16 +26,27 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
  * <p>
  * If the cause of a failure is a {@link VerificationException}, we should <strong>not</strong>
  * display task provenance information on the console in the failure message.
+ * @since 0.9
  */
 @Contextual
 public class TaskExecutionException extends DefaultMultiCauseException {
     private final Task task;
 
+    /**
+     * Creates a new {@code TaskExecutionException}.
+     *
+     * @since 0.9
+     */
     public TaskExecutionException(Task task, Throwable cause) {
         super(TaskProvenanceUtil.buildFailureMessage((TaskInternal) task, cause), cause);
         this.task = task;
     }
 
+    /**
+     * Returns the task.
+     *
+     * @since 0.9
+     */
     public Task getTask() {
         return task;
     }

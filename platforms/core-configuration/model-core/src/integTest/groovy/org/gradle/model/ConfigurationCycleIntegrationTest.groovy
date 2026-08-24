@@ -56,6 +56,8 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
+        expectModelDslDeprecation()
         fails "tasks"
 
         and:
@@ -95,6 +97,7 @@ first
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "tasks"
 
         and:
@@ -140,6 +143,7 @@ m1
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "tasks"
 
         and:
@@ -150,5 +154,13 @@ m1
       \\- Rules#m1ToM3(Object, Object)
          \\- m1""")
 
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

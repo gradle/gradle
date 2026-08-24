@@ -57,13 +57,34 @@ import java.util.concurrent.Callable;
  * A plugin which configures the Eclipse Web Tools Platform.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
+ * @since 1.0
  */
 public abstract class EclipseWtpPlugin extends IdePlugin {
 
+    /**
+     * The eclipse wtp component task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_WTP_COMPONENT_TASK_NAME = "eclipseWtpComponent";
+    /**
+     * The eclipse wtp facet task name.
+     *
+     * @since 3.0
+     */
     public static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet";
+    /**
+     * The web libs container.
+     *
+     * @since 3.0
+     */
     public static final String WEB_LIBS_CONTAINER = "org.eclipse.jst.j2ee.internal.web.container";
 
+    /**
+     * The instantiator.
+     *
+     * @since 3.0
+     */
     public final Instantiator instantiator;
 
     @Inject

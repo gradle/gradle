@@ -59,6 +59,8 @@ The Build Init plugin supports generating various build _types_. These are liste
 |<<#sec:scala_library,scala-library>>|A Scala library
 |<<#sec:cpp_application,cpp-application>>|A command-line application implemented in C++
 |<<#sec:cpp_library,cpp-library>>|A C++ library
+|<<#sec:swift_application,swift-application>>|A command-line application implemented in Swift
+|<<#sec:swift_library,swift-library>>|A Swift library
 |=================
 
 [[sec:build_init_tasks]]
@@ -170,6 +172,10 @@ All build types also set up <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper
 |`--package`
 |Set the package for source files.
 |`my.project`
+
+|`--into`
+|Set the directory where the project is generated. Defaults to the directory where `init` is run.
+|`./my-project`
 |===
 
 [[sec:build_init_types]]
@@ -204,8 +210,7 @@ NOTE: Due to fundamental differences between Maven and Gradle, not all features 
 [[sec:allow_insecure]]
 ==== The `--insecure-protocol` option
 
-This option is used to tell the conversion process how to handle converting Maven repositories located at insecure `http` URLs.  Insecure Repositories Set the
-link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html#org.gradle.buildinit.tasks.InitBuild:getInsecureProtocol[--insecure-protocol] option.  The default value is `warn`.
+This option tells the conversion process how to handle Maven repositories located at insecure `http` URLs. It is set via the link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html#org.gradle.buildinit.tasks.InitBuild:getInsecureProtocol[--insecure-protocol] option. The default value is `warn`.
 
 Available values are:
 
@@ -238,15 +243,15 @@ It has the following features:
 
 * Uses the "`application`" plugin to produce a command-line application implemented in Java
 * Uses the "`mavenCentral`" dependency repository
-* Uses https://junit.org/junit4/[JUnit 4] for testing
+* Uses https://junit.org[JUnit Jupiter] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
 
-Alternative test framework can be specified by supplying a `--test-framework` argument value. To use a different test framework, execute one of the following commands:
+An alternative test framework can be specified by supplying a `--test-framework` argument value. To use a different test framework, execute one of the following commands:
 
-* `gradle init --type java-application --test-framework junit-jupiter`: Uses https://junit.org[JUnit Jupiter] for testing instead of JUnit 4
-* `gradle init --type java-application --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of JUnit 4
-* `gradle init --type java-application --test-framework testng`: Uses https://testng.org/doc/index.html[TestNG] for testing instead of JUnit 4
+* `gradle init --type java-application --test-framework junit`: Uses https://junit.org/junit4/[JUnit 4] for testing instead of JUnit Jupiter
+* `gradle init --type java-application --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of JUnit Jupiter
+* `gradle init --type java-application --test-framework testng`: Uses https://testng.org[TestNG] for testing instead of JUnit Jupiter
 
 [[sec:java_version_option]]
 ==== The `--java-version` option
@@ -267,15 +272,15 @@ It has the following features:
 
 * Uses the "`java`" plugin to produce a library implemented in Java
 * Uses the "`mavenCentral`" dependency repository
-* Uses https://junit.org/junit4/[JUnit 4] for testing
+* Uses https://junit.org[JUnit Jupiter] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
 
-Alternative test framework can be specified by supplying a `--test-framework` argument value. To use a different test framework, execute one of the following commands:
+An alternative test framework can be specified by supplying a `--test-framework` argument value. To use a different test framework, execute one of the following commands:
 
-* `gradle init --type java-library --test-framework junit-jupiter`: Uses https://junit.org[JUnit Jupiter] for testing instead of JUnit 4
-* `gradle init --type java-library --test-framework spock`: Uses http://code.google.com/p/spock/[Spock] for testing instead of JUnit 4
-* `gradle init --type java-library --test-framework testng`: Uses http://testng.org/doc/index.html[TestNG] for testing instead of JUnit 4
+* `gradle init --type java-library --test-framework junit`: Uses https://junit.org/junit4/[JUnit 4] for testing instead of JUnit Jupiter
+* `gradle init --type java-library --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of JUnit Jupiter
+* `gradle init --type java-library --test-framework testng`: Uses https://testng.org[TestNG] for testing instead of JUnit Jupiter
 
 [[sec:java_gradle_plugin]]
 === `java-gradle-plugin` build type
@@ -286,7 +291,7 @@ It has the following features:
 
 * Uses the "`java-gradle-plugin`" plugin to produce a Gradle plugin implemented in Java
 * Uses the "`mavenCentral`" dependency repository
-* Uses https://junit.org/junit4/[JUnit 4] and TestKit for testing
+* Uses https://junit.org[JUnit Jupiter] and TestKit for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
 
@@ -299,7 +304,7 @@ It has the following features:
 
 * Uses the "`org.jetbrains.kotlin.jvm`" and "`application`" plugins to produce a command-line application implemented in Kotlin
 * Uses the "`mavenCentral`" dependency repository
-* Uses Kotlin 1.x
+* Uses Kotlin 2.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
@@ -313,7 +318,7 @@ It has the following features:
 
 * Uses the "`org.jetbrains.kotlin.jvm`" plugin to produce a library implemented in Kotlin
 * Uses the "`mavenCentral`" dependency repository
-* Uses Kotlin 1.x
+* Uses Kotlin 2.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
@@ -327,7 +332,7 @@ It has the following features:
 
 * Uses the "`java-gradle-plugin`" and "`org.jetbrains.kotlin.jvm`" plugins to produce a Gradle plugin implemented in Kotlin
 * Uses the "`mavenCentral`" dependency repository
-* Uses Kotlin 1.x
+* Uses Kotlin 2.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] and TestKit for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
@@ -342,7 +347,7 @@ It has the following features:
 * Uses the "`scala`" plugin to produce an application implemented in Scala
 * Uses the "`mavenCentral`" dependency repository
 * Uses Scala 2.13
-* Uses http://www.scalatest.org[ScalaTest] for testing
+* Uses https://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Scala class and an associated ScalaTest test suite, if there are no existing source or test files
 
@@ -356,7 +361,7 @@ It has the following features:
 * Uses the "`scala`" plugin to produce a library implemented in Scala
 * Uses the "`mavenCentral`" dependency repository
 * Uses Scala 2.13
-* Uses http://www.scalatest.org[ScalaTest] for testing
+* Uses https://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Scala class and an associated ScalaTest test suite, if there are no existing source or test files
 
@@ -369,8 +374,8 @@ It has the following features:
 
 * Uses the "`groovy`" plugin to produce a library implemented in Groovy
 * Uses the "`mavenCentral`" dependency repository
-* Uses Groovy 2.x
-* Uses http://spockframework.org[Spock testing framework] for testing
+* Uses Groovy 4.x
+* Uses https://spockframework.org[Spock testing framework] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files
 
@@ -383,8 +388,8 @@ It has the following features:
 
 * Uses the "`application`" and "`groovy`" plugins to produce a command-line application implemented in Groovy
 * Uses the "`mavenCentral`" dependency repository
-* Uses Groovy 2.x
-* Uses http://spockframework.org[Spock testing framework] for testing
+* Uses Groovy 4.x
+* Uses https://spockframework.org[Spock testing framework] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files
 
@@ -397,7 +402,7 @@ It has the following features:
 
 * Uses the "`java-gradle-plugin`" and "`groovy`" plugins to produce a Gradle plugin implemented in Groovy
 * Uses the "`mavenCentral`" dependency repository
-* Uses Groovy 2.x
+* Uses Groovy 4.x
 * Uses http://spockframework.org[Spock testing framework] and TestKit for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
@@ -425,6 +430,30 @@ It has the following features:
 * Uses the "`cpp-unit-test`" plugin to build and run simple unit tests
 * Has directories in the conventional locations for source code
 * Contains a sample C++ class, a public header file and an associated test class, if there are no existing source or test files
+
+[[sec:swift_application]]
+=== `swift-application` build type
+
+The "`swift-application`" build type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the "`swift-application`" plugin to produce a command-line application implemented in Swift
+* Uses the "`xctest`" plugin to build and run simple unit tests
+* Has directories in the conventional locations for source code
+* Contains a sample Swift class and an associated test class, if there are no existing source or test files
+
+[[sec:swift_library]]
+=== `swift-library` build type
+
+The "`swift-library`" build type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the "`swift-library`" plugin to produce a Swift library
+* Uses the "`xctest`" plugin to build and run simple unit tests
+* Has directories in the conventional locations for source code
+* Contains a sample Swift class and an associated test class, if there are no existing source or test files
 
 [[sec:basic]]
 === `basic` build type

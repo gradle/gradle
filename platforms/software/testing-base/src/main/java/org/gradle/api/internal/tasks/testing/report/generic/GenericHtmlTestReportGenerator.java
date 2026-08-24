@@ -37,7 +37,6 @@ import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -159,11 +158,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             htmlRenderer.render(model, new ReportRenderer<>() {
                 @Override
                 public void render(final TestTreeModel model, final HtmlReportBuilder output) {
-                    buildOperationExecutor.runAll(
-                        queue -> queueTree(queue, model, output),
-                        // This is mostly I/O, so run this in UNCONSTRAINED mode to allow more parallelism
-                        BuildOperationConstraint.UNCONSTRAINED
-                    );
+                    buildOperationExecutor.runAll(queue -> queueTree(queue, model, output));
                 }
 
                 private void queueTree(BuildOperationQueue<RunnableBuildOperation> queue, TestTreeModel tree, HtmlReportBuilder output) {
@@ -181,7 +176,8 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                             queueTree(queue, childTree, output);
                         }
                     }
-                    queue.add(new HtmlReportFileGenerator(
+                    // This is mostly I/O, so run it unconstrained to allow more parallelism
+                    queue.addUnconstrained(new HtmlReportFileGenerator(
                         shrink,
                         requestsBuilder.build(),
                         output,

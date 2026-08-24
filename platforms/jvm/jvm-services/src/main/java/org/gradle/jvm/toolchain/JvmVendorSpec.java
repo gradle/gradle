@@ -37,14 +37,39 @@ public abstract class JvmVendorSpec {
      */
     public static final JvmVendorSpec ADOPTIUM = matching(KnownJvmVendor.ADOPTIUM);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec ADOPTOPENJDK = matching(KnownJvmVendor.ADOPTOPENJDK);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec AMAZON = matching(KnownJvmVendor.AMAZON);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec APPLE = matching(KnownJvmVendor.APPLE);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec AZUL = matching(KnownJvmVendor.AZUL);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec BELLSOFT = matching(KnownJvmVendor.BELLSOFT);
 
     /**
@@ -54,8 +79,18 @@ public abstract class JvmVendorSpec {
      */
     public static final JvmVendorSpec GRAAL_VM = matching(KnownJvmVendor.GRAAL_VM);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec HEWLETT_PACKARD = matching(KnownJvmVendor.HEWLETT_PACKARD);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec IBM = matching(KnownJvmVendor.IBM);
 
     /**
@@ -73,8 +108,18 @@ public abstract class JvmVendorSpec {
      */
     public static final JvmVendorSpec MICROSOFT = matching(KnownJvmVendor.MICROSOFT);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec ORACLE = matching(KnownJvmVendor.ORACLE);
 
+    /**
+     * Matching.
+     *
+     * @since 6.8
+     */
     public static final JvmVendorSpec SAP = matching(KnownJvmVendor.SAP);
 
     /**
@@ -103,6 +148,7 @@ public abstract class JvmVendorSpec {
      * </p>
      * @param match the sequence to search for
      * @return a new filter object
+     * @since 6.8
      */
     public static JvmVendorSpec matching(String match) {
         return DefaultJvmVendorSpec.matching(match);

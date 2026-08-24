@@ -21,13 +21,13 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.server.expiry.AllDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.AnyDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.LowMemoryDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.startup.DaemonServerConfiguration;
 
 import java.util.concurrent.TimeUnit;
 

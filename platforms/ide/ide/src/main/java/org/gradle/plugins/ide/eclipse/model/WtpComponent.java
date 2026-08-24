@@ -38,6 +38,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Creates the .settings/org.eclipse.wst.common.component file for WTP projects.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 public class WtpComponent extends XmlPersistableConfigurationObject {
@@ -48,6 +49,11 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
     // TODO Change to Set?
     private List<WbModuleEntry> wbModuleEntries = new ArrayList<>();
 
+    /**
+     * Creates a new {@code WtpComponent}.
+     *
+     * @since 1.0
+     */
     public WtpComponent(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
     }
@@ -57,30 +63,65 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
         return "defaultWtpComponent.xml";
     }
 
+    /**
+     * Returns the deploy name.
+     *
+     * @since 1.0
+     */
     public String getDeployName() {
         return deployName;
     }
 
+    /**
+     * Sets the deploy name.
+     *
+     * @since 1.0
+     */
     public void setDeployName(String deployName) {
         this.deployName = deployName;
     }
 
+    /**
+     * Returns the context path.
+     *
+     * @since 1.0
+     */
     public String getContextPath() {
         return contextPath;
     }
 
+    /**
+     * Sets the context path.
+     *
+     * @since 1.0
+     */
     public void setContextPath(String contextPath) {
         this.contextPath = contextPath;
     }
 
+    /**
+     * Returns the wb module entries.
+     *
+     * @since 1.0
+     */
     public List<WbModuleEntry> getWbModuleEntries() {
         return wbModuleEntries;
     }
 
+    /**
+     * Sets the wb module entries.
+     *
+     * @since 1.0
+     */
     public void setWbModuleEntries(List<WbModuleEntry> wbModuleEntries) {
         this.wbModuleEntries = wbModuleEntries;
     }
 
+    /**
+     * Configure.
+     *
+     * @since 1.0
+     */
     public void configure(String deployName, String contextPath, List<WbModuleEntry> newEntries) {
         Iterable<WbModuleEntry> toKeep = Iterables.filter(wbModuleEntries, not(instanceOf(WbDependentModule.class)));
         this.wbModuleEntries = Lists.newArrayList(Sets.newLinkedHashSet(Iterables.concat(toKeep, newEntries)));

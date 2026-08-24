@@ -17,18 +17,13 @@
 import gradlebuild.basics.buildFinalRelease
 import gradlebuild.basics.buildMilestoneNumber
 import gradlebuild.basics.buildRcNumber
-import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.buildTimestamp
 import gradlebuild.basics.buildVersionQualifier
-import gradlebuild.basics.ignoreIncomingBuildReceipt
 import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.GradleModuleExtension
 import gradlebuild.identity.extension.ReleasedVersionsDetails
-import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
-import gradlebuild.identity.provider.BuildTimestampValueSource
-import gradlebuild.identity.tasks.BuildReceipt
 import java.util.Optional
 import java.util.jar.Attributes
 
@@ -105,42 +100,6 @@ tasks.withType<Jar>().configureEach {
  */
 fun Project.trimmedContentsOfFile(path: String): Provider<String> =
     providers.fileContents(repoRoot().file(path)).asText.map { it.trim() }
-
-// TODO Simplify the buildTimestamp() calculation if possible
-fun Project.buildTimestamp(): Provider<String> =
-    providers.of(BuildTimestampValueSource::class) {
-        parameters {
-            buildTimestampFromBuildReceipt = buildTimestampFromBuildReceipt()
-            buildTimestampFromGradleProperty = buildTimestamp
-            runningOnCi = buildRunningOnCi
-            runningInstallTask = provider { isRunningInstallTask() }
-            runningDocsTestTask = provider { isRunningDocsTestTask() }
-            enableConfigurationCacheForDocsTests = providers.gradleProperty("enableConfigurationCacheForDocsTests").map { it.toBoolean() }
-        }
-    }
-
-
-fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
-    providers.of(BuildTimestampFromBuildReceiptValueSource::class) {
-        parameters {
-            ignoreIncomingBuildReceipt = project.ignoreIncomingBuildReceipt
-            buildReceiptFileContents = repoRoot()
-                .dir("incoming-distributions")
-                .file(BuildReceipt.buildReceiptFileName)
-                .let(providers::fileContents)
-                .asText
-        }
-    }
-
-
-fun isRunningInstallTask() =
-    listOf("install", "installAll")
-        .flatMap { listOf(":distributions-full:$it", "distributions-full:$it", it) }
-        .any(gradle.startParameter.taskNames::contains)
-
-fun isRunningDocsTestTask() =
-    setOf(":docs:docsTest", "docs:docsTest")
-        .any(gradle.startParameter.taskNames::contains)
 
 
 /**

@@ -35,6 +35,7 @@ public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata 
      * For information and examples please see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
      *
      * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link org.gradle.api.artifacts.ModuleVersionIdentifier}, null is not permitted
+     * @since 2.2
      */
     void replacedBy(Object moduleNotation);
 

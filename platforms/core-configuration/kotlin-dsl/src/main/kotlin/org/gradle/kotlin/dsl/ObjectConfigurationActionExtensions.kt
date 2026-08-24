@@ -26,6 +26,8 @@ import org.gradle.api.plugins.ObjectConfigurationAction
  * that they are added.
  *
  * @param T the plugin to apply.
+ *
+ * @since 5.6
  */
 inline fun <reified T : Plugin<*>> ObjectConfigurationAction.plugin() =
     this.plugin(T::class.java)

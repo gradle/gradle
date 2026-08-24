@@ -38,9 +38,10 @@ class HttpResourceUploaderTest extends Specification {
         new HttpResourceUploader(client).upload(Mock(ReadableContent), name)
 
         then:
-        HttpErrorStatusCodeException exception = thrown()
+        HttpRequestException exception = thrown()
         exception.message.contains(uri.toString())
-        exception.message.contains("Received status code 500 from server")
+        exception.cause instanceof HttpErrorStatusCodeException
+        exception.cause.message.contains("Received status code 500 from server")
         1 * response.close()
     }
 

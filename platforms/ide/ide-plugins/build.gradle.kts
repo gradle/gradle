@@ -97,10 +97,6 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/plugins/ide/idea/**")
-}
-
 /*
  * This is needed to avoid CI failures like this:
  *
@@ -113,5 +109,3 @@ packageCycles {
      canHandleCi.cies/xinjd/.classpath
  */
 testFilesCleanup.reportOnly = true
-
-
