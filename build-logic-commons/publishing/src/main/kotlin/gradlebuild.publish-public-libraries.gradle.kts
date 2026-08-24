@@ -56,8 +56,22 @@ signing {
         pgpSigningKey.orNull,
         pgpSigningPassPhrase.orNull
     )
-    publishing.publications.configureEach {
-        if (signArtifacts) {
+}
+
+// Signing eagerly realizes the artifact files of a publication, which finalizes the variants and
+// the dependencies of the published component. Wiring signing up while this project is still being
+// configured therefore freezes its dependency configurations, and the `dependencies { }` block of
+// the build script applying this plugin then fails with "Cannot mutate the dependencies of
+// configuration ':x:api' after the configuration's child configuration ':x:apiElements' was
+// published as a variant". Deferring the wiring until the project is evaluated avoids that.
+//
+// The build tool side of this was fixed by https://github.com/gradle/gradle/pull/38917, but the
+// promotion build bootstraps with a released distribution, so this workaround is needed for as long
+// as the wrapper predates that fix. Only signing builds are affected, which is why master CI stays
+// green while nightly promotion does not.
+if (signArtifacts) {
+    afterEvaluate {
+        publishing.publications.configureEach {
             signing.sign(this)
         }
     }
