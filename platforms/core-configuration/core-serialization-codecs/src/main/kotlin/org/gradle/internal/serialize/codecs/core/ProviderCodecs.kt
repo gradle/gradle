@@ -50,6 +50,7 @@ import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.flow.services.BuildWorkResultProvider
+import org.gradle.internal.flow.services.ConfigurationCacheOutcomeProvider
 import org.gradle.internal.flow.services.RegisteredFlowAction
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
@@ -78,12 +79,14 @@ import org.gradle.internal.serialize.graph.withPropertyTrace
 fun defaultCodecForProviderWithChangingValue(
     valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
     buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
-    flowProvidersCodec: Codec<BuildWorkResultProvider>
+    flowProvidersCodec: Codec<BuildWorkResultProvider>,
+    configurationCacheOutcomeProviderCodec: Codec<ConfigurationCacheOutcomeProvider>
 ) = Bindings.of {
     bind(valueSourceProviderCodec)
     bind(buildServiceProviderCodec)
     bind(BuildServiceParameterCodec)
     bind(flowProvidersCodec)
+    bind(configurationCacheOutcomeProviderCodec)
     bind(BeanCodec)
 }.build()
 
@@ -170,6 +173,24 @@ object FlowProvidersCodec : Codec<BuildWorkResultProvider> {
     override suspend fun ReadContext.decode(): BuildWorkResultProvider {
         val flowProviders = isolate.owner.serviceOf<FlowProviders>()
         return flowProviders.buildWorkResult.uncheckedCast()
+    }
+}
+
+
+object ConfigurationCacheOutcomeProviderCodec : Codec<ConfigurationCacheOutcomeProvider> {
+
+    override suspend fun WriteContext.encode(value: ConfigurationCacheOutcomeProvider) {
+        if (isolate.owner !is IsolateOwners.OwnerFlowAction) {
+            logPropertyProblem("serialize") {
+                reference(ConfigurationCacheOutcomeProvider::class)
+                text(" can only be used as input to flow actions.")
+            }
+        }
+    }
+
+    override suspend fun ReadContext.decode(): ConfigurationCacheOutcomeProvider {
+        val flowProviders = isolate.owner.serviceOf<FlowProviders>()
+        return flowProviders.configurationCacheOutcome.uncheckedCast()
     }
 }
 

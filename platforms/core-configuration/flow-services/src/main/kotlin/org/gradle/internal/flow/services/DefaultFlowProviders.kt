@@ -16,25 +16,37 @@
 
 package org.gradle.internal.flow.services
 
+import org.gradle.api.configuration.ConfigurationCacheOutcome
 import org.gradle.api.flow.BuildWorkResult
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.provider.AbstractMinimalProvider
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.provider.Provider
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scope.Build::class)
-class DefaultFlowProviders : FlowProviders {
+class DefaultFlowProviders(
+    private val services: ServiceRegistry
+) : FlowProviders {
 
     private
     val buildWorkResult by lazy {
         BuildWorkResultProvider()
     }
 
+    private
+    val configurationCacheOutcome by lazy {
+        ConfigurationCacheOutcomeProvider(services)
+    }
+
     override fun getBuildWorkResult(): Provider<BuildWorkResult> =
         buildWorkResult
+
+    override fun getConfigurationCacheOutcome(): Provider<ConfigurationCacheOutcome> =
+        configurationCacheOutcome
 }
 
 
@@ -59,5 +71,43 @@ class BuildWorkResultProvider : AbstractMinimalProvider<BuildWorkResult>() {
     }
 
     override fun calculateExecutionTimeValue(): ValueSupplier.ExecutionTimeValue<out BuildWorkResult> =
+        ValueSupplier.ExecutionTimeValue.changingValue(this)
+}
+
+
+class ConfigurationCacheOutcomeProvider(
+    private val services: ServiceRegistry
+) : AbstractMinimalProvider<ConfigurationCacheOutcome>() {
+
+    @Volatile
+    private
+    var available = false
+
+    /**
+     * Resolved lazily on first query, never at [markAvailable] time: eager resolution would freeze
+     * the configuration cache problem summary early on every build, even ones that never use this
+     * provider, changing the problem counts reported at the end of the build.
+     */
+    private
+    val outcome by lazy {
+        val source = services.find(ConfigurationCacheOutcomeSource::class.java) as ConfigurationCacheOutcomeSource?
+        source?.outcome() ?: ConfigurationCacheOutcome.notEnabled()
+    }
+
+    fun markAvailable() {
+        available = true
+    }
+
+    override fun getType(): Class<ConfigurationCacheOutcome> =
+        ConfigurationCacheOutcome::class.java
+
+    override fun calculateOwnValue(consumer: ValueSupplier.ValueConsumer): ValueSupplier.Value<out ConfigurationCacheOutcome> {
+        require(available) {
+            "Cannot access the value of '${ConfigurationCacheOutcome::class.simpleName}' before it becomes available!"
+        }
+        return ValueSupplier.Value.of(outcome)
+    }
+
+    override fun calculateExecutionTimeValue(): ValueSupplier.ExecutionTimeValue<out ConfigurationCacheOutcome> =
         ValueSupplier.ExecutionTimeValue.changingValue(this)
 }

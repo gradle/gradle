@@ -216,7 +216,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         then:
         def output = result.output
         output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
-        result.configurationCacheOutcome == ConfigurationCacheOutcome.DISCARDED
+        result.configurationCacheOutcome == ConfigurationCacheOutcome.STORE_FAILED
     }
 
     // The counterpart of the test above: because JDWP is exempt from third-party agent detection, the

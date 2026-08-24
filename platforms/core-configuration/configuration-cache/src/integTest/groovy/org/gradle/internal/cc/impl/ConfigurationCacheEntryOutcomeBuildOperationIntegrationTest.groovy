@@ -74,7 +74,7 @@ class ConfigurationCacheEntryOutcomeBuildOperationIntegrationTest extends Abstra
         }
     }
 
-    def "emits DISCARDED when problems fail the build"() {
+    def "emits STORE_FAILED when problems fail the build"() {
         given:
         buildFile """
             gradle.buildFinished { }
@@ -87,12 +87,12 @@ class ConfigurationCacheEntryOutcomeBuildOperationIntegrationTest extends Abstra
         then:
         outputContains("Configuration cache entry discarded with 1 problem.")
         with(operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result) {
-            outcome == "DISCARDED"
+            outcome == "STORE_FAILED"
             problemCount == 1
         }
     }
 
-    def "emits DISCARDED when an incompatible task is scheduled"() {
+    def "emits STORE_SKIPPED when an incompatible task is scheduled"() {
         given:
         buildFile """
             task broken {
@@ -106,10 +106,10 @@ class ConfigurationCacheEntryOutcomeBuildOperationIntegrationTest extends Abstra
 
         then:
         postBuildOutputContains("Configuration cache entry discarded because incompatible task was found: 'task `:broken` of type `org.gradle.api.DefaultTask`'.")
-        operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result.outcome == "DISCARDED"
+        operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result.outcome == "STORE_SKIPPED"
     }
 
-    def "emits DISCARDED on a serialization error"() {
+    def "emits STORE_FAILED on a serialization error"() {
         given:
         buildFile """
             class BrokenSerializable implements java.io.Serializable {
@@ -130,10 +130,10 @@ class ConfigurationCacheEntryOutcomeBuildOperationIntegrationTest extends Abstra
 
         then:
         outputContains("Configuration cache entry discarded due to serialization error.")
-        operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result.outcome == "DISCARDED"
+        operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result.outcome == "STORE_FAILED"
     }
 
-    def "emits DISCARDED when there are too many problems"() {
+    def "emits STORE_FAILED when there are too many problems"() {
         given:
         buildFile """
             gradle.buildFinished { }
@@ -146,24 +146,24 @@ class ConfigurationCacheEntryOutcomeBuildOperationIntegrationTest extends Abstra
         then:
         outputContains("Configuration cache entry discarded with too many problems (1 problem).")
         with(operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result) {
-            outcome == "DISCARDED"
+            outcome == "STORE_FAILED"
             problemCount == 1
         }
     }
 
-    def "emits NOT_STORED on a cache miss in read-only mode"() {
+    def "emits STORE_SKIPPED on a cache miss in read-only mode"() {
         when:
         configurationCacheRun 'help', ENABLE_READ_ONLY_CACHE
 
         then:
         postBuildOutputContains("Configuration cache disabled as cache is in read-only mode.")
         with(operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result) {
-            outcome == "NOT_STORED"
+            outcome == "STORE_SKIPPED"
             problemCount == 0
         }
     }
 
-    def "emits NOT_STORED when configuration caching degrades gracefully"() {
+    def "emits STORE_SKIPPED when configuration caching degrades gracefully"() {
         given:
         buildFile """
             abstract class DegradingTask extends DefaultTask {
@@ -182,6 +182,6 @@ class ConfigurationCacheEntryOutcomeBuildOperationIntegrationTest extends Abstra
 
         then:
         postBuildOutputContains("Configuration cache disabled because incompatible task was found.")
-        operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result.outcome == "NOT_STORED"
+        operations.only(ConfigurationCacheEntryOutcomeBuildOperationType).result.outcome == "STORE_SKIPPED"
     }
 }

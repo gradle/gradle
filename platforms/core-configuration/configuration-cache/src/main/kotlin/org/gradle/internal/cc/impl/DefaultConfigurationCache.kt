@@ -379,6 +379,7 @@ class DefaultConfigurationCache internal constructor(
             entryDiscardRequested || problems.shouldDiscardEntry -> {
                 discardEntry()
                 cacheEntryRequiresCommit = false
+                problems.entryDiscarded()
             }
 
             cacheEntryRequiresCommit -> {
@@ -386,6 +387,7 @@ class DefaultConfigurationCache internal constructor(
                 commitCacheEntry(projectUsage.reused)
                 problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
                 cacheEntryRequiresCommit = false
+                problems.entryCommitted()
                 // Can reuse the cache entry for the rest of this build invocation
                 cacheAction = Load(entryId)
             }

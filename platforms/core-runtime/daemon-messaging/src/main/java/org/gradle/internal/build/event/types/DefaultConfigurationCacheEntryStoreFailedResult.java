@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.configuration;
+package org.gradle.internal.build.event.types;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.internal.protocol.events.InternalConfigurationCacheEntryStoreFailedResult;
 import org.jspecify.annotations.NullMarked;
 
-/**
- * A configuration cache entry was written but discarded at the end of the build, e.g. because of problems, a serialization error or incompatible tasks.
- *
- * @since 9.8.0
- */
-@Incubating
 @NullMarked
-public interface ConfigurationCacheEntryDiscardedResult extends ConfigurationCacheEntryOutcomeResult {
+public class DefaultConfigurationCacheEntryStoreFailedResult extends AbstractConfigurationCacheEntryOutcomeResult implements InternalConfigurationCacheEntryStoreFailedResult {
+    public DefaultConfigurationCacheEntryStoreFailedResult(long startTime, long endTime, int problemCount) {
+        super(startTime, endTime, problemCount);
+    }
 }

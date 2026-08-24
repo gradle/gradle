@@ -17,6 +17,7 @@
 package org.gradle.api.flow;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.configuration.ConfigurationCacheOutcome;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -80,4 +81,75 @@ public interface FlowProviders {
      * @since 8.1
      */
     Provider<BuildWorkResult> getBuildWorkResult();
+
+    /**
+     * Returns a {@link Provider provider} for the outcome of configuration caching for the current
+     * build invocation, e.g. whether a configuration cache entry was stored, reused or discarded.
+     * <p>
+     * The returned {@link Provider#get() provider's value} becomes available after the scheduled work
+     * has completed, so it can only be used as an input to {@link FlowAction dataflow actions}.
+     * When the configuration cache is not enabled, the value is
+     * {@link ConfigurationCacheOutcome.NotEnabled}.
+     * </p>
+     * <p>
+     * There is a single outcome per build invocation: in a composite build, dataflow actions of all
+     * builds observe the outcome of the invocation as a whole.
+     * </p>
+     * <p>
+     * <b>IMPORTANT:</b> trying to access the provider's value before the scheduled work has finished
+     * will result in an error.
+     * </p>
+     *
+     * <pre class='autoTested'>
+     * /**
+     *  * Fails the build if the {{@literal @}link Parameters#getOutcome() outcome} is not
+     *  * a reused configuration cache entry.
+     *  *{@literal /}
+     * class VerifyReuse implements FlowAction&lt;VerifyReuse.Parameters&gt; {
+     *
+     *     interface Parameters extends FlowParameters {
+     *         {@literal @}Input
+     *         Property&lt;ConfigurationCacheOutcome&gt; getOutcome();
+     *     }
+     *
+     *     {@literal @}Override
+     *     public void execute(Parameters parameters) {
+     *         ConfigurationCacheOutcome outcome = parameters.getOutcome().get();
+     *         if (!ConfigurationCacheOutcome.reused().equals(outcome)) {
+     *             throw new GradleException("Expected the configuration cache to be reused, but the outcome was: " + outcome);
+     *         }
+     *     }
+     * }
+     *
+     * /**
+     *  * A settings plugin that verifies that the configuration cache was reused,
+     *  * e.g. on the second of two identical CI builds.
+     *  *{@literal /}
+     * class VerifyConfigurationCacheReusePlugin implements Plugin&lt;Settings&gt; {
+     *
+     *     private final FlowScope flowScope;
+     *     private final FlowProviders flowProviders;
+     *
+     *     {@literal @}Inject
+     *     VerifyConfigurationCacheReusePlugin(FlowScope flowScope, FlowProviders flowProviders) {
+     *         this.flowScope = flowScope;
+     *         this.flowProviders = flowProviders;
+     *     }
+     *
+     *     {@literal @}Override
+     *     public void apply(Settings target) {
+     *         flowScope.always(VerifyReuse.class, spec -&gt;
+     *             spec.getParameters().getOutcome().set(flowProviders.getConfigurationCacheOutcome())
+     *         );
+     *     }
+     * }
+     * </pre>
+     *
+     * @see FlowAction
+     * @see FlowScope
+     * @see ConfigurationCacheOutcome
+     * @since 9.8.0
+     */
+    @Incubating
+    Provider<ConfigurationCacheOutcome> getConfigurationCacheOutcome();
 }
