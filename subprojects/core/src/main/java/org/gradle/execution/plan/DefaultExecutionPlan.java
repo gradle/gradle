@@ -33,8 +33,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -148,7 +146,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     private void doAddEntryNodes(SortedSet<? extends Node> nodes, int ordinal) {
         scheduledNodes = null;
-        LinkedList<Node> queue = new LinkedList<>();
+        ArrayDeque<Node> queue = new ArrayDeque<>();
         OrdinalGroup group = ordinalNodeAccess.group(ordinal);
 
         for (Node node : nodes) {
@@ -161,9 +159,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         discoverNodeRelationships(queue);
     }
 
-    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private void discoverNodeRelationships(LinkedList<Node> queue) {
+    private void discoverNodeRelationships(Deque<Node> queue) {
         Set<Node> visiting = new HashSet<>();
+        HeadInsertBuffer<Node> successorBuffer = new HeadInsertBuffer<>();
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
             node.prepareForScheduling();
@@ -191,12 +189,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
                 for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup().asOrdinal());
                 }
-                ListIterator<Node> insertPoint = queue.listIterator();
                 for (Node successor : node.getDependencySuccessors()) {
                     if (!visiting.contains(successor)) {
-                        insertPoint.add(successor);
+                        successorBuffer.add(successor);
                     }
                 }
+                successorBuffer.drainTo(queue);
             } else {
                 // Have visited this node's dependencies - add it to the graph
                 queue.removeFirst();
