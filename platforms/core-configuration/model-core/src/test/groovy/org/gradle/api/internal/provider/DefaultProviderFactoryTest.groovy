@@ -111,18 +111,18 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         t.message == 'Value cannot be null'
     }
 
-    def "nullable() returns a provider with the given value when non-null"() {
+    def "maybe() returns a provider with the given value when non-null"() {
         given:
-        def provider = providerFactory.nullable('hello')
+        def provider = providerFactory.maybe('hello')
 
         expect:
         provider.present
         provider.get() == 'hello'
     }
 
-    def "nullable() returns a provider that has no value for null"() {
+    def "maybe() returns a provider that has no value for null"() {
         given:
-        def provider = providerFactory.nullable(null)
+        def provider = providerFactory.maybe(null)
 
         expect:
         !provider.present

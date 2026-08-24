@@ -104,7 +104,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
-    public <T> Provider<T> nullable(@Nullable T value) {
+    public <T> Provider<T> maybe(@Nullable T value) {
         return Providers.ofNullable(value);
     }
 

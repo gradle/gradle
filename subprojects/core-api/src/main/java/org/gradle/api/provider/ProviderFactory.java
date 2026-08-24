@@ -87,7 +87,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @param <T> the type of the value of the provider
      * @return The provider. Never returns null.
      * @see #some(Object)
-     * @see #nullable(Object)
+     * @see #maybe(Object)
      * @since 9.8.0
      */
     @Incubating
@@ -103,7 +103,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @param <T> the type of the value of the provider
      * @return The provider. Never returns null.
      * @see #none()
-     * @see #nullable(Object)
+     * @see #maybe(Object)
      * @since 9.8.0
      */
     @Incubating
@@ -121,7 +121,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @since 9.8.0
      */
     @Incubating
-    <T> Provider<T> nullable(@Nullable T value);
+    <T> Provider<T> maybe(@Nullable T value);
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.

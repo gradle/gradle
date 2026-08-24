@@ -442,8 +442,8 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "Provider<String>"        | "providers.provider { null }"             | "null"
         "PresentProvider<String>" | "providers.some('value')"                 | "value"
         "Provider<String>"        | "providers.none()"                        | "null"
-        "Provider<String>"        | "providers.nullable('value')"             | "value"
-        "Provider<String>"        | "providers.nullable(null)"                | "null"
+        "Provider<String>"        | "providers.maybe('value')"                | "value"
+        "Provider<String>"        | "providers.maybe(null)"                   | "null"
         "Provider<String>"        | "objects.property(String).value('value')" | "value"
         "Provider<String>"        | "objects.property(String)"                | "null"
     }
