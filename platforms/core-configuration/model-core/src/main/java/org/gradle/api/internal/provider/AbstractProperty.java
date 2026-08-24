@@ -464,6 +464,22 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return new ShallowCopyProvider();
     }
 
+    /**
+     * Replaces structurally visible reads of this property with a provider representing the
+     * value immediately before the assignment. Providers hidden behind opaque computations are
+     * deliberately not inspected.
+     */
+    protected <V> ProviderInternal<? extends V> substituteSelfReference(ProviderInternal<? extends V> provider) {
+        return new ProviderSubstitution(this, this::previousValue).substitute(provider);
+    }
+
+    private ProviderInternal<T> previousValue() {
+        if (isExplicit()) {
+            return shallowCopy();
+        }
+        return new ConventionReadProvider();
+    }
+
     private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
         // the value of "value" is immutable but the field is not, so copy it
         // (but use a different owner)
@@ -494,6 +510,45 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Nullable
         public Class<T> getType() {
             return AbstractProperty.this.getType();
+        }
+    }
+
+    /**
+     * A live read of this property's convention which deliberately bypasses explicit-value
+     * selection. This is used as the previous value when a property is self-assigned while it is
+     * still implicit, so conventions installed or replaced later remain observable.
+     */
+    private class ConventionReadProvider extends AbstractMinimalProvider<T> {
+        @Override
+        public ValueProducer getProducer() {
+            try (EvaluationScopeContext ignored = openScope()) {
+                return getConventionSupplier().getProducer();
+            }
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            try (EvaluationScopeContext context = openScope()) {
+                return calculateOwnExecutionTimeValue(context, getConventionSupplier());
+            }
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            try (EvaluationScopeContext context = openScope()) {
+                return calculateValueFrom(context, getConventionSupplier(), consumer);
+            }
+        }
+
+        @Override
+        @Nullable
+        public Class<T> getType() {
+            return AbstractProperty.this.getType();
+        }
+
+        @Override
+        protected String toStringNoReentrance() {
+            return "convention(" + AbstractProperty.this.getDisplayName().getDisplayName() + ")";
         }
     }
 }

@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @param <R> The type of the values that all source providers must share.
  */
-public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
+public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> implements StructuralProvider<List<R>> {
 
     private final List<? extends Provider<R>> items;
 
@@ -111,6 +111,22 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
             producers.add(Providers.internal(item).getProducer());
         }
         return new MergeValueProducer(producers.build());
+    }
+
+    @Override
+    public ProviderInternal<List<R>> substitute(ProviderSubstitution substitution) {
+        ImmutableList.Builder<Provider<R>> substitutedItems = ImmutableList.builderWithExpectedSize(items.size());
+        boolean changed = false;
+        for (Provider<R> item : items) {
+            ProviderInternal<R> internal = Providers.internal(item);
+            ProviderInternal<R> substituted = substitution.substitute(internal);
+            substitutedItems.add(substituted);
+            changed |= substituted != internal;
+        }
+        if (!changed) {
+            return this;
+        }
+        return new MergeProvider<>(substitutedItems.build());
     }
 
     private static class MergeValueProducer implements ValueProducer {

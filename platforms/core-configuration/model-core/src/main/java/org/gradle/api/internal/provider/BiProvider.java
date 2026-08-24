@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.BiFunction;
 
-public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
+public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> implements StructuralProvider<R> {
 
     @Nullable
     private final Class<R> type;
@@ -97,5 +97,15 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
         try (EvaluationScopeContext ignored = openScope()) {
             return new PlusProducer(left.getProducer(), right.getProducer());
         }
+    }
+
+    @Override
+    public ProviderInternal<R> substitute(ProviderSubstitution substitution) {
+        ProviderInternal<A> substitutedLeft = substitution.substitute(left);
+        ProviderInternal<B> substitutedRight = substitution.substitute(right);
+        if (substitutedLeft == left && substitutedRight == right) {
+            return this;
+        }
+        return new BiProvider<>(type, substitutedLeft, substitutedRight, combiner);
     }
 }

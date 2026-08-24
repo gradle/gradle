@@ -272,7 +272,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(final Provider<? extends Iterable<? extends T>> provider) {
-        setSupplier(newSupplierOf(new ElementsFromCollectionProvider<>(checkCollectionProvider("value", provider))));
+        ProviderInternal<? extends Iterable<? extends T>> p = checkCollectionProvider("value", provider);
+        p = Cast.uncheckedCast(substituteSelfReference(p));
+        setSupplier(newSupplierOf(new ElementsFromCollectionProvider<>(p)));
     }
 
     private ProviderInternal<? extends Iterable<? extends T>> checkCollectionProvider(String valueKind, @Nullable Provider<? extends Iterable<? extends T>> provider) {

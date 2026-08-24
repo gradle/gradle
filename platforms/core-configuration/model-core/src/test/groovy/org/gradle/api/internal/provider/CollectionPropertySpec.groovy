@@ -1252,6 +1252,41 @@ The value of this property is derived from: <source>""")
         1 * transform.transform(_)
     }
 
+    def "can set collection property to a mapped version of itself"() {
+        given:
+        property.set(["a", "b", "c"])
+
+        when:
+        property.set(property.map { values -> values.findAll { it != "b" } })
+
+        then:
+        property.get() as Set == ["a", "c"] as Set
+    }
+
+    def "unset discards collection self assignment and restores convention"() {
+        given:
+        property.convention(["a"])
+        property.set(property.map { values -> values + "b" })
+
+        when:
+        property.unset()
+
+        then:
+        property.get() as Set == ["a"] as Set
+    }
+
+    def "unset convention makes convention-based collection self assignment missing"() {
+        given:
+        property.convention(["a"])
+        property.set(property.map { values -> values + "b" })
+
+        when:
+        property.unsetConvention()
+
+        then:
+        !property.present
+    }
+
     static abstract class CollectionPropertyCircularChainEvaluationTest<T, C extends Collection<T>> extends PropertySpec.PropertyCircularChainEvaluationSpec<C> {
         @Override
         List<Consumer<ProviderInternal<?>>> safeConsumers() {

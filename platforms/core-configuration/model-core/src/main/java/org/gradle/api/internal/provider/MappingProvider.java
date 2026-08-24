@@ -78,6 +78,11 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
     protected void beforeRead(EvaluationScopeContext context) {}
 
     @Override
+    protected TransformBackedProvider<OUT, IN> withProvider(ProviderInternal<? extends IN> provider) {
+        return new MappingProvider<>(type, provider, transformer);
+    }
+
+    @Override
     protected String toStringNoReentrance() {
         return "map(" + (type == null ? "" : type.getName() + " ") + provider + " " + transformer + ")";
     }
