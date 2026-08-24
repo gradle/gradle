@@ -12,7 +12,17 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release features [1](), [2](), ... [n](), and more.
+In this release, [Java 27](#support-for-java-27) is supported for both the Gradle daemon and Java toolchains.
+
+The [Configuration Cache](#configuration-cache-improvements) now exposes its outcome directly through TestKit and the Tooling API, so plugin authors no longer parse console output to check whether a build was cached.
+
+[Build authoring](#build-authoring-improvements) gains a `service()` lookup for common Gradle services in scripts and task actions, along with a lazy `destinationDirectory` property on `Copy` and `Sync`.
+
+In [platform and toolchain management](#platform-and-toolchain-management), `Groovydoc` now parses modern Java sources and exposes the Groovy 6.0 documentation options.
+
+[Performance improvements](#performance-improvements) include faster read times on Windows machines with slow system clocks, with build-time gains of up to 45% in affected setups.
+
+Finally, [`GenerateMavenPom`](#general-improvements) now participates in up-to-date checks, speeding up Maven publishing.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Aman Gautam](https://github.com/Gautam-aman),
