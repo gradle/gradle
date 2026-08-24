@@ -182,6 +182,7 @@ All new properties are [incubating](userguide/feature_lifecycle.html#feature_pre
 See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in the DSL Reference for the full list of configuration options.
 
 ### Performance improvements
+Gradle continues to reduce build times and memory usage across the daemon, configuration, and execution phases.
 
 #### Improved performance on Windows machines with slow system clocks
 
@@ -228,9 +229,14 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Documentation and training
 
-<!--
-Add new docs, training, and best practices here
--->
+### User Manual
+
+The User Manual reference pages for the core plugins have been entirely rewritten for consistency and depth.
+The [Core Plugin Reference index](userguide/plugin_reference.html) has also been reorganized and now lists previously missing core plugins.
+
+Two new entries have been added to the [Best Practices](userguide/best_practices.html) collection:
+- Obtain Loggers via `Logging.getLogger(Class)` outside of Tasks — where and how to acquire a logger in build logic.
+- Favor collection property types over a `Property` holding a collection — the case for `ListProperty` and `SetProperty` over `Property<List<...>>`.
 
 ## Fixed issues
 
