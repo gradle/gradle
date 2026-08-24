@@ -26,9 +26,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 
-public class FilteredFileCollection extends AbstractFileCollection {
+public class FilteredFileCollection extends AbstractFileCollection implements StructuralFileCollection {
     private final FileCollectionInternal collection;
     private final Spec<? super File> filterSpec;
 
@@ -39,8 +38,8 @@ public class FilteredFileCollection extends AbstractFileCollection {
     }
 
     @Override
-    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
-        AbstractFileCollection newCollection = (AbstractFileCollection) collection.replace(original, supplier);
+    public FileCollectionInternal substitute(FileCollectionSubstitution substitution) {
+        FileCollectionInternal newCollection = substitution.substitute(collection);
         if (newCollection == collection) {
             return this;
         }

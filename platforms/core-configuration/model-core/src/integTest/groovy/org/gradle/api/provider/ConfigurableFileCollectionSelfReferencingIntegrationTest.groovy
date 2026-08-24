@@ -22,7 +22,7 @@ import spock.lang.Issue
 class ConfigurableFileCollectionSelfReferencingIntegrationTest extends AbstractProviderOperatorIntegrationTest {
 
     @Issue("https://github.com/gradle/gradle/issues/32177")
-    def "ConfigurableFileCollection shallow self-subtraction assignment '#description' throws meaningful error in Groovy DSL"() {
+    def "ConfigurableFileCollection self-referencing assignment '#description' uses previous value in Groovy DSL"() {
         buildFile """
             abstract class MyTask extends DefaultTask {
                 @Internal
@@ -35,20 +35,24 @@ class ConfigurableFileCollectionSelfReferencingIntegrationTest extends AbstractP
             }
 
             tasks.register("myTask", MyTask) {
+                input.from(files("a", "b"))
                 $statement
             }
         """
 
         when:
-        fails "myTask"
+        succeeds "myTask"
 
         then:
-        failureCauseContains("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method")
+        outputContains("Result: $result")
 
         where:
-        description      | statement
-        "a -= b"         | 'input -= files("a")'
-        "a = a - b"      | 'input = input - files("a")'
-        "a = a.minus(b)" | 'input = input.minus(files("a"))'
+        description      | statement                                | result
+        "a += b"         | 'input += files("c")'                    | "[a, b, c]"
+        "a = a + b"      | 'input = input + files("c")'            | "[a, b, c]"
+        "a = a.plus(b)"  | 'input = input.plus(files("c"))'        | "[a, b, c]"
+        "a -= b"         | 'input -= files("a")'                   | "[b]"
+        "a = a - b"      | 'input = input - files("a")'            | "[b]"
+        "a = a.minus(b)" | 'input = input.minus(files("a"))'       | "[b]"
     }
 }
