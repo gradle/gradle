@@ -427,7 +427,10 @@
          <trusted-key id="C8D37E9675158FF5B29B6D6452FC3551DA8DC57E" group="com.mysql" name="mysql-connector-j"/>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
          <trusted-key id="C9F5BB47FCF51250930BD8E22F73DAE490984549" group="com.uber.nullaway"/>
-         <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141" group="net.sf.proguard"/>
+         <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141">
+            <trusting group="com.guardsquare"/>
+            <trusting group="net.sf.proguard"/>
+         </trusted-key>
          <trusted-key id="CB3190CA7842439E57F3712E44CE7BF2825EA2CD" group="com.ibm.icu" name="icu4j"/>
          <trusted-key id="CD5464315F0B98C77E6E8ECD9DAADC1C9FCC82D0">
             <trusting group="commons-cli"/>
