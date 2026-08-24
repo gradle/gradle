@@ -33,13 +33,6 @@ We would like to thank the following community members for their contributions t
 [Sean](https://github.com/seanxuu),
 [Zongle Wang](https://github.com/Goooler).
 
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
-THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
-
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
@@ -52,15 +45,14 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
 ### Support for Java 27
-
 With this release, Gradle supports [Java 27](https://openjdk.org/projects/jdk/27/).
 
-You can now run the [Gradle daemon](userguide/gradle_daemon.html) on Java 27, in addition to using it via [toolchains](userguide/toolchains.html):
+You can now run the [Gradle daemon](userguide/gradle_daemon.html) on Java 27, in addition to using Java 27 via [toolchains](userguide/toolchains.html):
 
 ```kotlin
 java {
@@ -79,7 +71,7 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 
 #### TestKit API for asserting the Configuration Cache outcome
 
-Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded — an approach that broke whenever the wording of the console messages changed.
+Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded, an approach that broke whenever the wording of the console messages changed.
 
 The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly:
 
@@ -98,12 +90,6 @@ The outcome is also available to any Tooling API client through a new [`CONFIGUR
 
 See the [Testing with the Configuration Cache](userguide/test_kit.html#sub:test-kit-configuration-cache) section in the Gradle User Manual for more details.
 
-### Test reporting and execution
-Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
-
-### CLI, logging, and problem reporting
-Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
-
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
@@ -120,7 +106,18 @@ tasks.register("cleanReports") {
 }
 ```
 
-Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. It is compatible with the Configuration Cache and Isolated Projects, and covers `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, and `ArchiveOperations` in every scope, `ProjectLayout` in projects and tasks, `BuildLayout` in settings, and `ExecOperations` in task actions. In the Kotlin and Java DSLs, looking up a service that is not available in the current scope is caught at compile time.
+Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. It is compatible with the Configuration Cache and Isolated Projects.
+
+Available services by scope:
+
+| Service | Available in |
+| --- | --- |
+| `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations` | Every scope |
+| `ProjectLayout` | Projects and tasks |
+| `BuildLayout` | Settings |
+| `ExecOperations` | Task actions |
+
+In the Kotlin and Java DSLs, looking up a service that is not available in the current scope is caught at compile time.
 
 Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or later at runtime.
 
@@ -184,17 +181,7 @@ All new properties are [incubating](userguide/feature_lifecycle.html#feature_pre
 
 See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in the DSL Reference for the full list of configuration options.
 
-### Core plugin and plugin authoring enhancements
-Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
-
-### Security and infrastructure
-Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
-
-### Tooling and IDE integration
-Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
-
-### General improvements
-Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+### Performance improvements
 
 #### Improved performance on Windows machines with slow system clocks
 
@@ -206,6 +193,9 @@ Gradle now detects these slow system clocks at startup and switches to a faster 
 On affected machines we have measured build time improvements of up to 45%.
 
 Builds on machines with a normal system clock are unaffected, and no change to configuration is required.
+
+### General improvements
+Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
 
 #### Faster Maven publishing with up-to-date POM generation
 
@@ -224,10 +214,6 @@ When a `withXml` action is registered, task input tracking remains disabled, as 
 To restore up-to-date behavior, move the customization into the DSL properties on [`MavenPom`](javadoc/org/gradle/api/publish/maven/MavenPom.html) where possible.
 
 See the [Generate POM task](userguide/publishing_maven.html#publishing_maven:generate-pom) section in the Gradle User Manual for more details.
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-========================================================== -->
 
 ## Promoted features
 
