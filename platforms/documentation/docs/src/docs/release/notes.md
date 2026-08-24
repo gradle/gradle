@@ -15,7 +15,23 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Julian Krannich](https://github.com/jkrannich).
+[Aman Gautam](https://github.com/Gautam-aman),
+[Björn Kautler](https://github.com/Vampire),
+[Eng Zer Jun](https://github.com/Juneezee),
+[Hashim Khan](https://github.com/Hashim1999164),
+[Julian Krannich](https://github.com/jkrannich),
+[KBS](https://github.com/youdie006),
+[Labh R Jethe](https://github.com/itsCodeTide),
+[Mark Dodgson](https://github.com/doddi),
+[Maxim](https://github.com/kroune),
+[monkey](https://github.com/Develop-KIM),
+[nataphon-ktsystems](https://github.com/nataphon-ktsystems),
+[Paul King](https://github.com/paulk-asert),
+[Qiu Tian](https://github.com/qiu-tiandev),
+[rg_sandesh](https://github.com/sandeshgorde),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Sean](https://github.com/seanxuu),
+[Zongle Wang](https://github.com/Goooler).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -39,34 +55,6 @@ See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@b
 For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
-
-<!-- ================== TEMPLATE =============================
-
-Do not add breaking changes or deprecations here! Add them to the upgrade guide instead.
-
-Find the best fitting section for your feature below, then, fill it in.
-
-### SECTION TITLE
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves.
-> EXPLAIN how the new release addresses that problem or use case.
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable.
-> LINK to the full documentation for more details.
-
-To embed images, add the image to the `release-notes-assets` folder, then add the line below.
-![image.png](release-notes-assets/image.png)
-
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button.
-@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-
-================== END TEMPLATE ========================== -->
-
-
-<!-- =========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Support for Java 27
 
@@ -218,11 +206,6 @@ Gradle now detects these slow system clocks at startup and switches to a faster 
 On affected machines we have measured build time improvements of up to 45%.
 
 Builds on machines with a normal system clock are unaffected, and no change to configuration is required.
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-========================================================== -->
-
 
 #### Faster Maven publishing with up-to-date POM generation
 
