@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
+import org.gradle.api.internal.provider.CircularEvaluationSpec.StructuralProviderSelfReferenceSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
 
@@ -53,14 +53,14 @@ class BiProviderTest {
         }
     }
 
-    static class BiProviderLeftCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
+    static class BiProviderLeftCircularChainEvaluationTest extends StructuralProviderSelfReferenceSpec<String> implements UsesStringProperty {
         @Override
         ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
             return new BiProvider(String, baseProvider, Providers.of("B"), { a, b -> a + b })
         }
     }
 
-    static class BiProviderRightCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
+    static class BiProviderRightCircularChainEvaluationTest extends StructuralProviderSelfReferenceSpec<String> implements UsesStringProperty {
         ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
             return new BiProvider(String, Providers.of("A"), baseProvider, { a, b -> a + b })
         }

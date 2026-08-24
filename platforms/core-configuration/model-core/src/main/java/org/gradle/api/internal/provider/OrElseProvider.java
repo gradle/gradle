@@ -19,7 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
-class OrElseProvider<T> extends AbstractMinimalProvider<T> {
+class OrElseProvider<T> extends AbstractMinimalProvider<T> implements StructuralProvider<T> {
     private final ProviderInternal<T> left;
     private final ProviderInternal<? extends T> right;
 
@@ -91,5 +91,15 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
             }
             return leftValue.addPathsFrom(rightValue);
         }
+    }
+
+    @Override
+    public ProviderInternal<T> substitute(ProviderSubstitution substitution) {
+        ProviderInternal<T> substitutedLeft = substitution.substitute(left);
+        ProviderInternal<? extends T> substitutedRight = substitution.substitute(right);
+        if (substitutedLeft == left && substitutedRight == right) {
+            return this;
+        }
+        return new OrElseProvider<>(substitutedLeft, substitutedRight);
     }
 }

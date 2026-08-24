@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @see ProviderInternal for a discussion of the "value" and "value contents".
  */
-public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
+public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OUT> implements StructuralProvider<OUT> {
 
     protected final Class<OUT> type;
     protected final ProviderInternal<? extends IN> provider;
@@ -96,6 +96,19 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
                 throw new ProducerNotCompletedException("mapped", provider, producer);
             }
         });
+    }
+
+    @Override
+    public ProviderInternal<OUT> substitute(ProviderSubstitution substitution) {
+        ProviderInternal<? extends IN> substituted = substitution.substitute(provider);
+        if (substituted == provider) {
+            return this;
+        }
+        return withProvider(substituted);
+    }
+
+    protected TransformBackedProvider<OUT, IN> withProvider(ProviderInternal<? extends IN> provider) {
+        return new TransformBackedProvider<>(type, provider, transformer);
     }
 
     @Override

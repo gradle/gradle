@@ -444,6 +444,114 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
         1 * transform.transform(_)
     }
 
+    def "can set property to a mapped version of itself"() {
+        given:
+        def property = property().value("a")
+
+        when:
+        property.set(property.map { it + "b" })
+        property.set(property.map { it + "c" })
+
+        then:
+        property.get() == "abc"
+    }
+
+    def "direct self assignment uses previous value"() {
+        given:
+        def property = property().value(someValue())
+
+        when:
+        property.set(property)
+
+        then:
+        property.get() == someValue()
+    }
+
+    def "self assignment observes convention installed later"() {
+        given:
+        def property = property()
+
+        when:
+        property.set(property.map { it + "!" })
+        property.convention("hello")
+
+        then:
+        property.get() == "hello!"
+    }
+
+    def "self assignment observes later convention replacement"() {
+        given:
+        def property = property().convention("hello")
+        property.set(property.map { it + "!" })
+
+        when:
+        property.convention("goodbye")
+
+        then:
+        property.get() == "goodbye!"
+    }
+
+    def "unset discards self assignment and restores convention"() {
+        given:
+        def property = property().convention("hello")
+        property.set(property.map { it + "!" })
+
+        when:
+        property.unset()
+
+        then:
+        property.get() == "hello"
+    }
+
+    def "unset convention makes convention-based self assignment missing"() {
+        given:
+        def property = property().convention("hello")
+        property.set(property.map { it + "!" })
+
+        when:
+        property.unsetConvention()
+
+        then:
+        !property.present
+    }
+
+    def "multiple self reads use previous value"() {
+        given:
+        def property = property().value("a")
+
+        when:
+        property.set(property.zip(property) { left, right -> left + right })
+
+        then:
+        property.get() == "aa"
+    }
+
+    def "explicit missing provider remains authoritative for self assignment"() {
+        given:
+        def property = property().convention(someValue())
+        property.set(Providers.notDefined())
+
+        when:
+        property.set(property.map { it.reverse() })
+
+        then:
+        !property.present
+    }
+
+    def "provider derived from another property does not capture target's previous value"() {
+        given:
+        def source = property().value("source")
+        def target = property().value("old")
+        target.set(target.map { it + "-retained" })
+
+        when:
+        target.set(source.map { it + "-new" })
+        source.set("changed")
+
+        then:
+        target.get() == "changed-new"
+    }
+
     def "value coercion is applied to #description after configuration cache round-trip"() {
         given:
         GString gstring = "${'value'}"

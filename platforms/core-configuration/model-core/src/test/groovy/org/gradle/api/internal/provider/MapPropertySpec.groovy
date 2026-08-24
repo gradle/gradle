@@ -1569,6 +1569,41 @@ The value of this property is derived from: <source>""")
         1 * transform.transform(_)
     }
 
+    def "can set map property to a mapped version of itself"() {
+        given:
+        property.set([a: "1", b: "2", c: "3"])
+
+        when:
+        property.set(property.map { values -> values.findAll { key, value -> key != "b" } })
+
+        then:
+        property.get() == [a: "1", c: "3"]
+    }
+
+    def "unset discards map self assignment and restores convention"() {
+        given:
+        property.convention([a: "1"])
+        property.set(property.map { values -> values + [b: "2"] })
+
+        when:
+        property.unset()
+
+        then:
+        property.get() == [a: "1"]
+    }
+
+    def "unset convention makes convention-based map self assignment missing"() {
+        given:
+        property.convention([a: "1"])
+        property.set(property.map { values -> values + [b: "2"] })
+
+        when:
+        property.unsetConvention()
+
+        then:
+        !property.present
+    }
+
     def "can alternate insert and put"() {
         when:
         property.insert("k1", "1")
