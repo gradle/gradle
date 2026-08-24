@@ -101,14 +101,8 @@ signing {
         pgpSigningKey.orNull,
         pgpSigningPassPhrase.orNull
     )
-}
-
-// See the comment on the same workaround in gradlebuild.publish-public-libraries: signing a
-// publication eagerly finalizes the published component, so it must not be wired up before this
-// script has finished configuring the project.
-if (signArtifacts) {
-    afterEvaluate {
-        publishing.publications.configureEach {
+    publishing.publications.configureEach {
+        if (signArtifacts) {
             signing.sign(this)
         }
     }

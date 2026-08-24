@@ -177,14 +177,8 @@ tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
     useInMemoryPgpKeys(pgpSigningKeyId.orNull, pgpSigningKey.orNull, pgpSigningPassPhrase.orNull)
-}
-
-// See the comment on the same workaround in gradlebuild.publish-public-libraries: signing a
-// publication eagerly finalizes the published component, so it must not be wired up before the
-// applying build script has declared its dependencies.
-if (signArtifacts) {
-    afterEvaluate {
-        publishing.publications.configureEach {
+    publishing.publications.configureEach {
+        if (signArtifacts) {
             signing.sign(this)
         }
     }
