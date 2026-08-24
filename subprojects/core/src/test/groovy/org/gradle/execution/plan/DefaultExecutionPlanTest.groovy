@@ -262,6 +262,31 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(finalized, finalizer)
     }
 
+    def "finalizer of multiple entry tasks does not reorder an unrelated entry task"() {
+        Task finalizer = task("finalizer")
+        Task a = task("a", finalizedBy: [finalizer])
+        Task b = task("b")
+        Task c = task("c", finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate([a, b, c])
+
+        then:
+        executes(a, b, c, finalizer)
+    }
+
+    def "finalizer of an entry task does not reorder another entry task that depends on it"() {
+        Task finalizer = task("c")
+        Task dependency = task("b", finalizedBy: [finalizer])
+        Task dependent = task("a", dependsOn: [dependency])
+
+        when:
+        addToGraphAndPopulate([dependent, dependency])
+
+        then:
+        executes(dependency, dependent, finalizer)
+    }
+
     def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
         Task finalizerDependency = task("finalizerDependency")
         Task finalizer1 = task("finalizer1", dependsOn: [finalizerDependency])
