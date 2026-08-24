@@ -36,7 +36,6 @@ import spock.lang.Issue
 
 import java.util.concurrent.Callable
 import java.util.function.Consumer
-import java.util.function.Supplier
 
 class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
@@ -385,6 +384,60 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files as List == [file1, file2]
     }
 
+    def "self-referencing explicit value observes convention installed later"() {
+        given:
+        def conventionFile = new File("convention")
+        def addedFile = new File("added")
+        def added = containing(addedFile)
+
+        when:
+        collection.from = collection + added
+        collection.convention(containing(conventionFile))
+
+        then:
+        collection.files as List == [conventionFile, addedFile]
+        collection.explicit
+    }
+
+    def "self-referencing explicit value observes convention replacement"() {
+        given:
+        def firstConventionFile = new File("first")
+        def secondConventionFile = new File("second")
+        def addedFile = new File("added")
+        def added = containing(addedFile)
+
+        when:
+        collection.convention(containing(firstConventionFile))
+        collection.from = collection + added
+        collection.convention(containing(secondConventionFile))
+
+        then:
+        collection.files as List == [secondConventionFile, addedFile]
+
+        when:
+        collection.unset()
+
+        then:
+        collection.files as List == [secondConventionFile]
+        !collection.explicit
+    }
+
+    def "unsetting convention updates convention-rooted self-reference"() {
+        given:
+        def conventionFile = new File("convention")
+        def addedFile = new File("added")
+        def added = containing(addedFile)
+
+        when:
+        collection.convention(containing(conventionFile))
+        collection.from = collection + added
+        collection.unsetConvention()
+
+        then:
+        collection.files as List == [addedFile]
+        collection.explicit
+    }
+
     def "can append contents to collection defined via convention using plus operator"() {
         given:
         def file1 = new File("1")
@@ -620,12 +673,8 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def fileCollectionMock = Mock(FileCollectionInternal)
         def file = new File("some-file")
 
-        when:
         collection.from("file")
         collection.from(fileCollectionMock)
-
-        then:
-        1 * fileCollectionMock.replace(_, _) >> fileCollectionMock
 
         when:
         collection.visitStructure(visitor)
@@ -1666,24 +1715,14 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         replaced.is(collection)
     }
 
-    def "can replace one of the elements of a mutable collection"() {
-        def collection1 = Mock(FileCollectionInternal)
-        def collection2 = Mock(FileCollectionInternal)
-        def replaced1 = Stub(FileCollectionInternal)
-        def supplier = Stub(Supplier)
+    def "does not traverse the value of another mutable collection when replacing"() {
+        def collection1 = Stub(FileCollectionInternal)
+        def collection2 = Stub(FileCollectionInternal)
 
         collection.from(collection1, collection2)
 
-        when:
-        def replaced = collection.replace(collection1, supplier)
-
-        then:
-        replaced != collection
-        replaced.sourceCollections == [replaced1, collection2]
-
-        1 * collection1.replace(collection1, supplier) >> replaced1
-        1 * collection2.replace(collection1, supplier) >> collection2
-        0 * _
+        expect:
+        collection.replace(collection1, {}).is(collection)
     }
 
     def "can replace one of the elements of a finalized collection"() {
@@ -2050,7 +2089,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/8755#issuecomment-2075260802")
-    def "self-referencing using minus operator leads to StackOverflowError"() {
+    def "self-referencing using minus operator uses previous contents"() {
         given:
         def file1 = new File("1")
         def file2 = new File("2")
@@ -2060,17 +2099,16 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def child1 = containing(file1)
 
         when:
-        collection.setFrom(child1 - collection)
-        collection.files
+        collection.setFrom(collection - child1)
 
         then:
-        thrown StackOverflowError
+        collection.files as List == [file2]
 
         when:
-        collection.setFrom(collection - child1)
-        collection.files
+        collection.setFrom(file1, file2)
+        collection.setFrom(child1 - collection)
 
         then:
-        thrown StackOverflowError
+        collection.files.empty
     }
 }

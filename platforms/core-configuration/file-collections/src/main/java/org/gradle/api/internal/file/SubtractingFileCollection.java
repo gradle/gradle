@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
+public class SubtractingFileCollection extends AbstractOpaqueFileCollection implements StructuralFileCollection {
     private final AbstractFileCollection left;
     private final FileCollection right;
 
@@ -40,6 +40,16 @@ public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
 
     public FileCollection getRight() {
         return right;
+    }
+
+    @Override
+    public FileCollectionInternal substitute(FileCollectionSubstitution substitution) {
+        AbstractFileCollection newLeft = (AbstractFileCollection) substitution.substitute(left);
+        FileCollectionInternal newRight = substitution.substitute((FileCollectionInternal) right);
+        if (newLeft == left && newRight == right) {
+            return this;
+        }
+        return new SubtractingFileCollection(newLeft, newRight);
     }
 
     @Override

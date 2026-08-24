@@ -23,12 +23,11 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * An immutable sequence of file collections.
  */
-public class UnionFileCollection extends CompositeFileCollection {
+public class UnionFileCollection extends CompositeFileCollection implements StructuralFileCollection {
     private final ImmutableSet<FileCollectionInternal> source;
 
     public UnionFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionInternal... source) {
@@ -61,11 +60,11 @@ public class UnionFileCollection extends CompositeFileCollection {
     }
 
     @Override
-    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+    public FileCollectionInternal substitute(FileCollectionSubstitution substitution) {
         ImmutableSet.Builder<FileCollectionInternal> newSource = ImmutableSet.builderWithExpectedSize(source.size());
         boolean hasChanges = false;
         for (FileCollectionInternal candidate : source) {
-            FileCollectionInternal newCollection = candidate.replace(original, supplier);
+            FileCollectionInternal newCollection = substitution.substitute(candidate);
             hasChanges |= newCollection != candidate;
             newSource.add(newCollection);
         }
