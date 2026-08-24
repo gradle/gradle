@@ -19,7 +19,6 @@ package org.gradle.buildinit.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.wrapper.Wrapper;
-import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 
 /**
  * The wrapper plugin.
@@ -35,10 +34,6 @@ public abstract class WrapperPlugin implements Plugin<Project> {
             project.getTasks().register("wrapper", Wrapper.class, wrapper -> {
                 wrapper.setGroup("Build Setup");
                 wrapper.setDescription("Generates Gradle wrapper files.");
-                wrapper.getNetworkTimeout().convention(WrapperDefaults.NETWORK_TIMEOUT);
-                wrapper.getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
-                wrapper.getRetries().convention(WrapperDefaults.RETRIES);
-                wrapper.getRetryBackOffMs().convention(WrapperDefaults.RETRY_BACK_OFF_MS);
             });
         }
     }

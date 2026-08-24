@@ -19,10 +19,15 @@ package org.gradle.api.tasks.wrapper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -53,6 +58,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -123,16 +129,30 @@ public abstract class Wrapper extends DefaultTask {
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
     private boolean distributionUrlConfigured = false;
+    private boolean distributionTypeConfigured = false;
+    private boolean distributionPathConfigured = false;
+    private boolean distributionBaseConfigured = false;
+    private boolean archivePathConfigured = false;
+    private boolean archiveBaseConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
+    private final Provider<Properties> existingProperties;
 
     /**
      * Creates a new {@code Wrapper}.
      *
      * @since 0.9
      */
-    @SuppressWarnings("this-escape")
+    @SuppressWarnings({"this-escape", "unchecked"})
     public Wrapper() {
-        getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
+        existingProperties = getProviders().of(ExistingWrapperProperties.class, spec -> spec.getParameters().getPropertiesFile().set(getPropertiesFile()));
+        getNetworkTimeout().convention((Provider<Integer>) (Provider<?>) existingProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, ExistingPropertyType.INTEGER)
+            .orElse(WrapperDefaults.NETWORK_TIMEOUT));
+        getValidateDistributionUrl().convention((Provider<Boolean>) (Provider<?>) existingProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, ExistingPropertyType.BOOLEAN)
+            .orElse(WrapperDefaults.VALIDATE_DISTRIBUTION_URL));
+        getRetries().convention((Provider<Integer>) (Provider<?>) existingProperty(WrapperExecutor.RETRIES_PROPERTY, ExistingPropertyType.INTEGER)
+            .orElse(WrapperDefaults.RETRIES));
+        getRetryBackOffMs().convention((Provider<Integer>) (Provider<?>) existingProperty(WrapperExecutor.RETRY_BACK_OFF_PROPERTY, ExistingPropertyType.INTEGER)
+            .orElse(WrapperDefaults.RETRY_BACK_OFF_MS));
 
         gradleVersionResolver = new GradleVersionResolver(getProject().getResources().getText());
     }
@@ -150,8 +170,8 @@ public abstract class Wrapper extends DefaultTask {
         validateDistributionUrl(propertiesFile.getParentFile());
 
         WrapperGenerator.generate(
-            archiveBase, archivePath,
-            distributionBase, distributionPath,
+            getArchiveBase(), getArchivePath(),
+            getDistributionBase(), getDistributionPath(),
             getDistributionSha256Sum(existingProperties),
             propertiesFile,
             jarFileDestination, jarFileRelativePath,
@@ -162,6 +182,50 @@ public abstract class Wrapper extends DefaultTask {
             getRetries().getOrNull(),
             getRetryBackOffMs().getOrNull()
         );
+    }
+
+    private Provider<Object> existingProperty(String propertyName, ExistingPropertyType type) {
+        return getProviders().of(ExistingWrapperProperty.class, spec -> {
+            spec.getParameters().getPropertiesFile().set(getPropertiesFile());
+            spec.getParameters().getPropertyName().set(propertyName);
+            spec.getParameters().getType().set(type.name());
+        });
+    }
+
+    private PathBase getDistributionBase(@Nullable Properties existingProperties) {
+        return distributionBaseConfigured || existingProperties == null
+            ? distributionBase
+            : pathBase(existingProperties, WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase);
+    }
+
+    private String getDistributionPath(@Nullable Properties existingProperties) {
+        return distributionPathConfigured || existingProperties == null
+            ? distributionPath
+            : existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
+    }
+
+    private PathBase getArchiveBase(@Nullable Properties existingProperties) {
+        return archiveBaseConfigured || existingProperties == null
+            ? archiveBase
+            : pathBase(existingProperties, WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase);
+    }
+
+    private String getArchivePath(@Nullable Properties existingProperties) {
+        return archivePathConfigured || existingProperties == null
+            ? archivePath
+            : existingProperties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
+    }
+
+    private PathBase pathBase(Properties properties, String propertyName, PathBase defaultValue) {
+        String value = properties.getProperty(propertyName);
+        if (value == null) {
+            return defaultValue;
+        }
+        try {
+            return PathBase.valueOf(value.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new GradleException(String.format(Locale.ROOT, "Invalid value '%s' for property '%s' in '%s'.", value, propertyName, getPropertiesFile()), e);
+        }
     }
 
     private void checkProperties(Properties existingProperties) {
@@ -291,6 +355,7 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * Returns the path where the gradle distributions needed by the wrapper are unzipped. The path is relative to the
      * distribution base directory
+     * Existing values in {@code gradle-wrapper.properties} are preserved when this property is not configured.
      *
      * @see #setDistributionPath(String)
      * @since 0.7
@@ -298,7 +363,7 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getDistributionPath() {
-        return distributionPath;
+        return distributionPathConfigured ? distributionPath : getDistributionPath(existingProperties.getOrNull());
     }
 
     /**
@@ -309,6 +374,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.7
      */
     public void setDistributionPath(String distributionPath) {
+        this.distributionPathConfigured = true;
         this.distributionPath = distributionPath;
     }
 
@@ -349,6 +415,13 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public DistributionType getDistributionType() {
+        if (distributionTypeConfigured) {
+            return distributionType;
+        }
+        Properties properties = existingProperties.getOrNull();
+        if (properties != null && properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, "").matches(".*-all\\.zip")) {
+            return DistributionType.ALL;
+        }
         return distributionType;
     }
 
@@ -361,6 +434,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Option(option = "distribution-type", description = "The type of the Gradle distribution to be used by the wrapper.")
     public void setDistributionType(DistributionType distributionType) {
+        this.distributionTypeConfigured = true;
         this.distributionType = distributionType;
     }
 
@@ -400,7 +474,7 @@ public abstract class Wrapper extends DefaultTask {
             return distributionUrl;
         }
 
-        return WrapperGenerator.getDistributionUrl(getResolvedGradleVersion(), distributionType);
+        return WrapperGenerator.getDistributionUrl(getResolvedGradleVersion(), getDistributionType());
     }
 
     private boolean isCurrentVersion() {
@@ -474,12 +548,13 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
      * the gradle user home dir.
+     * Existing values in {@code gradle-wrapper.properties} are preserved when this property is not configured.
      * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
     public PathBase getDistributionBase() {
-        return distributionBase;
+        return distributionBaseConfigured ? distributionBase : getDistributionBase(existingProperties.getOrNull());
     }
 
     /**
@@ -488,18 +563,20 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.7
      */
     public void setDistributionBase(PathBase distributionBase) {
+        this.distributionBaseConfigured = true;
         this.distributionBase = distributionBase;
     }
 
     /**
      * Returns the path where the gradle distributions archive should be saved (i.e. the parent dir). The path is
      * relative to the archive base directory.
+     * Existing values in {@code gradle-wrapper.properties} are preserved when this property is not configured.
      * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
     public String getArchivePath() {
-        return archivePath;
+        return archivePathConfigured ? archivePath : getArchivePath(existingProperties.getOrNull());
     }
 
     /**
@@ -508,18 +585,20 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.7
      */
     public void setArchivePath(String archivePath) {
+        this.archivePathConfigured = true;
         this.archivePath = archivePath;
     }
 
     /**
      * The archive base specifies whether the unpacked wrapper distribution should be stored in the project or in the
      * gradle user home dir.
+     * Existing values in {@code gradle-wrapper.properties} are preserved when this property is not configured.
      * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
     public PathBase getArchiveBase() {
-        return archiveBase;
+        return archiveBaseConfigured ? archiveBase : getArchiveBase(existingProperties.getOrNull());
     }
 
     /**
@@ -528,12 +607,14 @@ public abstract class Wrapper extends DefaultTask {
      * @since 0.7
      */
     public void setArchiveBase(PathBase archiveBase) {
+        this.archiveBaseConfigured = true;
         this.archiveBase = archiveBase;
     }
 
     /**
      * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such
-     * as downloading the wrapper jar.
+     * as downloading the wrapper jar. When not explicitly configured, an existing value in
+     * {@code gradle-wrapper.properties} is preserved.
      *
      * @since 7.6
      */
@@ -546,6 +627,7 @@ public abstract class Wrapper extends DefaultTask {
      * The number of retries to attempt when downloading the Gradle distribution.
      *
      * If a download fails, the wrapper will attempt to download it again up to the specified number of times.
+     * When not explicitly configured, an existing value in {@code gradle-wrapper.properties} is preserved.
      *
      * @return The number of retries property.
      *
@@ -561,7 +643,8 @@ public abstract class Wrapper extends DefaultTask {
      * The initial back off in milliseconds to wait between download retries.
      *
      * After a failed download attempt, the wrapper will wait for this amount of time before attempting the next retry,
-     * doubling the delay on each subsequent failure.
+     * doubling the delay on each subsequent failure. When not explicitly configured, an existing value in
+     * {@code gradle-wrapper.properties} is preserved.
      *
      * @return The initial retry back off property in milliseconds.
      *
@@ -574,7 +657,8 @@ public abstract class Wrapper extends DefaultTask {
     public abstract Property<Integer> getRetryBackOffMs();
 
     /**
-     * Indicates if this task will validate the distribution url that has been configured.
+     * Indicates if this task will validate the distribution url that has been configured. When not explicitly
+     * configured, an existing value in {@code gradle-wrapper.properties} is preserved.
      *
      * @return whether this task will validate the distribution url
      * @since 8.2
@@ -586,4 +670,52 @@ public abstract class Wrapper extends DefaultTask {
 
     @Inject
     protected abstract FileLookup getFileLookup();
+
+    @Inject
+    protected abstract ProviderFactory getProviders();
+
+    public abstract static class ExistingWrapperProperties implements ValueSource<Properties, ExistingWrapperProperties.Params> {
+        public interface Params extends ValueSourceParameters {
+            RegularFileProperty getPropertiesFile();
+        }
+
+        @Override
+        public @Nullable Properties obtain() {
+            File propertiesFile = getParameters().getPropertiesFile().getAsFile().get();
+            return propertiesFile.isFile() ? GUtil.loadProperties(propertiesFile) : null;
+        }
+    }
+
+    private enum ExistingPropertyType {
+        INTEGER,
+        BOOLEAN
+    }
+
+    public abstract static class ExistingWrapperProperty implements ValueSource<Object, ExistingWrapperProperty.Params> {
+        public interface Params extends ExistingWrapperProperties.Params {
+            Property<String> getPropertyName();
+            Property<String> getType();
+        }
+
+        @Override
+        public @Nullable Object obtain() {
+            File propertiesFile = getParameters().getPropertiesFile().getAsFile().get();
+            if (!propertiesFile.isFile()) {
+                return null;
+            }
+            Properties properties = GUtil.loadProperties(propertiesFile);
+            String propertyName = getParameters().getPropertyName().get();
+            String value = properties.getProperty(propertyName);
+            if (value == null) {
+                return null;
+            }
+            try {
+                return ExistingPropertyType.INTEGER.name().equals(getParameters().getType().get())
+                    ? Integer.valueOf(value)
+                    : Boolean.valueOf(value);
+            } catch (RuntimeException e) {
+                throw new GradleException(String.format(Locale.ROOT, "Invalid value '%s' for property '%s' in '%s'.", value, propertyName, propertiesFile), e);
+            }
+        }
+    }
 }

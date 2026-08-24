@@ -85,10 +85,10 @@ class WrapperTest extends AbstractTaskTest {
         Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getArchiveBase()
         wrapper.getDistributionUrl() != null
         wrapper.getDistributionSha256Sum() == null
-        !wrapper.getNetworkTimeout().isPresent()
-        wrapper.getValidateDistributionUrl()
-        !wrapper.getRetries().isPresent()
-        !wrapper.getRetryBackOffMs().isPresent()
+        10000 == wrapper.getNetworkTimeout().get()
+        wrapper.getValidateDistributionUrl().get()
+        0 == wrapper.getRetries().get()
+        500 == wrapper.getRetryBackOffMs().get()
     }
 
     def "determines Windows script path from unix script path with #inName"() {
@@ -218,7 +218,7 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "6000"
     }
 
-    def "execute without networkTimeout does not write it to properties file"() {
+    def "execute without networkTimeout writes the default to properties file"() {
         given:
         server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
 
@@ -227,7 +227,7 @@ class WrapperTest extends AbstractTaskTest {
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
-        !properties.containsKey(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY)
+        properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "10000"
     }
 
     def "execute with validateDistributionUrl set"() {
@@ -240,6 +240,57 @@ class WrapperTest extends AbstractTaskTest {
 
         then:
         properties.getProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL) == "false"
+    }
+
+    def "execute preserves existing wrapper properties when task properties are not explicitly configured"() {
+        given:
+        def existingProperties = new Properties()
+        existingProperties.putAll([
+            (WrapperExecutor.NETWORK_TIMEOUT_PROPERTY): "20000",
+            (WrapperExecutor.VALIDATE_DISTRIBUTION_URL): "false",
+            (WrapperExecutor.RETRIES_PROPERTY): "5",
+            (WrapperExecutor.RETRY_BACK_OFF_PROPERTY): "1500"
+        ])
+        GUtil.saveProperties(existingProperties, expectedTargetWrapperProperties)
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "20000"
+        properties.getProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL) == "false"
+        properties.getProperty(WrapperExecutor.RETRIES_PROPERTY) == "5"
+        properties.getProperty(WrapperExecutor.RETRY_BACK_OFF_PROPERTY) == "1500"
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
+    }
+
+    def "execute preserves existing wrapper paths and bases when task properties are not explicitly configured"() {
+        given:
+        wrapper = createTask(Wrapper.class)
+        wrapper.setGradleVersion("8.0")
+        expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(), TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
+        expectedTargetWrapperProperties = new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL + "/gradle-wrapper.properties")
+        new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
+        def existingProperties = new Properties()
+        existingProperties.putAll([
+            (WrapperExecutor.DISTRIBUTION_BASE_PROPERTY): "PROJECT",
+            (WrapperExecutor.DISTRIBUTION_PATH_PROPERTY): "custom-distribution",
+            (WrapperExecutor.ZIP_STORE_BASE_PROPERTY): "PROJECT",
+            (WrapperExecutor.ZIP_STORE_PATH_PROPERTY): "custom-archive"
+        ])
+        GUtil.saveProperties(existingProperties, expectedTargetWrapperProperties)
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == "PROJECT"
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == "custom-distribution"
+        properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == "PROJECT"
+        properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == "custom-archive"
     }
 
     def "check inputs"() {

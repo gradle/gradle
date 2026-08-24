@@ -176,6 +176,105 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         wrapperProperties.text == old(wrapperProperties.text)
     }
 
+    def "wrapper preserves existing properties and updates the distribution URL"() {
+        given:
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = """distributionUrl=https\\://services.gradle.org/distributions/gradle-2.12-all.zip
+networkTimeout=20000
+validateDistributionUrl=false
+retries=5
+retryBackOffMs=1500
+"""
+
+        when:
+        run "wrapper", "--gradle-version", "2.13", "--no-validate-url"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.13-all.zip")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("networkTimeout=20000")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("validateDistributionUrl=false")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("retries=5")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("retryBackOffMs=1500")
+    }
+
+    def "explicit wrapper properties override existing values"() {
+        given:
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+                networkTimeout = 30000
+                distributionBase = Wrapper.PathBase.GRADLE_USER_HOME
+            }
+        """
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = """distributionUrl=http\\://localhost\\:8080/gradlew/dist
+networkTimeout=20000
+distributionBase=PROJECT
+"""
+
+        when:
+        run "wrapper", "--no-validate-url"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("networkTimeout=30000")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionBase=GRADLE_USER_HOME")
+    }
+
+    def "configuration cache does not overwrite edits to existing wrapper properties"() {
+        given:
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+            }
+        """
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = "networkTimeout=20000\n"
+
+        when:
+        run "wrapper", "--configuration-cache", "--no-validate-url"
+        file("gradle/wrapper/gradle-wrapper.properties").text = "networkTimeout=30000\n"
+        run "wrapper", "--configuration-cache", "--no-validate-url"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("networkTimeout=30000")
+    }
+
+    def "explicit wrapper property equal to the default is not skipped as up-to-date"() {
+        given:
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = "distributionBase=PROJECT\n"
+
+        when:
+        run "wrapper", "--no-validate-url"
+        buildFile << """
+            tasks.wrapper {
+                distributionBase = Wrapper.PathBase.GRADLE_USER_HOME
+            }
+        """
+        run "wrapper", "--no-validate-url"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionBase=GRADLE_USER_HOME")
+    }
+
+    def "malformed existing wrapper property identifies the file and property"() {
+        given:
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+            }
+        """
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = "networkTimeout=invalid\n"
+
+        when:
+        fails "wrapper", "--no-validate-url"
+
+        then:
+        failure.assertHasCause("Invalid value 'invalid' for property 'networkTimeout'")
+        failure.assertThatCause(containsString("gradle-wrapper.properties"))
+    }
+
     def "generated wrapper scripts for valid distribution types from command-line"() {
         when:
         run "wrapper", "--gradle-version", "2.13", "--distribution-type", distributionType, "--no-validate-url"
