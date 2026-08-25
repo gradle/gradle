@@ -948,7 +948,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     /**
      * Copy the values from the given {@link CoreJavadocOptions} to this instance.
      *
-     * @since 9.7.0
+     * @since 9.9.0
      */
     @Incubating
     protected CoreJavadocOptions copy(CoreJavadocOptions original) {

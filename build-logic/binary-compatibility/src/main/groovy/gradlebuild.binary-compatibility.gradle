@@ -203,7 +203,8 @@ def checkSinceForNonPublicApi = tasks.register("checkSinceForNonPublicApi", grad
         baseVersion.get(),
         {
             it.includedClasses = toPatterns(["org/gradle/**"])
-            it.excludedClasses = toNonInternalPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
+            // Instrumentation adapters are generated at compile time, so there is no source file to read a @since tag from.
+            it.excludedClasses = toNonInternalPatterns(PublicApi.includes + PublicKotlinDslApi.includes) + toPatterns(["org/gradle/internal/classpath/generated/**"])
 
             it.title = "@since report for non-public Gradle API ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
             it.destinationDir = layout.buildDirectory.dir("reports/binary-compatibility-non-public-api")
