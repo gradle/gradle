@@ -61,7 +61,10 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
      */
     public abstract boolean mayAttemptToChangeLocks();
 
-    @SuppressWarnings("deprecation") // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId() does not exist on JDK 17 (production target).
+    // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId()
+    // does not exist on JDK 17. The method is not deprecated for removal, so we should
+    // be fine for now.
+    @SuppressWarnings("deprecation")
     protected static long currentThreadId() {
         return Thread.currentThread().getId();
     }
