@@ -148,15 +148,6 @@ Task execution is parallel under the Configuration Cache regardless of `--parall
 
 See link:{gradle-issues}36002[gradle/gradle#36002].
 
-[[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
-=== Fine-grained Tracking of Gradle Properties as Build Configuration Inputs
-
-Currently, all external sources of Gradle properties—such as `gradle.properties` files (both in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`), environment variables, system properties that set properties, and properties specified via command-line flags—are considered build configuration inputs, regardless of whether they are actually used during configuration.
-
-However, these sources are not included in the Configuration Cache report.
-
-See link:{gradle-issues}20969[gradle/gradle#20969].
-
 [[config_cache:not_yet_implemented:java_serialization]]
 === Java Object Serialization
 
