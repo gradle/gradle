@@ -23,7 +23,7 @@ import org.gradle.process.ProcessForkOptions
 
 /**
  * Pair variant for setting [ProcessForkOptions.getEnvironment], added for backward compatibility.
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 @Suppress("NOTHING_TO_INLINE")
