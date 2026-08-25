@@ -205,6 +205,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * Examples of String notation: 'org.slf4j:slf4j-api', 'slf4j-api', or simply: 'slf4j'.
      * The input may potentially match multiple dependencies.
      * See also {@link #setDependencySpec(Spec)}
+     * @since 1.3
      */
     public void setDependencySpec(@Nullable Object dependencyInsightNotation) {
         setDependencySpec(DependencyResultSpecNotationConverter.parser().parseNotation(dependencyInsightNotation));
@@ -250,6 +251,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     /**
      * Sets the configuration to look the dependency in.
+     * @since 1.2
      */
     public void setConfiguration(@Nullable Configuration configuration) {
         getConfiguration().set(configuration);

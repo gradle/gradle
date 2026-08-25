@@ -79,6 +79,11 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @Override
     public abstract Property<TaskReportRenderer> getRenderer();
 
+    /**
+     * Sets the renderer.
+     *
+     * @since 0.7
+     */
     public void setRenderer(TaskReportRenderer renderer) {
         getRenderer().set(renderer);
     }
@@ -98,6 +103,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     /**
      * Sets whether to show "invisible" tasks without a group or dependent tasks.
+     * @since 0.9
      */
     public void setShowDetail(boolean detail) {
         getShowDetail().set(detail);

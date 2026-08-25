@@ -53,6 +53,7 @@ public interface TestLogging {
      * Sets the events to be logged.
      *
      * @param events the events to be logged
+     * @since 1.1
      */
     void setEvents(Iterable<?> events);
 
@@ -83,6 +84,7 @@ public interface TestLogging {
      * Sets the minimum granularity of the events to be logged.
      *
      * @param granularity the minimum granularity of the events to be logged
+     * @since 1.1
      */
     void setMinGranularity(int granularity);
 
@@ -105,6 +107,7 @@ public interface TestLogging {
      * Sets the maximum granularity of the events to be logged.
      *
      * @param granularity the maximum granularity of the events to be logged
+     * @since 1.1
      */
     void setMaxGranularity(int granularity);
 
@@ -123,6 +126,7 @@ public interface TestLogging {
      * Sets the display granularity of the events to be logged.
      *
      * @param granularity the display granularity of the events to be logged
+     * @since 1.1
      */
     void setDisplayGranularity(int granularity);
 
@@ -142,6 +146,7 @@ public interface TestLogging {
      * Sets whether exceptions that occur during test execution will be logged.  Defaults to true.
      *
      * @param flag whether exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     void setShowExceptions(boolean flag);
 
@@ -161,6 +166,7 @@ public interface TestLogging {
      * Sets whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}. Defaults to true.
      *
      * @param flag whether causes of exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     void setShowCauses(boolean flag);
 
@@ -180,6 +186,7 @@ public interface TestLogging {
      * Sets whether stack traces of exceptions that occur during test execution will be logged.  Defaults to true.
      *
      * @param flag whether stack traces of exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     void setShowStackTraces(boolean flag);
 
@@ -208,6 +215,7 @@ public interface TestLogging {
      * the INFO and DEBUG log levels and {@link TestExceptionFormat#SHORT} for the LIFECYCLE log level.
      *
      * @param exceptionFormat the format to be used for logging test exceptions
+     * @since 1.1
      */
     void setExceptionFormat(Object exceptionFormat);
 
@@ -233,6 +241,7 @@ public interface TestLogging {
      * Sets the set of filters to be used for sanitizing test stack traces.
      *
      * @param stackTraces the set of filters to be used for sanitizing test stack traces
+     * @since 1.1
      */
     void setStackTraceFilters(Iterable<?> stackTraces);
 
@@ -255,6 +264,7 @@ public interface TestLogging {
 
     /**
      * Sets whether output on standard out and standard error will be logged. Equivalent to setting log events {@code TestLogEvent.STANDARD_OUT} and {@code TestLogEvent.STANDARD_ERROR}.
+     * @since 1.1
      */
     TestLogging setShowStandardStreams(boolean flag);
 }

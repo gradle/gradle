@@ -101,6 +101,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
+     * @since 1.0
      */
     public void setConfigProperties(Map<String, Object> configProperties) {
         getConfigProperties().set(configProperties);
@@ -173,6 +174,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
      *
      * Example: showViolations = false
+     * @since 1.4
      */
     public void setShowViolations(boolean showViolations) {
         getShowViolations().set(showViolations);

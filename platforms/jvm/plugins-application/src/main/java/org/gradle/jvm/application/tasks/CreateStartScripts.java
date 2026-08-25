@@ -180,6 +180,11 @@ public abstract class CreateStartScripts extends ConventionTask {
         return optsEnvironmentVar;
     }
 
+    /**
+     * Sets the opts environment var.
+     *
+     * @since 2.4
+     */
     public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
         getOptsEnvironmentVar().set(optsEnvironmentVar);
     }
@@ -331,6 +336,11 @@ public abstract class CreateStartScripts extends ConventionTask {
     @ReplacesEagerProperty(originalType = Iterable.class)
     public abstract ListProperty<String> getDefaultJvmOpts();
 
+    /**
+     * Sets the default jvm opts.
+     *
+     * @since 2.4
+     */
     public void setDefaultJvmOpts(@Nullable Iterable<String> defaultJvmOpts) {
         getDefaultJvmOpts().set(defaultJvmOpts);
     }
@@ -346,6 +356,11 @@ public abstract class CreateStartScripts extends ConventionTask {
         return applicationName;
     }
 
+    /**
+     * Sets the application name.
+     *
+     * @since 2.4
+     */
     public void setApplicationName(@Nullable String applicationName) {
         getApplicationName().set(applicationName);
     }
@@ -383,6 +398,11 @@ public abstract class CreateStartScripts extends ConventionTask {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
 
+    /**
+     * Sets the classpath.
+     *
+     * @since 2.4
+     */
     public void setClasspath(@Nullable FileCollection classpath) {
         getClasspath().setFrom(classpath);
     }

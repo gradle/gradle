@@ -201,6 +201,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getUse();
 
+    /**
+     * Sets the use.
+     *
+     * @since 0.7
+     */
     public void setUse(boolean use) {
         getUse().set(use);
     }
@@ -242,6 +247,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVersion();
 
+    /**
+     * Sets the version.
+     *
+     * @since 0.7
+     */
     public void setVersion(boolean version) {
         getVersion().set(version);
     }
@@ -282,6 +292,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getAuthor();
 
+    /**
+     * Sets the author.
+     *
+     * @since 0.7
+     */
     public void setAuthor(boolean author) {
         getAuthor().set(author);
     }
@@ -323,6 +338,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getSplitIndex();
 
+    /**
+     * Sets the split index.
+     *
+     * @since 0.7
+     */
     public void setSplitIndex(boolean splitIndex) {
         getSplitIndex().set(splitIndex);
     }
@@ -414,6 +434,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getDocTitle();
 
+    /**
+     * Sets the doc title.
+     *
+     * @since 0.7
+     */
     public void setDocTitle(@Nullable String docTitle) {
         getDocTitle().set(docTitle);
     }
@@ -441,6 +466,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getFooter();
 
+    /**
+     * Sets the footer.
+     *
+     * @since 0.7
+     */
     public void setFooter(@Nullable String footer) {
         getFooter().set(footer);
     }
@@ -469,6 +499,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getBottom();
 
+    /**
+     * Sets the bottom.
+     *
+     * @since 0.7
+     */
     public void setBottom(@Nullable String bottom) {
         getBottom().set(bottom);
     }
@@ -508,6 +543,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getLinks();
 
+    /**
+     * Sets the links.
+     *
+     * @since 0.7
+     */
     public void setLinks(@Nullable List<String> links) {
         getLinks().set(links);
     }
@@ -562,6 +602,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<JavadocOfflineLink> getLinksOffline();
 
+    /**
+     * Sets the links offline.
+     *
+     * @since 0.7
+     */
     public void setLinksOffline(@Nullable List<JavadocOfflineLink> linksOffline) {
         getLinksOffline().set(linksOffline);
     }
@@ -603,6 +648,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getLinkSource();
 
+    /**
+     * Sets the link source.
+     *
+     * @since 0.7
+     */
     public void setLinkSource(boolean linkSource) {
         getLinkSource().set(linkSource);
     }
@@ -682,6 +732,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract MapProperty<String, List<String>> getGroups();
 
+    /**
+     * Sets the groups.
+     *
+     * @since 0.7
+     */
     public void setGroups(@Nullable Map<String, List<String>> groups) {
         getGroups().set(groups);
     }
@@ -735,6 +790,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoDeprecated();
 
+    /**
+     * Sets the no deprecated.
+     *
+     * @since 0.7
+     */
     public void setNoDeprecated(boolean noDeprecated) {
         getNoDeprecated().set(noDeprecated);
     }
@@ -778,6 +838,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoDeprecatedList();
 
+    /**
+     * Sets the no deprecated list.
+     *
+     * @since 0.7
+     */
     public void setNoDeprecatedList(boolean noDeprecatedList) {
         getNoDeprecatedList().set(noDeprecatedList);
     }
@@ -818,6 +883,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoSince();
 
+    /**
+     * Sets the no since.
+     *
+     * @since 0.7
+     */
     public void setNoSince(boolean noSince) {
         getNoSince().set(noSince);
     }
@@ -860,6 +930,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoTree();
 
+    /**
+     * Sets the no tree.
+     *
+     * @since 0.7
+     */
     public void setNoTree(boolean noTree) {
         getNoTree().set(noTree);
     }
@@ -900,6 +975,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoIndex();
 
+    /**
+     * Sets the no index.
+     *
+     * @since 0.7
+     */
     public void setNoIndex(boolean noIndex) {
         getNoIndex().set(noIndex);
     }
@@ -940,6 +1020,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoHelp();
 
+    /**
+     * Sets the no help.
+     *
+     * @since 0.7
+     */
     public void setNoHelp(boolean noHelp) {
         getNoHelp().set(noHelp);
     }
@@ -983,6 +1068,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoNavBar();
 
+    /**
+     * Sets the no nav bar.
+     *
+     * @since 0.7
+     */
     public void setNoNavBar(boolean noNavBar) {
         getNoNavBar().set(noNavBar);
     }
@@ -1028,6 +1118,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract RegularFileProperty getHelpFile();
 
+    /**
+     * Sets the help file.
+     *
+     * @since 0.7
+     */
     public void setHelpFile(@Nullable File helpFile) {
         getHelpFile().set(helpFile);
     }
@@ -1056,6 +1151,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract RegularFileProperty getStylesheetFile();
 
+    /**
+     * Sets the stylesheet file.
+     *
+     * @since 0.7
+     */
     public void setStylesheetFile(@Nullable File stylesheetFile) {
         getStylesheetFile().set(stylesheetFile);
     }
@@ -1082,6 +1182,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getSerialWarn();
 
+    /**
+     * Sets the serial warn.
+     *
+     * @since 0.7
+     */
     public void setSerialWarn(boolean serialWarn) {
         getSerialWarn().set(serialWarn);
     }
@@ -1133,6 +1238,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getCharSet();
 
+    /**
+     * Sets the char set.
+     *
+     * @since 0.7
+     */
     public void setCharSet(@Nullable String charSet) {
         getCharSet().set(charSet);
     }
@@ -1162,6 +1272,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getDocEncoding();
 
+    /**
+     * Sets the doc encoding.
+     *
+     * @since 0.7
+     */
     public void setDocEncoding(@Nullable String docEncoding) {
         getDocEncoding().set(docEncoding);
     }
@@ -1183,6 +1298,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getKeyWords();
 
+    /**
+     * Sets the key words.
+     *
+     * @since 0.7
+     */
     public void setKeyWords(boolean keyWords) {
         getKeyWords().set(keyWords);
     }
@@ -1223,6 +1343,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getTags();
 
+    /**
+     * Sets the tags.
+     *
+     * @since 0.7
+     */
     public void setTags(@Nullable List<String> tags) {
         getTags().set(tags);
     }
@@ -1264,6 +1389,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getTaglets();
 
+    /**
+     * Sets the taglets.
+     *
+     * @since 1.0
+     */
     public void setTaglets(@Nullable List<String> taglets) {
         getTaglets().set(taglets);
     }
@@ -1296,6 +1426,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(adapter = StandardJavadocDocletOptions.TagletPathAdapter.class)
     public abstract ConfigurableFileCollection getTagletPath();
 
+    /**
+     * Sets the taglet path.
+     *
+     * @since 0.7
+     */
     public void setTagletPath(@Nullable List<File> tagletPath) {
         getTagletPath().setFrom(tagletPath);
     }
@@ -1326,6 +1461,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDocFilesSubDirs();
 
+    /**
+     * Sets the doc files sub dirs.
+     *
+     * @since 0.7
+     */
     public void setDocFilesSubDirs(boolean docFilesSubDirs) {
         getDocFilesSubDirs().set(docFilesSubDirs);
     }
@@ -1366,6 +1506,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludeDocFilesSubDir();
 
+    /**
+     * Sets the exclude doc files sub dir.
+     *
+     * @since 0.7
+     */
     public void setExcludeDocFilesSubDir(@Nullable List<String> excludeDocFilesSubDir) {
         getExcludeDocFilesSubDir().set(excludeDocFilesSubDir);
     }
@@ -1398,6 +1543,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getNoQualifiers();
 
+    /**
+     * Sets the no qualifiers.
+     *
+     * @since 0.7
+     */
     public void setNoQualifiers(@Nullable List<String> noQualifiers) {
         getNoQualifiers().set(noQualifiers);
     }
@@ -1425,6 +1575,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoTimestamp();
 
+    /**
+     * Sets the no timestamp.
+     *
+     * @since 0.7
+     */
     public void setNoTimestamp(boolean noTimestamp) {
         getNoTimestamp().set(noTimestamp);
     }
@@ -1463,6 +1618,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoComment();
 
+    /**
+     * Sets the no comment.
+     *
+     * @since 0.7
+     */
     public void setNoComment(boolean noComment) {
         getNoComment().set(noComment);
     }

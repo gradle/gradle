@@ -76,6 +76,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      * </pre>
+     * @since 1.0
      */
     public void setRuleSets(List<String> ruleSets) {
         this.getRuleSetsProperty().set(ruleSets);
@@ -218,6 +219,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * <pre>
      *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
      * </pre>
+     * @since 1.0
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
         getRuleSetFiles().setFrom(ruleSetFiles);
@@ -245,6 +247,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
+     * @since 2.1
      */
     public void setConsoleOutput(boolean consoleOutput) {
         getConsoleOutput().set(consoleOutput);

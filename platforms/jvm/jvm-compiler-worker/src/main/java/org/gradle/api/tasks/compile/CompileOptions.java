@@ -88,6 +88,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
+     * @since 0.7
      */
     public void setFailOnError(boolean failOnError) {
         getFailOnError().set(failOnError);
@@ -108,6 +109,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to produce verbose output. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setVerbose(boolean verbose) {
         getVerbose().set(verbose);
@@ -128,6 +130,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to log the files to be compiled. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setListFiles(boolean listFiles) {
         getListFiles().set(listFiles);
@@ -151,6 +154,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setDeprecation(boolean deprecation) {
         getDeprecation().set(deprecation);
@@ -174,6 +178,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to log warning messages. The default is {@code true}.
+     * @since 0.7
      */
     public void setWarnings(boolean warnings) {
         getWarnings().set(warnings);
@@ -192,6 +197,7 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
+     * @since 0.7
      */
     public void setEncoding(@Nullable String encoding) {
         getEncoding().set(encoding);
@@ -218,6 +224,7 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Sets whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     * @since 0.7
      */
     public void setDebug(boolean debug) {
         getDebug().set(debug);
@@ -263,6 +270,7 @@ public abstract class CompileOptions implements Serializable {
      * Sets whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
+     * @since 0.7
      */
     public void setFork(boolean fork) {
         getFork().set(fork);
@@ -314,6 +322,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
+     * @since 0.7
      */
     public void setExtensionDirs(@Nullable String extensionDirs) {
         getExtensionDirs().set(extensionDirs);
@@ -339,6 +348,7 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Sets any additional arguments to be passed to the compiler.
      * Defaults to the empty list.
+     * @since 0.7
      */
     public void setCompilerArgs(List<String> compilerArgs) {
         getCompilerArgs().set(compilerArgs);
@@ -386,6 +396,7 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
+     * @since 1.12
      */
     public CompileOptions setIncremental(boolean incremental) {
         getIncremental().set(incremental);
@@ -434,6 +445,7 @@ public abstract class CompileOptions implements Serializable {
      * Sets the source path to use for the compilation.
      *
      * @param sourcepath the source path
+     * @since 2.4
      */
     public void setSourcepath(@Nullable FileCollection sourcepath) {
         getSourcepath().setFrom(sourcepath);

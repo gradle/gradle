@@ -81,6 +81,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
      * Sets the publication to be published.
      *
      * @param publication The publication to be published. Currently only instances of MavenPublicationInternal are supported.
+     * @since 2.4
      */
     public void setPublication(MavenPublication publication) {
         this.publication.set(toPublicationInternal(publication));

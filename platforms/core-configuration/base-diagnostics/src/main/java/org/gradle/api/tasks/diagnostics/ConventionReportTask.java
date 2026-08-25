@@ -103,6 +103,7 @@ public abstract class ConventionReportTask extends ConventionTask {
      * Sets the file which the report will be written to. Set this to {@code null} to write the report to {@code System.out}.
      *
      * @param outputFile The output file. May be null.
+     * @since 6.9
      */
     public void setOutputFile(@Nullable File outputFile) {
         getOutputFile().set(outputFile);
@@ -125,6 +126,7 @@ public abstract class ConventionReportTask extends ConventionTask {
      * Specifies the set of projects to generate this report for.
      *
      * @param projects The set of projects. Must not be null.
+     * @since 6.9
      */
     public void setProjects(Set<Project> projects) {
         getProjects().set(projects);

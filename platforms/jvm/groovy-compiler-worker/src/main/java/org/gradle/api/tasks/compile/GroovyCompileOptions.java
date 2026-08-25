@@ -82,6 +82,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
+     * @since 0.7
      */
     public void setFailOnError(boolean failOnError) {
         getFailOnError().set(failOnError);
@@ -101,6 +102,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets whether to turn on verbose output. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setVerbose(boolean verbose) {
         getVerbose().set(verbose);
@@ -120,6 +122,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets whether to print which source files are to be compiled. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setListFiles(boolean listFiles) {
         getListFiles().set(listFiles);
@@ -135,6 +138,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets the source encoding. Defaults to {@code UTF-8}.
+     * @since 0.7
      */
     public void setEncoding(String encoding) {
         getEncoding().set(encoding);
@@ -154,6 +158,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
+     * @since 0.7
      */
     public void setFork(boolean fork) {
         getFork().set(fork);
@@ -252,6 +257,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Sets whether Java annotation processors should process annotations on stubs.
      *
      * Defaults to {@code false}.
+     * @since 2.5
      */
     public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
         getJavaAnnotationProcessing().set(javaAnnotationProcessing);
@@ -322,6 +328,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     /**
      * Sets optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
      * Only takes effect when compiling against Groovy 1.8 or higher.
+     * @since 1.1
      */
     public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
         getOptimizationOptions().set(optimizationOptions);
@@ -380,6 +387,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     /**
      * Sets the list of acceptable source file extensions. Only takes effect when compiling against
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
+     * @since 1.1
      */
     public void setFileExtensions(List<String> fileExtensions) {
         getFileExtensions().set(fileExtensions);
@@ -403,6 +411,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Sets whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
      * Defaults to {@code false}.
+     * @since 1.0
      */
     public void setKeepStubs(boolean keepStubs) {
         getKeepStubs().set(keepStubs);

@@ -157,6 +157,7 @@ public abstract class Jar extends Zip {
 
     /**
      * Sets the character set used to encode JAR metadata fields such as long file names.
+     * @since 2.14
      */
     public void setManifestContentCharset(String manifestContentCharset) {
         getManifestContentCharset().set(manifestContentCharset);

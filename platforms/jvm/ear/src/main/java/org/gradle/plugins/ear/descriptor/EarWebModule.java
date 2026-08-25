@@ -31,5 +31,10 @@ public interface EarWebModule extends EarModule {
     @ReplacesEagerProperty
     Property<String> getContextRoot();
 
+    /**
+     * Sets the context root.
+     *
+     * @since 1.0
+     */
     void setContextRoot(String contextRoot);
 }

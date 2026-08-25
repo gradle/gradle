@@ -77,6 +77,7 @@ public abstract class Tar extends AbstractArchiveTask {
      * Configures the compressor based on passed in compression.
      *
      * @param compression The compression. Should not be null.
+     * @since 0.7
      */
     public void setCompression(Compression compression) {
         getCompression().set(compression);

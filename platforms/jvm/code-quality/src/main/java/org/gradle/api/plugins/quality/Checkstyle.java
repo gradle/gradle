@@ -215,6 +215,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The class path containing the Checkstyle library to be used.
+     * @since 1.0
      */
     public void setCheckstyleClasspath(FileCollection checkstyleClasspath) {
         getCheckstyleClasspath().setFrom(checkstyleClasspath);
@@ -230,6 +231,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
+     * @since 0.8
      */
     public void setClasspath(FileCollection classpath) {
         getClasspath().setFrom(classpath);
@@ -265,6 +267,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
+     * @since 1.0
      */
     public void setConfigProperties(@Nullable Map<String, Object> configProperties) {
         getConfigProperties().set(configProperties);
@@ -345,6 +348,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * Whether rule violations are to be displayed on the console.
+     * @since 1.4
      */
     public void setShowViolations(boolean showViolations) {
         getShowViolations().set(showViolations);

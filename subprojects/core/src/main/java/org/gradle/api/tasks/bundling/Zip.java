@@ -106,6 +106,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
      *
      * @param entryCompression {@code STORED} or {@code DEFLATED}
+     * @since 1.5
      */
     public void setEntryCompression(ZipEntryCompression entryCompression) {
         getEntryCompression().set(entryCompression);
@@ -130,6 +131,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * Enables building zips with more than 65535 files or bigger than 4GB.
      *
      * @see #isZip64()
+     * @since 1.12
      */
     public void setZip64(boolean zip64) {
         getZip64().set(zip64);
@@ -156,6 +158,7 @@ public abstract class Zip extends AbstractArchiveTask {
 
     /**
      * Sets the character set used to encode ZIP metadata like file names.
+     * @since 2.14
      */
     public void setMetadataCharset(String metadataCharset) {
         getMetadataCharset().set(metadataCharset);

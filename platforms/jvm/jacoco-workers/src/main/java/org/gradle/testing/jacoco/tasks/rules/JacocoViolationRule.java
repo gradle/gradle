@@ -41,6 +41,11 @@ public interface JacocoViolationRule {
     @ReplacesEagerProperty(originalType = boolean.class)
     Property<Boolean> getEnabled();
 
+    /**
+     * Sets the enabled.
+     *
+     * @since 3.4
+     */
     void setEnabled(boolean enabled);
 
     /**
@@ -66,6 +71,7 @@ public interface JacocoViolationRule {
      * Sets element for the rule.
      *
      * @param element Element
+     * @since 3.4
      */
     void setElement(String element);
 
@@ -82,6 +88,7 @@ public interface JacocoViolationRule {
      * Sets list of elements that should be included in check.
      *
      * @param includes Inclusions
+     * @since 3.4
      */
     void setIncludes(List<String> includes);
 
@@ -98,6 +105,7 @@ public interface JacocoViolationRule {
      * Sets list of elements that should be excluded from check.
      *
      * @param excludes Exclusions
+     * @since 3.4
      */
     void setExcludes(List<String> excludes);
 

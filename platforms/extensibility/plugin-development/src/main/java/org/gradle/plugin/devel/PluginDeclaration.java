@@ -55,6 +55,11 @@ public abstract class PluginDeclaration implements Named {
     @ReplacesEagerProperty
     public abstract Property<String> getId();
 
+    /**
+     * Sets the id.
+     *
+     * @since 2.14
+     */
     public void setId(String id) {
         getId().set(id);
     }
@@ -67,6 +72,11 @@ public abstract class PluginDeclaration implements Named {
     @ReplacesEagerProperty
     public abstract Property<String> getImplementationClass();
 
+    /**
+     * Sets the implementation class.
+     *
+     * @since 2.14
+     */
     public void setImplementationClass(String implementationClass) {
         getImplementationClass().set(implementationClass);
     }

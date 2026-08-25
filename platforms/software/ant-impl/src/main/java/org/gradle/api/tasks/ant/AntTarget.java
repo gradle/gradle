@@ -75,6 +75,7 @@ public abstract class AntTarget extends ConventionTask {
 
     /**
      * Sets the Ant target to execute.
+     * @since 0.7
      */
     public void setTarget(Target target) {
         getTarget().set(target);
@@ -90,6 +91,7 @@ public abstract class AntTarget extends ConventionTask {
 
     /**
      * Sets the Ant project base directory to use when executing the target.
+     * @since 0.7
      */
     public void setBaseDir(File baseDir) {
         getBaseDir().set(baseDir);

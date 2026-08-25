@@ -64,6 +64,11 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     @Override
     public abstract Property<PropertyReportRenderer> getRenderer();
 
+    /**
+     * Sets the renderer.
+     *
+     * @since 0.7
+     */
     public void setRenderer(PropertyReportRenderer renderer) {
         getRenderer().set(renderer);
     }

@@ -38,6 +38,7 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * Sets the name used to publish the artifact file.
      * @param name The name.
+     * @since 1.5
      */
     void setName(String name);
 
@@ -51,6 +52,7 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * Sets the type used to publish the artifact file.
      * @param type The type.
+     * @since 1.5
      */
     void setType(String type);
 
@@ -65,6 +67,7 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
+     * @since 1.5
      */
     void setExtension(String extension);
 
@@ -80,6 +83,7 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
+     * @since 1.5
      */
     void setClassifier(@Nullable String classifier);
 
@@ -97,6 +101,7 @@ public interface IvyArtifact extends PublicationArtifact {
      * Sets a comma separated list of public configurations in which this artifact is published.
      * The '*' wildcard can be used to designate that the artifact is published in all public configurations.
      * @param conf The value of 'conf' for this artifact.
+     * @since 1.5
      */
     void setConf(@Nullable String conf);
 }

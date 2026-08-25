@@ -41,6 +41,7 @@ public interface JUnitXmlReport extends DirectoryReport {
 
     /**
      * Should the output be associated with individual test cases instead of at the suite level.
+     * @since 1.7
      */
     void setOutputPerTestCase(boolean outputPerTestCase);
 

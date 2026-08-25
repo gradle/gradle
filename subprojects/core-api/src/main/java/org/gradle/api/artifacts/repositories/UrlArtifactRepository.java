@@ -49,6 +49,7 @@ public interface UrlArtifactRepository {
      * Sets the base URL of this repository.
      *
      * @param url The base URL.
+     * @since 6.0
      */
     void setUrl(Object url);
 
@@ -74,6 +75,7 @@ public interface UrlArtifactRepository {
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
      *
      * @see #isAllowInsecureProtocol()
+     * @since 6.0
      */
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);
 

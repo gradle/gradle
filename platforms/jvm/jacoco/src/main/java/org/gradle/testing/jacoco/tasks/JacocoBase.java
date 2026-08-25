@@ -37,6 +37,11 @@ public abstract class JacocoBase extends DefaultTask {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getJacocoClasspath();
 
+    /**
+     * Sets the jacoco classpath.
+     *
+     * @since 1.6
+     */
     public void setJacocoClasspath(FileCollection jacocoClasspath) {
         getJacocoClasspath().setFrom(jacocoClasspath);
     }

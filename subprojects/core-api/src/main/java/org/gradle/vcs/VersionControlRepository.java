@@ -52,6 +52,7 @@ public interface VersionControlRepository {
      * Sets the relative path to the root of the build within the repository. Use an empty string to refer to the root of the repository.
      *
      * @param rootDir The root directory of the build, relative to the root of this repository.
+     * @since 4.10
      */
     void setRootDir(String rootDir);
 
