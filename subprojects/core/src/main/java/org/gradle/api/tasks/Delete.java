@@ -73,6 +73,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * Returns the resolved set of files which will be deleted by this task.
      *
      * @return The files. Never returns null.
+     * @since 0.9
      */
     @Destroys
     @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getTargetFiles"))
@@ -133,6 +134,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      *
      * @param target Any type of object accepted by {@link Project#files(Object...)}
      * @deprecated Use {@link #getTargetFiles()} property instead
+     * @since 0.9
      */
     @Deprecated
     public void setDelete(Object target) {

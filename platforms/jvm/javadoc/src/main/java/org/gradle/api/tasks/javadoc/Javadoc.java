@@ -276,6 +276,7 @@ public abstract class Javadoc extends SourceTask {
 
     /**
      * <p>Sets the directory to generate the documentation into.</p>
+     * @since 0.7
      */
     public void setDestinationDir(@Nullable File destinationDir) {
         getDestinationDirectory().set(destinationDir);
@@ -308,6 +309,7 @@ public abstract class Javadoc extends SourceTask {
      * Sets the amount of memory allocated to this task.
      *
      * @param maxMemory The amount of memory
+     * @since 0.7
      */
     public void setMaxMemory(@Nullable String maxMemory) {
         getMaxMemory().set(maxMemory);
@@ -326,6 +328,7 @@ public abstract class Javadoc extends SourceTask {
 
     /**
      * <p>Sets the title for the generated documentation.</p>
+     * @since 0.7
      */
     public void setTitle(@Nullable String title) {
         getTitle().set(title);
@@ -345,6 +348,7 @@ public abstract class Javadoc extends SourceTask {
      * Sets the classpath to use to resolve type references in this source code.
      *
      * @param classpath The classpath. Must not be null.
+     * @since 0.8
      */
     public void setClasspath(FileCollection classpath) {
         getClasspath().setFrom(classpath);
@@ -399,6 +403,11 @@ public abstract class Javadoc extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
+    /**
+     * Sets the fail on error.
+     *
+     * @since 0.7
+     */
     public void setFailOnError(boolean failOnError) {
         getFailOnError().set(failOnError);
     }
@@ -432,6 +441,11 @@ public abstract class Javadoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getExecutable();
 
+    /**
+     * Sets the executable.
+     *
+     * @since 0.9
+     */
     public void setExecutable(@Nullable String executable) {
         getExecutable().set(executable);
     }

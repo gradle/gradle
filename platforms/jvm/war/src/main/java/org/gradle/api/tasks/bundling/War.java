@@ -159,6 +159,7 @@ public abstract class War extends Jar {
      * Sets the classpath to include in the WAR archive.
      *
      * @param classpath The classpath. Must not be null.
+     * @since 0.9
      */
     public void setClasspath(Object classpath) {
         getClasspath().setFrom(classpath);

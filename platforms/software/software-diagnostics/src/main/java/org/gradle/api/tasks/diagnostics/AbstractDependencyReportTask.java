@@ -64,6 +64,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
 
     /**
      * Set the renderer to use to build a report. If unset, AsciiGraphRenderer will be used.
+     * @since 2.10
      */
     public void setRenderer(DependencyReportRenderer renderer) {
         getRenderer().set(renderer);

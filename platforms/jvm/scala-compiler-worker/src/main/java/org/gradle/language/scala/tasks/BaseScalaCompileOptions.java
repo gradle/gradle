@@ -75,6 +75,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getFailOnError();
     }
 
+    /**
+     * Sets the fail on error.
+     *
+     * @since 2.3
+     */
     public void setFailOnError(boolean failOnError) {
         getFailOnError().set(failOnError);
     }
@@ -91,6 +96,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getDeprecation();
     }
 
+    /**
+     * Sets the deprecation.
+     *
+     * @since 2.3
+     */
     public void setDeprecation(boolean deprecation) {
         getDeprecation().set(deprecation);
     }
@@ -107,6 +117,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getUnchecked();
     }
 
+    /**
+     * Sets the unchecked.
+     *
+     * @since 2.3
+     */
     public void setUnchecked(boolean unchecked) {
         getUnchecked().set(unchecked);
     }
@@ -121,6 +136,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getDebugLevel();
 
+    /**
+     * Sets the debug level.
+     *
+     * @since 2.3
+     */
     public void setDebugLevel(@Nullable String debugLevel) {
         getDebugLevel().set(debugLevel);
     }
@@ -137,6 +157,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getOptimize();
     }
 
+    /**
+     * Sets the optimize.
+     *
+     * @since 2.3
+     */
     public void setOptimize(boolean optimize) {
         getOptimize().set(optimize);
     }
@@ -150,6 +175,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
 
+    /**
+     * Sets the encoding.
+     *
+     * @since 2.3
+     */
     public void setEncoding(@Nullable String encoding) {
         getEncoding().set(encoding);
     }
@@ -169,6 +199,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getForce();
     }
 
+    /**
+     * Sets the force.
+     *
+     * @since 2.12
+     */
     public void setForce(boolean force) {
         getForce().set(force);
     }
@@ -189,6 +224,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Sets the additional parameters.
      * <p>
      * Setting this property will clear any previously set additional parameters.
+     * @since 2.3
      */
     public void setAdditionalParameters(List<String> additionalParameters) {
         getAdditionalParameters().set(additionalParameters);
@@ -206,6 +242,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getListFiles();
     }
 
+    /**
+     * Sets the list files.
+     *
+     * @since 2.3
+     */
     public void setListFiles(boolean listFiles) {
         getListFiles().set(listFiles);
     }
@@ -219,6 +260,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getLoggingLevel();
 
+    /**
+     * Sets the logging level.
+     *
+     * @since 2.3
+     */
     public void setLoggingLevel(String loggingLevel) {
         getLoggingLevel().set(loggingLevel);
     }
@@ -233,6 +279,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract ListProperty<String> getLoggingPhases();
 
+    /**
+     * Sets the logging phases.
+     *
+     * @since 2.3
+     */
     public void setLoggingPhases(List<String> loggingPhases) {
         getLoggingPhases().set(loggingPhases);
     }

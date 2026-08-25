@@ -256,6 +256,7 @@ public abstract class Wrapper extends DefaultTask {
 
     /**
      * The file to write the wrapper script to.
+     * @since 0.9
      */
     public void setScriptFile(Object scriptFile) {
         getScriptFile().fileValue(getFileOperations().file(scriptFile));
@@ -292,6 +293,7 @@ public abstract class Wrapper extends DefaultTask {
 
     /**
      * The file to write the wrapper jar file to.
+     * @since 0.9
      */
     public void setJarFile(Object jarFile) {
         getJarFile().fileValue(getFileOperations().file(jarFile));
@@ -323,6 +325,7 @@ public abstract class Wrapper extends DefaultTask {
      * distribution base directory
      *
      * @see #setDistributionPath(String)
+     * @since 0.7
      */
     public void setDistributionPath(String distributionPath) {
         getDistributionPath().set(distributionPath);
@@ -344,6 +347,7 @@ public abstract class Wrapper extends DefaultTask {
 
     /**
      * Sets the version of the gradle distribution required by the wrapper.
+     * @since 0.7
      */
     public void setGradleVersion(String gradleVersion) {
         getGradleVersion().set(gradleVersion);
@@ -364,6 +368,7 @@ public abstract class Wrapper extends DefaultTask {
      * which is the binary-only Gradle distribution without documentation.
      *
      * @see DistributionType
+     * @since 3.1
      */
     public void setDistributionType(DistributionType distributionType) {
         getDistributionType().set(distributionType);
@@ -407,6 +412,7 @@ public abstract class Wrapper extends DefaultTask {
 
     /**
      * Sets the URL to download the gradle distribution from.
+     * @since 0.9.1
      */
     public void setDistributionUrl(String url) {
         getDistributionUrl().set(url);
@@ -456,6 +462,7 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
      * the gradle user home dir.
+     * @since 0.7
      */
     public void setDistributionBase(PathBase distributionBase) {
         getDistributionBase().set(distributionBase);
@@ -473,6 +480,7 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * Set's the path where the gradle distributions archive should be saved (i.e. the parent dir). The path is relative
      * to the parent dir specified with {@link #getArchiveBase()}.
+     * @since 0.7
      */
     public void setArchivePath(String archivePath) {
         getArchivePath().set(archivePath);
@@ -490,6 +498,7 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * The archive base specifies whether the unpacked wrapper distribution should be stored in the project or in the
      * gradle user home dir.
+     * @since 0.7
      */
     public void setArchiveBase(PathBase archiveBase) {
         getArchiveBase().set(archiveBase);

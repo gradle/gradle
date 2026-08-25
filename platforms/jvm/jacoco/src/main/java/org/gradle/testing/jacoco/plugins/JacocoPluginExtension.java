@@ -88,6 +88,11 @@ public abstract class JacocoPluginExtension {
     @ReplacesEagerProperty
     public abstract Property<String> getToolVersion();
 
+    /**
+     * Sets the tool version.
+     *
+     * @since 1.6
+     */
     public void setToolVersion(String toolVersion) {
         getToolVersion().set(toolVersion);
     }

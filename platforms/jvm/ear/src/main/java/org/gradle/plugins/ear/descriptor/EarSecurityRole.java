@@ -31,6 +31,11 @@ public interface EarSecurityRole {
     @ReplacesEagerProperty
     Property<String> getDescription();
 
+    /**
+     * Sets the description.
+     *
+     * @since 1.0
+     */
     void setDescription(String description);
 
     /**
@@ -40,5 +45,10 @@ public interface EarSecurityRole {
     @ReplacesEagerProperty
     Property<String> getRoleName();
 
+    /**
+     * Sets the role name.
+     *
+     * @since 1.0
+     */
     void setRoleName(String roleName);
 }

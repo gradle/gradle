@@ -251,6 +251,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets the classpath containing the Groovy library to be used.
+     * @since 0.7
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
         getGroovyClasspath().setFrom(groovyClasspath);
@@ -267,6 +268,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets the classpath used to locate classes referenced by the documented sources.
+     * @since 1.0
      */
     public void setClasspath(FileCollection classpath) {
         getClasspath().setFrom(classpath);
@@ -282,6 +284,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to create class and package usage pages.
+     * @since 0.8
      */
     public void setUse(boolean use) {
         getUse().set(use);
@@ -302,6 +305,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     public void setNoTimestamp(boolean noTimestamp) {
         getNoTimestamp().set(noTimestamp);
@@ -322,6 +326,7 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Sets whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * @since 2.13
      */
     public void setNoVersionStamp(boolean noVersionStamp) {
         getNoVersionStamp().set(noVersionStamp);
@@ -345,6 +350,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets the browser window title for the documentation.
      *
      * @param windowTitle A text for the windows title
+     * @since 0.8
      */
     public void setWindowTitle(@Nullable String windowTitle) {
         getWindowTitle().set(windowTitle);
@@ -363,6 +369,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets title for the package index(first) page (optional).
      *
      * @param docTitle the docTitle as HTML
+     * @since 0.8
      */
     public void setDocTitle(@Nullable String docTitle) {
         getDocTitle().set(docTitle);
@@ -381,6 +388,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets header text for each page (optional).
      *
      * @param header the header as HTML
+     * @since 0.8
      */
     public void setHeader(@Nullable String header) {
         getHeader().set(header);
@@ -399,6 +407,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets footer text for each page (optional).
      *
      * @param footer the footer as HTML
+     * @since 0.8
      */
     public void setFooter(@Nullable String footer) {
         getFooter().set(footer);
@@ -597,6 +606,7 @@ public abstract class Groovydoc extends SourceTask {
      *
      * @param links The links to set
      * @see #link(String, String...)
+     * @since 0.9
      */
     public void setLinks(Set<Link> links) {
         getLinks().set(links);

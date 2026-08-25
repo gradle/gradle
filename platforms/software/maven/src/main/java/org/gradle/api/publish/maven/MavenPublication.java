@@ -286,6 +286,7 @@ public interface MavenPublication extends Publication {
 
     /**
      * Sets the groupId for this publication.
+     * @since 1.7
      */
     void setGroupId(String groupId);
 
@@ -298,6 +299,7 @@ public interface MavenPublication extends Publication {
 
     /**
      * Sets the artifactId for this publication.
+     * @since 1.7
      */
     void setArtifactId(String artifactId);
 
@@ -310,6 +312,7 @@ public interface MavenPublication extends Publication {
 
     /**
      * Sets the version for this publication.
+     * @since 1.7
      */
     void setVersion(String version);
 

@@ -42,6 +42,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @param ignoreExitValue whether a non-zero exit value is ignored, or an exception thrown
      * @return this
+     * @since 0.9
      */
     BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue);
 
@@ -68,6 +69,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @param standardInput The standard input stream for the process. Must not be null.
      * @return this
+     * @since 0.9
      */
     BaseExecSpec setStandardInput(InputStream standardInput);
 
@@ -87,6 +89,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @param standardOutput The standard output stream for the process. Must not be null.
      * @return this
+     * @since 0.9
      */
     BaseExecSpec setStandardOutput(OutputStream standardOutput);
 
@@ -106,6 +109,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @param errorOutput The standard output error stream for the process. Must not be null.
      * @return this
+     * @since 0.9
      */
     BaseExecSpec setErrorOutput(OutputStream errorOutput);
 

@@ -93,6 +93,11 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTrace();
 
+    /**
+     * Sets the trace.
+     *
+     * @since 0.9
+     */
     public void setTrace(boolean trace) {
         getTrace().set(trace);
     }
@@ -109,6 +114,11 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceLexer();
 
+    /**
+     * Sets the trace lexer.
+     *
+     * @since 0.9
+     */
     public void setTraceLexer(boolean traceLexer) {
         getTraceLexer().set(traceLexer);
     }
@@ -125,6 +135,11 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceParser();
 
+    /**
+     * Sets the trace parser.
+     *
+     * @since 0.9
+     */
     public void setTraceParser(boolean traceParser) {
         getTraceParser().set(traceParser);
     }
@@ -141,6 +156,11 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceTreeWalker();
 
+    /**
+     * Sets the trace tree walker.
+     *
+     * @since 0.9
+     */
     public void setTraceTreeWalker(boolean traceTreeWalker) {
         getTraceTreeWalker().set(traceTreeWalker);
     }
@@ -158,6 +178,11 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getMaxHeapSize();
 
+    /**
+     * Sets the max heap size.
+     *
+     * @since 2.3
+     */
     public void setMaxHeapSize(String maxHeapSize) {
         getMaxHeapSize().set(maxHeapSize);
     }
@@ -175,6 +200,7 @@ public abstract class AntlrTask extends SourceTask {
     /**
      * Sets the list of command-line arguments passed to the antlr process. A {@code null}
      * value leaves the previous value untouched, mirroring the historical eager behaviour.
+     * @since 2.3
      */
     public void setArguments(@Nullable List<String> arguments) {
         if (arguments != null) {
@@ -196,6 +222,7 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies the directory to generate the parser source files into.
      *
      * @param outputDirectory The output directory. Must not be null.
+     * @since 0.9
      */
     public void setOutputDirectory(File outputDirectory) {
         getOutputDirectory().set(outputDirectory);
@@ -215,6 +242,7 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies the classpath containing the Ant ANTLR task implementation.
      *
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
+     * @since 0.9
      */
     protected void setAntlrClasspath(FileCollection antlrClasspath) {
         getAntlrClasspath().setFrom(antlrClasspath);

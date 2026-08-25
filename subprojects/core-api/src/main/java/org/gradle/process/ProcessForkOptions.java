@@ -53,6 +53,7 @@ public interface ProcessForkOptions {
      * Sets the name of the executable to use.
      *
      * @param executable The executable. Must not be null.
+     * @since 0.9
      */
     void setExecutable(Object executable);
 
@@ -125,6 +126,7 @@ public interface ProcessForkOptions {
      * Sets the environment variable to use for the process.
      *
      * @param environment The environment variables. Must not be null.
+     * @since 0.9
      */
     void setEnvironment(Map<String, ?> environment);
 

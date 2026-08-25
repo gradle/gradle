@@ -116,6 +116,7 @@ public interface TestFilter {
      *
      * @param includePatterns class or method name patterns to set, may contain wildcard '*'
      * @return this filter object
+     * @since 1.10
      */
     TestFilter setIncludePatterns(String... includePatterns);
 
@@ -169,6 +170,7 @@ public interface TestFilter {
     /**
      * Let the test task fail if a filter configuration was provided but no test matched the given configuration.
      * @param failOnNoMatchingTests whether a test task should fail if no test is matching the filter configuration.
+     * @since 2.6
      * */
     void setFailOnNoMatchingTests(boolean failOnNoMatchingTests);
 

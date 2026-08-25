@@ -60,6 +60,11 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getScalaClasspath();
 
+    /**
+     * Sets the scala classpath.
+     *
+     * @since 0.9
+     */
     public void setScalaClasspath(FileCollection scalaClasspath) {
         getScalaClasspath().setFrom(scalaClasspath);
     }
@@ -106,6 +111,11 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getZincClasspath();
 
+    /**
+     * Sets the zinc classpath.
+     *
+     * @since 1.3
+     */
     public void setZincClasspath(FileCollection zincClasspath) {
         getZincClasspath().setFrom(zincClasspath);
     }

@@ -57,6 +57,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<String> getVersion();
 
+    /**
+     * Sets the version.
+     *
+     * @since 1.0
+     */
     void setVersion(String version);
 
     /**
@@ -66,6 +71,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<String> getApplicationName();
 
+    /**
+     * Sets the application name.
+     *
+     * @since 1.0
+     */
     void setApplicationName(String applicationName);
 
     /**
@@ -76,6 +86,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<Boolean> getInitializeInOrder();
 
+    /**
+     * Sets the initialize in order.
+     *
+     * @since 1.0
+     */
     void setInitializeInOrder(Boolean initializeInOrder);
 
     /**
@@ -85,6 +100,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<String> getDescription();
 
+    /**
+     * Sets the description.
+     *
+     * @since 1.0
+     */
     void setDescription(String description);
 
     /**
@@ -94,6 +114,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<String> getDisplayName();
 
+    /**
+     * Sets the display name.
+     *
+     * @since 1.0
+     */
     void setDisplayName(String displayName);
 
     /**
@@ -103,6 +128,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<String> getLibraryDirectory();
 
+    /**
+     * Sets the library directory.
+     *
+     * @since 1.0
+     */
     void setLibraryDirectory(String libraryDirectory);
 
     /**
@@ -113,6 +143,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     SetProperty<EarModule> getModules();
 
+    /**
+     * Sets the modules.
+     *
+     * @since 1.0
+     */
     void setModules(Set<EarModule> modules);
 
     /**
@@ -158,6 +193,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     SetProperty<EarSecurityRole> getSecurityRoles();
 
+    /**
+     * Sets the security roles.
+     *
+     * @since 1.0
+     */
     void setSecurityRoles(Set<EarSecurityRole> securityRoles);
 
     /**
@@ -197,6 +237,11 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     MapProperty<String, String> getModuleTypeMappings();
 
+    /**
+     * Sets the module type mappings.
+     *
+     * @since 1.0
+     */
     void setModuleTypeMappings(Map<String, String> moduleTypeMappings);
 
     /**
