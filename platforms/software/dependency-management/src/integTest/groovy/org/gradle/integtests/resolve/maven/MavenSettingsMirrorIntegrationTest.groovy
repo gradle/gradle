@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 
 /**
- * Prototype coverage for Maven settings.xml mirror support, behind the
+ * Coverage for Maven settings.xml mirror support, behind the
  * {@code org.gradle.mirror.maven.settings} Gradle property.
  */
 class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutionTest {

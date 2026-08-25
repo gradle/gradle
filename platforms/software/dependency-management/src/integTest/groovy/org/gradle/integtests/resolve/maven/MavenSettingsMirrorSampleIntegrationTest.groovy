@@ -44,11 +44,12 @@ class MavenSettingsMirrorSampleIntegrationTest extends AbstractSampleIntegration
         sample.dir.file("common/gradle.properties").copyTo(projectDir.file("gradle.properties"))
 
         and: "the sample's settings.xml becomes the Maven settings of an isolated home"
-        def mavenUserHome = sample.dir.file("maven-user-home")
-        sample.dir.file("m2_home/settings.xml").copyTo(mavenUserHome.file(".m2/settings.xml"))
+        using m2
+        executer.beforeExecute m2
+        m2.userSettingsFile.text = sample.dir.file("m2_home/settings.xml").text
 
         when:
-        executer.inDirectory(projectDir).withUserHomeDir(mavenUserHome)
+        executer.inDirectory(projectDir)
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
 
         then: "the mirror stood in for a repository that does not exist"
