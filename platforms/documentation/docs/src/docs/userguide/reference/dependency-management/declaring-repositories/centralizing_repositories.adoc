@@ -143,7 +143,12 @@ Mirrors apply to *resolution only*. Publishing always uploads to the repository 
 Only mirrors and the `<server>` entries that back them are supported. All features may not be supported:
 
 * *Multiple HTTP headers per server.* Only the first `<httpHeaders>` entry is supported by Gradle.
-* *Relocating `settings-security.xml`.* Only the default location for `settings-security.xml` is checked.
+* *Relocated Maven master passwords.* The master password is only read from the default
+  `settings-security.xml` location. Maven supports moving it elsewhere, either with a
+  `<relocation>` pointing at another file or with the `settings.security` system property, and
+  neither is supported here. Decryption still follows a `<relocation>`, because Maven's own
+  dispatcher does, but Gradle does not know about the file it leads to: changes to it, such as
+  rotating the master password, will not invalidate the configuration cache.
 * *`<mirrorOfLayouts>`.* Gradle has a single repository layout, so the layout filter is ignored.
 * *The Maven 4 password encryption format.* Only the Maven 3 format produced by
   `mvn --encrypt-password` is understood.
