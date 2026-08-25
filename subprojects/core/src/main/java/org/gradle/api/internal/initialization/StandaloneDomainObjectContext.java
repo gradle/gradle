@@ -22,7 +22,6 @@ import org.gradle.util.Path;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Domain object context implementation intended for identifying contexts that wrap no mutable state.
@@ -56,13 +55,13 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
     }
 
     @Override
-    public <S> S runWithModelLock(Supplier<S> action) {
-        return action.get();
+    public <S> S fromMutableState(Function<? super Object, ? extends S> factory) {
+        return factory.apply(MODEL);
     }
 
     @Override
-    public <S> S fromMutableState(Function<? super Object, ? extends S> factory) {
-        return factory.apply(MODEL);
+    public <S> S fromMutableStateEvenAfterFailure(Function<? super Object, ? extends S> function) {
+        return function.apply(MODEL);
     }
 
     @Override

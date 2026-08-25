@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.launcher.exec;
 
 import org.gradle.internal.UncheckedException;
@@ -50,6 +49,8 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
+import javax.inject.Inject;
+import org.gradle.internal.work.ProjectParallelExecutionController;
 
 public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
 
@@ -61,17 +62,20 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
     private final ValueSnapshotter valueSnapshotter;
     private final InternalOptions options;
     private final WorkerLeaseService workerLeaseService;
+    private final ProjectParallelExecutionController projectParallelExecutionController;
     private final BuildOperationRunner buildOperationRunner;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
     private final RootBuildOperationRef rootBuildOperationRef;
 
+    @Inject
     public DefaultBuildTreeActionExecutor(
         BuildModelParametersFactory modelParametersFactory,
         BuildLayoutValidator buildLayoutValidator,
         ValueSnapshotter valueSnapshotter,
         InternalOptions options,
         WorkerLeaseService workerLeaseService,
+        ProjectParallelExecutionController projectParallelExecutionController,
         BuildOperationRunner buildOperationRunner,
         LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
         BuildOperationNotificationValve buildOperationNotificationValve,
@@ -82,6 +86,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
         this.valueSnapshotter = valueSnapshotter;
         this.options = options;
         this.workerLeaseService = workerLeaseService;
+        this.projectParallelExecutionController = projectParallelExecutionController;
         this.buildOperationRunner = buildOperationRunner;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
@@ -127,9 +132,12 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
             BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
             BuildModelParameters buildModelParameters = buildModelParametersFactory.parametersForRootBuildTree(actionRequirements, options);
             BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
+            projectParallelExecutionController.startProjectExecution(buildModelParameters.isParallelProjectExecution());
             try (BuildTreeState buildTree = new BuildTreeState(buildSessionServices, actionRequirements, buildModelParameters, buildInvocationScopeId)) {
                 // assign instead of return to allow combining build failures with cleanup failures below
                 result = buildTree.getServices().get(RootBuildLifecycleBuildActionExecutor.class).execute(action);
+            } finally {
+                projectParallelExecutionController.finishProjectExecution();
             }
         } catch (Throwable t) {
             // If cleanup has failed, combine the cleanup failure with other failures that may be packed in the result

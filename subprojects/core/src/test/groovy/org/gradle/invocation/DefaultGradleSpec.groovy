@@ -64,6 +64,8 @@ import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class DefaultGradleSpec extends Specification {
     ListenerManager listenerManager = Spy(TestListenerManager)
 
@@ -506,7 +508,7 @@ class DefaultGradleSpec extends Specification {
         _ * state.name >> name
         _ * state.mutableModel >> project
         _ * state.applyToMutableState(_) >> { java.util.function.Consumer c -> c.accept(project) }
-        _ * state.runWithModelLock(_) >> { java.util.function.Supplier s -> s.get() }
+        _ * state.fromMutableState(_) >> { Function<?, ?> func -> func.apply(project) }
         return state
     }
 

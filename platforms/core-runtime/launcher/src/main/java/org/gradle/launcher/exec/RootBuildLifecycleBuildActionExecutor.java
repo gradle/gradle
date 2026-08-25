@@ -34,7 +34,6 @@ import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.VersionNumber;
@@ -46,7 +45,6 @@ import org.gradle.util.internal.VersionNumber;
 public class RootBuildLifecycleBuildActionExecutor {
 
     private final BuildModelParameters buildModelParameters;
-    private final ProjectParallelExecutionController projectParallelExecutionController;
     private final BuildTreeLifecycleListener lifecycleListener;
     private final ProblemsInternal problemsService;
     private final BuildOperationProgressEventEmitter eventEmitter;
@@ -58,7 +56,6 @@ public class RootBuildLifecycleBuildActionExecutor {
 
     public RootBuildLifecycleBuildActionExecutor(
         BuildModelParameters buildModelParameters,
-        ProjectParallelExecutionController projectParallelExecutionController,
         BuildTreeLifecycleListener lifecycleListener,
         ProblemsInternal problemsService,
         BuildOperationProgressEventEmitter eventEmitter,
@@ -67,7 +64,6 @@ public class RootBuildLifecycleBuildActionExecutor {
         BuildActionRunner buildActionRunner
     ) {
         this.buildModelParameters = buildModelParameters;
-        this.projectParallelExecutionController = projectParallelExecutionController;
         this.lifecycleListener = lifecycleListener;
         this.problemsService = problemsService;
         this.eventEmitter = eventEmitter;
@@ -87,23 +83,18 @@ public class RootBuildLifecycleBuildActionExecutor {
         }
         executed = true;
 
-        projectParallelExecutionController.startProjectExecution(buildModelParameters.isParallelProjectExecution());
+        lifecycleListener.afterStart();
+        StartParameterInternal startParameter = action.getStartParameter();
         try {
-            lifecycleListener.afterStart();
-            StartParameterInternal startParameter = action.getStartParameter();
-            try {
-                initDeprecationLogging(startParameter);
-                maybeNagOnDeprecatedJavaRuntimeVersion();
-                maybeNagOnImplicitParallelModelBuildingOptIn(startParameter);
-                RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(startParameter, null));
-                return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
-            } finally {
-                // Since continuous builds reuse the same StartParameter for multiple build trees.
-                startParameter.clearMutationListener();
-                lifecycleListener.beforeStop();
-            }
+            initDeprecationLogging(startParameter);
+            maybeNagOnDeprecatedJavaRuntimeVersion();
+            maybeNagOnImplicitParallelModelBuildingOptIn(startParameter);
+            RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(startParameter, null));
+            return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
         } finally {
-            projectParallelExecutionController.finishProjectExecution();
+            // Since continuous builds reuse the same StartParameter for multiple build trees.
+            startParameter.clearMutationListener();
+            lifecycleListener.beforeStop();
         }
     }
 

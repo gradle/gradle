@@ -20,6 +20,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.logging.LoggingManagerFactory;
+import org.gradle.internal.model.ObjectGuard;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
@@ -29,7 +30,7 @@ import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
+import org.gradle.internal.work.Synchronizer;
 
 import java.io.Closeable;
 
@@ -38,26 +39,23 @@ import java.io.Closeable;
  */
 @ServiceScope(Scope.Project.class)
 public class ProjectLifecycleController implements Closeable {
+
     private final ServiceRegistry buildServices;
     private final StateTransitionController<State> controller;
-    private final ProjectLockGuard lockGuard;
-    @Nullable
-    private ProjectInternal project;
-    @Nullable
-    private CloseableServiceRegistry projectScopeServices;
+    private final ObjectGuard<ProjectInternal> model;
 
     private enum State implements StateTransitionController.State {
         NotCreated, Created, Configured
     }
 
-    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ProjectLockGuard lockGuard, ServiceRegistry buildServices) {
+    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, Synchronizer projectLockSynchronizer, ServiceRegistry buildServices) {
         this.buildServices = buildServices;
-        this.lockGuard = lockGuard;
-        controller = factory.newController(displayName, State.NotCreated);
+        this.model = new ObjectGuard<>(projectLockSynchronizer);
+        this.controller = factory.newController(displayName, State.NotCreated);
     }
 
     public boolean isCreated() {
-        return project != null;
+        return controller.hasSeenStateIgnoringFailures(State.Created) && model.hasValue();
     }
 
     public void assertConfigured() {
@@ -75,52 +73,32 @@ public class ProjectLifecycleController implements Closeable {
         controller.transition(State.NotCreated, State.Created, () -> {
             ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
                 LoggingManagerFactory loggingManagerFactory = buildServices.get(LoggingManagerFactory.class);
-                projectScopeServices = ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
-                return projectScopeServices;
+                return ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
             };
-            project = projectFactory.createProject(build, descriptor, owner, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope);
+            ProjectInternal project = projectFactory.createProject(build, descriptor, owner, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope);
+            model.initialize(project);
         });
     }
 
-    public ProjectInternal getMutableModel() {
+    public ObjectGuard<ProjectInternal> getModel() {
         controller.assertHasSeenState(State.Created);
-        return project;
+        return model;
     }
 
-    public ProjectInternal getMutableModelEvenAfterFailure() {
+    public ObjectGuard<ProjectInternal> getModelEvenAfterFailure() {
         controller.assertHasSeenStateIgnoringFailures(State.Created);
-        return project;
+        return model;
     }
 
     public void ensureSelfConfigured() {
-        controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> lockGuard.withProjectLock(() -> project.evaluateUnchecked()));
-    }
-
-    public void ensureTasksDiscovered() {
-        ensureSelfConfigured();
-        lockGuard.withProjectLock(() -> {
-            project.getTasks().discoverTasks();
-            project.bindAllModelRules();
-        });
+        controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> model.runWithValue(ProjectInternal::evaluateUnchecked));
     }
 
     @Override
     public void close() {
-        if (project != null) {
-            try {
-                projectScopeServices.close();
-            } finally {
-                project = null;
-                projectScopeServices = null;
-            }
-        }
+        model.destroy(project -> {
+            ((CloseableServiceRegistry) project.getServices()).close();
+        });
     }
 
-    /**
-     * Runs an action while holding the owning project's state lock.
-     */
-    @FunctionalInterface
-    public interface ProjectLockGuard {
-        void withProjectLock(Runnable action);
-    }
 }
