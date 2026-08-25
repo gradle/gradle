@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -37,6 +38,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsParameter
 import org.gradle.kotlin.dsl.tooling.builders.PrecompiledScriptPluginsMetadataDir
+import org.gradle.kotlin.dsl.tooling.builders.SCRIPTS_GRADLE_PROPERTY_NAME
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptModel
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptsModel
 import org.gradle.kotlin.dsl.tooling.builders.accessorsClassPathOf
@@ -69,8 +71,11 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 ) : AbstractKotlinDslScriptsModelBuilder() {
 
     override fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter {
-        require(rootProject.findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) == null) {
-            "Property ${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME} is not supported with Isolated Projects"
+        if (rootProject.findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) != null) {
+            throw InvalidUserDataException(
+                "Property $SCRIPTS_GRADLE_PROPERTY_NAME is not supported with Isolated Projects: " +
+                    "the model is always built for all the Kotlin DSL scripts of the build."
+            )
         }
 
         return KotlinDslScriptsParameter(rootProject.resolveCorrelationIdParameter(), emptyList())

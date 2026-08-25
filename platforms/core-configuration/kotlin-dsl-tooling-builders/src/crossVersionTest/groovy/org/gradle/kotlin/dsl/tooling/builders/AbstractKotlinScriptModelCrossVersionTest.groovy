@@ -240,6 +240,18 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         assertThat(model.scriptModels[script].exceptions, hasItem(containsString(message)))
     }
 
+    protected void maybeExpectExplicitScriptsDeprecation() {
+        if (targetVersion >= GradleVersion.version("9.9")) {
+            expectDocumentedDeprecationWarning(
+                "Requesting the KotlinDslScriptsModel for an explicit set of scripts using the " +
+                    "'org.gradle.tooling.model.kotlin.dsl.scripts' Gradle property. " +
+                    "This behavior has been deprecated. This is scheduled to be removed in Gradle 10. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_9.html#kotlin_dsl_scripts_model_explicit_scripts"
+            )
+        }
+    }
+
     protected static final class ConfigurationPhaseMonitoringListener implements ProgressListener {
 
         boolean hasSeenSomeEvents = false
