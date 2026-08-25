@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-java@v5.7.0
         with:
           distribution: temurin
-          java-version: 25
+          java-version: 17
       - name: Clone gradle/ci-health repository
         run: |
           git clone https://${{ env.BOT_GRADLE_GITHUB_TOKEN }}@github.com/gradle/ci-health.git /tmp/gradle-ci-health
