@@ -170,7 +170,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * The effective dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
      * The spec receives an instance of {@link DependencyResult} as parameter.
      *
-     * @since 9.7.0
+     * @since 9.9.0
      **/
     @Internal
     @VisibleForTesting
@@ -213,7 +213,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     /**
      * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
      * The spec receives an instance of {@link DependencyResult} as parameter.
-     * @since 9.7.0
+     * @since 9.9.0
      */
     @Incubating
     public void dependencySpec(@Nullable Spec<DependencyResult> dependencySpec) {
@@ -230,7 +230,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --dependency slf4j</pre>
      *
-     * @since 9.7.0
+     * @since 9.9.0
      */
     @Incubating
     @Input
@@ -261,7 +261,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --configuration runtime --dependency slf4j</pre>
      *
-     * @since 9.7.0
+     * @since 9.9.0
      */
     @Incubating
     @Option(option = "configuration", description = "Looks for the dependency in given configuration.")

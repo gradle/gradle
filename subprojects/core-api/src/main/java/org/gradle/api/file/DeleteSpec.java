@@ -40,7 +40,7 @@ public interface DeleteSpec {
 
     /**
      * Specifies whether or not symbolic links should be followed during deletion.
-     * @since 9.7.0
+     * @since 9.9.0
      **/
     @Input
     @Optional
