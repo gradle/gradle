@@ -46,29 +46,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.10[Kotlin 2.4.10].
 
-[[service_method_added_to_project_settings_gradle_task]]
-==== New `service(Class)` method on `Project`, `Settings`, `Gradle`, and `Task`
-
-Gradle 9.8.0 adds an incubating `service(Class)` method to link:{javadocPath}/org/gradle/api/Project.html[`Project`], link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`], link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`], and link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with reified `service<T>()` extensions in the Kotlin DSL.
-See <<service_injection.adoc#looking_up_services,Looking up services in scripts>> for details.
-
-If your build, plugin, or convention already exposes a member called `service` on one of these types (for example a user-defined extension, a Groovy dynamic property, or a Kotlin extension function), the new built-in member may shadow it or make calls ambiguous.
-Rename your member (for example to `myService`) to disambiguate:
-
-[source,kotlin]
-.build.gradle.kts
-----
-// Before: shadowed by the new built-in Project.service(Class)
-fun Project.service(name: String): MyService = extensions.getByName(name) as MyService
-
-// After: rename to avoid the conflict
-fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
-----
-
+[[upgrade_to_asm_9_10_1]]
 ==== Upgrade to ASM 9.10.1
 
 ASM was upgraded from 9.9 to https://asm.ow2.io/versions.html[9.10.1] to support Java 27.
 
+[[upgrade_to_jacoco_0_8_15]]
 ==== Upgrade to JaCoCo 0.8.15
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.15].
@@ -80,6 +63,25 @@ If you need to pin the previous version, set `jacoco.toolVersion = "0.8.14"` in 
 
 Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.33.html[4.0.33].
 
+[[service_method_added_to_project_settings_gradle_task]]
+==== New `service(Class)` method on `Project`, `Settings`, `Gradle`, and `Task`
+
+Gradle 9.8.0 adds an incubating `service(Class)` method to link:{javadocPath}/org/gradle/api/Project.html[`Project`], link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`], link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`], and link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with reified `service<T>()` extensions in the Kotlin DSL.
+See <<service_injection.adoc#looking_up_services,Looking up services in scripts>> for details.
+
+If your build, plugin, or convention already exposes a member called `service` on one of these types (for example, a user-defined extension, a Groovy dynamic property, or a Kotlin extension function), the new built-in member may shadow it or make calls ambiguous.
+Rename your member (for example, to `myService`) to disambiguate:
+
+[source,kotlin]
+.build.gradle.kts
+----
+// Before: shadowed by the new built-in Project.service(Class)
+fun Project.service(name: String): MyService = extensions.getByName(name) as MyService
+
+// After: rename to avoid the conflict
+fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
+----
+
 [[task_logging_listeners_are_now_stored_in_the_configuration_cache]]
 ==== Task logging listeners are now stored in the Configuration Cache
 
@@ -88,7 +90,7 @@ Standard output and error listeners registered on a task's logging manager durin
 Previously, these listeners were silently discarded and never received output when the Configuration Cache was used.
 
 A listener that cannot be serialized is now reported as a Configuration Cache problem instead of being silently dropped, which may cause a build that previously worked to fail.
-If your build registers such a listener and the listener is nonessential, you can opt out and restore the previous behavior — listeners are not serialized, so they are dropped on a cache hit and no problem is reported — by setting:
+If your build registers such a listener and the listener is nonessential, you can opt out, restoring the previous behavior where listeners are dropped on a cache hit, and no problem is reported by setting:
 
 [source,properties]
 ----
@@ -100,11 +102,31 @@ This property is a temporary opt-out and will be removed in a future Gradle rele
 [[kotlin_object_singletons_in_configuration_cache]]
 ==== Kotlin `object` singletons keep their identity in the Configuration Cache
 
+If your build stored mutable state on a Kotlin `object`, that state is no longer restored on a cache hit; move it elsewhere.
+
 A Kotlin `object` (including `companion object` declarations) stored in the Configuration Cache is now restored as the same singleton instance.
 As a consequence, only the singleton's identity is restored, not any mutable state it may hold.
 
 Previously, each `object` was serialized as a regular bean and rebuilt as a _new_ instance on a cache hit, so `deserialized === TheObject` was `false`.
 If you relied on mutable state surviving a cache hit, move it into a task property or another bean type that is serialized by value.
+
+[[toolchain_invalid_installation_paths]]
+==== Invalid toolchain installation paths now warn instead of failing the build
+
+Unresolvable or relative paths in `org.gradle.java.installations.paths` and `org.gradle.java.installations.fromEnv` are now reported as warnings through the Problems API instead of failing the build with `UnsupportedOperationException: Cannot convert relative path ... to an absolute file.`.
+
+These properties are optional configuration.
+A valid toolchain may exist through another discovery mechanism, so an unresolvable entry should not prevent the build from running.
+
+Common cases that previously failed and now warn:
+
+- Cross-platform builds where a Unix-style absolute path such as `/opt/jdk-24` is treated as relative on Windows.
+- Relative paths committed to `gradle.properties` in version control.
+
+Correct the offending entries to remove the warning.
+Builds that relied on the previous failure to surface misconfiguration should validate these properties by other means — for example, by running with `--warning-mode all` or inspecting the Problems report.
+
+See <<toolchains.adoc#sec:custom_loc, Custom Toolchain Locations>> in the Gradle User Manual for details.
 
 === Deprecations
 
@@ -143,14 +165,14 @@ This includes:
 - `java.lang.Runtime.exec(...)` (all overloads).
 - The Groovy process helpers `String.execute(...)`, `String[].execute(...)`, and `List.execute(...)`.
 
-This does *not* affect uses of the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] providers (`providers.exec` / `providers.javaexec`) or a <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, `ValueSource`>> that runs a process inside — those remain the supported way to run a process at configuration time.
+This does *not* affect uses of the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] providers (`providers.exec` / `providers.javaexec`) or a <<configuration_cache_requirements.adoc#config_cache:requirements:external_processes, `ValueSource`>> that runs a process inside, those remain the supported way to run a process at configuration time.
 
 Starting an external process at configuration time in any of the deprecated ways is already an error when the Configuration Cache is enabled.
-To simplify preparation for the Configuration Cache being enabled by default in Gradle 10, and to open the way to it becoming the only mode of execution, Gradle now unconditionally deprecates behaviors that are unsupported with the Configuration Cache.
+Because the Configuration Cache will be enabled by default in Gradle 10, Gradle now deprecates unsupported behaviors even when the Configuration Cache is not currently enabled.
 
 Migrate to one of the following, in order of preference:
 
-1. *Move the process execution into a task*, so it runs at execution time and benefits from build caching, up-to-date checks, and work avoidance.
+1. Move the process execution into a task, so it runs at execution time and benefits from build caching, up-to-date checks, and work avoidance.
 Use an link:{javadocPath}/org/gradle/api/tasks/Exec.html[`Exec`] or link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[`JavaExec`] task, or a custom task that injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] and runs the process in its task action.
 2. For simple cases, use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`providers.exec`] / link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`providers.javaexec`].
 Prefer wiring the returned provider lazily to task inputs, and call `get()` only as a last resort.
@@ -180,6 +202,99 @@ This will become an error in Gradle 10, matching the existing behavior for tasks
 
 See <<validation_problems.adoc#implicit_dependency,Implicit dependencies between tasks>> for details and possible solutions.
 
+[[deprecated_startparameter_construction]]
+==== Deprecation of creating and copying `StartParameter`
+
+Starting in Gradle 10, constructing new instances of link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter`] will no longer be permitted.
+It was never intended to be instantiated or copied by build logic, but the public no-argument constructor and the `newInstance()` / `newBuild()` methods made that possible.
+
+The following have been deprecated for removal:
+
+- the public link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter()`] constructor
+- link:{javadocPath}/org/gradle/StartParameter.html#newInstance()[`StartParameter.newInstance()`]
+- link:{javadocPath}/org/gradle/StartParameter.html#newBuild()[`StartParameter.newBuild()`]
+
+The existing `StartParameter` instance for a build may be obtained via link:{javadocPath}/org/gradle/api/invocation/Gradle.html#getStartParameter()[`Gradle.getStartParameter()`] instead of constructing or copying one.
+
+[[deprecate_signature_as_artifact]]
+==== Deprecation of `Signature` as a Configuration artifact
+
+Starting in Gradle 10, link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] will no longer implement link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[`PublishArtifact`].
+The following methods inherited from `PublishArtifact` have been deprecated and will be removed in Gradle 10:
+
+- `getName()` / `setName(String)`
+- `getExtension()` / `setExtension(String)`
+- `getType()` / `setType(String)`
+- `getClassifier()` / `setClassifier(String)`
+- `getDate()` / `setDate(Date)`
+- `getBuildDependencies()`
+- `builtBy(Object...)`
+
+Furthermore, `Signature` will no longer extend the internal `AbstractPublishArtifact` class or implement the internal `PublishArtifactInternal` interface.
+Code that dereferenced these internal types via `Signature` must be updated.
+The `shouldBePublished()` method inherited from `PublishArtifactInternal` has also been deprecated for removal.
+
+As a result, a `Signature` will no longer be permitted directly as an artifact of a `Configuration`.
+Starting in Gradle 10, the <<signing_plugin.adoc#signing_plugin,Signing Plugin>> will no longer create the `signatures` configuration or automatically add `Signature` instances to it.
+
+The `getConfiguration()` and `setConfiguration(Configuration)` methods on link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html[`SigningExtension`] have been deprecated and will be removed in Gradle 10.
+Creating a configuration named `signatures` before the signing plugin is applied is now also deprecated.
+
+[[deprecate_signature_constructors]]
+==== Deprecation of constructing `Signature` instances
+
+Starting in Gradle 10, manually constructing a link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] instance will no longer be permitted.
+All public constructors for this type have been deprecated for removal.
+
+To sign files, use the `sign` methods on the link:{javadocPath}/org/gradle/plugins/signing/Sign.html[`Sign`] task, or use the `sign` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`].
+
+[[deprecate_sign_operation_signatures]]
+==== Deprecation of `getSignatures()` and `getSingleSignature()` on `SignOperation`
+
+The `getSignatures()` and `getSingleSignature()` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`] have been deprecated and will be removed in Gradle 10.
+
+Use `getFilesToSign()` and `getSignatureFiles()` instead.
+
+[[deprecate_sign_classifier]]
+==== Deprecation of signing files with a classifier
+
+The following methods that accept a classifier alongside files to sign have been deprecated and will be removed in Gradle 10:
+
+- `Sign.sign(String, File...)`
+- `SignOperation.sign(String, File...)`
+- `SigningExtension.sign(String, File...)`
+
+The classifier argument is ignored during signing and does not influence the resulting signature file.
+Use the `sign(File...)` overloads instead.
+
+[[unsupported_attribute_value_type]]
+==== Deprecation of unsupported attribute value types
+
+Attribute value types are limited to: `String`, `Boolean`, any subtype of `Number`, and any type that implements `org.gradle.api.Named`.
+
+Passing any other type to link:{javadocPath}/org/gradle/api/attributes/Attribute.html#of(java.lang.String,java.lang.Class)[`Attribute.of(String, Class)`] — or declaring an unsupported type as the type parameter of an `AttributeCompatibilityRule` or `AttributeDisambiguationRule` — now emits a deprecation warning and will become an error in Gradle 10.
+
+The most common case is a plain Java `Enum` that does not implement `Named`.
+Such types often work at first but fail later during dependency resolution, publishing, or configuration cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
+
+To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
+For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
+
+See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
+
+[[kgp_native_bundle_attribute_enum]]
+==== Deprecation of using `KotlinNativeBundleArtifactsTypes` as an attribute value type
+
+The Kotlin Gradle Plugin (KGP) 2.0.x line registers an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
+
+This deprecation is a specialized variant of the general <<#unsupported_attribute_value_type, unsupported attribute value type>> deprecation, called out separately so users can identify KGP as the source and remediate by upgrading the plugin.
+
+To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.1.0 or later.
+KGP 2.1.0 and newer do not use a plain enum for this attribute and are unaffected.
+
+Like the general case, this deprecation will become an error in Gradle 10.
+
+See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
 
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
@@ -365,100 +480,6 @@ Referencing such a custom subtype from a task field or task action is now deprec
 To fix it, use a standard collection or map type instead of a custom subtype, and store any extra data in separate fields.
 
 See <<configuration_cache_requirements.adoc#config_cache:requirements:custom_collection_types, Custom Collection and Map Types>> for details.
-
-[[deprecated_startparameter_construction]]
-==== Deprecation of creating and copying `StartParameter`
-
-Starting in Gradle 10, constructing new instances of link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter`] will no longer be permitted.
-It was never intended to be instantiated or copied by build logic, but the public no-argument constructor and the `newInstance()` / `newBuild()` methods made that possible.
-
-The following have been deprecated for removal:
-
-- the public link:{javadocPath}/org/gradle/StartParameter.html[`StartParameter()`] constructor
-- link:{javadocPath}/org/gradle/StartParameter.html#newInstance()[`StartParameter.newInstance()`]
-- link:{javadocPath}/org/gradle/StartParameter.html#newBuild()[`StartParameter.newBuild()`]
-
-The existing `StartParameter` instance for a build may be obtained via link:{javadocPath}/org/gradle/api/invocation/Gradle.html#getStartParameter()[`Gradle.getStartParameter()`] instead of constructing or copying one.
-
-[[deprecate_signature_as_artifact]]
-==== Deprecation of `Signature` as a Configuration artifact
-
-Starting in Gradle 10, link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] will no longer implement link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[`PublishArtifact`].
-The following methods inherited from `PublishArtifact` have been deprecated and will be removed in Gradle 10:
-
-- `getName()` / `setName(String)`
-- `getExtension()` / `setExtension(String)`
-- `getType()` / `setType(String)`
-- `getClassifier()` / `setClassifier(String)`
-- `getDate()` / `setDate(Date)`
-- `getBuildDependencies()`
-- `builtBy(Object...)`
-
-Furthermore, `Signature` will no longer extend the internal `AbstractPublishArtifact` class or implement the internal `PublishArtifactInternal` interface.
-Code that dereferenced these internal types via `Signature` must be updated.
-The `shouldBePublished()` method inherited from `PublishArtifactInternal` has also been deprecated for removal.
-
-As a result, a `Signature` will no longer be permitted directly as an artifact of a `Configuration`.
-Starting in Gradle 10, the <<signing_plugin.adoc#signing_plugin,Signing Plugin>> will no longer create the `signatures` configuration or automatically add `Signature` instances to it.
-
-The `getConfiguration()` and `setConfiguration(Configuration)` methods on link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html[`SigningExtension`] have been deprecated and will be removed in Gradle 10.
-Creating a configuration named `signatures` before the signing plugin is applied is now also deprecated.
-
-[[deprecate_signature_constructors]]
-==== Deprecation of constructing `Signature` instances
-
-Starting in Gradle 10, manually constructing a link:{javadocPath}/org/gradle/plugins/signing/Signature.html[`Signature`] instance will no longer be permitted.
-All public constructors for this type have been deprecated for removal.
-
-To sign files, use the `sign` methods on the link:{javadocPath}/org/gradle/plugins/signing/Sign.html[`Sign`] task, or use the `sign` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`].
-
-[[deprecate_sign_operation_signatures]]
-==== Deprecation of `getSignatures()` and `getSingleSignature()` on `SignOperation`
-
-The `getSignatures()` and `getSingleSignature()` methods on link:{javadocPath}/org/gradle/plugins/signing/SignOperation.html[`SignOperation`] have been deprecated and will be removed in Gradle 10.
-
-Use `getFilesToSign()` and `getSignatureFiles()` instead.
-
-[[deprecate_sign_classifier]]
-==== Deprecation of signing files with a classifier
-
-The following methods that accept a classifier alongside files to sign have been deprecated and will be removed in Gradle 10:
-
-- `Sign.sign(String, File...)`
-- `SignOperation.sign(String, File...)`
-- `SigningExtension.sign(String, File...)`
-
-The classifier argument is ignored during signing and does not influence the resulting signature file.
-Use the `sign(File...)` overloads instead.
-
-[[unsupported_attribute_value_type]]
-==== Deprecation of unsupported attribute value types
-
-Attribute value types are limited to: `String`, `Boolean`, any subtype of `Number`, and any type that implements `org.gradle.api.Named`.
-
-Passing any other type to link:{javadocPath}/org/gradle/api/attributes/Attribute.html#of(java.lang.String,java.lang.Class)[`Attribute.of(String, Class)`] — or declaring an unsupported type as the type parameter of an `AttributeCompatibilityRule` or `AttributeDisambiguationRule` — now emits a deprecation warning and will become an error in Gradle 10.
-
-The most common case is a plain Java `Enum` that does not implement `Named`.
-Such types often work at first but fail later during dependency resolution, publishing, or configuration cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
-
-To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
-For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
-
-See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
-
-[[kgp_native_bundle_attribute_enum]]
-==== Deprecation of using `KotlinNativeBundleArtifactsTypes` as an attribute value type
-
-The Kotlin Gradle Plugin (KGP) 2.0.x line registers an attribute of type `org.jetbrains.kotlin.gradle.targets.native.toolchain.KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes` — a plain Java `Enum` that does not implement `org.gradle.api.Named`.
-
-This deprecation is a specialized variant of the general <<#unsupported_attribute_value_type, unsupported attribute value type>> deprecation, called out separately so users can identify KGP as the source and remediate by upgrading the plugin.
-
-To fix builds affected by this deprecation, upgrade the Kotlin Gradle Plugin to 2.1.0 or later.
-KGP 2.1.0 and newer do not use a plain enum for this attribute and are unaffected.
-
-Like the general case, this deprecation will become an error in Gradle 10.
-
-See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
 
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier

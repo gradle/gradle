@@ -12,17 +12,36 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release features [1](), [2](), ... [n](), and more.
+In this release, [Java 27](#support-for-java-27) is supported for both the Gradle daemon and Java toolchains.
+
+The [Configuration Cache](#configuration-cache-improvements) now exposes its outcome directly through TestKit and the Tooling API, so plugin authors no longer parse console output to check whether a build was cached.
+
+[Build authoring](#build-authoring-improvements) gains a `service()` lookup for common Gradle services in scripts and task actions, along with a lazy `destinationDirectory` property on `Copy` and `Sync`.
+
+In [platform and toolchain management](#platform-and-toolchain-management), `Groovydoc` now parses modern Java sources and exposes the Groovy 6.0 documentation options.
+
+[Performance improvements](#performance-improvements) include faster read times on Windows machines with slow system clocks, with build-time gains of up to 45% in affected setups.
+
+Finally, [`GenerateMavenPom`](#general-improvements) now participates in up-to-date checks, speeding up Maven publishing.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Julian Krannich](https://github.com/jkrannich).
-
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
-THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
+[Aman Gautam](https://github.com/Gautam-aman),
+[Björn Kautler](https://github.com/Vampire),
+[Eng Zer Jun](https://github.com/Juneezee),
+[Hashim Khan](https://github.com/Hashim1999164),
+[Julian Krannich](https://github.com/jkrannich),
+[KBS](https://github.com/youdie006),
+[Labh R Jethe](https://github.com/itsCodeTide),
+[Mark Dodgson](https://github.com/doddi),
+[Maxim](https://github.com/kroune),
+[monkey](https://github.com/Develop-KIM),
+[nataphon-ktsystems](https://github.com/nataphon-ktsystems),
+[Paul King](https://github.com/paulk-asert),
+[Qiu Tian](https://github.com/qiu-tiandev),
+[rg_sandesh](https://github.com/sandeshgorde),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Sean](https://github.com/seanxuu),
+[Zongle Wang](https://github.com/Goooler).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -36,43 +55,14 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
-<!-- ================== TEMPLATE =============================
-
-Do not add breaking changes or deprecations here! Add them to the upgrade guide instead.
-
-Find the best fitting section for your feature below, then, fill it in.
-
-### SECTION TITLE
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves.
-> EXPLAIN how the new release addresses that problem or use case.
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable.
-> LINK to the full documentation for more details.
-
-To embed images, add the image to the `release-notes-assets` folder, then add the line below.
-![image.png](release-notes-assets/image.png)
-
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button.
-@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-
-================== END TEMPLATE ========================== -->
-
-
-<!-- =========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
 ### Support for Java 27
-
 With this release, Gradle supports [Java 27](https://openjdk.org/projects/jdk/27/).
 
-You can now run the [Gradle daemon](userguide/gradle_daemon.html) on Java 27, in addition to using it via [toolchains](userguide/toolchains.html):
+You can now run the [Gradle daemon](userguide/gradle_daemon.html) on Java 27, in addition to using Java 27 via [toolchains](userguide/toolchains.html):
 
 ```kotlin
 java {
@@ -91,7 +81,7 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 
 #### TestKit API for asserting the Configuration Cache outcome
 
-Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded — an approach that broke whenever the wording of the console messages changed.
+Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded, an approach that broke whenever the wording of the console messages changed.
 
 The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly:
 
@@ -110,12 +100,6 @@ The outcome is also available to any Tooling API client through a new [`CONFIGUR
 
 See the [Testing with the Configuration Cache](userguide/test_kit.html#sub:test-kit-configuration-cache) section in the Gradle User Manual for more details.
 
-### Test reporting and execution
-Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
-
-### CLI, logging, and problem reporting
-Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
-
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
@@ -132,7 +116,18 @@ tasks.register("cleanReports") {
 }
 ```
 
-Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. It is compatible with the Configuration Cache and Isolated Projects, and covers `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, and `ArchiveOperations` in every scope, `ProjectLayout` in projects and tasks, `BuildLayout` in settings, and `ExecOperations` in task actions. In the Kotlin and Java DSLs, looking up a service that is not available in the current scope is caught at compile time.
+Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. It is compatible with the Configuration Cache and Isolated Projects.
+
+Available services by scope:
+
+| Service | Available in |
+| --- | --- |
+| `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations` | Every scope |
+| `ProjectLayout` | Projects and tasks |
+| `BuildLayout` | Settings |
+| `ExecOperations` | Task actions |
+
+In the Kotlin and Java DSLs, looking up a service that is not available in the current scope is caught at compile time.
 
 Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or later at runtime.
 
@@ -196,17 +191,8 @@ All new properties are [incubating](userguide/feature_lifecycle.html#feature_pre
 
 See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in the DSL Reference for the full list of configuration options.
 
-### Core plugin and plugin authoring enhancements
-Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
-
-### Security and infrastructure
-Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
-
-### Tooling and IDE integration
-Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
-
-### General improvements
-Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+### Performance improvements
+Gradle continues to reduce build times and memory usage across the daemon, configuration, and execution phases.
 
 #### Improved performance on Windows machines with slow system clocks
 
@@ -219,10 +205,8 @@ On affected machines we have measured build time improvements of up to 45%.
 
 Builds on machines with a normal system clock are unaffected, and no change to configuration is required.
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-========================================================== -->
-
+### General improvements
+Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
 
 #### Faster Maven publishing with up-to-date POM generation
 
@@ -242,10 +226,6 @@ To restore up-to-date behavior, move the customization into the DSL properties o
 
 See the [Generate POM task](userguide/publishing_maven.html#publishing_maven:generate-pom) section in the Gradle User Manual for more details.
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-========================================================== -->
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
@@ -259,9 +239,14 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Documentation and training
 
-<!--
-Add new docs, training, and best practices here
--->
+### User Manual
+
+The User Manual reference pages for the core plugins have been entirely rewritten for consistency and depth.
+The [Core Plugin Reference index](userguide/plugin_reference.html) has also been reorganized and now lists previously missing core plugins.
+
+Two new entries have been added to the [Best Practices](userguide/best_practices.html) collection:
+- Obtain Loggers via `Logging.getLogger(Class)` outside of Tasks — where and how to acquire a logger in build logic.
+- Favor collection property types over a `Property` holding a collection — the case for `ListProperty` and `SetProperty` over `Property<List<...>>`.
 
 ## Fixed issues
 
