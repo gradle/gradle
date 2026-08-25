@@ -49,9 +49,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
@@ -265,13 +264,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    MavenSettingsProvider createMavenSettingsProvider() {
-        return new DefaultMavenSettingsProvider(new DefaultMavenFileLocations());
-    }
-
-    @Provides
-    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider) {
-        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
+    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider, MavenFileLocations mavenFileLocations) {
+        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider, mavenFileLocations);
     }
 
     @Provides

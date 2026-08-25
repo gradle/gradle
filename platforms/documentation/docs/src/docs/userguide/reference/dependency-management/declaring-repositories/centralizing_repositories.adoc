@@ -80,3 +80,75 @@ To enforce that *only* repositories declared in `settings.gradle(.kts)` are used
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=enforce_settings]"]
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepositoryInSettings/groovy",files="settings.gradle[tags=enforce_settings]"]
 ====
+
+[[sec:reusing-maven-mirror-settings]]
+== Reusing mirror settings from Maven
+
+[WARNING]
+====
+This is an incubating feature and is disabled by default.
+====
+
+Organizations that already build with Maven often use an internal
+repository manager by declaring a `<mirror>` in `~/.m2/settings.xml`. Gradle can read those same mirrors instead of requiring the configuration to be duplicated in your build. This is meant for teams with a working Maven mirror setup to reuse those mirrors in Gradle. This is not a general-purpose way to redirect repositories.
+
+Gradle will only replace HTTP/HTTPS Maven repositories that match mirror declarations in Maven settings. Local file, S3, GCS and Ivy repositories are unaffected. Maven repositories can be used for build script dependencies as well as project dependencies, so the Gradle Plugin Portal is also affected by Maven mirrors.
+
+If you are not already using mirrors defined in
+Maven's `settings.xml`, prefer configuring repositories directly in your build or setting up a mirror init script, as described in
+link:https://blog.gradle.org/maven-central-mirror[Good Neighbors: How to Reduce Maven Central Traffic from Gradle Builds].
+
+Enable Maven mirror reuse with the `org.gradle.mirror.maven.settings` property, in `gradle.properties` or on the command line as a system property:
+
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/maven-settings-mirror/common",files="gradle.properties[tags=enable]"]
+====
+
+[NOTE]
+====
+This is a <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>>, so it is
+read from `gradle.properties` or from `-Dorg.gradle.mirror.maven.settings=true`. It is *not* a
+project property, so `-P` has no effect.
+====
+
+With the property set, Gradle reads the mirrors from the user and global `settings.xml`, matches
+each Maven repository against them using Maven's
+link:https://maven.apache.org/guides/mini/guide-mirror-settings.html[`mirrorOf` grammar], and
+resolves from the mirror instead. Credentials come from the `<server>` entry whose id matches the
+*mirror* id, and encrypted passwords are decrypted with the Maven master password:
+
+.The Maven settings the build reads
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/maven-settings-mirror/m2_home",files="settings.xml[tags=maven-settings]"]
+====
+
+.The repository declared in the build, which the mirror above replaces
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/maven-settings-mirror/kotlin",files="build.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/maven-settings-mirror/groovy",files="build.gradle[tags=repositories]"]
+====
+
+See link:https://maven.apache.org/guides/mini/guide-encryption.html[Maven's Password Encryption
+guide] for how to set up the Maven master password and produce encrypted server passwords, and
+link:https://maven.apache.org/settings.html[the Settings Reference] for the file as a whole.
+
+[[sec:maven-mirrors-and-publishing]]
+=== Publishing is not affected
+
+Mirrors apply to *resolution only*. Publishing always uploads to the repository URL declared in the build.
+
+[[sec:unsupported-maven-mirror-settings]]
+=== Unsupported Maven mirror settings
+
+Only mirrors and the `<server>` entries that back them are supported. All features may not be supported:
+
+* *Multiple HTTP headers per server.* Only the first `<httpHeaders>` entry is supported by Gradle.
+* *Relocating `settings-security.xml`.* Only the default location for `settings-security.xml` is checked.
+* *`<mirrorOfLayouts>`.* Gradle has a single repository layout, so the layout filter is ignored.
+* *The Maven 4 password encryption format.* Only the Maven 3 format produced by
+  `mvn --encrypt-password` is understood.
+* *Everything else in `settings.xml`* Profiles, proxies, and `<pluginGroups>` do not apply to Gradle.
+
+A repository matched by a mirror keeps its Gradle name, but its resolved URL, and therefore its
+identity in build scans and the dependency cache, becomes the mirror's. Turning the property on or
+off changes that identity and re-downloads artifacts.
