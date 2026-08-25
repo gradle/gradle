@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -92,6 +91,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
 
@@ -246,7 +246,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             eclipseProject.setSourceDirectories(classpathElements.getSourceDirectories());
             eclipseProject.setClasspathContainers(classpathElements.getClasspathContainers());
             eclipseProject.setOutputLocation(classpathElements.getEclipseOutputLocation() != null ? classpathElements.getEclipseOutputLocation() : new DefaultEclipseOutputLocation("bin"));
-            eclipseProject.setAutoBuildTasks(!TaskDependencyUtil.getDependenciesForInternalUse(eclipseModel.getAutoBuildTasks(), null).isEmpty());
+            eclipseProject.setAutoBuildTasks(!TaskDependencyUtil.newTaskResolver().getDependencies(null, (TaskDependencyContainer) eclipseModel.getAutoBuildTasks()).isEmpty());
 
             org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
 

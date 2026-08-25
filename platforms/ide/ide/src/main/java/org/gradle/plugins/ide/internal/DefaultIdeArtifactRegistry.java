@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -95,7 +94,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                     getIdeProjects(type),
                     result -> {
                         ConfigurableFileCollection singleton = fileOperations.configurableFiles(result.get().getFile());
-                        singleton.builtBy(result.get().getGeneratorTasks());
+                        singleton.builtBy(result.get());
                         return singleton;
                     }
                 );
@@ -104,6 +103,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     }
 
     private static class MetadataReference<T extends IdeProjectMetadata> implements Reference<T> {
+
         private final T metadata;
         private final ProjectComponentIdentifier projectId;
 
@@ -124,9 +124,8 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            for (Task task : get().getGeneratorTasks()) {
-                context.add(task);
-            }
+            get().visitDependencies(context);
         }
+
     }
 }
