@@ -105,6 +105,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      * Sets the publication to be published.
      *
      * @param publication The publication to be published. Currently only instances of IvyPublication are supported.
+     * @since 1.3
      */
     public void setPublication(IvyPublication publication) {
         this.publication.set(toPublicationInternal(publication));
@@ -140,6 +141,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      * Sets the repository to publish to.
      *
      * @param repository The repository to publish to. Only instances of DefaultIvyArtifactRepository are supported
+     * @since 1.3
      */
     @SuppressWarnings("RedundantCast") // this cast is intentional to fail earlier
     public void setRepository(IvyArtifactRepository repository) {

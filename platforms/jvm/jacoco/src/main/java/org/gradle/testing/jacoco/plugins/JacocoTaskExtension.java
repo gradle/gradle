@@ -121,6 +121,11 @@ public abstract class JacocoTaskExtension {
         return getEnabled();
     }
 
+    /**
+     * Sets the enabled.
+     *
+     * @since 1.6
+     */
     public void setEnabled(boolean enabled) {
         getEnabled().set(enabled);
     }
@@ -154,6 +159,11 @@ public abstract class JacocoTaskExtension {
         return getDestinationFile().getAsFile().getOrNull();
     }
 
+    /**
+     * Sets the destination file.
+     *
+     * @since 1.7
+     */
     public void setDestinationFile(@Nullable File destinationFile) {
         getDestinationFile().set(destinationFile);
     }
@@ -167,6 +177,11 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract ListProperty<String> getIncludes();
 
+    /**
+     * Sets the includes.
+     *
+     * @since 1.6
+     */
     public void setIncludes(@Nullable List<String> includes) {
         getIncludes().set(includes);
     }
@@ -180,6 +195,11 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludes();
 
+    /**
+     * Sets the excludes.
+     *
+     * @since 1.6
+     */
     public void setExcludes(@Nullable List<String> excludes) {
         getExcludes().set(excludes);
     }
@@ -193,6 +213,11 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludeClassLoaders();
 
+    /**
+     * Sets the exclude class loaders.
+     *
+     * @since 1.6
+     */
     public void setExcludeClassLoaders(@Nullable List<String> excludeClassLoaders) {
         getExcludeClassLoaders().set(excludeClassLoaders);
     }
@@ -211,6 +236,11 @@ public abstract class JacocoTaskExtension {
         return getIncludeNoLocationClasses();
     }
 
+    /**
+     * Sets the include no location classes.
+     *
+     * @since 2.13
+     */
     public void setIncludeNoLocationClasses(boolean includeNoLocationClasses) {
         getIncludeNoLocationClasses().set(includeNoLocationClasses);
     }
@@ -224,6 +254,11 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract Property<String> getSessionId();
 
+    /**
+     * Sets the session id.
+     *
+     * @since 1.6
+     */
     public void setSessionId(@Nullable String sessionId) {
         getSessionId().set(sessionId);
     }
@@ -240,6 +275,11 @@ public abstract class JacocoTaskExtension {
         return getDumpOnExit();
     }
 
+    /**
+     * Sets the dump on exit.
+     *
+     * @since 1.6
+     */
     public void setDumpOnExit(boolean dumpOnExit) {
         getDumpOnExit().set(dumpOnExit);
     }
@@ -252,6 +292,11 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract Property<Output> getOutput();
 
+    /**
+     * Sets the output.
+     *
+     * @since 1.6
+     */
     public void setOutput(Output output) {
         getOutput().set(output);
     }
@@ -265,6 +310,11 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract Property<String> getAddress();
 
+    /**
+     * Sets the address.
+     *
+     * @since 1.6
+     */
     public void setAddress(@Nullable String address) {
         getAddress().set(address);
     }
@@ -277,6 +327,11 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getPort();
 
+    /**
+     * Sets the port.
+     *
+     * @since 1.6
+     */
     public void setPort(int port) {
         getPort().set(port);
     }
@@ -328,6 +383,11 @@ public abstract class JacocoTaskExtension {
         return getJmx();
     }
 
+    /**
+     * Sets the jmx.
+     *
+     * @since 1.6
+     */
     public void setJmx(boolean jmx) {
         getJmx().set(jmx);
     }

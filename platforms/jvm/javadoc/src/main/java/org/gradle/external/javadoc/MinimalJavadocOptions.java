@@ -54,6 +54,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<String> getOverview();
 
+    /**
+     * Sets the overview.
+     *
+     * @since 0.7
+     */
     void setOverview(@Nullable String overview);
 
     /**
@@ -73,6 +78,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<JavadocMemberLevel> getMemberLevel();
 
+    /**
+     * Sets the member level.
+     *
+     * @since 0.7
+     */
     void setMemberLevel(@Nullable JavadocMemberLevel memberLevel);
 
     /**
@@ -120,6 +130,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<String> getDoclet();
 
+    /**
+     * Sets the doclet.
+     *
+     * @since 0.7
+     */
     void setDoclet(@Nullable String docletClass);
 
     /**
@@ -138,6 +153,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.DocletpathAdapter.class)
     ConfigurableFileCollection getDocletpath();
 
+    /**
+     * Sets the docletpath.
+     *
+     * @since 0.9
+     */
     void setDocletpath(List<File> docletpath);
 
     /**
@@ -157,6 +177,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<String> getSource();
 
+    /**
+     * Sets the source.
+     *
+     * @since 0.7
+     */
     void setSource(@Nullable String source);
 
     /**
@@ -175,6 +200,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.ClasspathAdapter.class)
     ConfigurableFileCollection getClasspath();
 
+    /**
+     * Sets the classpath.
+     *
+     * @since 0.7
+     */
     void setClasspath(List<File> classpath);
 
     /**
@@ -223,6 +253,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.BootclasspathAdapter.class)
     ConfigurableFileCollection getBootClasspath();
 
+    /**
+     * Sets the boot classpath.
+     *
+     * @since 0.7
+     */
     void setBootClasspath(List<File> bootClasspath);
 
     /**
@@ -244,6 +279,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.ExtDirsAdapter.class)
     ConfigurableFileCollection getExtDirs();
 
+    /**
+     * Sets the ext dirs.
+     *
+     * @since 0.7
+     */
     void setExtDirs(@Nullable List<File> extDirs);
 
     /**
@@ -262,6 +302,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<JavadocOutputLevel> getOutputLevel();
 
+    /**
+     * Sets the output level.
+     *
+     * @since 0.7
+     */
     void setOutputLevel(JavadocOutputLevel outputLevel);
 
     /**
@@ -292,6 +337,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty(originalType = boolean.class)
     Property<Boolean> getBreakIterator();
 
+    /**
+     * Sets the break iterator.
+     *
+     * @since 0.7
+     */
     void setBreakIterator(boolean breakIterator);
 
     /**
@@ -324,6 +374,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<String> getLocale();
 
+    /**
+     * Sets the locale.
+     *
+     * @since 0.7
+     */
     void setLocale(@Nullable String locale);
 
     /**
@@ -343,6 +398,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<String> getEncoding();
 
+    /**
+     * Sets the encoding.
+     *
+     * @since 0.7
+     */
     void setEncoding(@Nullable String encoding);
 
     /**
@@ -362,6 +422,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     ListProperty<String> getJFlags();
 
+    /**
+     * Sets the j flags.
+     *
+     * @since 0.7
+     */
     void setJFlags(@Nullable List<String> jFlags);
 
     /**
@@ -382,6 +447,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.OptionFilesAdapter.class)
     ConfigurableFileCollection getOptionFiles();
 
+    /**
+     * Sets the option files.
+     *
+     * @since 0.7
+     */
     void setOptionFiles(@Nullable List<File> optionFiles);
 
     /**
@@ -400,6 +470,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     DirectoryProperty getDestinationDirectory();
 
+    /**
+     * Sets the destination directory.
+     *
+     * @since 0.7
+     */
     void setDestinationDirectory(@Nullable File destinationDirectory);
 
     /**
@@ -419,6 +494,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<String> getWindowTitle();
 
+    /**
+     * Sets the window title.
+     *
+     * @since 0.7
+     */
     void setWindowTitle(@Nullable String windowTitle);
 
     /**
@@ -438,6 +518,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     Property<String> getHeader();
 
+    /**
+     * Sets the header.
+     *
+     * @since 0.9
+     */
     void setHeader(@Nullable String header);
 
     /**
@@ -463,6 +548,11 @@ public interface MinimalJavadocOptions {
     @ReplacesEagerProperty
     ListProperty<String> getSourceNames();
 
+    /**
+     * Sets the source names.
+     *
+     * @since 0.7
+     */
     void setSourceNames(@Nullable List<String> sourceNames);
 
     /**

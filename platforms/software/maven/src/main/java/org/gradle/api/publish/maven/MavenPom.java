@@ -51,6 +51,7 @@ public interface MavenPom {
 
     /**
      * Sets the packaging for the publication represented by this POM.
+     * @since 1.7
      */
     void setPackaging(String packaging);
 

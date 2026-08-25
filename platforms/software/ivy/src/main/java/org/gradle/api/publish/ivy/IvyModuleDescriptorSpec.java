@@ -87,6 +87,7 @@ public interface IvyModuleDescriptorSpec {
 
     /**
      * Sets the status for this publication.
+     * @since 2.1
      */
     void setStatus(@Nullable String status);
 
@@ -100,6 +101,7 @@ public interface IvyModuleDescriptorSpec {
 
     /**
      * Sets the branch for this publication
+     * @since 2.1
      */
     void setBranch(@Nullable String branch);
 

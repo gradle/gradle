@@ -102,6 +102,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @param args Args for the main class.
      *
      * @return this
+     * @since 0.9
      */
     JavaExecSpec setArgs(Iterable<?> args);
 
@@ -160,6 +161,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @param classpath the classpath
      *
      * @return this
+     * @since 0.9
      */
     JavaExecSpec setClasspath(FileCollection classpath);
 

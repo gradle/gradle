@@ -72,6 +72,7 @@ public abstract class WriteProperties extends DefaultTask {
 
     /**
      * Returns an immutable view of properties to be written to the properties file.
+     * @since 3.3
      */
     @Input
     @ReplacesEagerProperty(adapter = PropertiesAdapter.class)
@@ -82,6 +83,7 @@ public abstract class WriteProperties extends DefaultTask {
      *
      * @see #properties(Map)
      * @see #property(String, Object)
+     * @since 3.3
      */
     public void setProperties(Map<String, Object> properties) {
         getProperties().empty();
@@ -148,6 +150,7 @@ public abstract class WriteProperties extends DefaultTask {
 
     /**
      * Sets the line separator to be used when creating the properties file.
+     * @since 3.3
      */
     public void setLineSeparator(String lineSeparator) {
         getLineSeparator().set(lineSeparator);
@@ -164,6 +167,7 @@ public abstract class WriteProperties extends DefaultTask {
 
     /**
      * Sets the optional comment to add at the beginning of the properties file.
+     * @since 3.3
      */
     public void setComment(@Nullable String comment) {
         getComment().set(comment);
@@ -181,6 +185,7 @@ public abstract class WriteProperties extends DefaultTask {
     /**
      * Sets the encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
      * If set to anything different, unicode escaping is turned off.
+     * @since 3.3
      */
     public void setEncoding(String encoding) {
         getEncoding().set(encoding);

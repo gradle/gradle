@@ -51,6 +51,7 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Sets whether to generate deprecation information.
+     * @since 0.8
      */
     public void setDeprecation(boolean deprecation) {
         getDeprecation().set(deprecation);
@@ -70,6 +71,7 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Sets whether to generate unchecked information.
+     * @since 0.8
      */
     public void setUnchecked(boolean unchecked) {
         getUnchecked().set(unchecked);
@@ -91,6 +93,7 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Sets the text to appear in the window title.
+     * @since 0.8
      */
     public void setWindowTitle(@Nullable String windowTitle) {
         getWindowTitle().set(windowTitle);
@@ -107,6 +110,7 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Sets the HTML text to appear in the main frame title.
+     * @since 0.8
      */
     public void setDocTitle(@Nullable String docTitle) {
         getDocTitle().set(docTitle);
@@ -123,6 +127,7 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Sets the HTML text to appear in the header for each page.
+     * @since 0.8
      */
     public void setHeader(@Nullable String header) {
         getHeader().set(header);
@@ -139,6 +144,7 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Sets the HTML text to appear in the footer for each page.
+     * @since 0.8
      */
     public void setFooter(@Nullable String footer) {
         getFooter().set(footer);
@@ -155,6 +161,7 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Sets the HTML text to appear in the top text for each page.
+     * @since 0.8
      */
     public void setTop(@Nullable String top) {
         getTop().set(top);
@@ -171,6 +178,7 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Sets the HTML text to appear in the bottom text for each page.
+     * @since 0.8
      */
     public void setBottom(@Nullable String bottom) {
         getBottom().set(bottom);
@@ -189,6 +197,7 @@ public abstract class ScalaDocOptions implements Serializable {
     /**
      * Sets the additional parameters passed to the compiler.
      * Each parameter must start with '-'.
+     * @since 0.8
      */
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
         getAdditionalParameters().set(additionalParameters);

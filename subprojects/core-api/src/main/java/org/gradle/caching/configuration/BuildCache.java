@@ -38,6 +38,7 @@ public interface BuildCache {
 
     /**
      * Sets whether the build cache is enabled.
+     * @since 3.5
      */
     void setEnabled(boolean enabled);
 
@@ -57,6 +58,7 @@ public interface BuildCache {
 
     /**
      * Sets whether a given build can store outputs in the build cache.
+     * @since 3.5
      */
     void setPush(boolean push);
 

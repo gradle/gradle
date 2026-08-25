@@ -50,6 +50,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The version of the code quality tool to be used.
+     * @since 1.0
      */
     public void setToolVersion(String toolVersion) {
         getToolVersion().set(toolVersion);
@@ -64,6 +65,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
+     * @since 1.0
      */
     public void setSourceSets(Collection<SourceSet> sourceSets) {
         getSourceSets().set(sourceSets);
@@ -81,6 +83,7 @@ public abstract class CodeQualityExtension {
      * Whether to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
+     * @since 1.0
      */
     public void setIgnoreFailures(boolean ignoreFailures) {
         getIgnoreFailures().set(ignoreFailures);
