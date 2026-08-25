@@ -67,6 +67,20 @@ Searched in the following locations:
   - file:/somewhere""")
     }
 
+    def "explains when a dependency has no version"() {
+        def selector = newSelector(mid("org", "a"), new DefaultMutableVersionConstraint(""))
+        def exception = new ModuleVersionNotFoundException(selector, ["http://somewhere"])
+
+        expect:
+        exception.message.contains("Could not find org:a because no version was specified.")
+        exception.message.contains("http://somewhere")
+        exception.resolutions == [
+            "Declare a version for the dependency.",
+            "Use a platform or dependency constraint to provide the version.",
+            "If using mavenLocal(), declare it after other repositories or use content filtering to limit what is resolved from it."
+        ]
+    }
+
     def "formats message for selector and locations when versions attempted and non rejected"() {
         def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["1.1", "1.2"], [])
 
