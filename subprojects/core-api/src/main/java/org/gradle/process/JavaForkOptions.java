@@ -60,6 +60,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Sets the system properties to use for the process.
      *
      * @param systemProperties The system properties. Must not be null.
+     * @since 0.9
      */
     void setSystemProperties(Map<String, ? extends @Nullable Object> systemProperties);
 
@@ -101,6 +102,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * this value will be overridden by the value specified by {@link #getDefaultCharacterEncoding()}.
      *
      * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}
+     * @since 1.0
      */
     void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
 
@@ -121,6 +123,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @param minHeapSize The minimum heap size. Use null for the default minimum heap size.
+     * @since 1.0
      */
     void setMinHeapSize(@Nullable String minHeapSize);
 
@@ -141,6 +144,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @param maxHeapSize The heap size. Use null for the default maximum heap size.
+     * @since 0.9
      */
     void setMaxHeapSize(@Nullable String maxHeapSize);
 
@@ -169,6 +173,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * and minimum/maximum heap size are updated.
      *
      * @param arguments The arguments. Must not be null.
+     * @since 0.9
      */
     void setJvmArgs(Iterable<?> arguments);
 
@@ -215,6 +220,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * classpath for the specified JVM.
      *
      * @param bootstrapClasspath The classpath. Must not be null. Can be empty.
+     * @since 0.9
      */
     void setBootstrapClasspath(FileCollection bootstrapClasspath);
 
@@ -240,6 +246,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Enable or disable assertions for the process.
      *
      * @param enableAssertions true to enable assertions, false to disable.
+     * @since 0.9
      */
     void setEnableAssertions(boolean enableAssertions);
 
@@ -264,6 +271,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * The debug properties (e.g. the port number) can be configured in {@link #debugOptions(Action)}.
      *
      * @param debug true to enable debugging, false to disable.
+     * @since 0.9
      */
     void setDebug(boolean debug);
 
@@ -311,6 +319,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * properties, minimum/maximum heap size, assertions, and bootstrap classpath.
      *
      * @param arguments The arguments. Must not be null.
+     * @since 0.9
      */
     @Deprecated
     void setAllJvmArgs(Iterable<?> arguments);

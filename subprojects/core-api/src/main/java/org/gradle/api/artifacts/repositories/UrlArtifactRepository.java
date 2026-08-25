@@ -49,6 +49,7 @@ public interface UrlArtifactRepository {
      * Sets the base URL of this repository.
      *
      * @param url The base URL.
+     * @since 6.0
      */
     void setUrl(Object url);
 
@@ -78,6 +79,7 @@ public interface UrlArtifactRepository {
      * or with an SFTP server whose host key cannot be verified.
      *
      * @see #getAllowInsecureProtocol()
+     * @since 6.0
      */
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);
 

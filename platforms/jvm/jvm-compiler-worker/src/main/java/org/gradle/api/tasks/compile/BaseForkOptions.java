@@ -46,6 +46,7 @@ public abstract class BaseForkOptions implements Serializable {
     /**
      * Sets the initial heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
+     * @since 1.3
      */
     public void setMemoryInitialSize(String memoryInitialSize) {
         getMemoryInitialSize().set(memoryInitialSize);
@@ -63,6 +64,7 @@ public abstract class BaseForkOptions implements Serializable {
     /**
      * Sets the maximum heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
+     * @since 1.3
      */
     public void setMemoryMaximumSize(String memoryMaximumSize) {
         getMemoryMaximumSize().set(memoryMaximumSize);
@@ -82,6 +84,7 @@ public abstract class BaseForkOptions implements Serializable {
      * Sets any additional JVM arguments for the compiler process.
      * Defaults to the empty list. Empty or null arguments are filtered out because they cause
      * JVM Launch to fail.
+     * @since 1.3
      */
     public void setJvmArgs(@Nullable List<String> jvmArgs) {
         getJvmArgs().set(jvmArgs);

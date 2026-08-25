@@ -210,6 +210,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
 
     /**
      * The class path containing the PMD library to be used.
+     * @since 1.0
      */
     public void setPmdClasspath(FileCollection pmdClasspath) {
         getPmdClasspath().setFrom(pmdClasspath);
@@ -233,6 +234,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * <pre>
      *     ruleSets = ["basic", "braces"]
      * </pre>
+     * @since 1.0
      */
     public void setRuleSets(List<String> ruleSets) {
         getRuleSets().set(ruleSets);
@@ -327,6 +329,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * <pre>
      *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
      * </pre>
+     * @since 1.0
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
         getRuleSetFiles().setFrom(ruleSetFiles);

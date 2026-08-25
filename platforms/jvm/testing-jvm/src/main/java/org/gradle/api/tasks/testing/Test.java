@@ -1198,6 +1198,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
 
+    /**
+     * Sets the classpath.
+     *
+     * @since 0.8
+     */
     public void setClasspath(FileCollection classpath) {
         getClasspath().setFrom(classpath);
     }
@@ -1210,6 +1215,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getScanForTestClasses();
 
+    /**
+     * Sets the scan for test classes.
+     *
+     * @since 0.7
+     */
     public void setScanForTestClasses(boolean scanForTestClasses) {
         getScanForTestClasses().set(scanForTestClasses);
     }
@@ -1280,6 +1290,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * </p>
      *
      * @param maxParallelForks The maximum number of forked test processes. Use 1 to disable parallel test execution for this task.
+     * @since 0.9
      */
     public void setMaxParallelForks(int maxParallelForks) {
         getMaxParallelForks().set(maxParallelForks);

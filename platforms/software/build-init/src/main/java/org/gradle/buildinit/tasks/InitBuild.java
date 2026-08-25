@@ -147,6 +147,7 @@ public abstract class InitBuild extends DefaultTask {
 
     /**
      * Set the type of project to generate.
+     * @since 1.9
      */
     public void setType(String type) {
         getType().set(type);
@@ -279,6 +280,7 @@ public abstract class InitBuild extends DefaultTask {
 
     /**
      * Set the test framework to be used.
+     * @since 2.11
      */
     public void setTestFramework(@Nullable String testFramework) {
         getTestFramework().set(testFramework);

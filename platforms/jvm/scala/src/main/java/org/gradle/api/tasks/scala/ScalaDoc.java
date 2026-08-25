@@ -151,6 +151,11 @@ public abstract class ScalaDoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
 
+    /**
+     * Sets the classpath.
+     *
+     * @since 0.8
+     */
     public void setClasspath(FileCollection classpath) {
         getClasspath().setFrom(classpath);
     }
@@ -163,6 +168,11 @@ public abstract class ScalaDoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getScalaClasspath();
 
+    /**
+     * Sets the scala classpath.
+     *
+     * @since 0.9
+     */
     public void setScalaClasspath(FileCollection scalaClasspath) {
         getScalaClasspath().setFrom(scalaClasspath);
     }
@@ -192,6 +202,11 @@ public abstract class ScalaDoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getTitle();
 
+    /**
+     * Sets the title.
+     *
+     * @since 0.8
+     */
     public void setTitle(@Nullable String title) {
         getTitle().set(title);
     }

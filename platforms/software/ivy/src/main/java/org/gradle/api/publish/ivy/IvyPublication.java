@@ -335,6 +335,7 @@ public interface IvyPublication extends Publication {
 
     /**
      * Sets the organisation for this publication.
+     * @since 1.7
      */
     void setOrganisation(String organisation);
 
@@ -347,6 +348,7 @@ public interface IvyPublication extends Publication {
 
     /**
      * Sets the module for this publication.
+     * @since 1.7
      */
     void setModule(String module);
 
@@ -359,6 +361,7 @@ public interface IvyPublication extends Publication {
 
     /**
      * Sets the revision for this publication.
+     * @since 1.7
      */
     void setRevision(String revision);
 

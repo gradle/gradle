@@ -257,6 +257,11 @@ public abstract class Ear extends Jar {
     @ReplacesEagerProperty
     public abstract Property<String> getLibDirName();
 
+    /**
+     * Sets the lib dir name.
+     *
+     * @since 1.0
+     */
     public void setLibDirName(@Nullable String libDirName) {
         getLibDirName().set(libDirName);
     }

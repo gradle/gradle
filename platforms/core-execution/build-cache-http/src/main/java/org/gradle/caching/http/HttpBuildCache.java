@@ -80,6 +80,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
 
     /**
      * Sets the URL of the cache. The URL must end in a '/'.
+     * @since 3.5
      */
     public void setUrl(URL url) throws URISyntaxException {
         getUrl().set(url.toURI());
@@ -87,6 +88,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
 
     /**
      * Sets the URL of the cache. The URL must end in a '/'.
+     * @since 3.5
      */
     public void setUrl(@Nullable URI url) {
         getUrl().set(url);
