@@ -52,7 +52,7 @@ public class IdeaModuleMetadata implements IdeProjectMetadata {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(generatorTask.get());
+        context.add(generatorTask);
     }
 
 }

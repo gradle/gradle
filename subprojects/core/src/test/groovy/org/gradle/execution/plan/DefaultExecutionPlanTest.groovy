@@ -22,6 +22,8 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -1119,6 +1121,44 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         1 * listener.accept({ it.task == task2 })
         1 * listener.accept({ it.task == task3 })
         0 * listener._
+    }
+
+    def "can define entry nodes with a TaskDependencyContainer"() {
+        def taskA = task("a")
+        def taskB = task("b")
+        def taskC = task("c")
+        def taskD = task("d")
+
+        def work = Mock(TaskDependencyContainer)
+        def childA = Mock(TaskDependencyContainer)
+        def childB = Mock(TaskDependencyContainer)
+        def grandchild = Mock(TaskDependencyContainer)
+
+        when:
+        executionPlan.addEntryWork(work)
+        populateGraph()
+
+        then:
+        executes(taskA, taskB, taskC, taskD)
+
+        and:
+        1 * work.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(taskA)
+            context.add(childA)
+            context.add(childB)
+        }
+        1 * childA.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(taskB)
+            context.add(grandchild)
+        }
+        1 * childB.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(taskC)
+            context.add(grandchild)
+        }
+        // Even though childA and childB both depend on grandchild, grandchild is only executed once
+        1 * grandchild.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(taskD)
+        }
     }
 
     private Node requiredNode(Node... dependencies) {
