@@ -130,7 +130,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     /**
      * The single configuration (by name) to generate the report for.
      *
-     * @since 9.7.0
+     * @since 9.9.0
      */
     @Input
     @Optional

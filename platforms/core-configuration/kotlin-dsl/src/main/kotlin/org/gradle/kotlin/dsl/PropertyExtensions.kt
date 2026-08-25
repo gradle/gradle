@@ -110,7 +110,7 @@ fun <K : Any, V : Any> MapProperty<K, V>.assign(provider: Provider<out Map<out K
  * Adds an element to the property value.
  *
  * @see HasMultipleValues.add
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 operator fun <T : Any> HasMultipleValues<T>.plusAssign(element: T) {
@@ -126,7 +126,7 @@ operator fun <T : Any> HasMultipleValues<T>.plusAssign(element: T) {
  * Adding a provider with no value discards the value of the whole property.
  *
  * @see HasMultipleValues.add
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 @JvmName("plusAssignElementProvider")
@@ -142,7 +142,7 @@ operator fun <T : Any> HasMultipleValues<T>.plusAssign(provider: Provider<out T>
  * The given iterable will be queried when the value of this property is queried.
  *
  * @see HasMultipleValues.addAll
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Iterable<T>) {
@@ -155,7 +155,7 @@ operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Iterable<T>) {
  * Adds zero or more elements to the property value.
  *
  * @see HasMultipleValues.addAll
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Array<T>) {
@@ -172,7 +172,7 @@ operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Array<T>) {
  * Adding a provider with no value discards the value of the whole property.
  *
  * @see HasMultipleValues.addAll
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 @JvmName("plusAssignElementsProvider")
@@ -186,7 +186,7 @@ operator fun <T : Any> HasMultipleValues<T>.plusAssign(provider: Provider<out It
  * Adds a map entry to the property value.
  *
  * @see MapProperty.put
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Pair<K, V>) {
@@ -199,7 +199,7 @@ operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Pair<K, V>) 
  * if the property has no value, or if it does not contain a mapping for the key.
  *
  * @see MapProperty.getting
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 operator fun <K : Any, V : Any> MapProperty<K, V>.get(key: K): Provider<V> {
@@ -213,7 +213,7 @@ operator fun <K : Any, V : Any> MapProperty<K, V>.get(key: K): Provider<V> {
  * @param value the value
  *
  * @see MapProperty.put
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 operator fun <K : Any, V : Any> MapProperty<K, V>.set(key: K, value: V) {
@@ -227,7 +227,7 @@ operator fun <K : Any, V : Any> MapProperty<K, V>.set(key: K, value: V) {
  * @param providerOfValue the provider of the value
  *
  * @see MapProperty.put
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 operator fun <K : Any, V : Any> MapProperty<K, V>.set(key: K, providerOfValue: Provider<out V>) {
@@ -241,7 +241,7 @@ operator fun <K : Any, V : Any> MapProperty<K, V>.set(key: K, providerOfValue: P
  * Adding a provider with no value discards the value of the whole property.
  *
  * @see MapProperty.put
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 @JvmName("plusAssignElementProvider")
@@ -255,7 +255,7 @@ operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Provider<out
  * Adds all entries from another [Map] to the property value.
  *
  * @see MapProperty.putAll
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Map<out K, V>) {
@@ -270,7 +270,7 @@ operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Map<out K, V
  * The given provider will be queried when the value of this property is queried.
  * Adding a provider with no value discards the value of the whole property.
  * @see MapProperty.putAll
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 @JvmName("plusAssignElementsProvider")
