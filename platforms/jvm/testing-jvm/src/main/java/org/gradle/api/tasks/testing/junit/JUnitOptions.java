@@ -68,6 +68,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
 
     /**
      * The set of categories to run.
+     * @since 1.6
      */
     public void setIncludeCategories(Set<String> includeCategories) {
         getIncludeCategories().set(includeCategories);
@@ -83,6 +84,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
 
     /**
      * The set of categories to exclude.
+     * @since 1.6
      */
     public void setExcludeCategories(Set<String> excludeCategories) {
         getExcludeCategories().set(excludeCategories);

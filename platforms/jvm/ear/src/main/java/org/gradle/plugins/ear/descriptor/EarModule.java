@@ -32,6 +32,11 @@ public interface EarModule {
     @ReplacesEagerProperty
     Property<String> getPath();
 
+    /**
+     * Sets the path.
+     *
+     * @since 1.0
+     */
     void setPath(String path);
 
     /**
@@ -44,6 +49,11 @@ public interface EarModule {
     @ReplacesEagerProperty
     Property<String> getAltDeployDescriptor();
 
+    /**
+     * Sets the alt deploy descriptor.
+     *
+     * @since 1.0
+     */
     void setAltDeployDescriptor(String altDeployDescriptor);
 
     /**

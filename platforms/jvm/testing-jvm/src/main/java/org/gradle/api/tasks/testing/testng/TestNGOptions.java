@@ -270,6 +270,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract DirectoryProperty getOutputDirectory();
 
+    /**
+     * Sets the output directory.
+     *
+     * @since 1.11
+     */
     public void setOutputDirectory(File outputDirectory) {
         getOutputDirectory().set(outputDirectory);
     }
@@ -282,6 +287,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getIncludeGroups();
 
+    /**
+     * Sets the include groups.
+     *
+     * @since 0.9
+     */
     public void setIncludeGroups(Set<String> includeGroups) {
         getIncludeGroups().set(includeGroups);
     }
@@ -294,6 +304,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getExcludeGroups();
 
+    /**
+     * Sets the exclude groups.
+     *
+     * @since 0.9
+     */
     public void setExcludeGroups(Set<String> excludeGroups) {
         getExcludeGroups().set(excludeGroups);
     }
@@ -306,6 +321,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract Property<String> getConfigFailurePolicy();
 
+    /**
+     * Sets the config failure policy.
+     *
+     * @since 2.3
+     */
     public void setConfigFailurePolicy(String configFailurePolicy) {
         getConfigFailurePolicy().set(configFailurePolicy);
     }
@@ -333,6 +353,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getListeners();
 
+    /**
+     * Sets the listeners.
+     *
+     * @since 0.9
+     */
     public void setListeners(Set<String> listeners) {
         getListeners().set(listeners);
     }
@@ -349,6 +374,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract Property<String> getParallel();
 
+    /**
+     * Sets the parallel.
+     *
+     * @since 0.7
+     */
     public void setParallel(@Nullable String parallel) {
         getParallel().set(parallel);
     }
@@ -361,6 +391,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getThreadCount();
 
+    /**
+     * Sets the thread count.
+     *
+     * @since 0.7
+     */
     public void setThreadCount(int threadCount) {
         getThreadCount().set(threadCount);
     }
@@ -437,6 +472,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         return getUseDefaultListeners();
     }
 
+    /**
+     * Sets the use default listeners.
+     *
+     * @since 0.8
+     */
     public void setUseDefaultListeners(boolean useDefaultListeners) {
         getUseDefaultListeners().set(useDefaultListeners);
     }
@@ -449,6 +489,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract Property<String> getSuiteName();
 
+    /**
+     * Sets the suite name.
+     *
+     * @since 0.7
+     */
     public void setSuiteName(String suiteName) {
         getSuiteName().set(suiteName);
     }
@@ -461,6 +506,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract Property<String> getTestName();
 
+    /**
+     * Sets the test name.
+     *
+     * @since 0.7
+     */
     public void setTestName(String testName) {
         getTestName().set(testName);
     }
@@ -476,6 +526,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty(adapter = SuiteXmlFilesAdapter.class)
     public abstract ConfigurableFileCollection getSuiteXmlFiles();
 
+    /**
+     * Sets the suite xml files.
+     *
+     * @since 0.7
+     */
     public void setSuiteXmlFiles(List<File> suiteXmlFiles) {
         getSuiteXmlFiles().setFrom(suiteXmlFiles);
     }
@@ -503,6 +558,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         return getPreserveOrder();
     }
 
+    /**
+     * Sets the preserve order.
+     *
+     * @since 2.11
+     */
     public void setPreserveOrder(boolean preserveOrder) {
         getPreserveOrder().set(preserveOrder);
     }
@@ -530,6 +590,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         return getGroupByInstances();
     }
 
+    /**
+     * Sets the group by instances.
+     *
+     * @since 2.11
+     */
     public void setGroupByInstances(boolean groupByInstances) {
         getGroupByInstances().set(groupByInstances);
     }
@@ -558,6 +623,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         return suiteXmlWriter;
     }
 
+    /**
+     * Sets the suite xml writer.
+     *
+     * @since 0.7
+     */
     public void setSuiteXmlWriter(StringWriter suiteXmlWriter) {
         getSuiteXmlWriter().set(suiteXmlWriter);
     }
@@ -573,6 +643,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         return suiteXmlBuilder;
     }
 
+    /**
+     * Sets the suite xml builder.
+     *
+     * @since 0.7
+     */
     public void setSuiteXmlBuilder(MarkupBuilder suiteXmlBuilder) {
         getSuiteXmlBuilder().set(suiteXmlBuilder);
     }

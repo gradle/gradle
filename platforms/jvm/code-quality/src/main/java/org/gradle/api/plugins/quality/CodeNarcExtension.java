@@ -93,6 +93,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
 
     /**
      * The maximum number of priority 1 violations allowed before failing the build.
+     * @since 1.7
      */
     public void setMaxPriority1Violations(int maxPriority1Violations) {
         getMaxPriority1Violations().set(maxPriority1Violations);
@@ -107,6 +108,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
 
     /**
      * The maximum number of priority 2 violations allowed before failing the build.
+     * @since 1.7
      */
     public void setMaxPriority2Violations(int maxPriority2Violations) {
         getMaxPriority2Violations().set(maxPriority2Violations);
@@ -121,6 +123,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
 
     /**
      * The maximum number of priority 3 violations allowed before failing the build.
+     * @since 1.7
      */
     public void setMaxPriority3Violations(int maxPriority3Violations) {
         getMaxPriority3Violations().set(maxPriority3Violations);
@@ -135,6 +138,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
 
     /**
      * Sets the format type of the CodeNarc report.
+     * @since 1.0
      */
     public void setReportFormat(String reportFormat) {
         getReportFormat().set(reportFormat);

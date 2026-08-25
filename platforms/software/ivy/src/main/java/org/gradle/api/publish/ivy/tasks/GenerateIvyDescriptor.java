@@ -66,6 +66,11 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
         return descriptor.get();
     }
 
+    /**
+     * Sets the descriptor.
+     *
+     * @since 2.1
+     */
     public void setDescriptor(IvyModuleDescriptorSpec descriptor) {
         this.descriptor.set(descriptor);
     }

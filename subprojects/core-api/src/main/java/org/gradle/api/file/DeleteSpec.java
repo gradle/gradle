@@ -51,6 +51,7 @@ public interface DeleteSpec {
      * Specifies whether or not symbolic links should be followed during deletion.
      *
      * @param followSymlinks deletion will follow symlinks when true.
+     * @since 2.13
      */
     void setFollowSymlinks(boolean followSymlinks);
 }

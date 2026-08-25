@@ -153,6 +153,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
 
     /**
      * The class path containing the CodeNarc library to be used.
+     * @since 1.0
      */
     public void setCodenarcClasspath(FileCollection codenarcClasspath) {
         getCodenarcClasspath().setFrom(codenarcClasspath);
@@ -205,6 +206,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
 
     /**
      * The maximum number of priority 1 violations allowed before failing the build.
+     * @since 1.7
      */
     public void setMaxPriority1Violations(int maxPriority1Violations) {
         getMaxPriority1Violations().set(maxPriority1Violations);
@@ -220,6 +222,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
 
     /**
      * The maximum number of priority 2 violations allowed before failing the build.
+     * @since 1.7
      */
     public void setMaxPriority2Violations(int maxPriority2Violations) {
         getMaxPriority2Violations().set(maxPriority2Violations);
@@ -235,6 +238,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
 
     /**
      * The maximum number of priority 3 violations allowed before failing the build.
+     * @since 1.7
      */
     public void setMaxPriority3Violations(int maxPriority3Violations) {
         getMaxPriority3Violations().set(maxPriority3Violations);

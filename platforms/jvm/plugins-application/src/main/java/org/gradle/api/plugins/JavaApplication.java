@@ -50,6 +50,7 @@ public interface JavaApplication {
 
     /**
      * The name of the application.
+     * @since 4.10
      */
     void setApplicationName(String applicationName);
 
@@ -76,6 +77,7 @@ public interface JavaApplication {
 
     /**
      * Array of string arguments to pass to the JVM when running the application
+     * @since 4.10
      */
     void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs);
 
@@ -88,6 +90,7 @@ public interface JavaApplication {
 
     /**
      * Directory to place executables in
+     * @since 4.10
      */
     void setExecutableDir(String executableDir);
 

@@ -72,6 +72,7 @@ public abstract class DebugOptions implements Serializable {
      *
      * <p>Setting this value to null will reset the property to its default value of only
      * generating line and source debug information.</p>
+     * @since 0.7
      */
     public void setDebugLevel(@Nullable String debugLevel) {
         getDebugLevel().set(debugLevel);

@@ -45,6 +45,7 @@ public interface JacocoLimit {
      * Sets the counter that applies to the limit.
      *
      * @param counter Counter
+     * @since 3.4
      */
     void setCounter(String counter);
 
@@ -62,6 +63,7 @@ public interface JacocoLimit {
      * Sets the value that applies to the limit.
      *
      * @param value Value
+     * @since 3.4
      */
     void setValue(String value);
 
@@ -78,6 +80,7 @@ public interface JacocoLimit {
      * Sets the minimum expected value for limit.
      *
      * @param minimum Minimum
+     * @since 3.4
      */
     void setMinimum(@Nullable BigDecimal minimum);
 
@@ -94,6 +97,7 @@ public interface JacocoLimit {
      * Sets the maximum expected value for limit.
      *
      * @param maximum Maximum
+     * @since 3.4
      */
     void setMaximum(@Nullable BigDecimal maximum);
 }
