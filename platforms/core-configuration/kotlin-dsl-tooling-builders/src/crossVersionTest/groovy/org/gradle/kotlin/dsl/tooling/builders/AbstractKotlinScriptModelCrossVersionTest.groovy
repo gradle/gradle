@@ -241,7 +241,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
     }
 
     protected void maybeExpectExplicitScriptsDeprecation() {
-        if (targetVersion >= GradleVersion.version("9.8")) {
+        if (targetVersion >= GradleVersion.version("9.9")) {
             expectDocumentedDeprecationWarning(
                 "Requesting the KotlinDslScriptsModel for an explicit set of scripts using the " +
                     "'org.gradle.tooling.model.kotlin.dsl.scripts' Gradle property. " +
