@@ -615,6 +615,28 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executedTasks == [a, b, c]
     }
 
+    def "should run after ordering is ignored when the cycle is discovered after other successors have been queued"() {
+        Task extraDependency = task("extraDependency")
+        Task shouldRunAfterSource = createTask("shouldRunAfterSource")
+        Task shouldRunAfterTarget = createTask("shouldRunAfterTarget")
+        Task cycleNode = createTask("cycleNode")
+        Task entry = createTask("entry")
+
+        relationships(entry, dependsOn: [shouldRunAfterSource])
+        relationships(shouldRunAfterSource, shouldRunAfter: [shouldRunAfterTarget])
+        relationships(shouldRunAfterTarget, dependsOn: [cycleNode])
+        // Successors are visited in name order, so "extraDependency" is queued before the cycle back to
+        // "shouldRunAfterSource" is discovered. The partially queued successors must be unwound along with
+        // the rest of the queue when the walked shouldRunAfter edge is removed.
+        relationships(cycleNode, dependsOn: [extraDependency, shouldRunAfterSource])
+
+        when:
+        addToGraphAndPopulate([entry, shouldRunAfterTarget])
+
+        then:
+        executedTasks == [shouldRunAfterSource, entry, extraDependency, cycleNode, shouldRunAfterTarget]
+    }
+
     @Issue("GRADLE-3127")
     def "circular dependency detected with shouldRunAfter dependencies in the graph"() {
         Task a = createTask("a")
