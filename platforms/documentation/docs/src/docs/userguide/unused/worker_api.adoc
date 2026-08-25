@@ -167,6 +167,32 @@ The results should look the same as before, although the MD5 hash files may be g
 This time, however, the task runs much faster.
 This is because the Worker API executes the MD5 calculation for each file in parallel rather than in sequence.
 
+=== Work parameter types and serialization
+
+Gradle isolates the parameters before it executes a unit of work.
+The parameters are copied for `noIsolation()`, and are serialized and sent to the worker for `classLoaderIsolation()` and `processIsolation()`.
+The work action receives the isolated copy, so changes to an object after it has been submitted do not affect the work action.
+
+The parameter type should be an interface that declares getters for values that Gradle can isolate.
+The following types are supported:
+
+* Gradle managed types:
+** `Property<T>` and `Provider<T>` for a single value
+** `ListProperty<T>`, `SetProperty<T>`, and `MapProperty<K, V>` for collections of values
+** `RegularFileProperty` and `DirectoryProperty` for file and directory locations
+** `ConfigurableFileCollection` for a collection of files
+** managed object interfaces, named objects, and build services
+* Scalar values such as `String`, `Boolean`, `Integer`, `Long`, `Short`, enum values, `File`, and `null`
+* Arrays, including arrays of primitive values
+* `List`, `Set`, `Map`, and `Properties` values
+* Objects that implement `java.io.Serializable`, using Java serialization as a fallback
+
+Values nested in arrays, collections, maps, properties, and managed types must also be isolatable.
+Use Gradle managed types where possible, especially for file locations and lazy values.
+Do not pass Gradle model containers such as `NamedDomainObjectContainer` directly as parameters, as their container type is not preserved during isolation.
+Use a collection property such as `SetProperty<T>` or `ListProperty<T>` instead.
+An unsupported or non-serializable value causes parameter isolation to fail when the work is submitted.
+
 === Step 3. Change the isolation mode
 
 The isolation mode controls how strongly Gradle will isolate items of work from each other and the rest of the Gradle runtime.
