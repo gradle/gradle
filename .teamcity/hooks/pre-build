@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+# Copyright 2026 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Repository pre-build hook (file name required by the teamcity-hooks-plugin).
+# Runs after the agent pre-build hook has restored the Gradle user home from the
+# Develocity artifact cache, and before the first build step.
+#
+# Drops immutable workspaces that were restored without their `metadata.bin`.
+#
+# Gradle's AssignImmutableWorkspaceStep treats an existing workspace directory as
+# authoritative and reads `metadata.bin` from it. If the directory is there but the
+# metadata file is not, the build dies during settings evaluation with
+#
+#   java.io.UncheckedIOException: Could not read workspace metadata from
+#   <gradle-home>/caches/<version>/dependencies-accessors/<hash>/metadata.bin
+#
+# The artifact cache can hold such a truncated entry, and because it is keyed by path
+# rather than by content, a later healthy build does not overwrite it ("Content already
+# exists in cache") - every agent restores the same broken directory until the entry is
+# evicted by hand. That took out ~60 builds of the release8x nightly on 2026-05-07,
+# 2026-08-16, 2026-08-22 and 2026-08-23 (gradle/gradle-private#5181).
+#
+# Gradle 9.4 reworked this code path so the workspace self-heals (gradle/gradle#36220,
+# gradle/gradle#36227). release8x builds itself with Gradle 8.14.3, which cannot, so
+# clean the restored workspaces up before the build tool ever looks at them. Deleting a
+# workspace is safe: Gradle regenerates it on demand.
+#
+# Only caches whose *own* entries use `metadata.bin` are considered. Older Gradle
+# versions kept these caches in a layout that has no metadata file at all - the agents
+# hold caches going back to 7.6.x for the cross-version tests - and every entry there
+# would otherwise look corrupt. A cache is treated as metadata-using only if at least
+# one of its entries has a `metadata.bin`; that keeps the check self-calibrating instead
+# of hard-coding which Gradle versions grew the layout.
+
+set -uo pipefail
+
+GRADLE_HOME="${GRADLE_USER_HOME:-${HOME}/.gradle}"
+
+# Refuse to act on a cache where this many entries look corrupt: real corruption is a
+# handful of entries, a number like that means the heuristic is wrong for that layout.
+MAX_REMOVALS_PER_CACHE=20
+
+if [ ! -d "${GRADLE_HOME}" ]; then
+    echo "No Gradle user home at ${GRADLE_HOME}, nothing to check."
+    exit 0
+fi
+
+removed=0
+for cache in \
+    "${GRADLE_HOME}"/caches/*/dependencies-accessors \
+    "${GRADLE_HOME}"/caches/*/groovy-dsl \
+    "${GRADLE_HOME}"/caches/*/kotlin-dsl/scripts ; do
+    # Unmatched globs come through literally; -d filters them out.
+    [ -d "${cache}" ] || continue
+
+    incomplete=()
+    complete=0
+    for workspace in "${cache}"/*/ ; do
+        [ -d "${workspace}" ] || continue
+        if [ -f "${workspace}metadata.bin" ]; then
+            complete=$((complete + 1))
+        else
+            incomplete+=("${workspace}")
+        fi
+    done
+
+    [ "${#incomplete[@]}" -eq 0 ] && continue
+
+    if [ "${complete}" -eq 0 ]; then
+        echo "Skipping ${cache}: no entry uses metadata.bin, so this is a pre-8.x layout."
+        continue
+    fi
+
+    if [ "${#incomplete[@]}" -gt "${MAX_REMOVALS_PER_CACHE}" ]; then
+        echo "Skipping ${cache}: ${#incomplete[@]} of $((complete + ${#incomplete[@]})) entries lack metadata.bin, too many to be corruption."
+        continue
+    fi
+
+    for workspace in "${incomplete[@]}"; do
+        echo "Removing immutable workspace without metadata.bin: ${workspace}"
+        rm -rf "${workspace}"
+        removed=$((removed + 1))
+    done
+done
+
+if [ "${removed}" -eq 0 ]; then
+    echo "No incomplete immutable workspaces found in ${GRADLE_HOME}."
+else
+    echo "Removed ${removed} incomplete immutable workspace(s) from ${GRADLE_HOME}."
+fi
+
+# Never fail the build because of this hook.
+exit 0
