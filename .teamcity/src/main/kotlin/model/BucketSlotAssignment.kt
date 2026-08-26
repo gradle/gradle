@@ -110,8 +110,13 @@ fun <T> assignToPreviousSlots(
     val slotOfBucket = arrayOfNulls<Int>(newBuckets.size)
     val takenSlots = mutableSetOf<Int>()
     candidates.forEach { candidate ->
-        if (slotOfBucket[candidate.newIndex] == null && takenSlots.add(candidate.slotIndex)) {
-            slotOfBucket[candidate.newIndex] = candidate.slotIndex
+        // Kept as two nested checks rather than one `&&`: `takenSlots.add` mutates, so folding it into a
+        // short-circuiting condition would silently claim slots for already-assigned buckets if the
+        // operands were ever reordered.
+        if (slotOfBucket[candidate.newIndex] == null) {
+            if (takenSlots.add(candidate.slotIndex)) {
+                slotOfBucket[candidate.newIndex] = candidate.slotIndex
+            }
         }
     }
 

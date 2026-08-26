@@ -30,7 +30,10 @@ fun main() {
     val testClassDataJson = File(System.getProperty("inputTestClassDataJson") ?: throw IllegalArgumentException("Input file not found!"))
     val generatedBucketsJson = File(System.getProperty("outputBucketSplitJson", "./test-buckets.json"))
 
-    FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson)
+    // The layout to preserve always comes from the checked-in file, never from the output path: writing
+    // the split elsewhere (a dry run, say) must still produce the order the checked-in file has, otherwise
+    // that output cannot be compared against it.
+    FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson, File("./test-buckets.json"))
 }
 
 class FunctionalTestBucketGenerator(
