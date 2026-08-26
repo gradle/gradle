@@ -21,7 +21,6 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.LockMode
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
@@ -36,6 +35,7 @@ import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.service.scopes.ProjectDomainObjectContext
 import org.gradle.test.fixtures.file.TestFile

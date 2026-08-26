@@ -98,7 +98,6 @@ Class <org.gradle.api.internal.DependencyInjectingServiceLoader> is in a generic
 Class <org.gradle.api.internal.DocumentationRegistry> is in a generic package in (DocumentationRegistry.java:0)
 Class <org.gradle.api.internal.DomNode> is in a generic package in (DomNode.java:0)
 Class <org.gradle.api.internal.DomainObjectCollectionInternal> is in a generic package in (DomainObjectCollectionInternal.java:0)
-Class <org.gradle.api.internal.DomainObjectContext> is in a generic package in (DomainObjectContext.java:0)
 Class <org.gradle.api.internal.DynamicModulesClassPathProvider> is in a generic package in (DynamicModulesClassPathProvider.java:0)
 Class <org.gradle.api.internal.DynamicObjectAware> is in a generic package in (DynamicObjectAware.java:0)
 Class <org.gradle.api.internal.DynamicPropertyNamer> is in a generic package in (DynamicPropertyNamer.java:0)
