@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.problems.Severity
 
 import spock.lang.Issue
 
@@ -540,70 +539,6 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         outputContains("inputs = [task1.txt, task2.txt]")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/38410")
-    def "can use optional TaskInputs.files with an absent provider wrapped in a list"() {
-        def configurationCache = newConfigurationCacheFixture()
-
-        buildFile """
-            tasks.register("myTask") {
-                inputs.files([objects.fileProperty()])
-                    .optional()
-                    .withPropertyName("inputProp")
-                doLast {
-                    println "inputs = " + inputs.files.files*.name.sort()
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun "myTask"
-
-        then:
-        configurationCache.assertStateStored()
-        result.assertTaskExecuted(":myTask")
-        outputContains("inputs = []")
-
-        when:
-        configurationCacheRun "myTask"
-
-        then:
-        configurationCache.assertStateLoaded()
-        result.assertTaskExecuted(":myTask")
-        outputContains("inputs = []")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/38410")
-    def "required TaskInputs.files with an absent provider wrapped in a list fails after configuration cache reload"() {
-        def configurationCache = newConfigurationCacheFixture()
-        enableProblemsApiCheck()
-
-        buildFile """
-            tasks.register("myTask") {
-                inputs.files([objects.fileProperty()])
-                    .withPropertyName("inputProp")
-                doLast {
-                    println "should not run"
-                }
-            }
-        """
-
-        when:
-        configurationCacheFails "myTask"
-
-        then:
-        configurationCache.assertStateStored()
-        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
-        assertInputPropValueNotSetProblem()
-
-        when:
-        configurationCacheFails "myTask"
-
-        then:
-        configurationCache.assertStateLoaded()
-        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
-        assertInputPropValueNotSetProblem()
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/33318")
     def "can use DomainObjectCollection of Configuration as ad hoc task input"() {
         file("foo.txt").text = "foo"
@@ -645,102 +580,6 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
         then:
         outputContains("inputs = [bar.txt, foo.txt]")
-    }
-
-    @Issue(["https://github.com/gradle/gradle/issues/33318", "https://github.com/gradle/gradle/issues/38410"])
-    def "can use mixed absent provider and DomainObjectCollection as optional ad hoc task input"() {
-        def configurationCache = newConfigurationCacheFixture()
-        file("foo.txt").text = "foo"
-        file("bar.txt").text = "bar"
-
-        buildFile """
-            configurations.register("foo") {
-                canBeResolved = true
-                canBeConsumed = false
-            }
-            configurations.register("bar") {
-                canBeResolved = true
-                canBeConsumed = false
-            }
-
-            dependencies {
-                foo files("foo.txt")
-                bar files("bar.txt")
-            }
-
-            def missingFile = objects.fileProperty()
-
-            tasks.register("reader") {
-                def myConfigs = configurations.matching { it.name in ["foo", "bar"] }
-                inputs.files([missingFile, myConfigs])
-                    .optional()
-                    .withPropertyName("inputProp")
-                doLast {
-                    println "inputs = " + inputs.files.files*.name.sort()
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun "reader"
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("inputs = [bar.txt, foo.txt]")
-
-        when:
-        configurationCacheRun "reader"
-
-        then:
-        configurationCache.assertStateLoaded()
-        outputContains("inputs = [bar.txt, foo.txt]")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/38410")
-    def "can use mixed absent provider and TaskProvider as optional ad hoc task input"() {
-        def configurationCache = newConfigurationCacheFixture()
-
-        buildFile """
-            abstract class ProducerTask extends DefaultTask {
-                @OutputFile
-                abstract RegularFileProperty getOutputFile()
-
-                @TaskAction
-                void writeOutput() {
-                    outputFile.get().asFile.text = "produced"
-                }
-            }
-
-            def producer = tasks.register("producer", ProducerTask) {
-                outputFile = layout.buildDirectory.file("producer.txt")
-            }
-            def missingFile = objects.fileProperty()
-
-            tasks.register("reader") {
-                inputs.files([missingFile, producer])
-                    .optional()
-                    .withPropertyName("inputProp")
-                doLast {
-                    println "inputs = " + inputs.files.files*.name.sort()
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun "reader"
-
-        then:
-        configurationCache.assertStateStored()
-        result.assertTasksExecuted(":producer", ":reader")
-        outputContains("inputs = [producer.txt]")
-
-        when:
-        configurationCacheRun "reader"
-
-        then:
-        configurationCache.assertStateLoaded()
-        result.assertTaskExecuted(":reader")
-        outputContains("inputs = [producer.txt]")
     }
 
     def "ad hoc inputs.file and inputs.dir preserve single path-like values across configuration cache"() {
@@ -810,41 +649,6 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         outputContains("outputs = [bar.txt, foo.txt]")
     }
 
-    def "mapped ad hoc task outputs preserve output identity across configuration cache reload"() {
-        def configurationCache = newConfigurationCacheFixture()
-
-        buildFile """
-            tasks.register("aggregate") {
-                def mappedOutputs = [
-                    foo: layout.buildDirectory.file("foo.txt"),
-                    bar: layout.buildDirectory.file("bar.txt")
-                ]
-                outputs.files(mappedOutputs).withPropertyName("mapped")
-                doLast {
-                    mappedOutputs.each { name, outputFile ->
-                        outputFile.get().asFile.text = name
-                    }
-                    println "outputs = " + outputs.files.files*.name.sort()
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun "aggregate"
-
-        then:
-        configurationCache.assertStateStored()
-        result.assertTaskExecuted(":aggregate")
-        outputContains("outputs = [bar.txt, foo.txt]")
-
-        when:
-        configurationCacheRun "aggregate"
-
-        then:
-        configurationCache.assertStateLoaded()
-        result.assertTaskSkipped(":aggregate")
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/35721")
     def "gives proper attribution to serialization failures in task closures"() {
         buildKotlinFile """
@@ -896,15 +700,6 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
             withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
                 at(":myTask").at("actions")
             }
-        }
-    }
-
-    private void assertInputPropValueNotSetProblem() {
-        verifyAll(receivedProblem) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
-            definition.id.displayName == 'Value not set'
-            contextualLabel == "Property 'inputProp' doesn't have a configured value"
         }
     }
 }

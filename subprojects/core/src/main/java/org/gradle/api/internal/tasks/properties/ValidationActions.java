@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
@@ -42,6 +44,14 @@ public enum ValidationActions implements ValidationAction {
 
         @Override
         public void validate(String propertyName, Supplier<Object> propertyValue, PropertyValidationContext context) {
+        }
+    },
+    REQUIRED_INPUT_FILES("file collection") {
+        @Override
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+            if (hasAbsentProvider(value)) {
+                AbstractValidatingProperty.reportValueNotSet(propertyName, context, true);
+            }
         }
     },
     INPUT_FILE_VALIDATOR("file") {
@@ -138,6 +148,31 @@ public enum ValidationActions implements ValidationAction {
             default:
                 throw new AssertionError("Unknown input property type " + type);
         }
+    }
+
+    private static boolean hasAbsentProvider(@Nullable Object value) {
+        if (value instanceof Provider) {
+            return !((Provider<?>) value).isPresent();
+        }
+        // DomainObjectCollection is live and can realize or mutate elements when iterated.
+        if (value instanceof DomainObjectCollection) {
+            return false;
+        }
+        // Leave arbitrary Iterable and deferred values to normal file resolution so they are not consumed here.
+        if (value instanceof Collection) {
+            for (Object element : (Collection<?>) value) {
+                if (hasAbsentProvider(element)) {
+                    return true;
+                }
+            }
+        } else if (value instanceof Object[]) {
+            for (Object element : (Object[]) value) {
+                if (hasAbsentProvider(element)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static ValidationAction outputValidationActionFor(OutputFilePropertySpec spec) {

@@ -78,7 +78,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         }
     }
 
-    protected boolean isPresent(@Nullable Object value) {
+    private static boolean isPresent(@Nullable Object value) {
         if (value instanceof Provider) {
             // carefully check for presence without necessarily resolving
             return ((Provider<?>) value).isPresent();
@@ -86,7 +86,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         return value != null;
     }
 
-    protected boolean hasConfigurableValue(@Nullable Object value) {
+    private static boolean hasConfigurableValue(@Nullable Object value) {
         // TODO We should check the type of the property here, not its value
         //   With the current code we'd assume a `Provider<String>` to be configurable when
         //   the getter returns `null`. The property type is not currently available in this
