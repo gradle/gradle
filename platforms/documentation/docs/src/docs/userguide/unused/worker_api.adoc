@@ -167,32 +167,6 @@ The results should look the same as before, although the MD5 hash files may be g
 This time, however, the task runs much faster.
 This is because the Worker API executes the MD5 calculation for each file in parallel rather than in sequence.
 
-=== Work parameter types and serialization
-
-Gradle isolates the parameters before it executes a unit of work.
-The parameters are copied for `noIsolation()`, and are serialized and sent to the worker for `classLoaderIsolation()` and `processIsolation()`.
-The work action receives the isolated copy, so changes to an object after it has been submitted do not affect the work action.
-
-The parameter type should be an interface that declares getters for values that Gradle can isolate.
-The following types are supported:
-
-* Gradle managed types:
-** `Property<T>` and `Provider<T>` for a single value
-** `ListProperty<T>`, `SetProperty<T>`, and `MapProperty<K, V>` for collections of values
-** `RegularFileProperty` and `DirectoryProperty` for file and directory locations
-** `ConfigurableFileCollection` for a collection of files
-** managed object interfaces, named objects, and build services
-* Scalar values such as `String`, `Boolean`, `Integer`, `Long`, `Short`, enum values, `File`, and `null`
-* Arrays, including arrays of primitive values
-* `List`, `Set`, `Map`, and `Properties` values
-* Objects that implement `java.io.Serializable`, using Java serialization as a fallback
-
-Values nested in arrays, collections, maps, properties, and managed types must also be isolatable.
-Use Gradle managed types where possible, especially for file locations and lazy values.
-Do not pass Gradle model containers such as `NamedDomainObjectContainer` directly as parameters, as their container type is not preserved during isolation.
-Use a collection property such as `SetProperty<T>` or `ListProperty<T>` instead.
-An unsupported or non-serializable value causes parameter isolation to fail when the work is submitted.
-
 === Step 3. Change the isolation mode
 
 The isolation mode controls how strongly Gradle will isolate items of work from each other and the rest of the Gradle runtime.
@@ -377,6 +351,65 @@ Worker daemons will remain running until the build daemon that started them is s
 When system memory is low, Gradle will stop worker daemons to minimize memory consumption.
 
 NOTE: A step-by-step description of converting a normal task action to use the worker API can be found in the section on <<worker_api.adoc#tasks_parallel_worker,developing parallel tasks>>.
+
+[[work_parameter_types]]
+== Work parameter types
+
+A `WorkParameters` type is an interface that declares a getter for each value the work action needs.
+A typical parameters interface looks like this:
+
+[source,java]
+----
+public interface MyWorkParameters extends WorkParameters {
+    Property<String> getMessage();
+    RegularFileProperty getOutputFile();
+    ConfigurableFileCollection getInputFiles();
+    ListProperty<String> getFlags();
+}
+----
+
+Before executing the work, Gradle takes an isolated copy of the parameters.
+The work action reads from that copy, so changes made to the parameter objects after `submit()` do not affect the running work.
+For `processIsolation()`, Gradle also serializes the parameters to transport them to the worker daemon process.
+
+=== Prefer Gradle managed types
+
+Use Gradle managed types for parameter values wherever possible.
+Managed types are lazy, isolatable, and compatible with the <<configuration_cache.adoc#config_cache,configuration cache>>, and they let Gradle fingerprint parameter values for up-to-date checks and the build cache.
+
+[cols="1,2"]
+|===
+|Use |For
+
+|link:{javadocPath}/org/gradle/api/provider/Property.html[`Property<T>`]
+|A single scalar value
+
+|link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[`RegularFileProperty`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[`DirectoryProperty`]
+|A file or directory location
+
+|link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`]
+|A collection of files
+
+|link:{javadocPath}/org/gradle/api/provider/ListProperty.html[`ListProperty<T>`], link:{javadocPath}/org/gradle/api/provider/SetProperty.html[`SetProperty<T>`], link:{javadocPath}/org/gradle/api/provider/MapProperty.html[`MapProperty<K, V>`]
+|A collection of values
+
+|link:{javadocPath}/org/gradle/api/Named.html[`Named`] objects, <<build_services.adoc#build_services,build services>>
+|Named or shared state
+|===
+
+Plain scalar values (`String`, `Boolean`, boxed primitives, enums, `File`, `null`) are also isolatable and work as parameter values, but wrapping them in a `Property<T>` defers value resolution and lets Gradle track the input.
+
+=== Types to avoid
+
+Gradle model containers such as link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[`NamedDomainObjectContainer`] are not supported as work parameters.
+They are not `Serializable`, so isolation fails when the work is submitted.
+Represent their contents with a collection property such as `SetProperty<T>` or `ListProperty<T>`, or `MapProperty<String, T>` if you need to preserve names.
+
+=== Java serialization fallback
+
+Values that do not match the types above fall back to Java serialization if they implement `java.io.Serializable`.
+Avoid this path when possible: serialized values are opaque to Gradle's input fingerprinting and lazy evaluation, so they weaken up-to-date checks and configuration cache reuse.
+An unsupported or non-serializable value causes parameter isolation to fail when the work is submitted.
 
 == Cancellation and timeouts
 
