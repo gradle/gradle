@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
@@ -40,6 +39,7 @@ import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.scopes.ProjectDomainObjectContext
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
