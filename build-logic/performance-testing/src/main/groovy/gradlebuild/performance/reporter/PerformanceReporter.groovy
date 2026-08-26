@@ -16,7 +16,6 @@
 
 package gradlebuild.performance.reporter
 
-import gradlebuild.basics.Gradle10PropertyUpgradeSupport
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -78,8 +77,9 @@ class PerformanceReporter {
                 spec.systemProperty("gradleBuildBranch", branchName)
                 spec.systemProperty("gradleBuildCommitId", commitId)
 
-                Gradle10PropertyUpgradeSupport.setProperty(spec, "setClasspath", classpath)
-                Gradle10PropertyUpgradeSupport.setProperty(spec, "setIgnoreExitValue", true)
+                spec.setClasspath(classpath)
+
+                spec.ignoreExitValue = true
             }
         })
 
