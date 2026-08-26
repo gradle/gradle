@@ -37,6 +37,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -53,7 +54,6 @@ import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.model.ValueCalculator;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
 

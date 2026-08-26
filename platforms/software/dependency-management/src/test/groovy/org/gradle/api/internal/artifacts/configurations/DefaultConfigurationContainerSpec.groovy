@@ -29,8 +29,8 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
@@ -41,7 +41,6 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -57,9 +56,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
     private ObjectFactory objectFactory = TestUtil.objectFactory()
     private DomainObjectContext domainObjectContext = Mock(ProjectDomainObjectContext) {
-        getModel() >> Mock(ProjectState) {
-            getIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
-        }
+        getIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
     }
     private DependencyManagementInstanceIdentity instanceIdentity = new DependencyManagementInstanceIdentity(Describables.of("foo"))
     private ListenerManager listenerManager = Mock()
