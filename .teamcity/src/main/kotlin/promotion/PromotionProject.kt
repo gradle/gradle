@@ -63,6 +63,9 @@ class PromotionProject(
             param("env.PGP_SIGNING_KEY_ID", "%pgpSigningKeyId%")
             param("env.PGP_SIGNING_KEY", "%pgpSigningKey%")
             param("env.PGP_SIGNING_KEY_PASSPHRASE", "%pgpSigningPassphrase%")
+            // bot-gradle's git commit signing key, see https://github.com/gradle/gradle-private/issues/4730
+            param("env.GPG_KEY", "%github.bot-gradle.gpg.key.id%")
+            password("env.GPG_PRIVATE_KEY", "%github.bot-gradle.gpg.private.key%")
             param("env.DEVELOCITY_SERVER_URL", "%gbt.internal.develocity.server.url%")
             // https://github.com/gradle/gradle-private/issues/5256
             param("env.PROMOTED_GBT_BUILD_DEVELOCITY_SERVER_URL", "%gbt.public.develocity.server.url%")
