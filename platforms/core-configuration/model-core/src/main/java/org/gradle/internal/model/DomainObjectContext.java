@@ -27,6 +27,28 @@ import org.gradle.util.Path;
 public interface DomainObjectContext extends Describable {
 
     /**
+     * A domain object context modeling no mutable state.
+     */
+    DomainObjectContext NONE = new DomainObjectContext() {
+
+        @Override
+        public Path getBuildPath() {
+            return Path.ROOT;
+        }
+
+        @Override
+        public ModelContainer<?> getModel() {
+            return ModelContainer.EMPTY;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "none";
+        }
+
+    };
+
+    /**
      * The identity of the build that this context belongs to.
      */
     Path getBuildPath();
