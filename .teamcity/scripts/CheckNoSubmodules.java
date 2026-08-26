@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -35,20 +36,30 @@ import java.util.stream.Collectors;
  * so every commit in the range is inspected, not just the PR head.
  *
  * Usage (Java 11+ single-file source execution):
- *   java .teamcity/scripts/CheckNoSubmodules.java &lt; commits.txt
+ *   java .teamcity/scripts/CheckNoSubmodules.java [--warn-only] &lt; commits.txt
  *
  * Reads commit SHAs from stdin (one per line). For every commit the tree is scanned for
- * gitlink entries (mode 160000) and for a .gitmodules file at any depth. Exits 0 if all
- * commits are clean, 1 if any submodule reference is detected.
+ * gitlink entries (mode 160000) and for a .gitmodules file at any depth.
+ *
+ * With --warn-only the findings are reported as a TeamCity warning and the exit code stays 0.
+ * The caller passes it for work-in-progress builds (plain branch builds and draft PRs) so a
+ * submodule shows up as early feedback without blocking, while ready-for-review PRs and merge
+ * queue builds run in enforcing mode and fail.
  */
 public class CheckNoSubmodules {
     private static final String GITLINK_MODE = "160000";
     private static final String GITMODULES_FILE_NAME = ".gitmodules";
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 0) {
-            System.err.println("Usage: java CheckNoSubmodules.java < commits.txt");
-            System.exit(2);
+        boolean warnOnly = false;
+        for (String arg : args) {
+            if ("--warn-only".equals(arg)) {
+                warnOnly = true;
+            } else {
+                System.err.println("Unknown argument: " + arg);
+                System.err.println("Usage: java CheckNoSubmodules.java [--warn-only] < commits.txt");
+                System.exit(2);
+            }
         }
 
         List<String> commits;
@@ -72,19 +83,40 @@ public class CheckNoSubmodules {
         }
 
         if (!violations.isEmpty()) {
-            System.err.println("Git submodules are not allowed in this repository.");
-            System.err.println("Offending findings:");
-            for (String v : violations) {
-                System.err.println("  - " + v);
+            report(violations, warnOnly);
+            if (warnOnly) {
+                // Deliberately successful: work-in-progress builds only get early feedback.
+                return;
             }
-            System.err.println();
-            System.err.println("Please remove the submodule (git rm <path>, drop " + GITMODULES_FILE_NAME + ")");
-            System.err.println("and vendor or depend on the sources another way.");
-            System.err.println("Since every commit is checked, rebase / amend the offending commit(s), then force-push.");
             System.exit(1);
         }
 
         System.out.println("Checked " + commits.size() + " commit(s); no git submodules found.");
+    }
+
+    private static void report(List<String> violations, boolean warnOnly) {
+        PrintStream out = warnOnly ? System.out : System.err;
+        if (warnOnly) {
+            // Surface it in the TeamCity build log as a warning so it doesn't drown in the step output.
+            System.out.println(
+                "##teamcity[message text='Git submodules are not allowed in this repository."
+                    + " This build only warns; the check fails once the PR is ready for review.' status='WARNING']"
+            );
+        }
+        out.println("Git submodules are not allowed in this repository.");
+        out.println("Offending findings:");
+        for (String v : violations) {
+            out.println("  - " + v);
+        }
+        out.println();
+        out.println("Please remove the submodule (git rm <path>, drop " + GITMODULES_FILE_NAME + ")");
+        out.println("and vendor or depend on the sources another way.");
+        out.println("Since every commit is checked, rebase / amend the offending commit(s), then force-push.");
+        if (warnOnly) {
+            out.println();
+            out.println("Not failing this build (--warn-only): draft PR or plain branch build.");
+            out.println("This will fail once the PR is ready for review, and in the merge queue.");
+        }
     }
 
     /**
