@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.model.ModelContainer;
@@ -42,7 +41,7 @@ public class BuildDomainObjectContext implements DomainObjectContext {
     public ModelContainer<?> getModel() {
         // TODO: This should be the build model, a container for the Gradle instance
         // that provides lock-aware access to the build's mutable model.
-        return StandaloneDomainObjectContext.ANONYMOUS.getModel();
+        return ModelContainer.EMPTY;
     }
 
     @Override
