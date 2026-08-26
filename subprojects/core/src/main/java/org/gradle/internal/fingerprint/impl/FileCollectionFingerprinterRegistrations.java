@@ -45,7 +45,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
 import static org.gradle.internal.execution.impl.FingerprinterRegistration.registration;
 
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope({Scope.BuildSession.class, Scope.Project.class})
 public class FileCollectionFingerprinterRegistrations {
     private final Set<FingerprinterRegistration> registrants;
 

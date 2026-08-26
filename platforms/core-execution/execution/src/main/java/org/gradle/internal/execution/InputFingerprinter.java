@@ -27,7 +27,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.util.function.Consumer;
 
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope({Scope.BuildSession.class, Scope.Project.class})
 public interface InputFingerprinter {
     Result fingerprintInputProperties(
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
