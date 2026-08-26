@@ -70,7 +70,12 @@ class ConnectorServicesTest extends Specification {
     }
 
     def "resets the active connector count when closing the shared factory fails"() {
-        given:
+        given: "an active connector, so that the count is not already zero"
+        ConnectorServices.createConnector()
+        //noinspection GroovyAccessibility
+        assert ConnectorServices.activeConnectors == 1
+
+        and:
         //noinspection GroovyAccessibility
         ConnectorServices.sharedConnectorFactory = new BrokenConnectorFactory(new RuntimeException("cannot stop services"))
 
