@@ -264,6 +264,31 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(finalized, finalizer)
     }
 
+    def "finalizer of multiple entry tasks does not reorder an unrelated entry task"() {
+        Task finalizer = task("finalizer")
+        Task a = task("a", finalizedBy: [finalizer])
+        Task b = task("b")
+        Task c = task("c", finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate([a, b, c])
+
+        then:
+        executes(a, b, c, finalizer)
+    }
+
+    def "finalizer of an entry task does not reorder another entry task that depends on it"() {
+        Task finalizer = task("c")
+        Task dependency = task("b", finalizedBy: [finalizer])
+        Task dependent = task("a", dependsOn: [dependency])
+
+        when:
+        addToGraphAndPopulate([dependent, dependency])
+
+        then:
+        executes(dependency, dependent, finalizer)
+    }
+
     def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
         Task finalizerDependency = task("finalizerDependency")
         Task finalizer1 = task("finalizer1", dependsOn: [finalizerDependency])
@@ -590,6 +615,28 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         then:
         executedTasks == [a, b, c]
+    }
+
+    def "should run after ordering is ignored when the cycle is discovered after other successors have been queued"() {
+        Task extraDependency = task("extraDependency")
+        Task shouldRunAfterSource = createTask("shouldRunAfterSource")
+        Task shouldRunAfterTarget = createTask("shouldRunAfterTarget")
+        Task cycleNode = createTask("cycleNode")
+        Task entry = createTask("entry")
+
+        relationships(entry, dependsOn: [shouldRunAfterSource])
+        relationships(shouldRunAfterSource, shouldRunAfter: [shouldRunAfterTarget])
+        relationships(shouldRunAfterTarget, dependsOn: [cycleNode])
+        // Successors are visited in name order, so "extraDependency" is queued before the cycle back to
+        // "shouldRunAfterSource" is discovered. The partially queued successors must be unwound along with
+        // the rest of the queue when the walked shouldRunAfter edge is removed.
+        relationships(cycleNode, dependsOn: [extraDependency, shouldRunAfterSource])
+
+        when:
+        addToGraphAndPopulate([entry, shouldRunAfterTarget])
+
+        then:
+        executedTasks == [shouldRunAfterSource, entry, extraDependency, cycleNode, shouldRunAfterTarget]
     }
 
     @Issue("GRADLE-3127")
