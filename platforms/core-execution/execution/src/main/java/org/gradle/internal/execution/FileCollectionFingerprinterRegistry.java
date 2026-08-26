@@ -19,7 +19,7 @@ package org.gradle.internal.execution;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope({Scope.BuildSession.class, Scope.Project.class})
 public interface FileCollectionFingerprinterRegistry {
     FileCollectionFingerprinter getFingerprinter(FileNormalizationSpec spec);
 }
