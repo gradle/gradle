@@ -83,6 +83,16 @@ class LightweightChecks(
                             --pr-body-file "${'$'}PR_BODY_FILE"
                         """.trimIndent()
                 }
+                script {
+                    name = "CHECK_NO_SUBMODULES"
+                    scriptContent =
+                        """
+                        set -eu
+
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckNoSubmodules.java
+                        """.trimIndent()
+                }
                 if (model.branch.isMaster) {
                     script {
                         name = "CHECK_BAD_MERGE"
