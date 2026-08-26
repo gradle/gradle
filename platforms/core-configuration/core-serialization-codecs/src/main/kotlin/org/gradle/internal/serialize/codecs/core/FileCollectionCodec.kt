@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ProviderResolutionStrategy
 import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.properties.InputFileValidationMetadata
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.util.PatternSet
@@ -65,19 +66,20 @@ class FileCollectionCodec(
     }
 
     suspend fun WriteContext.encodeContents(value: FileCollectionInternal) {
-        val executionTimeValue = value.calculateExecutionTimeValue().getOrNull()
+        val valueToEncode = (value as? InputFileValidationFileCollection)?.delegate ?: value
+        val executionTimeValue = valueToEncode.calculateExecutionTimeValue().getOrNull()
         if (executionTimeValue != null) {
             writeBoolean(true)
             write(executionTimeValue)
         } else {
             writeBoolean(false)
-            encodeViaCollectingVisitor(value)
+            encodeViaCollectingVisitor(valueToEncode, value is InputFileValidationFileCollection)
         }
     }
 
     private
-    suspend fun WriteContext.encodeViaCollectingVisitor(value: FileCollectionInternal) {
-        val visitor = CollectingVisitor()
+    suspend fun WriteContext.encodeViaCollectingVisitor(value: FileCollectionInternal, retainInputFileValidation: Boolean) {
+        val visitor = CollectingVisitor(retainInputFileValidation)
         value.visitStructure(visitor)
         writeCollection(visitor.elements)
     }
@@ -90,11 +92,13 @@ class FileCollectionCodec(
         }
     }
 
-    suspend fun ReadContext.decodeContents(): FileCollectionInternal = if (readBoolean()) {
-        readNonNull<FileCollectionExecutionTimeValue>().toFileCollection(fileCollectionFactory)
-    } else {
-        fileCollectionFactory.resolving(
-            readList().map { element ->
+    suspend fun ReadContext.decodeContents(): FileCollectionInternal {
+        if (readBoolean()) {
+            return readNonNull<FileCollectionExecutionTimeValue>().toFileCollection(fileCollectionFactory)
+        }
+        val elements = readList()
+        val fileCollection = fileCollectionFactory.resolving(
+            elements.map { element ->
                 when (element) {
                     is File -> element
                     is SubtractingFileCollectionSpec -> element.left.minus(element.right)
@@ -118,7 +122,28 @@ class FileCollectionCodec(
                 }
             }
         )
+        val providers = elements
+            .filterIsInstance<ProviderBackedFileCollectionSpec>()
+            .filter { it.validatePresence }
+            .map { it.provider }
+        return if (providers.isEmpty()) fileCollection else InputFileValidationFileCollection(fileCollection, providers)
     }
+}
+
+
+internal
+fun FileCollectionInternal.withInputFileValidation(): FileCollectionInternal =
+    InputFileValidationFileCollection(this, emptyList())
+
+
+private
+class InputFileValidationFileCollection(
+    val delegate: FileCollectionInternal,
+    private val providers: List<ProviderInternal<*>>
+) : FileCollectionInternal by delegate, InputFileValidationMetadata {
+    override fun hasAbsentProvider(): Boolean = providers.any { !it.isPresent }
+
+    override fun toString(): String = delegate.toString()
 }
 
 
@@ -136,7 +161,8 @@ private
 class ProviderBackedFileCollectionSpec(
     val resolver: PathToFileResolver,
     val resolutionStrategy: ProviderResolutionStrategy,
-    val provider: ProviderInternal<*>
+    val provider: ProviderInternal<*>,
+    val validatePresence: Boolean
 ) : ValueObject
 
 
@@ -162,7 +188,7 @@ abstract class AbstractVisitor : FileCollectionStructureVisitor {
 
 
 private
-class CollectingVisitor : AbstractVisitor() {
+class CollectingVisitor(private val retainInputFileValidation: Boolean = false) : AbstractVisitor() {
     val elements: MutableSet<Any> = mutableSetOf()
 
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
@@ -184,7 +210,14 @@ class CollectingVisitor : AbstractVisitor() {
                 // being referenced from a different task.
                 val provider = fileCollection.provider
                 if (provider !is TaskProvider<*>) {
-                    elements.add(ProviderBackedFileCollectionSpec(fileCollection.resolver, fileCollection.providerResolutionStrategy, provider))
+                    elements.add(
+                        ProviderBackedFileCollectionSpec(
+                            fileCollection.resolver,
+                            fileCollection.providerResolutionStrategy,
+                            provider,
+                            retainInputFileValidation && fileCollection.providerResolutionStrategy == ProviderResolutionStrategy.ALLOW_ABSENT
+                        )
+                    )
                     false
                 } else {
                     true
