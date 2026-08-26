@@ -66,11 +66,11 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
         collectedProblems.empty
 
         where:
-        settingsFile            | content
-        'settings.gradle'       | '// This is the only settings file'
-        'settings.gradle.kts'   | '// This is the only settings file'
-        'settings.gradle.dcl'   | '// This is the only settings file'
-        'settings.gradle.xdcl'  | 'settings {\n}' // an xdcl settings script must declare its top-level body
+        settingsFile           | content
+        'settings.gradle'      | '// This is the only settings file'
+        'settings.gradle.kts'  | '// This is the only settings file'
+        'settings.gradle.dcl'  | '// This is the only settings file'
+        'settings.gradle.xdcl' | 'settings {\n}' // an xdcl settings script must declare its top-level body
     }
 
     def "warns about all ignored files when three settings files exist"() {
