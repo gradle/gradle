@@ -26,6 +26,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.internal.DeferredUtil;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -49,9 +50,14 @@ public enum ValidationActions implements ValidationAction {
     REQUIRED_INPUT_FILES("file collection") {
         @Override
         public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
-            if (hasAbsentProvider(value)) {
+            if (hasNestedAbsentProvider(value)) {
                 AbstractValidatingProperty.reportValueNotSet(propertyName, context, true);
             }
+        }
+
+        @Override
+        public void validate(String propertyName, Supplier<Object> propertyValue, PropertyValidationContext context) {
+            doValidate(propertyName, propertyValue.get(), context);
         }
     },
     INPUT_FILE_VALIDATOR("file") {
@@ -150,15 +156,11 @@ public enum ValidationActions implements ValidationAction {
         }
     }
 
-    private static boolean hasAbsentProvider(@Nullable Object value) {
-        if (value instanceof Provider) {
-            return !((Provider<?>) value).isPresent();
-        }
-        // DomainObjectCollection is live and can realize or mutate elements when iterated.
+    private static boolean hasNestedAbsentProvider(@Nullable Object value) {
         if (value instanceof DomainObjectCollection) {
+            // DomainObjectCollection is live and can realize or mutate elements when iterated.
             return false;
         }
-        // Leave arbitrary Iterable and deferred values to normal file resolution so they are not consumed here.
         if (value instanceof Collection) {
             for (Object element : (Collection<?>) value) {
                 if (hasAbsentProvider(element)) {
@@ -173,6 +175,14 @@ public enum ValidationActions implements ValidationAction {
             }
         }
         return false;
+    }
+
+    private static boolean hasAbsentProvider(@Nullable Object value) {
+        if (value instanceof Provider) {
+            return !((Provider<?>) value).isPresent();
+        }
+        // Leave arbitrary Iterable and deferred values to normal file resolution so they are not consumed here.
+        return hasNestedAbsentProvider(value);
     }
 
     public static ValidationAction outputValidationActionFor(OutputFilePropertySpec spec) {
@@ -308,10 +318,11 @@ public enum ValidationActions implements ValidationAction {
 
     @Override
     public void validate(String propertyName, Supplier<Object> value, PropertyValidationContext context) {
+        Object resolvedValue = DeferredUtil.unpack(value.get());
         try {
-            doValidate(propertyName, value.get(), context);
+            doValidate(propertyName, resolvedValue, context);
         } catch (UnsupportedNotationException unsupportedNotationException) {
-            reportUnsupportedValue(propertyName, context, targetType, value.get(), unsupportedNotationException.getCandidates());
+            reportUnsupportedValue(propertyName, context, targetType, resolvedValue, unsupportedNotationException.getCandidates());
         }
     }
 
