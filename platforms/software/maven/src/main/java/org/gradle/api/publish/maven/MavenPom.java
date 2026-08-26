@@ -23,7 +23,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * The POM for a Maven publication.
@@ -46,8 +46,8 @@ public interface MavenPom {
      * @since 1.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    String getPackaging();
+    @ReplacesEagerProperty
+    Property<String> getPackaging();
 
     /**
      * Sets the packaging for the publication represented by this POM.

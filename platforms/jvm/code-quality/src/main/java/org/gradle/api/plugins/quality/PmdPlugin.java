@@ -39,6 +39,7 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -89,13 +90,13 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
-        extension.setToolVersion(DEFAULT_PMD_VERSION);
+        extension.getToolVersion().convention(DEFAULT_PMD_VERSION);
         extension.getRulesMinimumPriority().convention(5);
         extension.getIncrementalAnalysis().convention(true);
         extension.getMaxFailures().convention(0);
         extension.getThreads().convention(1);
-        extension.setRuleSetFiles(project.getLayout().files());
         extension.getRuleSetsProperty().convention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
+        extension.getRuleSetFiles().setFrom(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", () ->
             DeprecationLogger.whileDisabled(() -> getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility())));
         return extension;
@@ -158,27 +159,27 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
-            calculateDefaultDependencyNotation(extension.getToolVersion())
+            dependencies.addAllLater(extension.getToolVersion().map(version -> calculateDefaultDependencyNotation(version)
                 .stream()
                 .map(project.getDependencies()::create)
-                .forEach(dependencies::add)
+                .collect(Collectors.toList()))
+            )
         );
     }
 
     private void configureTaskConventionMapping(Configuration configuration, final Pmd task) {
         ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("pmdClasspath", () -> configuration);
-        taskMapping.map("ruleSets", () -> extension.getRuleSets());
         taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
-        taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
-        taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
         taskMapping.map("targetJdk", () -> DeprecationLogger.whileDisabled(extension::getTargetJdk));
-
+        task.getPmdClasspath().convention(configuration);
+        task.getRuleSets().convention(extension.getRuleSets());
+        task.getRuleSetFiles().convention(extension.getRuleSetFiles());
+        task.getConsoleOutput().convention(extension.getConsoleOutput());
         task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
         task.getThreads().convention(extension.getThreads());
-        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
+        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {

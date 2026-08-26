@@ -16,6 +16,10 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
 
@@ -33,6 +37,15 @@ public interface DeleteSpec {
      * @since 2.13
      */
     DeleteSpec delete(@Nullable Object... files);
+
+    /**
+     * Specifies whether or not symbolic links should be followed during deletion.
+     * @since 9.9.0
+     **/
+    @Input
+    @Optional
+    @Incubating
+    Property<Boolean> getFollowSymlinks();
 
     /**
      * Specifies whether or not symbolic links should be followed during deletion.

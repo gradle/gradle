@@ -20,10 +20,12 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -52,6 +54,7 @@ import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -102,7 +105,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * task generateRestApiDocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
  *
- *   options.docletpath = configurations.jaxDoclet.files.asType(List)
+ *   options.docletpath = configurations.jaxDoclet
  *   options.doclet = "com.lunatech.doclets.jax.jaxrs.JAXRSDoclet"
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")
  * }
@@ -113,21 +116,9 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    private boolean failOnError = true;
-
-    @Nullable
-    private String title;
-
-    @Nullable
-    private String maxMemory;
-
-    private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
-
-    private FileCollection classpath = getObjectFactory().fileCollection();
+    private final StandardJavadocDocletOptions options;
     private final ModularitySpec modularity;
-
-    @Nullable
-    private String executable;
+    private final Provider<RegularFile> optionsFile;
 
     /**
      * Creates a new {@code Javadoc}.
@@ -138,6 +129,7 @@ public abstract class Javadoc extends SourceTask {
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
         PropertyFactory propertyFactory = getPropertyFactory();
+        this.options = objectFactory.newInstance(StandardJavadocDocletOptions.class);
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavadocTool> javadocToolConvention = getProviderFactory()
@@ -146,6 +138,9 @@ public abstract class Javadoc extends SourceTask {
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
         getJavadocTool().convention(javadocToolConvention);
         getJavadocTool().finalizeValueOnRead();
+        this.optionsFile = getObjectFactory().fileProperty()
+            .fileProvider(getProviderFactory().provider(() -> new File(getTemporaryDir(), "javadoc.options")));
+        getFailOnError().convention(true);
     }
 
     /**
@@ -162,9 +157,9 @@ public abstract class Javadoc extends SourceTask {
             throw UncheckedException.throwAsUncheckedException(ex);
         }
 
-        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
+        StandardJavadocDocletOptions options = getObjectFactory().newInstance(StandardJavadocDocletOptions.class).copy((StandardJavadocDocletOptions) getOptions());
 
-        if (options.getDestinationDirectory() == null) {
+        if (!options.getDestinationDirectory().isPresent()) {
             options.destinationDirectory(destinationDir);
         }
 
@@ -177,19 +172,22 @@ public abstract class Javadoc extends SourceTask {
             getProjectLayout().files(options.getBootClasspath()).getAsPath();
         }
 
-        if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
-            options.windowTitle(getTitle());
+        String title = getTitle().getOrNull();
+        String windowTitle = options.getWindowTitle().getOrNull();
+        String docTitle = options.getDocTitle().getOrNull();
+        if (!isTrue(windowTitle) && isTrue(title)) {
+            options.windowTitle(title);
         }
-        if (!isTrue(options.getDocTitle()) && isTrue(getTitle())) {
-            options.setDocTitle(getTitle());
+        if (!isTrue(docTitle) && isTrue(title)) {
+            options.getDocTitle().set(title);
         }
 
-        String maxMemory = getMaxMemory();
-        if (maxMemory != null && options.getJFlags().stream().noneMatch(flag -> flag.startsWith("-Xmx"))) {
+        String maxMemory = getMaxMemory().getOrNull();
+        if (maxMemory != null && options.getJFlags().get().stream().noneMatch(flag -> flag.startsWith("-Xmx"))) {
             options.jFlags("-Xmx" + maxMemory);
         }
 
-        options.setSourceNames(sourceNames());
+        options.getSourceNames().set(sourceNames());
 
         JavadocSpec spec = createJavadocSpec(options);
         getJavadocToolAdapter().execute(spec);
@@ -197,7 +195,7 @@ public abstract class Javadoc extends SourceTask {
 
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
-        String customExecutable = getExecutable();
+        String customExecutable = getExecutable().getOrNull();
         JavaExecutableUtils.validateExecutable(
             customExecutable, "Toolchain from `executable` property",
             toolchainExecutable, "toolchain from `javadocTool` property");
@@ -221,9 +219,9 @@ public abstract class Javadoc extends SourceTask {
 
         JavadocSpec spec = new JavadocSpec();
         spec.setOptions(options);
-        spec.setIgnoreFailures(!isFailOnError());
+        spec.setIgnoreFailures(!getFailOnError().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
-        spec.setOptionsFile(getOptionsFile());
+        spec.setOptionsFile(getOptionsFile().get().getAsFile());
 
         JavadocToolAdapter javadocToolAdapter = getJavadocToolAdapter();
         spec.setExecutable(javadocToolAdapter.getExecutablePath().toString());
@@ -277,20 +275,6 @@ public abstract class Javadoc extends SourceTask {
     }
 
     /**
-     * Returns the output directory.
-     *
-     * @since 3.0
-     */
-    @OutputDirectory
-    protected File getOutputDirectory() {
-        File destinationDir = getDestinationDirectory().getAsFile().getOrNull();
-        if (destinationDir == null) {
-            destinationDir = options.getDestinationDirectory();
-        }
-        return destinationDir;
-    }
-
-    /**
      * <p>Sets the directory to generate the documentation into.</p>
      * @since 0.7
      */
@@ -300,15 +284,26 @@ public abstract class Javadoc extends SourceTask {
     }
 
     /**
+     * Returns the output directory.
+     *
+     * @since 3.0
+     */
+    @OutputDirectory
+    protected File getOutputDirectory() {
+        File destinationDir = getDestinationDirectory().getAsFile().getOrNull();
+        if (destinationDir == null) {
+            destinationDir = options.getDestinationDirectory().getAsFile().getOrNull();
+        }
+        return destinationDir;
+    }
+
+    /**
      * Returns the amount of memory allocated to this task.
      * @since 0.7
      */
     @Internal
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    public String getMaxMemory() {
-        return maxMemory;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getMaxMemory();
 
     /**
      * Sets the amount of memory allocated to this task.
@@ -317,7 +312,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.7
      */
     public void setMaxMemory(@Nullable String maxMemory) {
-        this.maxMemory = maxMemory;
+        getMaxMemory().set(maxMemory);
     }
 
     /**
@@ -326,20 +321,17 @@ public abstract class Javadoc extends SourceTask {
      * @return The title, possibly null.
      * @since 0.7
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getTitle() {
-        return title;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTitle();
 
     /**
      * <p>Sets the title for the generated documentation.</p>
      * @since 0.7
      */
     public void setTitle(@Nullable String title) {
-        this.title = title;
+        getTitle().set(title);
     }
 
     /**
@@ -349,10 +341,8 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.7
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Sets the classpath to use to resolve type references in this source code.
@@ -361,7 +351,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.8
      */
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        getClasspath().setFrom(classpath);
     }
 
     /**
@@ -408,13 +398,10 @@ public abstract class Javadoc extends SourceTask {
     /**
      * Specifies whether this task should fail when errors are encountered during Javadoc generation. When {@code true},
      * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
-     * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
 
     /**
      * Sets the fail on error.
@@ -422,7 +409,12 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.7
      */
     public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+        getFailOnError().set(failOnError);
+    }
+
+    @ReplacedBy("getFailOnError()")
+    public Property<Boolean> getIsFailOnError() {
+        return getFailOnError();
     }
 
     /**
@@ -431,9 +423,9 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.8
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public File getOptionsFile() {
-        return new File(getTemporaryDir(), "javadoc.options");
+    @ReplacesEagerProperty
+    public Provider<RegularFile> getOptionsFile() {
+        return optionsFile;
     }
 
     /**
@@ -444,13 +436,10 @@ public abstract class Javadoc extends SourceTask {
      * @see #getJavadocTool()
      * @since 0.9
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getExecutable() {
-        return executable;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getExecutable();
 
     /**
      * Sets the executable.
@@ -458,7 +447,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 0.9
      */
     public void setExecutable(@Nullable String executable) {
-        this.executable = executable;
+        getExecutable().set(executable);
     }
 
     @Inject

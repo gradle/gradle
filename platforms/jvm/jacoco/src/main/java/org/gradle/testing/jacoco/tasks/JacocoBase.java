@@ -16,9 +16,10 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
@@ -28,17 +29,13 @@ import org.gradle.work.DisableCachingByDefault;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class JacocoBase extends DefaultTask {
 
-    private FileCollection jacocoClasspath;
-
     /**
      * Classpath containing Jacoco classes for use by the task.
      * @since 1.6
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getJacocoClasspath() {
-        return jacocoClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getJacocoClasspath();
 
     /**
      * Sets the jacoco classpath.
@@ -46,6 +43,6 @@ public abstract class JacocoBase extends DefaultTask {
      * @since 1.6
      */
     public void setJacocoClasspath(FileCollection jacocoClasspath) {
-        this.jacocoClasspath = jacocoClasspath;
+        getJacocoClasspath().setFrom(jacocoClasspath);
     }
 }

@@ -18,11 +18,14 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -39,14 +42,12 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
@@ -59,49 +60,30 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
 public abstract class CompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
-    private boolean failOnError = true;
-
-    private boolean verbose;
-
-    private boolean listFiles;
-
-    private boolean deprecation;
-
-    private boolean warnings = true;
-
-    private String encoding;
-
-    private boolean debug = true;
-
-    private boolean fork;
-
-    private FileCollection bootstrapClasspath;
-
-    private String extensionDirs;
-
-    private List<String> compilerArgs = new ArrayList<>();
-    private final List<CommandLineArgumentProvider> compilerArgumentProviders = new ArrayList<>();
-
-    private boolean incremental = true;
-
-    private FileCollection sourcepath;
-
-    private FileCollection annotationProcessorPath;
-
     @Inject
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "this-escape"})
     public CompileOptions(ObjectFactory objectFactory) {
-
+        this.getFailOnError().convention(true);
+        this.getVerbose().convention(false);
+        this.getListFiles().convention(false);
+        this.getDeprecation().convention(false);
+        this.getWarnings().convention(true);
+        this.getDebug().convention(true);
+        this.getIncremental().convention(true);
+        this.getFork().convention(false);
     }
 
     /**
-     * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
+     * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
      * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
+
+    @ReplacedBy("failOnError")
+    public Property<Boolean> getIsFailOnError() {
+        return getFailOnError();
     }
 
     /**
@@ -109,7 +91,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+        getFailOnError().set(failOnError);
     }
 
     /**
@@ -117,9 +99,12 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isVerbose() {
-        return verbose;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getVerbose();
+
+    @ReplacedBy("verbose")
+    public Property<Boolean> getIsVerbose() {
+        return getVerbose();
     }
 
     /**
@@ -127,7 +112,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+        getVerbose().set(verbose);
     }
 
     /**
@@ -135,9 +120,12 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isListFiles() {
-        return listFiles;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getListFiles();
+
+    @ReplacedBy("listFiles")
+    public Property<Boolean> getIsListFiles() {
+        return getListFiles();
     }
 
     /**
@@ -145,7 +133,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
+        getListFiles().set(listFiles);
     }
 
     /**
@@ -153,9 +141,15 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isDeprecation() {
-        return deprecation;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDeprecation();
+
+    /**
+     * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     */
+    @ReplacedBy("deprecation")
+    public Property<Boolean> getIsDeprecation() {
+        return getDeprecation();
     }
 
     /**
@@ -163,7 +157,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
+        getDeprecation().set(deprecation);
     }
 
     /**
@@ -171,9 +165,15 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isWarnings() {
-        return warnings;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getWarnings();
+
+    /**
+     * Sets whether to log warning messages. The default is {@code true}.
+     */
+    @ReplacedBy("warnings")
+    public Property<Boolean> getIsWarnings() {
+        return getWarnings();
     }
 
     /**
@@ -181,7 +181,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     public void setWarnings(boolean warnings) {
-        this.warnings = warnings;
+        getWarnings().set(warnings);
     }
 
     /**
@@ -189,13 +189,10 @@ public abstract class CompileOptions implements Serializable {
      * case the platform default encoding will be used.
      * @since 0.7
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getEncoding() {
-        return encoding;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getEncoding();
 
     /**
      * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
@@ -203,7 +200,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     public void setEncoding(@Nullable String encoding) {
-        this.encoding = encoding;
+        getEncoding().set(encoding);
     }
 
     /**
@@ -212,9 +209,16 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isDebug() {
-        return debug;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDebug();
+
+    /**
+     * Sets whether to include debugging information in the generated class files. Defaults
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     */
+    @ReplacedBy("debug")
+    public Property<Boolean> getIsDebug() {
+        return getDebug();
     }
 
     /**
@@ -223,7 +227,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     public void setDebug(boolean debug) {
-        this.debug = debug;
+        getDebug().set(debug);
     }
 
     /**
@@ -249,9 +253,17 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFork() {
-        return fork;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFork();
+
+    /**
+     * Sets whether to run the compiler in its own process. Note that this does
+     * not necessarily mean that a new process will be created for each compile task.
+     * Defaults to {@code false}.
+     */
+    @ReplacedBy("fork")
+    public Property<Boolean> getIsFork() {
+        return getFork();
     }
 
     /**
@@ -261,7 +273,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     public void setFork(boolean fork) {
-        this.fork = fork;
+        getFork().set(fork);
     }
 
     /**
@@ -281,17 +293,14 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     * Returns the bootstrap classpath to be used for the compiler process. Defaults to empty.
      *
      * @since 4.3
      */
-    @Nullable
     @Optional
     @CompileClasspath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getBootstrapClasspath() {
-        return bootstrapClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getBootstrapClasspath();
 
     /**
      * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
@@ -299,27 +308,24 @@ public abstract class CompileOptions implements Serializable {
      * @since 4.3
      */
     public void setBootstrapClasspath(@Nullable FileCollection bootstrapClasspath) {
-        this.bootstrapClasspath = bootstrapClasspath;
+        getBootstrapClasspath().setFrom(bootstrapClasspath);
     }
 
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      * @since 0.7
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getExtensionDirs() {
-        return extensionDirs;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getExtensionDirs();
 
     /**
      * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
      * @since 0.7
      */
     public void setExtensionDirs(@Nullable String extensionDirs) {
-        this.extensionDirs = extensionDirs;
+        getExtensionDirs().set(extensionDirs);
     }
 
     /**
@@ -336,9 +342,16 @@ public abstract class CompileOptions implements Serializable {
      * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getCompilerArgs() {
-        return compilerArgs;
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getCompilerArgs();
+
+    /**
+     * Sets any additional arguments to be passed to the compiler.
+     * Defaults to the empty list.
+     * @since 0.7
+     */
+    public void setCompilerArgs(List<String> compilerArgs) {
+        getCompilerArgs().set(compilerArgs);
     }
 
     /**
@@ -347,14 +360,16 @@ public abstract class CompileOptions implements Serializable {
      * @since 4.5
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public List<String> getAllCompilerArgs() {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
-        for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
-            builder.addAll(CollectionUtils.toStringList(compilerArgumentProvider.asArguments()));
-        }
-        return builder.build();
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAllCompilerArgs() {
+        return getCompilerArgs().zip(getCompilerArgumentProviders(), (args, argProviders) -> {
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            builder.addAll(CollectionUtils.stringize(args));
+            for (CommandLineArgumentProvider compilerArgumentProvider : argProviders) {
+                builder.addAll(CollectionUtils.toStringList(compilerArgumentProvider.asArguments()));
+            }
+            return builder.build();
+        });
     }
 
     /**
@@ -363,18 +378,20 @@ public abstract class CompileOptions implements Serializable {
      * @since 4.5
      */
     @Nested
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
-    public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
-        return compilerArgumentProviders;
-    }
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getCompilerArgumentProviders"))
+    public abstract ListProperty<CommandLineArgumentProvider> getCompilerArgumentProviders();
 
     /**
-     * Sets any additional arguments to be passed to the compiler.
-     * Defaults to the empty list.
-     * @since 0.7
+     * informs whether to use incremental compilation feature.
+     *
      */
-    public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs = compilerArgs;
+    @Internal
+    @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
+    public abstract Property<Boolean> getIncremental();
+
+    @ReplacedBy("incremental")
+    public Property<Boolean> getIsIncremental() {
+        return getIncremental();
     }
 
     /**
@@ -382,18 +399,8 @@ public abstract class CompileOptions implements Serializable {
      * @since 1.12
      */
     public CompileOptions setIncremental(boolean incremental) {
-        this.incremental = incremental;
+        getIncremental().set(incremental);
         return this;
-    }
-
-    /**
-     * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
-     * @since 1.12
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean isIncremental() {
-        return incremental;
     }
 
     /**
@@ -409,7 +416,6 @@ public abstract class CompileOptions implements Serializable {
      */
     @Input
     @Optional
-    @Incubating
     public abstract Property<Boolean> getIncrementalAfterFailure();
 
     /**
@@ -426,18 +432,14 @@ public abstract class CompileOptions implements Serializable {
      * If you wish to use any source path, it must be explicitly set.
      *
      * @return the source path
-     * @see #setSourcepath(FileCollection)
      * @since 2.4
      */
     @Optional
-    @Nullable
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    @ToBeReplacedByLazyProperty
-    public FileCollection getSourcepath() {
-        return sourcepath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getSourcepath();
 
     /**
      * Sets the source path to use for the compilation.
@@ -446,7 +448,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 2.4
      */
     public void setSourcepath(@Nullable FileCollection sourcepath) {
-        this.sourcepath = sourcepath;
+        getSourcepath().setFrom(sourcepath);
     }
 
     /**
@@ -455,13 +457,10 @@ public abstract class CompileOptions implements Serializable {
      * @return The annotation processor path, or {@code null} if annotation processing is disabled.
      * @since 3.4
      */
-    @Nullable
     @Optional
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getAnnotationProcessorPath() {
-        return annotationProcessorPath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getAnnotationProcessorPath();
 
     /**
      * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
@@ -470,7 +469,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 3.4
      */
     public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
-        this.annotationProcessorPath = annotationProcessorPath;
+        getAnnotationProcessorPath().setFrom(annotationProcessorPath);
     }
 
     /**

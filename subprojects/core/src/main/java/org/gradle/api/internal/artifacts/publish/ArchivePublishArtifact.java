@@ -35,6 +35,7 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
     private AbstractArchiveTask archiveTask;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public ArchivePublishArtifact(TaskDependencyFactory taskDependencyFactory, AbstractArchiveTask archiveTask) {
         super(taskDependencyFactory, archiveTask);
         this.archiveTask = archiveTask;
@@ -75,7 +76,7 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     @Override
     public String getClassifier() {
-        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().getOrNull());
+        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().filter(x -> !x.isEmpty()).getOrNull());
     }
 
     @Override

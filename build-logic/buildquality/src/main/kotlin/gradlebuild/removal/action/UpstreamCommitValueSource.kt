@@ -88,9 +88,9 @@ abstract class UpstreamCommitValueSource : ValueSource<String, UpstreamCommitVal
             execOperations.exec {
                 commandLine(listOf("git") + args)
                 workingDir = parameters.workingDir.get().asFile
-                standardOutput = stdout
-                errorOutput = ByteArrayOutputStream()
-                isIgnoreExitValue = true
+                setStandardOutput(stdout)
+                setErrorOutput(ByteArrayOutputStream())
+                setIgnoreExitValue(true)
             }
             stdout.toString(Charsets.UTF_8.name())
         } catch (_: Exception) {

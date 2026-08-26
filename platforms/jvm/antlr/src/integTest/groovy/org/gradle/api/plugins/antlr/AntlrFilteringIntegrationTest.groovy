@@ -81,7 +81,7 @@ class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec implements A
 
     static String setPackageWithArguments(String packageName) {
         return """
-            outputDirectory = new File(outputDirectory, '${packageName.replace('.', '/')}')
+            outputDirectory = new File(outputDirectory.get().asFile, '${packageName.replace('.', '/')}')
             arguments += ['-package', '${packageName}']
         """
     }

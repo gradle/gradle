@@ -16,12 +16,11 @@
 
 package org.gradle.api.tasks.testing.junitplatform;
 
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -31,28 +30,16 @@ import java.util.Set;
  * @since 4.6
  */
 public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
-    private Set<String> includeEngines = new LinkedHashSet<String>();
-
-    private Set<String> excludeEngines = new LinkedHashSet<String>();
-
-    private Set<String> includeTags = new LinkedHashSet<String>();
-
-    private Set<String> excludeTags = new LinkedHashSet<String>();
 
     /**
      * Copies the options from the source options into the current one.
      * @since 8.0
      */
     public void copyFrom(JUnitPlatformOptions other) {
-        replace(this.includeEngines, other.includeEngines);
-        replace(this.excludeEngines, other.excludeEngines);
-        replace(this.includeTags, other.includeTags);
-        replace(this.excludeTags, other.excludeTags);
-    }
-
-    private static void replace(Set<String> target, Set<String> source) {
-        target.clear();
-        target.addAll(source);
+        getIncludeEngines().set(other.getIncludeEngines());
+        getExcludeEngines().set(other.getExcludeEngines());
+        getIncludeTags().set(other.getIncludeTags());
+        getExcludeTags().set(other.getExcludeTags());
     }
 
     /**
@@ -62,7 +49,7 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     public JUnitPlatformOptions includeEngines(String... includeEngines) {
-        this.includeEngines.addAll(Arrays.asList(includeEngines));
+        getIncludeEngines().addAll(includeEngines);
         return this;
     }
 
@@ -73,7 +60,7 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     public JUnitPlatformOptions includeTags(String... includeTags) {
-        this.includeTags.addAll(Arrays.asList(includeTags));
+        getIncludeTags().addAll(includeTags);
         return this;
     }
 
@@ -84,7 +71,7 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     public JUnitPlatformOptions excludeEngines(String... excludeEngines) {
-        this.excludeEngines.addAll(Arrays.asList(excludeEngines));
+        getExcludeEngines().addAll(excludeEngines);
         return this;
     }
 
@@ -95,7 +82,7 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     public JUnitPlatformOptions excludeTags(String... excludeTags) {
-        this.excludeTags.addAll(Arrays.asList(excludeTags));
+        getExcludeTags().addAll(excludeTags);
         return this;
     }
 
@@ -105,9 +92,16 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<String> getIncludeEngines() {
-        return includeEngines;
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getIncludeEngines();
+
+    /**
+     * Sets the include engines.
+     *
+     * @since 4.6
+     */
+    public void setIncludeEngines(Set<String> includeEngines) {
+        getIncludeEngines().set(includeEngines);
     }
 
     /**
@@ -116,18 +110,16 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<String> getIncludeTags() {
-        return includeTags;
-    }
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getIncludeTags();
 
     /**
-     * Sets the include engines.
+     * Sets the include tags.
      *
      * @since 4.6
      */
-    public void setIncludeEngines(Set<String> includeEngines) {
-        this.includeEngines = includeEngines;
+    public void setIncludeTags(Set<String> includeTags) {
+        getIncludeTags().set(includeTags);
     }
 
     /**
@@ -136,10 +128,8 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<String> getExcludeEngines() {
-        return excludeEngines;
-    }
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getExcludeEngines();
 
     /**
      * Sets the exclude engines.
@@ -147,16 +137,7 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     public void setExcludeEngines(Set<String> excludeEngines) {
-        this.excludeEngines = excludeEngines;
-    }
-
-    /**
-     * Sets the include tags.
-     *
-     * @since 4.6
-     */
-    public void setIncludeTags(Set<String> includeTags) {
-        this.includeTags = includeTags;
+        getExcludeEngines().set(excludeEngines);
     }
 
     /**
@@ -165,10 +146,8 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<String> getExcludeTags() {
-        return excludeTags;
-    }
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getExcludeTags();
 
     /**
      * Sets the exclude tags.
@@ -176,6 +155,6 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 4.6
      */
     public void setExcludeTags(Set<String> excludeTags) {
-        this.excludeTags = excludeTags;
+        getExcludeTags().set(excludeTags);
     }
 }
