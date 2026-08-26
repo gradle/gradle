@@ -284,8 +284,6 @@ val jvm = platform("jvm") {
     subproject("toolchains-jvm")
     subproject("toolchains-jvm-shared")
     subproject("war")
-    subproject("xdcl-jvm-ecosystem")
-    subproject("xdcl-jvm-ecosystem-plugin")
 }
 
 // Extensibility Platform

@@ -35,7 +35,7 @@ import java.util.List;
  *
  * <p>Every JVM project-type template and every source-set record is declared {@code with … &
  * HasDependencies}, so both their facades expose {@code dependencies()} and the same wiring serves the
- * project-wide scopes and each source set's scopes — see {@code JavaLibraryReaction}.
+ * project-wide scopes and each source set's scopes.
  */
 public final class DependencyScopes {
 

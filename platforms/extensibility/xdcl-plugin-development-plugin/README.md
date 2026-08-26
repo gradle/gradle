@@ -26,7 +26,7 @@ settings {
 // build.gradle.xdcl
 xdclGradlePlugin {
   dependencies {
-    implementation ["org.gradle:gradle-xdcl-jvm-ecosystem:9.7.0"]
+    implementation ["org.gradle:gradle-xdcl-common-ecosystem:9.7.0"]
   }
 }
 ```

@@ -22,10 +22,10 @@ plugins {
 description = "Shared XDCL schema common to the built-in ecosystems: dependency scopes and the HasDependencies capability trait every ecosystem's project types compose. Published for plugin authors and shipped in the distribution (prototype)"
 
 // A schema-only ecosystem foundation: common.xdsl (packed under META-INF/xdcl/ by xdcl-gradle-plugin)
-// and the Java facades generated from it. The JVM ecosystem (and future Native etc.) `import` this
-// schema and `with` its capability traits, so the shared dependency/repository surface is declared
-// once. Publishable because it carries no internal-Gradle dependency — only the external org.xdcl
-// facade API.
+// and the Java facades generated from it. The built-in ecosystems (plugin-development today; JVM,
+// Native etc. later) `import` this schema and `with` its capability traits, so the shared dependency
+// surface is declared once. Publishable because it carries no internal-Gradle dependency — only the
+// external org.xdcl facade API.
 // No dependencies block: the facade base types (org.gradle.api.xdcl.*) come as `api` from the
 // gradlebuild.xdcl-ecosystem-library convention, and this foundational schema imports nothing else.
 
