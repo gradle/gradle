@@ -143,14 +143,11 @@ Mirrors apply to *resolution only*. Publishing always uploads to the repository 
 Only mirrors and the `<server>` entries that back them are supported. All features may not be supported:
 
 * *Multiple HTTP headers per server.* Only the first `<httpHeaders>` entry is supported by Gradle.
-* *The `settings.security` system property.* The master password is read from the default
-  `settings-security.xml` location, and from any file it relocates to, but Maven's
-  `settings.security` system property is not honoured.
 * *`<mirrorOfLayouts>`.* Gradle has a single repository layout, so the layout filter is ignored.
 * *The Maven 4 password encryption format.* Only the Maven 3 format produced by
   `mvn --encrypt-password` is understood.
 * *Everything else in `settings.xml`* Profiles, proxies, and `<pluginGroups>` do not apply to Gradle.
 
-A repository matched by a mirror keeps its Gradle name, but its resolved URL, and therefore its
-identity in build scans and the dependency cache, becomes the mirror's. Turning the property on or
-off changes that identity and re-downloads artifacts.
+A repository matched by a mirror keeps its Gradle name, but its resolved URL will become the mirror's URL.
+Build scans and error messages will use the mirror URL.
+Enabling or disabling the `org.gradle.mirror.maven.settings` property may cause Gradle to recheck previously downloaded artifacts.
