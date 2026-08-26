@@ -16,20 +16,16 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.Lists;
-
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
 /**
  * Collects elements to be inserted at the head of a {@link Deque}, preserving the order in which they were added.
- *
  * <p>
  * That is, if elements are added as [A, B, C], then when they are added to a {@code Deque} of [D], the resulting {@code Deque} will be [A, B, C, D].
- * </p>
- *
- * <p>Instances are intended to be reused across iterations of a traversal to save memory by reusing the allocated buffer.</p>
+ * <p>
+ * Instances are intended to be reused across iterations of a traversal to save memory by reusing the allocated buffer.
  */
 class HeadInsertBuffer<T> {
     private final List<T> buffer = new ArrayList<>();
@@ -49,8 +45,8 @@ class HeadInsertBuffer<T> {
      * @param queue the {@link Deque} to drain the buffer to
      */
     public void drainTo(Deque<? super T> queue) {
-        for (T element : Lists.reverse(buffer)) {
-            queue.addFirst(element);
+        for (int i = buffer.size() - 1; i >= 0; i--) {
+            queue.addFirst(buffer.get(i));
         }
         buffer.clear();
     }

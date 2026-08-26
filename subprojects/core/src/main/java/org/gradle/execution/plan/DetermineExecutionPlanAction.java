@@ -70,7 +70,7 @@ class DetermineExecutionPlanAction {
     private final Set<Node> entryNodes;
     private final Set<Node> finalizers;
 
-    // Uses a LinkedList to allow for efficient removal of elements from the middle of the queue when a finalizer is added
+    // Uses a LinkedList because a finalizer must be inserted into the middle of the queue, which a Deque does not support
     private final LinkedList<NodeInVisitingSegment> nodeQueue = new LinkedList<>();
     private final HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
     private final Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
