@@ -17,7 +17,6 @@
 package gradlebuild.performance.tasks
 
 import com.google.common.collect.Sets
-import gradlebuild.basics.Gradle10PropertyUpgradeSupport
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.PerformanceTestService
 import gradlebuild.performance.ScenarioBuildResultData
@@ -215,7 +214,7 @@ abstract class PerformanceTest extends DistributionTest {
                 }
             }
         }
-        Gradle10PropertyUpgradeSupport.setProperty(filter, "setCommandLineIncludePatterns", classOnlyFilters)
+        filter.setCommandLineIncludePatterns(classOnlyFilters)
         setScenarios(scenarios.join(";"))
     }
 
