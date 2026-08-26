@@ -59,7 +59,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
                 maven { url = distributionRepository.toURI() }
             }
             dependencies {
-                probe "org.gradle:gradle-xdcl-jvm-ecosystem:${distributionVersion}"
+                probe "org.gradle:gradle-xdcl-plugin-development:${distributionVersion}"
             }
 
             tasks.register("resolveProbe") {
@@ -75,7 +75,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
         succeeds("resolveProbe")
 
         then: 'the requested library, its ecosystem dependency, and the strictly-pinned org.xdcl API all resolve'
-        outputContains("xdcl-repo-resolved=gradle-xdcl-jvm-ecosystem-")
+        outputContains("xdcl-repo-resolved=gradle-xdcl-plugin-development-")
         outputContains("xdcl-repo-resolved=gradle-xdcl-common-ecosystem-")
         // Version-agnostic on purpose: WHICH org.xdcl version the closure needs is the published
         // metadata's strict constraint, served by the same repo — not this test's business.
@@ -102,13 +102,13 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
                 maven { url = distributionRepository.toURI() }
             }
             dependencies {
-                probe "org.gradle:gradle-xdcl-jvm-ecosystem:${STALE_REQUESTED_VERSION}"
+                probe "org.gradle:gradle-xdcl-plugin-development:${STALE_REQUESTED_VERSION}"
             }
 
             tasks.register("resolveProbe") {
                 def result = configurations.probe.incoming.resolutionResult.rootComponent
                 doLast {
-                    def selected = result.get().dependencies*.selected.find { it.moduleVersion.name == "gradle-xdcl-jvm-ecosystem" }
+                    def selected = result.get().dependencies*.selected.find { it.moduleVersion.name == "gradle-xdcl-plugin-development" }
                     println("xdcl-repo-selected-version=" + selected.moduleVersion.version)
                     println("xdcl-repo-selection-reason=" + selected.selectionReason.descriptions*.description.join("; "))
                 }
@@ -127,7 +127,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
 
     def "the pin downgrades a NEWER offered version to the distribution's, against default conflict resolution"() {
         given: 'a repository actually serving a newer version of the ecosystem library'
-        mavenRepo.module("org.gradle", "gradle-xdcl-jvm-ecosystem", NEWER_OFFERED_VERSION).publish()
+        mavenRepo.module("org.gradle", "gradle-xdcl-plugin-development", NEWER_OFFERED_VERSION).publish()
 
         and: 'two identical probes over both repositories — one with the pin, one control without'
         buildFile << """
@@ -152,10 +152,10 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
             dependencies {
                 // Both versions requested, the way the injected companion dependency (distribution
                 // version) meets a published plugin's transitive edge (newer version).
-                control "org.gradle:gradle-xdcl-jvm-ecosystem:\${distributionVersion}"
-                control "org.gradle:gradle-xdcl-jvm-ecosystem:${NEWER_OFFERED_VERSION}"
-                pinned "org.gradle:gradle-xdcl-jvm-ecosystem:\${distributionVersion}"
-                pinned "org.gradle:gradle-xdcl-jvm-ecosystem:${NEWER_OFFERED_VERSION}"
+                control "org.gradle:gradle-xdcl-plugin-development:\${distributionVersion}"
+                control "org.gradle:gradle-xdcl-plugin-development:${NEWER_OFFERED_VERSION}"
+                pinned "org.gradle:gradle-xdcl-plugin-development:\${distributionVersion}"
+                pinned "org.gradle:gradle-xdcl-plugin-development:${NEWER_OFFERED_VERSION}"
             }
 
             tasks.register("resolveProbe") {
@@ -163,7 +163,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
                 def pinned = configurations.pinned.incoming.resolutionResult.rootComponent
                 doLast {
                     def selectedOf = { root ->
-                        root.dependencies*.selected.find { it.moduleVersion.name == "gradle-xdcl-jvm-ecosystem" }.moduleVersion.version
+                        root.dependencies*.selected.find { it.moduleVersion.name == "gradle-xdcl-plugin-development" }.moduleVersion.version
                     }
                     println("xdcl-repo-control-selected=" + selectedOf(control.get()))
                     println("xdcl-repo-pinned-selected=" + selectedOf(pinned.get()))
@@ -190,7 +190,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
                 includedBuilds ["build-logic"]
               }
               plugins [
-                { id "java-ecosystem" },
+                { id "plugin-development-ecosystem" },
                 { id "newer-dep-plugin" }
               ]
               rootProject { name "probe" }
@@ -213,7 +213,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
                 // runtimeOnly: rides the plugin's published runtime metadata onto the consuming
                 // build's settings classpath (the shape of a plugin compiled against a newer
                 // distribution) without this build having to resolve it itself.
-                runtimeOnly "org.gradle:gradle-xdcl-jvm-ecosystem:${NEWER_OFFERED_VERSION}"
+                runtimeOnly "org.gradle:gradle-xdcl-plugin-development:${NEWER_OFFERED_VERSION}"
             }
         """
         file('build-logic/src/main/java/my/NewerDepPlugin.java') << '''
@@ -230,7 +230,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
         buildFile << '''
             def classpath = gradle.settings.buildscript.configurations.getByName("classpath")
             def selected = classpath.incoming.resolutionResult.allComponents.find {
-                it.moduleVersion?.name == "gradle-xdcl-jvm-ecosystem"
+                it.moduleVersion?.name == "gradle-xdcl-plugin-development"
             }
             println("xdcl-e2e-selected=" + selected.moduleVersion.version)
             println("xdcl-e2e-reason=" + selected.selectionReason.descriptions*.description.join("; "))
@@ -253,7 +253,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
             "ThirdPartyEcosystemPlugin"
         )
         def pluginModule = mavenRepo.module("com.example", "third-party-ecosystem-plugin", "1.0")
-        pluginModule.dependsOn("org.gradle", "gradle-xdcl-jvm-ecosystem", NEWER_OFFERED_VERSION)
+        pluginModule.dependsOn("org.gradle", "gradle-xdcl-plugin-development", NEWER_OFFERED_VERSION)
         pluginModule.publish()
         // The same jar + marker layout PluginBuilder.publishAs produces, inlined so the
         // implementation module's POM can carry the transitive dependency above.
@@ -269,7 +269,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
                 repositories ["${mavenRepo.uri}"]
               }
               plugins [
-                { id "java-ecosystem" },
+                { id "plugin-development-ecosystem" },
                 { id "third-party-ecosystem" version "1.0" }
               ]
               rootProject { name "probe" }
@@ -278,7 +278,7 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
         buildFile << '''
             def classpath = gradle.settings.buildscript.configurations.getByName("classpath")
             def selected = classpath.incoming.resolutionResult.allComponents.find {
-                it.moduleVersion?.name == "gradle-xdcl-jvm-ecosystem"
+                it.moduleVersion?.name == "gradle-xdcl-plugin-development"
             }
             println("xdcl-transitive-selected=" + selected.moduleVersion.version)
             println("xdcl-transitive-reason=" + selected.selectionReason.descriptions*.description.join("; "))

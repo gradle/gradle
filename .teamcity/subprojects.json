@@ -1785,20 +1785,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "xdcl-jvm-ecosystem",
-    "path": "platforms/jvm/xdcl-jvm-ecosystem",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "xdcl-jvm-ecosystem-plugin",
-    "path": "platforms/jvm/xdcl-jvm-ecosystem-plugin",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "xdcl-plugin-development",
     "path": "platforms/extensibility/xdcl-plugin-development",
     "unitTests": false,

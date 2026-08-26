@@ -1,8 +1,0 @@
-plugin {
-  reactions [ :org.gradle.xdcl.ecosystem.java.JavaLibraryReaction ]
-  defaults [
-    JavaComponent {
-      sources [ { name "main" }, { name "test" } ]
-    }
-  ]
-}
