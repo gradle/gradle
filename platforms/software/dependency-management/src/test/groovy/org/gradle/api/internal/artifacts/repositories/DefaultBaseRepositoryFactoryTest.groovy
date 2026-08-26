@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -59,6 +60,9 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final IvyMutableModuleMetadataFactory ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()
+    final MavenMirrorResolver mavenMirrorResolver = Mock(MavenMirrorResolver) {
+        mirrorFor(_, _) >> Optional.empty()
+    }
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
         localMavenRepoLocator, fileResolver, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder,
@@ -67,7 +71,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         CollectionCallbackActionDecorator.NOOP,
         urlArtifactRepositoryFactory,
         TestUtil.checksumService,
-        providerFactory, new VersionParser()
+        providerFactory, new VersionParser(), mavenMirrorResolver
     )
 
     def testCreateFlatDirResolver() {

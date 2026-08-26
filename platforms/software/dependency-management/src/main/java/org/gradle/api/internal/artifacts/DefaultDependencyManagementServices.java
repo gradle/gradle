@@ -74,6 +74,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
@@ -393,7 +394,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
             ChecksumService checksumService,
             ProviderFactory providerFactory,
-            VersionParser versionParser
+            VersionParser versionParser,
+            MavenMirrorResolver mavenMirrorResolver
         ) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
@@ -418,7 +420,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 urlArtifactRepositoryFactory,
                 checksumService,
                 providerFactory,
-                versionParser
+                versionParser,
+                mavenMirrorResolver
             );
         }
 
