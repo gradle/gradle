@@ -40,8 +40,6 @@ dependencies {
     // org.gradle:gradle-xdcl-common-ecosystem and served by the embedded repo (repo/); bundled so its
     // facade classes load parent-first from the distribution.
     pluginsRuntimeOnly(projects.xdclCommonEcosystem)
-    // Shared imperative carrier glue (DependencyScopes) — distribution-only, not published.
-    pluginsRuntimeOnly(projects.xdclEcosystemSupport)
     // The plugin-development ecosystem — the declarative face of authoring an XDCL plugin; its
     // reaction drives the real java-library/java-gradle-plugin/xdcl-gradle-plugin machinery.
     pluginsRuntimeOnly(projects.xdclPluginDevelopment)

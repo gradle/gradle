@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * Adds the declared {@code dependencies} to the real configurations {@code java-library} created
- * (which is why {@code DependencyScopes} is not used — it would try to create them again). Shared
+ * (rather than creating ecosystem-owned dependency scopes, which would collide with them). Shared
  * by the Java and Kotlin plugin-development reactions.
  */
 final class DeclaredDependencies {

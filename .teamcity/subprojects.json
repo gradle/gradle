@@ -1771,13 +1771,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "xdcl-ecosystem-support",
-    "path": "platforms/core-configuration/xdcl-ecosystem-support",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "xdcl-integ-tests",
     "path": "platforms/core-configuration/xdcl-integ-tests",
     "unitTests": false,
