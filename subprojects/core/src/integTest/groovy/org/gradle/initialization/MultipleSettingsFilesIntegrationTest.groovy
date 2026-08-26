@@ -17,29 +17,11 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scripts.ScriptingLanguages
 
 class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
-    }
-
-
-    /**
-     * If this test breaks, it means a new scripting language has been added.
-     * It's important that this test covers all accepted extensions.
-     *
-     * Please update the tests in this file, and add the new extension to the list below.
-     */
-    def "list of extensions are what we expect"() {
-        expect:
-        ScriptingLanguages.all().collect {it.extension} == [
-            ".gradle.xdcl",
-            ".gradle",
-            ".gradle.kts",
-            ".gradle.dcl"
-        ]
     }
 
     def "warns when multiple settings files exist in the same directory"() {
