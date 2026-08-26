@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -37,7 +37,6 @@ import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.resource.local.FileResourceListener
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -60,9 +59,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     FileResolver resolver = Mock()
     StartParameter startParameter = Mock()
     DomainObjectContext context = Mock(ProjectDomainObjectContext) {
-        getModel() >> Mock(ProjectState) {
-            getIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
-        }
+        getIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
     }
     DependencyManagementInstanceIdentity instanceIdentity = new DependencyManagementInstanceIdentity(Describables.of("root project 'root'"))
     DependencySubstitutionRules dependencySubstitutionRules = Mock()

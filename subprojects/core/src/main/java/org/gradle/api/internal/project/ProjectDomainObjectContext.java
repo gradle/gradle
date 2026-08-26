@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.api.internal.project;
 
-import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.util.Path;
 
@@ -34,7 +32,7 @@ public class ProjectDomainObjectContext implements DomainObjectContext {
         this.projectState = projectState;
     }
 
-    public ProjectIdentity getProjectIdentity() {
+    public ProjectIdentity getIdentity() {
         return projectState.getIdentity();
     }
 

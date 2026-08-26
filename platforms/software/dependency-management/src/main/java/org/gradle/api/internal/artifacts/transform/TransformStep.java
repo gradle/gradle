@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
@@ -29,7 +30,6 @@ import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.model.DomainObjectContext;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;

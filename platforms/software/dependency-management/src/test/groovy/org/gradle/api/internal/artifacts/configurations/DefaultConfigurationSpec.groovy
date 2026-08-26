@@ -63,6 +63,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -80,7 +81,6 @@ import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext
 import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
@@ -1892,8 +1892,8 @@ This method is only meant to be called on configurations which allow the (non-de
 
         def domainObjectContext = Stub(ProjectDomainObjectContext) {
             getBuildPath() >> identity.buildPath
+            getIdentity() >> identity
             getModel() >> Mock(ProjectState) {
-                getIdentity() >> identity
                 hasMutableState() >> true
             }
         }
