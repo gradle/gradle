@@ -116,6 +116,23 @@ org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=
 
 This property is a temporary opt-out and will be removed in a future Gradle release.
 
+[[shared_transformed_variant_cache]]
+==== Transformed external artifact variants are now shared across resolution scopes
+
+Identical transformed external artifact variants (same component, source variant, target attributes and transform chain) are now computed once per build tree and shared between resolution scopes, instead of being rebuilt by every scope that requests them.
+This significantly reduces memory usage in builds with many projects applying the same artifact transforms, such as large Android builds.
+
+As part of this change, transform parameters are isolated when the transformed variant is first requested during dependency resolution, rather than on first execution.
+Transform parameter definitions that relied on being read later — for example parameters whose values are mutated between resolution and execution, or providers that are not ready to be queried during resolution — may now fail earlier than before.
+If your build is affected, you can temporarily restore the previous per-scope behavior by setting:
+
+[source,properties]
+----
+org.gradle.artifact-transforms.unsafe.per-scope-variant-cache=true
+----
+
+This property is a temporary opt-out and will be removed in a future Gradle release.
+
 [[kotlin_object_singletons_in_configuration_cache]]
 ==== Kotlin `object` singletons keep their identity in the Configuration Cache
 
