@@ -34,13 +34,19 @@ import org.gradle.internal.resource.local.FileResourceListener;
 import org.jspecify.annotations.Nullable;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
+import org.sonatype.plexus.components.sec.dispatcher.model.io.xpp3.SecurityConfigurationXpp3Reader;
 
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
     private static final Logger LOGGER = Logging.getLogger(DefaultMavenSettingsProvider.class);
@@ -118,7 +124,8 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
     private List<MirroredRepository> computeMirrors() {
         // Any {...} password in the settings is decrypted against the master password here, so
         // this path is sensitive to settings-security.xml where buildSettings() alone is not
-        observe(mavenFileLocations.getUserSecuritySettingsFile());
+        observeMasterPasswordFiles();
+        SecDispatcher secDispatcher = createSecDispatcher();
         ImmutableList.Builder<MirroredRepository> result = ImmutableList.builder();
         try {
             Settings settings = buildSettings();
@@ -126,7 +133,7 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
                 if (MAVEN_DEFAULT_HTTP_BLOCKER_ID.equals(mirror.getId())) {
                     continue;
                 }
-                MirroredRepository candidate = toMirroredRepository(mirror, settings);
+                MirroredRepository candidate = toMirroredRepository(mirror, settings, secDispatcher);
                 if (candidate != null) {
                     result.add(candidate);
                 }
@@ -138,7 +145,7 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
         return result.build();
     }
 
-    private @Nullable MirroredRepository toMirroredRepository(Mirror mirror, Settings settings) {
+    private @Nullable MirroredRepository toMirroredRepository(Mirror mirror, Settings settings, SecDispatcher secDispatcher) {
         String mirrorId = mirror.getId();
         String mirrorOf = mirror.getMirrorOf();
         try {
@@ -151,8 +158,8 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
             if (!"https".equalsIgnoreCase(url.getScheme())) {
                 LOGGER.info("Maven mirror '{}' does not use HTTPS: {}", mirrorId, url);
             }
-            MirrorCredentials credentials = resolveCredentials(mirrorId, settings);
-            MirrorHttpHeader httpHeader = credentials == null ? resolveHttpHeader(mirrorId, settings) : null;
+            MirrorCredentials credentials = resolveCredentials(mirrorId, settings, secDispatcher);
+            MirrorHttpHeader httpHeader = credentials == null ? resolveHttpHeader(mirrorId, settings, secDispatcher) : null;
             return new MirroredRepository(mirrorOf, mirrorId, url, false, credentials, httpHeader);
         } catch (URISyntaxException e) {
             LOGGER.warn("Maven mirror '{}' has an invalid URL and will be ignored: {}", mirrorId, mirror.getUrl());
@@ -165,13 +172,13 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
      * {@code <server>} entry matching the mirror id, whose password may be encrypted with the
      * Maven master password.
      */
-    private @Nullable MirrorCredentials resolveCredentials(String mirrorId, Settings settings) {
+    private @Nullable MirrorCredentials resolveCredentials(String mirrorId, Settings settings, SecDispatcher secDispatcher) {
         Server server = settings.getServer(mirrorId);
         if (server == null || (server.getUsername() == null && server.getPassword() == null)) {
             return null;
         }
         try {
-            String decryptedPassword = decryptPassword(server.getPassword());
+            String decryptedPassword = decryptPassword(secDispatcher, server.getPassword());
             LOGGER.info("Using credentials from the Maven settings server entry '{}' for Maven mirror '{}'.", server.getId(), mirrorId);
             return new MirrorCredentials(server.getUsername(), decryptedPassword);
         } catch (Exception e) {
@@ -192,7 +199,7 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
      * <p>Unlike Maven, which never decrypts wagon configuration values, an encrypted
      * ({@code {...}}-wrapped) header value is decrypted like a password.
      */
-    private @Nullable MirrorHttpHeader resolveHttpHeader(String mirrorId, Settings settings) {
+    private @Nullable MirrorHttpHeader resolveHttpHeader(String mirrorId, Settings settings, SecDispatcher secDispatcher) {
         Server server = settings.getServer(mirrorId);
         if (server == null || !(server.getConfiguration() instanceof Xpp3Dom)) {
             return null;
@@ -215,7 +222,7 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
             LOGGER.warn("Only the first HTTP header ('{}') of the Maven settings server entry '{}' is applied to Maven mirror '{}'; {} additional header(s) are ignored.", name, server.getId(), mirrorId, properties.length - 1);
         }
         try {
-            String decryptedValue = decryptPassword(value);
+            String decryptedValue = decryptPassword(secDispatcher, value);
             LOGGER.info("Using HTTP header '{}' from the Maven settings server entry '{}' for Maven mirror '{}'.", name, server.getId(), mirrorId);
             return new MirrorHttpHeader(name, decryptedValue);
         } catch (Exception e) {
@@ -238,13 +245,45 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
      * {@code settings.security} system property redirect the read, and a build that sets it
      * decrypts against a file this prototype does not declare as a configuration cache input.
      */
-    private @Nullable String decryptPassword(@Nullable String password) throws Exception {
+    private static @Nullable String decryptPassword(SecDispatcher secDispatcher, @Nullable String password) throws Exception {
         if (password == null) {
             return null;
         }
+        return secDispatcher.decrypt(password);
+    }
+
+    private SecDispatcher createSecDispatcher() {
         DefaultSecDispatcher secDispatcher = new DefaultSecDispatcher(new DefaultPlexusCipher());
         secDispatcher.setConfigurationFile(mavenFileLocations.getUserSecuritySettingsFile().getAbsolutePath());
-        return secDispatcher.decrypt(password);
+        return secDispatcher;
+    }
+
+    /**
+     * Declares every file the master password could be read from. settings-security.xml may hold
+     * only a {@code <relocation>} naming another file, which the dispatcher follows, so declaring
+     * the first file alone would miss a rotated password in the file it points at.
+     */
+    private void observeMasterPasswordFiles() {
+        Set<String> seen = new LinkedHashSet<>();
+        File file = mavenFileLocations.getUserSecuritySettingsFile();
+        while (file != null && seen.add(file.getAbsolutePath())) {
+            observe(file);
+            file = relocationTarget(file);
+        }
+    }
+
+    private @Nullable File relocationTarget(File securitySettingsFile) {
+        if (!securitySettingsFile.isFile()) {
+            return null;
+        }
+        try (InputStream input = Files.newInputStream(securitySettingsFile.toPath())) {
+            String relocation = new SecurityConfigurationXpp3Reader().read(input).getRelocation();
+            return relocation == null ? null : new File(relocation);
+        } catch (Exception e) {
+            // Decryption reports its own failure; this only affects which files are declared as inputs
+            LOGGER.info("Cannot read the Maven master password file '{}' to follow its relocation.", securitySettingsFile, e);
+            return null;
+        }
     }
 
     /**

@@ -419,7 +419,11 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
     private Collection<Authentication> mirrorAuthentication(MavenSettingsProvider.MirroredRepository mirror) {
         URI mirrorUrl = mirror.getUrl();
-        if (!mirrorUrl.getScheme().startsWith("http")) {
+        // A url with no scheme parses to a null one, and a host:port written without a protocol
+        // parses the host as the scheme. Neither is a repository Gradle can talk to, so leave the
+        // credentials off and let RepositoryTransportFactory report the unusable protocol.
+        String scheme = mirrorUrl.getScheme();
+        if (scheme == null || !scheme.startsWith("http")) {
             return Collections.emptyList();
         }
         MavenSettingsProvider.MirrorCredentials credentials = mirror.getCredentials();

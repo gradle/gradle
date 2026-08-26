@@ -397,6 +397,27 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         module.artifactFile.assertIsCopyOf(file("build/libs/publishA-1.0.jar"))
     }
 
+    def "a mirror url with no scheme reports the protocol rather than failing internally"() {
+        given: "a url someone wrote without a protocol, which parses to a null scheme"
+        def originalRepo = mavenHttpRepo("original")
+        originalRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings("repo.example.com/maven2")
+
+        buildFile << """
+            repositories {
+                maven { url = '${originalRepo.uri}' }
+            }
+        """
+
+        when:
+        using m2
+        executer.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        fails 'retrieve'
+
+        then: "the failure names the protocol, instead of an NPE from credential resolution"
+        failure.assertHasCause("Not a supported repository protocol 'null': valid protocols are")
+    }
+
     def "repository credentials are not sent to the mirror"() {
         given:
         def mirrorRepo = mavenHttpRepo("mirror")
@@ -687,6 +708,81 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
 
         and: "the invalidation reason names the settings file that changed"
         GradleContextualExecuter.configCache || output.contains("settings-security.xml' has changed")
+    }
+
+    def "decrypts the mirror password through a relocated master password and reuses the configuration cache"() {
+        given: "the master password lives in another file, which settings-security.xml points at"
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "*", "test-mirror", serverXml("test-mirror", "mirror-user", ENCRYPTED_PASSWORD))
+        def relocated = file("secure/master-password.xml")
+        relocated.text = securitySettings()
+        m2.userM2Directory.file("settings-security.xml").text =
+            "<settingsSecurity><relocation>${relocated.absolutePath}</relocation></settingsSecurity>"
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        and:
+        server.authenticationScheme = AuthScheme.BASIC
+        module.pom.expectGet('mirror-user', 'mirror-secret')
+        module.artifact.expectGet('mirror-user', 'mirror-secret')
+
+        when:
+        using m2
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then: "the password decrypted, so the mirror accepted the credentials"
+        postBuildOutputContains("Configuration cache entry stored.")
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+
+        when: "nothing changed"
+        server.resetExpectations()
+        using m2
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry reused.")
+    }
+
+    def "rotating a relocated master password invalidates the configuration cache"() {
+        given: "settings-security.xml only points at the master password, which lives in another file"
+        def mirrorRepo = mavenHttpRepo("mirror")
+        mirrorRepo.module("org.test", "projectA", "1.0").publish().allowAll()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "*", "test-mirror", serverXml("test-mirror", "mirror-user", ENCRYPTED_PASSWORD))
+        def relocated = file("secure/master-password.xml")
+        relocated.text = securitySettings()
+        m2.userM2Directory.file("settings-security.xml").text =
+            "<settingsSecurity><relocation>${relocated.absolutePath}</relocation></settingsSecurity>"
+
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        when:
+        using m2
+        server.authenticationScheme = AuthScheme.BASIC
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+
+        when: "the relocated file changes, which the pointer itself does not reflect"
+        relocated.text = securitySettings("<!-- rotated -->")
+        using m2
+        executer.withArguments("--configuration-cache", "-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then: "the whole relocation chain is declared, not just the file that starts it"
+        postBuildOutputContains("Configuration cache entry stored.")
     }
 
     private static String securitySettings(String extra = "") {
