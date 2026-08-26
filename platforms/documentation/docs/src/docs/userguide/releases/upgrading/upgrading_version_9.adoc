@@ -39,6 +39,13 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 
+=== Potential breaking changes
+
+[[kotlin_2_4_10]]
+==== Upgrade to Kotlin 2.4.20-RC2
+
+The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20-RC2[Kotlin 2.4.20-RC2].
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
@@ -59,9 +66,9 @@ In Gradle 10, the property will be ignored, and the model will always be built f
 === Potential breaking changes
 
 [[kotlin_2_4_10]]
-==== Upgrade to Kotlin 2.4.20-RC
+==== Upgrade to Kotlin 2.4.10
 
-The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20-RC[Kotlin 2.4.20-RC].
+The embedded Kotlin has been upgraded from 2.4.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.10[Kotlin 2.4.10].
 
 [[upgrade_to_asm_9_10_1]]
 ==== Upgrade to ASM 9.10.1
