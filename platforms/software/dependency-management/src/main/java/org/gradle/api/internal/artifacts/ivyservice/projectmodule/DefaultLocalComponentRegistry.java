@@ -17,12 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;

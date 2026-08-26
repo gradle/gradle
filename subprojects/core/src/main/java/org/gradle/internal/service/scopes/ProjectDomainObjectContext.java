@@ -16,9 +16,9 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.util.Path;
 
 /**

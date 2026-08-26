@@ -16,9 +16,9 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 

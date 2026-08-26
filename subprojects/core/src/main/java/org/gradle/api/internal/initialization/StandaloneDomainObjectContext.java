@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 
