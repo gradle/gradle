@@ -52,6 +52,7 @@ import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.buildoption.FeatureFlags;
@@ -61,7 +62,6 @@ import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.DomainObjectContext;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -168,7 +168,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ImmutableList<ResolutionParameters.ModuleVersionLock> moduleVersionLocks = includeConsistentResolutionLocks ? configuration.getConsistentResolutionVersionLocks() : ImmutableList.of();
         ImmutableArtifactTypeRegistry immutableArtifactTypeRegistry = attributeSchemaServices.getArtifactTypeRegistryFactory().create(artifactTypeRegistry);
         ImmutableModuleReplacements moduleReplacements = componentModuleMetadataHandler.getModuleReplacements();
-        ProjectIdentity projectIdentity = configuration.getDomainObjectContext() instanceof ProjectDomainObjectContext pdoc ? pdoc.getModel().getIdentity() : null;
+        ProjectIdentity projectIdentity = configuration.getDomainObjectContext() instanceof ProjectDomainObjectContext pdoc ? pdoc.getIdentity() : null;
         ConfigurationFailureResolutions failureResolutions = new ConfigurationFailureResolutions(projectIdentity, configuration.getName());
 
         return new ResolutionParameters(
@@ -414,7 +414,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             //  an adhoc root component, and should use an AdhocRootComponentProvider.
             return new ProjectRootComponentProvider(
                 owner.getModel(),
-                pdoc.getModel().getIdentity(),
+                pdoc.getIdentity(),
                 moduleIdentity,
                 schema,
                 configurations,
