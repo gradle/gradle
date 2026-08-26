@@ -17,8 +17,8 @@ record Dependencies {
 
 /// Capability trait for anything carrying library dependencies, by scope. Composed both at the
 /// project-type level (every JVM template is `with … & HasDependencies`) and per source set (each
-/// source record is `with HasDependencies`), so the shared scope/resolvable wiring in
-/// `org.gradle.xdcl.ecosystem.support.DependencyScopes` accepts either facade uniformly.
+/// source record is `with HasDependencies`), so a reaction's scope wiring can accept either
+/// facade uniformly.
 trait HasDependencies {
   /// Library dependencies, by scope.
   dependencies: Dependencies?

@@ -27,10 +27,9 @@ dependencies {
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.xdclCommonEcosystem)
-    // xdcl-ecosystem-support is deliberately NOT used here: the reactions apply the real
-    // java-library plugin, which owns the api/implementation/... configurations, so declared
-    // dependencies are added to those real configurations directly (DeclaredDependencies)
-    // instead of creating ecosystem dependency scopes.
+    // No ecosystem-owned dependency scopes here: the reactions apply the real java-library
+    // plugin, which owns the api/implementation/... configurations, so declared dependencies
+    // are added to those real configurations directly (DeclaredDependencies).
 }
 
 gradleModule {
