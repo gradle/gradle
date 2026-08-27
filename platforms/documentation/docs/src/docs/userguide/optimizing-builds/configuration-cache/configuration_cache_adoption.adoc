@@ -541,20 +541,19 @@ For most builds the parallel task execution and skipped configuration phase on c
 If a specific invocation is noticeably slower with CC than without, profile that invocation with a <<build_scans.adoc#build_scans, build scan>> to see whether resolution time (rather than configuration or execution time) is the culprit.
 
 [[config_cache:adoption_guide:faq:parallel]]
-=== Does `--no-parallel` work with CC?
+=== Do `--parallel` or `--no-parallel` work with CC?
 
-Not in the way the flag name implies.
+Yes, but only under limited circumstances, when Gradle falls back to non-cached execution:
 
-CC enables **intra-project parallel task execution** regardless of `--parallel`, `--no-parallel`, or `org.gradle.parallel`.
-Every task has its own isolated deserialized state and no project-level lock contention, so tasks within a project run in parallel automatically.
+* When a task marked with `notCompatibleWithConfigurationCache` is present in the task graph.
+* When an unsupported feature is used in the build.
+* When the Configuration Cache is in read-only mode and there was no cache hit.
 
-`--parallel` still controls **cross-project** parallel task execution, exactly as it does without CC.
-CC's intra-project parallelism composes with it: with `--parallel`, tasks run in parallel both within and across projects; without it, only within.
+Otherwise, in normal usage, where Configuration Cache writes or loads the entry successfully, tasks run in parallel regardless of the flags or the value of the `org.gradle.parallel` property.
 
-`--no-parallel` is effectively ignored for CC's intra-project parallelism — task execution within each project stays parallel — but it does disable cross-project parallelism.
-
-Writing the CC entry itself in parallel is a separate, incubating option: `-Dorg.gradle.configuration-cache.parallel=true`.
-It is unrelated to `--parallel`.
+However, it might be beneficial to keep `org.gradle.parallel=true` in the `gradle.properties` file if <<configuration_cache_enabling.adoc#config_cache:usage:parallel, parallel Configuration Caching>> is enabled.
+Storing a project's configuration requires access to that project, and Gradle grants such access one project at a time unless parallel project execution is enabled, so with `--parallel` disabled much of the store stays sequential.
+Parallel Configuration Caching is an incubating feature, and this restriction <<configuration_cache_status.adoc#config_cache:not_yet_implemented:parallel_store, may eventually be removed>>.
 
 [[config_cache:adoption_guide:faq:plugin_without_cc]]
 === Will my plugin still work for users who do not enable CC?
@@ -626,7 +625,7 @@ link:https://gradle.com/develocity/[Develocity] and link:https://scans.gradle.co
 When hit rates drop, open the CC report's "build configuration inputs" list and look for inputs that change every run but are not actually used.
 Each is either a candidate for switching to a `provider` (so the input is dropped if unused) or for one of the temporary opt-outs in <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>>.
 
-The next performance step beyond plain CC is typically **Parallel Configuration Cache** (`org.gradle.configuration-cache.parallel=true`), which parallelizes the storing and loading of CC entries themselves.
+The next performance step beyond plain CC is typically **Parallel Configuration Cache** (`org.gradle.configuration-cache.parallel=true`), which parallelizes the storing of CC entries themselves (loading is always parallel).
 It is still incubating; see <<configuration_cache_enabling.adoc#config_cache:usage:parallel, Enabling Parallel Configuration Caching>>.
 
 Looking further ahead, Isolated Projects builds on CC's per-project isolation to enable parallel project configuration, but it is pre-alpha and depends on CC being fully adopted first.

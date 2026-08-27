@@ -135,14 +135,18 @@ It can be reused by both hot and cold local Gradle daemons, but it cannot be sha
 
 See link:{gradle-issues}13510[gradle/gradle#13510].
 
-[[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
-=== Fine-grained Tracking of Gradle Properties as Build Configuration Inputs
+[[config_cache:not_yet_implemented:parallel_store]]
+=== Parallel Storing of Cache Entries Independent of Parallel Project Execution
 
-Currently, all external sources of Gradle properties—such as `gradle.properties` files (both in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`), environment variables, system properties that set properties, and properties specified via command-line flags—are considered build configuration inputs, regardless of whether they are actually used during configuration.
+<<configuration_cache_enabling.adoc#config_cache:usage:parallel, Parallel storing>> writes the configuration state of each project concurrently, and writing a project's state requires access to that project.
+Gradle only grants access to projects one at a time unless parallel project execution is enabled, so with `--parallel` disabled — the default — much of the storing may still happen sequentially and the option delivers less than its full benefit.
 
-However, these sources are not included in the Configuration Cache report.
+Until the two are decoupled, enable `org.gradle.parallel=true` together with `org.gradle.configuration-cache.parallel=true`.
 
-See link:{gradle-issues}20969[gradle/gradle#20969].
+This limitation applies to storing a cache entry only.
+Task execution is parallel under the Configuration Cache regardless of `--parallel`, as is loading a cache entry; see <<configuration_cache.adoc#config_cache:intro:parallel_task_execution, Parallel Task Execution>>.
+
+See link:{gradle-issues}36002[gradle/gradle#36002].
 
 [[config_cache:not_yet_implemented:java_serialization]]
 === Java Object Serialization
