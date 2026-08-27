@@ -16,8 +16,10 @@
 
 package gradlebuild.integrationtests
 
+import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.daemonDebuggingIsEnabled
+import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.launcherDebuggingIsEnabled
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.testSplitExcludeTestClasses
@@ -188,14 +190,50 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
-        testClassesDirs = sourceSet.output.classesDirs
-        classpath = sourceSet.runtimeClasspath
+        if (excludedByFlakyOnlyStrategy(sourceSet, testType)) {
+            // Under -PflakyTests=ONLY, a test task whose sources never mention @Flaky cannot select any test, but
+            // the tag filter is only applied during JUnit Platform discovery inside the forked test JVM. Wiring no
+            // test classes at all makes the task NO-SOURCE (Test.getCandidateClassFiles is @SkipWhenEmpty), which
+            // skips the JVM fork and drops the task dependencies on the test compilation.
+            testClassesDirs = project.files()
+            classpath = project.files()
+        } else {
+            testClassesDirs = sourceSet.output.classesDirs
+            classpath = sourceSet.runtimeClasspath
+        }
         extraConfig.execute(this)
         if (!integTest.generateDefaultAutoTestedSamplesTest.get()) {
             inputs.dir(layout.projectDirectory.dir("src/main")).withPathSensitivity(PathSensitivity.RELATIVE)
         }
         setUpAgentIfNeeded(testType, executer)
     }
+
+
+private
+const val FLAKY_ANNOTATION_REFERENCE = "org.gradle.test.fixtures.Flaky"
+
+
+/**
+ * Whether the task can be skipped outright under `-PflakyTests=ONLY` because no source file of the
+ * source set references the `@Flaky` annotation, so no test in it can carry the flaky tag. Using
+ * `@Flaky` requires its fully qualified name in the file (as an import or inline), so a plain text
+ * scan cannot produce a false negative, with one caveat: a spec inheriting class-level `@Flaky`
+ * from a base class in a different source set would be missed. No such case exists today. A false
+ * positive (e.g. the name in a comment) is harmless: the task then runs and discovers nothing,
+ * which is what every task of a flaky-free source set does today.
+ */
+private
+fun Project.excludedByFlakyOnlyStrategy(sourceSet: SourceSet, testType: TestType): Boolean {
+    if (testType != TestType.CROSSVERSION || flakyTestStrategy != FlakyTestStrategy.ONLY) {
+        return false
+    }
+    val key = "gradlebuild.internal.flakySourceScan.${sourceSet.name}"
+    val extra = extensions.extraProperties
+    if (!extra.has(key)) {
+        extra.set(key, sourceSet.allSource.any { it.isFile && it.readText().contains(FLAKY_ANNOTATION_REFERENCE) })
+    }
+    return !(extra.get(key) as Boolean)
+}
 
 
 private
