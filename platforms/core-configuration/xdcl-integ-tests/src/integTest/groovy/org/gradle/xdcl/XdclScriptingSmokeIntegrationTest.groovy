@@ -20,6 +20,8 @@ import org.gradle.api.problems.LineInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
+
 /**
  * Smoke coverage for the {@code .gradle.xdcl} scripting language: proves the distribution under
  * test routes xdcl settings/build scripts natively and that script failures surface through the
@@ -737,7 +739,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             contextualLabel.contains("conflicting defaults for property 'version'")
             contextualLabel.contains("set it explicitly to resolve the conflict")
             // located on the project that reached it, not the settings file where it was declared
-            oneLocation(LineInFileLocation).path.endsWith("app/build.gradle.xdcl")
+            normaliseFileSeparators(oneLocation(LineInFileLocation).path).endsWith("app/build.gradle.xdcl")
             oneLocation(LineInFileLocation).line == 1
         }
     }
