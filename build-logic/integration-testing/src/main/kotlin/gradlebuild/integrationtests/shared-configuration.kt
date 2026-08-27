@@ -227,6 +227,13 @@ fun Project.excludedByFlakyOnlyStrategy(sourceSet: SourceSet, testType: TestType
     if (testType != TestType.CROSSVERSION || flakyTestStrategy != FlakyTestStrategy.ONLY) {
         return false
     }
+    // precondition-tester re-points every DistributionTest at the untagged Jupiter tests of its 'test' source
+    // set, which the ONLY strategy deliberately runs on every build (they are matched by the none() part of the
+    // tag expression), so the flaky source scan does not apply to it. Its build script also appends to the task
+    // classpath, which an emptied classpath here would corrupt.
+    if (name == "precondition-tester") {
+        return false
+    }
     val key = "gradlebuild.internal.flakySourceScan.${sourceSet.name}"
     val extra = extensions.extraProperties
     if (!extra.has(key)) {
