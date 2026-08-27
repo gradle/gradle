@@ -53,17 +53,7 @@ class FlakyTestQuarantineProject(
         model.stages
             .filter { it.stageName <= StageName.READY_FOR_RELEASE }
             .flatMap { it.functionalTests }
-            // AllVersionsCrossVersion is excluded, every other coverage - including QuickFeedbackCrossVersion - is
-            // still quarantined. A quarantine build is not split into buckets, so this coverage runs one test task per
-            // tested Gradle version per subproject, over a thousand of them, on a single agent. `-PflakyTests=ONLY`
-            // selects nothing in almost all of them, but the tag filter is applied during JUnit discovery inside the
-            // test JVM, so each still forks one to discover nothing. That only finishes within the timeout when the
-            // build cache serves nearly all of it, which on Windows it has never done on a revision that was not
-            // already built - the build has never passed there on first run of a revision.
-            //
-            // Nothing is lost by dropping it: the QuickFeedbackCrossVersion quarantine covers the same @Flaky
-            // cross-version tests, against fewer Gradle versions, in a fraction of the time.
-            .filter { it.os == os && it.testType != TestType.ALL_VERSIONS_CROSS_VERSION }
+            .filter { it.os == os }
             .forEach {
                 buildType(FlakyTestQuarantine(model, stage, it))
             }
