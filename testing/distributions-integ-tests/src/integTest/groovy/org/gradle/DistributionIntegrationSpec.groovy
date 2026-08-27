@@ -190,7 +190,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     int getPackagedPluginsJarCount() {
         // 97 stock plugins + the XDCL codegen plugin and the built-in ecosystem libraries and
         // carriers (common, plugin-development).
-        97 + 4
+        97 + 5
     }
 
     /**
