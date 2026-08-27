@@ -15,8 +15,8 @@
  */
 
 import gradlebuild.performance.generator.tasks.BuildBuilderGenerator
+import gradlebuild.performance.generator.tasks.BuildBuilderPerfProjectGenerator
 import gradlebuild.performance.generator.tasks.CppMultiProjectGeneratorTask
-import gradlebuild.performance.generator.tasks.JavaExecProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.KtsProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
@@ -40,35 +40,19 @@ performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {
     ref = '264bd7744d2e89b2708303cd56bb11bc5003fa7e'
 }
 
-// === Declarative DSL ===
-performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", JavaExecProjectGeneratorTask) {
-    outputs.dir new File(buildDir, "largeEmptyMultiProjectDeclarativeDsl")
-    outputs.cacheIf { true }
-    inputs.property('template', "largeEmptyMultiProjectDeclarativeDsl")
-    inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
-        return []
-    }
-    classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
-    mainClass = 'org.gradle.performance.generator.DeclarativeDslTestProjectGenerator'
-    args name, buildDir.absolutePath
-}
-
-
-
-// === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectDeprecations', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
+// === Generated JVM projects (build-builder `perf-project`) ===
+// The generators for these live in https://github.com/gradle/build-builder, which also owns the
+// dependency versions baked into the generated projects. `build-builder perf-project --list` prints
+// the available names; each generated project also carries a `perf-project.json` descriptor that the
+// test fixtures read (see GeneratedProjectDescriptor).
+['largeEmptyMultiProjectDeclarativeDsl',
+ 'largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectDeprecations', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
-    performanceTest.registerTestProject(template, JavaExecProjectGeneratorTask) {
-        outputs.dir new File(buildDir, template)
+    performanceTest.registerTestProject(template, BuildBuilderPerfProjectGenerator) {
+        projectName = template
         outputs.cacheIf { true }
-        inputs.property('template', template)
-        inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
-            return []
-        }
-        classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
-        mainClass = 'org.gradle.performance.generator.TestProjectGenerator'
-        args name, buildDir.absolutePath
+        description = "Generates the ${template} performance test project using build-builder"
     }
 }
 
@@ -391,9 +375,11 @@ tasks.register("installBuildBuilder", GradleBuild) {
     dependsOn buildBuilder
 }
 
-tasks.withType(BuildBuilderGenerator).configureEach {
-    buildBuilderInstall = new File(tasks.buildBuilder.outputDirectory, "build/install/build-builder")
-    dependsOn installBuildBuilder
+[BuildBuilderGenerator, BuildBuilderPerfProjectGenerator].each { generatorType ->
+    tasks.withType(generatorType).configureEach {
+        buildBuilderInstall = new File(tasks.buildBuilder.outputDirectory, "build/install/build-builder")
+        dependsOn installBuildBuilder
+    }
 }
 
 performanceTest.registerTestProject("mediumSwiftMulti", BuildBuilderGenerator) {
