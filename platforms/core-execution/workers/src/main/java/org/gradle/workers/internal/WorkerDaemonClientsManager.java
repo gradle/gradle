@@ -175,13 +175,11 @@ public class WorkerDaemonClientsManager implements Stoppable {
     }
 
     /**
-     * Stops a client, killing it instead if it is still executing a work item.
+     * Stops a client, or kills it if it is still busy.
      *
-     * <p>By the time workers are stopped, a client that is still executing a work item is executing one that
-     * nothing is waiting for any more, for example because the owning task exceeded its {@code timeout}. Asking
-     * such a worker to stop gracefully only queues the stop request behind the abandoned work item, and the build
-     * then blocks in {@code WorkerProcess.waitForStop()} until that work item finishes on its own. Kill those
-     * workers instead, so that the build is not held up by work whose result is already being discarded.</p>
+     * <p>A client that is still busy when we get here is running work that nothing is waiting for any more,
+     * because the owning task timed out or failed. A graceful stop would wait for that work to finish, hanging
+     * the build on a result that is going to be thrown away.</p>
      */
     private void stopOrKillClient(WorkerDaemonClient client) {
         if (client.isExecuting() || client.isAbandoned()) {
@@ -249,8 +247,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
         @Override
         public void beforeComplete() {
             synchronized (lock) {
-                List<WorkerDaemonClient> sessionScopedClients = CollectionUtils.filter(allClients, client -> client.getKeepAliveMode() == KeepAliveMode.SESSION);
-                stopWorkers(sessionScopedClients);
+                List<WorkerDaemonClient> clientsToStop = CollectionUtils.filter(allClients, client -> client.getKeepAliveMode() == KeepAliveMode.SESSION || client.isAbandoned());
+                stopWorkers(clientsToStop);
             }
         }
     }
