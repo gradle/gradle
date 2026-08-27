@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -58,7 +59,13 @@ abstract class BuildBuilderPerfProjectGenerator extends ProjectGeneratorTask {
 
     /**
      * Directory to generate into. build-builder creates {@code <outputBaseDir>/<projectName>}.
+     *
+     * <p>{@code @Internal}: this is an absolute path, and keeping absolute paths out of the inputs is
+     * what lets these tasks be cached across build directories — the same reasoning the
+     * {@code JavaExecProjectGeneratorTask} registrations applied to their {@code args}. What the task
+     * produces is covered by {@link #getGeneratedDir()}.
      */
+    @Internal
     final DirectoryProperty outputBaseDir
 
     /**
