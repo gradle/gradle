@@ -384,7 +384,10 @@ tasks.register("buildBuilder", RemoteProject) {
 
 tasks.register("installBuildBuilder", GradleBuild) {
     dir = buildBuilder.outputDirectory
-    tasks = ['install']
+    // The 'application' plugin's install task. build-builder has never had a task named
+    // 'install', so this task has been failing, and with it the generation of every
+    // BuildBuilderGenerator test project (mediumSwiftMulti, bigSwiftApp).
+    tasks = ['installDist']
     dependsOn buildBuilder
 }
 
