@@ -238,7 +238,7 @@ $ ./gradlew --include-build ../my-utils run
 ----
 [source,text]
 ----
-include::{snippetsPath}/structuring-builds/composite-builds-basic/tests/basicCli.out[]
+include::{snippetsPath}/structuring-builds/composite-builds-basic/tests-kotlin/basicCli.kotlin.out[]
 ----
 
 [[interacting_with_composite_builds]]

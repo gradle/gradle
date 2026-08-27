@@ -911,7 +911,7 @@ Running `printAppInfo` outputs `unnamed` — *not* `my-app` as the user intended
 
 [source,text]
 ----
-include::{snippetsPath}/best-practices/avoidAfterEvaluate-avoid/tests/avoidAfterEvaluate.bad.out[]
+include::{snippetsPath}/best-practices/avoidAfterEvaluate-avoid/tests-kotlin/avoidAfterEvaluate.bad.kotlin.out[]
 ----
 
 The plugin's `afterEvaluate` callback was registered first (during `Plugin.apply()`) and ran first, reading the property before the build script's `afterEvaluate` had a chance to set it.
@@ -953,7 +953,7 @@ Running `printAppInfo` now correctly outputs `my-app`:
 [source,text]
 ----
 $ gradlew printAppInfo
-include::{snippetsPath}/best-practices/avoidAfterEvaluate-do/tests/avoidAfterEvaluate.good.out[]
+include::{snippetsPath}/best-practices/avoidAfterEvaluate-do/tests-kotlin/avoidAfterEvaluate.good.kotlin.out[]
 ----
 
 === References
