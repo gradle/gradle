@@ -178,7 +178,6 @@ Class <org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations> 
 Class <org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultMavenSettingsProvider.java:0)
 Class <org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (LocalMavenRepositoryLocator.java:0)
 Class <org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (MavenFileLocations.java:0)
-Class <org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (MavenSettingsProvider.java:0)
 Class <org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (AbstractPublishArtifact.java:0)
 Class <org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ArchivePublishArtifact.java:0)
 Class <org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DecoratingPublishArtifact.java:0)
