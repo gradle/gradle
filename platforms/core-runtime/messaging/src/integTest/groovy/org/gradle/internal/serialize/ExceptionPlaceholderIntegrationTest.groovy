@@ -190,6 +190,93 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
         ]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/34280")
+    def "preserves build failure when an exception method signature cannot be resolved"() {
+        given:
+        buildFile << '''
+            import javax.tools.ToolProvider
+            import java.util.concurrent.Callable
+
+            tasks.register('reproduce') {
+                doLast {
+                    def sourceDir = layout.buildDirectory.dir('reproducer/source/repro').get().asFile
+                    def classesDir = layout.buildDirectory.dir('reproducer/classes').get().asFile
+                    sourceDir.mkdirs()
+                    classesDir.mkdirs()
+
+                    def missingTypeSource = new File(sourceDir, 'MissingSignatureType.java')
+                    missingTypeSource.text = """
+                        package repro;
+
+                        public final class MissingSignatureType {
+                        }
+                    """.stripIndent()
+
+                    def brokenExceptionSource = new File(sourceDir, 'BrokenException.java')
+                    brokenExceptionSource.text = """
+                        package repro;
+
+                        public final class BrokenException extends RuntimeException {
+                            public BrokenException(String message) {
+                                super(message);
+                            }
+
+                            public MissingSignatureType methodWithMissingReturnType() {
+                                return null;
+                            }
+                        }
+                    """.stripIndent()
+
+                    def exceptionFactorySource = new File(sourceDir, 'BrokenExceptionFactory.java')
+                    exceptionFactorySource.text = """
+                        package repro;
+
+                        import java.util.concurrent.Callable;
+
+                        public final class BrokenExceptionFactory implements Callable<Throwable> {
+                            @Override
+                            public Throwable call() {
+                                return new BrokenException("Intentional task failure");
+                            }
+                        }
+                    """.stripIndent()
+
+                    def compiler = ToolProvider.systemJavaCompiler
+                    def compilationExitCode = compiler.run(
+                        null,
+                        null,
+                        null,
+                        '-d',
+                        classesDir.absolutePath,
+                        missingTypeSource.absolutePath,
+                        brokenExceptionSource.absolutePath,
+                        exceptionFactorySource.absolutePath
+                    )
+                    if (compilationExitCode != 0) {
+                        throw new GradleException("Fixture compilation failed with exit code ${compilationExitCode}")
+                    }
+
+                    def missingTypeClass = new File(classesDir, 'repro/MissingSignatureType.class')
+                    if (!missingTypeClass.delete()) {
+                        throw new GradleException("Could not delete ${missingTypeClass}")
+                    }
+
+                    def loader = new URLClassLoader([classesDir.toURI().toURL()] as URL[], ClassLoader.platformClassLoader)
+                    Callable<Throwable> exceptionFactory = Callable.class.cast(
+                        Class.forName('repro.BrokenExceptionFactory', true, loader).getDeclaredConstructor().newInstance()
+                    )
+                    throw exceptionFactory.call()
+                }
+            }
+        '''
+
+        when:
+        fails 'reproduce'
+
+        then:
+        failureCauseContains('Intentional task failure')
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/9487")
     def 'break cycles with suppressed and cause exceptions'() {
         given:
