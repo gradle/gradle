@@ -190,11 +190,8 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
-        if (excludedByFlakyOnlyStrategy(sourceSet, testType)) {
-            // Under -PflakyTests=ONLY, a test task whose sources never mention @Flaky cannot select any test, but
-            // the tag filter is only applied during JUnit Platform discovery inside the forked test JVM. Wiring no
-            // test classes at all makes the task NO-SOURCE (Test.getCandidateClassFiles is @SkipWhenEmpty), which
-            // skips the JVM fork and drops the task dependencies on the test compilation.
+        if (excludedByFlakyOnlyStrategy(sourceSet)) {
+            // No test here can be flaky: make the task NO-SOURCE instead of forking a JVM that discovers nothing.
             testClassesDirs = project.files()
             classpath = project.files()
         } else {
@@ -214,23 +211,16 @@ const val FLAKY_ANNOTATION_REFERENCE = "org.gradle.test.fixtures.Flaky"
 
 
 /**
- * Whether the task can be skipped outright under `-PflakyTests=ONLY` because no source file of the
- * source set references the `@Flaky` annotation, so no test in it can carry the flaky tag. Using
- * `@Flaky` requires its fully qualified name in the file (as an import or inline), so a plain text
- * scan cannot produce a false negative, with one caveat: a spec inheriting class-level `@Flaky`
- * from a base class in a different source set would be missed. No such case exists today. A false
- * positive (e.g. the name in a comment) is harmless: the task then runs and discovers nothing,
- * which is what every task of a flaky-free source set does today.
+ * Whether the task can be skipped under `-PflakyTests=ONLY` because no source file of the source set
+ * references `@Flaky`. Using the annotation requires its fully qualified name in the file, so the text
+ * scan cannot miss a use.
  */
 private
-fun Project.excludedByFlakyOnlyStrategy(sourceSet: SourceSet, testType: TestType): Boolean {
-    if (testType != TestType.CROSSVERSION || flakyTestStrategy != FlakyTestStrategy.ONLY) {
+fun Project.excludedByFlakyOnlyStrategy(sourceSet: SourceSet): Boolean {
+    if (flakyTestStrategy != FlakyTestStrategy.ONLY) {
         return false
     }
-    // precondition-tester re-points every DistributionTest at the untagged Jupiter tests of its 'test' source
-    // set, which the ONLY strategy deliberately runs on every build (they are matched by the none() part of the
-    // tag expression), so the flaky source scan does not apply to it. Its build script also appends to the task
-    // classpath, which an emptied classpath here would corrupt.
+    // precondition-tester reconfigures its test tasks to always run its (untagged) precondition tests
     if (name == "precondition-tester") {
         return false
     }
