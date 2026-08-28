@@ -16,13 +16,18 @@
 
 package org.gradle.internal.tools.api.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.TypeReference;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -30,19 +35,53 @@ import java.util.TreeSet;
 public class MethodMember extends TypedMember implements Comparable<MethodMember> {
     private static final Ordering<Iterable<String>> LEXICOGRAPHICAL_ORDERING = Ordering.<String>natural().lexicographical();
     private final SortedSet<String> exceptions = new TreeSet<>();
+    private final List<String> declaredExceptions;
+    private final List<ParameterMember> parameters = new ArrayList<>();
     private final SortedSet<AnnotationMember> parameterAnnotations = new TreeSet<>();
     @Nullable
     private AnnotationValue<?> annotationDefaultValue;
 
-    public MethodMember(int access, String name, String typeDesc, String signature, String @Nullable [] exceptions) {
+    public MethodMember(int access, String name, String typeDesc, @Nullable String signature, String @Nullable [] exceptions) {
         super(access, name, signature, typeDesc);
-        if (exceptions != null && exceptions.length > 0) {
-            this.exceptions.addAll(Arrays.asList(exceptions));
-        }
+        this.declaredExceptions = exceptions == null ? Collections.emptyList() : Arrays.asList(exceptions);
+        this.exceptions.addAll(declaredExceptions);
     }
 
     public SortedSet<String> getExceptions() {
         return ImmutableSortedSet.copyOf(exceptions);
+    }
+
+    /**
+     * The entries of the {@code MethodParameters} attribute, in declaration order.
+     */
+    public List<ParameterMember> getParameters() {
+        return ImmutableList.copyOf(parameters);
+    }
+
+    public void addParameter(ParameterMember parameter) {
+        parameters.add(parameter);
+    }
+
+    /**
+     * Maps a type reference from the declaration order of the thrown exceptions to the sorted
+     * order in which this member writes them.
+     *
+     * <p>The {@code type_index} of a {@code THROWS} type annotation points into the
+     * {@code Exceptions} attribute. Since the extracted class writes the exceptions sorted, the
+     * index of the original class file no longer identifies the annotated exception. Type
+     * references of any other sort are returned unchanged.</p>
+     */
+    public int mapTypeReferenceToWrittenExceptionOrder(int typeRef) {
+        TypeReference typeReference = new TypeReference(typeRef);
+        if (typeReference.getSort() != TypeReference.THROWS) {
+            return typeRef;
+        }
+        int declaredIndex = typeReference.getExceptionIndex();
+        if (declaredIndex < 0 || declaredIndex >= declaredExceptions.size()) {
+            return typeRef;
+        }
+        String exception = declaredExceptions.get(declaredIndex);
+        return TypeReference.newExceptionReference(exceptions.headSet(exception).size()).getValue();
     }
 
     public SortedSet<AnnotationMember> getParameterAnnotations() {

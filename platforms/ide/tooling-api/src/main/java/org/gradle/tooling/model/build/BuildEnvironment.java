@@ -40,7 +40,7 @@ import org.gradle.tooling.model.UnsupportedMethodException;
  * }
  * </pre>
  *
- * @since 1.0-milestone-8
+ * @since 1.0
  */
 public interface BuildEnvironment extends Model, BuildModel {
     /**
@@ -54,14 +54,14 @@ public interface BuildEnvironment extends Model, BuildModel {
     /**
      * Returns information about the Gradle environment, for example the Gradle version.
      *
-     * @since 1.0-milestone-8
+     * @since 1.0
      */
     GradleEnvironment getGradle();
 
     /**
      * Returns information about the Java environment, for example the Java home or the JVM args used.
      *
-     * @since 1.0-milestone-8
+     * @since 1.0
      * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-8, where this method is not supported.
      */
     JavaEnvironment getJava() throws UnsupportedMethodException;

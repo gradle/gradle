@@ -1,5 +1,6 @@
 package org.example
 
+import org.gradle.testkit.runner.ConfigurationCacheOutcome
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.Before
 import org.junit.Rule
@@ -40,7 +41,7 @@ class BuildLogicFunctionalTest {
             .withArguments("--configuration-cache", "myTask")        // <2>
             .build()
 
-        require(result.output.contains("Reusing configuration cache.")) // <3>
+        require(result.configurationCacheOutcome == ConfigurationCacheOutcome.REUSED) // <3>
         // ... more assertions on your task behavior
     }
     // end::functional-test-configuration-cache[]

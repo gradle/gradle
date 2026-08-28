@@ -52,8 +52,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/plugins/ide/idea/internal/**")
-    excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/**")
-}

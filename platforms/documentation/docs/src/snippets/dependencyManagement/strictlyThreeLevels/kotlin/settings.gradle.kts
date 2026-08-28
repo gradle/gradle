@@ -1,0 +1,4 @@
+rootProject.name = "strictly-three-levels"
+
+include("moduleA")
+include("moduleB")

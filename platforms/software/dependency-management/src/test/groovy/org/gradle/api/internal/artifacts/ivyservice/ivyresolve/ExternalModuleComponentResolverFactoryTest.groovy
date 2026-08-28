@@ -20,10 +20,11 @@ import com.google.common.collect.Lists
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataProcessor
+import org.gradle.api.internal.artifacts.dsl.ImmutableComponentMetadataRules
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
@@ -44,6 +45,7 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.NoOpDerivationStrategy
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
@@ -101,13 +103,14 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
             Stub(CalculatedValueContainerFactory),
             AttributeTestUtil.attributesFactory(),
             AttributeTestUtil.services(),
-            Stub(ComponentMetadataSupplierRuleExecutor)
+            Stub(ComponentMetadataSupplierRuleExecutor),
+            Stub(DefaultComponentMetadataProcessor.Factory)
         )
     }
 
     def "returns an empty resolver when no repositories are configured"() {
         when:
-        def resolver = newFactory().createResolvers(Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), Stub(ComponentSelectionRulesInternal), false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY)
+        def resolver = newFactory().createResolvers(Collections.emptyList(), ImmutableComponentMetadataRules.EMPTY, NoOpDerivationStrategy.instance, Stub(ComponentSelectionRulesInternal), false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY)
 
         then:
         resolver instanceof NoRepositoriesResolver
@@ -123,7 +126,7 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
         def componentSelectionRules = Stub(ComponentSelectionRulesInternal)
 
         when:
-        def resolver = newFactory().createResolvers(repositories, Stub(ComponentMetadataProcessorFactory), componentSelectionRules, false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY)
+        def resolver = newFactory().createResolvers(repositories, ImmutableComponentMetadataRules.EMPTY, NoOpDerivationStrategy.instance, componentSelectionRules, false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY)
 
         then:
         assert resolver instanceof UserResolverChain

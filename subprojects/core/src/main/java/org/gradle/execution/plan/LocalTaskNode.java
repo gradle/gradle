@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -222,4 +223,10 @@ public class LocalTaskNode extends TaskNode {
     protected boolean dependsOnOutcome(Node dependency) {
         return lifecycleSuccessors.contains(dependency);
     }
+
+    @Override
+    public void execute(NodeExecutionContext context) {
+        context.getService(TaskNodeExecutor.class).execute(this);
+    }
+
 }

@@ -38,12 +38,12 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
@@ -63,8 +63,8 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
@@ -80,7 +80,9 @@ import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext
 import org.gradle.test.fixtures.ExpectDeprecation
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -100,6 +102,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 class DefaultConfigurationSpec extends Specification {
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
+    def instanceIdentity = new DependencyManagementInstanceIdentity(Describables.of("test"))
     def metaDataProvider = Mock(DependencyMetaDataProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def attributesFactory = AttributeTestUtil.attributesFactory()
@@ -923,7 +926,6 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private Configuration prepareConfigurationForCopyTest(configuration = conf()) {
-        configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
         configuration.exclude([group: "value"])
@@ -1884,16 +1886,17 @@ This method is only meant to be called on configurations which allow the (non-de
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
         def build = Path.path(buildPath)
         def project = Path.path(projectPath)
-        def buildTreePath = build.append(Path.path(projectPath))
-        def identity = project.name != null ? ProjectIdentity.forSubproject(build, project) : ProjectIdentity.forRootProject(build, "foo")
+        def identity = project.name != null
+            ? ProjectIdentity.forSubproject(build, project)
+            : ProjectIdentity.forRootProject(build, "foo")
 
-        def domainObjectContext = Stub(DomainObjectContext)
-        _ * domainObjectContext.identityPath(_) >> { String p -> buildTreePath.child(p) }
-        _ * domainObjectContext.projectPath(_) >> { String p -> project.child(p) }
-        _ * domainObjectContext.buildPath >> build
-        _ * domainObjectContext.projectIdentity >> identity
-        _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
-        _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
+        def domainObjectContext = Stub(ProjectDomainObjectContext) {
+            getBuildPath() >> identity.buildPath
+            getModel() >> Mock(ProjectState) {
+                getIdentity() >> identity
+                hasMutableState() >> true
+            }
+        }
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             TestUtil.objectFactory(),
@@ -1915,7 +1918,9 @@ This method is only meant to be called on configurations which allow the (non-de
             TestUtil.problemsService(),
             new AttributeDesugaring(attributesFactory),
             new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
-            TestUtil.providerFactory()
+            TestUtil.providerFactory(),
+            new TestWorkerLeaseService(),
+            instanceIdentity
         )
 
         new DefaultConfigurationFactory(
@@ -1959,8 +1964,13 @@ This method is only meant to be called on configurations which allow the (non-de
         String name
     }
 
-    enum Platform {
+    enum Platform implements Named {
         JAVA6,
         JAVA7
+
+        @Override
+        String getName() {
+            return this
+        }
     }
 }

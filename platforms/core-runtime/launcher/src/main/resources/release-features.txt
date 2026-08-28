@@ -1,4 +1,0 @@
- - Isolated Projects graduates to incubating
- - Broader Configuration Cache compatibility
- - Resilient Sync helps you fix broken builds
- - More source locations in problem reports

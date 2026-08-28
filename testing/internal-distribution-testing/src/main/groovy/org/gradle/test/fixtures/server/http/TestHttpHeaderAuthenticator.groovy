@@ -16,39 +16,14 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.eclipse.jetty.security.Authenticator
-import org.eclipse.jetty.security.ServerAuthException
-import org.eclipse.jetty.server.Authentication
+import groovy.transform.CompileStatic
 
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
 
-class TestHttpHeaderAuthenticator implements Authenticator {
-
-    public static final String AUTH_SCHEME_NAME = "HEADER"
+@CompileStatic
+class TestHttpHeaderAuthenticator implements AuthScheme.Authenticator {
 
     @Override
-    void setConfiguration(AuthConfiguration configuration) {
-
-    }
-
-    @Override
-    String getAuthMethod() {
-        AUTH_SCHEME_NAME
-    }
-
-    @Override
-    void prepareRequest(ServletRequest request) {
-
-    }
-
-    @Override
-    Authentication validateRequest(ServletRequest request, ServletResponse response, boolean mandatory) throws ServerAuthException {
-        Authentication.SEND_CONTINUE
-    }
-
-    @Override
-    boolean secureResponse(ServletRequest request, ServletResponse response, boolean mandatory, Authentication.User validatedUser) throws ServerAuthException {
-        return false
+    boolean authenticate(HttpRequest request, HttpResponse response) {
+        return true
     }
 }

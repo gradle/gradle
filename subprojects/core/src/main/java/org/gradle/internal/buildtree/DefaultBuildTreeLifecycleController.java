@@ -24,7 +24,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.WorkTypeAware;
 import org.gradle.internal.model.StateTransitionController;
@@ -77,7 +76,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks(@Nullable EntryTaskSelector selector) {
-        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector).getExecutionResultOrThrow());
+        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector));
     }
 
     @Override
@@ -91,7 +90,9 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             }
 
             // Run tasks
-            ExecutionResult<Void> taskRunResult = runTasks ? runTasks() : ExecutionResult.succeeded();
+            ExecutionResult<Void> taskRunResult = runTasks
+                ? workController.scheduleAndRunRequestedTasks(null)
+                : ExecutionResult.succeeded();
 
             // Allow the model action to run even if tasks failed
             ExecutionResult<BuildTreeModelCreatorResult<T>> buildModelResult = runModelAction(() -> modelCreator.fromBuildModel(action));
@@ -141,14 +142,6 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return result.getFailure().isPresent()
             ? ExecutionResult.failed(BuildActionExecutionException.wrap(result.getFailure().get()))
             : ExecutionResult.succeeded(result.get());
-    }
-
-    private ExecutionResult<Void> runTasks() {
-        TaskRunResult result = workController.scheduleAndRunRequestedTasks(null);
-        if (!result.getScheduleResult().isSuccessful()) {
-            return result.getScheduleResult();
-        }
-        return result.getExecutionResultOrThrow();
     }
 
     @Override

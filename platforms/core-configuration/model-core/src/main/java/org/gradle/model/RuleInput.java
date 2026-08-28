@@ -27,6 +27,7 @@ import java.lang.annotation.Target;
  * Attached to the getter for a property on a {@link RuleSource} to denote that the property defines an implicit input for all rules defined by the rule source.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.11
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

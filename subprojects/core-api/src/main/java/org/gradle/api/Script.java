@@ -42,6 +42,7 @@ import java.util.concurrent.Callable;
  * have a {@link Project} instance attached to it, and an initialization script will have a {@link
  * org.gradle.api.invocation.Gradle} instance attached to it. Any property reference or method call which is not found
  * on this {@code Script} object is forwarded to the delegate object.</p>
+ * @since 0.9
  */
 public interface Script {
     /**
@@ -51,6 +52,7 @@ public interface Script {
      * then used to configure the delegate object.</p>
      *
      * @param closure The closure to configure the {@code ObjectConfigurationAction}.
+     * @since 0.9
      */
     void apply(Closure closure);
 
@@ -69,6 +71,7 @@ public interface Script {
      * <p>For more detail, see {@link org.gradle.api.plugins.ObjectConfigurationAction}.</p>
      *
      * @param options The options to use to configure the {@code ObjectConfigurationAction}.
+     * @since 0.9
      */
     void apply(Map<String, ?> options);
 
@@ -77,6 +80,7 @@ public interface Script {
      * execute this script.
      *
      * @return the classpath handler. Never returns null.
+     * @since 0.9
      */
     ScriptHandler getBuildscript();
 
@@ -87,6 +91,7 @@ public interface Script {
      * to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the script classpath.
+     * @since 0.9
      */
     void buildscript(Closure configureClosure);
 
@@ -96,6 +101,7 @@ public interface Script {
      *
      * @param path The object to resolve as a File.
      * @return The resolved file. Never returns null.
+     * @since 0.9
      */
     File file(Object path);
 
@@ -107,6 +113,7 @@ public interface Script {
      * @param validation The validation to perform on the file.
      * @return The resolved file. Never returns null.
      * @throws InvalidUserDataException When the file does not meet the given validation constraint.
+     * @since 0.9
      */
     File file(Object path, PathValidation validation) throws InvalidUserDataException;
 
@@ -117,6 +124,7 @@ public interface Script {
      *
      * @param path The object to resolve as a URI.
      * @return The resolved URI. Never returns null.
+     * @since 0.9
      */
     URI uri(Object path);
 
@@ -126,6 +134,7 @@ public interface Script {
      *
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
+     * @since 0.9
      */
     ConfigurableFileCollection files(@Nullable Object... paths);
 
@@ -137,6 +146,7 @@ public interface Script {
      * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
+     * @since 0.9
      */
     ConfigurableFileCollection files(Object paths, Closure configureClosure);
 
@@ -146,6 +156,7 @@ public interface Script {
      *
      * @param path The path to convert to a relative path.
      * @return The relative path. Never returns null.
+     * @since 0.9
      */
     String relativePath(Object path);
 
@@ -159,6 +170,7 @@ public interface Script {
      *
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @return the file tree. Never returns null.
+     * @since 0.9
      */
     ConfigurableFileTree fileTree(Object baseDir);
 
@@ -174,6 +186,7 @@ public interface Script {
      *
      * @param args map of property assignments to {@code ConfigurableFileTree} object
      * @return the configured file tree. Never returns null.
+     * @since 0.9
      */
     ConfigurableFileTree fileTree(Map<String, ?> args);
 
@@ -195,6 +208,7 @@ public interface Script {
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
+     * @since 1.0
      */
     ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
 
@@ -209,6 +223,7 @@ public interface Script {
      *
      * @param zipPath The ZIP file. Evaluated as per {@link #file(Object)}.
      * @return the file tree. Never returns null.
+     * @since 0.9
      */
     FileTree zipTree(Object zipPath);
 
@@ -246,6 +261,7 @@ public interface Script {
      *
      * @param tarPath The TAR file or an instance of {@link org.gradle.api.resources.Resource}.
      * @return the file tree. Never returns null.
+     * @since 0.9
      */
     FileTree tarTree(Object tarPath);
 
@@ -275,6 +291,7 @@ public interface Script {
      *
      * @param closure Closure to configure the CopySpec
      * @return {@link org.gradle.api.tasks.WorkResult} that can be used to check if the copy did any work.
+     * @since 0.9
      */
     WorkResult copy(Closure closure);
 
@@ -285,6 +302,7 @@ public interface Script {
      *
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
+     * @since 0.9
      */
     CopySpec copySpec(Closure closure);
 
@@ -294,6 +312,7 @@ public interface Script {
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
      * @return the created directory
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     * @since 0.9
      */
     File mkdir(Object path);
 
@@ -302,6 +321,7 @@ public interface Script {
      *
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
+     * @since 0.9
      */
     boolean delete(@Nullable Object... paths);
 
@@ -311,6 +331,7 @@ public interface Script {
      * at the QUIET log level, and System.err is redirected at the ERROR log level.
      *
      * @return the LoggingManager. Never returns null.
+     * @since 0.9
      */
     LoggingManager getLogging();
 
@@ -318,6 +339,7 @@ public interface Script {
      * Returns the logger for this script. You can use this in your script to write log messages.
      *
      * @return The logger. Never returns null.
+     * @since 0.9
      */
     Logger getLogger();
 
@@ -325,6 +347,7 @@ public interface Script {
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
      *
      * @return Returned instance contains various resource-specific utility methods.
+     * @since 1.0
      */
     ResourceHandler getResources();
 

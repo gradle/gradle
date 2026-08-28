@@ -30,7 +30,10 @@ fun main() {
     val testClassDataJson = File(System.getProperty("inputTestClassDataJson") ?: throw IllegalArgumentException("Input file not found!"))
     val generatedBucketsJson = File(System.getProperty("outputBucketSplitJson", "./test-buckets.json"))
 
-    FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson)
+    // The layout to preserve always comes from the checked-in file, never from the output path: writing
+    // the split elsewhere (a dry run, say) must still produce the order the checked-in file has, otherwise
+    // that output cannot be compared against it.
+    FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson, File("./test-buckets.json"))
 }
 
 class FunctionalTestBucketGenerator(
@@ -40,10 +43,27 @@ class FunctionalTestBucketGenerator(
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     private val buckets: Map<TestCoverage, List<SmallSubprojectBucket>> = buildBuckets(testTimeDataJson, model)
 
-    fun generate(jsonFile: File) {
+    /**
+     * Writes the new split to [jsonFile], keeping every bucket at the position its predecessor in
+     * [previousBucketsJson] occupied. The bucket position determines the id of the TeamCity build
+     * configuration generated from it, so preserving it keeps that configuration's caches valid.
+     *
+     * [previousBucketsJson] defaults to [jsonFile], which is the file being regenerated in place.
+     */
+    @JvmOverloads
+    fun generate(
+        jsonFile: File,
+        previousBucketsJson: File = jsonFile,
+    ) {
+        val previousLayout = PreviousBucketLayout.readFrom(previousBucketsJson)
         val output =
-            buckets.map {
-                TestCoverageAndBucketSplits(it.key.uuid, it.value.map { it.toJsonBucket() })
+            buckets.map { (testCoverage, testCoverageBuckets) ->
+                val orderedBuckets =
+                    assignToPreviousSlots(
+                        testCoverageBuckets,
+                        previousLayout.slotsFor(testCoverage.uuid),
+                    ) { bucket -> bucket.subprojects.map { it.name }.toSet() }
+                TestCoverageAndBucketSplits(testCoverage.uuid, orderedBuckets.map { it.toJsonBucket() })
             }
         jsonFile.writeText(gson.toJson(output))
     }

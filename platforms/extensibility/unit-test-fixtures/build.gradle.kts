@@ -51,6 +51,7 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.startParameter)
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.workerShared)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)

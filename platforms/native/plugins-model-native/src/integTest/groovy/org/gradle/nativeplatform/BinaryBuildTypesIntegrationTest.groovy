@@ -27,6 +27,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
     def helloWorldApp = new CppHelloWorldApp()
 
     def "creates debug and release variants"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         helloWorldApp.writeSources(file("src/main"))
         and:
@@ -89,6 +90,7 @@ model {
     }
 
     def "configure component for a single build type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         helloWorldApp.writeSources(file("src/main"))
         buildFile << """
@@ -122,6 +124,7 @@ model {
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "executable with build type depends on library with matching build type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         helloWorldApp.executable.writeSources(file("src/main"))
         helloWorldApp.library.writeSources(file("src/hello"))
@@ -160,6 +163,7 @@ model {
     }
 
     def "fails with reasonable error message when trying to target an unknown build type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         settingsFile << "rootProject.name = 'bad-build-type'"
         buildFile << """
@@ -185,6 +189,7 @@ model {
     }
 
     def "fails with reasonable error message when depended on library has no variant with matching build type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         settingsFile << "rootProject.name = 'no-matching-build-type'"
         buildFile << """

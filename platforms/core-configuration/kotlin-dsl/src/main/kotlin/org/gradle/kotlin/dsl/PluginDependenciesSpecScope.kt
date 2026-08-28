@@ -30,6 +30,8 @@ import org.gradle.plugin.use.PluginDependencySpec
  * hiding all members provided by the outer script scope.
  *
  * @see [PluginDependenciesSpec]
+ *
+ * @since 4.1
  */
 @GradleDsl
 open class PluginDependenciesSpecScope internal constructor(
@@ -51,6 +53,8 @@ open class PluginDependenciesSpecScope internal constructor(
  * Specify the version of the plugin to depend on.
  *
  * Infix version of [PluginDependencySpec.version].
+ *
+ * @since 4.1
  */
 infix fun PluginDependencySpec.version(version: String?): PluginDependencySpec = version(version)
 
@@ -70,5 +74,7 @@ infix fun PluginDependencySpec.version(version: Provider<String>): PluginDepende
  * on the project's classpath.
  *
  * Infix version of [PluginDependencySpec.apply].
+ *
+ * @since 4.1
  */
 infix fun PluginDependencySpec.apply(apply: Boolean): PluginDependencySpec = apply(apply)

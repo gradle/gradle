@@ -41,8 +41,8 @@ class NetworkingIssueVerifierTest extends Specification {
         "ConnectionClosedException"                                 | new ConnectionClosedException("something went wrong")
         "HttpHostConnectException"                                  | new HttpHostConnectException(new IOException("something went wrong"), null, null)
         "DefaultMultiCauseException"                                | new DefaultMultiCauseException("something went wrong", new SocketTimeoutException())
-        "HttpErrorStatusCodeException with server error"            | new HttpErrorStatusCodeException("something", "something", 503, "something")
-        "HttpErrorStatusCodeException with transient client error"  | new HttpErrorStatusCodeException("something", "something", 429, "something")
+        "HttpErrorStatusCodeException with server error"            | new HttpErrorStatusCodeException(503, "something")
+        "HttpErrorStatusCodeException with transient client error"  | new HttpErrorStatusCodeException(429, "something")
         "RuntimeException with a likely network exception as cause" | new RuntimeException("with cause", new SocketTimeoutException("something went wrong"))
     }
 }

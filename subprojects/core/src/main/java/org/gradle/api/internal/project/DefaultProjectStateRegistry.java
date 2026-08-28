@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.internal.build.AllProjectsAccess;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
@@ -217,11 +216,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         synchronized (lock) {
             return projectsByBuild.get(buildIdentifier);
         }
-    }
-
-    @Override
-    public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        return workerLeaseService.allowUncontrolledAccessToAnyProject(factory);
     }
 
     @Override

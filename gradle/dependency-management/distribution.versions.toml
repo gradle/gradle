@@ -35,7 +35,7 @@ jsch = "0.2.16!!"
 jsoup = "1.22.2!!"
 jspecify = "1.0.0!!"
 jsr305 = "3.0.2!!"
-kotlin = "2.4.0!!"
+kotlin = "2.4.10!!"
 kotlinxSerialization = "1.11.0!!"
 kryo = "2.24.0!!"
 minlog = "1.2!!"
@@ -79,7 +79,7 @@ googleHttpClientApacheV2 = { group = "com.google.http-client", name = "google-ht
 googleHttpClientGson = { group = "com.google.http-client", name = "google-http-client-gson", version.ref = "googleHttpClient" }
 googleOauthClient = { group = "com.google.oauth-client", name = "google-oauth-client", version.ref = "googleOauthClient" }
 gradleFileEvents = { group = "org.gradle.fileevents", name = "gradle-fileevents", version.ref = "gradleFileEvents" }
-groovy = { group = "org.apache.groovy", name = "groovy", version.ref = "groovy" } # Assuming Groovy 3 group
+groovy = { group = "org.apache.groovy", name = "groovy", version.ref = "groovy" }
 groovyAnt = { group = "org.apache.groovy", name = "groovy-ant", version.ref = "groovy" }
 groovyAstbuilder = { group = "org.apache.groovy", name = "groovy-astbuilder", version.ref = "groovy" }
 groovyDateUtil = { group = "org.apache.groovy", name = "groovy-dateutil", version.ref = "groovy" }
@@ -149,7 +149,7 @@ maven3SettingsBuilder = { group = "org.apache.maven", name = "maven-settings-bui
 minlog = { group = "com.esotericsoftware.minlog", name = "minlog", version.ref = "minlog" }
 nativePlatform = { group = "net.rubygrapefruit", name = "native-platform", version.ref = "nativePlatform" }
 objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
-plexusCipher = { group = "org.sonatype.plexus", name = "plexus-cipher", version.ref = "plexusCipher" }
+plexusCipher = { group = "org.codehaus.plexus", name = "plexus-cipher", version.ref = "plexusCipher" }
 plexusInterpolation = { group = "org.codehaus.plexus", name = "plexus-interpolation", version.ref = "plexusInterpolation" }
 plexusSecDispatcher = { group = "org.codehaus.plexus", name = "plexus-sec-dispatcher", version.ref = "plexusSecDispatcher" }
 plexusUtils = { group = "org.codehaus.plexus", name = "plexus-utils", version.ref = "plexusUtils" }

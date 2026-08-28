@@ -38,20 +38,28 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 @UsedByScanPlugin
 public interface Category extends Named {
 
+    /**
+     * Of.
+     *
+     * @since 5.3
+     */
     Attribute<Category> CATEGORY_ATTRIBUTE = Attribute.of("org.gradle.category", Category.class);
 
     /**
      * The library category
+     * @since 5.3
      */
     String LIBRARY = "library";
 
     /**
      * The platform category
+     * @since 5.3
      */
     String REGULAR_PLATFORM = "platform";
 
     /**
      * The enforced platform, usually a synthetic variant derived from the {@code platform}
+     * @since 5.3
      */
     String ENFORCED_PLATFORM = "enforced-platform";
 

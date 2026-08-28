@@ -30,10 +30,16 @@ import java.util.List;
  */
 public interface JacocoViolationRule extends Serializable {
 
+    /**
+     * Sets the enabled.
+     *
+     * @since 3.4
+     */
     void setEnabled(boolean enabled);
 
     /**
      * Indicates if the rule should be used when checking generated coverage metrics. Defaults to true.
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -43,6 +49,7 @@ public interface JacocoViolationRule extends Serializable {
      * Sets element for the rule.
      *
      * @param element Element
+     * @since 3.4
      */
     void setElement(String element);
 
@@ -50,6 +57,7 @@ public interface JacocoViolationRule extends Serializable {
      * Gets the element for the rule as defined by
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.ElementType.html">org.jacoco.core.analysis.ICoverageNode.ElementType</a>.
      * Valid scope values are BUNDLE, PACKAGE, CLASS, SOURCEFILE and METHOD. Defaults to BUNDLE.
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -59,12 +67,14 @@ public interface JacocoViolationRule extends Serializable {
      * Sets list of elements that should be included in check.
      *
      * @param includes Inclusions
+     * @since 3.4
      */
     void setIncludes(List<String> includes);
 
     /**
      * List of elements that should be included in check. Names can use wildcards (* and ?).
      * If left empty, all elements will be included. Defaults to [*].
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -74,12 +84,14 @@ public interface JacocoViolationRule extends Serializable {
      * Sets list of elements that should be excluded from check.
      *
      * @param excludes Exclusions
+     * @since 3.4
      */
     void setExcludes(List<String> excludes);
 
     /**
      * List of elements that should be excluded from check. Names can use wildcards (* and ?).
      * If left empty, no elements will be excluded. Defaults to an empty list.
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -87,6 +99,7 @@ public interface JacocoViolationRule extends Serializable {
 
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -94,6 +107,7 @@ public interface JacocoViolationRule extends Serializable {
 
     /**
      * Adds a limit for this rule. Any number of limits can be added.
+     * @since 3.4
      */
     JacocoLimit limit(Action<? super JacocoLimit> configureAction);
 }

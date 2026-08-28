@@ -34,9 +34,9 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
+import org.gradle.api.services.GradleService
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -72,7 +72,9 @@ class CrossProjectConfigurationReportingGradle(
         else -> gradle
     }
 
-    private val crossProjectModelAccess: CrossProjectModelAccess = delegate.serviceOf()
+    private val crossProjectModelAccess: CrossProjectModelAccess by lazy {
+        delegate.serviceOf()
+    }
 
     private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
 
@@ -331,6 +333,9 @@ class CrossProjectConfigurationReportingGradle(
     override fun getProviders(): ProviderFactory =
         delegate.providers
 
+    override fun <T : GradleService> service(serviceType: Class<T>): T =
+        delegate.service(serviceType)
+
     override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
         delegate.includedBuilds
 
@@ -395,9 +400,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun setBaseProjectClassLoaderScope(classLoaderScope: ClassLoaderScope) {
         delegate.setBaseProjectClassLoaderScope(classLoaderScope)
     }
-
-    override fun getProjectRegistry(): ProjectRegistry =
-        delegate.projectRegistry
 
     override fun includedBuilds(): MutableList<out IncludedBuildInternal> =
         delegate.includedBuilds()

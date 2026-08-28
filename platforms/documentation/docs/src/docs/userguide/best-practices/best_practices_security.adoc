@@ -158,8 +158,8 @@ One good test to confirm reproducibility is to try re-building an older version 
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/reproducibleBuilds-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/reproducibleBuilds-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> No `java { toolchain { ... } }` block is declared. Gradle has no default toolchain, so the JDK used for compilation falls back to whichever `JAVA_HOME` is active. Different machines (and even different JDK patch releases on the same machine) emit different bytecode.
@@ -169,8 +169,8 @@ include::sample[dir="snippets/bestPractices/reproducibleBuilds-avoid/groovy",fil
 ==== Do This Instead
 
 ====
-include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/best-practices/reproducibleBuilds-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/reproducibleBuilds-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> Pin the JDK used to compile so the build is decoupled from each developer's local `JAVA_HOME` and from whichever JDK happens to be on the CI image; Gradle auto-provisions a matching JDK if one isn't found.
@@ -186,3 +186,38 @@ include::sample[dir="snippets/bestPractices/reproducibleBuilds-do/groovy",files=
 
 <<tags_reference.adoc#tag:publishing,`#publishing`>>, <<tags_reference.adoc#tag:tasks,`#tasks`>>
 
+
+[[build-published-artifacts-securely]]
+== Build your Published Artifacts Securely
+
+When publishing, ensure that artifacts are built in a trusted, reproducible way to protect your link:https://slsa.dev/[software supply chain].
+
+=== Explanation
+
+A project's published artifacts should be <<working_with_files.adoc#sec:reproducible_archives,byte-for-byte reproducible>>; reproducibility is a precondition for everything below.
+Without it, the additional safeguards described here provide no verifiable assurance.
+
+When preparing a project for publishing, also use a secure and isolated build process.
+This both prevents security risks and ensures that the published artifact is a direct and verifiable result of the source code.
+
+==== Don't Do This
+
+Do not use incremental, local, or cached builds when publishing.
+These methods rely on the outputs of previous builds, which can open an attack vector.
+An incremental build might use a leftover artifact from an older, potentially compromised, build.
+Similarly, using a remote build cache or other caching mechanisms can lead to accidental inclusion of outdated or malicious content, resulting in a non-reproducible artifact.
+The build output could then depend on the state of the machine where it ran, undermining the integrity of your software.
+
+==== Do This Instead
+
+Published artifacts should always be built in a trusted, pristine environment.
+The best way to achieve this is to use a fresh, isolated, temporary CI machine.
+This approach, often referred to as *Ephemeral CI*, guarantees that the build starts from a clean slate every time, with no lingering artifacts, caches, or other external state.
+
+NOTE: This guidance is specific to builds that produce published artifacts.
+Gradle's <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> are safe and deterministic when configured correctly, and non-publishing builds should continue to take full advantage of them.
+Avoiding caching for publishing builds is an extra layer of certainty, not a statement that caches are inherently unsafe.
+
+=== Tags
+
+<<tags_reference.adoc#tag:publishing,`#publishing`>>

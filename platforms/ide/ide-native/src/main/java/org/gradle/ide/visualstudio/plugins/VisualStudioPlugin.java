@@ -56,6 +56,7 @@ import javax.inject.Inject;
 
 /**
  * A plugin for creating a Visual Studio solution for a gradle project.
+ * @since 1.12
  */
 public abstract class VisualStudioPlugin extends IdePlugin {
     private static final String LIFECYCLE_TASK_NAME = "visualStudio";

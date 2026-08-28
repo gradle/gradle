@@ -31,6 +31,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
  * This exception should always have cause, that provides information about the actual problem.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @Contextual
@@ -43,6 +44,11 @@ public class InvalidModelRuleException extends GradleException {
 
     private final String descriptor;
 
+    /**
+     * Creates a new {@code InvalidModelRuleException}.
+     *
+     * @since 2.2
+     */
     public InvalidModelRuleException(ModelRuleDescriptor descriptor, Throwable cause) {
         super("There is a problem with model rule " + descriptor.toString() + ".", cause);
         if (cause == null) {
@@ -51,6 +57,11 @@ public class InvalidModelRuleException extends GradleException {
         this.descriptor = descriptor.toString();
     }
 
+    /**
+     * Returns the descriptor.
+     *
+     * @since 2.2
+     */
     public String getDescriptor() {
         return descriptor;
     }

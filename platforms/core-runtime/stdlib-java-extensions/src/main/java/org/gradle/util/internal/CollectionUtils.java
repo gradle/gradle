@@ -18,9 +18,11 @@ package org.gradle.util.internal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Array;
+import java.util.AbstractCollection;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -643,4 +645,55 @@ public abstract class CollectionUtils {
             }
         };
     }
+
+    /**
+     * Return a new collection which applies the given transform to the input collection. The
+     * returned collection is lazy. The transformer is only applied to elements of the returned
+     * collection when iterating.
+     */
+    public static <T, R> Collection<R> transform(Collection<T> input, Function<T, R> transformer) {
+        return new AbstractCollection<R>() {
+            @Override
+            public Iterator<R> iterator() {
+                return new TransformedIterator<>(input.iterator(), transformer);
+            }
+
+            @Override
+            public int size() {
+                return input.size();
+            }
+        };
+    }
+
+    @NullMarked
+    private static class TransformedIterator<F extends @Nullable Object, T extends @Nullable Object> implements Iterator<T> {
+
+        private final Iterator<? extends F> backingIterator;
+        private final Function<? super F, ? extends T> transformer;
+
+        private TransformedIterator(
+            Iterator<? extends F> backingIterator,
+            Function<? super F, ? extends T> transformer
+        ) {
+            this.backingIterator = backingIterator;
+            this.transformer = transformer;
+        }
+
+        @Override
+        public final boolean hasNext() {
+            return backingIterator.hasNext();
+        }
+
+        @Override
+        public final T next() {
+            return transformer.apply(backingIterator.next());
+        }
+
+        @Override
+        public final void remove() {
+            backingIterator.remove();
+        }
+
+    }
+
 }

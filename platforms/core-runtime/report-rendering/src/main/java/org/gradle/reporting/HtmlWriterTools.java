@@ -39,11 +39,14 @@ public class HtmlWriterTools {
      * @throws IOException if an I/O error occurs
      */
     public static SimpleMarkupWriter addClipboardCopyButton(SimpleHtmlWriter writer, String copyElementId) throws IOException {
-        return writer.startElement("button")
+        return writer.startElement("div")
+            .attribute("class", "clipboard-copy-btn-container")
+            .startElement("button")
             .attribute("class", "clipboard-copy-btn")
             .attribute("aria-label", "Copy to clipboard")
             .attribute("data-copy-element-id", copyElementId)
             .characters("Copy")
+            .endElement()
             .endElement();
     }
 }

@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 /**
  * Represents information for the project Java SDK.
  * This translates to attributes of the ProjectRootManager element in the ipr.
+ * @since 1.0
  */
 public class Jdk {
 
@@ -28,6 +29,11 @@ public class Jdk {
     private String languageLevel;
     private String projectJdkName;
 
+    /**
+     * Creates a new {@code Jdk}.
+     *
+     * @since 1.0
+     */
     public Jdk(String jdkName, IdeaLanguageLevel ideaLanguageLevel) {
         if (jdkName.startsWith("1.4")) {
             assertKeyword = true;
@@ -42,6 +48,11 @@ public class Jdk {
         projectJdkName = jdkName;
     }
 
+    /**
+     * Creates a new {@code Jdk}.
+     *
+     * @since 2.14
+     */
     public Jdk(boolean assertKeyword, boolean jdk15, String languageLevel, String projectJdkName) {
         this.assertKeyword = assertKeyword;
         this.jdk15 = jdk15;
@@ -49,34 +60,74 @@ public class Jdk {
         this.projectJdkName = projectJdkName;
     }
 
+    /**
+     * Returns whether assert keyword is set.
+     *
+     * @since 1.0
+     */
     public boolean isAssertKeyword() {
         return assertKeyword;
     }
 
+    /**
+     * Sets the assert keyword.
+     *
+     * @since 1.0
+     */
     public void setAssertKeyword(boolean assertKeyword) {
         this.assertKeyword = assertKeyword;
     }
 
+    /**
+     * Returns whether jdk15 is set.
+     *
+     * @since 1.0
+     */
     public boolean isJdk15() {
         return jdk15;
     }
 
+    /**
+     * Sets the jdk15.
+     *
+     * @since 1.0
+     */
     public void setJdk15(boolean jdk15) {
         this.jdk15 = jdk15;
     }
 
+    /**
+     * Returns the language level.
+     *
+     * @since 1.0
+     */
     public String getLanguageLevel() {
         return languageLevel;
     }
 
+    /**
+     * Sets the language level.
+     *
+     * @since 1.0
+     */
     public void setLanguageLevel(String languageLevel) {
         this.languageLevel = languageLevel;
     }
 
+    /**
+     * Returns the project jdk name.
+     *
+     * @since 1.0
+     */
     public String getProjectJdkName() {
         return projectJdkName;
     }
 
+    /**
+     * Sets the project jdk name.
+     *
+     * @since 1.0
+     */
     public void setProjectJdkName(String projectJdkName) {
         this.projectJdkName = projectJdkName;
     }

@@ -113,10 +113,3 @@ gradleModule {
 strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }
-
-packageCycles {
-    // These public packages have classes that are tangled with the corresponding internal package.
-    excludePatterns.add("org/gradle/api/tasks/**")
-}
-
-

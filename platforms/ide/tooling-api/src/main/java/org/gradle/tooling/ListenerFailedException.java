@@ -27,6 +27,11 @@ import java.util.List;
 public class ListenerFailedException extends GradleConnectionException {
     private final List<? extends Throwable> listenerFailures;
 
+    /**
+     * Creates a new {@code ListenerFailedException}.
+     *
+     * @since 2.5
+     */
     @SuppressWarnings("this-escape")
     public ListenerFailedException(String message, List<? extends Throwable> failures) {
         super(message);
@@ -36,6 +41,11 @@ public class ListenerFailedException extends GradleConnectionException {
         }
     }
 
+    /**
+     * Returns the causes.
+     *
+     * @since 2.5
+     */
     public List<? extends Throwable> getCauses() {
         return listenerFailures;
     }

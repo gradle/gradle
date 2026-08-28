@@ -18,12 +18,15 @@ package org.gradle.plugins.signing;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.BasePlugin;
 
 /**
  * Adds the ability to digitally sign files and artifacts.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/signing_plugin.html">Signing plugin reference</a>
+ * @since 1.0
  */
 public abstract class SigningPlugin implements Plugin<Project> {
 
@@ -38,6 +41,13 @@ public abstract class SigningPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(BasePlugin.class);
-        project.getExtensions().create("signing", SigningExtension.class, project);
+
+        SigningExtension extension = project.getExtensions().create("signing", SigningExtension.class, project);
+        project.getTasks().withType(Sign.class, spec -> {
+            ConventionMapping conventionMapping = ((IConventionAware) spec).getConventionMapping();
+            conventionMapping.map("signatory", extension::getSignatory);
+            conventionMapping.map("signatureType", extension::getSignatureType);
+            conventionMapping.map("required", extension::isRequired);
+        });
     }
 }

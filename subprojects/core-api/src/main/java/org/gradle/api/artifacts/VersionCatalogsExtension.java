@@ -30,12 +30,14 @@ public interface VersionCatalogsExtension extends Iterable<VersionCatalog> {
     /**
      * Tries to find a catalog with the corresponding name
      * @param name the name of the catalog
+     * @since 7.0
      */
     Optional<VersionCatalog> find(String name);
 
     /**
      * Returns the catalog with the supplied name or throws an exception
      * if it doesn't exist.
+     * @since 7.0
      */
     default VersionCatalog named(String name) {
         return find(name).orElseThrow(() -> new InvalidUserDataException("Catalog named " + name + " doesn't exist"));

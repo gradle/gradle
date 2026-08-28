@@ -20,15 +20,22 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 
 /**
  * A module element in a deployment descriptor like application.xml.
+ * @since 1.0
  */
 public interface EarModule {
 
     /**
      * The connector element specifies the URI of an archive file, relative to the top level of the application package.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     String getPath();
 
+    /**
+     * Sets the path.
+     *
+     * @since 1.0
+     */
     void setPath(String path);
 
     /**
@@ -36,10 +43,16 @@ public interface EarModule {
      * particular Java EE module. The URI must specify the full pathname of the deployment descriptor file relative to
      * the application's root directory. If alt-dd is not specified, the deployer must read the deployment descriptor
      * from the default location and file name required by the respective component specification.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     String getAltDeployDescriptor();
 
+    /**
+     * Sets the alt deploy descriptor.
+     *
+     * @since 1.0
+     */
     void setAltDeployDescriptor(String altDeployDescriptor);
 
     /**
@@ -50,6 +63,7 @@ public interface EarModule {
      * @param name
      *            The name of this node.
      * @return The new node. If an &lt;alt-dd&gt; node is created it is not returned.
+     * @since 1.0
      */
     Node toXmlNode(Node parentModule, Object name);
 }

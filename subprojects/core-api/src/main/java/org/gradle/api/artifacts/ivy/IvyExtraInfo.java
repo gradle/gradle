@@ -26,6 +26,7 @@ import java.util.Map;
  * Represents the set of "extra" info elements in the Ivy descriptor.  These elements
  * are children of the "ivy" element, but are not defined in the Ivy schema and come
  * from other namespaces.
+ * @since 2.1
  */
 public interface IvyExtraInfo {
     /**
@@ -34,6 +35,7 @@ public interface IvyExtraInfo {
      *
      * @param name The unique name of the element whose value should be returned
      * @return The value of the element, or null if there is no such element.
+     * @since 2.1
      */
     @Nullable
     String get(String name) throws InvalidUserDataException;
@@ -44,6 +46,7 @@ public interface IvyExtraInfo {
      * @param namespace The namespace of the element whose value should be returned
      * @param name The name of the element whose value should be returned
      * @return The value of the element, or null if there is no such element.
+     * @since 2.1
      */
     @Nullable
     String get(String namespace, String name);
@@ -53,6 +56,7 @@ public interface IvyExtraInfo {
      * representing the namespace and name of the element and each value is the content of the element.
      *
      * @return The map view of the extra info elements. Returns an empty map if there are no elements.
+     * @since 2.1
      */
     Map<QName, String> asMap();
 }

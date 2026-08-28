@@ -20,8 +20,11 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.util.Path;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -82,35 +85,50 @@ public class MissingTaskDependencyDetector {
     }
 
     private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
-        producers.stream()
-            .filter(producerNode -> hasNoSpecifiedOrder(producerNode, consumer))
-            .filter(MissingTaskDependencyDetector::isEnabled)
-            .forEach(producerWithoutDependency -> collectValidationProblem(
-                producerWithoutDependency,
-                consumer,
-                validationContext,
-                locationConsumedByThisTask
-            ));
+        for (Node producerNode : producers) {
+            if (!hasNoSpecifiedOrder(producerNode, consumer)) {
+                continue;
+            }
+            LocalTaskNode producerWithoutDependency = asEnabledTaskNode(producerNode);
+            if (producerWithoutDependency != null) {
+                collectValidationProblem(
+                    producerWithoutDependency,
+                    consumer,
+                    validationContext,
+                    locationConsumedByThisTask
+                );
+            }
+        }
     }
 
     private static void collectValidationProblemsForProducer(LocalTaskNode node, TypeValidationContext validationContext, String outputPath, Collection<Node> consumers) {
-        consumers.stream()
-            .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
-            .filter(MissingTaskDependencyDetector::isEnabled)
-            .forEach(consumerWithoutDependency -> collectValidationProblem(
-                node,
-                consumerWithoutDependency,
-                validationContext,
-                outputPath)
-            );
+        for (Node consumerNode : consumers) {
+            if (!hasNoSpecifiedOrder(node, consumerNode)) {
+                continue;
+            }
+            LocalTaskNode consumerWithoutDependency = asEnabledTaskNode(consumerNode);
+            if (consumerWithoutDependency != null) {
+                collectValidationProblem(
+                    node,
+                    consumerWithoutDependency,
+                    validationContext,
+                    outputPath
+                );
+            }
+        }
     }
 
-    private static boolean isEnabled(Node node) {
-        if (node instanceof LocalTaskNode) {
-            TaskInternal task = ((LocalTaskNode) node).getTask();
-            return task.getOnlyIf().isSatisfiedBy(task);
+    /**
+     * Returns the given node as a task node, or null when it is not a task node, or it
+     * is not enabled.
+     */
+    private static @Nullable LocalTaskNode asEnabledTaskNode(Node node) {
+        if (!(node instanceof LocalTaskNode)) {
+            return null;
         }
-        return false;
+        LocalTaskNode taskNode = (LocalTaskNode) node;
+        TaskInternal task = taskNode.getTask();
+        return task.getOnlyIf().isSatisfiedBy(task) ? taskNode : null;
     }
 
     // In a perfect world, the consumer should depend on the producer.
@@ -149,7 +167,13 @@ public class MissingTaskDependencyDetector {
         node.getHardSuccessors().forEach(successor -> {
             // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
             // For example, we can skip all the transform nodes between two task nodes.
-            if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
+            if (successor instanceof TaskInAnotherBuild) {
+                // A reference to a task in another build is a proxy for the task node in the other build's work graph.
+                Node targetNode = ((TaskInAnotherBuild) successor).getTargetNode();
+                if (seenNodes.add(targetNode)) {
+                    queue.add(targetNode);
+                }
+            } else if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
                 if (seenNodes.add(successor)) {
                     queue.add(successor);
                 }
@@ -161,7 +185,26 @@ public class MissingTaskDependencyDetector {
 
     private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
 
-    private static void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
+    private static void collectValidationProblem(LocalTaskNode producer, LocalTaskNode consumer, TypeValidationContext validationContext, String consumerProducerPath) {
+        if (areInDifferentBuilds(producer, consumer)) {
+            // Historically, we did not detect overlapping outputs between nodes in different builds.
+            // Emit a deprecation warning instead of a failure until Gradle 10.
+            // In Gradle 10, we can remove this branch entirely and fall back to the problem-emitting branch below.
+            DeprecationLogger.deprecateAction("Producing a file in one build and consuming it in another build without declaring an explicit dependency")
+                .withContext(String.format(
+                    "Gradle detected a problem with the following location: '%s'. Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
+                        + "This can lead to incorrect results being produced, depending on what order the tasks are executed.",
+                    consumerProducerPath,
+                    consumer,
+                    producer
+                ))
+                .withProblemIdDisplayName("Implicit dependency between tasks in different builds")
+                .withProblemId("implicit-dependency-between-tasks-in-different-builds")
+                .willBecomeAnErrorInGradle10()
+                .withUserManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase(Locale.ROOT))
+                .nagUser();
+            return;
+        }
         validationContext.visitPropertyError(problem ->
             problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                 .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
@@ -176,4 +219,13 @@ public class MissingTaskDependencyDetector {
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
         );
     }
+
+    private static boolean areInDifferentBuilds(LocalTaskNode producer, LocalTaskNode consumer) {
+        return !buildPathOf(producer).equals(buildPathOf(consumer));
+    }
+
+    private static Path buildPathOf(LocalTaskNode node) {
+        return node.getTask().getTaskIdentity().getProjectIdentity().getBuildPath();
+    }
+
 }

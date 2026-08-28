@@ -31,7 +31,6 @@ plugins {
     id("gradlebuild.removal-report")
     id("gradlebuild.strict-compile")
     id("gradlebuild.code-quality")
-    id("gradlebuild.arch-test")
     id("gradlebuild.integration-tests")
     id("gradlebuild.refactoring")
     id("gradlebuild.ci-lifecycle")
@@ -59,7 +58,7 @@ configure<DependencyAnalysisSubExtension> {
             severity("fail")
         }
 
-        ignoreSourceSet("archTest", "crossVersionTest", "integTest", "jmh", "testFixtures")
+        ignoreSourceSet("crossVersionTest", "integTest", "jmh", "testFixtures")
 
     }
 }

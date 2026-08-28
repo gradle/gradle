@@ -103,6 +103,7 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
         if (Named.class.isAssignableFrom(attribute.getType())) {
             return ((Named) getIsolatedValue()).getName();
         }
+        // TODO: Remove support for raw Enums in Gradle 10.0.0
         if (Enum.class.isAssignableFrom(attribute.getType())) {
             return ((Enum<?>) getIsolatedValue()).name();
         }

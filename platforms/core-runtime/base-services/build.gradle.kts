@@ -30,6 +30,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.jctools)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
@@ -45,6 +46,10 @@ dependencies {
     jmh(platform(projects.distributionsDependencies))
     jmh(libs.bouncycastleProvider)
     jmh(libs.guava)
+
+    // Javadoc-only: needed to resolve cross-module {@link} references (BuildService, ExtensionAware, InstantiatorFactory)
+    javadocReferences(projects.coreApi)
+    javadocReferences(projects.modelCore)
 }
 
 gradleModule {
@@ -54,11 +59,6 @@ gradleModule {
         daemon = true
         worker = true
     }
-}
-
-packageCycles {
-    // Needed for the factory methods in the base class
-    excludePatterns.add("org/gradle/util/GradleVersion**")
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")

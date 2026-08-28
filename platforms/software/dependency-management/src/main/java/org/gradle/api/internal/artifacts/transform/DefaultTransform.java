@@ -43,9 +43,9 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
-import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -81,6 +81,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.TextUtil;
@@ -609,13 +610,15 @@ public class DefaultTransform implements Transform {
 
         @Override
         public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+            return owner instanceof ProjectDomainObjectContext;
         }
 
         @Nullable
         @Override
         public ProjectInternal getOwningProject() {
-            return owner.getProject();
+            return owner instanceof ProjectDomainObjectContext pdoc
+                ? pdoc.getModel().getMutableModel()
+                : null;
         }
 
         @Override

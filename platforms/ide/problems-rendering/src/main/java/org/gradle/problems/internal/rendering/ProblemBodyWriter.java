@@ -22,6 +22,7 @@ import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.internal.DocLinkInternal;
 import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.StackTraceLocation;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -66,13 +67,17 @@ class ProblemBodyWriter implements PartialProblemWriter {
         }
 
         // locations
-        List<FileLocation> fileLocations = problem.getOriginLocations().stream().filter(FileLocation.class::isInstance).map(FileLocation.class::cast).collect(Collectors.toList());
+        List<FileLocation> fileLocations = problem.getOriginLocations().stream()
+            .map(location -> location instanceof StackTraceLocation ? ((StackTraceLocation) location).getFileLocation() : location)
+            .filter(FileLocation.class::isInstance)
+            .map(FileLocation.class::cast)
+            .collect(Collectors.toList());
         for (FileLocation location : fileLocations) {
             output.printf("%n");
             indent(output, "Location: " + location.getPath(), LEVEL_2_INDENT);
             if (location instanceof LineInFileLocation) {
                 LineInFileLocation lineLocation = (LineInFileLocation) location;
-                output.printf(" line " + lineLocation.getLine());
+                output.print(":" + lineLocation.getLine());
             }
         }
 

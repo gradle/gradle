@@ -49,9 +49,4 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
 description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""
-

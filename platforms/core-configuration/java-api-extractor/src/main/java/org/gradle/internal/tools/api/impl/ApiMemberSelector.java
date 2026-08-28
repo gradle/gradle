@@ -24,11 +24,15 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.RecordComponentVisitor;
 import org.objectweb.asm.TypePath;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static org.objectweb.asm.Opcodes.ACC_ANNOTATION;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
@@ -45,7 +49,7 @@ import static org.objectweb.asm.Opcodes.ACC_SUPER;
  */
 public class ApiMemberSelector extends ClassVisitor {
 
-    private final SortedSet<MethodMember> methods = new TreeSet<>();
+    private Set<MethodMember> methods;
     private final SortedSet<FieldMember> fields = new TreeSet<>();
     private final SortedSet<InnerClassMember> innerClasses = new TreeSet<>();
 
@@ -68,11 +72,18 @@ public class ApiMemberSelector extends ClassVisitor {
         return thisClassIsPrivateInnerClass;
     }
 
+    @Initializer
     @Override
-    public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, @Nullable String[] interfaces) {
+    public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, String @Nullable [] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         classMember = new ClassMember(version, access, name, signature, superName, interfaces);
         isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
+        if ((access & ACC_ANNOTATION) == ACC_ANNOTATION) {
+            // Kotlin binds positional annotation arguments by member declaration order
+            methods = new LinkedHashSet<>();
+        } else {
+            methods = new TreeSet<>();
+        }
     }
 
     @Override
@@ -103,7 +114,7 @@ public class ApiMemberSelector extends ClassVisitor {
 
     @Nullable
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, @Nullable String signature, @Nullable String[] exceptions) {
+    public MethodVisitor visitMethod(int access, String name, String desc, @Nullable String signature, String @Nullable [] exceptions) {
         if ("<clinit>".equals(name)) {
             // discard static initializers
             return null;
@@ -113,6 +124,12 @@ public class ApiMemberSelector extends ClassVisitor {
             methods.add(methodMember);
             return new MethodVisitor(Opcodes.ASM9) {
                 @Override
+                public void visitParameter(@Nullable String name, int access) {
+                    methodMember.addParameter(new ParameterMember(name, access));
+                    super.visitParameter(name, access);
+                }
+
+                @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
                     methodMember.addAnnotation(ann);
@@ -121,7 +138,10 @@ public class ApiMemberSelector extends ClassVisitor {
 
                 @Override
                 public AnnotationVisitor visitTypeAnnotation(int typeRef, @Nullable TypePath typePath, String desc, boolean visible) {
-                    TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
+                    // The extracted class writes the thrown exceptions sorted, so a THROWS type
+                    // reference of the original class points at the wrong exception.
+                    int writtenTypeRef = methodMember.mapTypeReferenceToWrittenExceptionOrder(typeRef);
+                    TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, writtenTypeRef, typePath);
                     methodMember.addTypeAnnotation(ann);
                     return new SortingAnnotationVisitor(ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
                 }
@@ -166,6 +186,29 @@ public class ApiMemberSelector extends ClassVisitor {
             };
         }
         return null;
+    }
+
+    @Override
+    public RecordComponentVisitor visitRecordComponent(String name, String descriptor, @Nullable String signature) {
+        // Record components are always part of the API: their order determines the parameter order
+        // of the canonical constructor and the binding order of a record pattern.
+        RecordComponentMember recordComponent = new RecordComponentMember(name, descriptor, signature);
+        classMember.getRecordComponents().add(recordComponent);
+        return new RecordComponentVisitor(Opcodes.ASM9) {
+            @Override
+            public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                AnnotationMember ann = new AnnotationMember(desc, visible);
+                recordComponent.addAnnotation(ann);
+                return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
+            }
+
+            @Override
+            public AnnotationVisitor visitTypeAnnotation(int typeRef, @Nullable TypePath typePath, String desc, boolean visible) {
+                TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
+                recordComponent.addTypeAnnotation(ann);
+                return new SortingAnnotationVisitor(ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
+            }
+        };
     }
 
     @Override

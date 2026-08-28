@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 /**
  * Fork options for compilation. Only take effect if {@code fork}
  * is {@code true}.
+ * @since 1.3
  */
 public class BaseForkOptions implements Serializable {
     private static final long serialVersionUID = 0;
@@ -44,6 +45,7 @@ public class BaseForkOptions implements Serializable {
     /**
      * Returns the initial heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
+     * @since 1.3
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -54,6 +56,7 @@ public class BaseForkOptions implements Serializable {
     /**
      * Sets the initial heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
+     * @since 1.3
      */
     public void setMemoryInitialSize(String memoryInitialSize) {
         this.memoryInitialSize = memoryInitialSize;
@@ -62,6 +65,7 @@ public class BaseForkOptions implements Serializable {
     /**
      * Returns the maximum heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
+     * @since 1.3
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -72,6 +76,7 @@ public class BaseForkOptions implements Serializable {
     /**
      * Sets the maximum heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
+     * @since 1.3
      */
     public void setMemoryMaximumSize(String memoryMaximumSize) {
         this.memoryMaximumSize = memoryMaximumSize;
@@ -80,6 +85,7 @@ public class BaseForkOptions implements Serializable {
     /**
      * Returns any additional JVM arguments for the compiler process.
      * Defaults to the empty list.
+     * @since 1.3
      */
     @Nullable
     @Optional
@@ -93,6 +99,7 @@ public class BaseForkOptions implements Serializable {
      * Sets any additional JVM arguments for the compiler process.
      * Defaults to the empty list. Empty or null arguments are filtered out because they cause
      * JVM Launch to fail.
+     * @since 1.3
      */
     public void setJvmArgs(@Nullable List<String> jvmArgs) {
         this.jvmArgs = jvmArgs == null ? null : jvmArgs.stream()

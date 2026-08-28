@@ -19,18 +19,13 @@ package org.gradle.test.fixtures
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
-import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.execution.ProjectExecutionServices
 import org.gradle.execution.plan.LocalTaskNode
+import org.gradle.execution.plan.TaskNodeExecutor
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
-import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -89,14 +84,9 @@ abstract class AbstractProjectBuilderSpec extends Specification {
 
     void execute(Task task) {
         def workValidationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
-        def taskExecutionContext = new DefaultTaskExecutionContext(
-            new LocalTaskNode(task as TaskInternal, workValidationContext, { null }),
-            DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
-            workValidationContext,
-            { context -> }
-        )
+        def node = new LocalTaskNode(task as TaskInternal, workValidationContext, { null })
         project.gradle.services.get(BuildOutputCleanupRegistry).resolveOutputs()
-        executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)
+        executionServices.get(TaskNodeExecutor).execute(node)
         task.state.rethrowFailure()
     }
 

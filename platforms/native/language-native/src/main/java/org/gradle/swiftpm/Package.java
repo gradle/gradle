@@ -30,6 +30,7 @@ import java.util.Set;
 public interface Package {
     /**
      * Returns the products of this package.
+     * @since 4.6
      */
     Set<? extends Product> getProducts();
 }

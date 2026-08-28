@@ -24,22 +24,26 @@ import org.gradle.nativeplatform.platform.NativePlatform;
  * Represents a particular binary artifact.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @Deprecated
 public interface NativeBinary extends Binary {
     /**
      * The {@link org.gradle.nativeplatform.Flavor} that this binary was built with.
+     * @since 2.2
      */
     Flavor getFlavor();
 
     /**
      * Returns the {@link org.gradle.nativeplatform.platform.NativePlatform} that this binary is targeted to run on.
+     * @since 2.2
      */
     NativePlatform getTargetPlatform();
 
     /**
      * Returns the {@link org.gradle.nativeplatform.BuildType} used to construct this binary.
+     * @since 2.2
      */
     BuildType getBuildType();
 }

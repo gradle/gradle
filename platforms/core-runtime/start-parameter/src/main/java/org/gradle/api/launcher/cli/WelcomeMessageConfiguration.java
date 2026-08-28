@@ -30,14 +30,29 @@ public class WelcomeMessageConfiguration implements Serializable {
 
     private WelcomeMessageDisplayMode welcomeMessageDisplayMode;
 
+    /**
+     * Creates a new {@code WelcomeMessageConfiguration}.
+     *
+     * @since 7.5
+     */
     public WelcomeMessageConfiguration(WelcomeMessageDisplayMode welcomeMessageDisplayMode) {
         this.welcomeMessageDisplayMode = welcomeMessageDisplayMode;
     }
 
+    /**
+     * Returns the welcome message display mode.
+     *
+     * @since 7.5
+     */
     public WelcomeMessageDisplayMode getWelcomeMessageDisplayMode() {
         return welcomeMessageDisplayMode;
     }
 
+    /**
+     * Sets the welcome message display mode.
+     *
+     * @since 7.5
+     */
     public void setWelcomeMessageDisplayMode(WelcomeMessageDisplayMode welcomeMessageDisplayMode) {
         this.welcomeMessageDisplayMode = welcomeMessageDisplayMode;
     }

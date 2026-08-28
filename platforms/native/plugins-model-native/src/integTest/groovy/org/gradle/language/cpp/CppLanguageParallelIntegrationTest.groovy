@@ -31,6 +31,7 @@ class CppLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelPara
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "can produce multiple executables that use a library from a single project in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def apps = [
             first : new ExeWithLibraryUsingLibraryHelloWorldApp(),

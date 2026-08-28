@@ -79,6 +79,8 @@ class KotlinDslPluginWithExplicitKGPVersionTest(
             return listOfNotNull(latestOlderStable, newerVersion)
         }
 
+        private val KOTLIN_2_4_20 = VersionNumber.parse("2.4.20")
+
         private fun isSynthetic(label: String): Boolean = label == "synthetic"
     }
 
@@ -121,10 +123,22 @@ class KotlinDslPluginWithExplicitKGPVersionTest(
                 """
             )
 
+            expectFirLightTreeFlagDeprecation()
+
             build("classes")
         } finally {
             syntheticKgpRepo?.close()
         }
+    }
+    
+    private fun expectFirLightTreeFlagDeprecation() {
+        if (isSynthetic(versionLabel)) return
+        if (VersionNumber.parse(kotlinVersionString).baseVersion < KOTLIN_2_4_20) return
+        executer.expectExternalDeprecatedMessage(
+            "    The argument '-Xuse-fir-lt' is deprecated since Kotlin 2.4.20. " +
+                "It will be removed in one of the future releases. " +
+                "The light tree mode is enabled by default, and it will become the only available mode in one of the future releases."
+        )
     }
 
     private fun setupSyntheticKgpRepo() {

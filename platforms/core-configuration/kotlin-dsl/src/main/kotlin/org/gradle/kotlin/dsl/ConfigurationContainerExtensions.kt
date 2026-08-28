@@ -54,7 +54,13 @@ private constructor(
     override val delegate: ConfigurationContainer
 ) : NamedDomainObjectContainerScope<Configuration>(delegate), ConfigurationContainer {
 
+    /**
+     * @since 8.4
+     */
     companion object {
+        /**
+         * @since 8.4
+         */
         fun of(container: ConfigurationContainer) =
             ConfigurationContainerScope(container)
     }

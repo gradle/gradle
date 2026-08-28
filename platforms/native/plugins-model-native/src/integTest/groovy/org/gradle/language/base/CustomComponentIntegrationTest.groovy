@@ -28,6 +28,7 @@ import org.gradle.platform.base.SourceComponentSpec
 @UnsupportedWithConfigurationCache(because = "software model")
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     def "can declare custom managed #componentSpecType"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             interface SampleComponentSpec extends $componentSpecType {
@@ -74,6 +75,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "presents a public view for custom managed ApplicationSpec"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             interface SampleComponentSpec extends ApplicationSpec {
@@ -113,6 +115,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can view a component as a ModelElement"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             interface SampleComponentSpec extends ApplicationSpec {
@@ -149,6 +152,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can add binaries to custom managed #componentSpecType"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             interface SampleComponentSpec extends $componentSpecType {
@@ -190,6 +194,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can add sources to custom managed #componentSpecType"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             interface SampleComponentSpec extends $componentSpecType {
@@ -231,6 +236,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "presents a public view for custom unmanaged ComponentSpec"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             interface UnmanagedComponentSpec extends ComponentSpec {
                 String getUnmanagedData()
@@ -274,6 +280,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can declare custom managed component based on custom unmanaged component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             interface UnmanagedComponentSpec extends ComponentSpec {
                 String getUnmanagedData()
@@ -332,6 +339,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can declare internal views for both custom unmanaged and managed component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             interface UnmanagedComponentSpec extends ComponentSpec {
             }
@@ -406,6 +414,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "public view of managed component does not expose any internal views or implementation"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             interface UnmanagedComponentSpec extends ComponentSpec {
                 String getUnmanagedData()
@@ -548,6 +557,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "reports failure in @ComponentType rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             interface BrokenComponentSpec extends ComponentSpec {
@@ -569,6 +579,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails when @ComponentType registration is badly formed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             interface BrokenComponentSpec extends ComponentSpec {
@@ -591,6 +602,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "reports badly formed @ComponentType rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             class Broken extends RuleSource {
                 @ComponentType
@@ -610,6 +622,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
     @NotYetImplemented
     def "shows proper error message when accessing non-existent property 'binaries' of unmanaged custom ComponentSpec"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             interface SampleComponentSpec extends ComponentSpec {
                 String getPublicData()
@@ -642,6 +655,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can define subtype of `ApplicationBinarySpec`"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 @Managed
 interface TheApp extends ApplicationSpec {}

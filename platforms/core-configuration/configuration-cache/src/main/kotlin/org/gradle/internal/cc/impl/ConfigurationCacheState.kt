@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.cache.Cleanup
@@ -39,6 +41,7 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
+import org.gradle.execution.plan.TaskNode
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
@@ -73,7 +76,11 @@ import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.serialize.codecs.core.IdForNode
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
+import org.gradle.internal.serialize.codecs.core.RestoredTaskReference
+import org.gradle.internal.serialize.codecs.core.RestoredWorkGraph
+import org.gradle.internal.serialize.codecs.core.assignNodeIds
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -203,6 +210,7 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
+        bindRestoredTaskReferences(builds)
         return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder)
     }
 
@@ -255,6 +263,44 @@ class ConfigurationCacheState(
         }
     }
 
+    /**
+     * Binds each restored reference to a task in another build to its restored target node.
+     * This can only be done once all builds in the tree have been loaded, as a reference may
+     * point into the work graph of a build that is loaded after the referencing build.
+     */
+    private
+    fun bindRestoredTaskReferences(builds: List<CachedBuildState>) {
+        val buildsWithWork = builds.filterIsInstance<BuildWithWork>()
+        for (build in buildsWithWork) {
+            for (reference in build.workGraph.taskReferences) {
+                reference.node.bindTarget(targetNodeOf(buildsWithWork, reference) as TaskNode)
+            }
+        }
+    }
+
+    /**
+     * Finds the restored node targeted by the given reference.
+     *
+     * Node ids form a single dense, contiguous id space spanning the whole build tree, and builds are
+     * stored in ascending [RestoredWorkGraph.baseNodeId] order, so the graph owning an id is found by
+     * walking the builds in order.
+     */
+    private
+    fun targetNodeOf(buildsWithWork: List<BuildWithWork>, reference: RestoredTaskReference): Node {
+        val nodeId = reference.targetNodeId
+        for (build in buildsWithWork) {
+            val workGraph = build.workGraph
+            val buildNodeId = nodeId - workGraph.baseNodeId
+            require(buildNodeId >= 0) {
+                "Builds are not stored in ascending base node id order, cannot find the node with id $nodeId targeted by ${reference.node}."
+            }
+            if (buildNodeId < workGraph.nodeCount) {
+                return workGraph.nodeForId(nodeId)
+            }
+        }
+        error("No node with id $nodeId was restored for ${reference.node}.")
+    }
+
     private
     fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
         return graph.scheduleWork { builder ->
@@ -264,7 +310,7 @@ class ConfigurationCacheState(
             for (build in builds) {
                 if (build is BuildWithWork) {
                     builder.withWorkGraph(build.build.state) {
-                        it.setScheduledWork(build.workGraph)
+                        it.setScheduledWork(build.workGraph.scheduledWork)
                     }
                 }
             }
@@ -300,26 +346,34 @@ class ConfigurationCacheState(
     suspend fun WriteContext.writeBuildsInTree(buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
         val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentifier }
         val builds = mutableMapOf<BuildState, BuildToStore>()
+        val scheduledWorkPerBuild = mutableMapOf<BuildIdentifier, ScheduledWork>()
         host.visitBuilds { state ->
             val gradle = state.mutableModel
-            val hasScheduledWork = gradle.taskGraph.hasScheduledWork()
+            val planContents = gradle.taskGraph.executionPlan?.contents
+            scheduledWorkPerBuild[state.buildIdentifier] = planContents?.scheduledNodes ?: ScheduledWork(ImmutableList.of(), ImmutableSet.of())
+            val hasScheduledWork = (planContents?.size() ?: 0) > 0
             builds[state] = BuildToStore(state, hasScheduledWork, hasChildren = gradle.isRootBuild)
             if (hasScheduledWork && state is StandAloneNestedBuild) {
                 // Also require the owner of a buildSrc build
                 builds[state.owner] = builds.getValue(state.owner).hasChildren()
             }
         }
-        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, collectTransformedProjectsPerBuild(builds))
-        writeCollection(builds.values) { build ->
+        val transformedProjectsPerBuild = collectTransformedProjectsPerBuild(scheduledWorkPerBuild)
+        val buildsToStore = builds.values.toList()
+        // Assign node ids in the order the builds are stored, so that the stored builds are always in
+        // ascending base node id order.
+        val idForNode = assignNodeIds(buildsToStore.map { scheduledWorkPerBuild.getValue(it.build.buildIdentifier) })
+        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, scheduledWorkPerBuild, idForNode, transformedProjectsPerBuild)
+        writeCollection(buildsToStore) { build ->
             writeBuildState(build, buildTreeState)
         }
     }
 
     private
-    fun collectTransformedProjectsPerBuild(builds: MutableMap<BuildState, BuildToStore>): Map<BuildIdentifier, Set<Path>> {
+    fun collectTransformedProjectsPerBuild(scheduledWorkPerBuild: Map<BuildIdentifier, ScheduledWork>): Map<BuildIdentifier, Set<Path>> {
         val result = mutableMapOf<BuildIdentifier, MutableSet<Path>>()
-        builds.keys.forEach { buildState ->
-            buildState.mutableModel.taskGraph.collectScheduledWork().scheduledNodes
+        scheduledWorkPerBuild.values.forEach { scheduledWork ->
+            scheduledWork.scheduledNodes
                 .asSequence()
                 .filterIsInstance<TransformStepNode>()
                 .forEach { node ->
@@ -504,7 +558,7 @@ class ConfigurationCacheState(
         val gradle = buildState.mutableModel
         if (buildState.isProjectsCreated) {
             writeBoolean(true)
-            val scheduledWork = gradle.taskGraph.collectScheduledWork()
+            val scheduledWork = buildTreeState.getScheduledWorkOfBuild(buildState)
             withDebugFrame({ "Gradle" }) {
                 writeGradleState(gradle)
                 val transformInputProjects = buildTreeState.getTransformedProjectsOfBuild(buildState)
@@ -521,7 +575,7 @@ class ConfigurationCacheState(
             if (scheduledWork.scheduledNodes.isNotEmpty()) {
                 writeBoolean(true)
                 withDebugFrame({ "Work Graph" }) {
-                    writeWorkGraphOf(gradle, scheduledWork)
+                    writeWorkGraphOf(gradle, scheduledWork, buildTreeState.idForNode)
                 }
             } else {
                 writeBoolean(false)
@@ -565,14 +619,14 @@ class ConfigurationCacheState(
     }
 
     private
-    fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
+    fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork, idForNode: IdForNode) {
         workNodeCodec(gradle).run {
-            writeWork(scheduledWork)
+            writeWork(scheduledWork, idForNode)
         }
     }
 
     private
-    fun ReadContext.readWorkGraph(gradle: GradleInternal) =
+    fun ReadContext.readWorkGraph(gradle: GradleInternal): RestoredWorkGraph =
         workNodeCodec(gradle).run {
             readWork()
         }
@@ -713,17 +767,19 @@ class ConfigurationCacheState(
 
     private
     fun WriteContext.writeStartParameterOf(gradle: GradleInternal) {
-        writeStrings(gradle.startParameter.taskNames)
+        val startParameter = gradle.startParameter
+        writeStrings(startParameter.taskNames)
     }
 
     private
     fun ReadContext.readStartParameterOf(gradle: GradleInternal) {
+        val startParameter = gradle.startParameter
         // Restore the requested task names captured during configuration. The cached work graph already
         // drives what executes on a cache hit, so this is not needed to run the build. It keeps
         // gradle.startParameter.taskNames consistent on a hit for internal consumers that read it (build
         // operations, problem reports, build scans), since scheduling -- which resolves and populates the
         // names on a store run -- does not run on a hit.
-        gradle.startParameter.setTaskNames(readStrings())
+        startParameter.setTaskNames(readStrings())
     }
 
     private
@@ -768,6 +824,12 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeBuildCacheConfiguration(gradle: GradleInternal) {
+        val startParameter = gradle.startParameter
+        val configuredByBuildLogic = startParameter.isBuildCacheEnabledConfiguredByBuildLogic
+        writeBoolean(configuredByBuildLogic)
+        if (configuredByBuildLogic) {
+            writeBoolean(startParameter.isBuildCacheEnabled)
+        }
         gradle.settings.buildCache.let { buildCache ->
             write(buildCache.local)
             write(buildCache.remote)
@@ -777,6 +839,10 @@ class ConfigurationCacheState(
 
     private
     suspend fun ReadContext.readBuildCacheConfiguration(gradle: GradleInternal) {
+        val configuredByBuildLogic = readBoolean()
+        if (configuredByBuildLogic) {
+            gradle.startParameter.setBuildCacheEnabledInternal(readBoolean(), true)
+        }
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
@@ -1001,10 +1067,16 @@ class ConfigurationCacheState(
 internal
 class StoredBuildTreeState(
     val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>,
+    private val scheduledWorkPerBuild: Map<BuildIdentifier, ScheduledWork>,
+    val idForNode: IdForNode,
     val transformedProjectsPerBuild: Map<BuildIdentifier, Set<Path>>
 ) {
     fun getTransformedProjectsOfBuild(build: BuildState): Set<Path> =
         transformedProjectsPerBuild[build.buildIdentifier].orEmpty()
+
+    fun getScheduledWorkOfBuild(build: BuildState): ScheduledWork =
+        scheduledWorkPerBuild[build.buildIdentifier]
+            ?: error("No scheduled work snapshot for build '${build.identityPath}'")
 }
 
 

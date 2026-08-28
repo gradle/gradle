@@ -20,13 +20,13 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
-import gradlebuild.basics.develocityServerUrl
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
 import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.predictiveTestSelectionEnabled
+import gradlebuild.basics.predictiveTestSelectionServerUrl
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.testDistributionDogfoodingTag
 import gradlebuild.basics.testDistributionEnabled
@@ -37,7 +37,7 @@ import gradlebuild.basics.testing.excludeSpockAnnotation
 import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.identity.extension.GradleModuleExtension
-import gradlebuild.identity.extension.ModuleTargetRuntimes
+import gradlebuild.identity.extension.DEFAULT_TARGET_JVM_VERSION
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import org.gradle.internal.jvm.JpmsConfiguration
@@ -63,8 +63,7 @@ val gradleModule = the<GradleModuleExtension>()
 the<JvmCompileExtension>().apply {
     compilations {
         configureEach {
-            // Everything compiles to Java 17 by default
-            targetJvmVersion = 17
+            targetJvmVersion = DEFAULT_TARGET_JVM_VERSION
         }
     }
     addCompilationFrom(sourceSets.main) {
@@ -93,25 +92,6 @@ fun configureCompileDefaults() {
     }
 }
 
-/**
- * Given the declared target platforms of a given Gradle module, determine
- * the JVM version that the production code should target.
- */
-fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
-    // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
-    val targetRuntimeJavaVersions = mapOf(
-        client to 8,
-        daemon to 17,
-        worker to 8
-    )
-
-    // By default, compile to 17. This ensures projects that do not declare any target runtimes
-    // can successfully resolve their classpaths. Then, `:checkTargetRuntimes` will ensure that
-    // each project declares the proper target runtimes. Note that `:checkTargetRuntimes` cannot
-    // execute unless all project classpaths can be successfully resolved.
-    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(17)
-}
-
 fun configureSourcesVariant() {
     java {
         withSourcesJar()
@@ -122,6 +102,7 @@ fun configureSourcesVariant() {
         isCanBeResolved = false
         isCanBeConsumed = true
         extendsFrom(configurations.implementation.get())
+        extendsFrom(configurations.runtimeOnly.get())
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
@@ -316,10 +297,7 @@ fun configureTests() {
         jvmArgumentProviders.add(CiEnvironmentProvider(this))
         runWithJavaVersion(JavaLanguageVersion.of(project.testJavaVersion))
 
-        if (name != "archTest") {
-            // TODO distinguish archTest and other tests
-            addOsAsInputs()
-        }
+        addOsAsInputs()
         configureRerun()
 
         if (BuildEnvironment.isCiServer) {
@@ -364,14 +342,17 @@ fun configureTests() {
             }
         }
 
+        // Set on every test task, not only the PTS-enabled ones: the selection server is shared per
+        // build invocation, so tasks that disagree fail with "Client was already created for a
+        // different server".
+        // Don't move this line into the lambda as it may cause config cache problems
+        val ptsServerUrl = project.predictiveTestSelectionServerUrl.getOrElse("https://ge.gradle.org")
+        extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
+            (this as PredictiveTestSelectionConfigurationInternal).server = uri(ptsServerUrl)
+        }
+
         if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
-            // Falling back to https://ge.gradle.org when absent (e.g. GitHub actions for contributor PRs,
-            // which use a public Build Scan instance).
-            // Don't move this line into the lambda as it may cause config cache problems
-            val ptsServerUrl = project.develocityServerUrl.getOrElse("https://ge.gradle.org")
             extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
-                this as PredictiveTestSelectionConfigurationInternal
-                server = uri(ptsServerUrl)
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }

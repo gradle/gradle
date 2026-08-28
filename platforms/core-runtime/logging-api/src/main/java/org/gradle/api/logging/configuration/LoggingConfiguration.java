@@ -22,23 +22,27 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy
 
 /**
  * A {@code LoggingConfiguration} defines the logging settings for a Gradle build.
+ * @since 2.14
  */
 @NotToBeMigratedToLazy
 public interface LoggingConfiguration {
     /**
      * Returns the minimum logging level to use. All log messages with a lower log level are ignored.
      * Defaults to {@link LogLevel#LIFECYCLE}.
+     * @since 2.14
      */
     LogLevel getLogLevel();
 
     /**
      * Specifies the minimum logging level to use. All log messages with a lower log level are ignored.
+     * @since 2.14
      */
     void setLogLevel(LogLevel logLevel);
 
     /**
      * Returns the style of logging output that should be written to the console.
      * Defaults to {@link ConsoleOutput#Auto}
+     * @since 2.14
      */
     ConsoleOutput getConsoleOutput();
 
@@ -53,6 +57,7 @@ public interface LoggingConfiguration {
 
     /**
      * Specifies the style of logging output that should be written to the console.
+     * @since 2.14
      */
     void setConsoleOutput(ConsoleOutput consoleOutput);
 
@@ -81,7 +86,7 @@ public interface LoggingConfiguration {
     /**
      * Whether the build may prompt the user for input on the console. Defaults to {@code true}.
      *
-     * @since 9.7.0
+     * @since 9.6.1
      */
     @Incubating
     boolean isInteractive();
@@ -89,18 +94,20 @@ public interface LoggingConfiguration {
     /**
      * Sets whether the build may prompt the user for input on the console.
      *
-     * @since 9.7.0
+     * @since 9.6.1
      */
     @Incubating
     void setInteractive(boolean interactive);
 
     /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.
+     * @since 2.14
      */
     ShowStacktrace getShowStacktrace();
 
     /**
      * Sets the detail that should be included in stacktraces.
+     * @since 2.14
      */
     void setShowStacktrace(ShowStacktrace showStacktrace);
 }

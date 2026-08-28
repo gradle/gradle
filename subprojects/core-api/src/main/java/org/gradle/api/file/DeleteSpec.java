@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A specification for deleting files from the filesystem.
+ * @since 2.13
  */
 @HasInternalProtocol
 public interface DeleteSpec {
@@ -29,6 +30,7 @@ public interface DeleteSpec {
      *
      * @param files the list of files which should be deleted. Any type of object
      * accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @since 2.13
      */
     DeleteSpec delete(@Nullable Object... files);
 
@@ -36,6 +38,7 @@ public interface DeleteSpec {
      * Specifies whether or not symbolic links should be followed during deletion.
      *
      * @param followSymlinks deletion will follow symlinks when true.
+     * @since 2.13
      */
     void setFollowSymlinks(boolean followSymlinks);
 }

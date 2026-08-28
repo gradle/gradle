@@ -28,6 +28,10 @@ import org.gradle.tooling.GradleConnectionException
 @TargetGradleVersion(">=8.9")
 class DaemonToolchainCoexistWithCurrentOptionsCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
+    def setup() {
+        toolingApi.requireDaemonJvmFromBuild()
+    }
+
     def "Given toolchain properties are provided then build succeeds"() {
         given:
         def otherJvm = requireDifferentVersionJvmCompatibleWithTargetDist()

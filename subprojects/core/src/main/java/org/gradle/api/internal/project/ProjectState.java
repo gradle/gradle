@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -120,12 +121,7 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     /**
      * Returns the direct children of this project in no particular order.
      */
-    Iterable<ProjectState> getUnorderedChildProjects();
-
-    /**
-     * Returns this project and all projects beneath it in the hierarchy.
-     */
-    Set<ProjectState> getAllProjects();
+    Collection<ProjectState> getUnorderedChildProjects();
 
     /**
      * Checks whether this project has child projects.
