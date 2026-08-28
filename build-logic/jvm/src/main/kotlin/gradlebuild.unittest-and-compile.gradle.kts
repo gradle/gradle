@@ -109,17 +109,19 @@ fun configureSourcesVariant() {
             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
         }
         val main = sourceSets.main.get()
-        // Queried lazily, not at plugin-application time: a plugin applied after this one can still
-        // add a source directory (`xdcl-gradle-plugin` adds its `xdclCodegen` output to `main.java`),
-        // and a snapshot taken here would leave that directory out of the variant. The binary
-        // compatibility checks resolve this variant to find the source of every API class they
-        // report on, and fail outright when one of them has no source root to be found in.
-        outgoing.artifacts(
-            provider { main.java.srcDirs + main.groovy.srcDirs + main.resources.srcDirs }
-        )
+        main.java.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
+        main.groovy.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
+        main.resources.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
         pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
-            val kotlinSources = kotlinMainSourceSet
-            outgoing.artifacts(provider { kotlinSources.srcDirs })
+            kotlinMainSourceSet.srcDirs.forEach {
+                outgoing.artifact(it)
+            }
         }
     }
 }
