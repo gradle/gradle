@@ -29,6 +29,7 @@ public interface ProgressEvent {
      * Returns the time this event was triggered.
      *
      * @return The event time, in milliseconds since the epoch.
+     * @since 2.4
      */
     long getEventTime();
 
@@ -36,6 +37,7 @@ public interface ProgressEvent {
      * Returns a human consumable short description of the event.
      *
      * @return The short description of the event.
+     * @since 2.4
      */
     String getDisplayName();
 
@@ -43,6 +45,7 @@ public interface ProgressEvent {
      * Returns the description of the operation for which progress is reported.
      *
      * @return The description of the operation.
+     * @since 2.4
      */
     OperationDescriptor getDescriptor();
 

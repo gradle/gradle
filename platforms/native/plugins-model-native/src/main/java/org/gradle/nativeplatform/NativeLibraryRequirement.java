@@ -21,27 +21,32 @@ import org.gradle.api.Incubating;
  * A dependency on a native library within the build.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @Deprecated
 public interface NativeLibraryRequirement {
     /**
      * The path to the project containing the library.
+     * @since 2.2
      */
     String getProjectPath();
 
     /**
      * The name of the required library.
+     * @since 2.2
      */
     String getLibraryName();
 
     /**
      * The required linkage.
+     * @since 2.2
      */
     String getLinkage();
 
     /**
      * Creates a copy of this requirement with the specified project path
+     * @since 3.2
      */
     NativeLibraryRequirement withProjectPath(String projectPath);
 }

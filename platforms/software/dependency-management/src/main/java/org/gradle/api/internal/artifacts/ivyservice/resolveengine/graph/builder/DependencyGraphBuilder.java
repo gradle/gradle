@@ -44,7 +44,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -59,7 +58,6 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -89,7 +87,6 @@ public class DependencyGraphBuilder {
     private final ModuleExclusions moduleExclusions;
     private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
-    private final AttributeDesugaring attributeDesugaring;
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final ComponentIdGenerator idGenerator;
@@ -102,7 +99,6 @@ public class DependencyGraphBuilder {
         ModuleExclusions moduleExclusions,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        AttributeDesugaring attributeDesugaring,
         VersionSelectorScheme versionSelectorScheme,
         VersionComparator versionComparator,
         ComponentIdGenerator idGenerator,
@@ -113,7 +109,6 @@ public class DependencyGraphBuilder {
         this.moduleExclusions = moduleExclusions;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
-        this.attributeDesugaring = attributeDesugaring;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.idGenerator = idGenerator;
@@ -152,7 +147,6 @@ public class DependencyGraphBuilder {
             componentSelectorConverter,
             attributesFactory,
             attributeSchemaServices,
-            attributeDesugaring,
             dependencySubstitutionApplicator,
             versionSelectorScheme,
             versionComparator,
@@ -292,9 +286,10 @@ public class DependencyGraphBuilder {
             LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", toDownloadInParallel.size(), node);
             buildOperationExecutor.runAll(buildOperationQueue -> {
                 for (final ComponentState componentState : toDownloadInParallel) {
-                    buildOperationQueue.add(new DownloadMetadataOperation(componentState));
+                    // Downloading is IO bound, so allow more parallelism than there are worker leases.
+                    buildOperationQueue.addUnconstrained(new DownloadMetadataOperation(componentState));
                 }
-            }, BuildOperationConstraint.UNCONSTRAINED);
+            });
         }
     }
 
@@ -467,7 +462,7 @@ public class DependencyGraphBuilder {
         for (NodeState node : cs.getNodes()) {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
             for (EdgeState incomingEdge : incomingEdges) {
-                ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                ComponentSelector selector = incomingEdge.getSelector().getComponentSelector();
                 incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                     String.format("Could not resolve %s: Resolution strategy disallows usage of dynamic versions", selector)));
             }
@@ -481,7 +476,7 @@ public class DependencyGraphBuilder {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
             for (EdgeState incomingEdge : incomingEdges) {
                 if (moduleIsChanging || incomingEdge.getDependencyMetadata().isChanging()) {
-                    ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                    ComponentSelector selector = incomingEdge.getSelector().getComponentSelector();
                     incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                         String.format("Could not resolve %s: Resolution strategy disallows usage of changing versions", selector)));
                 }
@@ -583,7 +578,7 @@ public class DependencyGraphBuilder {
                     for (EdgeState incomingEdge : nodeState.getIncomingEdges()) {
                         SelectorState selector = incomingEdge.getSelector();
                         if (isPlatformForcedEdge(selector)) {
-                            ComponentSelector componentSelector = selector.getSelector();
+                            ComponentSelector componentSelector = selector.getComponentSelector();
                             if (componentSelector instanceof ModuleComponentSelector) {
                                 ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
                                 if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {

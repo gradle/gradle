@@ -23,6 +23,7 @@ import spock.lang.Issue
 class CommonToolChainIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Issue("https://github.com/gradle/gradle-native/issues/139")
     def "can rely on working directory to be project directory"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def app = new CHelloWorldApp()
 
         given:

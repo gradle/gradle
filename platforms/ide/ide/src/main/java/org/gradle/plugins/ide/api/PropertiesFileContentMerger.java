@@ -30,20 +30,36 @@ import java.util.Properties;
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseJdt} and others.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 public class PropertiesFileContentMerger extends FileContentMerger {
 
     private PropertiesTransformer transformer;
 
+    /**
+     * Creates a new {@code PropertiesFileContentMerger}.
+     *
+     * @since 1.0
+     */
     public PropertiesFileContentMerger(PropertiesTransformer transformer) {
         this.transformer = transformer;
     }
 
+    /**
+     * Returns the transformer.
+     *
+     * @since 1.0
+     */
     public PropertiesTransformer getTransformer() {
         return transformer;
     }
 
+    /**
+     * Sets the transformer.
+     *
+     * @since 1.0
+     */
     public void setTransformer(PropertiesTransformer transformer) {
         this.transformer = transformer;
     }
@@ -56,6 +72,7 @@ public class PropertiesFileContentMerger extends FileContentMerger {
      * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseJdt} and others.
      *
      * @param closure The closure to execute when the Properties have been created.
+     * @since 1.0
      */
     public void withProperties(Closure closure) {
         IdeDeprecations.nagDeprecatedProperty(PropertiesFileContentMerger.class, "withProperties");
@@ -70,6 +87,7 @@ public class PropertiesFileContentMerger extends FileContentMerger {
      * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseJdt} and others.
      *
      * @param action The action to execute when the Properties have been created.
+     * @since 2.14
      */
     public void withProperties(Action<Properties> action) {
         IdeDeprecations.nagDeprecatedProperty(PropertiesFileContentMerger.class, "withProperties");

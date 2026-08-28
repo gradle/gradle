@@ -18,17 +18,14 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
-import org.gradle.execution.plan.ScheduledWork;
-import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-
 // Public `TaskExecutionGraph` service shadowed at the project scope by the IP reporting wrapper
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
+
     /**
      * Adds the internal listener for task execution graph events.
      * These listeners are not persisted through the configuration cache, beware if you want to receive graph execution events with CC enabled.
@@ -45,6 +42,11 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     void removeExecutionListener(TaskExecutionGraphExecutionListener listener);
 
     /**
+     * Get an aggregate view of all listeners registered by {@link #addExecutionListener(TaskExecutionGraphExecutionListener)}.
+     */
+    TaskExecutionGraphExecutionListener getGraphExecutionListeners();
+
+    /**
      * Find a task with the given path in the task graph.
      *
      * @param path the path of the task to find in the task graph
@@ -59,29 +61,19 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     void populate(FinalizedExecutionPlan plan);
 
     /**
-     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate(FinalizedExecutionPlan)} prior to
-     * calling this method.
+     * Detaches the work attached by {@link #populate(FinalizedExecutionPlan)}, so that queries against this
+     * graph no longer see it.
      */
-    ExecutionResult<Void> execute(FinalizedExecutionPlan plan);
+    void depopulate();
 
     /**
-     * Set of requested tasks.
+     * Get the execution plan that Configuration Cache should serialize.
+     *
+     * @return null if the graph is not populated
      */
-    Set<Task> getFilteredTasks();
-
-    /**
-     * Returns the number of work items in this graph.
-     */
-    int size();
-
-    default boolean hasScheduledWork() {
-        return size() > 0;
-    }
-
-    /**
-     * Returns a snapshot of currently scheduled nodes.
-     */
-    ScheduledWork collectScheduledWork();
+    // TODO: We should find another way for CC to access this work graph rather
+    // than routing it through an internal interface of a public API.
+    @Nullable FinalizedExecutionPlan getExecutionPlan();
 
     /**
      * Resets the lifecycle for this graph.
@@ -90,4 +82,5 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
 
     @SuppressWarnings("deprecation")
     org.gradle.api.execution.TaskExecutionListener getLegacyTaskListenerBroadcast();
+
 }

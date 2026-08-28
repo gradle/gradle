@@ -542,4 +542,34 @@ class UndeclaredSystemPropertiesIntegrationTest extends AbstractConfigurationCac
         configurationCache.assertStateStored()
         outputContains("captured = different")
     }
+
+    def "changed system property whose value cannot be deserialized invalidates the cache gracefully"() {
+        given:
+        buildFile("""
+            import java.io.*
+
+            class Poison implements Serializable {
+                private void readObject(ObjectInputStream ois) throws IOException {
+                    throw new RuntimeException("cannot deserialize Poison")
+                }
+            }
+
+            System.properties.put("my.poison", new Poison())
+
+            tasks.register("ok") { doLast { println "ok" } }
+        """)
+
+        when:
+        configurationCacheRun("ok")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: "the recorded system property change cannot be read back on reuse"
+        configurationCacheRun("ok")
+
+        then: "the entry is discarded gracefully and the build reconfigures"
+        configurationCache.assertStateStored()
+        outputContains("configuration cache cannot be reused because the value of system property 'my.poison' could not be loaded: cannot deserialize Poison")
+    }
 }

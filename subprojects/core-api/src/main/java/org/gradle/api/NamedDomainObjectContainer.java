@@ -34,6 +34,7 @@ import org.gradle.util.Configurable;
  *
  * @see ManagedType Create an instance of this as a managed property (preferred).
  * @see org.gradle.api.model.ObjectFactory#domainObjectContainer(Class) Create an instance of this manually.
+ * @since 0.9
  */
 @ManagedType
 @DeclarativeWithHiddenMembers
@@ -47,6 +48,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @param name The name to assign to the created object
      * @return The created object. Never null.
      * @throws InvalidUserDataException if an object with the given name already exists in this container.
+     * @since 1.0
      */
     T create(String name) throws InvalidUserDataException;
 
@@ -57,6 +59,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      *
      * @param name The name to find or assign to the created object
      * @return The found or created object. Never null.
+     * @since 1.5
      */
     T maybeCreate(String name);
 
@@ -69,6 +72,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @param configureClosure The closure to configure the created object with
      * @return The created object. Never null.
      * @throws InvalidUserDataException if an object with the given name already exists in this container.
+     * @since 1.0
      */
     T create(String name, Closure configureClosure) throws InvalidUserDataException;
 
@@ -81,6 +85,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @param configureAction The action to configure the created object with
      * @return The created object. Never null.
      * @throws InvalidUserDataException if an object with the given name already exists in this container.
+     * @since 1.6
      */
     T create(String name, Action<? super T> configureAction) throws InvalidUserDataException;
 

@@ -54,6 +54,7 @@ import java.util.Map;
  *
  * @see CheckstylePlugin
  * @see CheckstyleExtension
+ * @since 0.8
  */
 @CacheableTask
 public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
@@ -66,6 +67,11 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
 
+    /**
+     * Creates a new {@code Checkstyle}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public Checkstyle() {
         super();
@@ -75,6 +81,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The Checkstyle configuration file to use.
+     * @since 0.8
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -84,6 +91,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The Checkstyle configuration file to use.
+     * @since 0.8
      */
     public void setConfigFile(File configFile) {
         setConfig(getProject().getResources().getText().fromFile(configFile));
@@ -138,6 +146,11 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
         return reports;
     }
 
+    /**
+     * Run.
+     *
+     * @since 1.0
+     */
     @TaskAction
     public void run() {
         runWithProcessIsolation();
@@ -192,6 +205,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The class path containing the Checkstyle library to be used.
+     * @since 1.0
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -201,6 +215,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The class path containing the Checkstyle library to be used.
+     * @since 1.0
      */
     public void setCheckstyleClasspath(FileCollection checkstyleClasspath) {
         this.checkstyleClasspath = checkstyleClasspath;
@@ -208,6 +223,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
+     * @since 0.8
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -217,6 +233,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
+     * @since 0.8
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
@@ -243,6 +260,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
+     * @since 1.0
      */
     @Nullable
     @Optional
@@ -254,6 +272,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
+     * @since 1.0
      */
     public void setConfigProperties(@Nullable Map<String, Object> configProperties) {
         this.configProperties = configProperties;
@@ -331,6 +350,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * Whether rule violations are to be displayed on the console.
      *
      * @return true if violations should be displayed on console
+     * @since 1.4
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -340,6 +360,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
 
     /**
      * Whether rule violations are to be displayed on the console.
+     * @since 1.4
      */
     public void setShowViolations(boolean showViolations) {
         this.showViolations = showViolations;
@@ -362,6 +383,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * Whether the build should break when the verifications performed by this task fail.
      *
      * @return true if failures should be ignored
+     * @since 0.9
      */
     @Internal
     @ToBeReplacedByLazyProperty

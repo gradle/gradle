@@ -40,6 +40,8 @@ import java.net.URI
 /**
  * Standard implementation of the API exposed to all types of [Gradle] scripts,
  * precompiled and otherwise.
+ *
+ * @since 4.7
  */
 @Deprecated(
     "Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0",
@@ -59,11 +61,16 @@ abstract class InitScriptApi(
         }
     }
 
+    /**
+     * @since 4.7
+     */
     protected
     abstract val fileOperations: FileOperations
 
     /**
      * Configures the classpath of the init script.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     open fun initscript(block: ScriptHandlerScope.() -> Unit): Unit =
@@ -71,6 +78,8 @@ abstract class InitScriptApi(
 
     /**
      * Logger for init scripts. You can use this in your init script to write log messages.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     val logger: Logger by unsafeLazy { Logging.getLogger(Gradle::class.java) }
@@ -79,12 +88,16 @@ abstract class InitScriptApi(
      * The [LoggingManager] which can be used to receive logging and to control the standard output/error capture for
      * this script. By default, `System.out` is redirected to the Gradle logging system at the `QUIET` log level,
      * and `System.err` is redirected at the `ERROR` log level.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     val logging by unsafeLazy { gradle.serviceOf<LoggingManager>() }
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     val resources: ResourceHandler by unsafeLazy { fileOperations.resources }
@@ -97,6 +110,8 @@ abstract class InitScriptApi(
      *
      * @param path The path to convert to a relative path.
      * @return The relative path.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun relativePath(path: Any): String =
@@ -107,6 +122,8 @@ abstract class InitScriptApi(
      *
      * Evaluates the provided path object as described for [KotlinInitScript.file],
      * with the exception that any URI scheme is supported, not just `file:` URIs.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun uri(path: Any): URI =
@@ -141,6 +158,8 @@ abstract class InitScriptApi(
      *
      * @param path The object to resolve as a `File`.
      * @return The resolved file.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun file(path: Any): File =
@@ -153,6 +172,8 @@ abstract class InitScriptApi(
      * @param validation The validation to perform on the file.
      * @return The resolved file.
      * @see KotlinInitScript.file
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun file(path: Any, validation: PathValidation): File =
@@ -200,6 +221,8 @@ abstract class InitScriptApi(
      *
      * @param paths The paths to the files. May be empty.
      * @return The file collection.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun files(vararg paths: Any): ConfigurableFileCollection =
@@ -212,6 +235,8 @@ abstract class InitScriptApi(
      * @param configuration The block to use to configure the file collection.
      * @return The file collection.
      * @see KotlinInitScript.files
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
@@ -228,6 +253,8 @@ abstract class InitScriptApi(
      *
      * @param baseDir The base directory of the file tree. Evaluated as per [KotlinInitScript.file].
      * @return The file tree.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any): ConfigurableFileTree =
@@ -240,6 +267,8 @@ abstract class InitScriptApi(
      * @param configuration The block to use to configure the file tree.
      * @return The file tree.
      * @see [KotlinInitScript.fileTree]
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree =
@@ -258,6 +287,8 @@ abstract class InitScriptApi(
      *
      * @param zipPath The ZIP file. Evaluated as per [KotlinInitScript.file].
      * @return The file tree.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun zipTree(zipPath: Any): FileTree =
@@ -281,6 +312,8 @@ abstract class InitScriptApi(
      *
      * @param tarPath The TAR file or an instance of [org.gradle.api.resources.Resource].
      * @return The file tree.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun tarTree(tarPath: Any): FileTree =
@@ -291,6 +324,8 @@ abstract class InitScriptApi(
      *
      * @param configuration The block to use to configure the [CopySpec].
      * @return `WorkResult` that can be used to check if the copy did any work.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun copy(configuration: CopySpec.() -> Unit): WorkResult =
@@ -300,6 +335,8 @@ abstract class InitScriptApi(
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
      *
      * @return The created [CopySpec]
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun copySpec(): CopySpec =
@@ -310,6 +347,8 @@ abstract class InitScriptApi(
      *
      * @param configuration The block to use to configure the [CopySpec].
      * @return The configured [CopySpec]
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun copySpec(configuration: CopySpec.() -> Unit): CopySpec =
@@ -321,6 +360,8 @@ abstract class InitScriptApi(
      * @param path The path for the directory to be created. Evaluated as per [KotlinInitScript.file].
      * @return The created directory.
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun mkdir(path: Any): File =
@@ -333,6 +374,8 @@ abstract class InitScriptApi(
      *
      * @param paths Any type of object accepted by [KotlinInitScript.file]
      * @return true if anything got deleted, false otherwise
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun delete(vararg paths: Any): Boolean =
@@ -343,6 +386,8 @@ abstract class InitScriptApi(
      *
      * @param configuration The block to use to configure the [DeleteSpec].
      * @return `WorkResult` that can be used to check if delete did any work.
+     *
+     * @since 4.7
      */
     @Suppress("unused")
     fun delete(configuration: DeleteSpec.() -> Unit): WorkResult =

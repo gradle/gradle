@@ -36,6 +36,7 @@ import java.io.OutputStream;
 
 /**
  * PGP signatory from PGP key and password.
+ * @since 1.0
  */
 public class PgpSignatory extends SignatorySupport {
 
@@ -60,6 +61,11 @@ public class PgpSignatory extends SignatorySupport {
     }
 
     // This is a legacy constructor. It is a public API, so it has to be preserved, but it shouldn't be used internally.
+    /**
+     * Creates a new {@code PgpSignatory}.
+     *
+     * @since 1.0
+     */
     public PgpSignatory(String name, PGPSecretKey secretKey, String password) {
         this(name, Providers.of(secretKey), Providers.of(PgpSignatoryUtil.extractPrivateKey(secretKey, password)));
     }
@@ -111,6 +117,11 @@ public class PgpSignatory extends SignatorySupport {
         bufferedOutput.flush();
     }
 
+    /**
+     * Create signature generator.
+     *
+     * @since 1.0
+     */
     public PGPSignatureGenerator createSignatureGenerator() {
         try {
             PGPPublicKey publicKey = this.secretKey.get().getPublicKey();

@@ -19,16 +19,37 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 
 /**
  * Provider of {@link SignatureType}.
+ * @since 1.0
  */
 public interface SignatureTypeProvider {
 
+    /**
+     * Returns the default type.
+     *
+     * @since 1.0
+     */
     @ToBeReplacedByLazyProperty
     SignatureType getDefaultType();
 
+    /**
+     * Sets the default type.
+     *
+     * @since 1.0
+     */
     void setDefaultType(String extension);
 
+    /**
+     * Returns the type for extension.
+     *
+     * @since 1.0
+     */
     @ToBeReplacedByLazyProperty
     SignatureType getTypeForExtension(String extension);
 
+    /**
+     * Returns whether type for extension.
+     *
+     * @since 1.0
+     */
     boolean hasTypeForExtension(String extension);
 }

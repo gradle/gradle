@@ -29,6 +29,8 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
  * @return this
  *
  * @see [ComponentMetadataHandler.all]
+ *
+ * @since 6.0
  */
 inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.all(): ComponentMetadataHandler =
     all(T::class.java)
@@ -43,6 +45,8 @@ inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.all(): C
  * @return this
  *
  * @see [ComponentMetadataHandler.all]
+ *
+ * @since 6.0
  */
 @Suppress("extension_shadowed_by_member")
 inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.all(configureAction: Action<in ActionConfiguration>): ComponentMetadataHandler =
@@ -57,6 +61,8 @@ inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.all(conf
  * @return this
  *
  * @see [ComponentMetadataHandler.withModule]
+ *
+ * @since 6.0
  */
 inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.withModule(id: Any): ComponentMetadataHandler =
     withModule(id, T::class.java)
@@ -70,6 +76,8 @@ inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.withModu
  * @return this
  *
  * @see [ComponentMetadataHandler.withModule]
+ *
+ * @since 6.0
  */
 @Suppress("extension_shadowed_by_member")
 inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.withModule(id: Any, configureAction: Action<in ActionConfiguration>): ComponentMetadataHandler =

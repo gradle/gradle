@@ -29,7 +29,8 @@ include::sample[dir="snippets/reference/core-plugins/codeQuality/groovy",files="
 
 The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
 
-Note that PMD will run with the same Java version used to run Gradle.
+By default, PMD runs on the Java toolchain configured for the project, falling back to the Java version used to run Gradle when no toolchain is set.
+You can also run PMD with a specific JDK using a <<#sec:pmd_configuration_toolchains,Java toolchain>>.
 
 [[sec:pmd_supported_versions]]
 === Supported PMD versions
@@ -83,6 +84,25 @@ include::sample[dir="snippets/reference/core-plugins/codeQuality/groovy",files="
 ====
 
 See the link:{groovyDslPath}/org.gradle.api.plugins.quality.PmdExtension.html[PmdExtension] class in the API documentation.
+
+[[sec:pmd_configuration_toolchains]]
+=== Configuring PMD with Java toolchains
+
+By default, PMD analysis runs on the Java toolchain configured for the project, or on the JVM used to run Gradle when no toolchain is defined.
+Using the `javaLauncher` property, you can run PMD tasks with a specific JDK version, independent of the JDK used to compile your project or to run Gradle.
+The following configuration runs all PMD tasks with JDK 17:
+
+[source,groovy]
+----
+tasks.withType(Pmd).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+----
+
+Gradle provisions the requested JDK automatically through its toolchain support, so it does not need to be installed beforehand.
+Make sure the selected PMD version supports the chosen Java version.
 
 [[sec:pmd_conf_threads]]
 === Parallel analysis

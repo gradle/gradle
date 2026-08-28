@@ -24,6 +24,7 @@ package org.gradle.tooling.events;
 public interface OperationCompletionListener {
     /**
      * Called when an operation completes.
+     * @since 6.1
      */
     void onFinish(FinishEvent event);
 }

@@ -32,6 +32,7 @@ public interface UrlArtifactRepository {
      * The base URL of this repository.
      *
      * @return The URL.
+     * @since 6.0
      */
     @ToBeReplacedByLazyProperty
     URI getUrl();
@@ -40,6 +41,7 @@ public interface UrlArtifactRepository {
      * Sets the base URL of this repository.
      *
      * @param url The base URL.
+     * @since 6.0
      */
     void setUrl(URI url);
 
@@ -47,6 +49,7 @@ public interface UrlArtifactRepository {
      * Sets the base URL of this repository.
      *
      * @param url The base URL.
+     * @since 6.0
      */
     void setUrl(Object url);
 
@@ -64,6 +67,7 @@ public interface UrlArtifactRepository {
      * <p>
      * See also:
      * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
+     * @since 6.0
      */
     @ToBeReplacedByLazyProperty
     boolean isAllowInsecureProtocol();
@@ -72,6 +76,7 @@ public interface UrlArtifactRepository {
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
      *
      * @see #isAllowInsecureProtocol()
+     * @since 6.0
      */
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);
 

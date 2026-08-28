@@ -38,6 +38,7 @@ import java.io.File;
 public interface DirectoryProperty extends FileSystemLocationProperty<Directory> {
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
+     * @since 4.3
      */
     FileTree getAsFileTree();
 
@@ -82,6 +83,7 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      *
      * @param path The path. Can be absolute.
      * @return The directory.
+     * @since 4.3
      */
     Provider<Directory> dir(String path);
 
@@ -90,6 +92,7 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      *
      * @param path The path. Can have a value that is an absolute path.
      * @return The directory.
+     * @since 4.3
      */
     Provider<Directory> dir(Provider<? extends CharSequence> path);
 
@@ -98,6 +101,7 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      *
      * @param path The path. Can be absolute.
      * @return The file.
+     * @since 4.3
      */
     Provider<RegularFile> file(String path);
 
@@ -106,6 +110,7 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      *
      * @param path The path. Can have a value that is an absolute path.
      * @return The file.
+     * @since 4.3
      */
     Provider<RegularFile> file(Provider<? extends CharSequence> path);
 

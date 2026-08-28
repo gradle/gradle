@@ -17,24 +17,28 @@ package org.gradle.api.artifacts.component;
 
 /**
  * An identifier for a library instance that is built as part of the current build.
+ * @since 2.6
  */
 public interface LibraryBinaryIdentifier extends ComponentIdentifier {
 
     /**
      * The project path of the library.
      * @return The project path of the library.
+     * @since 2.6
      */
     String getProjectPath();
 
     /**
      * The name of the library
      * @return the name of the library
+     * @since 2.6
      */
     String getLibraryName();
 
     /**
      * The variant of the library.
      * @return the variant identifier of the library.
+     * @since 2.6
      */
     String getVariant();
 }

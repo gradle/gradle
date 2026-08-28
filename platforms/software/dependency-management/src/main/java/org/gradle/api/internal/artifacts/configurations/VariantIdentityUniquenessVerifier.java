@@ -23,9 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.jspecify.annotations.Nullable;
 
@@ -40,9 +38,10 @@ import java.util.stream.Collectors;
 public class VariantIdentityUniquenessVerifier {
 
     /**
-     * Build a report of all possible variant uniqueness failures for the given configurations.
+     * Build a report of all possible variant uniqueness failures for the given configurations. If configurations
+     * do not declare capabilities, they assume the given default capability.
      */
-    public static VerificationReport buildReport(ConfigurationsProvider configurations) {
+    public static VerificationReport buildReport(ConfigurationsProvider configurations, ImmutableCapabilities defaultCapabilities) {
         ListMultimap<VariantIdentity, ConfigurationInternal> byIdentity =
             MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
@@ -51,7 +50,7 @@ public class VariantIdentityUniquenessVerifier {
                 return;
             }
 
-            byIdentity.put(VariantIdentity.from(configuration), configuration);
+            byIdentity.put(VariantIdentity.from(configuration, defaultCapabilities), configuration);
         });
 
         return new VerificationReport(byIdentity);
@@ -78,12 +77,13 @@ public class VariantIdentityUniquenessVerifier {
         }
 
         /**
-         * Get a failure that only checks variant uniqueness for the given configuration.
+         * Get a failure that only checks variant uniqueness for the given configuration. If the configuration does
+         * not declare capabilities, it assumes the given default capability.
          */
         @Nullable
-        public GradleException failureFor(ConfigurationInternal configuration, boolean withTaskAdvice) {
+        public GradleException failureFor(ConfigurationInternal configuration, ImmutableCapabilities defaultCapabilities, boolean withTaskAdvice) {
             List<ConfigurationInternal> collisions =
-                byIdentity.get(VariantIdentity.from(configuration)).stream()
+                byIdentity.get(VariantIdentity.from(configuration, defaultCapabilities)).stream()
                     .filter(it -> !it.getName().equals(configuration.getName()))
                     .collect(Collectors.toList());
 
@@ -146,25 +146,16 @@ public class VariantIdentityUniquenessVerifier {
             this.capabilities = capabilities;
         }
 
-        public static VariantIdentity from(ConfigurationInternal configuration) {
+        public static VariantIdentity from(ConfigurationInternal configuration, ImmutableCapabilities defaultCapabilities) {
+            Collection<? extends Capability> declaredCapabilities = configuration.getOutgoing().getCapabilities();
+            ImmutableCapabilities capabilities = !declaredCapabilities.isEmpty()
+                ? ImmutableCapabilities.of(declaredCapabilities)
+                : defaultCapabilities;
+
             return new VariantIdentity(
                 configuration.getAttributes().asImmutable(),
-                allCapabilitiesIncludingDefault(configuration)
+                capabilities
             );
-        }
-
-        private static ImmutableCapabilities allCapabilitiesIncludingDefault(ConfigurationInternal conf) {
-            Collection<? extends Capability> declaredCapabilities = conf.getOutgoing().getCapabilities();
-            if (!declaredCapabilities.isEmpty()) {
-                return ImmutableCapabilities.of(declaredCapabilities);
-            }
-
-            // If no capabilities are declared, use the implicit capability.
-            ProjectInternal project = conf.getDomainObjectContext().getProject();
-            if (project == null) {
-                return ImmutableCapabilities.EMPTY;
-            }
-            return ImmutableCapabilities.of(new ProjectDerivedCapability(project));
         }
 
         @Override

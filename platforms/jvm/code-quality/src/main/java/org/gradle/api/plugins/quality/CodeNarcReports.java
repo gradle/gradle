@@ -22,6 +22,7 @@ import org.gradle.api.tasks.Internal;
 
 /**
  * The reporting configuration for the {@link CodeNarc} test.
+ * @since 1.0
  */
 public interface CodeNarcReports extends ReportContainer<SingleFileReport> {
 
@@ -29,6 +30,7 @@ public interface CodeNarcReports extends ReportContainer<SingleFileReport> {
      * The codenarc XML report
      *
      * @return The codenarc XML report
+     * @since 1.0
      */
     @Internal
     SingleFileReport getXml();
@@ -37,6 +39,7 @@ public interface CodeNarcReports extends ReportContainer<SingleFileReport> {
      * The codenarc HTML report
      *
      * @return The codenarc HTML report
+     * @since 1.0
      */
     @Internal
     SingleFileReport getHtml();
@@ -45,6 +48,7 @@ public interface CodeNarcReports extends ReportContainer<SingleFileReport> {
      * The codenarc text report
      *
      * @return The codenarc text report
+     * @since 1.0
      */
     @Internal
     SingleFileReport getText();

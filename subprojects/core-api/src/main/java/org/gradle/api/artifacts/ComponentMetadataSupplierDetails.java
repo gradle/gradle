@@ -27,12 +27,14 @@ public interface ComponentMetadataSupplierDetails {
     /**
      * Returns the identifier of the component being resolved
      * @return the identifier
+     * @since 4.0
      */
     ModuleComponentIdentifier getId();
 
     /**
      * Returns the metadata builder, that users can use to feed metadata for the component.
      * @return the metadata builder
+     * @since 4.0
      */
     ComponentMetadataBuilder getResult();
 

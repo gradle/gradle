@@ -64,6 +64,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigureOnDemandOption(),
         new BuildCacheOption(),
         new BuildCacheDebugLoggingOption(),
+        new SharedMavenMirrorSettingsOption(),
         new WatchFileSystemOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
@@ -79,6 +80,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheOption(),
         new ConfigurationCacheIgnoreInputsDuringStore(),
         new ConfigurationCacheIgnoreUnsupportedBuildEventsListeners(),
+        new ConfigurationCacheSkipTaskLoggingListenersSerialization(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
@@ -367,7 +369,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setBuildCacheEnabled(value);
+            settings.setBuildCacheEnabledInternal(value, false);
         }
 
         @Override
@@ -391,6 +393,27 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         protected OptionCategory getCategory() {
             return OptionCategory.LOGGING;
+        }
+    }
+
+    /**
+     * Opts the build in to the mirrors and server entries declared in the local Maven settings.xml.
+     */
+    public static class SharedMavenMirrorSettingsOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.mirror.maven.settings";
+
+        public SharedMavenMirrorSettingsOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setSharedMavenMirrorSettings(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -800,6 +823,27 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(value);
+        }
+    }
+
+    /**
+     * Skips serialization of the standard output/error listeners registered on a task's logging manager during
+     * configuration. When enabled, these listeners are not stored in the Configuration Cache, restoring the previous
+     * behavior where they were silently dropped on a cache hit, so unsupported listeners no longer cause problems.
+     *
+     * @since 9.8.0
+     */
+    public static class ConfigurationCacheSkipTaskLoggingListenersSerialization extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization";
+
+        public ConfigurationCacheSkipTaskLoggingListenersSerialization() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheSkipTaskLoggingListenersSerialization(value);
         }
     }
 

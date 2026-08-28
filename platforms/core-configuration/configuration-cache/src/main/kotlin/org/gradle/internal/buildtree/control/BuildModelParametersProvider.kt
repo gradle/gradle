@@ -70,6 +70,9 @@ object BuildModelParametersProvider {
      *
      * It exists as a transitionary measure to allow IDEs to effectively require a separate user opt-in
      * into parallel model building via the explicit `org.gradle.tooling.parallel` property.
+     *
+     * This is transitional: once `org.gradle.parallel` and `org.gradle.tooling.parallel` become
+     * independent in Gradle 10, this property is redundant and will no longer be read (it becomes a no-op).
      */
     @JvmStatic
     val parallelModelBuildingIgnoreLegacyDefault = "org.gradle.tooling.parallel.ignore-legacy-default"

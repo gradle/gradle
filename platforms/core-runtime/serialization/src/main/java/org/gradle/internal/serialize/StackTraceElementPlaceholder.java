@@ -17,15 +17,16 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.api.JavaVersion;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
 public class StackTraceElementPlaceholder implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private final String classLoaderName;
-    private final String moduleName;
-    private final String moduleVersion;
+    private final @Nullable String classLoaderName;
+    private final @Nullable String moduleName;
+    private final @Nullable String moduleVersion;
     private final String declaringClass;
     private final String methodName;
     private final String fileName;

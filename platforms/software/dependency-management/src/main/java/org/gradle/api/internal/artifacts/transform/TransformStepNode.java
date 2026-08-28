@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.CreationOrderedNode;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.SelfExecutingNode;
 import org.gradle.execution.plan.TaskDeclarationAware;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.Describables;
@@ -63,7 +62,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("this-escape")
-public abstract class TransformStepNode extends CreationOrderedNode implements SelfExecutingNode, TaskDeclarationAware {
+public abstract class TransformStepNode extends CreationOrderedNode implements TaskDeclarationAware {
 
     protected final TransformStep transformStep;
     protected final ResolvableArtifact artifact;
@@ -263,6 +262,10 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     private void nagAboutUndeclaredResolution() {
         String taskPath = workExecutionTracker.getCurrentTask().map(Task::getPath).orElse(null);
         String configName = configurationNameOf();
+        // TODO: Note to whoever converts this deprecation into a failure:
+        // Once this deprecation turns into a failure, we will no longer need to call `forceAccessToMutableState`
+        // in DefaultTransform. That class is the only usage of `forceAccessToMutableState`. We should then remove
+        // that call, fail hard in that branch, and remove the `forceAccessToMutableState` method.
         DeprecationMessageBuilder<?> deprecation = DeprecationLogger.deprecate(
             "Querying the output of an artifact transform from a task action without declaring it as a task input"
         );

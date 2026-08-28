@@ -27,6 +27,7 @@ import java.util.List;
 public interface EclipseWorkspace {
     /**
      * The filesystem location of the eclipse workspace
+     * @since 5.5
      */
     File getLocation();
 
@@ -34,6 +35,7 @@ public interface EclipseWorkspace {
      * The list of projects in the eclipse workspace.
      *
      * This list should include all projects and not make a distinction between gradle and non gradle projects.
+     * @since 5.5
      */
     List<EclipseWorkspaceProject> getProjects();
 }

@@ -34,8 +34,8 @@ class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        // 144 MiB stock + the XDCL modules and the embedded Maven repository (repo/).
-        return 150
+        // 145 MiB stock + the XDCL modules and the embedded Maven repository (repo/).
+        return 151
     }
 
     def binZipContents() {

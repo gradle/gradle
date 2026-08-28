@@ -26,6 +26,7 @@ dependencies {
     api(projects.problemsApi)
     api(projects.workerMain)
     api(projects.workerProcessServices)
+    api(projects.workerShared)
 
     api(libs.inject)
     api(libs.jspecify)
@@ -56,6 +57,7 @@ dependencies {
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(projects.launcher)
 
     testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.groovyJson)

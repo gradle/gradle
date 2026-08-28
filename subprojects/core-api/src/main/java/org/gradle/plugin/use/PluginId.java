@@ -29,17 +29,20 @@ public interface PluginId {
 
     /**
      * The fully qualified plugin ID.
+     * @since 3.5
      */
     String getId();
 
     /**
      * The namespace of the plugin or {@code null} if the ID contains no {@code .}.
+     * @since 3.5
      */
     @Nullable
     String getNamespace();
 
     /**
      * The plugin name without the namespace.
+     * @since 3.5
      */
     String getName();
 
@@ -49,6 +52,7 @@ public interface PluginId {
      * @param namespace the namespace to add.
      * @return the plugin ID qualified with the given namespace
      * @throws IllegalArgumentException if the ID already had a namespace
+     * @since 3.5
      */
     PluginId withNamespace(String namespace);
 }

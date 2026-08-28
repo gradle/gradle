@@ -183,6 +183,21 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
         return false;
     }
 
+    @Override
+    public ImmutableList<Action<? super DependencyResolutionControl>> getDependencyCacheRules() {
+        return dependencyCacheRules;
+    }
+
+    @Override
+    public ImmutableList<Action<? super ModuleResolutionControl>> getModuleCacheRules() {
+        return moduleCacheRules;
+    }
+
+    @Override
+    public ImmutableList<Action<? super ArtifactResolutionControl>> getArtifactCacheRules() {
+        return artifactCacheRules;
+    }
+
     private static abstract class AbstractResolutionControl<A, B> implements ResolutionControl<A, B>, Expiry {
 
         private final A request;

@@ -35,6 +35,7 @@ public interface JavaInstallationMetadata {
      * Returns the language version of the JVM to which this tool belongs
      *
      * @return the {@code JavaLanguageVersion}
+     * @since 6.7
      */
     @Input
     JavaLanguageVersion getLanguageVersion();
@@ -72,6 +73,7 @@ public interface JavaInstallationMetadata {
      * This value matches what would be the content of {@code JAVA_HOME} for the given installation.
      *
      * @return the installation path
+     * @since 6.7
      */
     @Internal
     Directory getInstallationPath();

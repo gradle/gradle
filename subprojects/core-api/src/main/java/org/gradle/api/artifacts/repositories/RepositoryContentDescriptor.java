@@ -35,6 +35,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * Declares that an entire group shouldn't be searched for in this repository.
      *
      * @param group the group name
+     * @since 5.1
      */
     void excludeGroup(String group);
 
@@ -58,6 +59,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * Declares that an entire group shouldn't be searched for in this repository.
      *
      * @param groupRegex the group name regular expression
+     * @since 5.1
      */
     void excludeGroupByRegex(String groupRegex);
 
@@ -66,6 +68,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      *
      * @param group the group name
      * @param moduleName the module name
+     * @since 5.1
      */
     void excludeModule(String group, String moduleName);
 
@@ -74,6 +77,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      *
      * @param groupRegex the group name regular expression
      * @param moduleNameRegex the module name regular expression
+     * @since 5.1
      */
     void excludeModuleByRegex(String groupRegex, String moduleNameRegex);
 
@@ -85,6 +89,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * @param group the group name
      * @param moduleName the module name
      * @param version the module version
+     * @since 5.1
      */
     void excludeVersion(String group, String moduleName, String version);
 
@@ -96,6 +101,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * @param groupRegex the group name
      * @param moduleNameRegex the module name
      * @param versionRegex the module version
+     * @since 5.1
      */
     void excludeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex);
 
@@ -104,6 +110,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * set of configurations. Defaults to any configuration
      *
      * @param configurationNames the names of the configurations the repository will be used for
+     * @since 5.1
      */
     void onlyForConfigurations(@Nullable String... configurationNames);
 
@@ -112,6 +119,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * set of configurations. Defaults to any configuration
      *
      * @param configurationNames the names of the configurations the repository will not be used for
+     * @since 5.1
      */
     void notForConfigurations(@Nullable String... configurationNames);
 
@@ -121,6 +129,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * @param attribute the attribute
      * @param validValues the list of accepted values
      * @param <T> the type of the attribute
+     * @since 5.1
      */
     @SuppressWarnings("unchecked")
     <T> void onlyForAttribute(Attribute<T> attribute, T... validValues);

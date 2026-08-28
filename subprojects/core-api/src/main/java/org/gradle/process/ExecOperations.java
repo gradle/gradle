@@ -17,6 +17,7 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
+import org.gradle.api.services.TaskService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -28,7 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 6.0
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
-public interface ExecOperations {
+public interface ExecOperations extends TaskService {
 
     /**
      * Executes the specified external process.
@@ -36,6 +37,7 @@ public interface ExecOperations {
      *
      * @param action Action to configure the ExecSpec
      * @return {@link ExecResult} that can be used to check if the execution worked
+     * @since 6.0
      */
     ExecResult exec(Action<? super ExecSpec> action);
 
@@ -45,6 +47,7 @@ public interface ExecOperations {
      *
      * @param action Action to configure the JavaExecSpec
      * @return {@link ExecResult} that can be used to check if the execution worked
+     * @since 6.0
      */
     ExecResult javaexec(Action<? super JavaExecSpec> action);
 }

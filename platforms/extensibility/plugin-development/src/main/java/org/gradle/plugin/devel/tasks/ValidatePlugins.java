@@ -80,6 +80,11 @@ import static java.nio.file.Files.readAllBytes;
 @CacheableTask
 public abstract class ValidatePlugins extends DefaultTask {
 
+    /**
+     * Creates a new {@code ValidatePlugins}.
+     *
+     * @since 6.0
+     */
     @SuppressWarnings("this-escape")
     public ValidatePlugins() {
         getEnableStricterValidation().convention(false);
@@ -110,6 +115,11 @@ public abstract class ValidatePlugins extends DefaultTask {
             }));
     }
 
+    /**
+     * Validate task classes.
+     *
+     * @since 6.0
+     */
     @TaskAction
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
@@ -198,6 +208,7 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     /**
      * The classes to validate.
+     * @since 6.0
      */
     @InputFiles
     @SkipWhenEmpty
@@ -209,6 +220,7 @@ public abstract class ValidatePlugins extends DefaultTask {
      * The classpath used to load the classes under validation.
      * <p>
      * Includes the classes under validation and both the runtime-scoped dependencies and the compile-scoped ones.
+     * @since 6.0
      */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
@@ -225,24 +237,28 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     /**
      * Specifies whether the build should break when plugin verifications fails.
+     * @since 6.0
      */
     @Input
     public abstract Property<Boolean> getIgnoreFailures();
 
     /**
      * Returns whether the build should break when the verifications performed by this task detects a warning.
+     * @since 6.0
      */
     @Input
     public abstract Property<Boolean> getFailOnWarning();
 
     /**
      * Enable the stricter validation for cacheable tasks for all tasks.
+     * @since 6.0
      */
     @Input
     public abstract Property<Boolean> getEnableStricterValidation();
 
     /**
      * Returns the output file to store the report in.
+     * @since 6.0
      */
     @OutputFile
     public abstract RegularFileProperty getOutputFile();

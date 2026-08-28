@@ -28,6 +28,7 @@ public interface InjectedPluginDependencies {
      * @param id the id of the plugin to depend on
      *
      * @return a mutable injected plugin dependency that can be used to further refine the dependency
+     * @since 4.6
      */
     InjectedPluginDependency id(String id);
 }

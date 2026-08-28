@@ -25,7 +25,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  *
- * @since 1.6-rc-1
+ * @since 1.6
  */
 public class InternalUnsupportedModelException extends RuntimeException {
 }

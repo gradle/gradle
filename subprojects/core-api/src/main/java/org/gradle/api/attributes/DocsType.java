@@ -26,30 +26,40 @@ import org.gradle.api.Named;
  * @since 5.6
  */
 public interface DocsType extends Named {
+    /**
+     * Of.
+     *
+     * @since 5.6
+     */
     Attribute<DocsType> DOCS_TYPE_ATTRIBUTE = Attribute.of("org.gradle.docstype", DocsType.class);
 
     /**
      * The typical documentation for Java APIs
+     * @since 5.6
      */
     String JAVADOC = "javadoc";
 
     /**
      * The source files of the module
+     * @since 5.6
      */
     String SOURCES = "sources";
 
     /**
      * A user manual
+     * @since 5.6
      */
     String USER_MANUAL = "user-manual";
 
     /**
      * Samples illustrating how to use the software module
+     * @since 5.6
      */
     String SAMPLES = "samples";
 
     /**
      * The typical documentation for native APIs
+     * @since 5.6
      */
     String DOXYGEN = "doxygen";
 }

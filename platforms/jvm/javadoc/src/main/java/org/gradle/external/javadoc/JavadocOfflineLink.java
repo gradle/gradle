@@ -23,20 +23,36 @@ import java.io.Serializable;
 /**
  * This class is used to hold the information that can be provided to the javadoc executable via the -linkoffline
  * option.
+ * @since 0.7
  */
 public class JavadocOfflineLink implements Serializable {
     private final String extDocUrl;
     private final String packagelistLoc;
 
+    /**
+     * Creates a new {@code JavadocOfflineLink}.
+     *
+     * @since 0.7
+     */
     public JavadocOfflineLink(String extDocUrl, String packagelistLoc) {
         this.extDocUrl = extDocUrl;
         this.packagelistLoc = packagelistLoc;
     }
 
+    /**
+     * Returns the ext doc url.
+     *
+     * @since 0.7
+     */
     public String getExtDocUrl() {
         return extDocUrl;
     }
 
+    /**
+     * Returns the packagelist loc.
+     *
+     * @since 0.7
+     */
     public String getPackagelistLoc() {
         return packagelistLoc;
     }

@@ -29,6 +29,7 @@ import java.io.File;
 
 /**
  * Runs a compiled and installed test executable.
+ * @since 2.2
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutable> implements VerificationTask {
@@ -41,6 +42,11 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
      */
     private boolean ignoreFailures;
 
+    /**
+     * Creates a new {@code RunTestExecutable}.
+     *
+     * @since 2.2
+     */
     public RunTestExecutable() {
         super(RunTestExecutable.class);
     }
@@ -73,11 +79,21 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
         }
     }
 
+    /**
+     * Returns the output dir.
+     *
+     * @since 2.2
+     */
     @OutputDirectory
     public File getOutputDir() {
         return outputDir;
     }
 
+    /**
+     * Sets the output dir.
+     *
+     * @since 2.2
+     */
     public void setOutputDir(File outputDir) {
         this.outputDir = outputDir;
     }
@@ -91,6 +107,11 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
         return ignoreFailures;
     }
 
+    /**
+     * Returns whether ignore failures is set.
+     *
+     * @since 2.2
+     */
     @Internal
     public boolean isIgnoreFailures() {
         return ignoreFailures;

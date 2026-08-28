@@ -124,7 +124,7 @@ public class ModelSchemaUtils {
     }
 
     /**
-     * Returns whether the most specific of the given methods has been declared in a <code>@</code>{@link Managed} type or not.
+     * Returns whether the most specific of the given methods has been declared in a <code>@</code>{@link org.gradle.model.Managed} type or not.
      */
     public static boolean isMethodDeclaredInManagedType(Iterable<Method> declarations) {
         Method mostSpecificDeclaration = findMostSpecificMethod(declarations);
@@ -132,7 +132,7 @@ public class ModelSchemaUtils {
     }
 
     /**
-     * Returns whether the method has been declared in a <code>@</code>{@link Managed} type or not.
+     * Returns whether the method has been declared in a <code>@</code>{@link org.gradle.model.Managed} type or not.
      */
     public static boolean isMethodDeclaredInManagedType(Method method) {
         return method.getDeclaringClass().isAnnotationPresent(org.gradle.model.Managed.class);

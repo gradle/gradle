@@ -120,7 +120,7 @@ The two properties representing the input files are of the `RegularFileProperty`
 ++++
 <p>
   <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/zE98oR1ccH4?si=AkFw1wpiPctK_mz6&rel=0" frameborder="0" allowfullscreen
+    <iframe src="https://www.youtube-nocookie.com/embed/zE98oR1ccH4&rel=0" frameborder="0" allowfullscreen
       style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
   </div>
 </p>

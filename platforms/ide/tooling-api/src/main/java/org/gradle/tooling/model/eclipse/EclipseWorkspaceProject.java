@@ -28,6 +28,7 @@ public interface EclipseWorkspaceProject {
      * The name of the eclipse project
      *
      * @return the name of the project, never null
+     * @since 5.5
      */
     String getName();
 
@@ -35,6 +36,7 @@ public interface EclipseWorkspaceProject {
      * The filesystem location of the eclipse project
      *
      * @return the location of the eclipse project, may be null in case of remote projects
+     * @since 5.5
      */
     File getLocation();
 

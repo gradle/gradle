@@ -32,6 +32,7 @@ public interface VersionControlRepository {
      * Declares that this repository produces (or may produce) component with the given group and module names.
      *
      * @param module The module identity, in "group:module" format.
+     * @since 4.10
      */
     void producesModule(String module);
 
@@ -41,6 +42,7 @@ public interface VersionControlRepository {
      * <p>Defaults to an empty relative path, meaning the root of the repository.
      *
      * @return the root directory of the build, relative to the root of this repository.
+     * @since 4.10
      */
     @ToBeReplacedByLazyProperty
     String getRootDir();
@@ -49,6 +51,7 @@ public interface VersionControlRepository {
      * Sets the relative path to the root of the build within the repository. Use an empty string to refer to the root of the repository.
      *
      * @param rootDir The root directory of the build, relative to the root of this repository.
+     * @since 4.10
      */
     void setRootDir(String rootDir);
 
@@ -58,7 +61,7 @@ public interface VersionControlRepository {
      * <p>Currently, plugins must be located in the calling build's `buildSrc` project.</p>
      *
      * @param configuration the configuration action for adding injected plugins
-     * @since 4.6
+     * @since 4.10
      */
     void plugins(Action<? super InjectedPluginDependencies> configuration);
 }

@@ -17,11 +17,13 @@ package org.gradle.api.artifacts;
 
 /**
  * Represents meta-data about a resolved module version.
+ * @since 1.0
  */
 public interface ResolvedModuleVersion {
     /**
      * The identifier of this resolved module version.
      * @return the identifier
+     * @since 1.0
      */
     ModuleVersionIdentifier getId();
 }

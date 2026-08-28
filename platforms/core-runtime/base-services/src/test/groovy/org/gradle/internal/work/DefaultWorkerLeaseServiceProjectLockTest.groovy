@@ -638,40 +638,6 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
         }
     }
 
-    def "thread can be granted uncontrolled access to any project"() {
-        expect:
-        !workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
-        def result = workerLeaseService.allowUncontrolledAccessToAnyProject {
-            assert workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
-            workerLeaseService.allowUncontrolledAccessToAnyProject {
-                assert workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
-            }
-            assert workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
-            "result"
-        }
-        result == "result"
-        !workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
-    }
-
-    def "releases worker lease but does not release project locks in blocking action when thread has uncontrolled access to any project"() {
-        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
-        def lease = workerLeaseService.newWorkerLease()
-
-        expect:
-        workerLeaseService.withLocks([projectLock, lease]) {
-            workerLeaseService.allowUncontrolledAccessToAnyProject {
-                assert lockIsHeld(lease)
-                assert lockIsHeld(projectLock)
-                workerLeaseService.blocking {
-                    assert !lockIsHeld(lease)
-                    assert lockIsHeld(projectLock)
-                }
-                assert lockIsHeld(lease)
-                assert lockIsHeld(projectLock)
-            }
-        }
-    }
-
     def "does not track blocking on worker leases"() {
         def workerLease = workerLeaseService.newWorkerLease()
 

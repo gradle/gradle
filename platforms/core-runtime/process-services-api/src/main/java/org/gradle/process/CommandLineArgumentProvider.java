@@ -24,6 +24,7 @@ package org.gradle.process;
 public interface CommandLineArgumentProvider {
     /**
      * The arguments which will be provided to the process.
+     * @since 4.6
      */
     Iterable<String> asArguments();
 }

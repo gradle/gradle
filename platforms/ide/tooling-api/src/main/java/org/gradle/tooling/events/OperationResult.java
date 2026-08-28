@@ -30,6 +30,7 @@ public interface OperationResult {
      * Returns the time when the operation started its execution.
      *
      * @return The start time, in milliseconds since the epoch.
+     * @since 2.4
      */
     long getStartTime();
 
@@ -37,6 +38,7 @@ public interface OperationResult {
      * Returns the time when the operation finished its execution.
      *
      * @return The end time, in milliseconds since the epoch.
+     * @since 2.4
      */
     long getEndTime();
 

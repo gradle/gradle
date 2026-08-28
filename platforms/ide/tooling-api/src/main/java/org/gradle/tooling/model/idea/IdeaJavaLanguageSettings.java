@@ -31,6 +31,7 @@ public interface IdeaJavaLanguageSettings {
      * Returns the Java language level.
      *
      * @return The language level, or {@code null} if this value should be inherited.
+     * @since 2.11
      */
     JavaVersion getLanguageLevel();
 
@@ -39,6 +40,7 @@ public interface IdeaJavaLanguageSettings {
      *
      * @return The target bytecode language level, or {@code null} if this value should be inherited.
      * @throws UnsupportedMethodException For provider Gradle versions older than 2.11, where this method is not supported.
+     * @since 2.11
      */
     JavaVersion getTargetBytecodeVersion() throws UnsupportedMethodException;
 
@@ -47,6 +49,7 @@ public interface IdeaJavaLanguageSettings {
      *
      * @return The JDK, or {@code null} if this value should be inherited.
      * @throws UnsupportedMethodException For provider Gradle versions older than 2.11, where this method is not supported.
+     * @since 2.11
      */
     InstalledJdk getJdk() throws UnsupportedMethodException;
 }

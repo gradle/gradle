@@ -79,7 +79,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gretty = [
             [version: SMOKE_TESTED_PLUGINS.get("org.gretty"), servletContainer: "jetty12", javaMinVersion: JavaVersion.VERSION_17]
         ]
-        static gradleVersions = SMOKE_TESTED_PLUGINS.get("com.github.ben-manes.versions")
+        static gradleVersions = SMOKE_TESTED_PLUGINS.get("io.github.ben-manes.versions")
         static playframework = SMOKE_TESTED_PLUGINS.get("org.gradle.playframework")
         static errorProne = SMOKE_TESTED_PLUGINS.get("net.ltgt.errorprone")
         static protobufPlugin = SMOKE_TESTED_PLUGINS.get("com.google.protobuf")
@@ -90,6 +90,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleGitProperties = SMOKE_TESTED_PLUGINS.get("com.gorylenko.gradle-git-properties")
         static flyway = SMOKE_TESTED_PLUGINS.get("org.flywaydb.flyway")
         static detekt = SMOKE_TESTED_PLUGINS.get("dev.detekt")
+        static sigstore = SMOKE_TESTED_PLUGINS.get("dev.sigstore.sign")
         static spotless = SMOKE_TESTED_PLUGINS.get("com.diffplug.spotless")
         static jib = SMOKE_TESTED_PLUGINS.get("com.google.cloud.tools.jib")
         static lombok = SMOKE_TESTED_PLUGINS.get("io.freefair.lombok")

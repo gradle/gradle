@@ -29,6 +29,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents an orderEntry of type module-library in the iml XML.
+ * @since 1.0
  */
 public class ModuleLibrary implements Dependency {
 
@@ -39,6 +40,11 @@ public class ModuleLibrary implements Dependency {
     private String scope;
     private boolean exported;
 
+    /**
+     * Creates a new {@code ModuleLibrary}.
+     *
+     * @since 1.0
+     */
     public ModuleLibrary(Collection<? extends Path> classes, Collection<? extends Path> javadoc, Collection<? extends Path> sources, Collection<JarDirectory> jarDirectories, String scope) {
         this.classes = Sets.newLinkedHashSet(classes);
         this.jarDirectories = Sets.newLinkedHashSet(jarDirectories);
@@ -50,44 +56,68 @@ public class ModuleLibrary implements Dependency {
 
     /**
      * A set of Jar files or directories containing compiled code.
+     * @since 1.0
      */
     public Set<Path> getClasses() {
         return classes;
     }
 
+    /**
+     * Sets the classes.
+     *
+     * @since 1.0
+     */
     public void setClasses(Set<Path> classes) {
         this.classes = classes;
     }
 
     /**
      * A set of directories containing Jar files.
+     * @since 1.0
      */
     public Set<JarDirectory> getJarDirectories() {
         return jarDirectories;
     }
 
+    /**
+     * Sets the jar directories.
+     *
+     * @since 1.0
+     */
     public void setJarDirectories(Set<JarDirectory> jarDirectories) {
         this.jarDirectories = jarDirectories;
     }
 
     /**
      * A set of Jar files or directories containing Javadoc.
+     * @since 1.0
      */
     public Set<Path> getJavadoc() {
         return javadoc;
     }
 
+    /**
+     * Sets the javadoc.
+     *
+     * @since 1.0
+     */
     public void setJavadoc(Set<Path> javadoc) {
         this.javadoc = javadoc;
     }
 
     /**
      * A set of Jar files or directories containing source code.
+     * @since 1.0
      */
     public Set<Path> getSources() {
         return sources;
     }
 
+    /**
+     * Sets the sources.
+     *
+     * @since 1.0
+     */
     public void setSources(Set<Path> sources) {
         this.sources = sources;
     }
@@ -107,11 +137,17 @@ public class ModuleLibrary implements Dependency {
 
     /**
      * Whether the library is exported to dependent modules.
+     * @since 1.0
      */
     public boolean isExported() {
         return exported;
     }
 
+    /**
+     * Sets the exported.
+     *
+     * @since 1.0
+     */
     public void setExported(boolean exported) {
         this.exported = exported;
     }

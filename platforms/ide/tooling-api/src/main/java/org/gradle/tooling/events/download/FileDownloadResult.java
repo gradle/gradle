@@ -26,6 +26,7 @@ import org.gradle.tooling.events.OperationResult;
 public interface FileDownloadResult extends OperationResult {
     /**
      * Returns the total download size. Note that this might not be the same as the file size.
+     * @since 7.3
      */
     long getBytesDownloaded();
 }

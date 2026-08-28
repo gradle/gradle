@@ -24,6 +24,7 @@ import org.gradle.platform.base.PlatformAwareComponentSpec;
  * This functionality is a temporary workaround to eliminate configuration of unnecessary domain objects and tasks.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating @HasInternalProtocol
 @Deprecated
@@ -31,11 +32,13 @@ public interface TargetedNativeComponent extends PlatformAwareComponentSpec, Nat
 
     /**
      * Specifies the names of one or more {@link Flavor}s that this component should be built for.
+     * @since 2.2
      */
     void targetFlavors(String... flavorSelectors);
 
     /**
      * Specifies the names of one or more {@link BuildType}s that this component should be built for.
+     * @since 2.2
      */
     void targetBuildTypes(String... buildTypeSelectors);
 

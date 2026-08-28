@@ -34,6 +34,7 @@ public interface BuildTask {
      * This value corresponds to the value output by Gradle for the task during its normal progress logging.
      *
      * @return the task path
+     * @since 2.6
      */
     String getPath();
 
@@ -41,6 +42,7 @@ public interface BuildTask {
      * The outcome of attempting to execute this task.
      *
      * @return the task outcome
+     * @since 2.6
      */
     TaskOutcome getOutcome();
 }

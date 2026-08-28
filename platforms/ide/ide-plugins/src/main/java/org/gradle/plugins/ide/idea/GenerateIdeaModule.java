@@ -34,6 +34,7 @@ import java.io.File;
  * At this moment nearly all configuration is done via {@link IdeaModule}.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -41,6 +42,11 @@ public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     private IdeaModule module;
 
+    /**
+     * Creates a new {@code GenerateIdeaModule}.
+     *
+     * @since 1.0
+     */
     public GenerateIdeaModule() {}
 
     @Inject
@@ -95,12 +101,18 @@ public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     /**
      * The Idea module model containing the details required to generate the module file.
+     * @since 1.0
      */
     @Internal
     public IdeaModule getModule() {
         return module;
     }
 
+    /**
+     * Sets the module.
+     *
+     * @since 1.0
+     */
     public void setModule(IdeaModule module) {
         this.module = module;
     }

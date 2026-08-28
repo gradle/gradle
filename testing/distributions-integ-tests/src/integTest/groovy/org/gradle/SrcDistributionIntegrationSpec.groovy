@@ -16,6 +16,7 @@
 
 package org.gradle
 
+import spock.lang.Ignore
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
@@ -45,6 +46,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         0
     }
 
+    @Ignore("Disabled on xdcl/release: the source zip cannot carry the xdcl composite checkout the build requires")
     @Requires(OsTestPreconditions.NotWindows)
     def sourceZipContents() {
         given:

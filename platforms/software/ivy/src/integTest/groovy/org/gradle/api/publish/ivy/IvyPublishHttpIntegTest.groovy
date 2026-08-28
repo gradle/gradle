@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.eclipse.jetty.http.HttpStatus
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
@@ -76,11 +75,11 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             module.jar.sha256.expectPut()
             module.jar.sha512.expectPut()
         }
-        module.ivy.expectPut(HttpStatus.CREATED_201)
-        module.ivy.sha1.expectPut(HttpStatus.CREATED_201)
+        module.ivy.expectPut(201)
+        module.ivy.sha1.expectPut(201)
         if (extraChecksums) {
-            module.ivy.sha256.expectPut(HttpStatus.CREATED_201)
-            module.ivy.sha512.expectPut(HttpStatus.CREATED_201)
+            module.ivy.sha256.expectPut(201)
+            module.ivy.sha512.expectPut(201)
         }
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
@@ -251,7 +250,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         then:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\' (registered by plugin \'org.gradle.ivy-publish\').')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(CoreMatchers.containsString('Received status code 500 from server: broken'))
+        failure.assertThatCause(CoreMatchers.containsString('Received status code 500 from server: Internal Server Error'))
 
         when:
         server.stop()
@@ -429,10 +428,10 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         module.jar.sha512.expectPut()
 
         module.ivy.expectPutBroken()
-        module.ivy.expectPut(HttpStatus.CREATED_201)
-        module.ivy.sha1.expectPut(HttpStatus.CREATED_201)
-        module.ivy.sha256.expectPut(HttpStatus.CREATED_201)
-        module.ivy.sha512.expectPut(HttpStatus.CREATED_201)
+        module.ivy.expectPut(201)
+        module.ivy.sha1.expectPut(201)
+        module.ivy.sha256.expectPut(201)
+        module.ivy.sha512.expectPut(201)
 
         module.moduleMetadata.expectPutBroken()
         module.moduleMetadata.expectPut()

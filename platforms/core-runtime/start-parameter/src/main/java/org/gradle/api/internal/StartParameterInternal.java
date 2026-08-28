@@ -23,6 +23,7 @@ import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
@@ -33,6 +34,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class StartParameterInternal extends StartParameter {
+    private static final ThreadLocal<Boolean> LISTENER_SUPPRESSED = new ThreadLocal<>();
+
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
     private boolean vfsVerboseLogging;
 
@@ -42,6 +45,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
     private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
+    private boolean configurationCacheSkipTaskLoggingListenersSerialization = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheParallel;
@@ -63,11 +67,15 @@ public class StartParameterInternal extends StartParameter {
     private Option.Value<Boolean> parallelToolingModelBuilding = Option.Value.defaultValue(false);
     private @Nullable String develocityUrl;
     private @Nullable String develocityPluginVersion;
+    private boolean sharedMavenMirrorSettings = false;
     // Runtime-only wiring, deliberately transient: a StartParameter captured in task state must be
     // serializable to the configuration cache without dragging the listener (and its services) along.
     private transient @Nullable Consumer<String> mutationListener;
+    private boolean buildCacheEnabledConfiguredByBuildLogic = false;
 
     public StartParameterInternal() {
+        // Delegate to the protected constructor rather than the deprecated no-arg super().
+        this(new BuildLayoutParameters());
     }
 
     protected StartParameterInternal(BuildLayoutParameters layoutParameters) {
@@ -98,24 +106,87 @@ public class StartParameterInternal extends StartParameter {
     @Override
     protected void onMutableCall(String methodSignature) {
         Consumer<String> listener = this.mutationListener;
-        if (listener != null) {
+        if (listener != null && LISTENER_SUPPRESSED.get() == null) {
             listener.accept(methodSignature);
         }
     }
 
-    @Override
-    public StartParameterInternal newInstance() {
-        return (StartParameterInternal) prepareNewInstance(new StartParameterInternal());
+    /**
+     * Runs the action without notifying the mutation listener, so internal machinery can go through the
+     * public setters without its own mutations being reported as violations.
+     */
+    private static void withoutMutationListener(Runnable action) {
+        LISTENER_SUPPRESSED.set(Boolean.TRUE);
+        try {
+            action.run();
+        } finally {
+            LISTENER_SUPPRESSED.remove();
+        }
+    }
+
+    /**
+     * Sets build cache enablement from a source other than user build logic
+     */
+    public void setBuildCacheEnabledInternal(boolean buildCacheEnabled, boolean configuredByBuildLogic) {
+        withoutMutationListener(() -> super.setBuildCacheEnabled(buildCacheEnabled));
+        this.buildCacheEnabledConfiguredByBuildLogic = configuredByBuildLogic;
     }
 
     @Override
+    public void setBuildCacheEnabled(boolean buildCacheEnabled) {
+        super.setBuildCacheEnabled(buildCacheEnabled);
+        this.buildCacheEnabledConfiguredByBuildLogic = true;
+        StartParameterDeprecations.nagOnSetBuildCacheEnabled();
+    }
+
+    /**
+     * Is build cache flag set by build logic?
+     */
+    public boolean isBuildCacheEnabledConfiguredByBuildLogic() {
+        return buildCacheEnabledConfiguredByBuildLogic;
+    }
+
+    // The public copy methods are deprecated. They are still reached at runtime via a StartParameter
+    // reference to the (internal) running build's start parameter, so the overrides must nag too;
+    // internal code calls newInstanceInternal()/newBuildInternal() instead, which do not nag.
+    @Override
+    @SuppressWarnings("deprecation")
+    public StartParameterInternal newInstance() {
+        StartParameterDeprecations.nagOnStartParameterCopy("newInstance()");
+        return newInstanceInternal();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
     public StartParameterInternal newBuild() {
+        StartParameterDeprecations.nagOnStartParameterCopy("newBuild()");
+        return newBuildInternal();
+    }
+
+    public StartParameterInternal newInstanceInternal() {
+        return (StartParameterInternal) prepareNewInstance(new StartParameterInternal());
+    }
+
+    public StartParameterInternal newBuildInternal() {
         return prepareNewBuild(new StartParameterInternal());
+    }
+
+    public StartParameterInternal newNestedBuildInternal() {
+        return prepareNewBuild(new NestedBuildStartParameter());
+    }
+
+    private static class NestedBuildStartParameter extends StartParameterInternal {
+        @Override
+        public void setBuildCacheEnabled(boolean buildCacheEnabled) {
+            DeprecationLogger.whileDisabled(() -> super.setBuildCacheEnabled(buildCacheEnabled));
+        }
     }
 
     @Override
     protected StartParameterInternal prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
+        // super copies the buildCacheEnabled value; carry over its provenance too so a copy equals the original.
+        p.buildCacheEnabledConfiguredByBuildLogic = buildCacheEnabledConfiguredByBuildLogic;
         p.watchFileSystemMode = watchFileSystemMode;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
@@ -124,6 +195,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
         p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
+        p.configurationCacheSkipTaskLoggingListenersSerialization = configurationCacheSkipTaskLoggingListenersSerialization;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheReadOnly = configurationCacheReadOnly;
@@ -140,6 +212,7 @@ public class StartParameterInternal extends StartParameter {
         p.enableProblemReportGeneration = enableProblemReportGeneration;
         p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         p.parallelToolingModelBuilding = parallelToolingModelBuilding;
+        p.sharedMavenMirrorSettings = sharedMavenMirrorSettings;
         return p;
     }
 
@@ -269,6 +342,15 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
         return configurationCacheIgnoreUnsupportedBuildEventsListeners;
+    }
+
+    public void setConfigurationCacheSkipTaskLoggingListenersSerialization(boolean configurationCacheSkipTaskLoggingListenersSerialization) {
+        onMutableCall("setConfigurationCacheSkipTaskLoggingListenersSerialization(boolean)");
+        this.configurationCacheSkipTaskLoggingListenersSerialization = configurationCacheSkipTaskLoggingListenersSerialization;
+    }
+
+    public boolean isConfigurationCacheSkipTaskLoggingListenersSerialization() {
+        return configurationCacheSkipTaskLoggingListenersSerialization;
     }
 
     public boolean isConfigurationCacheParallel() {
@@ -414,6 +496,18 @@ public class StartParameterInternal extends StartParameter {
     public void setDaemonJvmCriteriaConfigured(boolean daemonJvmCriteriaConfigured) {
         onMutableCall("setDaemonJvmCriteriaConfigured(boolean)");
         this.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
+    }
+
+    /**
+     * Whether the mirrors and server entries of the local Maven settings.xml apply to this build's Maven repositories.
+     */
+    public boolean isSharedMavenMirrorSettings() {
+        return sharedMavenMirrorSettings;
+    }
+
+    public void setSharedMavenMirrorSettings(boolean sharedMavenMirrorSettings) {
+        onMutableCall("setSharedMavenMirrorSettings(boolean)");
+        this.sharedMavenMirrorSettings = sharedMavenMirrorSettings;
     }
 
     public Option.Value<Boolean> getParallelToolingModelBuilding() {

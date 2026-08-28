@@ -501,7 +501,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should be integrated into plugins
     For more information, please refer to https://example.com/some-problem.
-    Location: /path/to/script line 20
+    Location: /path/to/script:20
     Possible solution: Look up the samples index for real-life examples.
         """
         verifyAll(receivedProblem) {
@@ -529,6 +529,32 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         then:
         errorOutput.count(solution) == 1
         errorOutput.count(docLink) == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35699")
+    def "cli rendering preserves the order they were emitted"() {
+        given:
+        disableProblemsApiCheck()
+        withReportProblemTask """
+            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("sample-problems", "Sample Problems")
+            def reporter = problems.getReporter()
+            def orderedProblems = ['a', 'b', 'c', 'e', 'd'].collect { letter ->
+                ${ProblemId.name} id = ${ProblemId.name}.create("problem-" + letter, "Problem " + letter, problemGroup)
+                reporter.create(id) { spec ->
+                    spec.contextualLabel("Context " + letter)
+                }
+            }
+            throw reporter.throwing(new RuntimeException("Multiple problems reported"), orderedProblems)
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        def out = errorOutput
+        def positions = ['a', 'b', 'c', 'e', 'd'].collect { out.indexOf("Problem $it") }
+        System.err.println(positions)
+        positions == positions.toSorted()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/36719")

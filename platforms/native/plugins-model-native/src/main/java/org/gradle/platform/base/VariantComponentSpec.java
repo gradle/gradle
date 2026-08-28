@@ -23,12 +23,14 @@ import org.gradle.model.ModelMap;
  * Represents a component spec that is made up of one or more mutually exclusive variants.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.12
  */
 @Incubating
 @Deprecated
 public interface VariantComponentSpec extends ComponentSpec, VariantComponent {
     /**
      * The variants produced for this component spec.
+     * @since 2.12
      */
     ModelMap<BinarySpec> getBinaries();
 }

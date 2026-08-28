@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instantiation.managed
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationAction
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -510,6 +511,9 @@ class ManagedObjectRegistryTest extends Specification {
     }
 
     def "fails to create registry with private provider"() {
+        given:
+        def access = JavaVersion.current() >= JavaVersion.VERSION_27 ? 'public access' : 'modifiers "public"'
+
         when:
         registryOf {
             it.add(PrivateProvider)
@@ -518,7 +522,7 @@ class ManagedObjectRegistryTest extends Specification {
         then:
         def e = thrown(RuntimeException)
         e.message == "Could not create service of type ManagedObjectRegistryTest\$PrivateProvider."
-        e.cause.message == 'class org.gradle.internal.service.DefaultServiceRegistry$ConstructorService cannot access a member of class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest$PrivateProvider with modifiers "public"'
+        e.cause.message == "class org.gradle.internal.service.DefaultServiceRegistry\$ConstructorService cannot access a member of class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest\$PrivateProvider with $access"
     }
 
 

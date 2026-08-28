@@ -26,6 +26,7 @@ public interface TaskSelector extends Launchable {
      * Returns the name that will be used to select tasks.
      *
      * @return The name used by this selector.
+     * @since 1.12
      */
     String getName();
 }

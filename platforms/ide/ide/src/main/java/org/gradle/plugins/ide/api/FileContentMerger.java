@@ -25,24 +25,45 @@ import org.gradle.util.internal.ConfigureUtil;
  * <p>
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}
  * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
+ * @since 1.0
  */
 public class FileContentMerger {
 
     private MutableActionSet whenMerged = new MutableActionSet();
     private MutableActionSet beforeMerged = new MutableActionSet();
 
+    /**
+     * Returns the when merged.
+     *
+     * @since 1.0
+     */
     public MutableActionSet getWhenMerged() {
         return whenMerged;
     }
 
+    /**
+     * Sets the when merged.
+     *
+     * @since 3.5
+     */
     public void setWhenMerged(MutableActionSet whenMerged) {
         this.whenMerged = whenMerged;
     }
 
+    /**
+     * Returns the before merged.
+     *
+     * @since 1.0
+     */
     public MutableActionSet getBeforeMerged() {
         return beforeMerged;
     }
 
+    /**
+     * Sets the before merged.
+     *
+     * @since 3.5
+     */
     public void setBeforeMerged(MutableActionSet beforeMerged) {
         this.beforeMerged = beforeMerged;
     }
@@ -58,6 +79,7 @@ public class FileContentMerger {
      * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param action The action to execute.
+     * @since 3.0
      */
     @SuppressWarnings("unchecked")
     public void beforeMerged(Action<?> action) {
@@ -74,6 +96,7 @@ public class FileContentMerger {
      * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param action The action to execute.
+     * @since 3.0
      */
     @SuppressWarnings("unchecked")
     public void whenMerged(Action<?> action) {
@@ -90,6 +113,7 @@ public class FileContentMerger {
      * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param closure The closure to execute.
+     * @since 1.0
      */
     @SuppressWarnings("unchecked")
     public void beforeMerged(Closure closure) {
@@ -106,6 +130,7 @@ public class FileContentMerger {
      * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param closure The closure to execute.
+     * @since 1.0
      */
     @SuppressWarnings("unchecked")
     public void whenMerged(Closure closure) {

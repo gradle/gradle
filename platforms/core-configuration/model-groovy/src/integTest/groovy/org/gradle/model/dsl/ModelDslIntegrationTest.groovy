@@ -60,6 +60,8 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "printStrings"
         output.contains "strings: [foo]"
     }
@@ -98,6 +100,8 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "printStrings"
         output.contains "strings: " + ["foo"]
     }
@@ -132,6 +136,8 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "printStrings"
         output.contains "strings: " + ["foo", "bar"]
     }
@@ -168,6 +174,8 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "assertDuplicateInputIsSameObject"
     }
 
@@ -183,6 +191,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectModelDslDeprecation()
         fails "tasks"
         failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
 
@@ -206,12 +215,16 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
+        expectModelDslDeprecation()
         fails "tasks"
         failure.assertHasCause('Exception thrown while executing model rule: tasks { ... } @ build.gradle line 3, column 15')
     }
 
     def "can use model block in script plugin"() {
         given:
+        // Multiple projects apply the model DSL / RuleSource; the exact dedup of the resulting
+        // deprecation warnings across projects is not stable, so just suppress the checks here.
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "include 'a'; include 'b'"
         when:
 
@@ -263,5 +276,13 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printStrings"
         output.contains "a: " + ["foo", "a"]
         output.contains "b: " + ["foo", "b"]
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

@@ -1,0 +1,9 @@
+> Task :writeVersion
+
+> Task :report
+Project: favor-collection-properties-do
+Built with Gradle
+Version: 1.0
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 executed

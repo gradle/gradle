@@ -1,0 +1,21 @@
+abstract class GenerateReportTask extends DefaultTask {
+    @Input
+    abstract Property<String> getTitle()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @TaskAction
+    void run() {
+        output.get().asFile.text = "Title: ${title.get()}"
+    }
+}
+
+// tag::do[]
+tasks.register('generateReport', GenerateReportTask) {
+    title = providers.fileContents(layout.projectDirectory.file('config/title.txt')) // <1>
+        .asText
+        .map { it.trim() } // <2>
+    output = layout.buildDirectory.file('report.txt')
+}
+// end::do[]

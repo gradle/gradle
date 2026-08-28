@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 /**
  * Compiles C++ source files into object files.
+ * @since 2.2
  */
 @CacheableTask
 public abstract class CppCompile extends AbstractNativeSourceCompileTask {

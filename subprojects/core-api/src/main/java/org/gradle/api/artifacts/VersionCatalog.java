@@ -50,6 +50,7 @@ public interface VersionCatalog extends Named {
      * Note: Bundle will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
      * @param alias the alias of the bundle
+     * @since 7.0
      */
     Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String alias);
 
@@ -59,6 +60,7 @@ public interface VersionCatalog extends Named {
      * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
      * @param alias the alias of the version
+     * @since 7.0
      */
     Optional<VersionConstraint> findVersion(String alias);
 

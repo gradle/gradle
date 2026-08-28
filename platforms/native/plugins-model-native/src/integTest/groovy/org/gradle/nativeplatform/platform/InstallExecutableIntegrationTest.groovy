@@ -33,6 +33,7 @@ class InstallExecutableIntegrationTest extends AbstractInstalledToolChainIntegra
     def os = OperatingSystem.current()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 plugins {
     id 'cpp'

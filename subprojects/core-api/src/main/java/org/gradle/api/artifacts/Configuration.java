@@ -48,6 +48,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * Read more about declaring artifacts in the configuration in docs for {@link org.gradle.api.artifacts.dsl.ArtifactHandler}
  *
  * Please see the <a href="https://docs.gradle.org/current/userguide/declaring_dependencies.html" target="_top">Declaring Dependencies</a> User Manual chapter for more information.
+ * @since 0.7
  */
 @HasInternalProtocol
 public interface Configuration extends FileCollection, HasConfigurableAttributes<Configuration>, Named {
@@ -60,7 +61,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @implSpec Usage: This method should only be called on resolvable configurations, but will not warn if used otherwise.
      *
      * @return resolution strategy
-     * @since 1.0-milestone-6
+     * @since 1.0
      */
     ResolutionStrategy getResolutionStrategy();
 
@@ -72,7 +73,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param closure closure applied to the {@link ResolutionStrategy}
      * @return this configuration instance
-     * @since 1.0-milestone-6
+     * @since 1.0
      */
     Configuration resolutionStrategy(@DelegatesTo(value = ResolutionStrategy.class, strategy = DELEGATE_FIRST) Closure closure);
 
@@ -91,8 +92,21 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * The states a configuration can be into. A configuration is only mutable as long as it is
      * in the unresolved state.
+     * @since 0.7
      */
-    enum State { UNRESOLVED, RESOLVED, RESOLVED_WITH_FAILURES }
+    enum State {
+    /**
+     * @since 0.7
+     */
+    UNRESOLVED,
+    /**
+     * @since 0.7
+     */
+    RESOLVED,
+    /**
+     * @since 0.7
+     */
+    RESOLVED_WITH_FAILURES }
 
     /**
      * Returns the state of the configuration.
@@ -101,6 +115,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @see org.gradle.api.artifacts.Configuration.State
      * @return The state of the configuration
+     * @since 0.7
      */
     State getState();
 
@@ -113,6 +128,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * a configuration, or if it is accessible between projects.
      *
      * @deprecated This property is deprecated and will be removed in Gradle 10.
+     * @since 0.7
      */
     @Deprecated
     boolean isVisible();
@@ -123,6 +139,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param visible the value to set.
      * @deprecated This property is deprecated and will be removed in Gradle 10.
+     * @since 0.7
      */
     @Deprecated
     Configuration setVisible(boolean visible);
@@ -132,6 +149,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * configurations are also available in this configuration.
      *
      * @return The super configurations. Returns an empty set when this configuration does not extend any others.
+     * @since 0.7
      */
     Set<Configuration> getExtendsFrom();
 
@@ -142,6 +160,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param superConfigs The super configuration. Should not be null.
      * @return this configuration
+     * @since 2.1
      */
     Configuration setExtendsFrom(Iterable<Configuration> superConfigs);
 
@@ -152,6 +171,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param superConfigs The super configurations.
      * @return this configuration
+     * @since 0.7
      */
     Configuration extendsFrom(Configuration... superConfigs);
 
@@ -175,6 +195,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * dependencies. The default value is true.
      *
      * @return true if this is a transitive configuration, false otherwise.
+     * @since 0.7
      */
     boolean isTransitive();
 
@@ -184,6 +205,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param t true if this is a transitive configuration.
      * @return this configuration
+     * @since 0.7
      */
     Configuration setTransitive(boolean t);
 
@@ -191,6 +213,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * Returns the description for this configuration.
      *
      * @return the description. May be null.
+     * @since 0.7
      */
     @Nullable
     String getDescription();
@@ -200,6 +223,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param description the description. May be null
      * @return this configuration
+     * @since 0.7
      */
     Configuration setDescription(@Nullable String description);
 
@@ -207,6 +231,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * Gets an ordered set including this configuration and all superconfigurations
      * recursively.
      * @return the set of all configurations
+     * @since 0.7
      */
     Set<Configuration> getHierarchy();
 
@@ -218,6 +243,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @return The files of this configuration.
+     * @since 0.7
      */
     Set<File> resolve();
 
@@ -233,6 +259,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * allowed this usage but marked it as deprecated.
      *
      * @return The ResolvedConfiguration object
+     * @since 0.7
      */
     ResolvedConfiguration getResolvedConfiguration();
 
@@ -259,6 +286,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return the populated TaskDependency object
      *
      * @deprecated This method will be removed in Gradle 10.
+     * @since 0.8
      */
     @Deprecated
     TaskDependency getTaskDependencyFromProjectDependency(boolean useDependedOn, final String taskName);
@@ -274,6 +302,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @return the set of dependencies
      * @see #extendsFrom(Configuration...)
+     * @since 0.7
      */
     DependencySet getDependencies();
 
@@ -286,6 +315,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @return the (read-only) set of dependencies
      * @see #extendsFrom(Configuration...)
+     * @since 0.7
      */
     DependencySet getAllDependencies();
 
@@ -329,6 +359,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @implSpec Usage: This method should only be called on consumable configurations, but will not warn if used otherwise.
      *
      * @return The set.
+     * @since 0.7
      */
     PublishArtifactSet getArtifacts();
 
@@ -336,6 +367,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * Returns the artifacts of this configuration including the artifacts of extended configurations.
      *
      * @return The (read-only) set.
+     * @since 0.7
      */
     PublishArtifactSet getAllArtifacts();
 
@@ -344,6 +376,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @see #exclude(java.util.Map)
      * @return The exclude rules
+     * @since 0.7
      */
     Set<ExcludeRule> getExcludeRules();
 
@@ -353,6 +386,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param excludeProperties the properties to define the exclude rule.
      * @return this
+     * @since 0.7
      */
     Configuration exclude(Map<String, String> excludeProperties);
 
@@ -384,6 +418,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param action the action to execute when the configuration has no defined dependencies.
      * @return this
+     * @since 2.5
      */
     Configuration defaultDependencies(Action<? super DependencySet> action);
 
@@ -462,6 +497,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @implSpec Usage: This method should only be called on consumable and resolvable configurations, but will not warn if used otherwise.
      *
      * @return An object that exposes the results of dependency resolution.
+     * @since 1.0
      */
     ResolvableDependencies getIncoming();
 
@@ -500,6 +536,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @return copy of this configuration
+     * @since 0.7
      */
     Configuration copy();
 
@@ -516,6 +553,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @return copy of this configuration
+     * @since 0.7
      */
     Configuration copyRecursive();
 
@@ -531,6 +569,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
+     * @since 0.7
      */
     Configuration copy(Spec<? super Dependency> dependencySpec);
 
@@ -546,6 +585,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
+     * @since 0.7
      */
     Configuration copyRecursive(Spec<? super Dependency> dependencySpec);
 
@@ -560,6 +600,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
+     * @since 0.7
      */
     Configuration copy(Closure dependencySpec);
 
@@ -574,6 +615,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
+     * @since 0.7
      */
     Configuration copyRecursive(Closure dependencySpec);
 

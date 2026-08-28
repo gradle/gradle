@@ -38,12 +38,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
     api(testLibs.hamcrest)
-    api(testLibs.jettySecurity)
-    api(testLibs.jettyServer)
-    api(testLibs.jettyUtil)
     api(testLibs.junit)
     api(testLibs.samplesCheck)
-    api(testLibs.servletApi)
     api(testLibs.spock)
 
     implementation(projects.baseServicesGroovy)
@@ -54,6 +50,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.daemonLogging)
+    implementation(projects.daemonMessaging)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
@@ -68,6 +65,7 @@ dependencies {
     implementation(projects.time)
     implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
+    implementation(projects.workerShared)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -77,16 +75,15 @@ dependencies {
     implementation(libs.jcifs)
     implementation(libs.nativePlatform)
     implementation(testLibs.ansiControlSequenceUtil)
-    implementation(testLibs.jetty)
 
     compileOnly(libs.jetbrainsAnnotations)
     compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
-    constraints {
-        implementation(testLibs.jettyWebsocket)
-    }
+    // Javadoc-only: for {@link} references to types in internal-integ-testing and tooling-api test fixtures
+    javadocReferences(projects.internalIntegTesting)
+    javadocReferences(testFixtures(projects.toolingApi))
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
@@ -141,9 +138,3 @@ abstract class PrepareVersionsInfo : DefaultTask() {
         gradlebuild.basics.util.ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
-
