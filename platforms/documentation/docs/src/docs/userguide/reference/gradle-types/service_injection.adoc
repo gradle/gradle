@@ -179,12 +179,12 @@ These bounds are enforced at compile time in the Kotlin DSL and Java plugin code
 | <<providerfactory,`ProviderFactory`>>           | ✓ | ✓   | ✓ | ✓
 | <<filesystemoperations,`FileSystemOperations`>> | ✓ | ✓   | ✓ | ✓
 | <<archiveoperations,`ArchiveOperations`>>       | ✓ | ✓   | ✓ | ✓
-| <<execoperations,`ExecOperations`>>             |   | ✓ * |   |
+| <<execoperations,`ExecOperations`>>             |   | ✓ † |   |
 | <<sec:projectlayout,`ProjectLayout`>>           | ✓ | ✓   |   |
 | <<buildlayout,`BuildLayout`>>                   |   |     | ✓ |
 |===
 
-*`ExecOperations` is the only lookup restricted to task actions (via `Task.service`, not from a project, settings, or init script).
+† `ExecOperations` is the only lookup restricted to task actions (via `Task.service`, not from a project, settings, or init script).
 
 Relative paths passed to a looked-up `FileSystemOperations` or `ArchiveOperations` are resolved the same way as for the enclosing scope: against the project directory for a project script or task action, and against the build's root directory for a settings or init script.
 
@@ -192,7 +192,7 @@ Relative paths passed to a looked-up `FileSystemOperations` or `ArchiveOperation
 
 In the Kotlin DSL and Java plugin code, requesting a service outside its scope, or a type that is not a Gradle service at all, is a compile error.
 
-In the Groovy DSL, and whenever the type is supplied reflectively as a `Class`, that bound is not enforced statically.
+In the Groovy DSL — and whenever the type is supplied reflectively as a `Class` — that bound is not enforced statically.
 The request instead fails at runtime with an `InvalidUserDataException`.
 The message adapts to the failure:
 
