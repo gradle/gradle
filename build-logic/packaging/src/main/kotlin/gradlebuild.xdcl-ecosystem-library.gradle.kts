@@ -25,6 +25,7 @@
  */
 
 import gradlebuild.xdcl.excludeGeneratedXdclSourcesFromChecks
+import gradlebuild.xdcl.publishGeneratedXdclSources
 
 plugins {
     `java-library`
@@ -33,6 +34,7 @@ plugins {
 }
 
 excludeGeneratedXdclSourcesFromChecks()
+publishGeneratedXdclSources()
 
 // External (org.xdcl) facade base types the generated facades extend; `api` so consumers of the
 // published library get them transitively.
