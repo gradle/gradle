@@ -17,6 +17,7 @@
 import gradlebuild.xdcl.GenerateXdclCarrierManifests
 import gradlebuild.xdcl.XdclBuiltinEcosystemExtension
 import gradlebuild.xdcl.excludeGeneratedXdclSourcesFromChecks
+import gradlebuild.xdcl.publishGeneratedXdclSources
 
 /**
  * Packs the per-carrier manifests into a distribution ecosystem plugin jar. For every plugin carrier
@@ -38,6 +39,7 @@ plugins {
 }
 
 excludeGeneratedXdclSourcesFromChecks()
+publishGeneratedXdclSources()
 
 // Every built-in ecosystem carrier's generated carrier + its reactions reference org.gradle.api.xdcl.*
 // (Reaction/ReactionScope/BindReaction/PluginDefaults). It is Gradle API in the distribution at runtime,

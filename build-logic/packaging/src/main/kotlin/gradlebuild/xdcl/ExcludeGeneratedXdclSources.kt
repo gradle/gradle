@@ -34,3 +34,33 @@ fun Project.excludeGeneratedXdclSourcesFromChecks() {
         exclude { it.file.absolutePath.contains("/generated/xdcl/") }
     }
 }
+
+/**
+ * Puts `xdclCodegen`'s output in the `gradle-source-folders` variant, alongside the hand-written
+ * source roots under `src/main`.
+ *
+ * `gradlebuild.unittest-and-compile` fills that variant when it is applied, which is before
+ * `xdcl-gradle-plugin` adds the codegen output to `main.java` — so the generated facades are in the
+ * jar but their source is in no advertised root. The binary compatibility checks look up the source
+ * of every API class they report on and fail outright when one cannot be found, which is what a
+ * generated facade was.
+ *
+ * The artifacts carry `xdclCodegen` as their builder: the variant is resolved by tasks in other
+ * projects (`:docs:dslMetaData`, `:architecture-test:checkSinceForNonPublicApi`), and a plain
+ * directory would leave them reading an output nothing told them to wait for.
+ *
+ * The layout mirrors `XdclGradlePlugin`, which registers `<outputDir>/java` and
+ * `<outputDir>/resources` as source directories under a `build/generated/xdcl` convention —
+ * the same path this file's check exclusions already match on.
+ */
+fun Project.publishGeneratedXdclSources() {
+    val codegen = tasks.named("xdclCodegen")
+    val generated = layout.buildDirectory.dir("generated/xdcl")
+    configurations.matching { it.name == "transitiveSourcesElements" }.configureEach {
+        for (name in listOf("java", "resources")) {
+            outgoing.artifact(generated.map { directory -> directory.dir(name) }) {
+                builtBy(codegen)
+            }
+        }
+    }
+}

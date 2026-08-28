@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 /**
  * The Kotlin face of the built-in plugin-development ecosystem, end-to-end against a real
@@ -33,6 +35,10 @@ import org.gradle.test.fixtures.archive.JarTestFixture
  * Kotlin artifacts from the (mirrored) Maven Central — the same repositories any build applying a
  * Kotlin plugin uses.
  */
+@Requires(
+    value = JdkVersionTestPreconditions.KotlinSupportedJdk,
+    reason = "The Kotlin compiler falls back to its highest known JVM target on a newer JDK, which the Kotlin plugin then rejects as inconsistent with javac's"
+)
 class XdclGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrationSpec {
 
     private static String settingsWithToolchain(String toolchainRequest) {
