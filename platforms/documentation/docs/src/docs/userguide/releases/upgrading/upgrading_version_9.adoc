@@ -67,7 +67,7 @@ Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0
 ==== New `service(Class)` method on `Project`, `Settings`, `Gradle`, and `Task`
 
 Gradle 9.8.0 adds an incubating `service(Class)` method to link:{javadocPath}/org/gradle/api/Project.html[`Project`], link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`], link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`], and link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with reified `service<T>()` extensions in the Kotlin DSL.
-See <<service_injection.adoc#looking_up_services,Looking up services in scripts>> for details.
+See <<service_injection.adoc#looking_up_services,Looking up services in scripts and task actions>> for details.
 
 If your build, plugin, or convention already exposes a member called `service` on one of these types (for example, a user-defined extension, a Groovy dynamic property, or a Kotlin extension function), the new built-in member may shadow it or make calls ambiguous.
 Rename your member (for example, to `myService`) to disambiguate:
