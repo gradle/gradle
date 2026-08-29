@@ -17,8 +17,6 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
-import org.codehaus.groovy.ast.ClassNode;
-import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.ClassPath;
@@ -47,11 +45,11 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
     }
 
     @Override
-    public void compileToDir(final ScriptSource source, final ClassLoader classLoader, final File classesDir, final File metadataDir, final CompileOperation<?> transformer, final Class<? extends Script> scriptBaseClass, final Action<? super ClassNode> verifier) {
+    public void compileToDir(final ScriptSource source, final ClassLoader classLoader, final File classesDir, final File metadataDir, final CompileOperation<?> transformer, final Class<? extends Script> scriptBaseClass) {
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                delegate.compileToDir(source, classLoader, classesDir, metadataDir, transformer, scriptBaseClass, verifier);
+                delegate.compileToDir(source, classLoader, classesDir, metadataDir, transformer, scriptBaseClass);
                 context.setResult(RESULT);
             }
 

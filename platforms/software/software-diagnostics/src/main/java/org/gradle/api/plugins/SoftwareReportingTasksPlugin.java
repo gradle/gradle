@@ -43,7 +43,7 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
     public void apply(Project project) {
         final TaskContainer tasks = project.getTasks();
 
-        // static classes are used for the actions to avoid implicitly dragging project/tasks into the model registry
+        // static classes are used for the actions to avoid implicitly capturing the project/tasks in the actions
         String projectName = project.toString();
 
         tasks.register(HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));

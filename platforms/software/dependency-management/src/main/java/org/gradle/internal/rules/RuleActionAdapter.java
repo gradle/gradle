@@ -23,7 +23,4 @@ public interface RuleActionAdapter {
     <T> RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure);
 
     <T> RuleAction<? super T> createFromAction(Action<? super T> action);
-
-    @Deprecated
-    <T> RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource);
 }

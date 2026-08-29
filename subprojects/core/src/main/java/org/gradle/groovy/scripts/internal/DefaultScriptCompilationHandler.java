@@ -20,7 +20,6 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
-import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
@@ -30,7 +29,6 @@ import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.problems.ProblemId;
@@ -104,7 +102,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
     @Override
     public void compileToDir(
         ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
-        Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier
+        Class<? extends Script> scriptBaseClass
     ) {
         Timer clock = Time.startTimer();
         try {
@@ -115,7 +113,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
         try {
-            compileScript(source, classLoader, configuration, metadataDir, extractingTransformer, verifier);
+            compileScript(source, classLoader, configuration, metadataDir, extractingTransformer);
         } catch (Exception e) {
             try {
                 getDeleter().deleteRecursively(classesDir);
@@ -131,7 +129,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
 
     private void compileScript(
         ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
-        final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier
+        final CompileOperation<?> extractingTransformer
     ) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
@@ -145,7 +143,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
                 CodeSource codeSource
             ) {
 
-                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, this, simpleNameToFQN);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);

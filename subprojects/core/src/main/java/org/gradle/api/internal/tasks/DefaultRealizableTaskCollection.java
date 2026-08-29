@@ -27,38 +27,23 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.type.ModelType;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingNamedDomainObjectSet<T> implements TaskCollection<T>, TaskDependencyContainer {
 
     private final Class<T> type;
-    private final AtomicBoolean realized = new AtomicBoolean();
-    private final MutableModelNode modelNode;
     private final Instantiator instantiator;
 
-    public DefaultRealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, MutableModelNode modelNode, Instantiator instantiator) {
+    public DefaultRealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, Instantiator instantiator) {
         super(delegate);
         assert !(delegate instanceof DefaultRealizableTaskCollection) : "Attempt to wrap already realizable task collection in realizable wrapper: " + delegate;
 
         this.type = type;
-        this.modelNode = modelNode;
         this.instantiator = instantiator;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        // Task dependencies may be calculated more than once.
-        // This guard is purely an optimisation.
-        if (modelNode != null && realized.compareAndSet(false, true)) {
-            modelNode.ensureAtLeast(ModelNode.State.SelfClosed);
-            for (MutableModelNode node : modelNode.getLinks(ModelType.of(type))) {
-                node.ensureAtLeast(ModelNode.State.GraphClosed);
-            }
-        }
         for (T t : this) {
             context.add(t);
         }
@@ -70,7 +55,7 @@ public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingN
     }
 
     private <S extends T> TaskCollection<S> realizable(Class<S> type, TaskCollection<S> collection) {
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, collection, modelNode, instantiator));
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, collection, instantiator));
     }
 
     @Override

@@ -47,7 +47,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
-import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
@@ -97,10 +96,6 @@ import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
 import org.gradle.internal.typeconversion.TypeConverter;
-import org.gradle.model.internal.inspect.ModelRuleExtractor;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.registry.DefaultModelRegistry;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.plugin.internal.PluginScheme;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrant;
@@ -215,8 +210,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         InstantiatorFactory instantiatorFactory,
         ServiceRegistry projectScopeServiceRegistry,
-        ModelRuleExtractor modelRuleExtractor,
-        ModelRuleSourceDetector modelRuleSourceDetector,
         PluginRegistry pluginRegistry,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
@@ -226,12 +219,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         ProblemsInternal problems
     ) {
 
-        PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
-            project,
-            new ImperativeOnlyPluginTarget<>(PluginTargetType.PROJECT, project, problems),
-            modelRuleExtractor,
-            modelRuleSourceDetector
-        );
+        PluginTarget pluginTarget = new ImperativeOnlyPluginTarget<>(PluginTargetType.PROJECT, project, problems);
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,
@@ -239,7 +227,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
                 instantiatorFactory.injectScheme().withServices(projectScopeServiceRegistry).instantiator(),
                 pluginScheme.getInstantiationScheme().withServices(projectScopeServiceRegistry).instantiator()
             ),
-            ruleBasedTarget,
+            pluginTarget,
             buildOperationRunner,
             userCodeApplicationContext,
             decorator,
@@ -292,11 +280,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected ProjectFinder createProjectFinder() {
         return new DefaultProjectFinder(project.getOwner().getIdentity());
-    }
-
-    @Provides
-    protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
-        return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> project.getOwner().applyToMutableState(p -> run.run()));
     }
 
     @Provides

@@ -106,9 +106,6 @@ import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory
-import org.gradle.model.internal.manage.schema.ModelSchemaStore
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -181,7 +178,6 @@ class DefaultProjectTest extends Specification {
     ProjectConfigurationActionContainer configureActions = Stub(ProjectConfigurationActionContainer)
     PluginManagerInternal pluginManager = Stub(PluginManagerInternal)
     PluginContainer pluginContainer = Stub(PluginContainer)
-    ManagedProxyFactory managedProxyFactory = Stub(ManagedProxyFactory)
     AttributesSchema attributesSchema = Stub(AttributesSchema)
     TextFileResourceLoader textResourceLoader = Stub(TextFileResourceLoader)
     ApiTextResourceAdapter.Factory textResourceAdapterFactory = Stub(ApiTextResourceAdapter.Factory)
@@ -243,7 +239,6 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) PluginManagerInternal) >> pluginManager
         serviceRegistryMock.get((Type) TextFileResourceLoader) >> textResourceLoader
         serviceRegistryMock.get((Type) ApiTextResourceAdapter.Factory) >> textResourceAdapterFactory
-        serviceRegistryMock.get(ManagedProxyFactory) >> managedProxyFactory
         serviceRegistryMock.get(AttributesSchema) >> attributesSchema
         serviceRegistryMock.get(BuildOperationRunner) >> buildOperationRunner
         serviceRegistryMock.get((Type) ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
@@ -263,13 +258,6 @@ class DefaultProjectTest extends Specification {
 
         serviceRegistryMock.get(ITaskFactory) >> Stub(ITaskFactory)
 
-        ModelRegistry modelRegistry = Stub(ModelRegistry)
-        serviceRegistryMock.get((Type) ModelRegistry) >> modelRegistry
-        serviceRegistryMock.get(ModelRegistry) >> modelRegistry
-
-        ModelSchemaStore modelSchemaStore = Stub(ModelSchemaStore)
-        serviceRegistryMock.get((Type) ModelSchemaStore) >> modelSchemaStore
-        serviceRegistryMock.get(ModelSchemaStore) >> modelSchemaStore
         serviceRegistryMock.get((Type) ProjectLayout) >> new DefaultProjectLayout(rootDir, rootDir, fileResolver, Stub(TaskDependencyFactory), Stub(PatternSetFactory), Stub(PropertyHost), Stub(FileCollectionFactory), TestFiles.filePropertyFactory(), TestFiles.fileFactory())
 
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)

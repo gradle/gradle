@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.project
 
-import org.gradle.api.PolymorphicDomainObjectContainer;
-
-import java.util.Set;
-
-public interface PolymorphicDomainObjectContainerInternal<T> extends PolymorphicDomainObjectContainer<T> {
-
-    Set<? extends Class<? extends T>> getCreateableTypes();
+/**
+ * A class that is registered as a plugin implementation but does not implement {@code Plugin}.
+ */
+class TestNonPluginClass {
 }

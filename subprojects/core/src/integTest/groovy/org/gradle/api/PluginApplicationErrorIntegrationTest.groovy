@@ -63,7 +63,7 @@ class BrokenPlugin implements Plugin<Project> {
         failure.assertHasCause("throwing plugin")
     }
 
-    def "cannot apply a plugin that does not implement Plugin and does not extend RuleSource"() {
+    def "cannot apply a plugin that does not implement Plugin"() {
         buildFile << '''
 apply plugin: BrokenPlugin
 
@@ -78,7 +78,7 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin class 'BrokenPlugin'")
-        failure.assertHasCause("'BrokenPlugin' is neither a plugin or a rule source and cannot be applied.")
+        failure.assertHasCause("'BrokenPlugin' is not a plugin and cannot be applied.")
     }
 
     def "applying core project plugin to settings fails with a clear error"() {

@@ -19,9 +19,8 @@ package org.gradle.api.internal.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestPlugin1
-import org.gradle.api.internal.project.TestRuleSource
+import org.gradle.api.internal.project.TestNonPluginClass
 import org.gradle.api.plugins.InvalidPluginException
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.GUtil
@@ -35,7 +34,7 @@ class DefaultPluginRegistryTest extends Specification {
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> classLoader
     }
-    def pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
+    def pluginInspector = new PluginInspector()
     private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoaderScope)
 
     def "can locate imperative plugin implementation given an id"() {
@@ -53,19 +52,19 @@ class DefaultPluginRegistryTest extends Specification {
         plugin.asClass() == TestPlugin1
     }
 
-    def "can locate rule source plugin implementation given an id"() {
-        def ruleUrl = writePluginProperties(TestRuleSource)
+    def "a plugin implementation that is not a Plugin has an unknown type"() {
+        def ruleUrl = writePluginProperties(TestNonPluginClass)
 
         given:
-        classLoader.getResource("META-INF/gradle-plugins/someRuleSource.properties") >> ruleUrl
-        classLoader.loadClass(TestRuleSource.name) >> TestRuleSource
+        classLoader.getResource("META-INF/gradle-plugins/someNonPluginClass.properties") >> ruleUrl
+        classLoader.loadClass(TestNonPluginClass.name) >> TestNonPluginClass
 
         expect:
-        def plugin = pluginRegistry.lookup(DefaultPluginId.of("someRuleSource"))
-        plugin.pluginId == DefaultPluginId.of("someRuleSource")
-        plugin.type == PotentialPlugin.Type.PURE_RULE_SOURCE_CLASS
-        plugin.displayName.displayName == "plugin 'someRuleSource'"
-        plugin.asClass() == TestRuleSource
+        def plugin = pluginRegistry.lookup(DefaultPluginId.of("someNonPluginClass"))
+        plugin.pluginId == DefaultPluginId.of("someNonPluginClass")
+        plugin.type == PotentialPlugin.Type.UNKNOWN
+        plugin.displayName.displayName == "plugin 'someNonPluginClass'"
+        plugin.asClass() == TestNonPluginClass
     }
 
     def "locate returns null for unknown id"() {

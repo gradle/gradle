@@ -18,7 +18,7 @@ const redirectionRules = { // TO DO - complete me
     "sub:maven_local": "supported_repository_types.html#sec:maven-local",
     "sub:cache_refresh": "dependency_caching.html#sec:refreshing-dependencies",
     "sec:how_to_declare_your_dependencies": "declaring_dependencies_basics.html#declaring-dependencies-basics",
-    "sub:project_dependencies": "native_software.html#sec:project_dependencies",
+    "sub:project_dependencies": "declaring_dependencies_basics.html#sec:project-dependencies",
     "sec:what-are-dependency-configurations": "declaring_configurations.html#declaring-dependency-configurations",
     "sub:ephemeral-ci-cache": "dependency_caching.html#sec:ephemeral-ci-cache",
     "sub:dynamic_versions_and_changing_modules": "dependency_versions.html#sec:dynamic-versions-and-changing-modules",

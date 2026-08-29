@@ -426,15 +426,6 @@
                 <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
             </tr>
             <tr>
-                <td>org.gradle.api.reporting.components.ComponentReport</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.reporting.dependents.DependentComponentsReport</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.reporting.model.ModelReport</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask</td>
             </tr>
             <tr>
@@ -804,111 +795,18 @@
     </section>
 
     <section condition="noNavBar">
-        <title>Native software model types</title>
+        <title>Native model types</title>
         <para>Used to configure software components developed with native code.</para>
         <table>
-            <title>Native software types</title>
-            <tr>
-                <td>org.gradle.nativeplatform.PrebuiltLibrary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.PrebuiltSharedLibraryBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.PrebuiltStaticLibraryBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeComponentSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeExecutableSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeLibrarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.test.NativeTestSuiteSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeExecutableBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeLibraryBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.SharedLibraryBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.StaticLibraryBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec</td>
-            </tr>
+            <title>Native types</title>
             <tr>
                 <td>org.gradle.nativeplatform.platform.NativePlatform</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.BuildType</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.Flavor</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.assembler.AssemblerSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.c.CSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.cpp.CppSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.objectivec.ObjectiveCSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.objectivecpp.ObjectiveCppSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.rc.WindowsResourceSet</td>
             </tr>
             <tr>
                 <td>org.gradle.ide.visualstudio.VisualStudioProject</td>
             </tr>
             <tr>
                 <td>org.gradle.ide.visualstudio.VisualStudioSolution</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeExecutable</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeLibrary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeExecutableBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.SharedLibraryBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.StaticLibraryBinary</td>
             </tr>
         </table>
     </section>

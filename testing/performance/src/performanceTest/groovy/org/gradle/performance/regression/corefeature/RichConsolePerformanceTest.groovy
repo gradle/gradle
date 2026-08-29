@@ -33,7 +33,7 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeMonolithicJavaProject"], iterationMatcher = "^clean assemble.*"),
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "bigNative"], iterationMatcher = "^clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"], iterationMatcher = "^clean assemble.*"),
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["withVerboseJUnit"], iterationMatcher = "^cleanTest.*")
     ])
     @LeaksFileHandles

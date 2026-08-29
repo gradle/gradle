@@ -56,13 +56,6 @@ public interface DiagnosticsTaskNames {
     String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
 
     /**
-     * The name of the components report task.
-     *
-     * @since 8.13
-     */
-    String COMPONENTS_TASK = "components";
-
-    /**
      * The name of the outgoing variants report task.
      *
      * @since 8.13
@@ -84,20 +77,4 @@ public interface DiagnosticsTaskNames {
      */
     @Incubating
     String ARTIFACT_TRANSFORMS_TASK = "artifactTransforms";
-
-    /**
-     * The name of the model report task.
-     *
-     * @since 8.13
-     * @deprecated The software model is deprecated and will be removed in Gradle 10.
-     */
-    @Deprecated
-    String MODEL_TASK = "model";
-
-    /**
-     * The name of the dependendent components report task.
-     *
-     * @since 8.13
-     */
-    String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 }

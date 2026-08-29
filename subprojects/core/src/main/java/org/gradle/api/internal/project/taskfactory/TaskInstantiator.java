@@ -22,7 +22,7 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.api.internal.NamedEntityInstantiator;
 
 @ServiceScope(Scope.Project.class)
 public class TaskInstantiator implements NamedEntityInstantiator<Task> {

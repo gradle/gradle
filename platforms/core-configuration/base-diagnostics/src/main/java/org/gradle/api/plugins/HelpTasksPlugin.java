@@ -83,22 +83,12 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
     @Incubating
     public static final String ARTIFACT_TRANSFORMS_TASK = DiagnosticsTaskNames.ARTIFACT_TRANSFORMS_TASK;
 
-    /**
-     * The model task.
-     *
-     * @since 2.4
-     * @deprecated The software model is deprecated and will be removed in Gradle 10.
-     */
-    @Deprecated
-    public static final String MODEL_TASK = DiagnosticsTaskNames.MODEL_TASK;
-
-
     @Override
     public void apply(final Project project) {
         TaskContainer tasks = project.getTasks();
         String projectName = project.toString();
 
-        // Static classes are used for the configure actions here to avoid implicitly dragging project/tasks into the model registry
+        // Static classes are used for the configure actions here to avoid implicitly capturing the project/tasks in the actions
         tasks.register(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
         tasks.register(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
         tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, project.getChildProjects().isEmpty()));

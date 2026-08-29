@@ -1,3 +1,636 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.ComponentSelectionRules",
+            "member": "Method org.gradle.api.artifacts.ComponentSelectionRules.all(java.lang.Object)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ComponentSelectionRules",
+            "member": "Method org.gradle.api.artifacts.ComponentSelectionRules.withModule(java.lang.Object,java.lang.Object)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.ComponentMetadataHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.ComponentMetadataHandler.all(java.lang.Object)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.ComponentMetadataHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.ComponentMetadataHandler.withModule(java.lang.Object,java.lang.Object)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.HelpTasksPlugin",
+            "member": "Field MODEL_TASK",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Class org.gradle.api.reporting.components.ComponentReport",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getBinaryRenderer()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getFileResolver()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getModelRegistry()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getTextOutputFactory()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.report()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Class org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getComponents()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getModelRegistry()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getShowAll()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getTextOutputFactory()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getWorkerLeaseService()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.isShowNonBuildable()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.isShowTestSuites()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.report()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.setComponents(java.util.List)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.setShowAll(boolean)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.setShowNonBuildable(boolean)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.setShowTestSuites(boolean)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Class org.gradle.api.reporting.model.ModelReport",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.getFormat()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.getModelRegistry()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.getTextOutputFactory()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.isShowHidden()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.report()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.setFormat(java.lang.String)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.setShowHidden(boolean)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport$Format",
+            "member": "Class org.gradle.api.reporting.model.ModelReport$Format",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport$Format",
+            "member": "Field FULL",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport$Format",
+            "member": "Field SHORT",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport$Format",
+            "member": "Method org.gradle.api.reporting.model.ModelReport$Format.valueOf(java.lang.String)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport$Format",
+            "member": "Method org.gradle.api.reporting.model.ModelReport$Format.values()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getAssembler(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getAssembler-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getBinary-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getC(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getC-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-model-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCpp(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCpp-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCunit(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCunit-test-suite(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getGoogle-test(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getGoogle-test-test-suite(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getLanguage-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getModel-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getNative-component-model(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getObjective-c(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getObjective-c-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getObjective-cpp(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getObjective-cpp-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getWindows-resource-script(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getWindows-resources(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.NativeExecutableBinarySpec$TasksCollection",
+            "member": "Class org.gradle.nativeplatform.NativeExecutableBinarySpec$TasksCollection",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.NativeExecutableBinarySpec$TasksCollection",
+            "member": "Method org.gradle.nativeplatform.NativeExecutableBinarySpec$TasksCollection.getInstall()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.NativeExecutableBinarySpec$TasksCollection",
+            "member": "Method org.gradle.nativeplatform.NativeExecutableBinarySpec$TasksCollection.getLink()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.SharedLibraryBinarySpec$TasksCollection",
+            "member": "Class org.gradle.nativeplatform.SharedLibraryBinarySpec$TasksCollection",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.SharedLibraryBinarySpec$TasksCollection",
+            "member": "Method org.gradle.nativeplatform.SharedLibraryBinarySpec$TasksCollection.getLink()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.StaticLibraryBinarySpec$TasksCollection",
+            "member": "Class org.gradle.nativeplatform.StaticLibraryBinarySpec$TasksCollection",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.StaticLibraryBinarySpec$TasksCollection",
+            "member": "Method org.gradle.nativeplatform.StaticLibraryBinarySpec$TasksCollection.getCreateStaticLib()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec$TasksCollection",
+            "member": "Class org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec$TasksCollection",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec$TasksCollection",
+            "member": "Method org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec$TasksCollection.getInstall()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec$TasksCollection",
+            "member": "Method org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec$TasksCollection.getLink()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "member": "Class org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "member": "Constructor org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "member": "Method org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher.generate()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "member": "Method org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher.getHeaderDir()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "member": "Method org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher.getSourceDir()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "member": "Method org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher.setHeaderDir(java.io.File)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher",
+            "member": "Method org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher.setSourceDir(java.io.File)",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.base.TestSuiteTaskCollection",
+            "member": "Class org.gradle.testing.base.TestSuiteTaskCollection",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.base.TestSuiteTaskCollection",
+            "member": "Method org.gradle.testing.base.TestSuiteTaskCollection.getRun()",
+            "acceptation": "Removed as part of the software model removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }

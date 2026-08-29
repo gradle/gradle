@@ -37,7 +37,6 @@ import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
 import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.rules.DefaultRuleActionAdapter;
 import org.gradle.internal.rules.DefaultRuleActionValidator;
@@ -130,16 +129,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     @Override
-    @Deprecated
-    public ComponentMetadataHandler all(Object ruleSource) {
-        DeprecationLogger.deprecateMethod(ComponentMetadataHandler.class, "all(Object)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_management_rules")
-            .nagUser();
-        return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
-    }
-
-    @Override
     public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromAction(rule)));
     }
@@ -147,16 +136,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     @Override
     public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
-    }
-
-    @Override
-    @Deprecated
-    public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
-        DeprecationLogger.deprecateMethod(ComponentMetadataHandler.class, "withModule(Object,Object)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "dependency_management_rules")
-            .nagUser();
-        return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
     @Override

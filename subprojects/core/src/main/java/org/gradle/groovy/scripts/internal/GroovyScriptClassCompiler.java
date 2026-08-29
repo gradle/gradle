@@ -16,8 +16,6 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
-import org.codehaus.groovy.ast.ClassNode;
-import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -50,7 +48,6 @@ import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
@@ -65,7 +62,6 @@ import org.objectweb.asm.Type;
 
 import java.io.Closeable;
 import java.io.File;
-import java.net.URI;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -118,8 +114,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     public <T extends Script, M> CompiledScript<T, M> compile(
         final ScriptSource source, final Class<T> scriptBaseClass, final Object target,
         final ClassLoaderScope targetScope,
-        final CompileOperation<M> operation,
-        final Action<? super ClassNode> verifier
+        final CompileOperation<M> operation
     ) {
         assert source.getResource().isContentCached();
         if (source.getResource().getHasEmptyContent()) {
@@ -131,7 +126,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         HashCode sourceHashCode = source.getResource().getContentHash();
         RemappingScriptSource remapped = new RemappingScriptSource(source);
         ClassLoader classLoader = targetScope.getExportClassLoader();
-        GroovyScriptCompilationOutput output = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
+        GroovyScriptCompilationOutput output = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, scriptBaseClass);
 
         File instrumentedOutput = output.getInstrumentedOutput();
         File metadataDir = output.getMetadataDir();
@@ -147,7 +142,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         RemappingScriptSource remappedSource,
         ClassLoader classLoader,
         CompileOperation<?> operation,
-        Action<? super ClassNode> verifier,
         Class<T> scriptBaseClass
     ) {
         UnitOfWork unitOfWork = new GroovyScriptCompilationAndInstrumentation(
@@ -156,7 +150,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             classLoader,
             remappedSource,
             operation,
-            verifier,
             scriptBaseClass,
             classLoaderHierarchyHasher,
             workspaceProvider,
@@ -231,7 +224,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         private final CompileOperation<?> operation;
         private final Class<? extends Script> scriptBaseClass;
         private final ScriptCompilationHandler scriptCompilationHandler;
-        private final Action<? super ClassNode> verifier;
 
         public GroovyScriptCompilationAndInstrumentation(
             String templateId,
@@ -239,7 +231,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             ClassLoader classLoader,
             RemappingScriptSource remappedSource,
             CompileOperation<?> operation,
-            Action<? super ClassNode> verifier,
             Class<? extends Script> scriptBaseClass,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             ImmutableWorkspaceProvider workspaceProvider,
@@ -257,7 +248,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.source = remappedSource;
             this.operation = operation;
-            this.verifier = verifier;
             this.scriptBaseClass = scriptBaseClass;
             this.scriptCompilationHandler = scriptCompilationHandler;
         }
@@ -297,7 +287,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         @Override
         public File compile(File workspace) {
             File classesDir = classesDir(workspace);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir(workspace), operation, scriptBaseClass, verifier);
+            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir(workspace), operation, scriptBaseClass);
             return classesDir;
         }
 
@@ -454,13 +444,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         private String remap(String name) {
             if (name == null) {
                 return null;
-            }
-            if (RuleVisitor.SOURCE_URI_TOKEN.equals(name)) {
-                URI uri = scriptSource.getResource().getLocation().getURI();
-                return uri == null ? null : uri.toString();
-            }
-            if (RuleVisitor.SOURCE_DESC_TOKEN.equals(name)) {
-                return scriptSource.getDisplayName();
             }
             return name.replace(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
         }

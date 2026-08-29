@@ -1099,13 +1099,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "model-groovy",
-    "path": "platforms/core-configuration/model-groovy",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "name": "model-reflect",
     "path": "platforms/core-configuration/model-reflect",
     "unitTests": true,
@@ -1242,13 +1235,6 @@
     "name": "plugins-jvm-test-suite",
     "path": "platforms/jvm/plugins-jvm-test-suite",
     "unitTests": false,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "plugins-model-native",
-    "path": "platforms/native/plugins-model-native",
-    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },

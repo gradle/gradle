@@ -242,11 +242,6 @@
       "coverage" : {
         "per_day" : [ "linux" ]
       }
-    }, {
-      "testProject" : "bigNative",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
     } ]
   }, {
     "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest.clean assemble with local cache (swift)",
@@ -446,11 +441,6 @@
   }, {
     "testId" : "org.gradle.performance.regression.corefeature.RichConsolePerformanceTest.clean assemble with rich console",
     "groups" : [ {
-      "testProject" : "bigNative",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    }, {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
         "per_day" : [ "linux" ]
@@ -885,22 +875,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.run libA0:buildDependentsLibA00",
-    "groups" : [ {
-      "testProject" : "nativeDependents",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.run libA0:dependentComponents",
-    "groups" : [ {
-      "testProject" : "nativeDependents",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildPerformanceTest.assemble with header file change",
     "groups" : [ {
       "testProject" : "bigCppApp",
@@ -952,11 +926,6 @@
         "per_day" : [ "linux" ]
       }
     }, {
-      "testProject" : "bigNative",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    }, {
       "testProject" : "mediumCppApp",
       "coverage" : {
         "per_day" : [ "linux" ]
@@ -977,16 +946,6 @@
         "per_day" : [ "linux" ]
       }
     }, {
-      "testProject" : "mediumNative",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "multiNative",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    }, {
       "testProject" : "smallCppApp",
       "coverage" : {
         "per_day" : [ "linux" ]
@@ -995,69 +954,6 @@
       "testProject" : "smallCppMulti",
       "coverage" : {
         "per_day" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "smallNative",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest.clean assemble (native, parallel)",
-    "groups" : [ {
-      "testProject" : "manyProjectsNative",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with 0 parallel workers",
-    "groups" : [ {
-      "testProject" : "nativeMonolithic",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "nativeMonolithicOverlapping",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with 12 parallel workers",
-    "groups" : [ {
-      "testProject" : "nativeMonolithic",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "nativeMonolithicOverlapping",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with build file change",
-    "groups" : [ {
-      "testProject" : "smallNativeMonolithic",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with header file change",
-    "groups" : [ {
-      "testProject" : "mediumNativeMonolithic",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with source file change",
-    "groups" : [ {
-      "testProject" : "mediumNativeMonolithic",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
       }
     } ]
   }, {

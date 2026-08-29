@@ -168,8 +168,6 @@ public class ProviderMigrationArchitectureTest {
             not(declaredIn(resideInAPackage("org.gradle.api.artifacts..").and(not(assignableTo(UrlArtifactRepository.class)))))
         )
         .and(not(declaredIn(resideInAPackage("org.gradle.api.attributes"))))
-        // Software model
-        .and(not(declaredIn(assignableTo(org.gradle.model.ModelElement.class))))
         // IDE Plugins
         .and(not(declaredIn(resideInAPackage("org.gradle.ide.."))))
         .and(not(declaredIn(resideInAPackage("org.gradle.plugins.ide.."))))

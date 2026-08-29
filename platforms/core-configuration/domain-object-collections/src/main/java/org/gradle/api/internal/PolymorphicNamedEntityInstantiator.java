@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 
 import java.util.Set;
 
