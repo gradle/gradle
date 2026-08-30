@@ -124,6 +124,15 @@ public abstract class ValueState<S> {
 
     public abstract boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
 
+    /**
+     * Whether a read has to do anything before the value can be produced - consult the host, or finalize.
+     * <p>
+     * When false, {@link #maybeFinalizeOnRead} would do nothing but return false, so a read holding a
+     * self-contained value can skip it entirely. Deliberately a pure test of the flags: it must not
+     * consult the host, because the point is to decide whether the host needs consulting at all.
+     */
+    public abstract boolean needsReadPreparation(ValueSupplier.ValueConsumer consumer);
+
     public abstract void beforeMutate(Describable displayName);
 
     public abstract ValueSupplier.ValueConsumer forUpstream(ValueSupplier.ValueConsumer consumer);
@@ -220,6 +229,12 @@ public abstract class ValueState<S> {
         @Override
         public ValueState<S> finalState() {
             return Cast.uncheckedCast(FINALIZED_VALUE);
+        }
+
+        @Override
+        public boolean needsReadPreparation(ValueSupplier.ValueConsumer consumer) {
+            return (flags & (DISALLOW_UNSAFE_READ | FINALIZE_ON_NEXT_GET)) != 0
+                || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead;
         }
 
         @Override
@@ -424,6 +439,12 @@ public abstract class ValueState<S> {
         @Override
         public void disallowUnsafeRead() {
             // Finalized already so read is safe
+        }
+
+        @Override
+        public boolean needsReadPreparation(ValueSupplier.ValueConsumer consumer) {
+            // Already finalized, and the host was consulted when it was
+            return false;
         }
 
         @Override

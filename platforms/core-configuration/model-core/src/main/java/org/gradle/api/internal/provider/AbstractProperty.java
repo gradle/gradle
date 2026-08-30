@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
@@ -57,6 +58,22 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         state = ValueState.newState(host);
     }
 
+    /**
+     * Always false: a property never lets a consumer skip cycle detection.
+     * <p>
+     * Deliberately does not answer from the supplier. A property can be reachable from its own supplier -
+     * {@code p.set(p)} is enough, and {@code a.set(b)} with {@code b.set(a)} does it indirectly - so
+     * delegating would not terminate, and the self-reference the scope exists to report would instead
+     * arrive as a StackOverflowError.
+     * <p>
+     * This costs the fast path for a property wired to another property. Reading such a property still
+     * reaches the inner property's fast path once the scope is open.
+     */
+    @Override
+    public boolean isSelfContained() {
+        return false;
+    }
+
     protected void init(S initialValue, S convention) {
         this.value = initialValue;
         this.state.setConvention(convention);
@@ -81,18 +98,41 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
+        if (canReadWithoutScope(consumer)) {
+            return doCalculatePresence(consumer);
+        }
         try (EvaluationScopeContext context = openScope()) {
             beforeRead(context, consumer); // may throw its own exception, which should not be wrapped.
-            try {
-                return getSupplier(context).calculatePresence(consumer);
-            } catch (Exception e) {
-                if (displayName != null) {
-                    throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
-                } else {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+            return doCalculatePresence(consumer);
+        }
+    }
+
+    private boolean doCalculatePresence(ValueConsumer consumer) {
+        try {
+            return value.calculatePresence(consumer);
+        } catch (Exception e) {
+            if (displayName != null) {
+                throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
+    }
+
+    /**
+     * Whether this read can skip the cycle-detection scope.
+     * <p>
+     * Safe only when the supplier {@link ValueSupplier#isSelfContained() evaluates nothing else}, so
+     * nothing can re-enter this property, and when the read has nothing to prepare - consulting the host
+     * or finalizing both have to happen inside a scope, the latter because {@link #finalValue} may
+     * evaluate upstream providers.
+     * <p>
+     * Deliberately asks {@link ValueState#needsReadPreparation} rather than calling
+     * {@code maybeFinalizeOnRead} here: that would consult the host, and the slow path consults it
+     * again, so the host would see two calls per read.
+     */
+    private boolean canReadWithoutScope(ValueConsumer consumer) {
+        return value.isSelfContained() && !state.needsReadPreparation(consumer);
     }
 
     @Override
@@ -156,24 +196,28 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
-        try (EvaluationScopeContext context = openScope()) {
-            beforeReadNoProducer(context, consumer);
-            return doCalculateValue(context, consumer);
-        }
+        return calculateOwnValue(null, consumer);
     }
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        return calculateOwnValue(producer, consumer);
+    }
+
+    private Value<? extends T> calculateOwnValue(@Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
+        if (canReadWithoutScope(consumer)) {
+            return doCalculateValue(consumer);
+        }
         try (EvaluationScopeContext context = openScope()) {
-            beforeRead(context, consumer);
-            return doCalculateValue(context, consumer);
+            beforeRead(context, effectiveProducer, consumer);
+            return doCalculateValue(consumer);
         }
     }
 
     @NonNull
-    private Value<? extends T> doCalculateValue(EvaluationScopeContext context, ValueConsumer consumer) {
+    private Value<? extends T> doCalculateValue(ValueConsumer consumer) {
         try {
-            return calculateValueFrom(context, value, consumer);
+            return calculateValueFrom(value, consumer);
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
@@ -197,21 +241,23 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         );
     }
 
-    protected abstract Value<? extends T> calculateValueFrom(EvaluationScopeContext context, S value, ValueConsumer consumer);
+    protected abstract Value<? extends T> calculateValueFrom(S value, ValueConsumer consumer);
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        try (EvaluationScopeContext context = openScope()) {
-            ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(context, this.value);
-            if (getProducerTask() == null) {
-                return value;
-            } else {
-                return value.withChangingContent();
-            }
+        if (value.isSelfContained()) {
+            return withChangingContentIfProducedByTask(calculateOwnExecutionTimeValue(this.value));
+        }
+        try (EvaluationScopeContext ignored = openScope()) {
+            return withChangingContentIfProducedByTask(calculateOwnExecutionTimeValue(this.value));
         }
     }
 
-    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationScopeContext context, S value);
+    private ExecutionTimeValue<? extends T> withChangingContentIfProducedByTask(ExecutionTimeValue<? extends T> value) {
+        return getProducerTask() == null ? value : value.withChangingContent();
+    }
+
+    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(S value);
 
     /**
      * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
@@ -233,10 +279,28 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         Task task = getProducerTask();
         if (task != null) {
             return ValueProducer.task(task);
-        } else {
-            try (EvaluationScopeContext context = openScope()) {
-                return getSupplier(context).getProducer();
-            }
+        }
+        if (value.isSelfContained()) {
+            return value.getProducer();
+        }
+        try (EvaluationScopeContext context = openScope()) {
+            return getSupplier(context).getProducer();
+        }
+    }
+
+    @Override
+    public void visitContentProducerTasks(Action<? super Task> visitor) {
+        Task task = getProducerTask();
+        if (task != null) {
+            visitor.execute(task);
+            return;
+        }
+        if (value.isSelfContained()) {
+            value.visitContentProducerTasks(visitor);
+            return;
+        }
+        try (EvaluationScopeContext context = openScope()) {
+            getSupplier(context).visitContentProducerTasks(visitor);
         }
     }
 
@@ -479,14 +543,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Override
         public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
             try (EvaluationScopeContext context = openScope()) {
-                return calculateOwnExecutionTimeValue(context, copiedValue);
+                return calculateOwnExecutionTimeValue(copiedValue);
             }
         }
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             try (EvaluationScopeContext context = openScope()) {
-                return calculateValueFrom(context, copiedValue, consumer);
+                return calculateValueFrom(copiedValue, consumer);
             }
         }
 

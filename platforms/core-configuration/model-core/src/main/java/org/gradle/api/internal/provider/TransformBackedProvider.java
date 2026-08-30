@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
@@ -61,6 +63,13 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Override
+    public void visitContentProducerTasks(Action<? super Task> visitor) {
+        try (EvaluationScopeContext ignored = openScope()) {
+            provider.visitContentProducerTasks(visitor);
+        }
+    }
+
+    @Override
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
         try (EvaluationScopeContext context = openScope()) {
             ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
@@ -92,13 +101,12 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     protected void beforeRead(EvaluationScopeContext context) {
-        provider.getProducer().visitContentProducerTasks(producer -> {
-            if (!producer.getState().getExecuted()) {
-                throw new InvalidUserCodeException(
-                    String.format("Querying the mapped value of %s before %s has completed is not supported", provider, producer)
-                );
-            }
-        });
+        Task producer = ContentProducerCheck.findUnexecutedContentProducer(provider);
+        if (producer != null) {
+            throw new InvalidUserCodeException(
+                String.format("Querying the mapped value of %s before %s has completed is not supported", provider, producer)
+            );
+        }
     }
 
     @Override
