@@ -582,6 +582,134 @@ class GradleModuleMetadataWriterTest extends Specification {
 """
     }
 
+    def "writes identical dependencies and dependency constraints of a variant only once"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def publication = publication(component, id)
+
+        def d1 = Stub(ExternalDependency)
+        d1.group >> "g1"
+        d1.name >> "m1"
+        d1.versionConstraint >> requires("v1")
+        d1.transitive >> true
+        d1.attributes >> ImmutableAttributes.EMPTY
+
+        // A separate instance with the same content.
+        def d2 = Stub(ExternalDependency)
+        d2.group >> "g1"
+        d2.name >> "m1"
+        d2.versionConstraint >> requires("v1")
+        d2.transitive >> true
+        d2.attributes >> ImmutableAttributes.EMPTY
+
+        // Same module, different version. Not a duplicate.
+        def d3 = Stub(ExternalDependency)
+        d3.group >> "g1"
+        d3.name >> "m1"
+        d3.versionConstraint >> requires("v2")
+        d3.transitive >> true
+        d3.attributes >> ImmutableAttributes.EMPTY
+
+        def dc1 = Stub(DependencyConstraint)
+        dc1.group >> "g2"
+        dc1.name >> "m2"
+        dc1.versionConstraint >> requires("v1")
+        dc1.attributes >> ImmutableAttributes.EMPTY
+
+        def dc2 = Stub(DependencyConstraint)
+        dc2.group >> "g2"
+        dc2.name >> "m2"
+        dc2.versionConstraint >> requires("v1")
+        dc2.attributes >> ImmutableAttributes.EMPTY
+
+        // Same module and version, different reason. Not a duplicate.
+        def dc3 = Stub(DependencyConstraint)
+        dc3.group >> "g2"
+        dc3.name >> "m2"
+        dc3.versionConstraint >> requires("v1")
+        dc3.reason >> "custom reason"
+        dc3.attributes >> ImmutableAttributes.EMPTY
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
+        v1.dependencies >> [d1, d2, d3]
+
+        def v2 = Stub(UsageContext)
+        v2.name >> "v2"
+        v2.attributes >> attributes(usage: "runtime")
+        v2.dependencyConstraints >> [dc1, dc2, dc3]
+
+        component.usages >> [v1, v2]
+
+        when:
+        writeTo(writer, publication, [publication])
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
+  "component": {
+    "group": "group",
+    "module": "module",
+    "version": "1.2",
+    "attributes": {}
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}"
+    }
+  },
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {
+        "usage": "compile"
+      },
+      "dependencies": [
+        {
+          "group": "g1",
+          "module": "m1",
+          "version": {
+            "requires": "v1"
+          }
+        },
+        {
+          "group": "g1",
+          "module": "m1",
+          "version": {
+            "requires": "v2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "v2",
+      "attributes": {
+        "usage": "runtime"
+      },
+      "dependencyConstraints": [
+        {
+          "group": "g2",
+          "module": "m2",
+          "version": {
+            "requires": "v1"
+          }
+        },
+        {
+          "group": "g2",
+          "module": "m2",
+          "version": {
+            "requires": "v1"
+          },
+          "reason": "custom reason"
+        }
+      ]
+    }
+  ]
+}
+"""
+    }
+
     enum SomeEnum implements Named {
         VALUE_1, VALUE_2
 
