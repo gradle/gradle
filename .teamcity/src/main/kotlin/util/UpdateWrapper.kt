@@ -46,7 +46,7 @@ object UpdateWrapper : BuildType({
 
     fun promotionBuildTypeId(buildConfigurationId: String) = "Gradle_${vcsBranch.branchName.toCapitalized()}_$buildConfigurationId"
 
-    // Only promotions that `PromotionProject` creates for this branch: RCs and final releases exist only on release branches
+    // Only promotions that `PromotionProject` creates for this branch: milestones everywhere, RCs and final releases only on release branches
     val promotions =
         if (vcsBranch.isMaster) {
             mapOf(MILESTONE_BUILD_CONFIGURATION_ID to "milestone")
@@ -54,6 +54,7 @@ object UpdateWrapper : BuildType({
             mapOf(
                 FINAL_RELEASE_BUILD_CONFIGURATION_ID to "final-release",
                 RELEASE_CANDIDATE_BUILD_CONFIGURATION_ID to "release-candidate",
+                MILESTONE_BUILD_CONFIGURATION_ID to "milestone",
             )
         }
 
