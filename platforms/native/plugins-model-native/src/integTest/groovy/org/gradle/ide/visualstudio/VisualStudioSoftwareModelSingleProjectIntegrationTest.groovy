@@ -39,6 +39,7 @@ class VisualStudioSoftwareModelSingleProjectIntegrationTest extends AbstractVisu
     def app = new CppHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
         settingsFile << """

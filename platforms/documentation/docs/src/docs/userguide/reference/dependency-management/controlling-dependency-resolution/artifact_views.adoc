@@ -82,6 +82,14 @@ include::{snippetsPath}/reference/dependency-management/controlling-dependency-r
 When this API is used, the attributes used for variant reselection are specified solely by the `ArtifactView.getAttributes()` method.
 The graph resolution attributes specified on the configuration are completely ignored during variant reselection.
 
+[NOTE]
+====
+Variant reselection operates on the components already present in the resolved graph: it re-picks a variant of each component in place.
+It does not re-run graph resolution.
+As a result, any dependencies declared on the reselected variant -- whether ordinary dependencies on other modules or `available-at` pointers to a different component -- are not followed, and the artifacts of those additional components do not appear in the view.
+To include such artifacts, declare a separate `Configuration` whose request attributes already select the target variant; graph resolution will then traverse the variant's dependencies as usual.
+====
+
 [[sec:performing_lenient_artifact_selection]]
 == 2. Performing lenient artifact selection and resolution
 

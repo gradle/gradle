@@ -34,9 +34,18 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).
+ *
+ * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
+@Deprecated
 public class Module extends XmlPersistableConfigurationObject {
 
+    /**
+     * The inherited.
+     *
+     * @since 2.14
+     */
     public static final String INHERITED = "inherited";
 
     private static final String CONTENT = "content";
@@ -56,6 +65,11 @@ public class Module extends XmlPersistableConfigurationObject {
     private final PathFactory pathFactory;
     private String languageLevel;
 
+    /**
+     * Creates a new {@code Module}.
+     *
+     * @since 1.0
+     */
     public Module(XmlTransformer withXmlActions, PathFactory pathFactory) {
         super(withXmlActions);
         this.pathFactory = pathFactory;
@@ -65,11 +79,17 @@ public class Module extends XmlPersistableConfigurationObject {
      * The directory for the content root of the module.
      * Defaults to the project directory.
      * If null, the directory containing the output file will be used.
+     * @since 1.0
      */
     public Path getContentPath() {
         return contentPath;
     }
 
+    /**
+     * Sets the content path.
+     *
+     * @since 1.0
+     */
     public void setContentPath(Path contentPath) {
         this.contentPath = contentPath;
     }
@@ -77,11 +97,17 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The directories containing the production sources.
      * Must not be null.
+     * @since 1.0
      */
     public Set<Path> getSourceFolders() {
         return sourceFolders;
     }
 
+    /**
+     * Sets the source folders.
+     *
+     * @since 1.0
+     */
     public void setSourceFolders(Set<Path> sourceFolders) {
         this.sourceFolders = sourceFolders;
     }
@@ -89,11 +115,17 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The directories containing the test sources.
      * Must not be null.
+     * @since 1.0
      */
     public Set<Path> getTestSourceFolders() {
         return testSourceFolders;
     }
 
+    /**
+     * Sets the test source folders.
+     *
+     * @since 1.0
+     */
     public void setTestSourceFolders(Set<Path> testSourceFolders) {
         this.testSourceFolders = testSourceFolders;
     }
@@ -134,11 +166,17 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The directories containing generated the production sources.
      * Must not be null.
+     * @since 2.2
      */
     public Set<Path> getGeneratedSourceFolders() {
         return generatedSourceFolders;
     }
 
+    /**
+     * Sets the generated source folders.
+     *
+     * @since 2.2
+     */
     public void setGeneratedSourceFolders(Set<Path> generatedSourceFolders) {
         this.generatedSourceFolders = generatedSourceFolders;
     }
@@ -146,11 +184,17 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The directories to be excluded.
      * Must not be null.
+     * @since 1.0
      */
     public Set<Path> getExcludeFolders() {
         return excludeFolders;
     }
 
+    /**
+     * Sets the exclude folders.
+     *
+     * @since 1.0
+     */
     public void setExcludeFolders(Set<Path> excludeFolders) {
         this.excludeFolders = excludeFolders;
     }
@@ -158,11 +202,17 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * If true, output directories for this module will be located below the output directory for the project;
      * otherwise, {@link #outputDir} and {@link #testOutputDir} will take effect.
+     * @since 1.0
      */
     public boolean isInheritOutputDirs() {
         return inheritOutputDirs;
     }
 
+    /**
+     * Sets the inherit output dirs.
+     *
+     * @since 1.0
+     */
     public void setInheritOutputDirs(boolean inheritOutputDirs) {
         this.inheritOutputDirs = inheritOutputDirs;
     }
@@ -170,11 +220,17 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The output directory for production classes.
      * If {@code null}, no entry will be created.
+     * @since 1.0
      */
     public Path getOutputDir() {
         return outputDir;
     }
 
+    /**
+     * Sets the output dir.
+     *
+     * @since 1.0
+     */
     public void setOutputDir(Path outputDir) {
         this.outputDir = outputDir;
     }
@@ -182,11 +238,17 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The output directory for test classes.
      * If {@code null}, no entry will be created.
+     * @since 1.0
      */
     public Path getTestOutputDir() {
         return testOutputDir;
     }
 
+    /**
+     * Sets the test output dir.
+     *
+     * @since 1.0
+     */
     public void setTestOutputDir(Path testOutputDir) {
         this.testOutputDir = testOutputDir;
     }
@@ -194,19 +256,35 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The dependencies of this module.
      * Must not be null.
+     * @since 1.0
      */
     public Set<Dependency> getDependencies() {
         return dependencies;
     }
 
+    /**
+     * Sets the dependencies.
+     *
+     * @since 1.0
+     */
     public void setDependencies(Set<Dependency> dependencies) {
         this.dependencies = dependencies;
     }
 
+    /**
+     * Returns the jdk name.
+     *
+     * @since 1.0
+     */
     public String getJdkName() {
         return jdkName;
     }
 
+    /**
+     * Sets the jdk name.
+     *
+     * @since 1.0
+     */
     public void setJdkName(String jdkName) {
         this.jdkName = jdkName;
     }
@@ -216,6 +294,11 @@ public class Module extends XmlPersistableConfigurationObject {
         return "defaultModule.xml";
     }
 
+    /**
+     * Configure.
+     *
+     * @since 4.7
+     */
     protected Object configure(Path contentPath,
                                Set<Path> sourceFolders, Set<Path> testSourceFolders,
                                Set<Path> resourceFolders, Set<Path> testResourceFolders,
@@ -452,6 +535,11 @@ public class Module extends XmlPersistableConfigurationObject {
         setNodeAttribute(getNewModuleRootManager(), "inherit-compiler-output", inheritOutputDirs);
     }
 
+    /**
+     * Write source language level.
+     *
+     * @since 2.11
+     */
     private void writeSourceLanguageLevel() {
         if (languageLevel != null) {
             setNodeAttribute(getNewModuleRootManager(), "LANGUAGE_LEVEL", languageLevel);
@@ -476,6 +564,11 @@ public class Module extends XmlPersistableConfigurationObject {
         }
     }
 
+    /**
+     * Returns whether dependency order entry is set.
+     *
+     * @since 1.0
+     */
     protected boolean isDependencyOrderEntry(Object orderEntry) {
         return Arrays.asList("module-library", "module").contains((String) ((Node) orderEntry).attribute("type"));
     }

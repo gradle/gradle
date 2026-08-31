@@ -44,6 +44,9 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap;
 
 /**
  * Displays some details about the software components produced by the project.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.1
  */
 @Deprecated
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
@@ -66,6 +69,11 @@ public abstract class ComponentReport extends DefaultTask {
         requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
+    /**
+     * Report.
+     *
+     * @since 2.1
+     */
     @TaskAction
     public void report() {
         DeprecationLogger.whileDisabled(this::doReport);

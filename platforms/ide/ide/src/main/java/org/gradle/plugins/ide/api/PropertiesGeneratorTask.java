@@ -25,11 +25,17 @@ import org.gradle.work.DisableCachingByDefault;
  * A convenience superclass for those tasks which generate Properties configuration files from a domain object of type T.
  *
  * @param <T> The domain object type.
+ * @since 1.0
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class PropertiesGeneratorTask<T extends PersistableConfigurationObject> extends GeneratorTask<T> {
     private final PropertiesTransformer transformer = new PropertiesTransformer();
 
+    /**
+     * Creates a new {@code PropertiesGeneratorTask}.
+     *
+     * @since 1.0
+     */
     public PropertiesGeneratorTask() {
         generator = new PersistableConfigurationObjectGenerator<T>() {
             @Override
@@ -44,12 +50,27 @@ public abstract class PropertiesGeneratorTask<T extends PersistableConfiguration
         };
     }
 
+    /**
+     * Returns the transformer.
+     *
+     * @since 1.0
+     */
     @Internal
     protected PropertiesTransformer getTransformer() {
         return transformer;
     }
 
+    /**
+     * Configure.
+     *
+     * @since 1.0
+     */
     protected abstract void configure(T object);
 
+    /**
+     * Create.
+     *
+     * @since 1.0
+     */
     protected abstract T create();
 }

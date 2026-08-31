@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.project.UnknownProjectStateException;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -78,6 +80,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         Collection<? extends ResolvableArtifact> resolvedArtifacts;
         try {
             resolvedArtifacts = componentArtifactResolver.resolveArtifacts(artifacts);
+        } catch (UnknownProjectStateException e) {
+            return new UnavailableResolvedArtifactSet(new GradleException("Could not resolve " + displayName.getDisplayName() + ".", e));
         } catch (Exception e) {
             return new UnavailableResolvedArtifactSet(e);
         }

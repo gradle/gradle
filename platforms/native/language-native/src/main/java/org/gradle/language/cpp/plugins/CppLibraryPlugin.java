@@ -18,9 +18,8 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
@@ -60,10 +59,12 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDe
  * @since 4.1
  */
 public abstract class CppLibraryPlugin implements Plugin<Project> {
+
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final AttributesFactory attributesFactory;
     private final TargetMachineFactory targetMachineFactory;
+    private final PublishArtifactNotationParser publishArtifactNotationParser;
 
     /**
      * CppLibraryPlugin.
@@ -71,11 +72,18 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
      * @since 4.2
      */
     @Inject
-    public CppLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
+    public CppLibraryPlugin(
+        NativeComponentFactory componentFactory,
+        ToolChainSelector toolChainSelector,
+        AttributesFactory attributesFactory,
+        TargetMachineFactory targetMachineFactory,
+        PublishArtifactNotationParser publishArtifactNotationParser
+    ) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;
         this.targetMachineFactory = targetMachineFactory;
+        this.publishArtifactNotationParser = publishArtifactNotationParser;
     }
 
     @Override
@@ -165,10 +173,11 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
                     task.getArchiveClassifier().set("cpp-api-headers");
                     task.getArchiveFileName().set("cpp-api-headers.zip");
                 });
-                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory()));
+                library.getMainPublication().addArtifact(publishArtifactNotationParser.parseNotation(headersZip));
             });
 
             library.getBinaries().realizeNow();
         });
     }
+
 }

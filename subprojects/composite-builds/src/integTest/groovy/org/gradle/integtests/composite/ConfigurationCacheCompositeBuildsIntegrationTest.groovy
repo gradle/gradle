@@ -157,30 +157,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractIntegrati
         configurationCache.assertStateLoaded()
     }
 
-    def "gracefully degrades to vintage when source dependencies are present"() {
-        given:
-        settingsFile << """
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:buildB") {
-                        from(GitVersionControlSpec) {
-                            url = "some-repo"
-                        }
-                    }
-                }
-            }
-        """
-
-        when:
-        run("help")
-
-        then:
-        configurationCache.configurationCacheBuildOperations.assertNoConfigurationCache()
-
-        and:
-        postBuildOutputContains("Configuration cache disabled because incompatible feature usage (source dependencies) was found.")
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/20945")
     def "composite build with dependency substitution can include builds in any order"() {
         given:
@@ -231,6 +207,150 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractIntegrati
 
         where:
         order << ['lib', 'util'].permutations()
+    }
+
+    def "multiple builds can depend on the same task of another included build"() {
+        given:
+        settingsFile("""
+            includeBuild("a")
+            includeBuild("b")
+            includeBuild("shared")
+        """)
+
+        buildFile("""
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation("com.example:a:1.0")
+                implementation("com.example:b:1.0")
+            }
+        """)
+
+        file("src/main/java/Root.java") << "public class Root {}"
+
+        ["a", "b"].each { name ->
+            createDir(name) {
+                file("settings.gradle") << "rootProject.name = '$name'"
+                file('build.gradle') << """
+                    plugins {
+                        id("java-library")
+                    }
+                    group = "com.example"
+                    version = "1.0"
+                    dependencies {
+                        api("com.example:shared:1.0")
+                    }
+                """
+                file("src/main/java/${name.toUpperCase()}.java") << "public class ${name.toUpperCase()} {}"
+            }
+        }
+
+        createDir("shared") {
+            file("settings.gradle") << "rootProject.name = 'shared'"
+            file("build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+                group = "com.example"
+                version = "1.0"
+            """
+            file("src/main/java/Shared.java") << "public class Shared {}"
+        }
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        file("shared/src/main/java/Shared.java").text = "public class Shared { public static final int CHANGED = 1; }"
+
+        and:
+        succeeds("compileJava")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        and:
+        result.assertTaskExecuted(":shared:compileJava")
+        result.assertTaskOrder(":shared:compileJava", ":a:compileJava", ":compileJava")
+        result.assertTaskOrder(":shared:compileJava", ":b:compileJava", ":compileJava")
+    }
+
+    def "can depend on task of included plugin build that already ran at configuration time"() {
+        given:
+        createDir("build-logic") {
+            file("settings.gradle") << "rootProject.name = 'build-logic'"
+            file("build.gradle") << """
+                plugins {
+                    id("java-gradle-plugin")
+                }
+                gradlePlugin {
+                    plugins {
+                        p {
+                            id = "test.plugin"
+                            implementationClass = "test.PluginImpl"
+                        }
+                    }
+                }
+                tasks.register("notInvolvedInBuildLogic") {
+                    doLast {
+                        println("notInvolvedInBuildLogic ran")
+                    }
+                }
+            """
+            file("src/main/java/test/PluginImpl.java") << """
+                package test;
+
+                import org.gradle.api.Plugin;
+                import org.gradle.api.Project;
+
+                public class PluginImpl implements Plugin<Project> {
+                    public void apply(Project project) { }
+                }
+            """
+        }
+
+        settingsFile("""
+            includeBuild("build-logic")
+        """)
+
+        buildFile("""
+            plugins {
+                id("test.plugin")
+            }
+            def buildLogic = gradle.includedBuild("build-logic")
+            tasks.register("consume") {
+                // Ran at configuration time already, in order to build the plugin
+                dependsOn(buildLogic.task(":jar"))
+                // Not part of the build logic. Only scheduled in the main work graph, so the
+                // build-logic build stores a work graph that does not contain the jar task
+                dependsOn(buildLogic.task(":notInvolvedInBuildLogic"))
+                doLast {
+                    println("consume ran")
+                }
+            }
+        """)
+
+        when:
+        succeeds("consume")
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTaskExecuted(":build-logic:jar")
+        result.assertTaskExecuted(":build-logic:notInvolvedInBuildLogic")
+        result.assertTaskExecuted(":consume")
+
+        when:
+        succeeds("consume")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        and:
+        result.assertTasksExecuted(":build-logic:notInvolvedInBuildLogic", ":consume")
     }
 
     private static withDevelocityPlugin(TestFile settingsDir) {

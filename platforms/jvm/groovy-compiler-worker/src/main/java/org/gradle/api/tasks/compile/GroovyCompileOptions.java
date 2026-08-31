@@ -17,7 +17,11 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -27,6 +31,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -39,6 +44,7 @@ import java.util.Map;
 
 /**
  * Compilation options to be passed to the Groovy compiler.
+ * @since 0.7
  */
 public abstract class GroovyCompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
@@ -59,10 +65,6 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     private Map<String, Boolean> optimizationOptions = new HashMap<>();
 
-    private File stubDir;
-
-    private File configurationScript;
-
     private boolean javaAnnotationProcessing;
 
     private boolean parameters;
@@ -72,6 +74,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -81,6 +84,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
+     * @since 0.7
      */
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
@@ -88,6 +92,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells whether to turn on verbose output. Defaults to {@code false}.
+     * @since 0.7
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -97,6 +102,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets whether to turn on verbose output. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
@@ -104,6 +110,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
+     * @since 0.7
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -113,6 +120,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets whether to print which source files are to be compiled. Defaults to {@code false}.
+     * @since 0.7
      */
     public void setListFiles(boolean listFiles) {
         this.listFiles = listFiles;
@@ -120,6 +128,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells the source encoding. Defaults to {@code UTF-8}.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -129,6 +138,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets the source encoding. Defaults to {@code UTF-8}.
+     * @since 0.7
      */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
@@ -136,6 +146,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -145,6 +156,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Sets whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
+     * @since 0.7
      */
     public void setFork(boolean fork) {
         this.fork = fork;
@@ -187,23 +199,35 @@ public abstract class GroovyCompileOptions implements Serializable {
      *
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
+     *
+     * @since 9.7.0
      */
-    @Nullable
+    @Incubating
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    @ToBeReplacedByLazyProperty
+    public abstract RegularFileProperty getConfigurationScriptFile();
+
+    /**
+     * Returns the path to the groovy configuration file.
+     * @since 2.1
+     */
+    @ReplacedBy("configurationScriptFile")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getConfigurationScriptFile() instead", willBeDeprecated = true)
     public File getConfigurationScript() {
-        return configurationScript;
+        return getConfigurationScriptFile().isPresent() ? getConfigurationScriptFile().get().getAsFile() : null;
     }
 
     /**
      * Sets the path to the groovy configuration file.
      *
      * @see #getConfigurationScript()
+     * @since 2.1
      */
     public void setConfigurationScript(@Nullable File configurationFile) {
-        this.configurationScript = configurationFile;
+        getConfigurationScriptFile().set(configurationFile);
+        getConfigurationScriptFile().convention(getObjectFactory().fileProperty().fileValue(configurationFile));
     }
 
     /**
@@ -217,6 +241,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * When this option is set to {@code false} (the default), Groovy code will not be subject to annotation processing, but any joint compiled Java code will be.
      * If the compiler argument {@code "-proc:none"} was specified as part of the Java compile options, the value of this flag will be ignored.
      * No annotation processing will be performed regardless, on Java or Groovy source.
+     * @since 2.5
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -228,6 +253,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Sets whether Java annotation processors should process annotations on stubs.
      *
      * Defaults to {@code false}.
+     * @since 2.5
      */
     public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
         this.javaAnnotationProcessing = javaAnnotationProcessing;
@@ -257,6 +283,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     /**
      * Returns options for running the Groovy compiler in a separate process. These options only take effect
      * if {@code fork} is set to {@code true}.
+     * @since 0.7
      */
     @Nested
     public abstract GroovyForkOptions getForkOptions();
@@ -284,6 +311,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      *     <dt>all
      *     <dd>Enable or disable all optimizations. Note that some optimizations might be mutually exclusive.
      * </dl>
+     * @since 1.1
      */
     @ToBeReplacedByLazyProperty
     @Nullable
@@ -296,6 +324,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     /**
      * Sets optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
      * Only takes effect when compiling against Groovy 1.8 or higher.
+     * @since 1.1
      */
     public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
         this.optimizationOptions = optimizationOptions;
@@ -313,25 +342,39 @@ public abstract class GroovyCompileOptions implements Serializable {
     /**
      * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
      * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
+     *
+     * @since 9.7.0
      */
+    @Incubating
     @Internal
-    @ToBeReplacedByLazyProperty
     // TOOD:LPTR Should be just a relative path
+    public abstract DirectoryProperty getStubDirectory();
+
+    /**
+     * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
+     * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
+     * @since 1.0
+     */
+    @ReplacedBy("stubDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getStubDirectory() instead", willBeDeprecated = true)
     public File getStubDir() {
-        return stubDir;
+        return getStubDirectory().isPresent() ? getStubDirectory().get().getAsFile() : null;
     }
 
     /**
      * Sets the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint
      * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
+     * @since 1.0
      */
     public void setStubDir(File stubDir) {
-        this.stubDir = stubDir;
+        getStubDirectory().set(stubDir);
+        getStubDirectory().convention(getObjectFactory().directoryProperty().fileValue(stubDir));
     }
 
     /**
      * Returns the list of acceptable source file extensions. Only takes effect when compiling against
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
+     * @since 1.1
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -342,6 +385,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     /**
      * Sets the list of acceptable source file extensions. Only takes effect when compiling against
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
+     * @since 1.1
      */
     public void setFileExtensions(List<String> fileExtensions) {
         this.fileExtensions = fileExtensions;
@@ -351,6 +395,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
      * Defaults to {@code false}.
+     * @since 1.0
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -362,6 +407,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Sets whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
      * Defaults to {@code false}.
+     * @since 1.0
      */
     public void setKeepStubs(boolean keepStubs) {
         this.keepStubs = keepStubs;

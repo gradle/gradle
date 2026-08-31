@@ -23,17 +23,18 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.publish.internal.plugins.PublishingPluginRules;
-import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
-import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
-import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskInternalUtil;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.publish.internal.plugins.PublishingPluginRules;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -94,8 +95,12 @@ import static com.google.common.base.Strings.emptyToNull;
  * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code components} to the model.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.1
  */
 @Incubating
+@Deprecated
 public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
     @Override
@@ -109,7 +114,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
         project.getPluginManager().withPlugin("org.gradle.visual-studio", appliedPlugin -> {
             project.getPluginManager().apply(VisualStudioExtensionRules.class);
-            if (project == project.getRootProject()) {
+            if (project == project.getRootProject()) { // FIXME: verify this is safe even if the root project is decorated - https://github.com/gradle/gradle/pull/38269#discussion_r3473033760
                 project.getPluginManager().apply(VisualStudioPluginRootRules.class);
             }
             project.getPluginManager().apply(VisualStudioPluginProjectRules.class);
@@ -214,7 +219,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
             @Override
             public void execute(Task task) {
-                Set<? extends Task> taskDependencies = TaskDependencyUtil.getDependenciesForInternalUse(task.getTaskDependencies(), task);
+                Set<? extends Task> taskDependencies = TaskDependencyUtil.newTaskResolver().getDependencies(task, TaskInternalUtil.getTaskDependencies(task));
 
                 if (taskDependencies.isEmpty()) {
                     TreeFormatter formatter = new TreeFormatter();

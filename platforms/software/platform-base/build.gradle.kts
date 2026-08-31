@@ -7,7 +7,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.files)
-    api(projects.logging)
     api(projects.modelCore)
     api(projects.baseCompilerWorker)
 
@@ -17,6 +16,7 @@ dependencies {
 
     implementation(projects.core)
     implementation(projects.domainObjectCollections)
+    implementation(projects.logging)
     implementation(projects.serviceLookup)
     implementation(projects.execution)
 
@@ -49,9 +49,4 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
 description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""
-

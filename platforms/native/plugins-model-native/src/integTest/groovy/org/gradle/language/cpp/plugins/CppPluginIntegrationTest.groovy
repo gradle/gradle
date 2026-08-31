@@ -19,4 +19,8 @@ package org.gradle.language.cpp.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class CppPluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
+    }
+
 }

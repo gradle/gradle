@@ -15,14 +15,12 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.TargetedNativeComponent;
 import org.gradle.platform.base.internal.PlatformAwareComponentSpecInternal;
 
 import java.util.Set;
 
-public interface TargetedNativeComponentInternal extends TargetedNativeComponent, PlatformAwareComponentSpecInternal {
-    Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates);
-    Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates);
+@SuppressWarnings("deprecation")
+public interface TargetedNativeComponentInternal extends org.gradle.nativeplatform.TargetedNativeComponent, PlatformAwareComponentSpecInternal {
+    Set<org.gradle.nativeplatform.Flavor> chooseFlavors(Set<? extends org.gradle.nativeplatform.Flavor> candidates);
+    Set<org.gradle.nativeplatform.BuildType> chooseBuildTypes(Set<? extends org.gradle.nativeplatform.BuildType> candidates);
 }

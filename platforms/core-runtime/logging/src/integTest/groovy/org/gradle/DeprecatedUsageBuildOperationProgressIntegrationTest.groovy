@@ -349,7 +349,8 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         mode << [WarningMode.None, WarningMode.Summary]
     }
 
-    def "collects stack traces for deprecation usages without limit for warning mode #mode"() {
+    @ToBeFixedForIsolatedProjects(skipBecause = "Isolated Projects raises the cap to 5000, so all 100 stay full and never reach the bounded path; IP also emits extra deprecation events that make the count unstable")
+    def "collects full stack traces up to the cap then bounded captures past it for warning mode #mode"() {
         file('settings.gradle') << "rootProject.name = 'root'"
 
         100.times {
@@ -373,7 +374,14 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         then:
         def events = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         events.size() == 100
-        events.every { it.details['deprecation'].stackTrace.length() > 0 }
+        // Every problem, within the cap or past it, resolves to the build script.
+        events.every { (it.details['deprecation'].stackTrace as String).contains('build.gradle') }
+
+        and:
+        // Within the cap the full stack descends past the script into the Gradle runtime; past the 50 cap the
+        // bounded capture is cut at the script, so its trace is strictly shorter.
+        def lineCount = { int i -> (events[i].details['deprecation'].stackTrace as String).readLines().count { !it.trim().isEmpty() } }
+        lineCount(99) < lineCount(0)
 
         and:
         THRESHOLD_DEFAULT_VALUE.times {

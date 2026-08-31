@@ -15,9 +15,8 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.NativeLibraryRequirement;
-
-public class ProjectNativeLibraryRequirement implements NativeLibraryRequirement {
+@SuppressWarnings("deprecation")
+public class ProjectNativeLibraryRequirement implements org.gradle.nativeplatform.NativeLibraryRequirement {
     private final String projectPath;
     private final String libraryName;
     private final String linkage;
@@ -35,7 +34,7 @@ public class ProjectNativeLibraryRequirement implements NativeLibraryRequirement
     }
 
     @Override
-    public NativeLibraryRequirement withProjectPath(String projectPath) {
+    public org.gradle.nativeplatform.NativeLibraryRequirement withProjectPath(String projectPath) {
         return new ProjectNativeLibraryRequirement(projectPath, libraryName, linkage);
     }
 

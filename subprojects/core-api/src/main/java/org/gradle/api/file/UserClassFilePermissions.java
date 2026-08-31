@@ -35,6 +35,7 @@ public interface UserClassFilePermissions {
      * Describes if a certain class of users has read access to a file or directory.
      * <p>
      * Read access is the capability to view the contents of a file, or to list the contents of a directory.
+     * @since 8.3
      */
     boolean getRead();
 
@@ -43,6 +44,7 @@ public interface UserClassFilePermissions {
      * <p>
      * Write access is the capability to modify or remove the contents of a file,
      * or to add or remove files to/from a directory.
+     * @since 8.3
      */
     boolean getWrite();
 
@@ -52,6 +54,7 @@ public interface UserClassFilePermissions {
      * Execute access is the capability to run a file as a program; executing a directory
      * doesn't really make sense, it's more like a traverse permission; for example, a user
      * must have 'execute' access to the 'bin' directory in order to execute the 'ls' or 'cd' commands.
+     * @since 8.3
      */
     boolean getExecute();
 

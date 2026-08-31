@@ -45,7 +45,10 @@ public abstract class ReleaseNotes {
      */
     public abstract DirectoryProperty getReleaseNotesAssets();
 
-    // TODO: Need staging root property too
+    /**
+     * Intermediate working directory for release notes rendering.
+     */
+    public abstract DirectoryProperty getStagingRoot();
 
     /**
      * The collection of rendered documentation.

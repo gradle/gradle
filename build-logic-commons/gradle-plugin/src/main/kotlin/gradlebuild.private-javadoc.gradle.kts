@@ -30,7 +30,28 @@ pluginManager.withPlugin("gradlebuild.code-quality") {
     }
 }
 
+// Extra classpath for the per-module `javadoc` task so cross-module `{@link}` targets resolve.
+// Modules declare additions via `dependencies { javadocReferences(projects.someProject) }`.
+// This is javadoc-only — it does NOT participate in `compileClasspath` or `runtimeClasspath`,
+// so it cannot introduce compile/runtime dependency cycles (see JDK-21+ standard doclet, which
+// emits `reference not found` warnings independent of `-Xdoclint`).
+val javadocReferences = configurations.dependencyScope("javadocReferences")
+val javadocReferencesClasspath = configurations.resolvable("javadocReferencesClasspath") {
+    extendsFrom(javadocReferences)
+    // Non-transitive: javadoc only needs the direct jar of each declared module to resolve
+    // its own types. Pulling transitives can introduce version conflicts (e.g. junit strict
+    // constraints in test-fixture chains) that have nothing to do with reference resolution.
+    isTransitive = false
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_API))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.JAR))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named<Bundling>(Bundling.EXTERNAL))
+    }
+}
+
 tasks.withType<Javadoc>().configureEach {
+    classpath += files(javadocReferencesClasspath)
     assert(name != "javadocAll") // This plugin should not be applied to the :docs project.
 
     onlyIf("Do not run the task if there are no java sources") {

@@ -18,8 +18,8 @@ package org.gradle.integtests.tooling.r940;
 
 import org.gradle.tooling.IntermediateResultHandler;
 
-class GradleBuildModelCollector implements IntermediateResultHandler<GradleBuildModel> {
-    GradleBuildModel model;
+public class GradleBuildModelCollector implements IntermediateResultHandler<GradleBuildModel> {
+    public GradleBuildModel model;
 
     @Override
     public void onComplete(GradleBuildModel result) {

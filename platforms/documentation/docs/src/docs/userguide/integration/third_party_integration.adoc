@@ -52,7 +52,7 @@ JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-start
 [[sec:continuous_integration_third_party]]
 == Continuous integration
 
-We have link:https://cookbook.gradle.org/ci/[dedicated guides] showing you how to integrate a Gradle project with several CI platforms.
+We have <<gradle_on_ci.adoc#gradle_on_ci,dedicated guides>> showing you how to integrate a Gradle project with several CI platforms.
 
 [[sec:how_to_integrate_with_gradle]]
 == How to integrate with Gradle

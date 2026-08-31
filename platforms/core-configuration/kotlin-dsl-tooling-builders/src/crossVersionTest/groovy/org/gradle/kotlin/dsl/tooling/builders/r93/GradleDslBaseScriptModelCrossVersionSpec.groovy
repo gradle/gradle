@@ -107,6 +107,8 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 
+    // From Gradle 9.7 a fetched model's captured failures also fail the build, see the r970 spec
+    @TargetGradleVersion(">=9.3 <9.7.0")
     def "GradleDslBaseScriptModel can be obtained even after a settings #typeOfFailure failure with #apiType"() {
         assumeApiSupportedOnVersion(apiType)
 
@@ -135,6 +137,7 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/       | ApiType.GET_MODEL
     }
 
+    @TargetGradleVersion(">=9.3 <9.7.0")
     def "GradleDslBaseScriptModel can be obtained even after a project #typeOfFailure failure with #apiType"() {
         assumeApiSupportedOnVersion(apiType)
 

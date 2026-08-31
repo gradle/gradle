@@ -27,6 +27,7 @@ import java.util.Set;
  *
  * <p>You can add a <code>TaskDependency</code> to a task by calling the task's {@link Task#dependsOn(Object...)}
  * method.</p>
+ * @since 0.7
  */
 public interface TaskDependency {
     /**
@@ -36,6 +37,7 @@ public interface TaskDependency {
      *
      * @param task The task to determine the dependencies for.
      * @return The tasks which the given task depends on. Returns an empty set if the task has no dependencies.
+     * @since 0.7
      */
     @ForExternalUse // see TaskDependencyInternal.getDependencies
     Set<? extends Task> getDependencies(@Nullable Task task);

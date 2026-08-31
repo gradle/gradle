@@ -231,10 +231,6 @@ tasks.compileTestFixturesKotlin {
 // It seems to win over runtimeElements where it should not
 configurations.remove(configurations.shadowRuntimeElements.get())
 
-packageCycles {
-    excludePatterns.add("org/gradle/kotlin/dsl/**")
-}
-
 testFilesCleanup.reportOnly = true
 
 strictCompile {

@@ -32,8 +32,8 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     private final MavenFileLocations mavenFileLocations;
     private String localRepoPathFromMavenSettings;
 
-    public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider) {
-        this(settingsProvider, new DefaultMavenFileLocations(), new CurrentSystemPropertyAccess());
+    public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, MavenFileLocations mavenFileLocations) {
+        this(settingsProvider, mavenFileLocations, new CurrentSystemPropertyAccess());
     }
 
     protected DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, MavenFileLocations mavenFileLocations, SystemPropertyAccess system) {

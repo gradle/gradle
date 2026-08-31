@@ -17,9 +17,10 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecation
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 
-class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, UndeclaredArtifactTransformInputDeprecation {
     // This tests current behaviour, not desired behaviour
     @UnsupportedWithConfigurationCache(because = "Task does not declare that it uses the transform outputs")
     def "can consume transform outputs produced by another project without declaring this access"() {
@@ -53,6 +54,7 @@ class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyR
         """
 
         when:
+        expectUndeclaredArtifactTransformInputDeprecation()
         run("sneaky:sneaky", "--parallel")
 
         then:

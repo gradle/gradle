@@ -24,12 +24,17 @@ import org.gradle.model.ModelMap;
 /**
  * Represents some component whose implementation can be represented as a collection of source files, and whose other
  * outputs are built from this source.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.12
  */
 @Incubating
 @HasInternalProtocol
+@Deprecated
 public interface SourceComponentSpec extends ComponentSpec {
     /**
      * The source sets for this component.
+     * @since 2.12
      */
     ModelMap<LanguageSourceSet> getSources();
 }

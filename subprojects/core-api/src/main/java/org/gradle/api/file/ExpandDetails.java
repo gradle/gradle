@@ -35,6 +35,7 @@ public interface ExpandDetails {
      * Default value is {@code false}.
      *
      * @see groovy.text.SimpleTemplateEngine#setEscapeBackslash(boolean)
+     * @since 7.2
      */
     Property<Boolean> getEscapeBackslash();
 }

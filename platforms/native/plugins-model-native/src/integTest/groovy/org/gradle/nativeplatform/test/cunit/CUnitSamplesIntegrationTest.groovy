@@ -40,6 +40,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "cunit components"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         sample cunit
 
@@ -52,6 +53,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "cunit"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         // On windows, CUnit sample only works out of the box with VS2015
         assumeTrue(!OperatingSystem.current().windows || isVisualCpp2015())

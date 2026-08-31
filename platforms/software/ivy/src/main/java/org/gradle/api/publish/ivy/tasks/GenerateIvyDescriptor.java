@@ -17,8 +17,12 @@
 package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator;
@@ -27,6 +31,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -46,15 +51,17 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
     private Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
     private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = Cached.of(this::computeIvyDescriptorFileSpec);
 
-    private Object destination;
-
     @Inject
     protected abstract PathToFileResolver getFileResolver();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * The module descriptor metadata.
      *
      * @return The module descriptor.
+     * @since 1.4
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -62,6 +69,11 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
         return descriptor.get();
     }
 
+    /**
+     * Sets the descriptor.
+     *
+     * @since 2.1
+     */
     public void setDescriptor(IvyModuleDescriptorSpec descriptor) {
         this.descriptor.set(descriptor);
     }
@@ -70,11 +82,22 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * The file the descriptor will be written to.
      *
      * @return The file the descriptor will be written to
+     * @since 9.7.0
      */
+    @Incubating
     @OutputFile
-    @ToBeReplacedByLazyProperty
+    public abstract RegularFileProperty getDestinationFile();
+
+    /**
+     * The file the descriptor will be written to.
+     *
+     * @return The file the descriptor will be written to
+     * @since 1.4
+     */
+    @ReplacedBy("destinationFile")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationFile() instead", willBeDeprecated = true)
     public File getDestination() {
-        return destination == null ? null : getFileResolver().resolve(destination);
+        return getDestinationFile().isPresent() ? getDestinationFile().get().getAsFile() : null;
     }
 
     /**
@@ -84,7 +107,8 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * @since 4.0
      */
     public void setDestination(File destination) {
-        this.destination = destination;
+        getDestinationFile().fileValue(destination);
+        getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(destination));
     }
 
     /**
@@ -93,14 +117,22 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
      * The value is resolved with {@link Project#file(Object)}
      *
      * @param destination The file the descriptor will be written to.
+     * @since 1.4
      */
     public void setDestination(Object destination) {
-        this.destination = destination;
+        File resolved = getFileResolver().resolve(destination);
+        getDestinationFile().fileValue(resolved);
+        getDestinationFile().convention(getObjectFactory().fileProperty().fileValue(resolved));
     }
 
+    /**
+     * Do generate.
+     *
+     * @since 1.4
+     */
     @TaskAction
     public void doGenerate() {
-        ivyDescriptorSpec.get().writeTo(getDestination());
+        ivyDescriptorSpec.get().writeTo(getDestinationFile().get().getAsFile());
     }
 
     IvyDescriptorFileGenerator.DescriptorFileSpec computeIvyDescriptorFileSpec() {

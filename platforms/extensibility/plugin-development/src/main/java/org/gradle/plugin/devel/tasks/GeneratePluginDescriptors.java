@@ -40,11 +40,17 @@ import java.util.stream.Collectors;
 
 /**
  * Generates plugin descriptors from plugin declarations.
+ * @since 2.14
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class GeneratePluginDescriptors extends DefaultTask {
     private final Provider<Map<String, String>> implementationClassById;
 
+    /**
+     * Creates a new {@code GeneratePluginDescriptors}.
+     *
+     * @since 2.14
+     */
     @SuppressWarnings("this-escape")
     public GeneratePluginDescriptors() {
         implementationClassById = getDeclarations().map(declarations -> declarations.stream()
@@ -54,6 +60,7 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
 
     /**
      * The plugin declarations used to create the descriptors.
+     * @since 2.14
      */
     @Internal("Changes for the declarations are tracked via implementationClassById")
     public abstract ListProperty<PluginDeclaration> getDeclarations();
@@ -68,9 +75,19 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
         return implementationClassById;
     }
 
+    /**
+     * Returns the output directory.
+     *
+     * @since 2.14
+     */
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
+    /**
+     * Generate plugin descriptors.
+     *
+     * @since 2.14
+     */
     @TaskAction
     public void generatePluginDescriptors() {
         File outputDir = getOutputDirectory().get().getAsFile();

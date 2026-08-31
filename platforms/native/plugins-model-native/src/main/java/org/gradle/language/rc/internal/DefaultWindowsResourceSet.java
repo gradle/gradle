@@ -16,9 +16,9 @@
 package org.gradle.language.rc.internal;
 
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingSourceSet;
-import org.gradle.language.rc.WindowsResourceSet;
 
-public class DefaultWindowsResourceSet extends AbstractHeaderExportingSourceSet implements WindowsResourceSet {
+@SuppressWarnings("deprecation")
+public class DefaultWindowsResourceSet extends AbstractHeaderExportingSourceSet implements org.gradle.language.rc.WindowsResourceSet {
     @Override
     protected String getLanguageName() {
         return "windows resources";

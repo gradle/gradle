@@ -135,22 +135,18 @@ It can be reused by both hot and cold local Gradle daemons, but it cannot be sha
 
 See link:{gradle-issues}13510[gradle/gradle#13510].
 
-[[config_cache:not_yet_implemented:source_dependencies]]
-=== Source Dependencies
+[[config_cache:not_yet_implemented:parallel_store]]
+=== Parallel Storing of Cache Entries Independent of Parallel Project Execution
 
-Support for link:https://blog.gradle.org/introducing-source-dependencies[source dependencies] is not yet implemented.
-When using this feature, the build will not fail, and no problems will be reported, but the Configuration Cache will be automatically disabled.
+<<configuration_cache_enabling.adoc#config_cache:usage:parallel, Parallel storing>> writes the configuration state of each project concurrently, and writing a project's state requires access to that project.
+Gradle only grants access to projects one at a time unless parallel project execution is enabled, so with `--parallel` disabled — the default — much of the storing may still happen sequentially and the option delivers less than its full benefit.
 
-See link:{gradle-issues}13506[gradle/gradle#13506].
+Until the two are decoupled, enable `org.gradle.parallel=true` together with `org.gradle.configuration-cache.parallel=true`.
 
-[[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
-=== Fine-grained Tracking of Gradle Properties as Build Configuration Inputs
+This limitation applies to storing a cache entry only.
+Task execution is parallel under the Configuration Cache regardless of `--parallel`, as is loading a cache entry; see <<configuration_cache.adoc#config_cache:intro:parallel_task_execution, Parallel Task Execution>>.
 
-Currently, all external sources of Gradle properties—such as `gradle.properties` files (both in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`), environment variables, system properties that set properties, and properties specified via command-line flags—are considered build configuration inputs, regardless of whether they are actually used during configuration.
-
-However, these sources are not included in the Configuration Cache report.
-
-See link:{gradle-issues}20969[gradle/gradle#20969].
+See link:{gradle-issues}36002[gradle/gradle#36002].
 
 [[config_cache:not_yet_implemented:java_serialization]]
 === Java Object Serialization
@@ -244,7 +240,7 @@ However, only providers returned from link:{javadocPath}/org/gradle/api/services
 Starting with Gradle 9, using other kinds of providers (including even `registerIfAbsent(...).map { it }`) results in a Configuration Cache problem being emitted.
 Prior to that, such providers were silently ignored.
 
-Check the <<configuration_cache_enabling#config_cache:adoption:changes_in_behavior,adoption guide>> to learn how to _temporarily_ suppress these problems if discarded listeners do not affect your
+See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs:serialization_behavior, Serialization-behavior opt-outs>> to learn how to _temporarily_ suppress these problems if discarded listeners do not affect your
 build.
 
 See link:{gradle-issues}33772[gradle/gradle#33772].

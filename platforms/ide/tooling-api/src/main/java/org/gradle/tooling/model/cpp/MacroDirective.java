@@ -26,11 +26,13 @@ import org.jspecify.annotations.Nullable;
 public interface MacroDirective {
     /**
      * Returns the name of the macro.
+     * @since 4.10
      */
     String getName();
 
     /**
      * Returns the value of the macro, if any.
+     * @since 4.10
      */
     @Nullable
     String getValue();

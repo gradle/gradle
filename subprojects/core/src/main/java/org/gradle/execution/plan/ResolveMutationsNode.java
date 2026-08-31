@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
-public class ResolveMutationsNode extends Node implements SelfExecutingNode {
+public class ResolveMutationsNode extends Node {
     private final LocalTaskNode node;
     private final NodeValidator nodeValidator;
     private final BuildOperationRunner buildOperationRunner;

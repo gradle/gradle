@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.Build.class)
-public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<String, ResourceLock> {
+public class SharedResourceLeaseRegistry extends MultiLockRegistry<String, ResourceLock> {
     private final Map<String, LeaseHolder> sharedResources = new ConcurrentHashMap<String, LeaseHolder>();
     private final ResourceLockCoordinationService coordinationService;
 

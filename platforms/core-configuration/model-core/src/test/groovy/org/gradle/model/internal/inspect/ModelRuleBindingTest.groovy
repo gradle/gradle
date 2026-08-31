@@ -30,6 +30,7 @@ import org.gradle.model.internal.type.ModelType
 /**
  * Test the binding of rules by the registry.
  */
+@SuppressWarnings("deprecation")
 class ModelRuleBindingTest extends ProjectRegistrySpec {
     def modelRegistry = new DefaultModelRegistry(modelRuleExtractor, null)
 

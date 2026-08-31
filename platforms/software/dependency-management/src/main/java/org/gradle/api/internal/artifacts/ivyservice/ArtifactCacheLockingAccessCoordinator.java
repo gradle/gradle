@@ -29,9 +29,10 @@ public interface ArtifactCacheLockingAccessCoordinator extends ExclusiveCacheAcc
     /**
      * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
      *
-     * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(Supplier)}.
      * In this instance, an exclusive lock will be held on the cache.
      *
      */
+    @SuppressWarnings("InvalidLink")
     <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer);
 }

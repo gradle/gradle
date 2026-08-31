@@ -17,7 +17,6 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -238,6 +237,7 @@ import java.util.Map;
  *     testImplementation(gradleTestKit())
  * }
  * </pre>
+ * @since 0.7
  */
 @ServiceScope(Scope.Project.class)
 public interface DependencyHandler extends ExtensionAware {
@@ -249,6 +249,7 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * The dependency notation, in one of the notations described above.
      * @return The dependency, or null if dependencyNotation is a provider.
+     * @since 0.7
      */
     @Nullable
     Dependency add(String configurationName, Object dependencyNotation);
@@ -260,6 +261,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param dependencyNotation The dependency notation, in one of the notations described above.
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency, or null if dependencyNotation is a provider.
+     * @since 0.7
      */
     @Nullable
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
@@ -311,6 +313,7 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param dependencyNotation The dependency notation, in one of the notations described above.
      * @return The dependency.
+     * @since 1.0
      */
     Dependency create(Object dependencyNotation);
 
@@ -321,6 +324,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param dependencyNotation The dependency notation, in one of the notations described above.
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency.
+     * @since 1.0
      */
     Dependency create(Object dependencyNotation, Closure configureClosure);
 
@@ -329,6 +333,7 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param notation The project notation, in one of the notations described above.
      * @return The dependency.
+     * @since 0.9
      */
     Dependency project(Map<String, ?> notation);
 
@@ -339,7 +344,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 9.5.0
      */
-    @Incubating
     ProjectDependency project();
 
     /**
@@ -351,13 +355,13 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 9.5.0
      * @see org.gradle.api.Project#getPath()
      */
-    @Incubating
     ProjectDependency project(String projectPath);
 
     /**
      * Creates a dependency on the API of the current version of Gradle.
      *
      * @return The dependency.
+     * @since 0.9
      */
     Dependency gradleApi();
 
@@ -373,6 +377,7 @@ public interface DependencyHandler extends ExtensionAware {
      * Creates a dependency on the Groovy that is distributed with the current version of Gradle.
      *
      * @return The dependency.
+     * @since 1.0
      */
     Dependency localGroovy();
 
@@ -409,7 +414,7 @@ public interface DependencyHandler extends ExtensionAware {
      * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project.</p>
      *
      * @param configureAction the action to use to configure module metadata
-     * @since 1.8
+     * @since 1.11
      */
     void components(Action<? super ComponentMetadataHandler> configureAction);
 
@@ -440,7 +445,7 @@ public interface DependencyHandler extends ExtensionAware {
      * {@link ArtifactView.ViewConfiguration#withVariantReselection()} for resolving
      * sources and javadoc.
      *
-     * @since 2.0
+     * @since 1.12
      */
     ArtifactResolutionQuery createArtifactResolutionQuery();
 
@@ -514,7 +519,7 @@ public interface DependencyHandler extends ExtensionAware {
      * </pre>
      *
      * @see TransformAction
-     * @since 5.3
+     * @since 5.2
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 

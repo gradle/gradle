@@ -18,9 +18,9 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
+import org.gradle.launcher.daemon.startup.DaemonPriority
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 

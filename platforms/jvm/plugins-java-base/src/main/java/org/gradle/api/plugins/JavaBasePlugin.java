@@ -29,7 +29,6 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -71,7 +70,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -85,21 +83,48 @@ import java.util.function.Supplier;
  * (for example) the Java, Groovy, or Kotlin plugins.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
+ * @since 0.9
  */
 public abstract class JavaBasePlugin implements Plugin<Project> {
+    /**
+     * The check task name.
+     *
+     * @since 0.9
+     */
     public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
 
+    /**
+     * The verification group.
+     *
+     * @since 0.9
+     */
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
+    /**
+     * The build task name.
+     *
+     * @since 0.9
+     */
     public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
 
+    /**
+     * The build dependents task name.
+     *
+     * @since 0.9
+     */
     @Deprecated
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
 
+    /**
+     * The build needed task name.
+     *
+     * @since 0.9
+     */
     @Deprecated
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
 
     /**
      * Task group name for documentation-related tasks.
+     * @since 0.9
      */
     public static final String DOCUMENTATION_GROUP = JvmConstants.DOCUMENTATION_GROUP;
 
@@ -235,7 +260,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
         TaskProvider<ProcessResources> processResources = target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, resourcesTask -> {
             resourcesTask.setDescription("Processes " + resourceSet + ".");
-            new DslObject(resourcesTask.getRootSpec()).getConventionMapping().map("destinationDir", (Callable<File>) () -> sourceSet.getOutput().getResourcesDir());
+            resourcesTask.getDestinationDirectory().convention(target.getLayout().dir(target.provider(() -> sourceSet.getOutput().getResourcesDir())));
             resourcesTask.from(resourceSet);
         });
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
@@ -331,7 +356,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureJavaDoc(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
-            javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir("javadoc").get().getAsFile());
+            javadoc.getDestinationDirectory().convention(javaPluginExtension.getDocsDir().dir("javadoc"));
             javadoc.getConventionMapping().map("title", () -> ReportUtilities.getApiDocTitleFor(project));
 
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->

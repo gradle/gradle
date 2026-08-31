@@ -29,6 +29,7 @@ import org.gradle.test.preconditions.JdkVersionTestPreconditions
 import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Assume
+import spock.lang.Issue
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
@@ -102,7 +103,26 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         fails("runInWorker")
 
         then:
-        failureCauseContains('Setting the working directory of a worker is not supported')
+        failureCauseContains("Setting the working directory of a worker is not supported.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38455")
+    def "re-setting the working directory of a worker to its default value is supported"() {
+        fixture.withWorkActionClassInBuildScript()
+        workActionThatPrintsWorkingDirectory.writeToBuildFile()
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                isolationMode = 'processIsolation'
+                workActionClass = ${workActionThatPrintsWorkingDirectory.name}.class
+                additionalForkOptions = { it.workingDir = it.workingDir }
+            }
+        """
+
+        when:
+        succeeds("runInWorker")
+
+        then:
+        assertWorkerExecuted("runInWorker")
     }
 
     def "interesting worker daemon fork options are honored"() {

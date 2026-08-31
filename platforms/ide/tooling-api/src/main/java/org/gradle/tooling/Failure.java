@@ -33,6 +33,7 @@ public interface Failure {
      * Returns a short message (typically one line) for the failure.
      *
      * @return the failure message
+     * @since 2.4
      */
     @Nullable
     String getMessage();
@@ -41,6 +42,7 @@ public interface Failure {
      * Returns a long description of the failure. For example, a stack trace.
      *
      * @return a long description of the failure
+     * @since 2.4
      */
     @Nullable
     String getDescription();
@@ -49,6 +51,7 @@ public interface Failure {
      * Returns the underlying causes for this failure, if any.
      *
      * @return the causes for this failure. Returns an empty list if this failure has no causes.
+     * @since 2.4
      */
     List<? extends Failure> getCauses();
 

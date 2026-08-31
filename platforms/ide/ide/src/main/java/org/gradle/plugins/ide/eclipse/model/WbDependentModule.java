@@ -26,17 +26,31 @@ import java.util.Map;
 
 /**
  * A wtp descriptor dependent module entry.
+ *
+ * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
+@Deprecated
 public class WbDependentModule implements WbModuleEntry {
 
     private String archiveName;
     private String deployPath;
     private String handle;
 
+    /**
+     * Creates a new {@code WbDependentModule}.
+     *
+     * @since 2.14
+     */
     public WbDependentModule(Node node) {
         this((String) node.attribute("archiveName"), (String) node.attribute("deploy-path"), (String) node.attribute("handle"));
     }
 
+    /**
+     * Creates a new {@code WbDependentModule}.
+     *
+     * @since 1.0
+     */
     public WbDependentModule(String deployPath, String handle) {
         this("", deployPath, handle);
     }
@@ -77,18 +91,38 @@ public class WbDependentModule implements WbModuleEntry {
         this.archiveName = archiveName;
     }
 
+    /**
+     * Returns the deploy path.
+     *
+     * @since 1.0
+     */
     public String getDeployPath() {
         return deployPath;
     }
 
+    /**
+     * Sets the deploy path.
+     *
+     * @since 1.0
+     */
     public void setDeployPath(String deployPath) {
         this.deployPath = deployPath;
     }
 
+    /**
+     * Returns the handle.
+     *
+     * @since 1.0
+     */
     public String getHandle() {
         return handle;
     }
 
+    /**
+     * Sets the handle.
+     *
+     * @since 1.0
+     */
     public void setHandle(String handle) {
         this.handle = handle;
     }

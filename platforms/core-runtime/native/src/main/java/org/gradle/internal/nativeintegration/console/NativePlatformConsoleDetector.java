@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem;
 
 import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stderr;
 import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stdout;
+import org.jspecify.annotations.Nullable;
 
 public class NativePlatformConsoleDetector implements ConsoleDetector {
     private static final int WINDOWS_UTF8_CODEPAGE_ID = 65001;
@@ -34,6 +35,7 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
     }
 
     @Override
+    @Nullable
     public ConsoleMetaData getConsole() {
         // Dumb terminal doesn't support ANSI control codes.
         // TODO - remove this when we use Terminal rather than JAnsi to render to console
@@ -43,11 +45,11 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
             return null;
         }
 
-        boolean isStdoutATerminal = terminals.isTerminal(Stdout);
-        boolean isStderrATerminal = terminals.isTerminal(Stderr);
-        boolean disableUnicodeSupportDetection = isWindowsWithNonUnicodeCodePage();
-
         try {
+            boolean isStdoutATerminal = terminals.isTerminal(Stdout);
+            boolean isStderrATerminal = terminals.isTerminal(Stderr);
+            boolean disableUnicodeSupportDetection = isWindowsWithNonUnicodeCodePage();
+
             if (isStdoutATerminal) {
                 return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stdout), disableUnicodeSupportDetection);
             } else if (isStderrATerminal) {
@@ -57,7 +59,8 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
             }
         } catch (NativeException ex) {
             // if a native terminal exists but cannot be resolved, use dumb terminal settings
-            // this can happen if a terminal is in use that does not have its terminfo installed
+            // this can happen if a terminal is in use that does not have its terminfo installed,
+            // or if the output stream's handle cannot be queried (e.g. a redirected stdout on Windows)
             return null;
         }
     }

@@ -57,22 +57,26 @@ class SourceDependencyBuildLookupIntegrationTest extends AbstractIntegrationSpec
     def "source dependency builds are not visible to main build"() {
         given:
         buildFile << """
+            // A source-dependency build participates in resolution (its jar is built below) but must
+            // never be exposed as an included build. Assert this at configuration time rather than
+            // reading `gradle` from a task action at execution time, which is configuration-cache safe.
             assert gradle.includedBuilds.empty
+            try {
+                gradle.includedBuild("buildB")
+                throw new IllegalStateException("Expected source dependency build 'buildB' to be invisible as an included build")
+            } catch (org.gradle.api.UnknownDomainObjectException e) {
+                assert e.message == "Included build 'buildB' not found in build ':'."
+            }
 
-            task broken {
+            task checkBuildB {
                 dependsOn classes
-                doLast {
-                    assert gradle.includedBuilds.empty
-                    gradle.includedBuild("buildB")
-                }
             }
         """
 
         when:
-        fails("broken")
+        succeeds("checkBuildB")
 
         then:
-        failure.assertHasCause("Included build 'buildB' not found in build ':'.")
         result.assertTaskScheduled(":buildB:jar")
     }
 }

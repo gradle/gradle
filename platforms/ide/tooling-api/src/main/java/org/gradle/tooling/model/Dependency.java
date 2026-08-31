@@ -17,6 +17,7 @@ package org.gradle.tooling.model;
 
 /**
  * Represents an artifact dependency.
+ * @since 0.9.2
  */
 public interface Dependency {
 }

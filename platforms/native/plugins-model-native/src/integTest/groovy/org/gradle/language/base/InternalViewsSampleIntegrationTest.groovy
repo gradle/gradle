@@ -31,11 +31,13 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample internalViewsSample = new Sample(temporaryFolder, "integration-tests/customModel/internalViews/groovy")
 
-    // NOTE If you change this, you'll also need to change docs/src/doc/snippets/customModel/languageType/groovy/softwareModelExtend-iv-model.out
     def "show mutated public view data but no internal view data in model report"() {
         given:
         sample internalViewsSample
         when:
+        expectSoftwareModelDeprecations("MyPlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(1)
+        expectModelReportTaskDeprecation()
         succeeds "model"
         then:
         println output
@@ -57,4 +59,20 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
                           | Creator: \tcomponents { ... } @ build.gradle line 37, column 5 > create(my)
             """.stripIndent().trim()
     }
+
+    private void expectSoftwareModelDeprecations(String... pluginNames) {
+        for (String name : pluginNames) {
+            executer.expectDocumentedDeprecationWarning("The ${name} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+    private void expectModelDslDeprecation(int count = 1) {
+        count.times {
+            executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+
+    private void expectModelReportTaskDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The task type org.gradle.api.reporting.model.ModelReport (used by the :model task) has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
 }

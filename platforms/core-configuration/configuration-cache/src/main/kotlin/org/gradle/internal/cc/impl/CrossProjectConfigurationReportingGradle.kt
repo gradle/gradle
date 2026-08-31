@@ -34,9 +34,9 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
+import org.gradle.api.services.GradleService
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -72,7 +72,9 @@ class CrossProjectConfigurationReportingGradle(
         else -> gradle
     }
 
-    private val crossProjectModelAccess: CrossProjectModelAccess = delegate.serviceOf()
+    private val crossProjectModelAccess: CrossProjectModelAccess by lazy {
+        delegate.serviceOf()
+    }
 
     private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
 
@@ -253,6 +255,40 @@ class CrossProjectConfigurationReportingGradle(
         return delegate.pluginManager
     }
 
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+    override fun buildFinished(action: Action<in BuildResult>) {
+        // Intentionally not reported as a cross-project access problem: registering a `buildFinished` callback
+        // is already a deferred Configuration Cache problem, which fails the build at the end of the configuration phase.
+        // The callback only runs at execution time, and since IP implies CC the build never reaches execution,
+        // so the callback can never run under Isolated Projects.
+        delegate.buildFinished(action)
+    }
+
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+    override fun buildFinished(closure: Closure<*>) {
+        // see `buildFinished`
+        delegate.buildFinished(closure)
+    }
+
+    override fun addBuildListener(buildListener: BuildListener) {
+        // `BuildListener` has a `projectsEvaluated` method, which fires at configuration time and
+        // hands out the unwrapped `Gradle`. Its other methods are either never called when registered at
+        // project scope, or confined to execution time like `buildFinished`.
+        onMutableStateAccess("addBuildListener")
+        delegate.addBuildListener(buildListener)
+    }
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in Java")
+    override fun useLogger(logger: Any) {
+        // Like `addListener`, the logger may implement listeners broadcast during configuration
+        // (e.g. ProjectEvaluationListener, TaskExecutionGraphListener). Unlike `buildFinished`, the effect
+        // is not confined to execution time, so it can couple projects before the build fails - hence we report it.
+        // It also replaces the per-type logger last-writer-wins, mutating build-scope state.
+        onMutableStateAccess("useLogger")
+        delegate.useLogger(logger)
+    }
+
     override fun getExtensions(): ExtensionContainer =
         CrossProjectConfigurationReportingGradleExtensionsContainer(
             delegate.extensions as ExtensionContainerInternal,
@@ -291,30 +327,14 @@ class CrossProjectConfigurationReportingGradle(
     override fun projectsLoaded(action: Action<in Gradle>) =
         delegate.projectsLoaded(action)
 
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun buildFinished(closure: Closure<*>) =
-        // already reported as configuration cache problem, no need to override
-        delegate.buildFinished(closure)
-
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun buildFinished(action: Action<in BuildResult>) =
-        // already reported as configuration cache problem, no need to override
-        delegate.buildFinished(action)
-
-    override fun addBuildListener(buildListener: BuildListener) =
-        // already reported as configuration cache problem, no need to override
-        delegate.addBuildListener(buildListener)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated in Java")
-    override fun useLogger(logger: Any) =
-        delegate.useLogger(logger)
-
     override fun getSharedServices(): BuildServiceRegistry =
         delegate.sharedServices
 
     override fun getProviders(): ProviderFactory =
         delegate.providers
+
+    override fun <T : GradleService> service(serviceType: Class<T>): T =
+        delegate.service(serviceType)
 
     override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
         delegate.includedBuilds
@@ -380,9 +400,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun setBaseProjectClassLoaderScope(classLoaderScope: ClassLoaderScope) {
         delegate.setBaseProjectClassLoaderScope(classLoaderScope)
     }
-
-    override fun getProjectRegistry(): ProjectRegistry =
-        delegate.projectRegistry
 
     override fun includedBuilds(): MutableList<out IncludedBuildInternal> =
         delegate.includedBuilds()

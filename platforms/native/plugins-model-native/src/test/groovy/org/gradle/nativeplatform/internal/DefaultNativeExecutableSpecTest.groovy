@@ -21,6 +21,7 @@ import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class DefaultNativeExecutableSpecTest extends Specification {
     def executable = BaseComponentFixtures.create(NativeExecutableSpec, DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("project-path", "someExe"))
 

@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservat
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -73,9 +74,8 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
     @Nullable
     private static Path getProjectBuildTreePath(DomainObjectContext domainObjectContext) {
-        ProjectIdentity id = domainObjectContext.getProjectIdentity();
-        if (id != null) {
-            return id.getBuildTreePath();
+        if (domainObjectContext instanceof ProjectDomainObjectContext pdoc) {
+            return pdoc.getModel().getIdentity().getBuildTreePath();
         }
 
         return null;

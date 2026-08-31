@@ -52,6 +52,7 @@ import org.gradle.api.Action;
 public interface ResourceFilter {
     /**
      * Indicates whether this ResourceFilter applies to files, folders, or both.  Default is FILES_AND_FOLDERS
+     * @since 3.5
      */
     ResourceFilterAppliesTo getAppliesTo();
 
@@ -59,11 +60,13 @@ public interface ResourceFilter {
      * Indicates whether this ResourceFilter applies to files, folders, or both.  Default is FILES_AND_FOLDERS
      *
      * @throws org.gradle.api.InvalidUserDataException if appliesTo is null.
+     * @since 3.5
      */
     void setAppliesTo(ResourceFilterAppliesTo appliesTo);
 
     /**
      * Specifies whether this ResourceFilter is including or excluding resources.  Default is EXCLUDE_ALL
+     * @since 3.5
      */
     ResourceFilterType getType();
 
@@ -71,21 +74,25 @@ public interface ResourceFilter {
      * Sets the ResourceFilterType
      *
      * @throws org.gradle.api.InvalidUserDataException if type is null.
+     * @since 3.5
      */
     void setType(ResourceFilterType type);
 
     /**
      * Indicates whether this ResourceFilter applies recursively to all children of the project it is created on.  Default is true.
+     * @since 3.5
      */
     boolean isRecursive();
 
     /**
      * Sets whether this ResourceFilter applies recursively or not.
+     * @since 3.5
      */
     void setRecursive(boolean recursive);
 
     /**
      * Gets the matcher of this ResourceFilter.
+     * @since 3.5
      */
     ResourceFilterMatcher getMatcher();
 
@@ -93,6 +100,7 @@ public interface ResourceFilter {
      * Configures the matcher of this resource filter.  Will create the matcher if it does not yet exist, or configure the existing matcher if it already exists.
      *
      * @param configureAction The action to use to configure the matcher.
+     * @since 3.5
      */
     ResourceFilterMatcher matcher(Action<? super ResourceFilterMatcher> configureAction);
 }

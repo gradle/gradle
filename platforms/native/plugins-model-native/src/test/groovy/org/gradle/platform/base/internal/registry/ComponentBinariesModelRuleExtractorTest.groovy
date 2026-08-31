@@ -30,6 +30,7 @@ import java.lang.annotation.Annotation
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
     ComponentBinariesModelRuleExtractor ruleHandler = new ComponentBinariesModelRuleExtractor()

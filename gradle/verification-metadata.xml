@@ -69,7 +69,11 @@
       <trusted-keys>
          <trusted-key id="0057FBD7F284A1C1B4F1E891EE6E41E5483F557D" group="com.github.jnr" name="jnr-x86asm"/>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
-         <trusted-key id="0181A4828FA27B6BE6F1F5A68611CD28F472E006" group="org.jline"/>
+         <trusted-key id="0181A4828FA27B6BE6F1F5A68611CD28F472E006">
+            <trusting group="org.apache.maven"/>
+            <trusting group="org.codehaus.plexus" name="plexus-utils"/>
+            <trusting group="org.jline"/>
+         </trusted-key>
          <trusted-key id="019082BC00E0324E2AEF4CF00D3B328562A119A7" group="org.openjdk.jmh"/>
          <trusted-key id="04543577D6A9CC626239C50C7ECBD740FF06AEB5">
             <trusting group="com.sun.xml.bind"/>
@@ -281,6 +285,7 @@
          <trusted-key id="6A93161EB1990E8346E7BA2B23738DFD7C40DE43" group="org.apache.ant"/>
          <trusted-key id="6BDACA2C0493CCA133B372D09C4F7E9D98B1CC53" group="commons-io" name="commons-io"/>
          <trusted-key id="6CB87B18A453990EAC9453F87D713008CC07E9AD" group="xerces" name="xercesImpl"/>
+         <trusted-key id="6D2AF456B8CB597387901C786F29F72839B3A8E7" group="org.jboss.logging" name="jboss-logging"/>
          <trusted-key id="6D98490C6F1ACDDD448E45954F77679369475BAA" group="com.yarnpkg" name="yarn"/>
          <trusted-key id="6DD3B8C64EF75253BEB2C53AD908A43FB7EC07AC">
             <trusting group="com.sun.activation" name="jakarta.activation"/>
@@ -312,6 +317,7 @@
          <trusted-key id="7B9751FC3F01F134F476464CD0EB627D4885CED1" group="org.apache.velocity" name="velocity"/>
          <trusted-key id="7C669810892CBD3148FA92995B05CCDE140C2876" group="org.eclipse.jgit"/>
          <trusted-key id="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF" group="io.netty" name="netty-all"/>
+         <trusted-key id="7E6557B314B189FD4EA5B680FE66BCA17E67AE6F" group="com.thoughtworks.qdox" name="qdox"/>
          <trusted-key id="7FAA0F2206DE228F0DB01AD741321490758AAD6F" group="org.codehaus.groovy"/>
          <trusted-key id="80F6D6B0D90C6747753344CAB5A9E81B565E89E0" group="org.tomlj" name="tomlj"/>
          <trusted-key id="82C9EC0E52C47A936A849E0113D979595E6D01E1" group="org.apache.maven.shared" name="maven-shared-utils"/>
@@ -352,6 +358,7 @@
          <trusted-key id="94976E17E18DD3201447286954963C3E875A56AE" group="io.smallrye.common"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
+         <trusted-key id="99E73B179E66D217E4C969152F732027B9B0B96C" group="org.jboss.threads" name="jboss-threads"/>
          <trusted-key id="9B5D41D28D8231A341B6713BC8C127A0EC7665D6" group="org.jctools"/>
          <trusted-key id="9C60C6B3A5A9DF8FEDD299D65BE0BA8CB80602AE" group="org.apache.ivy"/>
          <trusted-key id="9E84765A7AA3E3D3D5598A408E3F0DE7AE354651" group="^com[.]squareup($|([.].*))" regex="true"/>
@@ -390,7 +397,6 @@
             <trusting group="org.apache.commons" name="commons-lang3"/>
             <trusting group="org.apache.commons" name="commons-text"/>
          </trusted-key>
-         <trusted-key id="B801E2F8EF035068EC1139CC29579F18FA8FD93B" group="com.google.j2objc" name="j2objc-annotations"/>
          <trusted-key id="B8D44699D150AAD887FDCF8BD6131C504DEBCC09" group="com.kohlschutter.junixsocket"/>
          <trusted-key id="B91AB7D2121DC6B0A61AA182D7742D58455ECC7C" group="org.codehaus.plexus" name="plexus-classworlds"/>
          <trusted-key id="BA926F64CA647B6D853A38672E2010F8A7FF4A41">
@@ -403,13 +409,13 @@
          <trusted-key id="BD95A93175BFE816FC152DE5F9FD57A03B80305D" group="com.lihaoyi"/>
          <trusted-key id="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE">
             <trusting group="com.google.guava"/>
-            <trusting group="com.google.j2objc" name="j2objc-annotations"/>
             <trusting group="com.google.testing.compile" name="compile-testing"/>
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="BE685132AFD2740D9095F9040CC0B712FEE75827" group="org.assertj" name="assertj-core"/>
          <trusted-key id="C0612048F3393B80B22639B4F067A2FD751AE3E4" group="io.github.davidburstrom.contester" name="contester-breakpoint"/>
          <trusted-key id="C0822D185FBFD963C33ACBFEA318A06284D602D5" group="com.tngtech.archunit"/>
+         <trusted-key id="C3259D20DAEC4ACE6D57CC83340B090F727518D8" group="com.google.j2objc" name="j2objc-annotations"/>
          <trusted-key id="C328250FE23A2420814521EC0EB69F76FD171538" group="io.airlift" name="slice"/>
          <trusted-key id="C3EB67E869C31CC00755038F0A07E0E55E45F65B" group="jcifs" name="jcifs"/>
          <trusted-key id="C44A68FD10FF456C91E2757D18088D07854014B3" group="org.scala-lang.modules" name="scala-parallel-collections_2.13"/>
@@ -421,7 +427,10 @@
          <trusted-key id="C8D37E9675158FF5B29B6D6452FC3551DA8DC57E" group="com.mysql" name="mysql-connector-j"/>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
          <trusted-key id="C9F5BB47FCF51250930BD8E22F73DAE490984549" group="com.uber.nullaway"/>
-         <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141" group="net.sf.proguard"/>
+         <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141">
+            <trusting group="com.guardsquare"/>
+            <trusting group="net.sf.proguard"/>
+         </trusted-key>
          <trusted-key id="CB3190CA7842439E57F3712E44CE7BF2825EA2CD" group="com.ibm.icu" name="icu4j"/>
          <trusted-key id="CD5464315F0B98C77E6E8ECD9DAADC1C9FCC82D0">
             <trusting group="commons-cli"/>
@@ -521,7 +530,10 @@
          <trusted-key id="F3D9FF1EE50634CC57D1E380C2952540150670BE" group="org.scala-lang.modules" name="scala-xml_2.13"/>
          <trusted-key id="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3" group="net.bytebuddy"/>
          <trusted-key id="F44F648ECAD30325AED69BBDA8538F26D55EA9A3" group="org.testng" name="testng"/>
-         <trusted-key id="F4DD59C90148BDC52BEB90A4530AA5F25C25011F" group="commons-io" name="commons-io"/>
+         <trusted-key id="F4DD59C90148BDC52BEB90A4530AA5F25C25011F">
+            <trusting group="commons-codec" name="commons-codec"/>
+            <trusting group="commons-io" name="commons-io"/>
+         </trusted-key>
          <trusted-key id="F60DB6893AB3825459528EADCC54B93C018511A4" group="com.beust" name="jcommander"/>
          <trusted-key id="F9514E84AE3708288374BBBE097586CFEA37F9A6" group="org.owasp.encoder" name="encoder"/>
          <trusted-key id="FA77DCFEF2EE6EB2DEBEDD2C012579464D01C06A">
@@ -714,18 +726,18 @@
             <sha256 value="be46341a814e786c14c5d0e6cf5d470e55fff468b99509437c4014d8b2a20ce4" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="com.google.android.studio" name="android-studio" version="2025.3.4.7">
-         <artifact name="android-studio-2025.3.4.7-panda4-patch1-linux.tar.gz">
-            <sha256 value="aae8f332f124afd23ca495dc770915a456da7480c8f859e01535ad42fcb4ca06" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+      <component group="com.google.android.studio" name="android-studio" version="2026.1.3.8">
+         <artifact name="android-studio-2026.1.3.8-quail3-patch1-linux.tar.gz">
+            <sha256 value="5bd5ee5d6e747b13f82fba3241380bd358cc2f4a847815c8e860757df13dc35f" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.3.4.7-panda4-patch1-mac.dmg">
-            <sha256 value="09a72dab139985940d6bb42009f1c704bdffc1282a84193390dbbfb45ffc751c" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2026.1.3.8-quail3-patch1-mac.dmg">
+            <sha256 value="864d19d7955695b5383d59d1c64693baa34fa8979242553417ba9f2ddd69dffc" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.3.4.7-panda4-patch1-mac_arm.dmg">
-            <sha256 value="e06e2609eb51d0ce84c027ec7d7a9778b2e980febadf50195c2aaf1b45098e7e" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2026.1.3.8-quail3-patch1-mac_arm.dmg">
+            <sha256 value="aa77ef6919b22be51566dcd79603c323f7c403fa91dc79dc413eed7f6a05c048" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.3.4.7-panda4-patch1-windows.zip">
-            <sha256 value="b37f2f33619c932f50d59f30592ea4f6ddd8d9fd95e3b3687c5525429316b28f" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2026.1.3.8-quail3-patch1-windows.zip">
+            <sha256 value="758e927767972c44f2bb14e0af035e6b90ec07a9e2819fc2eb83f51a2492501b" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.google.protobuf" name="protobuf-java" version="3.21.12">
@@ -758,21 +770,21 @@
             <sha256 value="7de9b7ade957c6a1996e9c3d0e1e4d1e1840c081ebf16bbd3c2a6a5b05b88891" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="idea" name="ideaIU" version="2026.1.2">
-         <artifact name="ideaIU-2026.1.2-aarch64.dmg">
-            <sha256 value="580794e8fbc1a57c688ec02ea98af27acb62448188465eb94995d0b9c72b10ac" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+      <component group="idea" name="ideaIU" version="2026.2.1">
+         <artifact name="ideaIU-2026.2.1-aarch64.dmg">
+            <sha256 value="b9c521ba766f7e5372e9d05f6d68442ada13f34ce758af318ca21f017c0bb19f" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="ideaIU-2026.1.2-aarch64.tar.gz">
-            <sha256 value="617739722b5b5453aaa5c0853fe1a2fb6e37cf7557529159c4c56aea40e083dd" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+         <artifact name="ideaIU-2026.2.1-aarch64.tar.gz">
+            <sha256 value="110bc988fa52a702e25a8d57cc50eb0150e8f64641fa70a633f9f3798bfab6eb" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="ideaIU-2026.1.2.dmg">
-            <sha256 value="7ea7a72168f86cdb3a5f1bce70bf53a90355e45367c462c2cbf60234c1f69077" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+         <artifact name="ideaIU-2026.2.1.dmg">
+            <sha256 value="a0f81d3046e6cdd157c9cb1a8c3ac35755e15d07d975bf2ef484c30f243c9038" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="ideaIU-2026.1.2.tar.gz">
-            <sha256 value="e820175d1a7d0ee2492e7b38f6b7f046a132bfe4b082086d9b035edb03c777b1" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+         <artifact name="ideaIU-2026.2.1.tar.gz">
+            <sha256 value="dac2021204c8bf3bd8d66567a1ae36a341da0050b6006c32d42006c6577eb29a" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="ideaIU-2026.1.2.win.zip">
-            <sha256 value="dcff40021019e836c65ceddf68bd3118f6a16acee3d4fbd40ab2de6b5379a234" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
+         <artifact name="ideaIU-2026.2.1.win.zip">
+            <sha256 value="8aa16db629952300ab74d2d5e095150d1a534593e65bbbbd795b859759c00cbc" origin="Generated by UpdateSmokeTestedIdeVersions" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="itext" name="itext" version="2.0.8">
@@ -895,36 +907,6 @@
             <sha256 value="5b8f84f082ee8fa872e63d0616a84b65e7d24cf57aafcdd080e74926e9dbe3ae" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.ci.health" name="common" version="0.63">
-         <artifact name="common-0.63.jar">
-            <sha256 value="1cbecb45b99d98523a62f9ead6a248b95e295d5db186d09222e6ae1ea6ce0292" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="common" version="0.74">
-         <artifact name="common-0.74.jar">
-            <sha256 value="c9e7a770270510d50ad4c7b9df04fc4fa88a60011e610822d653a9b25791bef7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="github-client" version="0.74">
-         <artifact name="github-client-0.74.jar">
-            <sha256 value="5bb1ef363623fdf76ca64a07abbd4c69d3b915876f87538d031791add35f2683" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="gradle-build-tag-plugin" version="0.74">
-         <artifact name="gradle-build-tag-plugin-0.74.jar">
-            <sha256 value="4824afdf33200a96ad995ed9f4b6c9cbac98168cbda53642e7f8664cb7331556" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="tagging" version="0.74">
-         <artifact name="tagging-0.74.jar">
-            <sha256 value="5c5db6b64345396574d4527f44623a449753aeb308ab8adf1ad717795ec708b7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="teamcity-client" version="0.74">
-         <artifact name="teamcity-client-0.74.jar">
-            <sha256 value="5ef4102929b54c1b368be19178475c941bff09322c838484bb4dee66b6649419" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.25.0">
          <artifact name="gradle-guides-plugin-0.25.0.jar">
             <sha256 value="aaef2108d192420ab4a2723fab4d2ca00aec68836056dd2e2f56c529d2681ca8" origin="Verified" reason="Artifact is not signed"/>
@@ -955,9 +937,9 @@
             <sha256 value="cee1ad9674ff4615f492a314a986c77b7c223ae03255c77aacc60c6cea62d59c" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.jetbrains.intellij.platform" name="intellij-platform-gradle-plugin" version="2.16.0">
-         <artifact name="intellij-platform-gradle-plugin-2.16.0.jar">
-            <sha256 value="3fd15c6c2890d758102f82236997cc990b2a32d4df5f7dc0c59e0df3eb54a30b" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.jetbrains.intellij.platform" name="intellij-platform-gradle-plugin" version="2.17.0">
+         <artifact name="intellij-platform-gradle-plugin-2.17.0.jar">
+            <sha256 value="6a2f7b1891d9b9f6973c6ba0b2978b816e600818cec29016c51e2a4eb9297e79" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.jetbrains.kotlin" name="kotlin-stdlib" version="2.0.0">
@@ -1017,6 +999,11 @@
       <component group="org.wildfly.common" name="wildfly-common" version="2.0.0">
          <artifact name="wildfly-common-2.0.0.jar">
             <sha256 value="777e080f4f2d959227897c7c92bfd4d4afe3c2b25833a891328c67f6a9576b8a" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.wildfly.common" name="wildfly-common" version="2.0.1">
+         <artifact name="wildfly-common-2.0.1.jar">
+            <sha256 value="fa4a710db7ae3e598a5f41639eb54e9f7b09de5fd0f58f56bd6070f21d956374" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="xalan" name="serializer" version="2.7.1">

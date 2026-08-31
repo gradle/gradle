@@ -19,27 +19,31 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 
+import java.util.function.Consumer;
+
 /**
- * Given out when taking the all projects lock to allow retrieving the mutable state of
- * {@link org.gradle.api.internal.project.ProjectState} without extra locking checks.
- * Instances must never live longer than the lambda, and calls on this interface will
- * fail after the lock has been released.
+ * Given out when taking the {@link BuildProjectRegistry#applyToMutableStateOfAllProjects(Consumer) locks of all projects}
+ * to allow retrieving the mutable state of {@link org.gradle.api.internal.project.ProjectState}
+ * without extra locking checks. Instances must never live longer than the lambda, and calls on
+ * this interface will fail after the lock has been released.
  */
 public interface AllProjectsAccess {
+
     /**
      * Returns the mutable model for the given project.
-     *
      * <p>
-     * This differs from calling {@link ProjectState#getMutableModel()} because this method has additional checks to ensure that the caller still holds the all projects lock.
-     * The other method does not perform any lock checks at all, and so may introduce race conditions if used directly.
-     * </p>
-     *
+     * This differs from calling {@link ProjectState#getMutableModel()} because this method has
+     * additional checks to ensure that the caller still holds the lock on the requested project.
+     * The other method does not perform any lock checks at all, and so may introduce race
+     * conditions if used directly.
      * <p>
-     * The return value and any mutable state derived from it that is not explicitly documented as thread-safe must not be returned from the lambda that was given this access.
-     * </p>
+     * The return value and any mutable state derived from it that is not explicitly documented
+     * as thread-safe must not be returned from the lambda that was given this access.
      *
      * @param project the project to get the mutable model for
+     *
      * @return the mutable model for the given project
      */
     ProjectInternal getMutableModel(ProjectState project);
+
 }

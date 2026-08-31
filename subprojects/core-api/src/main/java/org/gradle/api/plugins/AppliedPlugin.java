@@ -37,6 +37,7 @@ public interface AppliedPlugin {
      * This value is guaranteed to be unique, for a given {@link org.gradle.api.plugins.PluginAware}.
      *
      * @return the ID of the plugin
+     * @since 2.3
      */
     String getId();
 
@@ -49,6 +50,7 @@ public interface AppliedPlugin {
      * If the plugin has an unqualified ID, this method will return {@code null}.
      *
      * @return the namespace of the plugin
+     * @since 2.3
      */
     @Nullable
     String getNamespace();
@@ -62,6 +64,7 @@ public interface AppliedPlugin {
      * If the plugin has an unqualified ID, this method will return the same value as {@link #getId()}.
      *
      * @return the name of the plugin
+     * @since 2.3
      */
     String getName();
 

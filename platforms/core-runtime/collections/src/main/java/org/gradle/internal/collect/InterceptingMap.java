@@ -20,10 +20,14 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.gradle.internal.collect.InterceptingCollection.Interceptor;
@@ -44,6 +48,8 @@ public class InterceptingMap<K, V> implements Map<K, V>, Serializable {
         this.interceptor = interceptor;
     }
 
+    // These decorators serialize as their plain delegate: the interceptor is transient runtime wiring,
+    // so a decorated map captured in serializable state round-trips as the underlying map.
     protected Object writeReplace() {
         return delegate;
     }
@@ -115,9 +121,83 @@ public class InterceptingMap<K, V> implements Map<K, V>, Serializable {
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        Interceptor entrySetInterceptor = sig -> interceptor.onMutate("entrySet()." + sig);
-        Function<Entry<K, V>, Entry<K, V>> wrapEntry = entry -> interceptingEntry(entry, entrySetInterceptor);
-        return new InterceptingSet<>(delegate.entrySet(), entrySetInterceptor, wrapEntry);
+        return new InterceptingEntrySet<>(delegate.entrySet(), sig -> interceptor.onMutate("entrySet()." + sig));
+    }
+
+    /**
+     * Decorates the entry set so that a mutation reached through a returned {@link Entry#setValue} is
+     * reported too — the one mutation path that does not go through a collection method. Every read that
+     * hands out an entry wraps it; the set's own mutators (remove, removeIf, clear, {@code
+     * iterator().remove()}) are already reported by {@link InterceptingSet}.
+     */
+    private static final class InterceptingEntrySet<K, V> extends InterceptingSet<Entry<K, V>> {
+
+        InterceptingEntrySet(Set<Entry<K, V>> delegate, Interceptor interceptor) {
+            super(delegate, interceptor);
+        }
+
+        private Entry<K, V> wrap(Entry<K, V> entry) {
+            return interceptingEntry(entry, interceptor);
+        }
+
+        /**
+         * Replaces each entry in {@code array} with a wrapping entry, mutating it in place. Both
+         * {@code toArray} overloads put exactly {@link #size()} entries at the front; a larger array
+         * from {@code toArray(T[])} keeps its trailing null terminator and padding untouched, so only
+         * the prefix is visited and no element can be null.
+         */
+        @SuppressWarnings("unchecked")
+        private <T> T[] wrapEntriesInPlace(T[] array) {
+            int entryCount = size();
+            for (int i = 0; i < entryCount; i++) {
+                array[i] = (T) wrap((Entry<K, V>) array[i]);
+            }
+            return array;
+        }
+
+        @Override
+        public Iterator<Entry<K, V>> iterator() {
+            Iterator<Entry<K, V>> base = super.iterator();
+            return new Iterator<Entry<K, V>>() {
+                @Override
+                public boolean hasNext() {
+                    return base.hasNext();
+                }
+
+                @Override
+                public Entry<K, V> next() {
+                    return wrap(base.next());
+                }
+
+                @Override
+                public void remove() {
+                    base.remove();
+                }
+            };
+        }
+
+        @Override
+        public void forEach(Consumer<? super Entry<K, V>> action) {
+            super.forEach(entry -> action.accept(wrap(entry)));
+        }
+
+        @Override
+        public Object[] toArray() {
+            return wrapEntriesInPlace(super.toArray());
+        }
+
+        @Override
+        @SuppressWarnings("SuspiciousToArrayCall")
+        public <T> T[] toArray(T[] a) {
+            return wrapEntriesInPlace(super.toArray(a));
+        }
+
+        @Override
+        public Spliterator<Entry<K, V>> spliterator() {
+            // Route stream()/spliterator() through the wrapping iterator so entries handed out that way
+            // are guarded too, at the cost of split quality.
+            return Spliterators.spliterator(iterator(), size(), Spliterator.DISTINCT);
+        }
     }
 
     private static <K, V> Entry<K, V> interceptingEntry(Entry<K, V> entry, Interceptor interceptor) {

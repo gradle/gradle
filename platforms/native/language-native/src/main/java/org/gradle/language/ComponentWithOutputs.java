@@ -27,6 +27,7 @@ import org.gradle.api.file.FileCollection;
 public interface ComponentWithOutputs extends SoftwareComponent {
     /**
      * Returns the outputs produced for this component.
+     * @since 4.5
      */
     FileCollection getOutputs();
 }

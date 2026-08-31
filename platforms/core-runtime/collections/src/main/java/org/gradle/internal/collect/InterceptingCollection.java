@@ -22,16 +22,14 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
  * A generic decorator for a {@link Collection} that reports every mutating operation to an
  * {@link Interceptor}, including mutations reached through {@link #iterator()}. Reads pass straight
- * through. It owns the tricky mechanics (forwarding, wrapping the iterator, applying an element view,
- * serializing as the delegate) so callers only supply the notification.
+ * through. It owns the tricky mechanics (forwarding, wrapping the iterator, serializing as the
+ * delegate) so callers only supply the notification.
  *
  * @param <E> the element type
  * @param <C> the delegate's concrete collection type, so subtypes can reach its specific methods
@@ -48,29 +46,14 @@ public class InterceptingCollection<E, C extends Collection<E>> implements Colle
 
     protected final C delegate;
     final transient Interceptor interceptor;
-    private final transient Function<E, E> elementView;
-    private final transient boolean wrapsElements;
 
     public InterceptingCollection(C delegate, Interceptor interceptor) {
         this.delegate = delegate;
         this.interceptor = interceptor;
-        this.elementView = Function.identity();
-        this.wrapsElements = false;
     }
 
-    protected InterceptingCollection(C delegate, Interceptor interceptor, Function<E, E> elementView) {
-        this.delegate = delegate;
-        this.interceptor = interceptor;
-        this.elementView = elementView;
-        this.wrapsElements = true;
-    }
-
-    private E view(E element) {
-        return elementView.apply(element);
-    }
-
-    // Serialize as the delegate: the interceptor is runtime-only wiring and instances may be captured
-    // in task state and stored to the configuration cache.
+    // These decorators serialize as their plain delegate: the interceptor is transient runtime wiring,
+    // so a decorated collection captured in serializable state round-trips as the underlying collection.
     protected Object writeReplace() {
         return delegate;
     }
@@ -107,7 +90,7 @@ public class InterceptingCollection<E, C extends Collection<E>> implements Colle
 
             @Override
             public E next() {
-                return view(it.next());
+                return it.next();
             }
 
             @Override
@@ -120,38 +103,23 @@ public class InterceptingCollection<E, C extends Collection<E>> implements Colle
 
     @Override
     public Object[] toArray() {
-        return viewAll(delegate.toArray());
+        return delegate.toArray();
     }
 
     @Override
     @SuppressWarnings("SuspiciousToArrayCall")
     public <T> T[] toArray(T[] a) {
-        return viewAll(delegate.toArray(a));
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T[] viewAll(T[] array) {
-        if (wrapsElements) {
-            for (int i = 0; i < array.length; i++) {
-                array[i] = (T) view((E) array[i]);
-            }
-        }
-        return array;
+        return delegate.toArray(a);
     }
 
     @Override
     public Spliterator<E> spliterator() {
-        if (!wrapsElements) {
-            return delegate.spliterator();
-        }
-        // Elements are wrapped (e.g. entries whose setValue is intercepted), so stream/spliterator must
-        // hand out wrapped elements too. Route through the wrapping iterator at the cost of split quality.
-        return Spliterators.spliterator(iterator(), delegate.size(), Spliterator.DISTINCT);
+        return delegate.spliterator();
     }
 
     @Override
     public void forEach(Consumer<? super E> action) {
-        delegate.forEach(e -> action.accept(view(e)));
+        delegate.forEach(action);
     }
 
     @Override

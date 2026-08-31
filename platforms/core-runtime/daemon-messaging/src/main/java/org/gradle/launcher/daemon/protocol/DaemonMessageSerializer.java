@@ -58,7 +58,7 @@ public class DaemonMessageSerializer {
         registry.register(DaemonUnavailable.class, new DaemonUnavailableSerializer());
         registry.register(BuildStarted.class, new BuildStartedSerializer());
         registry.register(Failure.class, new FailureSerializer(throwableSerializer));
-        registry.register(Success.class, new SuccessSerializer());
+        registry.register(Success.class, new SuccessSerializer(throwableSerializer));
         registry.register(Finished.class, new FinishedSerializer());
 
         // Build events
@@ -82,6 +82,11 @@ public class DaemonMessageSerializer {
     private static class SuccessSerializer implements Serializer<Success> {
         private final Serializer<Object> javaSerializer = new DefaultSerializer<>();
         private final Serializer<SerializedPayload> payloadSerializer = new SerializedPayloadSerializer();
+        private final Serializer<Throwable> throwableSerializer;
+
+        SuccessSerializer(Serializer<Throwable> throwableSerializer) {
+            this.throwableSerializer = throwableSerializer;
+        }
 
         @Override
         public void write(Encoder encoder, Success success) throws Exception {
@@ -107,7 +112,7 @@ public class DaemonMessageSerializer {
                 } else {
                     encoder.writeByte((byte) 4);
                     encoder.writeBoolean(result.wasCancelled());
-                    javaSerializer.write(encoder, result.getException());
+                    throwableSerializer.write(encoder, result.getException());
                 }
             } else {
                 // Serialize anything else
@@ -134,7 +139,7 @@ public class DaemonMessageSerializer {
                     return new Success(BuildActionResult.failed(wasCancelled, failure, null));
                 case 4:
                     wasCancelled = decoder.readBoolean();
-                    RuntimeException exception = (RuntimeException) javaSerializer.read(decoder);
+                    RuntimeException exception = (RuntimeException) throwableSerializer.read(decoder);
                     return new Success(BuildActionResult.failed(wasCancelled, null, exception));
                 case 5:
                     return new Success(javaSerializer.read(decoder));

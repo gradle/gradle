@@ -22,9 +22,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import org.gradle.model.ConfigurationCycleException;
-import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.EmptyModelProjection;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
@@ -73,6 +70,7 @@ import static org.gradle.model.internal.core.ModelNode.State.Registered;
 import static org.gradle.model.internal.core.ModelNode.State.SelfClosed;
 
 @NotThreadSafe
+@SuppressWarnings("deprecation")
 public class DefaultModelRegistry implements ModelRegistryInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
@@ -109,7 +107,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     public DefaultModelRegistry register(ModelRegistration registration) {
         ModelPath path = registration.getPath();
         if (!ModelPath.ROOT.isDirectChild(path)) {
-            throw new InvalidModelRuleDeclarationException(registration.getDescriptor(), "Cannot register element at '" + path + "', only top level is allowed (e.g. '" + path.getRootParent() + "')");
+            throw new org.gradle.model.InvalidModelRuleDeclarationException(registration.getDescriptor(), "Cannot register element at '" + path + "', only top level is allowed (e.g. '" + path.getRootParent() + "')");
         }
 
         ModelNodeInternal root = modelGraph.getRoot();
@@ -167,7 +165,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public ModelRegistry configureMatching(final ModelSpec predicate, final Class<? extends RuleSource> rules) {
+    public ModelRegistry configureMatching(final ModelSpec predicate, final Class<? extends org.gradle.model.RuleSource> rules) {
         registerListener(new DelegatingListener(predicate) {
             @Override
             public String toString() {
@@ -185,7 +183,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
-    public ExtractedRuleSource<?> newRuleSource(Class<? extends RuleSource> rules) {
+    public ExtractedRuleSource<?> newRuleSource(Class<? extends org.gradle.model.RuleSource> rules) {
         return ruleExtractor.extract(rules);
     }
 
@@ -428,7 +426,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         });
     }
 
-    private ConfigurationCycleException ruleCycle(ModelGoal brokenGoal, List<ModelGoal> queue) {
+    private org.gradle.model.ConfigurationCycleException ruleCycle(ModelGoal brokenGoal, List<ModelGoal> queue) {
         List<String> path = new ArrayList<String>();
         int pos = queue.indexOf(brokenGoal);
         ListIterator<ModelGoal> iterator = queue.listIterator(pos + 1);
@@ -457,7 +455,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             }
         }
 
-        return new ConfigurationCycleException(out.toString());
+        return new org.gradle.model.ConfigurationCycleException(out.toString());
     }
 
     @Override

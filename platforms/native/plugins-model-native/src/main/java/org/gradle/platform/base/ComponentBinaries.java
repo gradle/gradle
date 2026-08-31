@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * {@link org.gradle.platform.base.ComponentBinaries} annotation.
  * Furthermore the plugin registers 'DefaultSampleBinary' as implementation for {@link org.gradle.platform.base.BinarySpec}.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * interface SampleComponent extends VariantComponentSpec {}
  * interface SampleBinary extends BinarySpec {}
  * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
@@ -49,9 +49,13 @@ import java.lang.annotation.Target;
  *     }
  * }
  * </pre>
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
+@Deprecated
 public @interface ComponentBinaries {
 }

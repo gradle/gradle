@@ -16,11 +16,13 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.Task;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
+import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskProvider;
 
 public interface MavenPublicationInternal extends MavenPublication, PublicationInternal<MavenArtifact> {
@@ -28,9 +30,9 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
     @Override
     MavenPomInternal getPom();
 
-    void setPomGenerator(TaskProvider<? extends Task> pomGenerator);
+    void setPomGenerator(Provider<RegularFile> pomFile, Provider<Boolean> generatorEnabled);
 
-    void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
+    void setModuleDescriptorGenerator(TaskProvider<? extends GenerateModuleMetadata> moduleMetadataGenerator);
 
     MavenNormalizedPublication asNormalisedPublication();
 

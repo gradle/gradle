@@ -17,12 +17,31 @@ package org.gradle.api.logging;
 
 /**
  * The log levels supported by Gradle.
+ * @since 0.7
  */
 public enum LogLevel {
+    /**
+     * @since 0.7
+     */
     DEBUG,
+    /**
+     * @since 0.7
+     */
     INFO,
+    /**
+     * @since 0.7
+     */
     LIFECYCLE,
+    /**
+     * @since 0.7
+     */
     WARN,
+    /**
+     * @since 0.7
+     */
     QUIET,
+    /**
+     * @since 0.7
+     */
     ERROR
 }

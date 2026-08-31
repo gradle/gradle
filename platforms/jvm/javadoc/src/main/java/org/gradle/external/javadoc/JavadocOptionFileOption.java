@@ -23,9 +23,15 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazy
  * Represents a Javadoc command-line option.
  *
  * @param <T> The type which this option represents.
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
+    /**
+     * Returns the option.
+     *
+     * @since 0.9
+     */
     @NotToBeReplacedByLazyProperty(because = "JavadocOptionFileOption should be deprecated and replaced with a Property")
     String getOption();
 }

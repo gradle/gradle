@@ -582,8 +582,13 @@ class GradleModuleMetadataWriterTest extends Specification {
 """
     }
 
-    enum SomeEnum {
+    enum SomeEnum implements Named {
         VALUE_1, VALUE_2
+
+        @Override
+        String getName() {
+            return name()
+        }
     }
 
     def "writes file for component with variants with attributes"() {

@@ -19,12 +19,13 @@ package org.gradle.tooling.model.idea;
 /**
  * Language level setting for IDEA.
  *
- * @since 1.0-milestone-5
+ * @since 1.0
  */
 public interface IdeaLanguageLevel {
 
     /**
      * Gets the level value
+     * @since 1.0
      */
     String getLevel();
 

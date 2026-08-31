@@ -24,11 +24,11 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import java.io.Serializable;
 import java.util.Collections;
 
-class GradleBuildAction implements BuildAction<GradleBuildModel>, Serializable {
+public class GradleBuildAction implements BuildAction<GradleBuildModel>, Serializable {
 
     private final boolean resilient;
 
-    GradleBuildAction(boolean resilient) {
+    public GradleBuildAction(boolean resilient) {
         this.resilient = resilient;
     }
 

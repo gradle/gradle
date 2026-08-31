@@ -26,11 +26,13 @@ import org.gradle.api.Action;
 public interface VisualStudioRootExtension extends VisualStudioExtension {
     /**
      * Returns the generated  {@link VisualStudioSolution} for this build.
+     * @since 4.6
      */
     VisualStudioSolution getSolution();
 
     /**
      * Configures the generated {@link VisualStudioSolution} for this build.
+     * @since 4.6
      */
     void solution(Action<? super VisualStudioSolution> configAction);
 }

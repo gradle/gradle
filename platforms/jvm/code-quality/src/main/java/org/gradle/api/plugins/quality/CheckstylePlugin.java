@@ -18,12 +18,10 @@ package org.gradle.api.plugins.quality;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -32,7 +30,6 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -42,9 +39,15 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * Checkstyle Plugin.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/checkstyle_plugin.html">Checkstyle plugin reference</a>
+ * @since 1.0
  */
 public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
+    /**
+     * The default checkstyle version.
+     *
+     * @since 2.4
+     */
     public static final String DEFAULT_CHECKSTYLE_VERSION = "10.24.0";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
 
@@ -108,17 +111,10 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
-        ProjectLayout layout = project.getLayout();
-        ProviderFactory providers = project.getProviders();
-        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        DirectoryProperty reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
             report.getRequired().convention(!report.getName().equals("sarif"));
-            report.getOutputLocation().convention(
-                layout.getProjectDirectory().file(providers.provider(() -> {
-                    String reportFileName = baseName + "." + report.getName();
-                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
-                }))
-            );
+            report.getOutputLocation().convention(reportsDir.file(baseName + "." + report.getName()));
         }));
     }
 

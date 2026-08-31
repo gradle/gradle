@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -35,6 +34,7 @@ import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation;
+import org.gradle.api.internal.initialization.transform.ClassLoadTimeInstrumentationComposer;
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
@@ -42,14 +42,10 @@ import org.gradle.api.internal.initialization.transform.utils.InstrumentationCla
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.ClassLoadTimeTransform;
 import org.gradle.internal.classpath.TransformedClassPath;
-import org.gradle.internal.classpath.transforms.InstrumentingClassLoadTimeTransform;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.execution.SafeInternalArtifactTransformAccess;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
-import org.gradle.internal.instrumentation.agent.ThirdPartyAgentDetection;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.lazy.Lazy;
@@ -62,7 +58,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
@@ -101,12 +96,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
     private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
-    private final AgentStatus agentStatus;
+    private final ClassLoadTimeInstrumentationComposer classLoadTimeInstrumentationComposer;
 
     public DefaultScriptClassPathResolver(
         AgentStatus agentStatus,
         Gradle gradle,
-        PropertyUpgradeReportConfig propertyUpgradeReportConfig
+        PropertyUpgradeReportConfig propertyUpgradeReportConfig,
+        ClassLoadTimeInstrumentationComposer classLoadTimeInstrumentationComposer
     ) {
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
         this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(
@@ -115,7 +111,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             Lazy.atomic().of(gradle::getSharedServices)
         );
         this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
-        this.agentStatus = agentStatus;
+        this.classLoadTimeInstrumentationComposer = classLoadTimeInstrumentationComposer;
     }
 
     @Override
@@ -155,53 +151,41 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
+
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            Map<FileType, List<File>> instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
-                originalDependencies.getArtifacts(),
-                instrumentedExternalDependencies,
-                instrumentedProjectDependencies
-            );
+            Map<FileType, List<File>> instrumentedClasspath = mergeInstrumentedClasspath(originalDependencies, instrumentedExternalDependencies, instrumentedProjectDependencies);
 
             MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
             instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
             ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
-            return composeWithThirdPartyAgentIfPresent(classPath, contextId, buildService, instrumentedProjectDependencies);
+            // The composition is repeated by the configuration cache class decoder when the classpath is restored
+            // from the cache, see DefaultClassDecoder.scopeFor.
+            return classLoadTimeInstrumentationComposer.composeWithThirdPartyAgentIfPresent(classPath);
         }
     }
 
-    private ClassPath composeWithThirdPartyAgentIfPresent(
-        ClassPath classPath,
-        long contextId,
-        CacheInstrumentationDataBuildService buildService,
+    /**
+     * Visits the artifact collections to produce the merged instrumented classpath.
+     * <p>
+     * The visit invokes project-artifact transforms from inside the calling task action.
+     * The resolver owns input tracking for these transforms and cannot route their outputs
+     * through a user task's {@code @InputFiles} property, so this method enters a
+     * {@link SafeInternalArtifactTransformAccess} scope to suppress the
+     * "undeclared artifact transform input" deprecation that would otherwise fire.
+     */
+    private static Map<FileType, List<File>> mergeInstrumentedClasspath(
+        ArtifactView originalDependencies,
+        ArtifactCollection instrumentedExternalDependencies,
         ArtifactCollection instrumentedProjectDependencies
     ) {
-        boolean composeWithThirdPartyAgent = agentStatus.isAgentInstrumentationEnabled() && ThirdPartyAgentDetection.isThirdPartyAgentPresent();
-        if (!composeWithThirdPartyAgent || !(classPath instanceof TransformedClassPath)) {
-            return classPath;
+        try (SafeInternalArtifactTransformAccess.Scope ignored = SafeInternalArtifactTransformAccess.safely()) {
+            return InstrumentationClasspathMerger.mergeToClasspath(
+                originalDependencies.getArtifacts(),
+                instrumentedExternalDependencies,
+                instrumentedProjectDependencies
+            );
         }
-        TransformedClassPath transformedClassPath = (TransformedClassPath) classPath;
-        // The artifact transforms above already wrote instrumented jars, but composing at class load reinstruments
-        // the original bytes so the third-party transformer observes the user's bytecode. Those instrumented jars are
-        // therefore not used for loading here; only the type registry produced by the analysis pass is reused.
-        InstrumentationTypeRegistry registry = buildService.getInstrumentationTypeRegistry(contextId);
-        ClassLoadTimeTransform classLoadTimeTransform = new InstrumentingClassLoadTimeTransform(
-            BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE,
-            registry,
-            BytecodeInterceptorFilter.INSTRUMENTATION_ONLY,
-            InstrumentationTypeRegistry.EMPTY,
-            projectOriginFiles(transformedClassPath, instrumentedProjectDependencies)
-        );
-        return transformedClassPath.withClassLoadTimeTransform(classLoadTimeTransform);
-    }
-
-    private static Set<File> projectOriginFiles(TransformedClassPath classPath, ArtifactCollection instrumentedProjectDependencies) {
-        Set<File> projectArtifactFiles = instrumentedProjectDependencies.getArtifacts().stream()
-            .map(ResolvedArtifactResult::getFile)
-            .collect(Collectors.toSet());
-        return classPath.getAsFiles().stream()
-            .filter(projectArtifactFiles::contains)
-            .collect(Collectors.toSet());
     }
 
     private FileCollection getAnalysisResult(Configuration classpathConfiguration) {

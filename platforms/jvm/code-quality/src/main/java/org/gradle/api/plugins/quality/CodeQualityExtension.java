@@ -15,24 +15,31 @@
  */
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
 /**
  * Base Code Quality Extension.
+ * @since 1.0
  */
 public abstract class CodeQualityExtension {
 
     private String toolVersion;
     private Collection<SourceSet> sourceSets;
     private boolean ignoreFailures;
-    private File reportsDir;
 
     /**
      * The version of the code quality tool to be used.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     public String getToolVersion() {
@@ -41,6 +48,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The version of the code quality tool to be used.
+     * @since 1.0
      */
     public void setToolVersion(String toolVersion) {
         this.toolVersion = toolVersion;
@@ -48,6 +56,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public Collection<SourceSet> getSourceSets() {
@@ -56,6 +65,7 @@ public abstract class CodeQualityExtension {
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
+     * @since 1.0
      */
     public void setSourceSets(Collection<SourceSet> sourceSets) {
         this.sourceSets = sourceSets;
@@ -65,6 +75,7 @@ public abstract class CodeQualityExtension {
      * Whether to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     public boolean isIgnoreFailures() {
@@ -75,6 +86,7 @@ public abstract class CodeQualityExtension {
      * Whether to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
+     * @since 1.0
      */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
@@ -82,16 +94,31 @@ public abstract class CodeQualityExtension {
 
     /**
      * The directory where reports will be generated.
+     *
+     * @since 9.7.0
      */
-    @ToBeReplacedByLazyProperty
-    public File getReportsDir() {
-        return reportsDir;
-    }
+    @Incubating
+    public abstract DirectoryProperty getReportsDirectory();
 
     /**
      * The directory where reports will be generated.
+     * @since 1.0
+     */
+    @ReplacedBy("reportsDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getReportsDirectory() instead", willBeDeprecated = true)
+    public File getReportsDir() {
+        return getReportsDirectory().isPresent() ? getReportsDirectory().get().getAsFile() : null;
+    }
+
+    /**
+     * Sets the directory where reports will be generated.
+     * @since 1.0
      */
     public void setReportsDir(File reportsDir) {
-        this.reportsDir = reportsDir;
+        getReportsDirectory().set(reportsDir);
+        getReportsDirectory().convention(getObjectFactory().directoryProperty().fileValue(reportsDir));
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 }

@@ -49,7 +49,19 @@ public class FeaturePreviews {
         /**
          * This exists to test inactive feature previews
          */
-        ALWAYS_INACTIVE(false, null);
+        ALWAYS_INACTIVE(false, null),
+        /**
+         * Whether to use improved dependency graph sort ordering. With this feature enabled:
+         *
+         * <ul>
+         *  <li>{@link org.gradle.api.artifacts.ResolutionStrategy.SortOrder#DEFAULT} will sort the graph in a traditional BFS order.</li>
+         *  <li>{@link org.gradle.api.artifacts.ResolutionStrategy.SortOrder#CONSUMER_FIRST} will sort the graph in a topological order.</li>
+         *  <li>{@link org.gradle.api.artifacts.ResolutionStrategy.SortOrder#DEPENDENCY_FIRST} will sort the graph in a reverse topological order.</li>
+         * </ul>
+         *
+         * @see <a href="https://docs.gradle.org/nightly/userguide/upgrading_version_9.html#dependency_resolution_ordering">Upgrade Guide</a>
+         */
+        ENHANCED_GRAPH_ORDERING(true, null);
 
         public static Feature withName(String name) {
             try {

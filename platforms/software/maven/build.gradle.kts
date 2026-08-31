@@ -83,10 +83,3 @@ strictCompile {
     ignoreDeprecations() // old 'maven' publishing mechanism: types are deprecated
     ignoreRawTypes() // old 'maven' publishing mechanism: raw types used in public API
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/publication/maven/internal/**")
-    excludePatterns.add("org/gradle/api/artifacts/maven/**")
-}
-
-

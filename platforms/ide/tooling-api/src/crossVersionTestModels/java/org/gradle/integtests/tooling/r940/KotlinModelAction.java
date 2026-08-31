@@ -74,7 +74,10 @@ class KotlinModelAction implements BuildAction<KotlinModel>, Serializable {
 
     private void queryKotlinDslScriptsModel(BuildController controller, GradleBuild build, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
         if (resilient) {
-            queryResilientKotlinDslScriptsModel(controller, build, build.getRootProject(), scriptModels, failures);
+            // A build that failed in its settings has no root project in the GradleBuild model, so target the
+            // build itself, which reports the build's own configuration failure.
+            Model target = build.getRootProject() != null ? build.getRootProject() : build;
+            queryResilientKotlinDslScriptsModel(controller, build, target, scriptModels, failures);
         } else {
             queryBasicKotlinDslScriptsModel(controller, build, scriptModels);
         }

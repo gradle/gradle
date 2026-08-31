@@ -18,6 +18,7 @@ package org.gradle.execution;
 
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
+import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
@@ -74,7 +75,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
     @Override
     public void configureHierarchy(ProjectState projectState) {
-        for (ProjectState project : projectState.getAllProjects()) {
+        for (ProjectState project : ProjectOrderingUtil.orderedAllProjectsOf(projectState)) {
             project.ensureConfigured();
         }
     }

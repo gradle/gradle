@@ -260,6 +260,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
     boolean inClosureImplementation = false;
     String className = null;
+    @SuppressWarnings("ExposedPrivateType")
     EnumSet<MethodInstrumentationStrategy> usedStrategies = EnumSet.noneOf(MethodInstrumentationStrategy.class);
 
     private static final Type CLOSURE_TYPE = getType(Closure.class);

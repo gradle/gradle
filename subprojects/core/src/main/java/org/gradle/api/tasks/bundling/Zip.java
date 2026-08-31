@@ -35,20 +35,36 @@ import java.nio.charset.Charset;
  * Assembles a ZIP archive.
  *
  * The default is to compress the contents of the zip.
+ * @since 0.7
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Zip extends AbstractArchiveTask {
+    /**
+     * The zip extension.
+     *
+     * @since 0.7
+     */
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
     private boolean allowZip64;
     private String metadataCharset;
 
+    /**
+     * Creates a new {@code Zip}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public Zip() {
         getArchiveExtension().set(ZIP_EXTENSION);
         allowZip64 = false;
     }
 
+    /**
+     * Returns the compressor.
+     *
+     * @since 1.5
+     */
     @Internal
     protected ZipCompressor getCompressor() {
         switch (entryCompression) {
@@ -72,6 +88,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
      *
      * @return the compression level of the archive contents.
+     * @since 1.5
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -84,6 +101,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
      *
      * @param entryCompression {@code STORED} or {@code DEFLATED}
+     * @since 1.5
      */
     public void setEntryCompression(ZipEntryCompression entryCompression) {
         this.entryCompression = entryCompression;
@@ -93,6 +111,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * Enables building zips with more than 65535 files or bigger than 4GB.
      *
      * @see #isZip64()
+     * @since 1.12
      */
     public void setZip64(boolean allowZip64) {
         this.allowZip64 = allowZip64;
@@ -108,6 +127,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * However, not all Zip readers support the Zip64 extensions.
      * Notably, the {@link java.util.zip.ZipInputStream} JDK class does not support Zip64 for versions earlier than Java 7.
      * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
+     * @since 1.12
      */
     @Input
     @ToBeReplacedByLazyProperty

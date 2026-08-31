@@ -16,15 +16,12 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.NativeLibraryRequirement;
-
+@SuppressWarnings("deprecation")
 public class NativeBinaryRequirementResolveResult {
     private Object input;
-    private NativeLibraryRequirement requirement;
-    private NativeLibraryBinary libraryBinary;
-    private NativeDependencySet nativeDependencySet;
+    private org.gradle.nativeplatform.NativeLibraryRequirement requirement;
+    private org.gradle.nativeplatform.NativeLibraryBinary libraryBinary;
+    private org.gradle.nativeplatform.NativeDependencySet nativeDependencySet;
 
     public NativeBinaryRequirementResolveResult(Object input) {
         this.input = input;
@@ -34,27 +31,27 @@ public class NativeBinaryRequirementResolveResult {
         return input;
     }
 
-    public void setRequirement(NativeLibraryRequirement requirement) {
+    public void setRequirement(org.gradle.nativeplatform.NativeLibraryRequirement requirement) {
         this.requirement = requirement;
     }
 
-    public NativeLibraryRequirement getRequirement() {
+    public org.gradle.nativeplatform.NativeLibraryRequirement getRequirement() {
         return requirement;
     }
 
-    public NativeLibraryBinary getLibraryBinary() {
+    public org.gradle.nativeplatform.NativeLibraryBinary getLibraryBinary() {
         return libraryBinary;
     }
 
-    public void setLibraryBinary(NativeLibraryBinary libraryBinary) {
+    public void setLibraryBinary(org.gradle.nativeplatform.NativeLibraryBinary libraryBinary) {
         this.libraryBinary = libraryBinary;
     }
 
-    public NativeDependencySet getNativeDependencySet() {
+    public org.gradle.nativeplatform.NativeDependencySet getNativeDependencySet() {
         return nativeDependencySet;
     }
 
-    public void setNativeDependencySet(NativeDependencySet nativeDependencySet) {
+    public void setNativeDependencySet(org.gradle.nativeplatform.NativeDependencySet nativeDependencySet) {
         this.nativeDependencySet = nativeDependencySet;
     }
 

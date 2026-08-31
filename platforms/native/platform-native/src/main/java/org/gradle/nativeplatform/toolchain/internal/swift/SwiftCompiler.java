@@ -169,10 +169,12 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     static class OutputFileMap {
         private Map<String, Entry> entries = new HashMap<String, Entry>();
 
+        @SuppressWarnings("ExposedPrivateType")
         public Builder root() {
             return newEntry("");
         }
 
+        @SuppressWarnings("ExposedPrivateType")
         public Builder newEntry(String name) {
             Entry entry = new Entry();
             entries.put(name, entry);

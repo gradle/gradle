@@ -25,6 +25,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
+    implementation(libs.errorProneAnnotations)
 }
 
 gradleModule {

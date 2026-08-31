@@ -27,7 +27,7 @@ public interface ResolvableSelectorState {
     /**
      * The raw component selector being resolved, after any substitution.
      */
-    ComponentSelector getSelector();
+    ComponentSelector getComponentSelector();
 
     /**
      * The version constraint that applies to this selector, if any.
@@ -48,11 +48,11 @@ public interface ResolvableSelectorState {
     ComponentIdResolveResult resolvePrefer(VersionSelector allRejects);
 
     /**
-     * Mark the selector as resolved.
+     * Mark this selector as accounted for by the current selection of the target module.
      * This is used when another selector resolved to a component identifier that satisfies this selector.
      * In that case, a call to {@link #resolve(VersionSelector)} is not required.
      */
-    void markResolved();
+    void markSelectionCompleted();
 
     boolean isForce();
 
@@ -68,6 +68,6 @@ public interface ResolvableSelectorState {
     boolean isChanging();
 
     default boolean isProject() {
-        return getSelector() instanceof ProjectComponentSelector;
+        return getComponentSelector() instanceof ProjectComponentSelector;
     }
 }

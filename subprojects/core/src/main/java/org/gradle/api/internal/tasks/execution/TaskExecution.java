@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -32,7 +33,6 @@ import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.DefaultPropertyValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
@@ -45,6 +45,7 @@ import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DocumentedFailure;
@@ -107,27 +108,34 @@ public class TaskExecution implements MutableUnitOfWork {
     private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TASK_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
     };
 
-    private final TaskInternal task;
-    private final TaskExecutionContext context;
-
+    private final LocalTaskNode node;
+    private final TaskExecutionMode taskExecutionMode;
     private final org.gradle.api.execution.TaskActionListener actionListener;
     private final AsyncWorkTracker asyncWorkTracker;
     private final BuildOperationRunner buildOperationRunner;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionHistoryStore executionHistoryStore;
     private final FileCollectionFactory fileCollectionFactory;
-    private final TaskDependencyFactory taskDependencyFactory;
     private final PathToFileResolver fileResolver;
     private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
 
-    public TaskExecution(
-        TaskInternal task,
-        TaskExecutionContext context,
+    private final TaskInternal task;
 
+    /**
+     * The operation measuring input snapshotting and cache key calculation.
+     * Started by {@link #markLegacySnapshottingInputsStarted()} and cleared by whichever of the
+     * finish methods runs first.
+     */
+    private @Nullable BuildOperationContext snapshotTaskInputsBuildOperationContext;
+
+    public TaskExecution(
+        LocalTaskNode node,
+        TaskExecutionMode taskExecutionMode,
         org.gradle.api.execution.TaskActionListener actionListener,
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationRunner buildOperationRunner,
@@ -142,22 +150,23 @@ public class TaskExecution implements MutableUnitOfWork {
         TaskDependencyFactory taskDependencyFactory,
         MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
-        this.task = task;
-        this.context = context;
-
+        this.node = node;
+        this.taskExecutionMode = taskExecutionMode;
         this.actionListener = actionListener;
         this.asyncWorkTracker = asyncWorkTracker;
         this.buildOperationRunner = buildOperationRunner;
-        this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.executionHistoryStore = executionHistoryStore;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.taskDependencyFactory = taskDependencyFactory;
         this.fileResolver = fileResolver;
         this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.missingTaskDependencyDetector = missingTaskDependencyDetector;
+
+        this.task = node.getTask();
     }
 
     @Override
@@ -309,7 +318,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public Optional<ExecutionHistoryStore> getHistory() {
-        return context.getTaskExecutionMode().isTaskHistoryMaintained()
+        return taskExecutionMode.isTaskHistoryMaintained()
             ? Optional.of(executionHistoryStore)
             : Optional.empty();
     }
@@ -331,7 +340,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public void visitMutableInputs(InputVisitor visitor) {
-        TaskProperties taskProperties = context.getTaskProperties();
+        TaskProperties taskProperties = node.getTaskProperties();
         for (InputPropertySpec inputProperty : taskProperties.getInputProperties()) {
             visitor.visitInputProperty(
                 inputProperty.getPropertyName(),
@@ -359,7 +368,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public void visitOutputs(File workspace, OutputVisitor visitor) {
-        TaskProperties taskProperties = context.getTaskProperties();
+        TaskProperties taskProperties = node.getTaskProperties();
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
             try {
                 visitor.visitOutputProperty(
@@ -387,7 +396,7 @@ public class TaskExecution implements MutableUnitOfWork {
                 DocumentedFailure.builder().withUserManual("incremental_build", "sec:disable-state-tracking"),
                 propertyType,
                 propertyName,
-                propertyName.equals("destinationDir"))
+                propertyName.equals("destinationDirectory"))
             .build(cause);
     }
 
@@ -414,7 +423,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public boolean shouldCleanupStaleOutputs() {
-        return context.getTaskExecutionMode().isTaskHistoryMaintained();
+        return taskExecutionMode.isTaskHistoryMaintained();
     }
 
     @Override
@@ -434,7 +443,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
         return taskCacheabilityResolver.shouldDisableCaching(
             task,
-            context.getTaskProperties(),
+            node.getTaskProperties(),
             task.getOutputs().getCacheIfSpecs(),
             task.getOutputs().getDoNotCacheIfSpecs(),
             detectedOverlappingOutputs
@@ -443,7 +452,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public boolean isAllowedToLoadFromCache() {
-        return context.getTaskExecutionMode().isAllowedToUseCachedResults();
+        return taskExecutionMode.isAllowedToUseCachedResults();
     }
 
     @Override
@@ -469,27 +478,40 @@ public class TaskExecution implements MutableUnitOfWork {
             .displayName("Snapshot task inputs for " + task.getIdentityPath())
             .name("Snapshot task inputs")
             .details(SNAPSHOT_TASK_INPUTS_DETAILS));
-        context.setSnapshotTaskInputsBuildOperationContext(operationContext);
+        this.snapshotTaskInputsBuildOperationContext = operationContext;
     }
 
     @Override
     public void markLegacySnapshottingInputsFinished(CachingState cachingState) {
-        context.removeSnapshotTaskInputsBuildOperationContext()
-            .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState, context.getTaskProperties().getInputFileProperties())));
+        BuildOperationContext operation = consumeSnapshotTaskInputsBuildOperationContext();
+        if (operation != null) {
+            operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState, node.getTaskProperties().getInputFileProperties()));
+        }
     }
 
     @Override
     public void ensureLegacySnapshottingInputsClosed() {
         // If the operation hasn't finished normally (because of a shortcut or an error), we close it without a cache key
-        context.removeSnapshotTaskInputsBuildOperationContext()
-            .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(CachingState.NOT_DETERMINED, Collections.emptySet())));
+        BuildOperationContext operation = consumeSnapshotTaskInputsBuildOperationContext();
+        if (operation != null) {
+            operation.setResult(new SnapshotTaskInputsBuildOperationResult(CachingState.NOT_DETERMINED, Collections.emptySet()));
+        }
+    }
+
+    /**
+     * Returns the running snapshotting operation and clears it, so that only the first caller finishes it.
+     */
+    private @Nullable BuildOperationContext consumeSnapshotTaskInputsBuildOperationContext() {
+        BuildOperationContext operation = snapshotTaskInputsBuildOperationContext;
+        snapshotTaskInputsBuildOperationContext = null;
+        return operation;
     }
 
     @Override
     public void validate(WorkValidationContext workValidationContext) {
         TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
-        context.getTaskProperties().validateType(validationContext);
-        context.getTaskProperties().validate(new DefaultPropertyValidationContext(
+        node.getTaskProperties().validateType(validationContext);
+        node.getTaskProperties().validate(new DefaultPropertyValidationContext(
             fileResolver,
             reservedFileSystemLocationRegistry,
             validationContext
@@ -499,7 +521,8 @@ public class TaskExecution implements MutableUnitOfWork {
     @Override
     public void checkOutputDependencies(WorkValidationContext workValidationContext) {
         TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
-        context.getOutputDependencyCheckAction().checkOutputDependencies(validationContext);
+        node.getMutationInfo().getOutputPaths().forEach(outputPath ->
+            missingTaskDependencyDetector.visitOutputLocation(node, validationContext, outputPath));
     }
 
     @Override
@@ -509,24 +532,24 @@ public class TaskExecution implements MutableUnitOfWork {
             @Override
             public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
                 contents.forEach(root -> missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                    context.getLocalTaskNode(), validationContext, root.getAbsolutePath()));
+                    node, validationContext, root.getAbsolutePath()));
             }
 
             @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 if (patterns.isEmpty()) {
                     missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                        context.getLocalTaskNode(), validationContext, root.getAbsolutePath());
+                        node, validationContext, root.getAbsolutePath());
                 } else {
                     missingTaskDependencyDetector.visitFilteredInputLocation(
-                        context.getLocalTaskNode(), validationContext, root.getAbsolutePath(), patterns.getAsSpec());
+                        node, validationContext, root.getAbsolutePath(), patterns.getAsSpec());
                 }
             }
 
             @Override
             public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 missingTaskDependencyDetector.visitUnfilteredInputLocation(
-                    context.getLocalTaskNode(), validationContext, file.getAbsolutePath());
+                    node, validationContext, file.getAbsolutePath());
             }
         };
     }

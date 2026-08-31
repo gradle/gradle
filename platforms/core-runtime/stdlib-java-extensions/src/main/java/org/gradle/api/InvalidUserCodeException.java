@@ -20,16 +20,32 @@ import org.gradle.internal.exceptions.Contextual;
 
 /**
  * A <code>InvalidUserCodeException</code> is thrown when user-provided code cannot be executed.
+ * @since 1.4
  */
 @Contextual
 public class InvalidUserCodeException extends GradleException {
+    /**
+     * Creates a new {@code InvalidUserCodeException}.
+     *
+     * @since 1.4
+     */
     public InvalidUserCodeException() {
     }
 
+    /**
+     * Creates a new {@code InvalidUserCodeException}.
+     *
+     * @since 1.4
+     */
     public InvalidUserCodeException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code InvalidUserCodeException}.
+     *
+     * @since 1.4
+     */
     public InvalidUserCodeException(String message, Throwable cause) {
         super(message, cause);
     }

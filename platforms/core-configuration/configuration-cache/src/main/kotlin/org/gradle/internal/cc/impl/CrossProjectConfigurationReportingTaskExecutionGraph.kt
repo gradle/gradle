@@ -27,10 +27,8 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateLookup
 import org.gradle.execution.plan.FinalizedExecutionPlan
-import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
-import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.util.Path
@@ -60,6 +58,10 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     override fun removeTaskExecutionGraphListener(listener: TaskExecutionGraphListener) {
         delegate.removeTaskExecutionGraphListener(listener.wrap())
+    }
+
+    override fun getGraphExecutionListeners(): TaskExecutionGraphExecutionListener {
+        return delegate.graphExecutionListeners
     }
 
     override fun addExecutionListener(listener: TaskExecutionGraphExecutionListener) {
@@ -124,13 +126,6 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     override fun getDependencies(task: Task): MutableSet<Task> {
         checkCrossProjectTaskAccess(task)
         val result = delegate.getDependencies(task)
-        observingTasksMaybeFromOtherProjects(result)
-        return result
-    }
-
-    override
-    fun getFilteredTasks(): MutableSet<Task> {
-        val result = delegate.filteredTasks
         observingTasksMaybeFromOtherProjects(result)
         return result
     }
@@ -205,13 +200,11 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         delegate.populate(plan)
     }
 
-    override fun execute(plan: FinalizedExecutionPlan): ExecutionResult<Void> =
-        delegate.execute(plan)
+    override fun depopulate() =
+        delegate.depopulate()
 
-    override fun collectScheduledWork(): ScheduledWork =
-        delegate.collectScheduledWork()
-
-    override fun size(): Int = delegate.size()
+    override fun getExecutionPlan(): FinalizedExecutionPlan? =
+        delegate.executionPlan
 
     override fun getLegacyTaskListenerBroadcast() = delegate.legacyTaskListenerBroadcast
 

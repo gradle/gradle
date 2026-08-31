@@ -52,6 +52,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_general.adoc#do_not_use_gradle_properties_in_subprojects,Do not use gradle.properties in subprojects>> | General | 9.2.0
 | <<best_practices_general.adoc#avoid_after_evaluate,Avoid afterEvaluate>> | General | 9.6.0
 | <<best_practices_general.adoc#consider_use_of_incubating_apis_carefully,Consider use of `@Incubating` APIs carefully>> | General | 9.7.0
+| <<best_practices_general.adoc#obtain_loggers_via_logging_get_logger,Obtain Loggers via Logging.getLogger(Class) outside of Tasks>> | General | 9.8.0
 
 | <<best_practices_structuring_builds.adoc#modularize_builds,Modularize Your Builds>> | Structuring Builds | 9.0.0
 | <<best_practices_structuring_builds.adoc#no_source_in_root,Do Not Put Source Files in the Root Project>> | Structuring Builds | 9.0.0
@@ -79,6 +80,8 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_tasks.adoc#use_unique_output_files_and_directories,Use unique output files and directories>> | Task | 9.3.0
 | <<best_practices_tasks.adoc#dont_hardcode_task_names,Don't hardcode task names when referring to them>> | Task | 9.7.0
 | <<best_practices_tasks.adoc#dont_access_project_instance_inside_task,Don't access a `Project` instance during Task Execution>> | Task | 9.7.0
+| <<best_practices_tasks.adoc#map_versus_flatmap,Wiring Task Outputs with `map` and `flatMap`>> | Task | 9.7.0
+| <<best_practices_tasks.adoc#favor_collection_properties,Favor collection property types over a `Property` holding a collection>> | Task | 9.8.0
 
 | <<best_practices_performance.adoc#use_utf8_encoding,Enable UTF‑8>> | Performance | 9.0.0
 | <<best_practices_performance.adoc#use_build_cache,Use the Build Cache>> | Performance | 9.1.0
@@ -89,6 +92,8 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_security.adoc#best_practices_for_security,Validate the Gradle Distribution SHA-256 Checksum>> | Security | 9.1.0
 | <<best_practices_security.adoc#validate_wrapper_checksum,Validate the Gradle Wrapper on every Upgrade>> | Security | 9.3.0
 | <<best_practices_security.adoc#run_gradle_on_external_projects,Do not Run `./gradlew` on Untrusted Projects>> | Security | 9.7.0
+| <<best_practices_security.adoc#builds_should_be_reproducible,Build Output Should Be Byte-for-Byte Reproducible>> | Security | 9.7.0
+| <<best_practices_security.adoc#build-published-artifacts-securely,Build your Published Artifacts Securely>> | Security | 9.7.0
 
 | <<best_practices_testing.adoc#test_custom_types_with_testkit,Test your custom Task and Plugins with TestKit>> | Testing | 9.4.0
 |===

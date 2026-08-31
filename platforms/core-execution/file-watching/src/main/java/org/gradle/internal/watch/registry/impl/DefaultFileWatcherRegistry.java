@@ -154,7 +154,9 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
-        return fileWatcherUpdater.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
+        SnapshotHierarchy newRoot = fileWatcherUpdater.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
+        fileWatcherUpdater.removeProbeFiles();
+        return newRoot;
     }
 
     @Override
@@ -226,6 +228,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private static class MutableFileWatchingStatistics {
         private boolean unknownEventEncountered;
         private int numberOfReceivedEvents;
+        @Nullable
         private Throwable errorWhileReceivingFileChanges;
 
         public Optional<Throwable> getErrorWhileReceivingFileChanges() {

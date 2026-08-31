@@ -15,8 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -27,8 +25,9 @@ import java.util.List;
 /**
  * A convenience base class for implementing language source sets with dependencies and exported headers.
  */
+@SuppressWarnings("deprecation")
 public abstract class AbstractHeaderExportingDependentSourceSet extends AbstractHeaderExportingSourceSet
-        implements HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSetInternal {
+        implements org.gradle.language.nativeplatform.HeaderExportingSourceSet, org.gradle.language.base.LanguageSourceSet, DependentSourceSetInternal {
 
     private final List<Object> libs = new ArrayList<Object>();
     private String preCompiledHeader;

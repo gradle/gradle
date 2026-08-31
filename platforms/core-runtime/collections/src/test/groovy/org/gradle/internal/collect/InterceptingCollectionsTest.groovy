@@ -352,8 +352,8 @@ class InterceptingCollectionsTest extends Specification {
     }
 
     def "entrySet toArray returns wrapped entries that notify on setValue"() {
-        // The Intercepting skeleton applies the element view to toArray() too, so entries handed out
-        // this way are guarded as well — closing a gap the previous hand-rolled entry set left open.
+        // The entry set wraps entries handed out via toArray() too, not just its iterator, so this
+        // access path is guarded as well.
         given:
         List<String> mutations = []
         def backing = ["a": "1"]

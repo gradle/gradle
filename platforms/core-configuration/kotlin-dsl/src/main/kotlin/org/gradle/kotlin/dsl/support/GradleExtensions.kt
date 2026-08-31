@@ -19,6 +19,12 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.invocation.Gradle
 
 
+/**
+ * Looks up any service in the build (`Gradle`) scope service registry, including Gradle internal services.
+ *
+ * This function is not considered stable public API. For the publicly supported services,
+ * prefer [org.gradle.api.invocation.Gradle.service].
+ */
 inline fun <reified T : Any> Gradle.serviceOf(): T =
     (gradle as GradleInternal).services.get()
 

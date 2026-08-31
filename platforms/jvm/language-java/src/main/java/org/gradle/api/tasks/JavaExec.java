@@ -19,6 +19,7 @@ package org.gradle.api.tasks;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -31,6 +32,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -115,6 +117,7 @@ import static java.util.Collections.emptyList;
  *    }
  * }
  * </pre>
+ * @since 0.9
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
@@ -123,6 +126,11 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
 
+    /**
+     * Creates a new {@code JavaExec}.
+     *
+     * @since 0.9
+     */
     @SuppressWarnings("this-escape")
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -152,6 +160,11 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
             task -> getJavaLauncher().map(launcher -> launcher.getMetadata().getLanguageVersion()).get() == DefaultJavaLanguageVersion.UNKNOWN);
     }
 
+    /**
+     * Exec.
+     *
+     * @since 1.1
+     */
     @TaskAction
     public void exec() {
         validateExecutableMatchesToolchain();
@@ -609,7 +622,16 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
+    public DirectoryProperty getWorkingDirectory() {
+        return javaExecSpec.getWorkingDirectory();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWorkingDirectory() instead", willBeDeprecated = true)
     public File getWorkingDir() {
         return javaExecSpec.getWorkingDir();
     }

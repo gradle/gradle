@@ -35,6 +35,8 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
 
 /**
  * Receiver for the `buildscript` block.
+ *
+ * @since 4.1
  */
 open class ScriptHandlerScope(
     private val delegate: ScriptHandler
@@ -42,11 +44,15 @@ open class ScriptHandlerScope(
 
     /**
      * The dependencies of the script.
+     *
+     * @since 4.1
      */
     val dependencies by unsafeLazy { DependencyHandlerScope.of(delegate.dependencies) }
 
     /**
      * The script classpath configuration.
+     *
+     * @since 5.0
      */
     val NamedDomainObjectContainer<Configuration>.classpath: NamedDomainObjectProvider<Configuration>
         get() = named(CLASSPATH_CONFIGURATION)
@@ -58,6 +64,8 @@ open class ScriptHandlerScope(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     *
+     * @since 4.1
      */
     fun DependencyHandler.classpath(dependencyNotation: Any): Dependency? =
         add(CLASSPATH_CONFIGURATION, dependencyNotation)
@@ -70,6 +78,8 @@ open class ScriptHandlerScope(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     *
+     * @since 4.10.1
      */
     inline fun DependencyHandler.classpath(
         dependencyNotation: String,
@@ -122,9 +132,11 @@ open class ScriptHandlerScope(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     *
+     * @since 4.10.1
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     fun DependencyHandler.classpath(
         group: String,
         name: String,
@@ -150,9 +162,11 @@ open class ScriptHandlerScope(
      *
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
+     *
+     * @since 4.10.1
      */
     @Suppress("DEPRECATION")
-    @Deprecated("Use single-string notation instead")
+    @Deprecated("Use single-string notation or DependencyFactory instead")
     inline fun DependencyHandler.classpath(
         group: String,
         name: String,
@@ -173,6 +187,8 @@ open class ScriptHandlerScope(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     *
+     * @since 4.10.1
      */
     inline fun <T : ModuleDependency> DependencyHandler.classpath(
         dependency: T,

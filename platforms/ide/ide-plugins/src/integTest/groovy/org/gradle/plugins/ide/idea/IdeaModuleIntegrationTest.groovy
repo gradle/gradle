@@ -47,6 +47,8 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         expectTaskTypeDeprecations(
                 ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+                ("org.gradle.plugins.ide.idea.model.IdeaModel.pathVariables"): 1,
+                ("org.gradle.plugins.ide.api.XmlFileContentMerger.withXml"): 1,
         )
         runTask 'idea', '''
             apply plugin: "java"

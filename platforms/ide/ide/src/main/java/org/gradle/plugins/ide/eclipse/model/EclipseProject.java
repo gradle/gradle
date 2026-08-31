@@ -97,7 +97,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'
@@ -129,9 +129,15 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *   }
  * }
  * </pre>
+ * @since 1.0
  */
 public abstract class EclipseProject {
 
+    /**
+     * Of.
+     *
+     * @since 3.0
+     */
     public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
     private String name;
 
@@ -154,6 +160,11 @@ public abstract class EclipseProject {
         this.file = file;
     }
 
+    /**
+     * Returns the name.
+     *
+     * @since 1.0
+     */
     public String getName() {
         return name;
     }
@@ -177,11 +188,17 @@ public abstract class EclipseProject {
      * Basically, for non-trivial projects it is recommended to always run gradle eclipse from the root.
      * <p>
      * For example see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the comment.
+     *
+     * @since 1.0
+     */
     public String getComment() {
         return comment;
     }
@@ -190,12 +207,18 @@ public abstract class EclipseProject {
      * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
      * <p>
      * For example see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void setComment(String comment) {
         this.comment = comment;
     }
 
 
+    /**
+     * Returns the referenced projects.
+     *
+     * @since 1.0
+     */
     public Set<String> getReferencedProjects() {
         return referencedProjects;
     }
@@ -208,6 +231,7 @@ public abstract class EclipseProject {
      * eclipse.classpath.whenMerged { classpath -&gt; ... to manipulate the classpath entries
      * <p>
      * For example see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void setReferencedProjects(Set<String> referencedProjects) {
         this.referencedProjects = referencedProjects;
@@ -218,12 +242,18 @@ public abstract class EclipseProject {
      * configure a build path dependency use Gradle's dependencies section or eclipse.classpath.whenMerged { classpath -&gt; ... to manipulate the classpath entries
      *
      * @param referencedProjects The name of the project references.
+     * @since 1.0
      */
     public void referencedProjects(String... referencedProjects) {
         assert referencedProjects != null;
         this.referencedProjects.addAll(Arrays.asList(referencedProjects));
     }
 
+    /**
+     * Returns the natures.
+     *
+     * @since 1.0
+     */
     public List<String> getNatures() {
         return natures;
     }
@@ -231,6 +261,7 @@ public abstract class EclipseProject {
      * The natures to be added to this Eclipse project.
      * <p>
      * For example see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void setNatures(List<String> natures) {
         this.natures = natures;
@@ -240,12 +271,18 @@ public abstract class EclipseProject {
      * Appends natures entries to the eclipse project. <p> For example see docs for {@link EclipseProject}
      *
      * @param natures the nature names
+     * @since 1.0
      */
     public void natures(String... natures) {
         assert natures != null;
         this.natures.addAll(Arrays.asList(natures));
     }
 
+    /**
+     * Returns the build commands.
+     *
+     * @since 1.0
+     */
     public List<BuildCommand> getBuildCommands() {
         return buildCommands;
     }
@@ -254,6 +291,7 @@ public abstract class EclipseProject {
      * The build commands to be added to this Eclipse project.
      * <p>
      * For example see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void setBuildCommands(List<BuildCommand> buildCommands) {
         this.buildCommands = buildCommands;
@@ -265,6 +303,7 @@ public abstract class EclipseProject {
      * @param args A map with arguments, where the key is the name of the argument and the value the value.
      * @param buildCommand The name of the build command.
      * @see #buildCommand(String)
+     * @since 1.0
      */
     public void buildCommand(Map<String, String> args, String buildCommand) {
         assert buildCommand != null;
@@ -276,12 +315,18 @@ public abstract class EclipseProject {
      *
      * @param buildCommand The name of the build command
      * @see #buildCommand(Map, String)
+     * @since 1.0
      */
     public void buildCommand(String buildCommand) {
         assert buildCommand != null;
         buildCommands.add(new BuildCommand(buildCommand));
     }
 
+    /**
+     * Returns the linked resources.
+     *
+     * @since 1.0
+     */
     public Set<Link> getLinkedResources() {
         return linkedResources;
     }
@@ -290,6 +335,7 @@ public abstract class EclipseProject {
      * The linked resources to be added to this Eclipse project.
      * <p>
      * For example see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void setLinkedResources(Set<Link> linkedResources) {
         this.linkedResources = linkedResources;
@@ -299,6 +345,7 @@ public abstract class EclipseProject {
      * Adds a resource link (aka 'source link') to the eclipse project. <p> For example see docs for {@link EclipseProject}
      *
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
+     * @since 1.0
      */
     public void linkedResource(Map<String, String> args) {
         Set<String> illegalArgs = Sets.difference(args.keySet(), VALID_LINKED_RESOURCE_ARGS);
@@ -349,6 +396,7 @@ public abstract class EclipseProject {
      * and beforeMerged{} closures is of type {@link Project} <p>
      *
      * For example see docs for {@link EclipseProject}
+     * @since 1.0
      */
     public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, file);
@@ -367,11 +415,17 @@ public abstract class EclipseProject {
 
     /**
      * See {@link #file(Action)}
+     * @since 1.0
      */
     public final XmlFileContentMerger getFile() {
         return file;
     }
 
+    /**
+     * Merge xml project.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("unchecked")
     public void mergeXmlProject(Project xmlProject) {
         Project decoratedProject = new NonRenamableProject(xmlProject);

@@ -15,6 +15,11 @@
  */
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
@@ -22,12 +27,14 @@ import java.util.Map;
 
 /**
  * <p>Specifies the options to use to fork a process.</p>
+ * @since 0.9
  */
 public interface ProcessForkOptions {
     /**
      * Returns the name of the executable to use.
      *
      * @return The executable.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     String getExecutable();
@@ -44,6 +51,7 @@ public interface ProcessForkOptions {
      * Sets the name of the executable to use.
      *
      * @param executable The executable. Must not be null.
+     * @since 0.9
      */
     void setExecutable(Object executable);
 
@@ -52,6 +60,7 @@ public interface ProcessForkOptions {
      *
      * @param executable The executable. Must not be null.
      * @return this
+     * @since 0.9
      */
     ProcessForkOptions executable(Object executable);
 
@@ -59,8 +68,10 @@ public interface ProcessForkOptions {
      * Returns the working directory for the process. Defaults to the project directory.
      *
      * @return The working directory. Never returns null.
+     * @since 0.9
      */
-    @ToBeReplacedByLazyProperty
+    @ReplacedBy("workingDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWorkingDirectory() instead", willBeDeprecated = true)
     File getWorkingDir();
 
     /**
@@ -76,6 +87,7 @@ public interface ProcessForkOptions {
      * org.gradle.api.Project#file(Object)}.
      *
      * @param dir The working directory. Must not be null.
+     * @since 0.9
      */
     void setWorkingDir(Object dir);
 
@@ -85,13 +97,25 @@ public interface ProcessForkOptions {
      *
      * @param dir The working directory. Must not be null.
      * @return this
+     * @since 0.9
      */
     ProcessForkOptions workingDir(Object dir);
+
+    /**
+     * Returns the working directory for the process as a {@link DirectoryProperty}. Defaults to the project directory.
+     *
+     * @return The working directory property. Must not be unset.
+     * @since 9.7.0
+     */
+    @Incubating
+    @Internal
+    DirectoryProperty getWorkingDirectory();
 
     /**
      * The environment variables to use for the process. Defaults to the environment of this process.
      *
      * @return The environment. Returns an empty map when there are no environment variables.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     Map<String, Object> getEnvironment();
@@ -100,6 +124,7 @@ public interface ProcessForkOptions {
      * Sets the environment variable to use for the process.
      *
      * @param environmentVariables The environment variables. Must not be null.
+     * @since 0.9
      */
     void setEnvironment(Map<String, ?> environmentVariables);
 
@@ -108,6 +133,7 @@ public interface ProcessForkOptions {
      *
      * @param environmentVariables The environment variables. Must not be null.
      * @return this
+     * @since 0.9
      */
     ProcessForkOptions environment(Map<String, ?> environmentVariables);
 
@@ -117,6 +143,7 @@ public interface ProcessForkOptions {
      * @param name The name of the variable.
      * @param value The value for the variable. Must not be null.
      * @return this
+     * @since 0.9
      */
     ProcessForkOptions environment(String name, Object value);
 
@@ -125,6 +152,7 @@ public interface ProcessForkOptions {
      *
      * @param options The target options
      * @return this
+     * @since 0.9
      */
     ProcessForkOptions copyTo(ProcessForkOptions options);
 }

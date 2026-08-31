@@ -99,7 +99,7 @@ class DependenciesExtensions {
  * @since 8.0
  */
 @Suppress("DEPRECATION")
-@Deprecated("Use single-string notation instead")
+@Deprecated("Use single-string notation or DependencyFactory instead")
 fun Dependencies.module(group: String?, name: String, version: String?): ExternalModuleDependency = module(group, name, version)
 
 

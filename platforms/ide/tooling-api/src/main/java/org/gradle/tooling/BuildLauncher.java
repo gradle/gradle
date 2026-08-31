@@ -68,7 +68,7 @@ import org.gradle.tooling.model.Task;
  * <p>If the target Gradle version is &gt;=6.8 then you can use {@code BuildLauncher} to execute tasks from included builds. You can target tasks from included builds by specifying the task
  * identity path (i.e. {@code ':included-build-name:subproject-name:taskName'}).</p>
  *
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
 
@@ -77,7 +77,7 @@ public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     BuildLauncher forTasks(String... tasks);
 
@@ -88,7 +88,7 @@ public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
      *
      * @param tasks The tasks to be executed.
      * @return this
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     BuildLauncher forTasks(Task... tasks);
 
@@ -99,7 +99,7 @@ public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
      *
      * @param tasks The tasks to be executed.
      * @return this
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
 
@@ -132,7 +132,7 @@ public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
      * @throws BuildCancelledException When the operation was cancelled before it completed successfully.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     void run() throws GradleConnectionException, IllegalStateException;
 
@@ -144,7 +144,7 @@ public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
      *
      * @param handler The handler to supply the result to.
      * @throws IllegalStateException When the connection has been closed or is closing.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     void run(ResultHandler<? super Void> handler) throws IllegalStateException;
 }

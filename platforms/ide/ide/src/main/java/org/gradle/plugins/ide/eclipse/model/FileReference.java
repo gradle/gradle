@@ -19,24 +19,29 @@ import java.io.File;
 
 /**
  * A reference to a file in eclipse.
+ * @since 1.0
  */
 public interface FileReference {
     /**
      * Returns the logical path for the file.
+     * @since 1.0
      */
     String getPath();
 
     /**
      * Returns the target file.
+     * @since 1.0
      */
     File getFile();
 
     /**
      * Returns the jar URL of the file
+     * @since 1.0
      */
     String getJarURL();
     /**
      * Returns true if this reference is relative to a path variable.
+     * @since 1.0
      */
     boolean isRelativeToPathVariable();
 }

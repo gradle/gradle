@@ -138,6 +138,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshDependencies());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
+            encoder.writeBoolean(startParameter.isSharedMavenMirrorSettings());
             encoder.writeString(startParameter.getWatchFileSystemMode().name());
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             valueSerializer.write(encoder, startParameter.getConfigurationCache());
@@ -145,6 +146,7 @@ public class BuildActionSerializer {
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
             encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsDuringStore());
             encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners());
+            encoder.writeBoolean(startParameter.isConfigurationCacheSkipTaskLoggingListenersSerialization());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
             encoder.writeNullableString(startParameter.getConfigurationCacheIgnoredFileSystemCheckInputs());
             encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
@@ -176,7 +178,7 @@ public class BuildActionSerializer {
             valueSerializer.write(encoder, startParameter.getParallelToolingModelBuilding());
             encoder.writeNullableString(startParameter.getDevelocityUrl());
             encoder.writeNullableString(startParameter.getDevelocityPluginVersion());
-            encoder.writeBoolean(startParameter.isNonInteractive());
+            encoder.writeBoolean(startParameter.isInteractive());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -238,8 +240,9 @@ public class BuildActionSerializer {
             startParameter.setContinueOnFailure(decoder.readBoolean());
             startParameter.setOffline(decoder.readBoolean());
             startParameter.setRefreshDependencies(decoder.readBoolean());
-            startParameter.setBuildCacheEnabled(decoder.readBoolean());
+            startParameter.setBuildCacheEnabledInternal(decoder.readBoolean(), false);
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
+            startParameter.setSharedMavenMirrorSettings(decoder.readBoolean());
             startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(valueSerializer.read(decoder));
@@ -247,6 +250,7 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheIgnoreInputsDuringStore(decoder.readBoolean());
             startParameter.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(decoder.readBoolean());
+            startParameter.setConfigurationCacheSkipTaskLoggingListenersSerialization(decoder.readBoolean());
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
             startParameter.setConfigurationCacheIgnoredFileSystemCheckInputs(decoder.readNullableString());
             startParameter.setConfigurationCacheDebug(decoder.readBoolean());
@@ -281,7 +285,7 @@ public class BuildActionSerializer {
             startParameter.setParallelToolingModelBuilding(valueSerializer.read(decoder));
             startParameter.setDevelocityUrl(decoder.readNullableString());
             startParameter.setDevelocityPluginVersion(decoder.readNullableString());
-            startParameter.setNonInteractive(decoder.readBoolean());
+            startParameter.setInteractive(decoder.readBoolean());
 
             return startParameter;
         }

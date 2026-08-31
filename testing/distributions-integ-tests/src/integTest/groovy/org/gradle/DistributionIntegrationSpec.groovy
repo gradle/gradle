@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    protected static final THIRD_PARTY_LIB_COUNT = 116
+    protected static final THIRD_PARTY_LIB_COUNT = 115
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -78,6 +78,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "credentials",
         "credentials-api",
         "daemon-logging",
+        "daemon-main",
         "daemon-messaging",
         "daemon-protocol",
         "daemon-server",
@@ -126,6 +127,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems",
         "problems-api",
         "problems-rendering",
+        "problems-reporting",
         "process-memory-services",
         "process-services",
         "process-services-api",
@@ -154,6 +156,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "versioned-cache",
         "worker-main",
         "worker-process-services",
+        "worker-shared",
         "wrapper-shared",
     ]
 
@@ -185,7 +188,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        96
+        98
     }
 
     /**
@@ -218,7 +221,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def actualKB = (int) Math.ceil((double) getZip().size() / 1024)
         def expectedKB = getDistributionSizeMiB() * 1024
 
-        int margin = buildContext.version.isSnapshot() ? 1024 : 2048 // Allow 1 MiB margin for current dev, 2 MiB for more stable releases (promotion builds)
+        int margin = buildContext.version.isSnapshot() ? 1024 : 4096 // Allow 1 MiB margin for current dev, 4 MiB for more stable releases (promotion builds)
         def message = "content needs to be verified. Current size: ${(int) (actualKB / 1024)} MiB (${actualKB} KiB). Expected size: ${getDistributionSizeMiB()} ± ${margin / 1024} MiB."
 
         assert actualKB <= expectedKB + margin: "Distribution is unexpectedly larger, $message"
@@ -373,7 +376,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 603 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 625 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

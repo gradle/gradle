@@ -36,6 +36,7 @@ public interface InclusiveRepositoryContentDescriptor {
      * Declares that an entire group should be searched for in this repository.
      *
      * @param group the group name
+     * @since 6.2
      */
     void includeGroup(String group);
 
@@ -59,6 +60,7 @@ public interface InclusiveRepositoryContentDescriptor {
      * Declares that an entire group should be searched for in this repository.
      *
      * @param groupRegex a regular expression of the group name
+     * @since 6.2
      */
     void includeGroupByRegex(String groupRegex);
 
@@ -68,6 +70,7 @@ public interface InclusiveRepositoryContentDescriptor {
      *
      * @param group the group name
      * @param moduleName the module name
+     * @since 6.2
      */
     void includeModule(String group, String moduleName);
 
@@ -76,6 +79,7 @@ public interface InclusiveRepositoryContentDescriptor {
      *
      * @param groupRegex the group name regular expression
      * @param moduleNameRegex the module name regular expression
+     * @since 6.2
      */
     void includeModuleByRegex(String groupRegex, String moduleNameRegex);
 
@@ -85,6 +89,7 @@ public interface InclusiveRepositoryContentDescriptor {
      * @param group the group name
      * @param moduleName the module name
      * @param version the module version
+     * @since 6.2
      */
     void includeVersion(String group, String moduleName, String version);
 
@@ -94,6 +99,7 @@ public interface InclusiveRepositoryContentDescriptor {
      * @param groupRegex the group name regular expression
      * @param moduleNameRegex the module name regular expression
      * @param versionRegex the module version regular expression
+     * @since 6.2
      */
     void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex);
 }

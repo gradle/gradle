@@ -184,8 +184,9 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         assertModel(model, true, [], ["buildSrc", "buildSrc-included"])
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
     @ToolingApiVersion('>=9.3.0')
-    @TargetGradleVersion('>=9.4.0')
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "returns included builds nested within buildSrc composite build partially when compilation failures in #brokenFile"() {
         given:
         settingsKotlinFile << """
@@ -207,7 +208,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         fails { model(it) }
 
         then:
-         def e = thrown(BuildException)
+        def e = thrown(BuildException)
         e.cause.message.contains("Script compilation error")
         def model = modelCollector.model
         assertFailures(model, *expectedFailures.call(targetVersion))

@@ -130,6 +130,7 @@ Class <org.gradle.api.internal.SettingsInternal> is in a generic package in (Set
 Class <org.gradle.api.internal.StartParameterInternal> is in a generic package in (StartParameterInternal.java:0)
 Class <org.gradle.api.internal.TaskInputsInternal> is in a generic package in (TaskInputsInternal.java:0)
 Class <org.gradle.api.internal.TaskInternal> is in a generic package in (TaskInternal.java:0)
+Class <org.gradle.api.internal.TaskInternalUtil> is in a generic package in (TaskInternalUtil.java:0)
 Class <org.gradle.api.internal.TaskOutputsEnterpriseInternal> is in a generic package in (TaskOutputsEnterpriseInternal.java:0)
 Class <org.gradle.api.internal.TaskOutputsInternal> is in a generic package in (TaskOutputsInternal.java:0)
 Class <org.gradle.api.internal.TypedDomainObjectContainerWrapper> is in a generic package in (TypedDomainObjectContainerWrapper.java:0)

@@ -18,33 +18,29 @@ package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.SourceComponentSpec;
-import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.internal.CollectionUtils;
 
-public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
-    private final ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
-    private final ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
+@SuppressWarnings("deprecation")
+public class ComponentRenderer extends ReportRenderer<org.gradle.platform.base.ComponentSpec, TextReportBuilder> {
+    private final ReportRenderer<org.gradle.language.base.LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
+    private final ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder> binaryRenderer;
 
-    public ComponentRenderer(ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer, ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer) {
+    public ComponentRenderer(ReportRenderer<org.gradle.language.base.LanguageSourceSet, TextReportBuilder> sourceSetRenderer, ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder> binaryRenderer) {
         this.sourceSetRenderer = sourceSetRenderer;
         this.binaryRenderer = binaryRenderer;
     }
 
     @Override
-    public void render(ComponentSpec component, TextReportBuilder builder) {
+    public void render(org.gradle.platform.base.ComponentSpec component, TextReportBuilder builder) {
         builder.heading(StringUtils.capitalize(component.getDisplayName()));
-        if (component instanceof SourceComponentSpec) {
-            SourceComponentSpec sourceComponentSpec = (SourceComponentSpec) component;
+        if (component instanceof org.gradle.platform.base.SourceComponentSpec) {
+            org.gradle.platform.base.SourceComponentSpec sourceComponentSpec = (org.gradle.platform.base.SourceComponentSpec) component;
             builder.getOutput().println();
             builder.collection("Source sets", CollectionUtils.sort(sourceComponentSpec.getSources().values(), SourceSetRenderer.SORT_ORDER), sourceSetRenderer, "source sets");
         }
-        if (component instanceof VariantComponentSpec) {
-            VariantComponentSpec variantComponentSpec = (VariantComponentSpec) component;
+        if (component instanceof org.gradle.platform.base.VariantComponentSpec) {
+            org.gradle.platform.base.VariantComponentSpec variantComponentSpec = (org.gradle.platform.base.VariantComponentSpec) component;
             builder.getOutput().println();
             builder.collection("Binaries", CollectionUtils.sort(variantComponentSpec.getBinaries().values(), TypeAwareBinaryRenderer.SORT_ORDER), binaryRenderer, "binaries");
         }

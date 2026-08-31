@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -25,7 +27,6 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -43,14 +44,15 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
@@ -64,6 +66,17 @@ import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIO
 public class ApacheCommonsHttpClient implements HttpClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheCommonsHttpClient.class);
+
+    /**
+     * Shared ObjectMapper instance for parsing RFC9457 Problem Details responses.
+     * Thread-safe after configuration.
+     */
+    private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+
+    private static ObjectMapper createObjectMapper() {
+        return new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
     private final DocumentationRegistry documentationRegistry;
     private final HttpSettings settings;
@@ -129,45 +142,12 @@ public class ApacheCommonsHttpClient implements HttpClient {
     }
 
     @Override
-    public Response performRawPut(URI uri, ReadableContent resource) throws IOException {
+    public Response performRawPut(URI uri, ImmutableMap<String, String> headers, ReadableContent resource) throws IOException {
         HttpPut method = new HttpPut(uri);
+        addHeaders(method, headers);
         final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
         method.setEntity(entity);
         return performRawRequest(method);
-    }
-
-    @Override
-    public Response performRawPut(URI uri, ImmutableMap<String, String> headers, WritableContent resource) throws IOException {
-        HttpPut httpPut = new HttpPut(uri);
-        addHeaders(httpPut, headers);
-        httpPut.setEntity(new AbstractHttpEntity() {
-            @Override
-            public boolean isRepeatable() {
-                return true;
-            }
-
-            @Override
-            public long getContentLength() {
-                return resource.getSize();
-            }
-
-            @Override
-            public InputStream getContent() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void writeTo(OutputStream outstream) throws IOException {
-                resource.writeTo(outstream);
-            }
-
-            @Override
-            public boolean isStreaming() {
-                return false;
-            }
-        });
-
-        return performRawRequest(httpPut);
     }
 
     private Response performRequest(HttpRequestBase request) {
@@ -292,22 +272,92 @@ public class ApacheCommonsHttpClient implements HttpClient {
         return redirectLocations.isEmpty() ? null : Iterables.getLast(redirectLocations);
     }
 
-    private static Response processResponse(Response response) {
+    private Response processResponse(Response response) {
         if (response.isSuccessful()) {
             return response;
-        }
-
-        // Consume content for non-successful responses. This avoids the connection being left open.
-        response.close();
-
-        if (response.isMissing()) {
+        } else if (response.isMissing()) {
+            // Consume content to avoid leaving the connection open.
+            response.close();
             LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), stripUserCredentials(response.getEffectiveUri()));
             return response;
+        } else {
+            URI effectiveUri = stripUserCredentials(response.getEffectiveUri());
+            LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusCode(), effectiveUri);
+
+            // Extract detailed error message (must be done before closing response)
+            String errorDetail = extractErrorDetail(response).orElse("");
+
+            // Capture response state before closing, as reading a closed response is fragile
+            String method = response.getMethod();
+            int statusCode = response.getStatusCode();
+
+            // Close the response to avoid leaving connections open
+            response.close();
+
+            HttpErrorStatusCodeException statusCause = new HttpErrorStatusCodeException(statusCode, errorDetail);
+            throw new HttpRequestException(String.format("Could not %s '%s'.", method, effectiveUri), statusCause);
+        }
+    }
+
+    /**
+     * Extracts error detail from the HTTP response.
+     * Supports RFC9457 (Problem Details for HTTP APIs) format.
+     * Falls back to the HTTP reason phrase when RFC9457 is not available.
+     *
+     * @param response the HTTP response
+     * @return the error detail message, or empty if none is available
+     */
+    @VisibleForTesting
+    Optional<String> extractErrorDetail(HttpClient.Response response) {
+        String contentType = response.getHeader("Content-Type");
+        if (contentType != null && contentType.toLowerCase(Locale.ROOT).contains("application/problem+json")) {
+            LOGGER.debug("RFC9457 content type detected: {}", contentType);
+            Optional<String> rfc9457Detail = parseRFC9457Response(response);
+            if (rfc9457Detail.isPresent()) {
+                return rfc9457Detail;
+            }
+            LOGGER.debug("RFC9457 parsing failed or produced no detail, falling back to reason phrase");
         }
 
-        URI effectiveUri = stripUserCredentials(response.getEffectiveUri());
-        LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusCode(), effectiveUri);
-        throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusCode(), response.getStatusReason());
+        // Fallback to reason phrase (empty in HTTP/2)
+        return Optional.ofNullable(response.getStatusReason()).filter(s -> !s.isEmpty());
+    }
+
+    /**
+     * Parses RFC9457 (Problem Details for HTTP APIs) response.
+     * RFC9457 defines a JSON format for error responses with fields like:
+     * - type: URI reference for the problem type
+     * - title: Short, human-readable summary
+     * - status: HTTP status code
+     * - detail: Human-readable explanation specific to this occurrence
+     * - instance: URI reference identifying the specific occurrence
+     *
+     * @param response the HTTP response
+     * @return the detail field (or title as fallback) from the RFC9457 response, or empty if parsing fails or yields no usable field
+     */
+    @VisibleForTesting
+    Optional<String> parseRFC9457Response(HttpClient.Response response) {
+        try {
+            InputStream content = response.getContent();
+            Rfc9457Problem problem = OBJECT_MAPPER.readValue(content, Rfc9457Problem.class);
+
+            LOGGER.trace("RFC9457 parsed successfully - type: {}, title: {}, status: {}, detail: {}, instance: {}",
+                problem.getType(), problem.getTitle(), problem.getStatus(), problem.getDetail(), problem.getInstance());
+
+            // Prefer "detail" field, fall back to "title" if detail is absent or empty
+            String detail = problem.getDetail();
+            if (detail != null && !detail.isEmpty()) {
+                return Optional.of(detail);
+            }
+            String title = problem.getTitle();
+            if (title != null && !title.isEmpty()) {
+                return Optional.of(title);
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            LOGGER.warn("Failed to parse RFC9457 response", e);
+            return Optional.empty();
+        }
     }
 
     private synchronized CloseableHttpClient getClient() {
@@ -357,6 +407,64 @@ public class ApacheCommonsHttpClient implements HttpClient {
 
         private URI getLastRedirectLocation() {
             return lastRedirectLocation;
+        }
+    }
+
+    /**
+     * Represents RFC9457 Problem Details for HTTP APIs.
+     * See: https://www.rfc-editor.org/rfc/rfc9457.html
+     */
+    @VisibleForTesting
+    static class Rfc9457Problem {
+        @Nullable private String type;
+        @Nullable private String title;
+        @Nullable private Integer status;
+        @Nullable private String detail;
+        @Nullable private String instance;
+
+        @Nullable
+        public String getType() {
+            return type;
+        }
+
+        public void setType(@Nullable String type) {
+            this.type = type;
+        }
+
+        @Nullable
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(@Nullable String title) {
+            this.title = title;
+        }
+
+        @Nullable
+        public Integer getStatus() {
+            return status;
+        }
+
+        public void setStatus(@Nullable Integer status) {
+            this.status = status;
+        }
+
+        @Nullable
+        public String getDetail() {
+            return detail;
+        }
+
+        public void setDetail(@Nullable String detail) {
+            this.detail = detail;
+        }
+
+        @Nullable
+        public String getInstance() {
+            return instance;
+        }
+
+        public void setInstance(@Nullable String instance) {
+            this.instance = instance;
         }
     }
 

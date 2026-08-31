@@ -68,7 +68,6 @@ import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.language.scala.tasks.KeepAliveMode;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
@@ -79,6 +78,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/scala_plugin.html">Scala plugin reference</a>
+ * @since 0.9
  */
 public abstract class ScalaBasePlugin implements Plugin<Project> {
 
@@ -90,8 +90,18 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     public static final String DEFAULT_ZINC_VERSION = "1.12.0";
     private static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
 
+    /**
+     * The zinc configuration name.
+     *
+     * @since 2.14
+     */
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
+    /**
+     * The scala runtime extension name.
+     *
+     * @since 2.14
+     */
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
 
     /**
@@ -425,7 +435,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
                 scalaRuntime,
                 scalaDoc.getClasspath()
             ));
-            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
+            scalaDoc.getDestinationDirectory().convention(javaPluginExtension(project).getDocsDir().dir("scaladoc"));
             scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> ReportUtilities.getApiDocTitleFor(project));
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });

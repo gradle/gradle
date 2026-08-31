@@ -18,7 +18,7 @@ package org.gradle.internal.resources;
 
 import org.gradle.util.Path;
 
-public class TaskExecutionLockRegistry extends AbstractResourceLockRegistry<Path, TaskExecutionLock> {
+public class TaskExecutionLockRegistry extends SingleLockRegistry<Path, TaskExecutionLock> {
     private final ProjectLockRegistry projectLockRegistry;
 
     public TaskExecutionLockRegistry(ResourceLockCoordinationService coordinationService, ProjectLockRegistry projectLockRegistry) {

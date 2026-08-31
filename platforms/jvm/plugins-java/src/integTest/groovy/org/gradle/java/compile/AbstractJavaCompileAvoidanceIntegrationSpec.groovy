@@ -482,4 +482,193 @@ sealed interface Foo {
         then:
         executedAndNotSkipped(":b:${language.compileTaskName}")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/38823")
+    @Requires(JdkVersionTestPreconditions.Jdk16OrLater)
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
+    def "recompiles when record component order changes"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+
+        def sourceFile = file("a/src/main/${language.name}/Point.${language.name}")
+        sourceFile << 'public record Point(int x, int y) {}'
+        file("b/src/main/${language.name}/Main.${language.name}") << 'public class Main { Point p = new Point(1, 2); }'
+
+        when:
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+
+        when:
+        // Swapping the components keeps every accessor, the canonical constructor and every field
+        sourceFile.text = 'public record Point(int y, int x) {}'
+
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38827")
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
+    def "recompiles when a method parameter is renamed"() {
+        given:
+        buildFile << """
+            project(':a') {
+                tasks.named('${language.compileTaskName}') {
+                    options.compilerArgs << '-parameters'
+                }
+            }
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
+        sourceFile << """
+            public class ToolImpl {
+                public void greet(String firstName, int repeatCount) { }
+            }
+        """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+
+        when:
+        // Parameter names are an input of annotation processing, so they are part of the API
+        sourceFile.text = """
+            public class ToolImpl {
+                public void greet(String givenName, int times) { }
+            }
+        """
+
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38828")
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
+    def "recompiles when an annotation value member changes next to an array member"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+
+        file("a/src/main/${language.name}/Ann.${language.name}") << """
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target({ElementType.TYPE})
+            public @interface Ann {
+                String value();
+                String[] names();
+            }
+        """
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
+        sourceFile << """
+            @Ann(value = "v", names = {"x", "y"})
+            public class ToolImpl { }
+        """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+
+        when:
+        sourceFile.text = """
+            @Ann(value = "w", names = {"x", "y"})
+            public class ToolImpl { }
+        """
+
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38825")
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
+    def "recompiles when a type annotation in a throws clause moves to another exception"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+
+        file("a/src/main/${language.name}/Ann.${language.name}") << """
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target({ElementType.TYPE_USE})
+            public @interface Ann { }
+        """
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
+        sourceFile << """
+            import java.io.IOException;
+
+            public class ToolImpl {
+                public void execute() throws @Ann ArithmeticException, IOException { }
+            }
+        """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+
+        when:
+        // The extractor writes the exceptions sorted while it keeps the type_index of the
+        // declaration order, so both variants used to extract to the same bytes
+        sourceFile.text = """
+            import java.io.IOException;
+
+            public class ToolImpl {
+                public void execute() throws @Ann IOException, ArithmeticException { }
+            }
+        """
+
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped(":b:${language.compileTaskName}")
+    }
 }

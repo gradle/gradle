@@ -131,6 +131,7 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         return sink;
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     void releaseSink(Sink<T> sink) {
         if (!availableSinks.offer(sink)) {
             try {

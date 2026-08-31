@@ -27,34 +27,43 @@ import java.util.Collection;
 
 /**
  * Represents a binary artifact that is the result of building a native component.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating @HasInternalProtocol
+@Deprecated
 public interface NativeBinarySpec extends BinarySpec {
     /**
      * The component that this binary was built from.
+     * @since 2.2
      */
     NativeComponentSpec getComponent();
 
     /**
      * The {@link org.gradle.nativeplatform.Flavor} that this binary was built with.
+     * @since 2.2
      */
     @Variant
     Flavor getFlavor();
 
     /**
      * Returns the {@link org.gradle.nativeplatform.platform.NativePlatform} that this binary is targeted to run on.
+     * @since 2.2
      */
     @Variant
     NativePlatform getTargetPlatform();
 
     /**
      * Returns the {@link org.gradle.nativeplatform.BuildType} used to construct this binary.
+     * @since 2.2
      */
     @Variant
     BuildType getBuildType();
 
     /**
      * The libraries that should be linked into this binary.
+     * @since 2.2
      */
     Collection<NativeDependencySet> getLibs();
 
@@ -76,11 +85,13 @@ public interface NativeBinarySpec extends BinarySpec {
      *     <li>library: the name of the library (required)</li>
      *     <li>linkage: the library linkage required ['shared'/'static'] (optional, defaults to 'shared')</li>
      * </ul>
+     * @since 2.2
      */
     void lib(Object library);
 
     /**
      * Returns the {@link org.gradle.nativeplatform.toolchain.NativeToolChain} that will be used to build this binary.
+     * @since 2.2
      */
     NativeToolChain getToolChain();
 
@@ -89,6 +100,7 @@ public interface NativeBinarySpec extends BinarySpec {
      * The configuration of the linker used when linking this binary.
      *
      * Valid for {@link SharedLibraryBinarySpec} and {@link NativeExecutableBinarySpec}.
+     * @since 2.2
      */
     Tool getLinker();
 
@@ -96,6 +108,7 @@ public interface NativeBinarySpec extends BinarySpec {
      * The configuration of the static library archiver used when creating this binary.
      *
      * Valid for {@link StaticLibraryBinarySpec}.
+     * @since 2.2
      */
     Tool getStaticLibArchiver();
 
@@ -104,6 +117,7 @@ public interface NativeBinarySpec extends BinarySpec {
      *
      * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
      * {@link NativeExecutableBinarySpec} when the 'assembler' plugin is applied.
+     * @since 2.10
      */
     Tool getAssembler();
 
@@ -112,6 +126,7 @@ public interface NativeBinarySpec extends BinarySpec {
      *
      * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
      * {@link NativeExecutableBinarySpec} when the 'c' plugin is applied.
+     * @since 2.10
      */
     PreprocessingTool getcCompiler();
 
@@ -120,6 +135,7 @@ public interface NativeBinarySpec extends BinarySpec {
      *
      * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
      * {@link NativeExecutableBinarySpec} when the 'cpp' plugin is applied.
+     * @since 2.10
      */
     PreprocessingTool getCppCompiler();
 
@@ -128,6 +144,7 @@ public interface NativeBinarySpec extends BinarySpec {
      *
      * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
      * {@link NativeExecutableBinarySpec} when the 'objective-c' plugin is applied.
+     * @since 2.10
      */
     PreprocessingTool getObjcCompiler();
 
@@ -136,6 +153,7 @@ public interface NativeBinarySpec extends BinarySpec {
      *
      * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
      * {@link NativeExecutableBinarySpec} when the 'objective-cpp' plugin is applied.
+     * @since 2.10
      */
     PreprocessingTool getObjcppCompiler();
 
@@ -144,6 +162,7 @@ public interface NativeBinarySpec extends BinarySpec {
      *
      * Valid for {@link SharedLibraryBinarySpec}, {@link StaticLibraryBinarySpec} and
      * {@link NativeExecutableBinarySpec} when the 'windows-resources' plugin is applied.
+     * @since 2.10
      */
     PreprocessingTool getRcCompiler();
 }

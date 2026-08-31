@@ -444,15 +444,6 @@ class ConfigurationCacheFingerprintWriter(
         buildScopedSink.write(ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy(prefix, snapshot))
     }
 
-    fun beforeValueObtained() {
-        // Do not track additional inputs while computing a value of the value source.
-        inputTrackingState.disableForCurrentThread()
-    }
-
-    fun afterValueObtained() {
-        inputTrackingState.restoreForCurrentThread()
-    }
-
     fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>

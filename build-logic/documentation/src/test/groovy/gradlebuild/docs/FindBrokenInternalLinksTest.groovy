@@ -47,6 +47,23 @@ class FindBrokenInternalLinksTest extends Specification {
             org.jetbrains.dokka.experimental.gradle.pluginMode.noWarn=true
         """.stripIndent()
 
+        new File(projectDir, "settings.gradle") << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create('buildLibs') {
+                        version('asciidoctor', '3.0.1')
+                        version('asciidoctorPdf', '2.3.23')
+                    }
+                }
+            }
+        """.stripIndent()
+
+        // `repoRoot()` walks up the tree looking for `version.txt`; `released-versions.json` is the
+        // source for the `gradleVersion8` Asciidoctor attribute. Provide both so the documentation
+        // plugin applies cleanly in this minimal TestKit project.
+        new File(projectDir, "version.txt") << "test"
+        new File(projectDir, "released-versions.json") << '{"finalReleases":[{"version":"8.99.99","buildTime":"20260101000000+0000"}]}'
+
         new File(projectDir, "src/docs/javaPackageList/8").mkdirs()
         new File(projectDir, "src/docs/javaPackageList/8/package-list") << """
         java.lang

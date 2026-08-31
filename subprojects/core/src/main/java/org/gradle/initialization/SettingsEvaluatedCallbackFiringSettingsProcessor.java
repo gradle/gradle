@@ -16,21 +16,17 @@
 
 package org.gradle.initialization;
 
-import kotlin.Unit;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 
 public class SettingsEvaluatedCallbackFiringSettingsProcessor implements SettingsProcessor {
 
     private final SettingsProcessor delegate;
-    private final IsolatedProjectsProblemsReporter problems;
 
-    public SettingsEvaluatedCallbackFiringSettingsProcessor(SettingsProcessor delegate, IsolatedProjectsProblemsReporter problems) {
+    public SettingsEvaluatedCallbackFiringSettingsProcessor(SettingsProcessor delegate) {
         this.delegate = delegate;
-        this.problems = problems;
     }
 
     @Override
@@ -39,16 +35,6 @@ public class SettingsEvaluatedCallbackFiringSettingsProcessor implements Setting
         SettingsInternal settings = state.getSettings();
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
         settings.preventFromFurtherMutation();
-        startParameter.setMutationListener(methodSignature ->
-            problems.report(factory ->
-                factory.problem(null, messageBuilder -> {
-                    messageBuilder.text(
-                        "Cannot call '" + methodSignature + "' on StartParameter after settings have been evaluated when Isolated Projects is enabled."
-                    );
-                    return Unit.INSTANCE;
-                }).exception().build()
-            )
-        );
         return state;
     }
 }

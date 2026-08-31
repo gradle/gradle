@@ -46,6 +46,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
+ * @since 0.7
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
@@ -59,6 +60,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
 
+    /**
+     * Creates a new {@code AbstractArchiveTask}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -265,6 +271,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * <p>
      * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
+     * <p>
+     * Gradle defaults to <code>false</code> if not set explictly starting Gradle 9.0.0
+     * </p>
      *
      * @return <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
@@ -280,6 +289,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * <p>
      * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
+     * <p>
+     * Gradle defaults to <code>false</code> if not set explictly starting Gradle 9.0.0
+     * </p>
      *
      * @param preserveFileTimestamps <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
@@ -294,6 +306,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
      * independent of file systems and operating systems.
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
+     * </p>
+     * <p>
+     * Gradle defaults to <code>true</code> if not set explictly starting Gradle 9.0.0
      * </p>
      *
      * @return <code>true</code> if the files should read from disk in a reproducible order.
@@ -311,6 +326,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
      * independent of file systems and operating systems.
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
+     * </p>
+     * <p>
+     * Gradle defaults to <code>true</code> if not set explictly starting Gradle 9.0.0
      * </p>
      *
      * @param reproducibleFileOrder <code>true</code> if the files should read from disk in a reproducible order.

@@ -192,14 +192,10 @@ class NodeStateTest extends Specification {
         DependencyMetadata dependencyMetadata = Mock(DependencyMetadata) {
             isEndorsingStrictVersions() >> endorsing
         }
-        DependencyState dependencyState = Mock(DependencyState) {
-            getDependency() >> dependencyMetadata
-        }
         EdgeState edge = Mock(EdgeState) {
             getFrom() >> from
             getTargetComponent() >> to.component
             getTargetNodes() >> [to]
-            getDependencyState() >> dependencyState
             getDependencyMetadata() >> dependencyMetadata
         }
 

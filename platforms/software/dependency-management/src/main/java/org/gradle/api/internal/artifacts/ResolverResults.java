@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.specs.Spec;
 
 /**
  * Immutable representation of the state of dependency resolution. Can represent the result of resolving build
@@ -57,7 +56,8 @@ public interface ResolverResults {
      * <ul>
      *     <li>{@link ResolvedConfiguration}</li>
      *     <li>{@link org.gradle.api.artifacts.LenientConfiguration}</li>
-     *     <li>{@link org.gradle.api.artifacts.Configuration#fileCollection(Spec)} and related methods</li>
+     *     <li>{@link org.gradle.api.artifacts.Configuration#getResolvedConfiguration} and related methods</li>
+     *     <li>{@link org.gradle.api.artifacts.ArtifactView} and related filtered artifact resolution methods</li>
      * </ul>
      */
     interface LegacyResolverResults {

@@ -18,23 +18,22 @@ package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.NativeDependentBinariesResolutionStrategy;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.testing.base.TestSuiteBinarySpec;
 
 import java.util.Collections;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class NativeDependentBinariesResolutionStrategyTestSupport implements NativeDependentBinariesResolutionStrategy.TestSupport {
     @Override
     public boolean isTestSuite(BinarySpecInternal target) {
-        return target instanceof TestSuiteBinarySpec;
+        return target instanceof org.gradle.testing.base.TestSuiteBinarySpec;
     }
 
     @Override
     public List<NativeBinarySpecInternal> getTestDependencies(NativeBinarySpecInternal nativeBinary) {
-        if (nativeBinary instanceof NativeTestSuiteBinarySpec) {
-            NativeBinarySpecInternal testedBinary = (NativeBinarySpecInternal) ((NativeTestSuiteBinarySpec) nativeBinary).getTestedBinary();
+        if (nativeBinary instanceof org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec) {
+            NativeBinarySpecInternal testedBinary = (NativeBinarySpecInternal) ((org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec) nativeBinary).getTestedBinary();
             return Collections.singletonList(testedBinary);
         }
         return Collections.emptyList();

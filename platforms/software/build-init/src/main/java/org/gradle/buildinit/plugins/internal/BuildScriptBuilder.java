@@ -403,6 +403,7 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
+    @SuppressWarnings("ExposedPrivateType")
     public TaskConfiguration taskConfiguration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskConfiguration conf = new TaskConfiguration(comment, taskName, taskType);
         block.add(conf);
@@ -415,6 +416,7 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
+    @SuppressWarnings("ExposedPrivateType")
     public TaskConfiguration taskConfiguration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskConfiguration conf = new TaskConfiguration(comment, taskName, taskType);
         containingBlock.add(conf);
@@ -427,6 +429,7 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
+    @SuppressWarnings("ExposedPrivateType")
     public TaskRegistration taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         block.add(registration);
@@ -439,6 +442,7 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
+    @SuppressWarnings("ExposedPrivateType")
     public TaskRegistration taskRegistration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         containingBlock.add(registration);
@@ -451,6 +455,7 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
+    @SuppressWarnings("ExposedPrivateType")
     public SuiteConfiguration suiteConfiguration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         SuiteConfiguration conf = new SuiteConfiguration(comment, taskName, taskType);
         containingBlock.add(conf);
@@ -463,6 +468,7 @@ public class BuildScriptBuilder {
      *
      * @return An expression that can be used to refer to the task later.
      */
+    @SuppressWarnings("ExposedPrivateType")
     public SuiteRegistration suiteRegistration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         SuiteRegistration registration = new SuiteRegistration(comment, taskName, taskType);
         containingBlock.add(registration);
@@ -926,6 +932,7 @@ public class BuildScriptBuilder {
         /**
          * Writes this statement to the given printer. Should not write the comment. Called only when {@link #type()} returns a value != {@link Type#Empty}
          */
+        @SuppressWarnings("ExposedPrivateType")
         void writeCodeTo(PrettyPrinter printer);
     }
 
@@ -1319,6 +1326,7 @@ public class BuildScriptBuilder {
         }
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     public static class SuiteSpec extends AbstractStatement {
         private final BuildScriptBuilder builder;
 
@@ -1392,6 +1400,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        @SuppressWarnings("ExposedPrivateType")
         public void writeCodeTo(PrettyPrinter printer) {
             if (isDefaultTestSuite) {
                 printer.printStatement(builder.suiteConfiguration("Configure the built-in test suite", builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
@@ -1408,7 +1417,7 @@ public class BuildScriptBuilder {
             TEST_NG(new MethodInvocationExpression("useTestNG"), "TestNG");
 
             final String displayName;
-            @SuppressWarnings("ImmutableEnumChecker") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+            @SuppressWarnings({"ImmutableEnumChecker", "ExposedPrivateType"})
             final MethodInvocationExpression method;
 
             TestSuiteFramework(MethodInvocationExpression method, String displayName) {
@@ -1522,6 +1531,7 @@ public class BuildScriptBuilder {
         }
     }
 
+    @SuppressWarnings("ExposedPrivateType")
     public static class ScriptBlockImpl implements ScriptBlockBuilder, BlockBody {
         final List<Statement> statements = new ArrayList<>();
 
@@ -1544,6 +1554,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        @SuppressWarnings("ExposedPrivateType")
         public void writeBodyTo(PrettyPrinter printer) {
             printer.printStatements(statements);
         }

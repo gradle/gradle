@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.r56.DefaultEclipseWorkspaceProject
 import org.gradle.integtests.tooling.r56.IntermediateResultHandlerCollector
 import org.gradle.integtests.tooling.r56.ParameterizedLoadCompositeEclipseModels
 import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
+import org.gradle.util.GradleVersion
 
 @TargetGradleVersion('>=9.0.0')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
@@ -40,6 +41,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
             temporaryFolder.file("workspace"),
             [new DefaultEclipseWorkspaceProject("root", projectDir, true)]
         )
+
+        if (parallel && targetVersion >= GradleVersion.version("9.8.0")) {
+            expectImplicitParallelModelBuildingDeprecation()
+        }
 
         expect:
         succeeds { connection ->

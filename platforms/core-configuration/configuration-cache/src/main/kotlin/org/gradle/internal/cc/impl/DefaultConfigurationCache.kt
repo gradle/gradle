@@ -23,18 +23,10 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.cc.operations.EntrySearchResult
-import org.gradle.internal.cc.operations.ModelStoreResult
-import org.gradle.internal.cc.operations.WorkGraphLoadResult
-import org.gradle.internal.cc.operations.WorkGraphStoreResult
-import org.gradle.internal.cc.operations.withFingerprintCheckOperations
-import org.gradle.internal.cc.operations.withModelLoadOperation
-import org.gradle.internal.cc.operations.withModelStoreOperation
-import org.gradle.internal.cc.operations.withWorkGraphLoadOperation
-import org.gradle.internal.cc.operations.withWorkGraphStoreOperation
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildTreeModelCreatorResult
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.ToolingModelRequestContext
@@ -53,11 +45,22 @@ import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintStar
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
+import org.gradle.internal.cc.impl.models.BuildTreeModel
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
+import org.gradle.internal.cc.impl.serialize.FingerprintDeserializationException
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
 import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
+import org.gradle.internal.cc.operations.EntrySearchResult
+import org.gradle.internal.cc.operations.ModelStoreResult
+import org.gradle.internal.cc.operations.WorkGraphLoadResult
+import org.gradle.internal.cc.operations.WorkGraphStoreResult
+import org.gradle.internal.cc.operations.withFingerprintCheckOperations
+import org.gradle.internal.cc.operations.withModelLoadOperation
+import org.gradle.internal.cc.operations.withModelStoreOperation
+import org.gradle.internal.cc.operations.withWorkGraphLoadOperation
+import org.gradle.internal.cc.operations.withWorkGraphStoreOperation
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -75,8 +78,8 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
@@ -117,6 +120,10 @@ class DefaultConfigurationCache internal constructor(
     // Have one or more values been successfully written to the entry?
     private
     var cacheEntryRequiresCommit = false
+
+    // Did model building produce failures, so the entry must be discarded rather than stored?
+    private
+    var entryDiscardRequested = false
 
     private
     val host by lazy { deferredRootBuildGradle.gradle.services.get<HostServiceProvider>() }
@@ -246,7 +253,7 @@ class DefaultConfigurationCache internal constructor(
     ): BuildTreeConfigurationCache.WorkGraphResult {
         return when (cacheAction) {
             is Load -> {
-                val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
+                val finalizedGraph = loadWorkGraph(graph, graphBuilder, false).graph
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = true,
@@ -285,32 +292,49 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
+    override fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeConfigurationCache.LoadRequestedTasksResult {
         return loadWorkGraph(graph, graphBuilder, true)
     }
 
-    override fun maybePrepareModel(action: () -> Unit) {
+    override fun maybePrepareModel(action: () -> BuildTreeModelCreatorResult<Void>): BuildTreeModelCreatorResult<Void> {
         if (isLoaded) {
-            return
+            return BuildTreeModelCreatorResult.of(null)
         }
-        runWorkThatContributesToCacheEntry {
-            action()
+        return runWorkThatContributesToCacheEntry {
+            runAndDiscardEntryOnFailures(action)
         }
     }
 
-    override fun <T : Any> loadOrCreateModel(creator: () -> T): T {
+    override fun <T : Any> loadOrCreateModel(creator: () -> BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T> {
         if (isLoaded) {
             runLoadedSideEffects()
-            return loadModel().uncheckedCast()
+            return BuildTreeModelCreatorResult.of(loadModel().uncheckedCast<BuildTreeModel>().result<T>())
         }
 
         return runWorkThatContributesToCacheEntry {
-            val model = creator()
-            // Graceful degradation. We don't care about the models saving at the moment since it's happening
-            // only when Isolated Projects enabled. That's it, there is no model saving in CC + noIP mode.
-            saveModel(model)
-            model
+            val result = runAndDiscardEntryOnFailures(creator)
+            if (!result.hasFailures()) {
+                // Graceful degradation. We don't care about the models saving at the moment since it's happening
+                // only when Isolated Projects enabled. That's it, there is no model saving in CC + noIP mode.
+                val model = when (val value = result.model) {
+                    null -> BuildTreeModel.NullModel
+                    else -> BuildTreeModel.Model(value)
+                }
+                saveModel(model)
+            }
+            result
         }
+    }
+
+    private
+    fun <T : Any> runAndDiscardEntryOnFailures(action: () -> BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T> {
+        val result = action()
+        if (result.hasFailures()) {
+            // Model building produced failures, so the resulting partial configuration must not be reused:
+            // discard the entry so the next build re-runs and re-reports the failures.
+            entryDiscardRequested = true
+        }
+        return result
     }
 
     private
@@ -331,8 +355,8 @@ class DefaultConfigurationCache internal constructor(
         project: ProjectIdentity?,
         modelRequestContext: ToolingModelRequestContext,
         parameter: ToolingModelParameterCarrier?,
-        creator: () -> ToolingModelBuilderResultInternal
-    ): ToolingModelBuilderResultInternal {
+        creator: () -> ToolingModelScopeResult
+    ): ToolingModelScopeResult {
         return intermediateModels.loadOrCreateIntermediateModel(project, modelRequestContext, parameter, creator)
     }
 
@@ -352,7 +376,7 @@ class DefaultConfigurationCache internal constructor(
                 require(!cacheEntryRequiresCommit)
             }
 
-            problems.shouldDiscardEntry -> {
+            entryDiscardRequested || problems.shouldDiscardEntry -> {
                 discardEntry()
                 cacheEntryRequiresCommit = false
             }
@@ -739,13 +763,13 @@ class DefaultConfigurationCache internal constructor(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
-    ): BuildTreeWorkGraph.FinalizedGraph = runAtConfigurationTime {
+    ): BuildTreeConfigurationCache.LoadRequestedTasksResult = runAtConfigurationTime {
 
         // No need to record the `ClassLoaderScope` tree
         // when loading the task graph.
         scopeRegistryListener.dispose()
 
-        buildOperationRunner.withWorkGraphLoadOperation {
+        val finalizedGraph = buildOperationRunner.withWorkGraphLoadOperation {
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
                 LoadResultMetadata(buildInvocationId) to workGraph
@@ -753,6 +777,8 @@ class DefaultConfigurationCache internal constructor(
             val (intermediateLoadResult, actionResult) = storeLoadResult.value
             WorkGraphLoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }
+        val restorationFailed = !startParameter.isWarningMode && problems.queryFailure() != null
+        BuildTreeConfigurationCache.LoadRequestedTasksResult(finalizedGraph, restorationFailed)
     }
 
     private
@@ -815,6 +841,18 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprint(candidateEntry: CandidateEntry, rootDirs: List<File>): CheckedFingerprint {
+        if (rootDirs.isNotEmpty() && startParameter.buildTreeRootDirectory !in rootDirs) {
+            return CheckedFingerprint.Invalid(
+                buildPath(),
+                StructuredMessage.build {
+                    text("the location of the build has changed from ")
+                    reference(rootDirs.first().path)
+                    text(" to ")
+                    reference(startParameter.buildTreeRootDirectory.path)
+                }
+            )
+        }
+
         // Register all included build root directories as watchable hierarchies,
         // so we can load the fingerprint for build scripts and other files from included builds
         // without violating file system invariants.
@@ -848,16 +886,21 @@ class DefaultConfigurationCache internal constructor(
     fun ConfigurationCacheRepository.Layout.checkFingerprintAgainstLoadedProperties(
         candidateEntry: CandidateEntry
     ): CheckedFingerprint =
-        when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
-            null -> {
-                // Build inputs are up-to-date, check project specific inputs
-                CheckedFingerprint.Valid(
-                    candidateEntry.id,
-                    checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
-                )
-            }
+        try {
+            when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
+                null -> {
+                    // Build inputs are up-to-date, check project specific inputs
+                    CheckedFingerprint.Valid(
+                        candidateEntry.id,
+                        checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
+                    )
+                }
 
-            else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
+                else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
+            }
+        } catch (e: FingerprintDeserializationException) {
+            logger.info("Configuration cache entry discarded because a fingerprint value could not be loaded", e)
+            CheckedFingerprint.Invalid(buildPath(), e.reason)
         }
 
     private

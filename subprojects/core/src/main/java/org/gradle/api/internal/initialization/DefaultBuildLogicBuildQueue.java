@@ -63,12 +63,12 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     }
 
     @Override
-    public <T> T build(BuildState requester, List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
+    public <T> T build(BuildState requester, List<TaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
         if (tasks.isEmpty()) {
             // no resources to be protected
             return continuationUnderLock.get();
         }
-        List<TaskIdentifier.TaskBasedTaskIdentifier> remaining = removeExecuted(tasks);
+        List<TaskIdentifier> remaining = removeExecuted(tasks);
         if (remaining.isEmpty()) {
             // all tasks already executed
             return continuationUnderLock.get();
@@ -85,7 +85,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         return withBuildLogicQueueLock(() -> buildSrcBuild.run(continuationUnderLock));
     }
 
-    private <T> T doBuild(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
+    private <T> T doBuild(List<TaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
         buildTreeWorkGraphController.withNewWorkGraph(graph -> {
             graph
                 .scheduleWork(builder -> builder.scheduleTasks(tasks))
@@ -134,7 +134,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         );
     }
 
-    private static List<TaskIdentifier.TaskBasedTaskIdentifier> removeExecuted(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks) {
+    private static List<TaskIdentifier> removeExecuted(List<TaskIdentifier> tasks) {
         return tasks.stream()
             .filter(identifier -> !identifier.getTask().getState().getExecuted())
             .collect(Collectors.toList());

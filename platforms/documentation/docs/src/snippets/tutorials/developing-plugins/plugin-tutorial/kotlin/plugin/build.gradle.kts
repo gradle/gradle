@@ -19,7 +19,7 @@ plugins {
     // end::plugin-init[]
      */
     // tag::publish[]
-    id("org.jetbrains.kotlin.jvm") version "2.4.0"
+    id("org.jetbrains.kotlin.jvm") version "2.4.10"
     // tag::plugin-init[]
 }
 // end::plugin-init[]
@@ -33,6 +33,7 @@ repositories {
     mavenCentral()
 }
 
+// tag::dependencies[]
 // tag::slack-api[]
 dependencies {
     // end::slack-api[]
@@ -44,6 +45,7 @@ dependencies {
     implementation("com.slack.api:slack-api-client:1.45.3")
 }
 // end::slack-api[]
+// end::dependencies[]
 // end::publish[]
 
 /*

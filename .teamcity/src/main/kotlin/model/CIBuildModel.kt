@@ -310,7 +310,8 @@ data class CIBuildModel(
                 runsIndependent = true,
                 specificBuilds =
                     listOf(
-                        SpecificBuild.GradleceptionWithMaxLtsJdk,
+                        SpecificBuild.GradleceptionWithMaxJdk,
+                        SpecificBuild.GradleceptionWithGroovy5,
                     ),
                 functionalTests =
                     listOf(
@@ -633,12 +634,19 @@ enum class SpecificBuild {
             flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default")
     },
-    GradleceptionWithMaxLtsJdk {
+    GradleceptionWithMaxJdk {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
             flakyTestStrategy: FlakyTestStrategy,
-        ): OsAwareBaseGradleBuildType = Gradleception(model, stage, JvmCategory.MAX_LTS_VERSION, "MaxLts")
+        ): OsAwareBaseGradleBuildType = Gradleception(model, stage, JvmCategory.MAX_VERSION, "MaxJDK")
+    },
+    GradleceptionWithGroovy5 {
+        override fun create(
+            model: CIBuildModel,
+            stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovyMajor = 5)
     },
     CheckLinks {
         override fun create(

@@ -141,6 +141,96 @@ The following services are available for injection in settings plugins, extensio
 | Provides access to important locations for a Gradle build, such as the root directory and settings file. Use it from a settings plugin to resolve paths relative to the root settings directory.
 |===
 
+[[looking_up_services]]
+== Looking up services in scripts and task actions incubating-label:[]
+
+Instead of declaring an `@Inject` point, build, settings, and init scripts, as well as task actions, can look up a curated set of Gradle services directly with `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL.
+This avoids the ad-hoc `objects.newInstance(...)` pattern shown in the per-service sections below, while remaining compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>> and <<isolated_projects.adoc#isolated_projects,Isolated Projects>>.
+
+`service<T>()` can be called in two places, and the choice matters for when the lookup runs.
+
+*Inside a task action*. The lookup runs each time the task executes.
+This is the most common form:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=service-lookup]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=service-lookup]"]
+====
+
+*At configuration time, captured for later use*. The lookup runs once, when the build is configured, and the captured reference is safe to store in the Configuration Cache:
+
+====
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=service-lookup-capture]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=service-lookup-capture]"]
+====
+
+NOTE: A service that is only available in the settings scope (such as `BuildLayout`) can be captured in a settings script and referenced from a task action, and the captured instance is preserved when that task runs from the Configuration Cache.
+
+=== Services available for lookup
+
+The set of services you can look up depends on where the lookup happens.
+These bounds are enforced at compile time in the Kotlin DSL and Java plugin code, and at runtime in the Groovy DSL:
+
+[%header,cols="2,1,1,1,1"]
+|===
+| Service | Project scripts & project plugins | Tasks | Settings scripts & settings plugins | Init scripts & init plugins
+
+| <<objectfactory,`ObjectFactory`>>               | ✓ | ✓   | ✓ | ✓
+| <<providerfactory,`ProviderFactory`>>           | ✓ | ✓   | ✓ | ✓
+| <<filesystemoperations,`FileSystemOperations`>> | ✓ | ✓   | ✓ | ✓
+| <<archiveoperations,`ArchiveOperations`>>       | ✓ | ✓   | ✓ | ✓
+| <<execoperations,`ExecOperations`>>             |   | ✓ † |   |
+| <<sec:projectlayout,`ProjectLayout`>>           | ✓ | ✓   |   |
+| <<buildlayout,`BuildLayout`>>                   |   |     | ✓ |
+|===
+
+† `ExecOperations` is the only lookup restricted to task actions (via `Task.service`, not from a project, settings, or init script).
+
+Relative paths passed to a looked-up `FileSystemOperations` or `ArchiveOperations` are resolved the same way as for the enclosing scope: against the project directory for a project script or task action, and against the build's root directory for a settings or init script.
+
+=== Error messages
+
+In the Kotlin DSL and Java plugin code, requesting a service outside its scope, or a type that is not a Gradle service at all, is a compile error.
+
+In the Groovy DSL — and whenever the type is supplied reflectively as a `Class` — that bound is not enforced statically.
+The request instead fails at runtime with an `InvalidUserDataException`.
+The message adapts to the failure:
+
+* For a service requested outside its scope, it names the scopes where the service _is_ available.
+* For a type that is not a Gradle service at all, it lists the services available in the current scope.
+* For a <<build_services.adoc#build_services,shared build service>>, it points you to `@ServiceReference` and `gradle.sharedServices` instead.
+
+This check covers only _where_ a service can be looked up.
+It does not distinguish configuration-time from execution-time use, nor does it police cross-project access (see below).
+
+=== Cross-project access and Isolated Projects
+
+`service(...)` resolves against the scope in which it is called.
+Calling it on another project — for example `project(":other").service(ObjectFactory)` — reaches across the project boundary and is reported as a problem under <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, exactly like `project(":other").getObjects()`.
+Look services up from the owning project instead.
+
+=== When to use a lookup
+
+Three patterns get you a Gradle service.
+Pick by where you are:
+
+[%header,cols="1,2"]
+|===
+| Pattern | Use when
+
+| `service<T>()`
+| Writing a script or task action; the service is in the lookup table above.
+
+| `@Inject`
+| You own a task, plugin, or extension type; you want the type unit-testable.
+
+| `objects.newInstance(...)`
+| You need a service not in the lookup table (for example, `DependencyFactory` or `SoftwareComponentFactory`).
+|===
+
+Any of these is preferable to hand-rolled `java.io`/`java.nio` code or `Runtime.exec(...)`.
+The Gradle services give you path resolution, copy and sync specs, and robust deletion, and they keep your code compatible with the Configuration Cache.
+
 [[objectfactory]]
 == `ObjectFactory`
 
@@ -294,14 +384,17 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `FileSystemOperations` service is injected into the `MyFileSystemOperationsTask` task's constructor using the `@Inject` annotation.
 
-With some ceremony, it is possible to use `FileSystemOperations` in an ad-hoc task defined in a build script:
+To use `FileSystemOperations` in an ad-hoc task without writing a dedicated class, look it up with `service()` — see <<looking_up_services,Looking up services in scripts and task actions>>.
+
+It can also be obtained through an injection point created with `ObjectFactory.newInstance`.
+This is more verbose, but works for any injectable service, including those not available through `service()`:
 
 ====
 include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=file-system-adhoc]"]
 include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=file-system-adhoc]"]
 ====
 
-First, you need to declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
+First, you declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
 Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
 
 TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
@@ -321,17 +414,12 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
 
-With some ceremony, it is possible to use `ArchiveOperations` in an ad-hoc task defined in a build script:
+To use `ArchiveOperations` in an ad-hoc task without writing a dedicated class, look it up with `service()` — see <<looking_up_services,Looking up services in scripts and task actions>>.
 
 ====
-include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-adhoc]"]
-include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-lookup]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-lookup]"]
 ====
-
-First, you need to declare an interface with a property of type `ArchiveOperations`, here named `InjectedArcOps`, to serve as an injection point.
-Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
-
-TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
 
 [[execoperations]]
 == `ExecOperations`
@@ -348,17 +436,13 @@ include::sample[dir="snippets/reference/gradle-types/services/groovy",files="bui
 
 The `ExecOperations` is injected into the `MyExecOperationsTask` task's constructor using the `@Inject` annotation.
 
-With some ceremony, it is possible to use `ExecOperations` in an ad-hoc task defined in a build script:
+To run an external process from an ad-hoc task, look `ExecOperations` up with `service()` from the task action — see <<looking_up_services,Looking up services in scripts and task actions>>.
+To run one at configuration time instead, use `providers.exec` or a `ValueSource`, which are compatible with the Configuration Cache.
 
 ====
-include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-adhoc]"]
-include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-lookup]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-lookup]"]
 ====
-
-First, you need to declare an interface with a property of type `ExecOperations`, here named `InjectedExecOps`, to serve as an injection point.
-Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
-
-TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
 
 [[toolingmodelbuilderregistry]]
 == `ToolingModelBuilderRegistry`

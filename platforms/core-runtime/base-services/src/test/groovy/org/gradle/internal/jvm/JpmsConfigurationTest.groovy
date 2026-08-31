@@ -20,17 +20,17 @@ import spock.lang.Specification
 
 class JpmsConfigurationTest extends Specification {
 
-    def "forGroovyProcesses returns empty list for Java 8 and below"() {
+    def "forGroovyWorker returns empty list for Java 8 and below"() {
         expect:
-        JpmsConfiguration.forGroovyCompilerWorker(majorVersion) == []
+        JpmsConfiguration.forGroovyWorker(majorVersion) == []
 
         where:
         majorVersion << [1, 5, 6, 7, 8]
     }
 
-    def "forGroovyProcesses returns JPMS args for Java 9 and above"() {
+    def "forGroovyWorker returns JPMS args for Java 9 and above"() {
         when:
-        def result = JpmsConfiguration.forGroovyCompilerWorker(majorVersion)
+        def result = JpmsConfiguration.forGroovyWorker(majorVersion)
 
         then:
         result == [
@@ -130,7 +130,7 @@ class JpmsConfigurationTest extends Specification {
         majorVersion << [9, 11, 17, 21, 23]
     }
 
-    def "forDaemonProcesses returns JPMS args plus native access for Java 24+ with native services"() {
+    def "forDaemonProcesses returns JPMS args plus unsafe opt-out and native access for Java 24+ with native services"() {
         when:
         def result = JpmsConfiguration.forDaemonProcesses(majorVersion, true)
 
@@ -148,6 +148,7 @@ class JpmsConfigurationTest extends Specification {
             "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
             "--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED",
             "--add-opens=java.base/java.time=ALL-UNNAMED",
+            "--sun-misc-unsafe-memory-access=allow",
             "--enable-native-access=ALL-UNNAMED"
         ]
 
@@ -155,7 +156,7 @@ class JpmsConfigurationTest extends Specification {
         majorVersion << [24, 25, 26]
     }
 
-    def "forDaemonProcesses returns JPMS args only for Java 24+ without native services"() {
+    def "forDaemonProcesses returns JPMS args plus unsafe opt-out for Java 24+ without native services"() {
         when:
         def result = JpmsConfiguration.forDaemonProcesses(majorVersion, false)
 
@@ -173,6 +174,7 @@ class JpmsConfigurationTest extends Specification {
             "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
             "--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED",
             "--add-opens=java.base/java.time=ALL-UNNAMED",
+            "--sun-misc-unsafe-memory-access=allow",
         ]
 
         where:

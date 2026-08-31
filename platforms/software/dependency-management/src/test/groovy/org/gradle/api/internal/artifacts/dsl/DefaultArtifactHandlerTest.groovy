@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -32,7 +31,7 @@ class DefaultArtifactHandlerTest extends Specification {
     private static final String TEST_CONF_NAME = "someConf"
 
     private ConfigurationContainer configurationContainerStub = Mock()
-    private NotationParser<Object, PublishArtifact> artifactFactoryStub = Mock()
+    private PublishArtifactNotationParser artifactFactoryStub = Mock()
     private ConfigurationInternal configurationMock = Mock()
     private PublishArtifactSet artifactsMock = Mock()
 

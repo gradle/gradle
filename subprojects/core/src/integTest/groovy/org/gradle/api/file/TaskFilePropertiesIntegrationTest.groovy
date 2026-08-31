@@ -16,7 +16,9 @@
 
 package org.gradle.api.file
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 
@@ -194,4 +196,83 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduledInOrder(any(':b:jar', ':b:otherJar'), ':a:doStuff')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38330")
+    def "optional runtime input declared via #description with an absent provider source is ignored"() {
+        buildFile """
+            task myTask {
+                $declaration
+
+                doLast {
+                    println("inputs = \${inputs.files.files}")
+                }
+            }
+        """
+
+        when:
+        run "myTask"
+
+        then:
+        executedAndNotSkipped(":myTask")
+
+        where:
+        description                                | declaration
+        "inputs.files(fileProperty)"               | 'inputs.files(objects.fileProperty()).optional().withPropertyName("inputProp")'
+        "inputs.files(fileProperty, fileProperty)" | 'inputs.files([objects.fileProperty()]).withPropertyName("inputProp")'
+        "inputs.file(fileProperty)"                | 'inputs.file(objects.fileProperty()).optional().withPropertyName("inputProp")'
+        "inputs.property(property)"                | 'inputs.property("inputProp", objects.property(String)).optional(true)'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38330")
+    def "required runtime input declared via #description with an absent provider source fails"() {
+        buildFile """
+            task myTask {
+                $declaration
+
+                doLast {
+                    println("inputs = \${inputs.files.files}")
+                }
+            }
+        """
+
+        enableProblemsApiCheck()
+
+        when:
+        fails "myTask"
+
+        then:
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Property 'inputProp' doesn't have a configured value"
+        }
+
+        where:
+        description                  | declaration
+        "inputs.files(fileProperty)" | 'inputs.files(objects.fileProperty()).withPropertyName("inputProp")'
+        "inputs.file(fileProperty)"  | 'inputs.file(objects.fileProperty()).withPropertyName("inputProp")'
+        "inputs.property(property)"  | 'inputs.property("inputProp", objects.property(String))'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38330")
+    def "required runtime input declared via files() with an absent provider in a list source is ignored"() {
+        buildFile """
+            task myTask {
+                inputs.files([objects.fileProperty()]).withPropertyName("inputProp")
+
+                doLast {
+                    println("inputs = \${inputs.files.files}")
+                }
+            }
+        """
+
+        enableProblemsApiCheck()
+
+        when:
+        run "myTask"
+
+        then:
+        outputContains("inputs = []")
+    }
 }

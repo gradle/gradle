@@ -24,6 +24,10 @@ import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.services.GradleService;
+import org.gradle.api.services.ProjectService;
+import org.gradle.api.services.SettingsService;
+import org.gradle.api.services.TaskService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.ExecOutput;
@@ -45,7 +49,7 @@ import java.util.function.BiFunction;
  */
 @NonExtensible
 @ServiceScope(Scope.Build.class)
-public interface ProviderFactory {
+public interface ProviderFactory extends GradleService, ProjectService, SettingsService, TaskService {
 
     /**
      * Creates a {@link Provider} whose value is calculated using the given {@link Callable}.
@@ -69,6 +73,7 @@ public interface ProviderFactory {
      *
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
+     * @since 4.0
      */
     <T> Provider<T> provider(Callable<? extends @Nullable T> value);
 

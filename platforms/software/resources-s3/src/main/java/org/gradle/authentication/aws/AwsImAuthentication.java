@@ -21,7 +21,7 @@ import org.gradle.authentication.Authentication;
 /**
  * Authentication scheme for digest access authentication over S3.
  *
- * @since 3.1
+ * @since 3.3
  */
 public interface AwsImAuthentication extends Authentication {
 }

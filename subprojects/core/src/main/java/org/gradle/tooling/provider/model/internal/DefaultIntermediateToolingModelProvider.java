@@ -77,10 +77,12 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     private static <T> List<Throwable> collectFailures(IntermediateToolingModelResult<T> result, Class<T> modelType) {
         List<Throwable> failures = new ArrayList<>();
-        if (result.getModel() == null) {
+        result.getFailures().forEach(f -> failures.add(f.getOriginal()));
+        if (result.getModel() == null && failures.isEmpty()) {
+            // Only report the missing model when there is no failure explaining it. When there is one, it is the
+            // actual cause, and it must stay first so clients walking the getCause() chain can find it.
             failures.add(new IllegalStateException(String.format("Expected model of type %s but found null", modelType.getName())));
         }
-        result.getFailures().forEach(f -> failures.add(f.getOriginal()));
         return failures;
     }
 
@@ -119,10 +121,12 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         List<Supplier<ToolingModelBuilderResultInternal>> fetchActions = targets.stream()
             .map(target -> (Supplier<ToolingModelBuilderResultInternal>) () -> {
                 try {
-                    return controller.locateBuilderForTarget(target, context).getModel(context, carrier);
+                    // Only the client-facing result is needed here; a deferred build failure (if any) is reported
+                    // to the build-tree model boundary, not on this nested fan-out path.
+                    return controller.locateBuilderForTarget(target, context).getModel(context, carrier).getClientResult();
                 } catch (Throwable t) {
                     // Safety net for an unexpected throw; the resilient controller normally
-                    // captures configuration failures into the result wrapper itself.
+                    // captures configuration failures into the result itself.
                     return ToolingModelBuilderResultInternal.of(ImmutableList.of(failureFactory.create(t)));
                 }
             })

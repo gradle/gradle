@@ -46,6 +46,7 @@ public interface HasConfigurableValue {
      * Calling this method does not guarantee that the value will become immutable, though some implementations may support this.</p>
      *
      * <p>If the value of this object is already final, this method does nothing.</p>
+     * @since 5.6
      */
     void finalizeValue();
 
@@ -71,6 +72,7 @@ public interface HasConfigurableValue {
      * the value is finalized.</p>
      *
      * <p>If the value of this object is already final, this method does nothing.</p>
+     * @since 5.6
      */
     void disallowChanges();
 

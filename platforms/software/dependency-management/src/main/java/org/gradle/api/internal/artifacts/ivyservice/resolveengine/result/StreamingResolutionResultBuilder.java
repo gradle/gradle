@@ -173,7 +173,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     }
 
     @Override
-    public void visitEdges(DependencyGraphNode node) {
+    public void visitNode(DependencyGraphNode node) {
         store.write(encoder -> {
             DependencyGraphComponent component = node.getOwner();
             boolean adhoc = component.getResolveState().isAdHoc();
@@ -278,7 +278,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         } else {
             encoder.writeSmallInt(-1);
             encoder.writeBoolean(constraint);
-            componentSelectorSerializer.write(encoder, edge.getRequested());
+            componentSelectorSerializer.write(encoder, attributeDesugaring.desugarSelector(edge.getRequested()));
             reasonSerializer.write(encoder, edge.getReason());
             failures.add(failure);
         }
@@ -293,7 +293,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         if (!mayHaveVirtualPlatforms || !firstTargetNode.getComponent().getModule().isVirtualPlatform()) {
             encoder.writeSmallInt(1);
             encoder.writeBoolean(true);
-            componentSelectorSerializer.write(encoder, edge.getRequested());
+            componentSelectorSerializer.write(encoder, attributeDesugaring.desugarSelector(edge.getRequested()));
             encoder.writeSmallLong(firstTargetNode.getNodeId());
         } else {
             encoder.writeSmallInt(0);
@@ -316,7 +316,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         encoder.writeSmallInt(size);
         if (size > 0) {
             encoder.writeBoolean(false);
-            componentSelectorSerializer.write(encoder, edge.getRequested());
+            componentSelectorSerializer.write(encoder, attributeDesugaring.desugarSelector(edge.getRequested()));
             for (DependencyGraphNode targetNode : targetNodes) {
                 if (!mayHaveVirtualPlatforms || !targetNode.getComponent().getModule().isVirtualPlatform()) {
                     encoder.writeSmallLong(targetNode.getNodeId());

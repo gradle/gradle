@@ -29,6 +29,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlFactories;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
@@ -94,7 +96,22 @@ public class DependencyVerificationsXmlReader {
     public static DependencyVerifier readFromXml(InputStream in) {
         DependencyVerifierBuilder builder = new DependencyVerifierBuilder();
         readFromXml(in, builder);
-        return builder.build();
+        DependencyVerifier verifier = builder.build();
+        // Only nag when reading the file for verification. The write path reads the file through the
+        // two-argument overload with its own builder and is expected to rewrite (and so collapse) it.
+        nagAboutDuplicateTrustEntries(builder.getDroppedDuplicateTrustEntries());
+        return verifier;
+    }
+
+    private static void nagAboutDuplicateTrustEntries(List<String> droppedDuplicateTrustEntries) {
+        for (String entry : droppedDuplicateTrustEntries) {
+            DeprecationLogger.deprecateBehaviour("The dependency verification metadata declares a duplicate " + entry + " that differs only by its origin or reason.")
+                .withContext("Trust entries are identified by their coordinates, so such duplicates are redundant: only the first one is kept and the duplicate, including its origin and reason, is removed the next time the metadata file is written (for example with --write-verification-metadata).")
+                .withAdvice("Keep a single entry per set of coordinates, with the origin and reason you want to retain.")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+        }
     }
 
     private static SAXParser createSecureParser() throws ParserConfigurationException, SAXException {
@@ -118,6 +135,8 @@ public class DependencyVerificationsXmlReader {
         private boolean inTrustedKeys;
         private boolean inTrustedKey;
         private String currentTrustedKey;
+        private String currentTrustedKeyOrigin;
+        private String currentTrustedKeyReason;
         private boolean inKeyRingFormat;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
@@ -217,7 +236,7 @@ public class DependencyVerificationsXmlReader {
                         builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null, null);
                     } else if (currentArtifact != null) {
                         if (PGP.equals(qName)) {
-                            builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE));
+                            builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN), getNullableAttribute(attributes, REASON));
                         } else {
                             currentChecksum = ChecksumKind.valueOf(qName);
                             builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN), getNullableAttribute(attributes, REASON));
@@ -260,6 +279,8 @@ public class DependencyVerificationsXmlReader {
 
         private void addTrustedKey(Attributes attributes) {
             currentTrustedKey = getAttribute(attributes, ID);
+            currentTrustedKeyOrigin = getNullableAttribute(attributes, ORIGIN);
+            currentTrustedKeyReason = getNullableAttribute(attributes, REASON);
             maybeAddTrustedKey(attributes);
         }
 
@@ -273,6 +294,10 @@ public class DependencyVerificationsXmlReader {
             String name = getNullableAttribute(attributes, NAME);
             String version = getNullableAttribute(attributes, VERSION);
             String file = getNullableAttribute(attributes, FILE);
+            // origin/reason can be declared on the entry itself (e.g. a <trusting> element) and
+            // otherwise default to the values declared on the enclosing <trusted-key> element
+            String origin = getNullableAttribute(attributes, ORIGIN);
+            String reason = getNullableAttribute(attributes, REASON);
             if (group != null || name!=null || version != null || file != null) {
                 builder.addTrustedKey(
                     currentTrustedKey,
@@ -280,7 +305,9 @@ public class DependencyVerificationsXmlReader {
                     name,
                     version,
                     file,
-                    regex
+                    regex,
+                    origin != null ? origin : currentTrustedKeyOrigin,
+                    reason != null ? reason : currentTrustedKeyReason
                 );
             }
         }
@@ -356,6 +383,8 @@ public class DependencyVerificationsXmlReader {
                 case TRUSTED_KEY:
                     inTrustedKey = false;
                     currentTrustedKey = null;
+                    currentTrustedKeyOrigin = null;
+                    currentTrustedKeyReason = null;
                     break;
                 case KEY_SERVERS:
                     inKeyServers = false;
