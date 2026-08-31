@@ -13,32 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.internal.resource.transport;
 
+import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
-import org.gradle.internal.resource.transport.file.FileTransport;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +60,7 @@ public class RepositoryTransportFactory {
     private final BuildCommencedTimeProvider timeProvider;
     private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
     private final BuildOperationRunner buildOperationRunner;
-    private final StartParameterResolutionOverride startParameterResolutionOverride;
+    private final StartParameter startParameter;
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileRepository;
     private final ChecksumService checksumService;
@@ -68,7 +71,7 @@ public class RepositoryTransportFactory {
                                       BuildCommencedTimeProvider timeProvider,
                                       ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
                                       BuildOperationRunner buildOperationRunner,
-                                      StartParameterResolutionOverride startParameterResolutionOverride,
+                                      StartParameter startParameter,
                                       ProducerGuard<ExternalResourceName> producerGuard,
                                       FileResourceRepository fileRepository,
                                       ChecksumService checksumService) {
@@ -77,7 +80,7 @@ public class RepositoryTransportFactory {
         this.timeProvider = timeProvider;
         this.artifactCacheLockingManager = cacheAccessCoordinator;
         this.buildOperationRunner = buildOperationRunner;
-        this.startParameterResolutionOverride = startParameterResolutionOverride;
+        this.startParameter = startParameter;
         this.producerGuard = producerGuard;
         this.fileRepository = fileRepository;
         this.checksumService = checksumService;
@@ -118,11 +121,12 @@ public class RepositoryTransportFactory {
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications, redirectVerifier);
 
-        ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
-        resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnector(resourceConnector);
-
-        ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
-        cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
+        ExternalResourceConnector resourceConnector = startParameter.isOffline()
+            ? new OfflineExternalResourceConnector()
+            : connectorFactory.createResourceConnector(connectionDetails);
+        ExternalResourceCachePolicy cachePolicy = startParameter.isOffline()
+            ? ageMillis -> false
+            : new DefaultExternalResourceCachePolicy();
 
         return new ResourceConnectorRepositoryTransport(name, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationRunner, cachePolicy, producerGuard, fileRepository, checksumService);
     }
@@ -193,8 +197,8 @@ public class RepositoryTransportFactory {
         }
 
         @Override
-        public <T> T getCredentials(Class<T> type) {
-            if (authentications == null || authentications.size() < 1) {
+        public <T> @Nullable T getCredentials(Class<T> type) {
+            if (authentications.isEmpty()) {
                 return null;
             }
 
@@ -220,4 +224,33 @@ public class RepositoryTransportFactory {
             return redirectVerifier;
         }
     }
+
+    private static class OfflineExternalResourceConnector implements ExternalResourceConnector {
+
+        @Override
+        public <T> @Nullable T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+            throw offlineResource(location);
+        }
+
+        @Override
+        public @Nullable ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException {
+            throw offlineResource(location);
+        }
+
+        @Override
+        public @Nullable List<String> list(ExternalResourceName parent) throws ResourceException {
+            throw offlineResource(parent);
+        }
+
+        @Override
+        public void upload(ReadableContent resource, ExternalResourceName destination) {
+            throw new ResourceException(destination.getUri(), String.format("Cannot upload to '%s' in offline mode.", destination.getUri()));
+        }
+
+        private static ResourceException offlineResource(ExternalResourceName source) {
+            return new ResourceException(source.getUri(), String.format("No cached resource '%s' available for offline mode.", source.getUri()));
+        }
+
+    }
+
 }

@@ -19,7 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope(Scope.BuildSession.class)
 public class BuildCommencedTimeProvider {
     private final long fixedTime;
 

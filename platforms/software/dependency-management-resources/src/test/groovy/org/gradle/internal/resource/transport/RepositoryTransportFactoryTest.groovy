@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport
+package org.gradle.internal.resource.transport
 
 import com.google.common.collect.Lists
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.credentials.Credentials
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.authentication.Authentication
 import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.authentication.AbstractAuthentication
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.local.FileResourceRepository
-import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
 import org.gradle.internal.verifier.HttpRedirectVerifier
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -44,8 +42,7 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
-        StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameterInternal(), new File("dummy"))
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository), TestUtil.checksumService)
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, new StartParameterInternal(), producerGuard, Mock(FileResourceRepository), TestUtil.checksumService)
     }
 
     RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications) {
