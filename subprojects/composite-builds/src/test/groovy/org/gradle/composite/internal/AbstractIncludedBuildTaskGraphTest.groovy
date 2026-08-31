@@ -16,30 +16,23 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.internal.TaskInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.util.Path
 
 abstract class AbstractIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def buildStateRegistry = Mock(BuildStateRegistry)
 
-    BuildState build(BuildIdentifier id, BuildWorkGraphController workGraph = null) {
-        def build = Mock(IncludedBuildState)
-        _ * build.buildIdentifier >> id
-        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraphController))
-        _ * buildStateRegistry.getBuild(id) >> build
-        return build
-    }
-
-    TaskIdentifier taskIdentifier(BuildIdentifier id, String taskPath) {
-        def task = Stub(TaskInternal) {
-            getPath() >> taskPath
+    BuildState build(Path path, BuildWorkGraphController workGraph = null) {
+        def build = Mock(IncludedBuildState) {
+            getIdentityPath() >> path
+            getWorkGraph() >> (workGraph ?: Stub(BuildWorkGraphController))
         }
-        return new TaskIdentifier(id, task)
+        _ * buildStateRegistry.getBuild(path) >> build
+        return build
     }
 
 }
