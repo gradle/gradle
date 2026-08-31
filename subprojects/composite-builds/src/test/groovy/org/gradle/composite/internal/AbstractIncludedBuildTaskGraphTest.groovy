@@ -18,6 +18,7 @@ package org.gradle.composite.internal
 
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -33,6 +34,13 @@ abstract class AbstractIncludedBuildTaskGraphTest extends ConcurrentSpec {
         }
         _ * buildStateRegistry.getBuild(path) >> build
         return build
+    }
+
+    BuildState buildWithWorkGraph(Path path, BuildWorkGraph workGraph) {
+        def workGraphController = Mock(BuildWorkGraphController) {
+            newWorkGraph() >> workGraph
+        }
+        return build(path, workGraphController)
     }
 
 }

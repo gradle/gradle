@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
@@ -98,6 +99,12 @@ class DefaultBuildController implements BuildController {
         scheduled.addAll(queuedForExecution);
         queuedForExecution.clear();
         return added;
+    }
+
+    @Override
+    public ImmutableList<TaskInAnotherBuild> takeCrossBuildReferences() {
+        assertInState(State.DiscoveringTasks);
+        return workGraph.takeCrossBuildReferences();
     }
 
     @Override

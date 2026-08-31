@@ -36,6 +36,7 @@ import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.ScheduledWork;
+import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Pair;
 import org.gradle.internal.exception.ExceptionAnalyser;
@@ -400,6 +401,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         @Override
         public void onComplete(Consumer<LocalTaskNode> handler) {
             handlers.add(handler);
+        }
+
+        @Override
+        public ImmutableList<TaskInAnotherBuild> takeCrossBuildReferences() {
+            return plan.takeCrossBuildReferences();
         }
     }
 

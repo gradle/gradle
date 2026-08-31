@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.specs.Spec;
@@ -23,9 +24,11 @@ import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,7 +85,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
 
     private class DefaultBuildWorkGraph implements BuildWorkGraph {
         private final Thread owner;
-        BuildWorkPlan plan;
+        @Nullable BuildWorkPlan plan;
 
         public DefaultBuildWorkGraph() {
             this.owner = Thread.currentThread();
@@ -139,6 +142,15 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         @Override
         public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
             getOwnedPlan().addFinalization(finalization);
+        }
+
+        @Override
+        public ImmutableList<TaskInAnotherBuild> takeCrossBuildReferences() {
+            assertIsOwner();
+            if (plan == null) {
+                return ImmutableList.of();
+            }
+            return plan.takeCrossBuildReferences();
         }
 
         private BuildWorkPlan getOwnedPlan() {

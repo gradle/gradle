@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
@@ -34,19 +33,13 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
     public static TaskInAnotherBuild of(
         TaskNode targetNode,
-        BuildState targetBuild,
-        BuildTreeWorkGraphController workGraph
+        BuildState targetBuild
     ) {
-        return new TaskInAnotherBuild(targetNode.getTask().getIdentityPath()) {
+        return new TaskInAnotherBuild(targetNode.getTask().getIdentityPath(), targetBuild) {
 
             @Override
             public TaskNode getTargetNode() {
                 return targetNode;
-            }
-
-            @Override
-            protected void queueTargetForExecution() {
-                workGraph.queueForExecution(targetBuild, targetNode);
             }
 
         };
@@ -72,7 +65,9 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         private @Nullable TaskNode targetNode;
 
         private Restored(Path taskIdentityPath) {
-            super(taskIdentityPath);
+            // The target node is always part of its build's restored work graph, so this reference is never
+            // queued for execution and does not need to know which build owns the target.
+            super(taskIdentityPath, null);
         }
 
         /**
@@ -90,22 +85,30 @@ public abstract class TaskInAnotherBuild extends TaskNode {
             return targetNode;
         }
 
-        @Override
-        protected void queueTargetForExecution() {
-            // Nothing to queue. The target node is always part of its build's restored work graph
-        }
-
     }
 
-    private @Nullable DependenciesState targetOutcome;
     private final Path taskIdentityPath;
+    private final @Nullable BuildState targetBuild;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath) {
+    private @Nullable DependenciesState targetOutcome;
+
+    protected TaskInAnotherBuild(Path taskIdentityPath, @Nullable BuildState targetBuild) {
         this.taskIdentityPath = taskIdentityPath;
+        this.targetBuild = targetBuild;
     }
 
     public Path getTaskIdentityPath() {
         return taskIdentityPath;
+    }
+
+    /**
+     * The build that owns the target task. Determines which work graph the target node has to be scheduled in.
+     * <p>
+     * Null for a reference restored from the configuration cache, as the target node is always part of its build's
+     * restored work graph and so is never queued for execution.
+     */
+    public @Nullable BuildState getTargetBuild() {
+        return targetBuild;
     }
 
     /**
@@ -175,13 +178,9 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-        queueTargetForExecution();
+        // This node has no dependencies of its own. The target node is scheduled in its own build's work graph
+        // by the scheduler, which discovers this reference via ExecutionPlan#takeCrossBuildReferences.
     }
-
-    /**
-     * Queues the target task for execution in its build's work graph.
-     */
-    protected abstract void queueTargetForExecution();
 
     @Override
     public DependenciesState doCheckDependenciesComplete() {

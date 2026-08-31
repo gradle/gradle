@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
@@ -25,6 +26,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface BuildWorkPlan extends Stoppable {
+
     /**
      * Invokes the given action when a task completes (as per {@link Node#isComplete()}). Does nothing for tasks that have already completed.
      */
@@ -33,4 +35,10 @@ public interface BuildWorkPlan extends Stoppable {
     void addFilter(Spec<Task> filter);
 
     void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
+
+    /**
+     * See {@link ExecutionPlan#takeCrossBuildReferences()}.
+     */
+    ImmutableList<TaskInAnotherBuild> takeCrossBuildReferences();
+
 }

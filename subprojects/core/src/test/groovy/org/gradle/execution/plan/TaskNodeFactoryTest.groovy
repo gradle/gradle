@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
-import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
@@ -37,7 +36,7 @@ class TaskNodeFactoryTest extends Specification {
     def e = task('e')
 
     def setup() {
-        factory = new TaskNodeFactory(Stub(BuildTreeWorkGraphController), Stub(BuildStateRegistry), Stub(NodeValidator), new TestBuildOperationRunner(), Stub(ExecutionNodeAccessHierarchies), TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
+        factory = new TaskNodeFactory(Stub(BuildStateRegistry), Stub(NodeValidator), new TestBuildOperationRunner(), Stub(ExecutionNodeAccessHierarchies), TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
     }
 
     private TaskInternal task(String name) {
