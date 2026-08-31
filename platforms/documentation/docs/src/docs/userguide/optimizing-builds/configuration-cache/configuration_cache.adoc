@@ -64,13 +64,13 @@ To do this, Gradle does the following:
 | Task outputs and artifact transform outputs
 | Each task's declared inputs (sources, classpath, action implementation)
 | Skips task execution by reusing previous outputs
-| Composes with `--parallel` for cross-project parallel execution
+| Orthogonal to parallelism; composes with `--parallel` for cross-project parallel execution
 
 | *Configuration Cache*
 | The result of the configuration phase: the task graph, each task's configured state, and dependency information
 | Build logic and environment (build scripts, init scripts, environment variables and properties read at configuration time, and more)
 | Skips the configuration phase entirely on a cache hit
-| Enables parallel task execution within the same project
+| Enables parallel task execution, including within the same project
 
 |===
 
@@ -107,7 +107,7 @@ But **whether they run, and when they do, depends on a cache hit or miss**.
 
 | *Execution*
 | Runs the scheduled tasks against the just-computed task graph.
-| Runs the scheduled tasks against the deserialized task graph. Tasks are isolated from each other through serialization (see <<config_cache:intro:serialization, Serialization>>), which enables intra-project parallel execution.
+| Runs the scheduled tasks against the deserialized task graph. Tasks are isolated from each other through serialization (see <<config_cache:intro:serialization, Serialization>>), which enables parallel task execution, including tasks in the same project.
 |===
 
 image::configuration-cache-6.png[]
@@ -134,7 +134,7 @@ Gradle then **serializes the resulting task graph and writes it to the cache** b
 
 Even on a miss, Gradle then **loads the task graph back from the cache it just wrote** and executes against the loaded copy.
 This always-load behavior is intentional: it guarantees that hits and misses execute through the same code path, so any serialization-related issue surfaces on the first run rather than later.
-It also means that parallel task execution within the same project is available even on a cache miss.
+It also means that parallel task execution is available even on a cache miss.
 
 [NOTE]
 ====
@@ -238,7 +238,7 @@ Using those features is supported but incurs a performance penalty and should be
 
 Serialization gives each task its **own** deserialized copy of the state it references.
 Two tasks that, before serialization, both held a reference to the same `ArrayList` will end up holding independent (but equal) lists after the cache is loaded.
-This isolation is what makes intra-project parallel task execution safe: tasks cannot leak mutable state to each other through a shared reference.
+This isolation is what makes parallel task execution safe: tasks cannot leak mutable state to each other through a shared reference.
 
 image::configuration-cache-8.png[]
 
@@ -269,16 +269,17 @@ Beyond skipping the configuration phase on a cache hit, the Configuration Cache 
 [[config_cache:in_action]]
 image::configuration-cache/running-help.gif[]
 
+[[config_cache:intro:parallel_task_execution]]
 === Parallel Task Execution
 
-When the Configuration Cache is enabled, tasks *within the same project* can run in parallel, subject to their declared input/output dependencies.
+When the Configuration Cache is enabled, all tasks can run in parallel, even *within the same project*, subject to their declared input/output dependencies.
 Without the Configuration Cache, intra-project parallelism is constrained because tasks within a project share access to the `Project` instance and contend on project-level locks.
 The Configuration Cache eliminates this contention by giving each task an isolated, deserialized copy of its state (see <<config_cache:intro:serialization, Serialization>>), so tasks no longer need to acquire project-level locks at execution time.
 
-This complements Gradle's existing `--parallel` flag, which executes tasks across *different* projects in parallel.
-With the Configuration Cache, parallelism applies *within* a single project as well.
+This is a step up from Gradle's existing `--parallel` flag, which only executes tasks across *different* projects in parallel.
+With the Configuration Cache, parallelism applies to all tasks, and the `--parallel` flag no longer controls it, unless the build falls back to non-cached execution, for example because a scheduled task is marked <<configuration_cache_debugging.adoc#config_cache:task_opt_out, incompatible with the Configuration Cache>>.
 
-IMPORTANT: Intra-project parallel execution is always enabled when the Configuration Cache is active. The `--no-parallel` flag and `org.gradle.parallel=false` do not disable it. Builds that depend on tasks within the same project running sequentially should properly wire task inputs and outputs to enforce task order or use <<build_services.adoc#sec:accessing_the_build_service_concurrently, shared build services>> to coordinate access to shared resources.
+IMPORTANT: Parallel task execution cannot be disabled when the Configuration Cache is active. The `--no-parallel` flag and `org.gradle.parallel=false` have no effect. Builds that depend on tasks running sequentially should properly wire task inputs and outputs to enforce task order or use <<build_services.adoc#sec:accessing_the_build_service_concurrently, shared build services>> to coordinate access to shared resources.
 
 === Cached Dependency Resolution
 

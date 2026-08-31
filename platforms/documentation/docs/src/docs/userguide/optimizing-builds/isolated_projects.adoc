@@ -1105,3 +1105,34 @@ This can be a noticeable cost in large multi-project builds, especially when a c
 
 Note that this applies only to project build scripts, which are compiled during project configuration.
 Settings and init scripts are compiled earlier during the initialization phase, and remain sequential even with Isolated Projects enabled.
+
+[[sec:faq_cross_project_task_dependencies]]
+=== Can tasks depend on tasks from other projects?
+
+Yes, but only by task path, and usually only worth doing for lifecycle tasks.
+
+Referencing the task object of another project is not allowed:
+
+[source,kotlin]
+.build.gradle.kts
+----
+tasks.register("aggregate") {
+    dependsOn(project(":other").tasks.named("someTask")) // <1>
+}
+----
+<1> Violation: `tasks` is <<sec:mutable_cross_project,mutable state>> of another project.
+
+Declaring the dependency by path is allowed, because Gradle resolves the path itself without giving build logic access to the other project:
+
+[source,kotlin]
+.build.gradle.kts
+----
+tasks.register("aggregate") {
+    dependsOn(":other:someTask")
+}
+----
+
+Use this with care.
+A task path only orders the two tasks, so it fits an aggregating <<organizing_tasks.adoc#sec:lifecycle_tasks,lifecycle task>> that schedules work it never consumes.
+If the depending task consumes what the other one produces, the data dependency is still missing, and Isolated Projects does not change the usual advice to <<best_practices_tasks.adoc#avoid_depends_on,avoid `dependsOn`>> and wire outputs into inputs instead.
+Across project boundaries, that wiring should always go through <<multi_project_builds.adoc#sec:depending_on_output_of_another_project,dependency management>>.
