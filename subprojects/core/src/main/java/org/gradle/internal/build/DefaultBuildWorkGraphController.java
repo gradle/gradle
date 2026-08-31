@@ -18,14 +18,12 @@ package org.gradle.internal.build;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
-import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -38,7 +36,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
-    private final TaskNodeFactory taskNodeFactory;
+
     private final BuildLifecycleController controller;
     private final BuildIdentifier buildIdentifier;
     private final WorkerLeaseService workerLeaseService;
@@ -47,8 +45,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private final Set<DefaultBuildWorkGraph> pendingGraphs = new HashSet<>();
     private DefaultBuildWorkGraph currentlyRunning;
 
-    public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, BuildLifecycleController controller, BuildState buildState, WorkerLeaseService workerLeaseService) {
-        this.taskNodeFactory = taskNodeFactory;
+    public DefaultBuildWorkGraphController(BuildLifecycleController controller, BuildState buildState, WorkerLeaseService workerLeaseService) {
         this.controller = controller;
         this.buildIdentifier = buildState.getBuildIdentifier();
         this.workerLeaseService = workerLeaseService;
@@ -61,12 +58,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                 throw new IllegalStateException("Cannot reset work graph state as another thread is currently using the work graph.");
             }
         }
-        taskNodeFactory.resetState();
-    }
-
-    @Override
-    public TaskNode locateTaskNode(TaskInternal task) {
-        return taskNodeFactory.getOrCreateNode(task);
     }
 
     @Override

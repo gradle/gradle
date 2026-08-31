@@ -33,6 +33,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationRunner
@@ -54,15 +55,18 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(BuildTreeWorkGraphController), Stub(BuildStateRegistry), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService())
+    def taskNodeFactory = new TaskNodeFactory(Stub(BuildTreeWorkGraphController), Stub(BuildStateRegistry), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService(), TestUtil.inMemoryCacheFactory())
 
     def setup() {
         executionPlan = newExecutionPlan()
     }
 
     private DefaultExecutionPlan newExecutionPlan() {
-        def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
+        def build = Mock(BuildState) {
+            getIdentityPath() >> Path.ROOT
+        }
+        def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory, build)])
+        return new DefaultExecutionPlan(Path.ROOT.toString(), build.identityPath, taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
     }
 
     Node priorityNode(Map<String, ?> options = [:]) {
@@ -1583,10 +1587,10 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     def "a task that destroys the output of a task in another project runs first if it is ordered first"() {
         given:
         def projectA = project(project, "a")
-        Task producer = task("producer", project: projectA, type: AsyncWithOutputDirectory)
+        TaskInternal producer = task("producer", project: projectA, type: AsyncWithOutputDirectory)
         _ * producer.outputDirectory >> file("inputDir")
         def projectB = project(project, "b")
-        Task destroyer = task("destroyer", project: projectB, type: AsyncWithDestroysFile)
+        TaskInternal destroyer = task("destroyer", project: projectB, type: AsyncWithDestroysFile)
         _ * destroyer.destroysFile >> file("inputDir")
 
         when:
@@ -1632,8 +1636,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete()
     }
 
-    void assertIsResolveMutationsOf(Node node, Task task) {
-        def taskNode = taskNodeFactory.getNode(task)
+    void assertIsResolveMutationsOf(Node node, TaskInternal task) {
+        def taskNode = taskNodeFactory.getNode(task, project.projectIdentity.buildPath)
         assert node == taskNode.prepareNode
     }
 
@@ -2359,11 +2363,13 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     private List<Integer> getOrdinalGroups() {
-        return executionPlan.tasks.collect { taskNodeFactory.getNode(it).group.asOrdinal()?.ordinal }
+        def owningBuild = project.projectIdentity.buildPath
+        return executionPlan.tasks.collect { taskNodeFactory.getNode((TaskInternal) it, owningBuild).group.asOrdinal()?.ordinal }
     }
 
     private List<Boolean> getReachableFromEntryPoint() {
-        return executionPlan.tasks.collect { taskNodeFactory.getNode(it).group.reachableFromEntryPoint }
+        def owningBuild = project.projectIdentity.buildPath
+        return executionPlan.tasks.collect { taskNodeFactory.getNode((TaskInternal) it, owningBuild).group.reachableFromEntryPoint }
     }
 
     private TaskInternal selectNextTask() {

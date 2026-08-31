@@ -21,6 +21,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerLimits;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -118,6 +119,11 @@ public class InMemoryCacheFactory {
         }
 
         @Override
+        public @Nullable V getIfPresent(K key) {
+            return delegate.get(key);
+        }
+
+        @Override
         public void invalidate() {
             delegate.clear();
         }
@@ -135,6 +141,11 @@ public class InMemoryCacheFactory {
         @Override
         public V get(K key) {
             return delegate.get(new IdentityKey<>(key));
+        }
+
+        @Override
+        public @Nullable V getIfPresent(K key) {
+            return delegate.getIfPresent(new IdentityKey<>(key));
         }
 
         @Override
@@ -182,6 +193,20 @@ public class InMemoryCacheFactory {
         @Override
         public V get(K key) {
             CalculatedValue<V> calculatedValue = delegate.get(key);
+            return valueOf(calculatedValue);
+        }
+
+        @Override
+        public @Nullable V getIfPresent(K key) {
+            CalculatedValue<V> calculatedValue = delegate.getIfPresent(key);
+            if (calculatedValue == null) {
+                return null;
+            }
+
+            return valueOf(calculatedValue);
+        }
+
+        private static <V> V valueOf(CalculatedValue<V> calculatedValue) {
             // Calculate the value after adding the entry to the cache, so that
             // the value container can safely handle synchronization.
             calculatedValue.finalizeIfNotAlready();

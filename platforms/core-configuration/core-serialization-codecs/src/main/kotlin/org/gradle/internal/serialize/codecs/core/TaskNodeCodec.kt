@@ -77,6 +77,7 @@ import org.gradle.util.internal.DeferredUtil
 
 class TaskNodeCodec(
     private val userTypesCodec: Codec<Any?>,
+    private val taskNodeFactory: TaskNodeFactory,
     private val serializeTaskLoggingListeners: Boolean
 ) : Codec<LocalTaskNode> {
 
@@ -87,8 +88,7 @@ class TaskNodeCodec(
 
     override suspend fun ReadContext.decode(): LocalTaskNode {
         val task = readTask()
-        val taskNodeFactory = isolate.owner.serviceOf<TaskNodeFactory>()
-        val node = taskNodeFactory.getOrCreateNode(task) as LocalTaskNode
+        val node = taskNodeFactory.getOrCreateLocalNode(task)
         node.isolated()
         return node
     }
@@ -140,7 +140,7 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readTask(): Task {
+    suspend fun ReadContext.readTask(): TaskInternal {
         val taskType = readClassOf<Task>()
         val project = readProjectRef()
         val taskName = readString()

@@ -28,9 +28,10 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.Path
 
 class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTest {
+
     def workerLeaseService = new TestWorkerLeaseService()
     def preparer = Mock(BuildTreeWorkGraphPreparer)
-    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationRunner(), buildStateRegistry, workerLeaseService, Stub(PlanExecutor), preparer)
+    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationRunner(), workerLeaseService, Stub(PlanExecutor), preparer)
 
     def "does no work when nothing scheduled"() {
         when:
@@ -158,4 +159,5 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
         def e = thrown(IllegalStateException)
         e.message == "Work graph is in an unexpected state: Finished, expected: Preparing"
     }
+
 }

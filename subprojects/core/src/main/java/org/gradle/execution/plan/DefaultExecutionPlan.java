@@ -38,7 +38,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.util.Path;
 import static com.google.common.collect.Sets.newIdentityHashSet;
 
 /**
@@ -48,7 +50,9 @@ import static com.google.common.collect.Sets.newIdentityHashSet;
 public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPlan {
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
+
     private final String displayName;
+    private final Path owningBuildPath;
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
@@ -70,6 +74,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     public DefaultExecutionPlan(
         String displayName,
+        Path owningBuildPath,
         TaskNodeFactory taskNodeFactory,
         OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
@@ -78,6 +83,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         ResourceLockCoordinationService lockCoordinator
     ) {
         this.displayName = displayName;
+        this.owningBuildPath = owningBuildPath;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
         this.outputHierarchy = outputHierarchy;
@@ -134,7 +140,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
         SortedSet<Node> nodes = new TreeSet<>(NodeComparator.INSTANCE);
         for (Task task : tasks) {
-            nodes.add(taskNodeFactory.getOrCreateNode(task));
+            nodes.add(taskNodeFactory.getOrCreateNode((TaskInternal) task, owningBuildPath));
         }
         doAddEntryNodes(nodes, ordinal);
     }
