@@ -29,6 +29,7 @@ dependencies {
     api(projects.logging)
     api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
 

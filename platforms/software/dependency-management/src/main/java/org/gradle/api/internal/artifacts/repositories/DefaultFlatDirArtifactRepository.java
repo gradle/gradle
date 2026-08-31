@@ -32,8 +32,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifa
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -46,6 +44,8 @@ import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
 import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.transport.RepositoryTransport;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * {@link org.gradle.internal.resource.transport.RepositoryTransport} and factories for them.
+ */
+@NullMarked
 package org.gradle.internal.resource.transport;
 
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-
-public abstract class AbstractRepositoryTransport implements RepositoryTransport {
-    protected final String name;
-
-    protected AbstractRepositoryTransport(String name) {
-        this.name = name;
-    }
-}
+import org.jspecify.annotations.NullMarked;

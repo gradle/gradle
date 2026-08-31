@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -43,6 +42,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDat
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transport.RepositoryTransport
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

@@ -33,6 +33,7 @@ dependencies {
     api(projects.credentials)
     api(projects.credentialsApi)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementResources)
     api(projects.enterpriseOperations)
     api(projects.enterpriseLogging)
     api(projects.fileOperations)
