@@ -1100,7 +1100,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
      * disabling the build-tree-wide sharing of identical transform results.
      * This is a temporary opt-out and will be removed in a future release.
      *
-     * @since 9.8.0
+     * @since 9.9.0
      */
     public static class ArtifactTransformsPerScopeVariantCacheOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.artifact-transforms.unsafe.per-scope-variant-cache";
