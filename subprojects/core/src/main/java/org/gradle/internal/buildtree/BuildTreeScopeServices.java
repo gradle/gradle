@@ -65,9 +65,7 @@ import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser
 import org.gradle.initialization.properties.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.FeatureFlagListener;
 import org.gradle.internal.buildoption.FeatureFlags;
@@ -131,7 +129,6 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(BuildInvocationScopeId.class, buildInvocationScopeId);
         registration.add(BuildTreeServices.class);
         registration.add(GradleEnterprisePluginManager.class);
-        registration.add(BuildLifecycleControllerFactory.class, DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         registration.add(BuildInclusionCoordinator.class);
         registration.add(ProjectStateRegistry.class, ProjectStateLookup.class, DefaultProjectStateRegistry.class);
