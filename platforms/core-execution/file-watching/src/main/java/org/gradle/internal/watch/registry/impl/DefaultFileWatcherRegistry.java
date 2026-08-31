@@ -23,6 +23,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.gradle.internal.watch.registry.WatcherVerificationResult;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,8 +149,23 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
-        return fileWatcherUpdater.updateVfsOnBuildStarted(root, watchMode, unsupportedFileSystems);
+    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems, WatcherVerificationResult verification) {
+        return fileWatcherUpdater.updateVfsOnBuildStarted(root, watchMode, unsupportedFileSystems, verification);
+    }
+
+    @Override
+    public WatcherVerificationResult verifyWatcherIsCurrent(SnapshotHierarchy root) {
+        return fileWatcherUpdater.verifyWatcherIsCurrent(root);
+    }
+
+    @Override
+    public boolean isProbeFile(String path) {
+        return fileWatcherUpdater.isProbeFile(path);
+    }
+
+    @Override
+    public boolean isProbeDirectory(String path) {
+        return fileWatcherUpdater.isProbeDirectory(path);
     }
 
     @Override
