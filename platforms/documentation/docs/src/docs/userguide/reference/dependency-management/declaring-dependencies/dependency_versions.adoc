@@ -504,7 +504,7 @@ For example, a Maven `SNAPSHOT` module always points to the latest artifact publ
 
 A dynamic version typically considers all versions for matching, including snapshot versions.
 Given the published versions `1.0`, `1.1`, `1.2-SNAPSHOT`, and `2.0`, both `[1, 2)` and `1.+` select `1.2-SNAPSHOT`, because it is the highest version that matches.
-However, in some cases you may want to select `1.1` instead of `1.2-SNAPSHOT` because you only want to use released versions.
+However, you may want to select `1.1` instead of `1.2-SNAPSHOT` if you only want released versions.
 You can do this by requesting the `org.gradle.status` attribute on the dependency:
 
 ====
@@ -514,8 +514,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-dependen
 
 With the attribute in place, `com.example:lib:[1, 2)` resolves to `1.1` instead of `1.2-SNAPSHOT`, while `com.example:other:[1, 2)` is unaffected and still resolves to `1.2-SNAPSHOT`.
 This is because during <<graph_resolution.adoc#sec:conflict-resolution,version selection>>, Gradle matches the requested attributes against the _component-level_ attributes of each candidate version and discards the candidates that don't match.
-This works for every kind of dynamic version.
-For example, with a prefix version range:
+The same approach works with any dynamic version, including prefix version ranges:
 
 ====
 include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-dynamicVersionStatus/kotlin",files="prefixVersion/build.gradle.kts[tags=prefix-version]"]
@@ -524,7 +523,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-dependen
 
 This has the same effect as the previous example.
 
-For matching only snapshot versions instead, you can replace `release` with `integration` in the above examples.
+To match only integration versions (SNAPSHOTs in a Maven repository), replace `release` with `integration` in the examples above.
 See <<component_metadata_rules.adoc#sec:custom-status-scheme,version selection based on status>> for the available statuses and what they mean.
 
 [[sec:dynamic-version-status-per-configuration]]
@@ -543,8 +542,9 @@ This means that you need to declare it on `compileClasspath` and `runtimeClasspa
 You may want to apply <<dependency_resolution_consistency.adoc#sec:java_consistency,dependency resolution consistency>> to ensure that the same set of dependencies is resolved for these configurations.
 
 WARNING: `org.gradle.status` is also published as a variant attribute and is matched exactly.
-Requesting `release` on a configuration therefore fails variant selection for any dependency that uses a static snapshot version, including transitive dependencies.
-Prefer declaring the attribute on individual dependencies unless you intend every dependency in the graph to be a release.
+Requesting `release` on a configuration therefore fails variant selection for any dependency that resolves to a static snapshot; requesting `integration` fails for any dependency that resolves to a static release.
+This applies to transitive dependencies as well.
+Prefer declaring the attribute on individual dependencies unless you intend every dependency in the graph to share the same status.
 
 [[sec:declaring-dependency-with-changing-version]]
 == Declaring changing versions
