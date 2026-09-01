@@ -25,8 +25,6 @@ They fall into two groups: requirements enforced automatically by architecture t
 
 ### Structural requirements
 
-These are the requirements that *must* be met for public API classes:
-
 1. **Signatures reference only approved types.**
    Public API methods MUST NOT reference Gradle internal types as parameter or return types.
    Permitted types are other Gradle public API types, primitives, a curated allow-list of JDK types (e.g. `java.lang`, `java.util`, `java.io`, `java.nio.file`, `java.time`, `URI`, `URL`, `Duration`, `BigDecimal`), and a small set of Kotlin and slf4j types (e.g. `KClass`, `KProperty`, `Pair`, `Unit` and `Marker`).
