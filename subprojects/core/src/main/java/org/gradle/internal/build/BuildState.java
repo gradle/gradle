@@ -33,6 +33,9 @@ import java.util.function.Function;
  * Encapsulates the identity and state of a particular build in a build tree.
  *
  * Implementations are not yet entirely thread-safe, but should be.
+ * <p>
+ * The hierarchy this sits in — build process, session, tree, build, project — is described
+ * in {@code architecture/build-state-model.md}.
  */
 @ServiceScope(Scope.Build.class)
 public interface BuildState {

@@ -19,6 +19,17 @@ package gradlebuild.basics.testing
 import org.gradle.api.tasks.testing.Test
 
 
+/**
+ * The executers run the same tests under different conditions, so which one you need
+ * depends on what the change affects:
+ *
+ * - `embedded` runs the build in the test process. This is the executer wired into `check`.
+ * - `forking` and `noDaemon` run a real build process, so they cover daemon and startup behaviour.
+ * - `parallel` runs with parallel execution enabled.
+ * - `configCache` stores and reloads the configuration cache, so it is the only executer that
+ *   exercises serialization. A change to a codec is not covered by any of the others.
+ * - `isolatedProjects` runs with isolated projects enabled.
+ */
 enum class TestType(val prefix: String, val executers: List<String>) {
     INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache", "isolatedProjects")),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"))

@@ -47,6 +47,15 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     private final Lazy<ProjectStateRegistry> projectStateRegistry;
     private final Lazy<BuildWorkGraphController> workGraphController;
 
+    /**
+     * The build-scoped services are created here, rather than being passed in, because
+     * this build is itself one of those services. Subclasses also read the registry in their
+     * own constructors, so it is already in use by the time this constructor returns.
+     * <p>
+     * Note that a registry's own services take precedence over those of its parents, so
+     * adding a build-scoped service to the parent registry has no effect on lookups made
+     * against this one. See {@link ServiceRegistryBuilder}.
+     */
     @SuppressWarnings("this-escape")
     public AbstractBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, Path identityPath, @Nullable BuildState parent) {
         this.buildIdentity = new BuildIdentity(identityPath);

@@ -257,6 +257,9 @@ import java.util.List;
 
 /**
  * Contains the services for a single build invocation inside a build tree.
+ * <p>
+ * See {@code architecture/build-state-model.md} for how this scope relates to the
+ * surrounding build tree, session and process scopes.
  */
 public class BuildScopeServices implements ServiceRegistrationProvider {
 
