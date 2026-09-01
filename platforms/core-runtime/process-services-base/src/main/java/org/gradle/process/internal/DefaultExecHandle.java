@@ -216,16 +216,9 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
+        ExecHandleState currentState = getState();
         ExecResultImpl newResult = null;
         try {
-            ExecHandleState currentState;
-            lock.lock();
-            try {
-                currentState = this.state;
-            } finally {
-                lock.unlock();
-            }
-
             newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
 
             ShutdownHooks.removeShutdownHook(shutdownHookAction);
@@ -240,6 +233,14 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
         } catch (Throwable t) {
             LOGGER.debug("Failed to finalize state for process '{}'; recording terminal state anyway.", displayName, t);
+            if (newResult == null) {
+                if (failureCause != null) {
+                    failureCause.addSuppressed(t);
+                } else {
+                    failureCause = t;
+                }
+                newResult = new ExecResultImpl(exitValue, new ProcessExecutionException(basicFailureMessageFor(currentState), failureCause), displayName);
+            }
         } finally {
             lock.lock();
             try {
@@ -261,10 +262,21 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     private String failureMessageFor(Throwable failureCause, ExecHandleState currentState) {
+        if (currentState == ExecHandleState.STARTING
+            && hasCommandLineExceedMaxLength(command, arguments)
+            && hasCommandLineExceedMaxLengthException(failureCause)) {
+            return format("Process '%s' could not be started because the command line exceed operating system limits.", displayName);
+        }
+        return basicFailureMessageFor(currentState);
+    }
+
+    /**
+     * Builds a failure message without inspecting the command line or the failure cause.
+     * <p>
+     * This is used as the last resort when {@link #failureMessageFor} itself throws, so it must stay simple and not throw.
+     */
+    private String basicFailureMessageFor(ExecHandleState currentState) {
         if (currentState == ExecHandleState.STARTING) {
-            if (hasCommandLineExceedMaxLength(command, arguments) && hasCommandLineExceedMaxLengthException(failureCause)) {
-                return format("Process '%s' could not be started because the command line exceed operating system limits.", displayName);
-            }
             return format("A problem occurred starting process '%s'", displayName);
         }
         return format("A problem occurred waiting for process '%s' to complete.", displayName);
