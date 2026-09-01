@@ -542,7 +542,7 @@ This means that you need to declare it on `compileClasspath` and `runtimeClasspa
 You may want to apply <<dependency_resolution_consistency.adoc#sec:java_consistency,dependency resolution consistency>> to ensure that the same set of dependencies is resolved for these configurations.
 
 WARNING: `org.gradle.status` is also published as a variant attribute and is matched exactly.
-Requesting `release` on a configuration therefore fails variant selection for any dependency that resolves to a static snapshot; requesting `integration` fails for any dependency that resolves to a static release.
+Requesting `release` on a configuration therefore fails variant selection for any dependency that only selects a snapshot version; requesting `integration` fails for any dependency that only selects a release version.
 This applies to transitive dependencies as well.
 Prefer declaring the attribute on individual dependencies unless you intend every dependency in the graph to share the same status.
 
