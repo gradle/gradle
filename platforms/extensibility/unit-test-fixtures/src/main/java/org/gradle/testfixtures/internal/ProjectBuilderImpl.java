@@ -192,7 +192,7 @@ public class ProjectBuilderImpl {
         gradle.setIncludedBuilds(Collections.emptyList());
 
         GradlePropertiesController gradlePropertiesController = buildServices.get(GradlePropertiesController.class);
-        gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
+        gradlePropertiesController.loadGradleProperties(build.getBuildIdentity(), build.getBuildRootDir(), false);
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);

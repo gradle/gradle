@@ -56,9 +56,7 @@ public interface BuildState {
      * <p>
      * Prefer {@link #getBuildIdentity()} or plain {@link #getIdentityPath()}.
      */
-    default BuildIdentifier getBuildIdentifier() {
-        return getBuildIdentity().getBuildIdentifier();
-    }
+    BuildIdentifier getBuildIdentifier();
 
     /**
      * Returns an identifying path for this build in the build tree. This path is fixed for the lifetime of the build.

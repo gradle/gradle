@@ -16,7 +16,6 @@
 
 package org.gradle.internal.build
 
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.util.Matchers
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -33,6 +32,7 @@ class BuildIdentityTest extends Specification {
         identity.buildPath == Path.ROOT
         identity.displayName == "build ':'"
         identity.toString() == "build ':'"
+        identity.capitalizedDisplayName == "Build ':'"
     }
 
     def "nested build has display name with its build path"() {
@@ -42,13 +42,7 @@ class BuildIdentityTest extends Specification {
         identity.buildPath == Path.path(":included")
         identity.displayName == "build ':included'"
         identity.toString() == "build ':included'"
-    }
-
-    def "exposes a build identifier for the same path"() {
-        def identity = new BuildIdentity(Path.path(":included:nested"))
-
-        expect:
-        identity.buildIdentifier.buildPath == ":included:nested"
+        identity.capitalizedDisplayName == "Build ':included'"
     }
 
     def "rejects a relative build path"() {
