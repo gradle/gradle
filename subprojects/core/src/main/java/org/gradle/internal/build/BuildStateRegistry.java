@@ -133,4 +133,9 @@ public interface BuildStateRegistry {
      * Visits all registered builds, ordered by {@link BuildState#getIdentityPath()}
      */
     void visitBuilds(Consumer<? super BuildState> visitor);
+
+    /**
+     * Discards the model of every registered build, so that the build tree can be configured again.
+     */
+    void resetModels();
 }

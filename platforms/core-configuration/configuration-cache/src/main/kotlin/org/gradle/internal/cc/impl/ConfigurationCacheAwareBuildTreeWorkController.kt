@@ -90,12 +90,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
 
         // Store and reload the graph for the execution.
         cache.finalizeCacheEntry()
-        buildRegistry.visitBuilds { build ->
-            build.beforeModelReset().rethrow()
-        }
-        buildRegistry.visitBuilds { build ->
-            build.resetModel()
-        }
+        buildRegistry.resetModels()
 
         return workGraph.withNewWorkGraph { graph ->
             val (finalizedGraph, workGraphRestorationFailed) = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
