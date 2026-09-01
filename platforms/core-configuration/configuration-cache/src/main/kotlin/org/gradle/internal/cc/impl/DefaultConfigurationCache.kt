@@ -257,20 +257,23 @@ class DefaultConfigurationCache internal constructor(
             cacheIO.readCacheEntryDetailsFrom(it)!!
         }.value
 
-    override fun loadOrScheduleRequestedTasks(
+    override fun maybeLoadRequestedTasks(
         graph: BuildTreeWorkGraph,
-        graphBuilder: BuildTreeWorkGraphBuilder?,
+        graphBuilder: BuildTreeWorkGraphBuilder?
+    ): BuildTreeConfigurationCache.LoadOutcome {
+        if (cacheAction !is Load) {
+            return BuildTreeConfigurationCache.LoadOutcome.Missed
+        }
+        val finalizedGraph = loadWorkGraph(graph, graphBuilder, false).graph
+        return BuildTreeConfigurationCache.LoadOutcome.Reused(finalizedGraph)
+    }
+
+    override fun scheduleRequestedTasks(
+        graph: BuildTreeWorkGraph,
         scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph
-    ): BuildTreeConfigurationCache.WorkGraphResult {
+    ): BuildTreeConfigurationCache.ScheduleOutcome {
         return when (cacheAction) {
-            is Load -> {
-                val finalizedGraph = loadWorkGraph(graph, graphBuilder, false).graph
-                BuildTreeConfigurationCache.WorkGraphResult(
-                    finalizedGraph,
-                    wasLoadedFromCache = true,
-                    entryDiscarded = false
-                )
-            }
+            is Load -> error("Cannot schedule the requested tasks while reusing a configuration cache entry.")
 
             SkipStore -> {
                 // build work graph without contributing to a cache entry
@@ -280,11 +283,7 @@ class DefaultConfigurationCache internal constructor(
                     problems.shouldDegradeGracefully()
                     result
                 }
-                BuildTreeConfigurationCache.WorkGraphResult(
-                    finalizedGraph,
-                    wasLoadedFromCache = false,
-                    entryDiscarded = true
-                )
+                BuildTreeConfigurationCache.ScheduleOutcome.NotStored(finalizedGraph)
             }
 
             Store, is Update -> {
@@ -293,11 +292,11 @@ class DefaultConfigurationCache internal constructor(
                     val rootBuild = buildStateRegistry.rootBuild
                     degradeGracefullyOr { saveWorkGraph(rootBuild) }
                     crossConfigurationTimeBarrier()
-                    BuildTreeConfigurationCache.WorkGraphResult(
-                        finalizedGraph,
-                        wasLoadedFromCache = false,
-                        entryDiscarded = problems.shouldDiscardEntry
-                    )
+                    if (problems.shouldDiscardEntry) {
+                        BuildTreeConfigurationCache.ScheduleOutcome.NotStored(finalizedGraph)
+                    } else {
+                        BuildTreeConfigurationCache.ScheduleOutcome.Stored(finalizedGraph)
+                    }
                 }
             }
         }
