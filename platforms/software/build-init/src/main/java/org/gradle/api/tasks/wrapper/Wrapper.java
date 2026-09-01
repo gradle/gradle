@@ -371,7 +371,8 @@ public abstract class Wrapper extends DefaultTask {
 
     /**
      * Returns the path where the gradle distributions needed by the wrapper are unzipped. The path is relative to the
-     * distribution base directory
+     * distribution base directory.
+     * <p>
      * Existing values in {@code gradle-wrapper.properties} are preserved when this property is not configured.
      *
      * @see #setDistributionPath(String)
