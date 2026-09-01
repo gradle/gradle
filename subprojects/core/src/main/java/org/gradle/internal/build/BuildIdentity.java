@@ -54,6 +54,16 @@ public final class BuildIdentity implements DisplayName {
     }
 
     /**
+     * Is this the root build of the build tree?
+     * <p>
+     * Only the root build sits at the root path. Every other build is identified by a path
+     * below it, including the root of a nested build tree such as {@code buildSrc}.
+     */
+    public boolean isRootBuild() {
+        return buildPath.equals(Path.ROOT);
+    }
+
+    /**
      * Returns the display name of this build, such as {@code build ':'} or {@code build ':included'}.
      */
     @Override

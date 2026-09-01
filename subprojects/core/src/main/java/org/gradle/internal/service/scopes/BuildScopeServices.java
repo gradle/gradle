@@ -303,8 +303,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    GradleInternal createGradle(Instantiator instantiator, BuildState buildState, BuildDefinition buildDefinition, ServiceRegistry buildServices) {
-        return instantiator.newInstance(DefaultGradle.class, buildState, buildDefinition.getStartParameter(), buildServices);
+    GradleInternal createGradle(Instantiator instantiator, BuildIdentity buildIdentity, BuildDefinition buildDefinition, ServiceRegistry buildServices) {
+        return instantiator.newInstance(DefaultGradle.class, buildIdentity, buildState, buildDefinition.getStartParameter(), buildServices);
     }
 
     @Provides
