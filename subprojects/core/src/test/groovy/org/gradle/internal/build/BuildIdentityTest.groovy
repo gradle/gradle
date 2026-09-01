@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build
 
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.util.Matchers
 import org.gradle.util.Path
 import spock.lang.Specification
