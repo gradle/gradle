@@ -93,7 +93,7 @@ Gradle provides a comprehensive plugin system, including built-in [Core Plugins]
 
 #### `Sync` can empty its destination when its source is empty
 
-A [`Sync`](dsl/org.gradle.api.tasks.Sync.html) task whose source contains no files and no directories, by default, does not run, so its destination directory is not synchronized. What is left in the destination then depends on where it is: a destination inside the build directory is cleaned up, while one outside it keeps the files the source no longer contains.
+A [`Sync`](dsl/org.gradle.api.tasks.Sync.html) task whose source contains no files and no directories, by default, does not run, so its destination directory is not synchronized. What is left in the destination then depends on whether it is a build-owned directory: if it is, the destination is cleaned up; otherwise it keeps the files the source no longer contains.
 
 Setting the new `skipWhenSourceIsEmpty` property to `false` makes the task run in that case as well, so that an empty source empties the destination directory:
 

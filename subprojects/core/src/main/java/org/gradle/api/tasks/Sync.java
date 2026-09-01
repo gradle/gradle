@@ -75,6 +75,11 @@ public abstract class Sync extends AbstractCopyTask {
 
     private final PatternFilterable preserveInDestination = new PatternSet();
 
+    /**
+     * Creates a new {@code Sync} task.
+     *
+     * @since 9.9.0
+     */
     @SuppressWarnings("this-escape")
     public Sync() {
         getSkipWhenSourceIsEmpty().convention(true);
@@ -85,9 +90,9 @@ public abstract class Sync extends AbstractCopyTask {
      *
      * <p>
      * When this is {@code true}, which is the default, a task with an empty source does not run and its
-     * destination directory is not synchronized. What is left in the destination then depends on where it is:
-     * a destination inside the build directory is cleaned up, while one outside it keeps the files the source
-     * no longer contains.
+     * destination directory is not synchronized. What is left in the destination then depends on whether it is
+     * a build-owned directory: if it is, the destination is cleaned up; otherwise it keeps the files
+     * the source no longer contains.
      *
      * <p>
      * When this is {@code false}, the task always runs its copy action, so an empty source empties the
@@ -96,7 +101,7 @@ public abstract class Sync extends AbstractCopyTask {
      * extends that to a source that is empty, including one that is empty by mistake.
      *
      * @return whether this task is skipped when its source is empty
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Incubating
     @Input
