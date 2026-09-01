@@ -27,7 +27,8 @@ They fall into two groups: requirements enforced automatically by architecture t
 
 1. **Signatures reference only approved types.**
    Public API methods MUST NOT reference Gradle internal types as parameter or return types.
-   Permitted types are other Gradle public API types, primitives, a curated allow-list of JDK types (e.g. `java.lang`, `java.util`, `java.io`, `java.nio.file`, `java.time`, `URI`, `URL`, `Duration`, `BigDecimal`), and a small set of Kotlin and slf4j types (e.g. `KClass`, `KProperty`, `Pair`, `Unit` and `Marker`).
+   The permitted types are other Gradle public API types, primitives, and a curated allow-list of JDK, Kotlin, and slf4j types.
+   The authoritative allow-list is defined in `testing/architecture-test/src/test/java/org/gradle/architecture/test/PermittedPublicApiTypes.java`.
    Notably, `java.util.function` types are intentionally excluded — Gradle exposes its own functional types such as `org.gradle.api.Action`, `org.gradle.api.specs.Spec`, and `org.gradle.api.Transformer` instead.
 
 2. **No Groovy types; Closure-taking methods have a Gradle-type equivalent.**
