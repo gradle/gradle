@@ -26,6 +26,7 @@ import spock.lang.Specification
 import java.nio.file.Files
 import java.nio.file.attribute.FileTime
 import java.util.concurrent.TimeUnit
+import java.util.zip.ZipFile
 
 /**
  * Tests {@link ToolingApiDistributionResolver}.
@@ -108,6 +109,26 @@ class ToolingApiDistributionResolverTest extends Specification {
         otherDownloadedToolingApiJar == downloadedToolingApiJar
         Files.getLastModifiedTime(downloadedToolingApiJar.toPath()) == someTime
         downloadedToolingApiJar.toPath().startsWith(destination.canonicalFile.toPath())
+    }
+
+    def "re-downloads a jar left behind by an interrupted download"() {
+        given:
+        System.setProperty("integTest.tmpDir", tempFolder.root.toString())
+        // What an interrupted download leaves behind: the jar exists, but the marker file
+        // that records a completed download does not.
+        def partialJar = new TestFile(tempFolder.root, "gradle-tooling-api-8.14.jar")
+        partialJar.text = "not a jar"
+
+        when:
+        def result = underTest.resolve("8.14")
+
+        then:
+        def downloadedToolingApiJar = result.classpath.find {
+            it.name == "gradle-tooling-api-8.14.jar"
+        }
+        new ZipFile(downloadedToolingApiJar).withCloseable {
+            it.getEntry("org/gradle/util/GradleVersion.class") != null
+        }
     }
 
     def "can download multiple distribution versions"() {
