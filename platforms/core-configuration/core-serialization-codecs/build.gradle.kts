@@ -33,6 +33,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.modelCore)
+    api(projects.serialization)
     api(projects.snapshots)
 
     api(libs.kotlinStdlib)
@@ -54,7 +55,6 @@ dependencies {
     implementation(projects.modelReflect)
     implementation(projects.platformJvm)
     implementation(projects.publish)
-    implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.stdlibKotlinExtensions)

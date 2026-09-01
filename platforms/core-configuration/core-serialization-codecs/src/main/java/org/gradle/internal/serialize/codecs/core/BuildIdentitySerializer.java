@@ -16,11 +16,11 @@
 
 package org.gradle.internal.serialize.codecs.core;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.PathSerializer;
 import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.util.Path;
 
 import java.io.IOException;
 
@@ -28,19 +28,25 @@ import java.io.IOException;
  * A thread-safe and reusable serializer for {@link BuildIdentity}.
  * <p>
  * Only the build path is written, as the rest of the identity is derived from it.
+ * The path is encoded inline rather than by delegating to a {@code Path} serializer,
+ * as the existing one lives in a platform this one must not depend on.
  */
 public class BuildIdentitySerializer extends AbstractSerializer<BuildIdentity> {
 
-    private final PathSerializer pathSerializer = new PathSerializer();
-
     @Override
     public BuildIdentity read(Decoder decoder) throws IOException {
-        return new BuildIdentity(pathSerializer.read(decoder));
+        boolean isRoot = decoder.readBoolean();
+        return new BuildIdentity(isRoot ? Path.ROOT : Path.path(decoder.readString()));
     }
 
     @Override
     public void write(Encoder encoder, BuildIdentity value) throws IOException {
-        pathSerializer.write(encoder, value.getBuildPath());
+        Path buildPath = value.getBuildPath();
+        boolean isRoot = buildPath.equals(Path.ROOT);
+        encoder.writeBoolean(isRoot);
+        if (!isRoot) {
+            encoder.writeString(buildPath.asString());
+        }
     }
 
 }
