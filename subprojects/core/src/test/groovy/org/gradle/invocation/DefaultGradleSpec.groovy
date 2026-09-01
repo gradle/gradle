@@ -43,6 +43,7 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.SettingsState
 import org.gradle.internal.Describables
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
@@ -67,6 +68,7 @@ class DefaultGradleSpec extends Specification {
     ListenerManager listenerManager = Spy(TestListenerManager)
 
     BuildState build = Mock(BuildState)
+    BuildIdentity buildIdentity = new BuildIdentity(Path.ROOT)
     StartParameterInternal parameter = new StartParameterInternal()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
@@ -105,7 +107,7 @@ class DefaultGradleSpec extends Specification {
             }
         }
 
-        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, build, parameter, serviceRegistry)
+        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, buildIdentity, build, parameter, serviceRegistry)
     }
 
     def "uses gradle version"() {

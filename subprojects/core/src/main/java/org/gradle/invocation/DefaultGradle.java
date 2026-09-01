@@ -56,6 +56,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
@@ -79,6 +80,7 @@ import java.util.function.Supplier;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal, Closeable {
 
+    private final BuildIdentity buildIdentity;
     private final BuildState buildState;
     private final StartParameter startParameter;
     private final ServiceRegistry buildScopeServices;
@@ -100,7 +102,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private boolean projectsLoaded;
 
     @SuppressWarnings("this-escape")
-    public DefaultGradle(BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
+    public DefaultGradle(BuildIdentity buildIdentity, BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
+        this.buildIdentity = buildIdentity;
         this.buildState = buildState;
         this.startParameter = startParameter;
         this.buildScopeServices = buildScopeServices;
@@ -143,7 +146,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public Path getIdentityPath() {
-        return buildState.getIdentityPath();
+        return buildIdentity.getBuildPath();
     }
 
     @Override
@@ -166,7 +169,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public boolean isRootBuild() {
-        return buildState.getParent() == null;
+        return buildIdentity.isRootBuild();
     }
 
     @Override
