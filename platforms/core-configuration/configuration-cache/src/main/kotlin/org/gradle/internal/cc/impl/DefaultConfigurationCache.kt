@@ -865,7 +865,7 @@ class DefaultConfigurationCache internal constructor(
 
         val systemPropertiesSnapshot = System.getProperties().clone()
         return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
-            if (result !is CheckedFingerprint.Valid || result.invalidProjects != null) {
+            if (!result.isFullReuse) {
                 // Restore system properties and force Gradle properties to be reloaded
                 // so the Gradle properties files along with any Gradle property defining
                 // system properties and environment variables are added to the new fingerprint.
