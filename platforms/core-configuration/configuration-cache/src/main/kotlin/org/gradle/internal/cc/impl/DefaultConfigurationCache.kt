@@ -204,16 +204,22 @@ class DefaultConfigurationCache internal constructor(
 
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
-        this.cacheAction = cacheAction
-        this.entryId = when (cacheAction) {
+        val entryId = when (cacheAction) {
             is Load -> cacheAction.entryId
             is Update -> cacheAction.entryId
             Store -> UUID.randomUUID().toString()
             // no cache entry key in this case
             SkipStore -> ""
         }
-        initializeCacheEntrySideEffects(cacheAction)
-        problems.action(cacheAction, cacheActionDescription)
+        beginEntry(cacheAction, entryId, cacheActionDescription)
+    }
+
+    private
+    fun beginEntry(action: ConfigurationCacheAction, entryId: String, actionDescription: StructuredMessage) {
+        this.cacheAction = action
+        this.entryId = entryId
+        initializeCacheEntrySideEffects(action)
+        problems.action(action, actionDescription)
     }
 
     private
