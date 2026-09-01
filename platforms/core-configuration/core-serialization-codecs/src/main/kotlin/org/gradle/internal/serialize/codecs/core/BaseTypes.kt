@@ -28,4 +28,5 @@ fun BindingsBuilder.baseTypes(objectOpener: ObjectOpener) {
     guavaTypes()
     bind(JavaRecordCodec(objectOpener))
     bind(BuildIdentifierSerializer())
+    bind(BuildIdentitySerializer())
 }

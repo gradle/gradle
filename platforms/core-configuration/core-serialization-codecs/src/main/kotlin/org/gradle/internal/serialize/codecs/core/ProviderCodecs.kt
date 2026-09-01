@@ -16,7 +16,6 @@
 
 package org.gradle.internal.serialize.codecs.core
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.flow.FlowAction
@@ -43,6 +42,7 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -238,7 +238,7 @@ class BuildServiceProviderCodec(
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) =
         encodePreservingSharedIdentityOf(value) {
             val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
-            write(serviceDetails.buildIdentifier)
+            write(serviceDetails.buildIdentity)
             writeString(serviceDetails.name)
             writeClass(serviceDetails.implementationType)
             writeBoolean(serviceDetails.isResolved)
@@ -250,22 +250,22 @@ class BuildServiceProviderCodec(
 
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *> =
         decodePreservingSharedIdentity<BuildServiceProvider<*, *>> {
-            val buildIdentifier = readNonNull<BuildIdentifier>()
+            val buildIdentity = readNonNull<BuildIdentity>()
             val name = readString()
             val implementationType = readClassOf<BuildService<*>>()
             val isResolved = readBoolean()
             if (isResolved) {
                 val parameters = readNonNull<BuildServiceParameters>()
                 val maxUsages = readInt()
-                buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
+                buildServiceRegistryOf(buildIdentity).registerIfAbsent(name, implementationType, parameters, maxUsages)
             } else {
-                buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
+                buildServiceRegistryOf(buildIdentity).consume(name, implementationType)
             }
         }
 
     private
-    fun buildServiceRegistryOf(buildIdentifier: BuildIdentifier) =
-        buildStateRegistry.getBuild(buildIdentifier).mutableModel.serviceOf<BuildServiceRegistryInternal>()
+    fun buildServiceRegistryOf(buildIdentity: BuildIdentity) =
+        buildStateRegistry.getBuild(buildIdentity.buildPath).mutableModel.serviceOf<BuildServiceRegistryInternal>()
 }
 
 

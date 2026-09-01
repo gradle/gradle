@@ -16,8 +16,6 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.scopes.Scope;
@@ -36,7 +34,6 @@ import org.jspecify.annotations.Nullable;
 public final class BuildIdentity implements DisplayName {
 
     private final Path buildPath;
-    private final BuildIdentifier buildIdentifier;
     private final DisplayName displayName;
 
     public BuildIdentity(Path buildPath) {
@@ -45,7 +42,6 @@ public final class BuildIdentity implements DisplayName {
         }
 
         this.buildPath = buildPath;
-        this.buildIdentifier = new DefaultBuildIdentifier(buildPath);
         // TODO: ensure the display name logic is shared with BuildIdentifier for consistency
         this.displayName = Describables.memoize(Describables.withTypeAndName("build", buildPath.asString()));
     }
@@ -55,13 +51,6 @@ public final class BuildIdentity implements DisplayName {
      */
     public Path getBuildPath() {
         return buildPath;
-    }
-
-    /**
-     * The public identifier for this build.
-     */
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
     }
 
     /**
