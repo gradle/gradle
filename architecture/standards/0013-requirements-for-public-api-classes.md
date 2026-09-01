@@ -14,7 +14,7 @@ There is no single document a contributor or reviewer can consult to answer "wha
 This ADR consolidates those requirements into one checklist.
 It does not propose new rules; it collects the existing ones and records the expectations that all public API classes should meet.
 
-Throughout this ADR, "public API" means a type that resides in one of the packages designated as public API (see `PublicAPI.kt`) together with its `public` and `protected` members.
+Throughout this ADR, "public API" means a type that resides in one of the packages designated as public API — see `PublicApi.kt` and `PublicKotlinDslApi.kt` in `build-logic-commons/basics/src/main/kotlin/gradlebuild/basics/` — together with its `public` and `protected` members.
 
 The keywords MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are used as defined in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
