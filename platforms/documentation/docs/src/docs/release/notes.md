@@ -14,15 +14,13 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 In this release, [Java 27](#support-for-java-27) is supported for both the Gradle daemon and Java toolchains.
 
-The [Configuration Cache](#configuration-cache-improvements) now exposes its outcome directly through TestKit and the Tooling API, so plugin authors no longer parse console output to check whether a build was cached.
+Gradle can now [reuse Maven's mirror settings](#reusing-mirror-settings-from-maven), so teams with an internal repository mirror configure it once instead of in both build tools.
 
-[Build authoring](#build-authoring-improvements) gains a `service()` lookup for common Gradle services in scripts and task actions, along with a lazy `destinationDirectory` property on `Copy` and `Sync`.
+[Build authoring](#build-authoring-improvements) gets less verbose, with Gradle's built-in services for working with files, objects, and processes now available directly in scripts and task actions, and copy destinations configurable lazily.
 
-In [platform and toolchain management](#platform-and-toolchain-management), `Groovydoc` now parses modern Java sources and exposes the Groovy 6.0 documentation options.
+For plugin authors, verifying compatibility with the [Configuration Cache](#configuration-cache-improvements) is easier and more reliable. The [Maven Publish Plugin](#core-plugin-and-plugin-authoring-enhancements) now takes part in up-to-date checks, so it no longer regenerates a POM that has not changed.
 
-[Performance improvements](#performance-improvements) include faster read times on Windows machines with slow system clocks, with build-time gains of up to 45% in affected setups.
-
-Finally, [`GenerateMavenPom`](#general-improvements) now participates in up-to-date checks, speeding up Maven publishing.
+[Build failures](#cli-logging-and-problem-reporting) are easier to read and navigate, and more of Gradle's diagnostics are now available to tooling. This release also includes [performance improvements](#performance-improvements) for Windows.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Aman Gautam](https://github.com/Gautam-aman),
@@ -60,6 +58,7 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 ## New features and usability improvements
 
 ### Support for Java 27
+
 With this release, Gradle supports [Java 27](https://openjdk.org/projects/jdk/27/).
 
 You can now run the [Gradle daemon](userguide/gradle_daemon.html) on Java 27, in addition to using Java 27 via [toolchains](userguide/toolchains.html):
@@ -76,31 +75,40 @@ Some third-party tools (for example, PMD) do not yet support Java 27.
 
 See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
 
-### Configuration Cache improvements
-Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+### Reusing mirror settings from Maven
 
-#### TestKit API for asserting the Configuration Cache outcome
+In organizations that use both Maven and Gradle build tools with an internal repository mirror, Gradle @version@ supports reusing Maven's [mirror repository settings](https://maven.apache.org/guides/mini/guide-mirror-settings.html) with a simple flag.
 
-Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded, an approach that broke whenever the wording of the console messages changed.
+By default, this is disabled, but you can enable it with `org.gradle.mirror.maven.settings=true` in `gradle.properties`.
 
-The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly:
+When applying the mirror configuration, Gradle will replace a repository's URL if it matches any configured mirrors. This applies to all HTTP/HTTPS Maven repositories, including build script repositories like `gradlePluginPortal()`, repositories declared in settings, and repositories declared in projects. Ivy repositories, Maven local, flat directory repositories, and Maven repositories served over S3 or GCS do not support mirroring.
 
-```groovy
-def result = GradleRunner.create()
-    .withProjectDir(projectDir)
-    .withArguments("myTask", "--configuration-cache")
-    .build()
+See the [Centralizing Repositories](userguide/centralizing_repositories.html) section in the Gradle User Manual for more details.
 
-assert result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
-```
+### CLI, logging, and problem reporting
 
-See [`ConfigurationCacheOutcome`](javadoc/org/gradle/testkit/runner/ConfigurationCacheOutcome.html) for the possible outcomes.
+Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
-The outcome is also available to any Tooling API client through a new [`CONFIGURATION_CACHE`](javadoc/org/gradle/tooling/events/OperationType.html#CONFIGURATION_CACHE) progress event type.
+#### Easier to read problem reports
 
-See the [Testing with the Configuration Cache](userguide/test_kit.html#sub:test-kit-configuration-cache) section in the Gradle User Manual for more details.
+Three improvements make [problem reports](userguide/reporting_problems.html#sec:generated_html_report) easier to scan and act on.
+
+Printed problem locations (`demo-convention.gradle.kts:8`) are now clickable in terminals that support hyperlinks, so you can jump straight to the source line in most modern IDEs and editors. Problems in the CLI failure output now appear in the order they occurred, which preserves the causal sequence when you scroll through a failing build. The copy button in the HTML report also stays visible while you scroll long stack traces, so capturing a full trace no longer means hunting for the button.
+
+![Problem Report Screenshot](release-notes-assets/problem-report.png)
+
+#### Broader coverage from the Problems API
+
+Consumers of the [Problems API](userguide/reporting_problems.html) now receive data from more parts of Gradle.
+
+Dependency management failures are reported through the API with [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) details. Unresolved dependencies and configuration conflicts now surface as structured problems, and the RFC 9457 format has been extended to make field naming more consistent across problem types.
+
+Configuration Cache warn-mode messages are also reported through the API, matching how Configuration Cache errors are already surfaced.
+
+Problems raised from threads without a current build operation are now captured rather than dropped. This closes a gap where asynchronous work could silently lose its diagnostics.
 
 ### Build authoring improvements
+
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
 #### Look up Gradle services from scripts and task actions
@@ -120,23 +128,18 @@ Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. I
 
 Available services by scope:
 
-| Service | Available in |
-| --- | --- |
-| `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations` | Every scope |
-| `ProjectLayout` | Projects and tasks |
-| `BuildLayout` | Settings |
-| `ExecOperations` | Task actions |
-
-In the Kotlin and Java DSLs, looking up a service that is not available in the current scope is caught at compile time.
-
-Precompiled script plugins that use `service<Type>()` require Gradle 9.8 or later at runtime.
+| Service                                                                         | Available in       |
+|---------------------------------------------------------------------------------|--------------------|
+| `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations` | Every scope        |
+| `ProjectLayout`                                                                 | Projects and tasks |
+| `BuildLayout`                                                                   | Settings           |
+| `ExecOperations`                                                                | Task actions       |
 
 See the [Looking up services in scripts](userguide/service_injection.html#looking_up_services) section in the Gradle User Manual for more details.
 
 #### Lazy destination directory for `Copy` and `Sync`
 
-The [`Copy`](dsl/org.gradle.api.tasks.Copy.html) and [`Sync`](dsl/org.gradle.api.tasks.Sync.html) tasks only exposed the destination as `destinationDir`, a plain `File` property, so a destination derived from a provider had to be resolved eagerly at configuration time.
-Both tasks now expose a `destinationDirectory` [`DirectoryProperty`](javadoc/org/gradle/api/file/DirectoryProperty.html):
+The [`Copy`](dsl/org.gradle.api.tasks.Copy.html) and [`Sync`](dsl/org.gradle.api.tasks.Sync.html) tasks only exposed the destination as `destinationDir`, a plain `File` property, so a destination derived from a provider had to be resolved eagerly at [configuration time](userguide/build_lifecycle.html). Both tasks now expose a `destinationDirectory` [`DirectoryProperty`](javadoc/org/gradle/api/file/DirectoryProperty.html):
 
 ```kotlin
 tasks.register<Copy>("copyFiles") {
@@ -145,18 +148,13 @@ tasks.register<Copy>("copyFiles") {
 }
 ```
 
-The property is the single source of truth for the destination.
-Assigning it is equivalent to calling `into(...)`, and it reflects whatever was configured through `into(...)` or `destinationDir`.
+The property is the single source of truth for the destination. Assigning it is equivalent to calling `into(...)`, and it reflects whatever was configured through `into(...)` or `destinationDir`.
 
-`into(...)` now wires a `Provider` destination into `destinationDirectory` instead of resolving its value, so provider-based destinations stay lazy; all other notations (`String`, `File`, `Closure`, `Callable`, ...) keep their existing lazy resolution.
-Since `destinationDirectory` is a task output property, other tasks can consume it directly and pick up the task dependency.
+`into(...)` now wires a `Provider` destination into `destinationDirectory` instead of resolving its value, so provider-based destinations stay lazy; all other notations (`String`, `File`, `Closure`, `Callable`, ...) keep their existing lazy resolution. Since `destinationDirectory` is a task output property, other tasks can consume it directly and pick up the task dependency.
 
 The new property is [incubating](userguide/feature_lifecycle.html#feature_preview). `destinationDir` continues to work and will be deprecated once `destinationDirectory` is promoted.
 
 See [`Copy.destinationDirectory`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:destinationDirectory) and [`Sync.destinationDirectory`](dsl/org.gradle.api.tasks.Sync.html#org.gradle.api.tasks.Sync:destinationDirectory) in the DSL Reference for more details.
-
-### Platform and toolchain management
-Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
 #### Groovydoc supports modern Java sources and Groovy 6 output options
 
@@ -174,16 +172,16 @@ This option requires Groovy 4.0.27 or later and is silently ignored on earlier G
 
 **Groovy 6.0.0 documentation options:** For projects using Groovy 6.0.0 or later, several new properties are now available on the `Groovydoc` task to control the generated output:
 
-| Property | Purpose |
-| --- | --- |
-| `showInternal` | Include members annotated with `groovy.transform.Internal` (GEP-17). |
-| `noIndex` | Suppress the alphabetical index page. |
-| `noDeprecatedList` | Suppress the deprecated-list page. |
-| `noHelp` | Suppress the help page. |
-| `syntaxHighlighter` | Select the client-side syntax highlighter (`"prism"` or `"none"`). |
-| `theme` | Lock the palette (`"auto"`, `"light"`, or `"dark"`). |
-| `preLanguage` | Default language id applied to unclassified `<pre>` code blocks. |
-| `additionalStylesheets` | Extra stylesheets copied alongside the default. |
+| Property                | Purpose                                                              |
+|-------------------------|----------------------------------------------------------------------|
+| `showInternal`          | Include members annotated with `groovy.transform.Internal` (GEP-17). |
+| `noIndex`               | Suppress the alphabetical index page.                                |
+| `noDeprecatedList`      | Suppress the deprecated-list page.                                   |
+| `noHelp`                | Suppress the help page.                                              |
+| `syntaxHighlighter`     | Select the client-side syntax highlighter (`"prism"` or `"none"`).   |
+| `theme`                 | Lock the palette (`"auto"`, `"light"`, or `"dark"`).                 |
+| `preLanguage`           | Default language id applied to unclassified `<pre>` code blocks.     |
+| `additionalStylesheets` | Extra stylesheets copied alongside the default.                      |
 
 All of these are silently ignored on earlier Groovy versions, so they are safe to configure in builds that may be run against multiple Groovy releases.
 
@@ -191,24 +189,36 @@ All new properties are [incubating](userguide/feature_lifecycle.html#feature_pre
 
 See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in the DSL Reference for the full list of configuration options.
 
-### Performance improvements
-Gradle continues to reduce build times and memory usage across the daemon, configuration, and execution phases.
+### Configuration Cache improvements
 
-#### Improved performance on Windows machines with slow system clocks
+Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the results of the configuration phase and reusing them in subsequent builds.
 
-Gradle reads the system clock frequently while a build runs, to capture execution traces, progress events, and log messages.
-On most machines, querying the time is inexpensive.
-However, on some Windows systems, particularly virtualized ones, reading the clock is much slower, and the increased cost can accumulate over the many readings taken during a single build invocation.
+#### TestKit API for asserting the Configuration Cache outcome
 
-Gradle now detects these slow system clocks at startup and switches to a faster source of time for the remainder of the build.
-On affected machines we have measured build time improvements of up to 45%.
+Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded, an approach that broke whenever the wording of the console messages changed.
 
-Builds on machines with a normal system clock are unaffected, and no change to configuration is required.
+The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly, making it easier and more reliable to test Configuration Cache compatibility:
 
-### General improvements
-Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+```groovy
+def result = GradleRunner.create()
+    .withProjectDir(projectDir)
+    .withArguments("myTask", "--configuration-cache")
+    .build()
 
-#### Faster Maven publishing with up-to-date POM generation
+assert result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
+```
+
+See [`ConfigurationCacheOutcome`](javadoc/org/gradle/testkit/runner/ConfigurationCacheOutcome.html) for the possible outcomes.
+
+The outcome is also available to any Tooling API client through a new [`CONFIGURATION_CACHE`](javadoc/org/gradle/tooling/events/OperationType.html#CONFIGURATION_CACHE) progress event type.
+
+See the [Testing with the Configuration Cache](userguide/test_kit.html#sub:test-kit-configuration-cache) section in the Gradle User Manual for more details.
+
+### Core plugin and plugin authoring enhancements
+
+Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
+
+#### Up-to-date checks for POM generation in Maven publishing
 
 The [`GenerateMavenPom`](javadoc/org/gradle/api/publish/maven/tasks/GenerateMavenPom.html) task was previously marked as untracked, so it executed on every build regardless of whether the underlying POM had changed.
 
@@ -221,10 +231,21 @@ $ ./gradlew generatePomFileForMavenPublication
 BUILD SUCCESSFUL
 ```
 
-When a `withXml` action is registered, task input tracking remains disabled, as `withXml` actions do not yet support snapshotting, so the task continues to run on every build.
-To restore up-to-date behavior, move the customization into the DSL properties on [`MavenPom`](javadoc/org/gradle/api/publish/maven/MavenPom.html) where possible.
+When a `withXml` action is registered, task input tracking remains disabled, as `withXml` actions do not yet support snapshotting, so the task continues to run on every build. To restore up-to-date behavior, move the customization into the DSL properties on [`MavenPom`](javadoc/org/gradle/api/publish/maven/MavenPom.html) where possible.
 
 See the [Generate POM task](userguide/publishing_maven.html#publishing_maven:generate-pom) section in the Gradle User Manual for more details.
+
+### Performance improvements
+
+Gradle continues to reduce build times and memory usage across the daemon, configuration, and execution phases.
+
+#### Improved performance on Windows machines with slow system clocks
+
+Builds on affected Windows machines are up to 45% faster in this release.
+
+Gradle reads the system clock frequently while a build runs, to capture execution traces, progress events, and log messages. On most machines, this is inexpensive, but on some Windows systems, particularly virtualized ones, reading the clock is much slower, and the cost accumulates over the many readings taken during a single build.
+
+Gradle now detects a slow system clock at startup and switches to a faster time source for the rest of the build. No configuration is required, and builds on machines with a normal system clock are unaffected.
 
 ## Promoted features
 
@@ -239,12 +260,12 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Documentation and training
 
-### User Manual
+### Documentation
 
-The User Manual reference pages for the core plugins have been entirely rewritten for consistency and depth.
-The [Core Plugin Reference index](userguide/plugin_reference.html) has also been reorganized and now lists previously missing core plugins.
+The User Manual reference pages for the core plugins have been entirely rewritten for consistency and depth. The [Core Plugin Reference index](userguide/plugin_reference.html) has also been reorganized and now lists previously missing core plugins.
 
 Two new entries have been added to the [Best Practices](userguide/best_practices.html) collection:
+
 - Obtain Loggers via `Logging.getLogger(Class)` outside of Tasks — where and how to acquire a logger in build logic.
 - Favor collection property types over a `Property` holding a collection — the case for `ListProperty` and `SetProperty` over `Property<List<...>>`.
 

@@ -1,0 +1,3 @@
+ - Java 27 support
+ - Maven mirror settings reuse
+ - Linked problem locations in build output
