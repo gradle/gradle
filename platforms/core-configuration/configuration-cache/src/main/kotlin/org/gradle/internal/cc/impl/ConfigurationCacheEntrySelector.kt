@@ -107,14 +107,14 @@ internal class ConfigurationCacheEntrySelector(
         }
 
         val systemPropertiesSnapshot = System.getProperties().clone()
-        return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
-            if (!result.isFullReuse) {
-                // Restore system properties and force Gradle properties to be reloaded
-                // so the Gradle properties files along with any Gradle property defining
-                // system properties and environment variables are added to the new fingerprint.
-                rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
-            }
+        val result = runCatching { checkFingerprintAgainstLoadedProperties(candidateEntry) }
+        if (result.getOrNull()?.isFullReuse != true) {
+            // Restore system properties and force Gradle properties to be reloaded
+            // so the Gradle properties files along with any Gradle property defining
+            // system properties and environment variables are added to the new fingerprint.
+            rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
         }
+        return result.getOrThrow()
     }
 
     private
