@@ -319,7 +319,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":nullsafe:1.0") {
-                configuration("_classpath")
+                variant("_classpath")
                 artifact(name: "someDir", type: "", version: "")
                 project(":", ":nullsafe:1.0")
             }

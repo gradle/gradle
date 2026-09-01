@@ -491,7 +491,7 @@ class ResolveTestFixture {
         actualFirstLevel = findLines(configDetails, 'lenient-first-level') as Set
         compare("lenient first level dependencies", actualFirstLevel, expectedFirstLevel)
 
-        def expectedResolvedDependencies = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } - graph.virtualConfigurations.collect { "[${it}]".toString() } as Set
+        def expectedResolvedDependencies = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } as Set
 
         def actualResolvedDeps = findLines(configDetails, 'resolved-resolved-dependency') as Set
         compare("resolved dependencies in graph", actualResolvedDeps, expectedResolvedDependencies)
@@ -692,8 +692,6 @@ class ResolveTestFixture {
         private final Map<String, NodeBuilder> nodes = [:]
         private NodeBuilder root
 
-        final Set<String> virtualConfigurations = []
-
         Collection<NodeBuilder> getNodes() {
             return nodes.values()
         }
@@ -702,10 +700,6 @@ class ResolveTestFixture {
             def nodes = new HashSet<>()
             visitDeps(this.root.deps, nodes, new HashSet<>())
             return nodes
-        }
-
-        void virtualConfiguration(String id) {
-            virtualConfigurations << id
         }
 
         private void visitDeps(List<EdgeBuilder> edges, Set<NodeBuilder> nodes, Set<NodeBuilder> seen) {
@@ -797,14 +791,6 @@ class ResolveTestFixture {
             return node("module:${actualMVI},${group}:${module}", actualMVI, moduleVersionId)
         }
 
-        NodeBuilder module(Map attrs) {
-            def group = attrs.group
-            def module = attrs.module
-            def version = attrs.version
-            def moduleVersionId = "$group:$module:$version"
-            return node("module:$moduleVersionId,$group:$module", moduleVersionId, moduleVersionId, attrs)
-        }
-
         NodeBuilder node(String type, String id, String moduleVersionId) {
             def attrs
             if (moduleVersionId.matches(':\\w+:')) {
@@ -821,7 +807,7 @@ class ResolveTestFixture {
                     attrs = [group: parts[0], module: parts[1], version: parts[2]]
                 } else {
                     assert parts.length == 4
-                    attrs = [group: parts[0], module: parts[1], version: parts[2], configuration: parts[3]]
+                    attrs = [group: parts[0], module: parts[1], version: parts[2], variant: parts[3]]
                     id = "${attrs.group}:${attrs.module}:${attrs.version}"
                     moduleVersionId = id
                 }
@@ -829,20 +815,20 @@ class ResolveTestFixture {
             return node(type, id, moduleVersionId, attrs)
         }
 
-        NodeBuilder node(String type, String id, String moduleVersion, Map attrs) {
+        NodeBuilder node(String type, String id, String moduleVersion, Map<String, String> attrs) {
             def node = nodes[moduleVersion]
             if (!node) {
                 node = new NodeBuilder(type, id, moduleVersion, attrs, this)
                 nodes[moduleVersion] = node
             }
-            if (attrs.configuration) {
-                node.configuration(attrs.configuration)
+            if (attrs.variant) {
+                node.variant(attrs.variant)
             }
             return node
         }
     }
 
-    static class EdgeBuilder {
+    private static class EdgeBuilder {
         final String requested
         final NodeBuilder from
         NodeBuilder selected
@@ -852,11 +838,6 @@ class ResolveTestFixture {
             this.from = from
             this.requested = requested
             this.selected = selected
-        }
-
-        EdgeBuilder selects(Map selectedModule) {
-            selected = from.graph.module(selectedModule)
-            return this
         }
     }
 
@@ -964,8 +945,6 @@ class ResolveTestFixture {
         final String group
         final String module
         final String version
-        final Set<String> configurations = []
-        Set<String> firstLevelConfigurations
         private boolean implicitArtifact = true
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
@@ -975,8 +954,6 @@ class ResolveTestFixture {
         private final Set<String> ignoreReasonPrefixes = new HashSet<>()
         Set<Variant> variants = []
 
-        boolean checkVariant
-
         NodeBuilder(String type, String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
             this.group = attrs.group
@@ -985,9 +962,6 @@ class ResolveTestFixture {
             this.moduleVersionId = moduleVersionId
             this.id = id
             this.type = type
-            if (attrs.variantName) {
-                variant(attrs.variantName, attrs.variantAttributes)
-            }
             reasons.add('requested')
         }
 
@@ -1089,6 +1063,22 @@ class ResolveTestFixture {
         }
 
         /**
+         * Like {@link #edge(String, String, Closure)}, but to be used in cases where the requested or selected
+         * module contains a {@code :} and cannot be passed as a single string.
+         */
+        NodeBuilder edge(Map<String, String> requested, Map<String, String> selected, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def group = selected.group
+            def module = selected.module
+            def version = selected.version
+
+            def moduleVersionId = "${group}:${module}:${version}"
+            def node = graph.node("module:${moduleVersionId},${group}:${module}", moduleVersionId, moduleVersionId, [group: group, module: module, version: version])
+            deps << new EdgeBuilder(this, "${requested.group}:${requested.module}:${requested.version}", node)
+            applyTo(node, cl)
+            return node
+        }
+
+        /**
          * Defines a dependency from the current node to the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
         NodeBuilder edge(String requested, String selectedProjectIdentityPath, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
@@ -1102,15 +1092,6 @@ class ResolveTestFixture {
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
-        }
-
-        /**
-         * Defines a dependency of the current node.
-         */
-        EdgeBuilder dependency(Map requested) {
-            def edge = new EdgeBuilder(this, "${requested.group}:${requested.module}:${requested.version}", null)
-            deps << edge
-            return edge
         }
 
         /**
@@ -1247,31 +1228,11 @@ class ResolveTestFixture {
         }
 
         NodeBuilder variant(String name, Map<String, ?> attributes = null) {
-            configuration(name)
-            checkVariant = true
-            String variantName = name
             Map<String, String> stringAttributes = attributes != null ? attributes.collectEntries { entry ->
                 [entry.key, entry.value instanceof Closure ? entry.value.call() : entry.value.toString()]
             } : null
-            this.variants << new Variant(name: variantName, attributes: stringAttributes)
+            this.variants << new Variant(name: name, attributes: stringAttributes)
             this
-        }
-
-        void setConfiguration(String configuration) {
-            configurations.clear()
-            configurations.add(configuration)
-        }
-
-        void configuration(String configuration) {
-            configurations << configuration
-        }
-
-        void setFirstLevelConfigurations(Collection<String> firstLevelConfigurations) {
-            this.firstLevelConfigurations = firstLevelConfigurations as Set
-        }
-
-        Set<String> getFirstLevelConfigurations() {
-            firstLevelConfigurations == null ? configurations : firstLevelConfigurations
         }
     }
 

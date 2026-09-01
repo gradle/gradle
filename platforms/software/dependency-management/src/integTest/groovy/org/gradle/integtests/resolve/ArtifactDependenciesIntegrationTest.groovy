@@ -47,7 +47,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
         resolve.expectGraph {
             root(":", ":test:") {
                 module("test:projectA:1.2") {
-                    configuration("api")
+                    variant("api")
                     module("test:projectB:1.5") {
                         artifact(name: "projectB-api")
                     }
@@ -62,17 +62,18 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
         resolve.expectGraph {
             root(":", ":test:") {
                 module("test:projectA:1.2") {
-                    configuration("api")
-                    configuration("default")
+                    variant("api")
                     module("test:projectB:1.5") {
-                        configuration("extraRuntime")
+                        variant("extraRuntime")
                         artifact()
                         artifact(name: "projectB-api")
                         artifact(name: "projectB-extraRuntime")
                     }
                     module("test:projectB:1.5")
                 }
-                module("test:projectA:1.2")
+                module("test:projectA:1.2") {
+                    variant("default")
+                }
                 module("test:projectB:1.5")
             }
         }

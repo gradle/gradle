@@ -412,7 +412,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("bom:bom:1.0") {
-                    configuration = 'platform-runtime'
+                    variant('platform-runtime')
                     constraint("org:xml:2.0", "org:xml:1.0") {
                         forced()
                         byConstraint()
@@ -540,7 +540,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:annotations:2.7.9')
                 }
             }
-            virtualConfiguration('org:platform:2.7.9')
         }
 
         where: "order of dependencies doesn't matter"
@@ -599,7 +598,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:annotations:2.7.9')
                 }
             }
-            virtualConfiguration('org:platform:2.7.9')
         }
 
         where: "order of dependencies doesn't matter"
@@ -655,7 +653,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:annotations:2.9.4.1')
                 }
             }
-            virtualConfiguration('org:platform:2.9.4.1')
         }
         where: "order of dependencies doesn't matter"
         dependencies << [
@@ -728,7 +725,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedRuntimeElements' : 'enforced-platform-runtime'
                 edge("org:platform:{strictly 2.7.9}", "org:platform:2.7.9") {
                     byAncestor()
-                    configuration(expectedVariant)
+                    variant(expectedVariant)
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
                     constraint('org:annotations:2.7.9')

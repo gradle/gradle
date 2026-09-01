@@ -1353,14 +1353,15 @@ group:projectB:2.2;release
         null
     }
 
-    def checkResolve(Map edges) {
+    def checkResolve(Map<String, Object> edges) {
         assert succeeds('checkDeps')
         resolve.expectGraph {
             root(":", ":test:") {
                 edges.each { from, to ->
                     if (to instanceof List) {
-                        edge(from, to[0]).byReason(to[1]).maybeRequested()
+                        edge(from, to[0] as String).byReason(to[1] as String).maybeRequested()
                     } else {
+                        assert to instanceof String
                         edge(from, to)
                     }
                 }

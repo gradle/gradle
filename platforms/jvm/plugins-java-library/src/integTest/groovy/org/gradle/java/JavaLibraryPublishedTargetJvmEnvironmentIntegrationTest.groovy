@@ -159,8 +159,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module('org:producer:1.0')
-                constraint('org:producer:1.0', 'org:producer:1.0') {
+                module('org:producer:1.0') {
                     variant('apiElementsJre', [
                         'org.gradle.jvm.environment': 'standard-jvm',
                         'org.gradle.jvm.version': 8,
@@ -173,6 +172,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
                     byConstraint()
                     artifact(classifier: 'jre')
                 }
+                constraint('org:producer:1.0', 'org:producer:1.0')
             }
         }
     }

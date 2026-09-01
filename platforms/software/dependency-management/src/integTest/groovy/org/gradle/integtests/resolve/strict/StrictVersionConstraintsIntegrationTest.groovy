@@ -512,7 +512,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     edge('org:foo:2.0', ':foo', 'org:foo:1.0') {}.byAncestor()
                 }
                 project(':foo', 'org:foo:1.0') {
-                    configuration = 'default'
+                    variant('default')
                     noArtifacts()
                 }
             }

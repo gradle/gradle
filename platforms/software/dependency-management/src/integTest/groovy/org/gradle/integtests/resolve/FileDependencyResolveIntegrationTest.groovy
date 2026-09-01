@@ -69,7 +69,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 files << "main.jar"
                 files << "sub.jar"
                 project(":sub", "main:sub:") {
-                    configuration = "compile"
+                    variant("compile")
                     noArtifacts()
                 }
             }
@@ -119,7 +119,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 files << "sub-1.jar"
                 files << "sub-2.jar"
                 project(":sub", "main:sub:") {
-                    configuration = "compile"
+                    variant("compile")
                     noArtifacts()
                 }
             }
@@ -204,10 +204,10 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 files << "main.jar"
                 files << "sub.jar"
                 project(":sub", "main:sub:") {
-                    configuration = "compile"
+                    variant("conf")
                     noArtifacts()
                     project(":", ":main:") {
-                        configuration = "compile"
+                        variant("conf")
                         noArtifacts()
                     }
                 }
@@ -251,7 +251,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             root(":", ":main:") {
                 files << "main.jar"
                 project(":sub", "main:sub:") {
-                    configuration = "compile"
+                    variant("compile")
                     noArtifacts()
                 }
             }

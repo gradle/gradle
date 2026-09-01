@@ -97,13 +97,13 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
-                configuration = "runtimeElements"
+                variant("graphElements")
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", ":buildC", "org.test:buildC:1.0") {
-                    configuration = "runtimeElements"
+                    variant("graphElements")
                     compositeSubstitute()
                     edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
-                        configuration = "runtimeElements"
+                        variant("graphElements")
                         compositeSubstitute()
                     }
                 }
@@ -142,16 +142,16 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
-                configuration = "runtimeElements"
+                variant("graphElements")
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", ":buildC", "org.test:buildC:1.0") {
-                    configuration = "runtimeElements"
+                    variant("graphElements")
                     compositeSubstitute()
                     edge("org.test:buildD:1.0", ":buildD", "org.test:buildD:1.0") {
-                        configuration = "runtimeElements"
+                        variant("graphElements")
                         compositeSubstitute()
                         edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
-                            configuration = "runtimeElements"
+                            variant("graphElements")
                             compositeSubstitute()
                         }
                     }
@@ -187,13 +187,13 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:1.0") {
-                configuration = "runtimeElements"
+                variant("graphElements")
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", ":buildC", "org.test:buildC:1.0") {
-                    configuration = "runtimeElements"
+                    variant("graphElements")
                     compositeSubstitute()
                     edge("org.test:b2:1.0", ":buildB:b2", "org.test:b2:1.0") {
-                        configuration = "runtimeElements"
+                        variant("graphElements")
                         compositeSubstitute()
                     }
                 }
@@ -220,10 +220,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then: // No cycle when building dependency graph
         checkGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
-                configuration = "runtimeElements"
+                variant("graphElements")
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", ":buildC", "org.test:buildC:1.0") {
-                    configuration = "runtimeElements"
+                    variant("graphElements")
                     compositeSubstitute()
                 }
             }
@@ -266,13 +266,13 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
-                configuration = "runtimeElements"
+                variant("graphElements")
                 compositeSubstitute()
                 edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:1.0") {
-                    configuration = "runtimeElements"
+                    variant("graphElements")
                     compositeSubstitute()
                     edge("org.test:b2:1.0", ":buildB:b2", "org.test:b2:1.0") {
-                        configuration = "runtimeElements"
+                        variant("graphElements")
                         compositeSubstitute()
                         edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:1.0") {}
                     }

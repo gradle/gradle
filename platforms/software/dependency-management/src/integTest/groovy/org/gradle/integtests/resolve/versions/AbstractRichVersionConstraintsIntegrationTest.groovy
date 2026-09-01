@@ -664,7 +664,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
             root(":", ":test:") {
                 edge('org:foo:{strictly [15,16]}', 'org:foo:16')
                 project(':other', 'test:other:') {
-                    configuration 'conf'
+                    variant('conf')
                     edge('org:foo:{strictly [17,18]}', 'org:foo:16') {
                         notRequested()
                         byAncestor()

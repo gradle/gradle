@@ -373,7 +373,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         resolve.expectGraph(":p1") {
             root(":p1", "test:p1:") {
                 project(":p2", "test:p2:") {
-                    configuration 'runtimeElements'
+                    variant('runtimeElements')
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'one-preferred')
                         byConflictResolution("Explicit selection of project ':shared' variant onePrefRuntimeElements")
@@ -986,8 +986,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     noArtifacts()
                 }
                 project(":producer", "test:producer:") {
-                    variant('one-preferred', ['org.gradle.usage': 'foo'])
-                    noArtifacts()
+                    variant('one-preferred')
                 }
             }
         }

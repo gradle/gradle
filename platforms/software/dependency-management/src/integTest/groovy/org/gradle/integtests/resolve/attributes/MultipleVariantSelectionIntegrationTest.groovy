@@ -422,14 +422,14 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.1 and 1.0')
-                    // the following assertion is true but limitations to the test fixtures make it hard to check
-                    //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
                     variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact classifier: 'c2'
                     artifact classifier: 'c3'
                 }
                 module('org:bar:1.0') {
-                    module('org:foo:1.1')
+                    module('org:foo:1.1') {
+                        variant('altruntime', [custom2: 'c3', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus()])
+                    }
                 }
             }
         }
