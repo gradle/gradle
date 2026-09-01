@@ -102,8 +102,8 @@ class PromotionProjectTests {
         val expectedGradleParams =
             """
             -PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% 
-            "-PgitUserName=bot-teamcity"
-            "-PgitUserEmail=bot-teamcity@gradle.com"
+            "-PgitUserName=bot-gradle"
+            "-PgitUserEmail=bot-gradle@gradle.com"
             $pluginPortalUrlOverride
             -DenablePredictiveTestSelection=false
             %additional.gradle.parameters%
@@ -162,8 +162,8 @@ class PromotionProjectTests {
         val expectedGradleParams =
             """
             -PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number% 
-            "-PgitUserName=bot-teamcity"
-            "-PgitUserEmail=bot-teamcity@gradle.com"
+            "-PgitUserName=bot-gradle"
+            "-PgitUserEmail=bot-gradle@gradle.com"
             $pluginPortalUrlOverride
             -DenablePredictiveTestSelection=false
             %additional.gradle.parameters%
@@ -194,8 +194,8 @@ class PromotionProjectTests {
             """
             -PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number%
             -PpromotedBranch=%branch.qualifier%
-            "-PgitUserName=bot-teamcity"
-            "-PgitUserEmail=bot-teamcity@gradle.com"
+            "-PgitUserName=bot-gradle"
+            "-PgitUserEmail=bot-gradle@gradle.com"
             $pluginPortalUrlOverride
             -DenablePredictiveTestSelection=false
             %additional.gradle.parameters%
@@ -225,8 +225,8 @@ class PromotionProjectTests {
         val expectedParams =
             """
             -PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number% 
-            "-PgitUserName=bot-teamcity"
-            "-PgitUserEmail=bot-teamcity@gradle.com"
+            "-PgitUserName=bot-gradle"
+            "-PgitUserEmail=bot-gradle@gradle.com"
             $pluginPortalUrlOverride
             -DenablePredictiveTestSelection=false
             %additional.gradle.parameters%
@@ -252,8 +252,8 @@ class PromotionProjectTests {
         val expectedGradleParams =
             """
             -PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number% 
-            "-PgitUserName=bot-teamcity"
-            "-PgitUserEmail=bot-teamcity@gradle.com"
+            "-PgitUserName=bot-gradle"
+            "-PgitUserEmail=bot-gradle@gradle.com"
             $pluginPortalUrlOverride
             -DenablePredictiveTestSelection=false
             %additional.gradle.parameters%
