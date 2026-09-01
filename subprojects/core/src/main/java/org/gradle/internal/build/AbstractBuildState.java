@@ -119,7 +119,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
 
     @Override
     public BuildProjectRegistry getProjects() {
-        return getProjectStateRegistry().projectsFor(getBuildIdentifier());
+        return getProjectStateRegistry().projectsFor(getBuildIdentity());
     }
 
     protected BuildLifecycleController getBuildController() {
@@ -133,12 +133,12 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
 
     @Override
     public boolean isProjectsLoaded() {
-        return getProjectStateRegistry().findProjectsFor(getBuildIdentifier()) != null;
+        return getProjectStateRegistry().findProjectsFor(getBuildIdentity()) != null;
     }
 
     @Override
     public boolean isProjectsCreated() {
-        BuildProjectRegistry projectsForThisBuild = getProjectStateRegistry().findProjectsFor(getBuildIdentifier());
+        BuildProjectRegistry projectsForThisBuild = getProjectStateRegistry().findProjectsFor(getBuildIdentity());
         return projectsForThisBuild != null && projectsForThisBuild.getRootProject().isCreated();
     }
 
