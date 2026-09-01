@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactor
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
@@ -43,6 +42,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.AttributeTestUtil
@@ -82,7 +82,7 @@ class DefaultConfigurationContainerTest extends Specification {
         CollectionCallbackActionDecorator.NOOP,
         TestUtil.problemsService(),
         new AttributeDesugaring(attributesFactory),
-        new ResolveExceptionMapper(StandaloneDomainObjectContext.ANONYMOUS, new DocumentationRegistry()),
+        new ResolveExceptionMapper(DomainObjectContext.NONE, new DocumentationRegistry()),
         TestUtil.providerFactory(),
         new TestWorkerLeaseService(),
         new DependencyManagementInstanceIdentity(Describables.of("unknown"))
@@ -91,7 +91,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         configurationServices,
         listenerManager,
-        StandaloneDomainObjectContext.ANONYMOUS,
+        DomainObjectContext.NONE,
         new PublishArtifactNotationParserFactory(
                 objectFactory,
                 metaDataProvider,
@@ -104,7 +104,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,
         TestUtil.instantiatorFactory().decorateLenient(),
         callbackActionDecorator,
-        StandaloneDomainObjectContext.ANONYMOUS,
+        DomainObjectContext.NONE,
         configurationServices.instanceIdentity,
         configurationFactory,
         Mock(ResolutionStrategyFactory),

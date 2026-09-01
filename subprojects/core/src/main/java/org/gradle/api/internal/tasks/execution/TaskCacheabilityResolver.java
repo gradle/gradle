@@ -20,11 +20,14 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.history.OverlappingOutputs;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Optional;
 
+@ServiceScope(Scope.Project.class)
 public interface TaskCacheabilityResolver {
     Optional<CachingDisabledReason> shouldDisableCaching(
         TaskInternal task,

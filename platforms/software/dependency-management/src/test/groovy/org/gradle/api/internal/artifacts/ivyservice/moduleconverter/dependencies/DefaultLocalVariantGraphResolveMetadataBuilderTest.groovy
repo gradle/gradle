@@ -26,11 +26,11 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
+import org.gradle.internal.model.ModelContainer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -164,6 +164,6 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
     }
 
     def create() {
-        return converter.createConsumableVariantState(configuration, componentId, cache, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
+        return converter.createConsumableVariantState(configuration, componentId, cache, ModelContainer.EMPTY, TestUtil.calculatedValueContainerFactory())
     }
 }

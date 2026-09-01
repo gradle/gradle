@@ -52,6 +52,7 @@ import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -63,6 +64,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(ProjectInternal project) {
         return ServiceRegistryBuilder.builder()
+            .scopeStrictly(Scope.Project.class)
             .displayName("project execution services for '" + project.getPath() + "'")
             .parent(project.getServices())
             .provider(new ProjectExecutionServices())
