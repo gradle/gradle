@@ -54,9 +54,10 @@ public class LongCommandLineDetectionUtil {
         Throwable cause = failureCause;
         do {
             String message = cause.getMessage();
-            if (message.contains(WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE)
+            if (message != null
+                && (message.contains(WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE)
                 || message.contains(NIX_LONG_COMMAND_EXCEPTION_MESSAGE)
-                || message.contains(NEW_NIX_LONG_COMMAND_EXCEPTION_MESSAGE)) {
+                || message.contains(NEW_NIX_LONG_COMMAND_EXCEPTION_MESSAGE))) {
                 return true;
             }
         } while ((cause = cause.getCause()) != null);
