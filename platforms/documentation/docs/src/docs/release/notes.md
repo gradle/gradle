@@ -95,7 +95,7 @@ Three improvements make [problem reports](userguide/reporting_problems.html#sec:
 
 Printed problem locations (`demo-convention.gradle.kts:8`) are now clickable in terminals that support hyperlinks, so you can jump straight to the source line in most modern IDEs and editors. Problems in the CLI failure output now appear in the order they occurred, which preserves the causal sequence when you scroll through a failing build. The copy button in the HTML report also stays visible while you scroll long stack traces, so capturing a full trace no longer means hunting for the button.
 
-![][image1]
+![Problem Report Screenshot](release-notes-assets/problem-report.png)
 
 #### Broader coverage from the Problems API
 
@@ -293,5 +293,3 @@ If you find a problem with this release, please file a bug on [GitHub Issues](ht
 If you're not sure if you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
-
-[image1]: release-notes-assets/problem-report.png
