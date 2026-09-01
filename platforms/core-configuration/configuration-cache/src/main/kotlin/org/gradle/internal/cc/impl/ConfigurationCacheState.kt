@@ -489,7 +489,7 @@ class ConfigurationCacheState(
     suspend fun WriteContext.writeBuildSrcBuild(state: StandAloneNestedBuild, buildTreeState: StoredBuildTreeState) {
         val gradle = state.mutableModel
         withGradleIsolate(gradle, userTypesCodec) {
-            write(state.owner.buildIdentifier)
+            write(state.owner.buildIdentity)
         }
         // Encode the build state using the contextualized IO service for the nested build
         gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
@@ -503,8 +503,8 @@ class ConfigurationCacheState(
     private
     suspend fun ReadContext.readBuildSrcBuild(rootBuild: ConfigurationCacheBuild): CachedBuildState {
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
-            val ownerIdentifier = readNonNull<BuildIdentifier>()
-            rootBuild.getBuildSrcOf(ownerIdentifier)
+            val ownerIdentity = readNonNull<BuildIdentity>()
+            rootBuild.getBuildSrcOf(ownerIdentity)
         }
         return readNestedBuildState(build)
     }
