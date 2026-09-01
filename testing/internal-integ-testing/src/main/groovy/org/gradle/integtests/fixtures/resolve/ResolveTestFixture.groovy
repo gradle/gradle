@@ -116,6 +116,9 @@ class ResolveTestFixture {
                 abstract Property<ResolvedComponentResult> getRootComponent()
 
                 @Internal
+                abstract Property<ResolvedVariantResult> getRootVariant()
+
+                @Internal
                 abstract ConfigurableFileCollection getFiles()
 
                 @Internal
@@ -145,6 +148,7 @@ class ResolveTestFixture {
 
                 def configureFrom(Configuration configuration) {
                     rootComponent = configuration.incoming.resolutionResult.rootComponent
+                    rootVariant = configuration.incoming.resolutionResult.rootVariant
                     files.from(configuration)
 
                     incomingFiles = configuration.incoming.files
@@ -167,7 +171,7 @@ class ResolveTestFixture {
                             configuration.resolvedConfiguration.firstLevelModuleDependencies.each {
                                 pw.println("first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}]")
                             }
-                            visitNodes("resolved", configuration.resolvedConfiguration.firstLevelModuleDependencies, pw, new HashSet<>())
+                            visitLegacyGraph("resolved", configuration.resolvedConfiguration.firstLevelModuleDependencies, pw, new HashSet<>())
                             configuration.resolvedConfiguration.resolvedArtifacts.each {
                                 pw.println("artifact:[${it.moduleVersion.id}][${it.name}:${it.classifier}:${it.extension}:${it.type}] (${it.id.componentIdentifier.displayName})")
                             }
@@ -179,7 +183,7 @@ class ResolveTestFixture {
                             configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies.each {
                                 pw.println("lenient-first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}]")
                             }
-                            visitNodes("lenient", configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies, pw, new HashSet<>())
+                            visitLegacyGraph("lenient", configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies, pw, new HashSet<>())
                             configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
                                 pw.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}:${it.classifier}:${it.extension}:${it.type}] (${it.id.componentIdentifier.displayName})")
                             }
@@ -200,14 +204,11 @@ class ResolveTestFixture {
                     outputFile.parentFile.mkdirs()
                     //noinspection GroovyMissingReturnStatement
                     outputFile.withPrintWriter { writer ->
-                        def root = rootComponent.get()
-
-                        def components = new LinkedHashSet()
-                        def dependencies = new LinkedHashSet()
-                        collectAllComponentsAndEdges(root, components, dependencies)
+                        GraphNode rootNode = createNode(rootComponent.get(), rootVariant.get())
+                        Set<GraphNode> nodes = collectAllNodes(rootNode)
 
                         // These are always checked regardless of whether or not building artifacts is requested
-                        writeGraphStructure(writer, root, components, dependencies)
+                        writeGraphStructure(writer, rootNode, nodes)
 
                         incomingArtifacts.artifacts.each {
                             writeArtifact("incoming-artifact-artifact", writer, it)
@@ -276,7 +277,7 @@ class ResolveTestFixture {
                     }
                 }
 
-                protected void visitNodes(String prefix, Collection<ResolvedDependency> nodes, PrintWriter writer, Set<ResolvedDependency> visited) {
+                protected void visitLegacyGraph(String prefix, Collection<ResolvedDependency> nodes, PrintWriter writer, Set<ResolvedDependency> visited) {
                     for (ResolvedDependency node : nodes) {
                         if (!visited.add(node)) {
                             continue
@@ -285,35 +286,71 @@ class ResolveTestFixture {
                         for (ResolvedDependency child : node.children) {
                             writer.println(prefix + "-resolved-dependency-edge:[${node.moduleGroup}:${node.moduleName}:${node.moduleVersion}]->[${child.moduleGroup}:${child.moduleName}:${child.moduleVersion}]")
                         }
-                        visitNodes(prefix, node.children, writer, visited)
+                        visitLegacyGraph(prefix, node.children, writer, visited)
                     }
                 }
 
-                protected void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
-                    def queue = [root]
-                    def seen = new HashSet()
+                /**
+                 * Walks the variant graph, returning every node reachable from the given root node.
+                 */
+                protected Set<GraphNode> collectAllNodes(GraphNode rootNode) {
+                    Map<ResolvedVariantResult, GraphNode> nodes = new LinkedHashMap<>()
+                    Deque<GraphNode> queue = new ArrayDeque<>()
+
+                    nodes.put(rootNode.variant, rootNode)
+                    queue.addLast(rootNode)
 
                     while (!queue.isEmpty()) {
-                        def node = queue.remove(0)
-                        if (seen.add(node)) {
-                            components.add(node)
-                            for (final def dep in node.getDependencies()) {
-                                dependencies.add(dep)
-                                if (dep instanceof ResolvedDependencyResult) {
-                                    queue.add(dep.selected)
-                                }
+                        GraphNode node = queue.removeFirst()
+                        for (ResolvedDependencyResult edge : node.outgoingEdges) {
+                            ResolvedVariantResult target = edge.resolvedVariant
+                            if (!nodes.containsKey(target)) {
+                                GraphNode targetNode = createNode(edge.selected, target)
+                                nodes.put(target, targetNode)
+                                queue.addLast(targetNode)
                             }
-                        } // else, already seen
+                        }
                     }
+
+                    return new LinkedHashSet<>(nodes.values())
                 }
 
-                protected void writeGraphStructure(PrintWriter writer, ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
-                    writer.println("root:${formatComponent(root)}")
-                    components.each {
-                        writer.println("component:${formatComponent(it)}")
+                protected GraphNode createNode(ResolvedComponentResult component, ResolvedVariantResult variant) {
+                    List<ResolvedDependencyResult> outgoingEdges = component.getDependenciesForVariant(variant).collect { DependencyResult edge ->
+                        if (!(edge instanceof ResolvedDependencyResult)) {
+                            throw new IllegalStateException("Expected all dependencies to resolve, but ${edge} did not.")
+                        }
+                        return (ResolvedDependencyResult) edge
                     }
-                    dependencies.each {
-                        writer.println("dependency:${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]")
+
+                    return new GraphNode(component, variant, outgoingEdges)
+                }
+
+                protected void writeGraphStructure(PrintWriter writer, GraphNode rootNode, Set<GraphNode> nodes) {
+                    // Sanity check that two nodes do not share the same name, as we this fixture keys nodes by their display name.
+                    nodes.groupBy { it.variant.owner }.each { ComponentIdentifier owner, List<GraphNode> owned ->
+                        List<String> names = owned.collect { it.variant.displayName }
+                        assert names.size() == names.unique(false).size() : "Component ${owner} has multiple variants named the same: ${names}"
+                    }
+
+                    writer.println("root-variant:${formatNode(rootNode.variant)}")
+                    nodes.each { GraphNode node ->
+                        writer.println("variant:${formatNode(node.variant)}@@${formatAttributes(node.variant.attributes)}@@${formatCapabilities(node.variant.capabilities)}")
+                        node.outgoingEdges.each { ResolvedDependencyResult edge ->
+                            writer.println("variant-dependency:${edge.constraint}@@${formatNode(node.variant)}@@${edge.requested}@@${formatNode(edge.resolvedVariant)}")
+                        }
+                    }
+
+                    // The component graph is an overlay on the variant graph. A component is the owner of one or
+                    // more variants, and its dependencies are those of all of its variants. It is written out so
+                    // that deriving one from the other can be verified.
+                    Set<ResolvedComponentResult> components = new LinkedHashSet<>(nodes.collect { it.component })
+                    writer.println("root:${formatComponent(rootNode.component)}")
+                    components.each { ResolvedComponentResult component ->
+                        writer.println("component:${formatComponent(component)}")
+                        component.dependencies.each { DependencyResult edge ->
+                            writer.println("dependency:${edge.constraint ? '[constraint]' : ''}[from:${edge.from.id}][${edge.requested}->${edge.selected.id}]")
+                        }
                     }
                 }
 
@@ -326,14 +363,20 @@ class ResolveTestFixture {
                     } else {
                         type = "other"
                     }
-                    String variants = result.variants.collect { variant ->
-                        "variant:${formatVariant(variant)}"
-                    }.join('@@')
-                    "[$type][id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][$variants]"
+                    "[$type][id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}]"
                 }
 
-                protected String formatVariant(ResolvedVariantResult variant) {
-                    return "name:${variant.displayName} attributes:${formatAttributes(variant.attributes)}"
+                /**
+                 * Identifies a node of the variant graph, as the component that owns it and the variant it is.
+                 */
+                protected String formatNode(ResolvedVariantResult variant) {
+                    return "${variant.owner.displayName}@@${variant.displayName}"
+                }
+
+                protected String formatCapabilities(List<Capability> capabilities) {
+                    capabilities.collect {
+                        "${it.group}:${it.name}:${it.version}"
+                    }.sort().join(',')
                 }
 
                 protected String formatAttributes(AttributeContainer attributes) {
@@ -362,6 +405,15 @@ class ResolveTestFixture {
                 protected void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
                     writer.println("$linePrefix:${artifact.file.name} (${artifact.id.componentIdentifier.displayName})")
                 }
+
+                /**
+                 * A variant of the graph, the component that owns it, and its outgoing edges.
+                 */
+                record GraphNode(
+                    ResolvedComponentResult component,
+                    ResolvedVariantResult variant,
+                    List<ResolvedDependencyResult> outgoingEdges
+                ) {}
             }
         '''
         return text
@@ -403,18 +455,18 @@ class ResolveTestFixture {
         def expectedRoot = "[${root.type}][id:${root.id}][mv:${root.moduleVersionId}][reason:${root.reason}]".toString()
         assert actualRoot.startsWith(expectedRoot)
 
-        def actualComponents = findLines(configDetails, 'component')
-        def expectedComponents = graph.nodes.collect { baseNode ->
-            def variants = baseNode.variants
-            new ParsedNode(type: baseNode.type,
+        Map<String, Set<Variant>> actualVariants = parseVariants(findLines(configDetails, 'variant'))
+        List<String> actualComponents = findLines(configDetails, 'component')
+        List<ParsedComponent> expectedComponents = graph.nodes.collect { NodeBuilder baseNode ->
+            new ParsedComponent(type: baseNode.type,
                 id: baseNode.id,
                 module: baseNode.moduleVersionId,
                 reasons: baseNode.allReasons,
-                variants: variants,
+                variants: baseNode.variants,
                 ignoreReasons: baseNode.ignoreReasons,
                 ignoreReasonPrefixes: baseNode.ignoreReasonPrefixes)
         }
-        compareNodes("components in graph", parseNodes(actualComponents), expectedComponents)
+        compareComponents("components in graph", parseComponents(actualComponents, actualVariants), expectedComponents)
 
         def actualEdges = findLines(configDetails, 'dependency')
         def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
@@ -532,11 +584,30 @@ class ResolveTestFixture {
         return lines.findAll { it.startsWith(prefix + ":") }.collect { it.substring(prefix.length() + 1) }
     }
 
-    List<ParsedNode> parseNodes(List<String> nodes) {
-        nodes.collect { parseNode(it) }
+    /**
+     * Parses the variants of the graph, grouped by the ID of the component that owns them.
+     */
+    Map<String, Set<Variant>> parseVariants(List<String> lines) {
+        Map<String, Set<Variant>> result = [:]
+        lines.each { line ->
+            // owner@@name@@attributes@@capabilities
+            List<String> parts = line.split('@@', -1) as List<String>
+            assert parts.size() == 4: "Malformed variant '$line'"
+            Map<String, String> attributes = parts[2]
+                .split(',') // attributes are separated by commas
+                .findAll() // only keep non empty entries
+                .collectEntries { it.split('=', 2) as List }
+            result.computeIfAbsent(parts[0]) { new LinkedHashSet<Variant>() }
+                .add(new Variant(name: parts[1], attributes: attributes))
+        }
+        return result
     }
 
-    ParsedNode parseNode(String line) {
+    List<ParsedComponent> parseComponents(List<String> components, Map<String, Set<Variant>> variants) {
+        components.collect { parseComponent(it, variants) }
+    }
+
+    ParsedComponent parseComponent(String line, Map<String, Set<Variant>> variants) {
         int start = 1
         // we look for ][ instead of just ], because of that one test that checks that we can have random characters in id
         // see IvyDynamicRevisionRemoteResolveIntegrationTest. uses latest version from version range with punctuation characters
@@ -563,27 +634,12 @@ class ResolveTestFixture {
             throw new IllegalArgumentException("Missing reasons in '$line'")
         }
         List<String> reasons = line.substring(start, idx).split('!!') as List<String>
-        Set<Variant> variants = []
-        start = idx + 15
-        while (start < line.length()) {
-            idx = line.indexOf(' attributes:', start) // [variant name:
-            String variant = line.substring(start, idx)
-            start = idx + 12
-            idx = line.indexOf('@@', start)
-            if (idx < 0) {
-                idx = line.indexOf(']', start) // attributes:
-            }
-            Map<String, String> attributes = line.substring(start, idx)
-                .split(',') // attributes are separated by commas
-                .findAll() // only keep non empty entries (thank you, split!)
-                .collectEntries { it.split('=') as List }
-            start = idx + 15 // '@@'
-            variants << new Variant(name: variant, attributes: attributes)
-        }
-        new ParsedNode(type: type, id: id, module: module, reasons: reasons, variants: variants)
+        Set<Variant> ownedVariants = variants[id]
+        assert ownedVariants != null: "Component '$id' is in the graph, but owns no variant"
+        new ParsedComponent(type: type, id: id, module: module, reasons: reasons, variants: ownedVariants)
     }
 
-    static class ParsedNode {
+    static class ParsedComponent {
         String type
         String id
         String module
@@ -593,7 +649,7 @@ class ResolveTestFixture {
         Set<String> ignoreReasonPrefixes
         Set<Variant> variants = []
 
-        boolean diff(ParsedNode actual, StringBuilder sb) {
+        boolean diff(ParsedComponent actual, StringBuilder sb) {
             List<String> errors = []
             if (type != actual.type) {
                 errors << "Expected type '$type' but was: $actual.type"
@@ -644,7 +700,7 @@ class ResolveTestFixture {
         }
     }
 
-    static void compareNodes(String compType, Collection<ParsedNode> actual, Collection<ParsedNode> expected) {
+    static void compareComponents(String compType, Collection<ParsedComponent> actual, Collection<ParsedComponent> expected) {
         def actualSorted = actual.sort { it.id }
         def expectedSorted = expected.sort { it.id }
         StringBuilder errors = new StringBuilder()
@@ -697,14 +753,14 @@ class ResolveTestFixture {
         }
 
         Collection<NodeBuilder> getNodesWithoutRoot() {
-            def nodes = new HashSet<>()
-            visitDeps(this.root.deps, nodes, new HashSet<>())
+            Set<NodeBuilder> nodes = new HashSet<>()
+            visitDeps(this.root.deps, nodes, new HashSet<NodeBuilder>())
             return nodes
         }
 
         private void visitDeps(List<EdgeBuilder> edges, Set<NodeBuilder> nodes, Set<NodeBuilder> seen) {
             for (EdgeBuilder edge : edges) {
-                def selected = edge.selected
+                NodeBuilder selected = edge.selected
                 if (seen.add(selected)) {
                     nodes.add(selected)
                     visitDeps(selected.deps, nodes, seen)
@@ -719,7 +775,7 @@ class ResolveTestFixture {
         }
 
         Set<String> getFiles() {
-            Set<NodeBuilder> result = new LinkedHashSet()
+            Set<NodeBuilder> result = new LinkedHashSet<>()
             result.add(this.root)
             visitNodes(this.root, result)
             return result.collect { node -> node.files }.flatten()
