@@ -78,6 +78,20 @@ Because this is a "provided" configuration, this means that neither of these dep
 If you don't want this transitive behavior, simply declare your `provided` dependencies like `commons-httpclient:commons-httpclient:3.0@jar`.
 ====
 
+[[sec:war_provided_vs_compileonly]]
+=== `providedCompile` versus `compileOnly`
+
+The War plugin's `provided` configurations are not the same as the <<java_plugin.adoc#tab:configurations,`compileOnly`>> configuration added by the <<java_plugin.adoc#java_plugin,Java plugin>>, and the two are not interchangeable:
+
+`compileOnly`::
+Dependencies are available on the compile classpath only.
+They are _not_ on any runtime classpath (including the test runtime classpath) and are never packaged.
+Use it for dependencies that are needed solely to compile, such as annotation-only libraries.
+
+`providedCompile` (and `providedRuntime`)::
+Dependencies are available on the runtime classpath as well (including the test runtime classpath), so your tests can run against them, but they are excluded from the WAR archive.
+Use these for dependencies that the servlet container or application server supplies at deployment time, such as the Servlet API.
+
 [[sec:war_plugin_publishing]]
 == Publishing
 
