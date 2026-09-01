@@ -22,14 +22,13 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
@@ -38,6 +37,7 @@ import java.util.function.Function;
 
 public abstract class AbstractBuildState implements BuildState, Closeable {
 
+    private final BuildIdentity buildIdentity;
     private final @Nullable BuildState parent;
     private final CloseableServiceRegistry buildServices;
     private final Lazy<BuildLifecycleController> buildLifecycleController;
@@ -45,7 +45,8 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     private final Lazy<BuildWorkGraphController> workGraphController;
 
     @SuppressWarnings("this-escape")
-    public AbstractBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, @Nullable BuildState parent) {
+    public AbstractBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, Path identityPath, @Nullable BuildState parent) {
+        this.buildIdentity = new BuildIdentity(identityPath);
         this.parent = parent;
 
         buildServices = ServiceRegistryBuilder.builder()
@@ -75,8 +76,8 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
-    public DisplayName getDisplayName() {
-        return Describables.of(getBuildIdentifier());
+    public BuildIdentity getBuildIdentity() {
+        return buildIdentity;
     }
 
     @Override
