@@ -61,7 +61,6 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -132,10 +131,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 projectsLoaded = true;
             }
         });
-
-        if (buildState.getParent() == null) {
-            buildScopeServices.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
-        }
     }
 
     @Override
