@@ -47,6 +47,7 @@ public final class BuildIdentity implements DisplayName {
 
         this.buildPath = buildPath;
 
+        // TODO: avoid BuildIdentifier for core logic, and eventually wrap its implementation around BuildIdentity
         this.buildIdentifier = new DefaultBuildIdentifier(buildPath);
         this.displayName = Describables.memoize(Describables.of(buildIdentifier));
     }
@@ -65,6 +66,9 @@ public final class BuildIdentity implements DisplayName {
         return buildIdentifier;
     }
 
+    /**
+     * Returns the display name of this build, such as {@code build ':'} or {@code build ':included'}.
+     */
     @Override
     public String getDisplayName() {
         return displayName.getDisplayName();

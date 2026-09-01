@@ -42,6 +42,11 @@ public interface BuildState {
      */
     BuildIdentity getBuildIdentity();
 
+    /**
+     * Returns the display name of this build.
+     *
+     * @see BuildIdentity#getDisplayName()
+     */
     default DisplayName getDisplayName() {
         return getBuildIdentity();
     }
@@ -49,7 +54,7 @@ public interface BuildState {
     /**
      * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
      * <p>
-     * Prefer {@link #getIdentityPath()}.
+     * Prefer {@link #getBuildIdentity()} or plain {@link #getIdentityPath()}.
      */
     default BuildIdentifier getBuildIdentifier() {
         return getBuildIdentity().getBuildIdentifier();
