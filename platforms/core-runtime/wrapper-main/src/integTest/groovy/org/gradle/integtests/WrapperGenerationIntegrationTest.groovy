@@ -197,6 +197,24 @@ retryBackOffMs=1500
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("retryBackOffMs=1500")
     }
 
+    def "wrapper preserves existing properties next to a relocated wrapper jar"() {
+        given:
+        buildFile << """
+            wrapper {
+                jarFile = file("custom/gradle-wrapper.jar")
+            }
+        """
+        file("custom").mkdirs()
+        file("custom/gradle-wrapper.properties").text = "networkTimeout=20000\n"
+
+        when:
+        run "wrapper", "--gradle-version", "2.13", "--no-validate-url"
+
+        then:
+        file("custom/gradle-wrapper.properties").text.contains("networkTimeout=20000")
+        file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
+    }
+
     def "explicit wrapper properties override existing values"() {
         given:
         buildFile << """
@@ -273,6 +291,55 @@ distributionBase=PROJECT
         then:
         failure.assertHasCause("Invalid value 'invalid' for property 'networkTimeout'")
         failure.assertThatCause(containsString("gradle-wrapper.properties"))
+    }
+
+    def "malformed existing path base identifies the file and property"() {
+        given:
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+            }
+        """
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = "distributionBase=invalid\n"
+
+        when:
+        fails "wrapper", "--no-validate-url"
+
+        then:
+        failure.assertHasCause("Invalid value 'invalid' for property 'distributionBase'")
+        failure.assertThatCause(containsString("gradle-wrapper.properties"))
+    }
+
+    def "malformed existing boolean property identifies the file and property"() {
+        given:
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+            }
+        """
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = "validateDistributionUrl=invalid\n"
+
+        when:
+        fails "wrapper", "--offline"
+
+        then:
+        failure.assertHasCause("Invalid value 'invalid' for property 'validateDistributionUrl'")
+        failure.assertThatCause(containsString("gradle-wrapper.properties"))
+    }
+
+    def "existing path bases are normalized to the values understood by the wrapper runtime"() {
+        given:
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = "distributionBase=project\nzipStoreBase=gradle_user_home\n"
+
+        when:
+        run "wrapper", "--no-validate-url"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionBase=PROJECT")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("zipStoreBase=GRADLE_USER_HOME")
     }
 
     def "generated wrapper scripts for valid distribution types from command-line"() {

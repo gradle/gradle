@@ -61,6 +61,26 @@ public class WrapperGenerator {
         return new DistributionLocator().getDistributionFor(gradleVersion, distType).toASCIIString();
     }
 
+    public static Wrapper.@Nullable DistributionType getDistributionType(@Nullable String distributionUrl) {
+        if (distributionUrl == null) {
+            return null;
+        }
+        String path;
+        try {
+            path = new URL(distributionUrl).getPath();
+        } catch (Exception ignored) {
+            return null;
+        }
+        String fileName = path.substring(path.lastIndexOf('/') + 1);
+        for (Wrapper.DistributionType distributionType : Wrapper.DistributionType.values()) {
+            String suffix = "-" + distributionType.name().toLowerCase(Locale.ENGLISH) + ".zip";
+            if (fileName.endsWith(suffix)) {
+                return distributionType;
+            }
+        }
+        return null;
+    }
+
     public static void generate(
         PathBase archiveBase, String archivePath,
         PathBase distributionBase, String distributionPath,

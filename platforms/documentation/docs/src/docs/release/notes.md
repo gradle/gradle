@@ -69,7 +69,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Gradle Wrapper preserves customized properties
 
-The `wrapper` task now preserves values customized in an existing `gradle-wrapper.properties` file when they are not explicitly configured on the task. This includes network settings, URL validation, retry settings, and distribution and archive paths and bases. Explicit task configuration still takes precedence. As a result, values such as `--no-validate-url` persist when the wrapper is regenerated.
+The `wrapper` task now preserves values customized in an existing `gradle-wrapper.properties` file when they are not explicitly configured on the task. This includes network settings, URL validation, retry settings, and distribution and archive paths and bases. Explicit task configuration still takes precedence. As a result, values such as `--no-validate-url` persist when the wrapper is regenerated. User-declared `Wrapper` tasks now also write the default network timeout, retry count, retry backoff, and URL validation values when those properties are not otherwise configured.
 
 ### Isolated Projects
 [Isolated Projects](userguide/isolated_projects.html) is an incubating performance feature that safely runs project configuration in parallel, significantly reducing configuration time in many scenarios, including IDE sync and CI builds.

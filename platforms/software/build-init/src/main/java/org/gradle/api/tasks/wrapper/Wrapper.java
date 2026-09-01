@@ -19,21 +19,21 @@ package org.gradle.api.tasks.wrapper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableTransformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.provider.ValueSource;
-import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.api.tasks.wrapper.internal.ExistingWrapperProperties;
 import org.gradle.api.tasks.wrapper.internal.GradleVersionResolver;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
@@ -142,16 +142,16 @@ public abstract class Wrapper extends DefaultTask {
      *
      * @since 0.9
      */
-    @SuppressWarnings({"this-escape", "unchecked"})
+    @SuppressWarnings("this-escape")
     public Wrapper() {
-        existingProperties = getProviders().of(ExistingWrapperProperties.class, spec -> spec.getParameters().getPropertiesFile().set(getPropertiesFile()));
-        getNetworkTimeout().convention((Provider<Integer>) (Provider<?>) existingProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, ExistingPropertyType.INTEGER)
+        existingProperties = getProviders().of(ExistingWrapperProperties.class, SerializableLambdas.action(spec -> spec.getParameters().getPropertiesFile().fileProvider(getProviders().provider(SerializableLambdas.callable(this::getPropertiesFile)))));
+        getNetworkTimeout().convention(existingProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, Integer::valueOf)
             .orElse(WrapperDefaults.NETWORK_TIMEOUT));
-        getValidateDistributionUrl().convention((Provider<Boolean>) (Provider<?>) existingProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, ExistingPropertyType.BOOLEAN)
+        getValidateDistributionUrl().convention(existingProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, Wrapper::parseBoolean)
             .orElse(WrapperDefaults.VALIDATE_DISTRIBUTION_URL));
-        getRetries().convention((Provider<Integer>) (Provider<?>) existingProperty(WrapperExecutor.RETRIES_PROPERTY, ExistingPropertyType.INTEGER)
+        getRetries().convention(existingProperty(WrapperExecutor.RETRIES_PROPERTY, Integer::valueOf)
             .orElse(WrapperDefaults.RETRIES));
-        getRetryBackOffMs().convention((Provider<Integer>) (Provider<?>) existingProperty(WrapperExecutor.RETRY_BACK_OFF_PROPERTY, ExistingPropertyType.INTEGER)
+        getRetryBackOffMs().convention(existingProperty(WrapperExecutor.RETRY_BACK_OFF_PROPERTY, Integer::valueOf)
             .orElse(WrapperDefaults.RETRY_BACK_OFF_MS));
 
         gradleVersionResolver = new GradleVersionResolver(getProject().getResources().getText());
@@ -164,15 +164,16 @@ public abstract class Wrapper extends DefaultTask {
         FileResolver resolver = getFileLookup().getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
         File propertiesFile = getPropertiesFile();
-        Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
+        // Read the output properties file at execution time so changes made after configuration are included.
+        Properties existingWrapperProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
-        checkProperties(existingProperties);
+        checkProperties(existingWrapperProperties);
         validateDistributionUrl(propertiesFile.getParentFile());
 
         WrapperGenerator.generate(
             getArchiveBase(), getArchivePath(),
             getDistributionBase(), getDistributionPath(),
-            getDistributionSha256Sum(existingProperties),
+            getDistributionSha256Sum(existingWrapperProperties),
             propertiesFile,
             jarFileDestination, jarFileRelativePath,
             unixScript, getBatchScript(),
@@ -184,39 +185,55 @@ public abstract class Wrapper extends DefaultTask {
         );
     }
 
-    private Provider<Object> existingProperty(String propertyName, ExistingPropertyType type) {
-        return getProviders().of(ExistingWrapperProperty.class, spec -> {
-            spec.getParameters().getPropertiesFile().set(getPropertiesFile());
-            spec.getParameters().getPropertyName().set(propertyName);
-            spec.getParameters().getType().set(type.name());
-        });
+    private <T> Provider<T> existingProperty(String propertyName, SerializableTransformer<T, String> parser) {
+        return existingProperties.map(SerializableLambdas.transformer(properties -> {
+            String value = properties.getProperty(propertyName);
+            if (value == null) {
+                return null;
+            }
+            try {
+                return parser.transform(value);
+            } catch (RuntimeException e) {
+                throw new GradleException(String.format(Locale.ROOT, "Invalid value '%s' for property '%s' in '%s'.", value, propertyName, getPropertiesFile()), e);
+            }
+        }));
     }
 
-    private PathBase getDistributionBase(@Nullable Properties existingProperties) {
+    private static Boolean parseBoolean(String value) {
+        if ("true".equalsIgnoreCase(value)) {
+            return true;
+        }
+        if ("false".equalsIgnoreCase(value)) {
+            return false;
+        }
+        throw new IllegalArgumentException("Expected 'true' or 'false'.");
+    }
+
+    private PathBase resolveDistributionBase(@Nullable Properties existingProperties) {
         return distributionBaseConfigured || existingProperties == null
             ? distributionBase
-            : pathBase(existingProperties, WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase);
+            : resolvePathBase(existingProperties, WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase);
     }
 
-    private String getDistributionPath(@Nullable Properties existingProperties) {
+    private String resolveDistributionPath(@Nullable Properties existingProperties) {
         return distributionPathConfigured || existingProperties == null
             ? distributionPath
             : existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
     }
 
-    private PathBase getArchiveBase(@Nullable Properties existingProperties) {
+    private PathBase resolveArchiveBase(@Nullable Properties existingProperties) {
         return archiveBaseConfigured || existingProperties == null
             ? archiveBase
-            : pathBase(existingProperties, WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase);
+            : resolvePathBase(existingProperties, WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase);
     }
 
-    private String getArchivePath(@Nullable Properties existingProperties) {
+    private String resolveArchivePath(@Nullable Properties existingProperties) {
         return archivePathConfigured || existingProperties == null
             ? archivePath
             : existingProperties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
     }
 
-    private PathBase pathBase(Properties properties, String propertyName, PathBase defaultValue) {
+    private PathBase resolvePathBase(Properties properties, String propertyName, PathBase defaultValue) {
         String value = properties.getProperty(propertyName);
         if (value == null) {
             return defaultValue;
@@ -363,7 +380,7 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getDistributionPath() {
-        return distributionPathConfigured ? distributionPath : getDistributionPath(existingProperties.getOrNull());
+        return distributionPathConfigured ? distributionPath : resolveDistributionPath(existingProperties.getOrNull());
     }
 
     /**
@@ -419,8 +436,11 @@ public abstract class Wrapper extends DefaultTask {
             return distributionType;
         }
         Properties properties = existingProperties.getOrNull();
-        if (properties != null && properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, "").matches(".*-all\\.zip")) {
-            return DistributionType.ALL;
+        if (properties != null) {
+            DistributionType existingDistributionType = WrapperGenerator.getDistributionType(properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY));
+            if (existingDistributionType != null) {
+                return existingDistributionType;
+            }
         }
         return distributionType;
     }
@@ -554,7 +574,7 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public PathBase getDistributionBase() {
-        return distributionBaseConfigured ? distributionBase : getDistributionBase(existingProperties.getOrNull());
+        return distributionBaseConfigured ? distributionBase : resolveDistributionBase(existingProperties.getOrNull());
     }
 
     /**
@@ -576,7 +596,7 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getArchivePath() {
-        return archivePathConfigured ? archivePath : getArchivePath(existingProperties.getOrNull());
+        return archivePathConfigured ? archivePath : resolveArchivePath(existingProperties.getOrNull());
     }
 
     /**
@@ -598,7 +618,7 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public PathBase getArchiveBase() {
-        return archiveBaseConfigured ? archiveBase : getArchiveBase(existingProperties.getOrNull());
+        return archiveBaseConfigured ? archiveBase : resolveArchiveBase(existingProperties.getOrNull());
     }
 
     /**
@@ -674,48 +694,4 @@ public abstract class Wrapper extends DefaultTask {
     @Inject
     protected abstract ProviderFactory getProviders();
 
-    public abstract static class ExistingWrapperProperties implements ValueSource<Properties, ExistingWrapperProperties.Params> {
-        public interface Params extends ValueSourceParameters {
-            RegularFileProperty getPropertiesFile();
-        }
-
-        @Override
-        public @Nullable Properties obtain() {
-            File propertiesFile = getParameters().getPropertiesFile().getAsFile().get();
-            return propertiesFile.isFile() ? GUtil.loadProperties(propertiesFile) : null;
-        }
-    }
-
-    private enum ExistingPropertyType {
-        INTEGER,
-        BOOLEAN
-    }
-
-    public abstract static class ExistingWrapperProperty implements ValueSource<Object, ExistingWrapperProperty.Params> {
-        public interface Params extends ExistingWrapperProperties.Params {
-            Property<String> getPropertyName();
-            Property<String> getType();
-        }
-
-        @Override
-        public @Nullable Object obtain() {
-            File propertiesFile = getParameters().getPropertiesFile().getAsFile().get();
-            if (!propertiesFile.isFile()) {
-                return null;
-            }
-            Properties properties = GUtil.loadProperties(propertiesFile);
-            String propertyName = getParameters().getPropertyName().get();
-            String value = properties.getProperty(propertyName);
-            if (value == null) {
-                return null;
-            }
-            try {
-                return ExistingPropertyType.INTEGER.name().equals(getParameters().getType().get())
-                    ? Integer.valueOf(value)
-                    : Boolean.valueOf(value);
-            } catch (RuntimeException e) {
-                throw new GradleException(String.format(Locale.ROOT, "Invalid value '%s' for property '%s' in '%s'.", value, propertyName, propertiesFile), e);
-            }
-        }
-    }
 }
