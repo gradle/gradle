@@ -19,6 +19,9 @@ package org.gradle.api.internal.provider.provenance;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * A single property mutation: who did it, and what they did.
  * <p>
@@ -26,7 +29,7 @@ import org.jspecify.annotations.Nullable;
  * allocation. Applying the mutation and retaining its record are conceptually one atomic step: a rejected
  * mutation leaves no record behind.
  */
-public final class MutationRecord {
+public final class MutationRecord implements MutationHistory {
 
     private final MutationOrigin origin;
     private final MutationKind kind;
@@ -71,6 +74,31 @@ public final class MutationRecord {
     public String describe() {
         String described = kind.getVerb() + " by " + origin.getDisplayName();
         return location != null ? described + " at " + location : described;
+    }
+
+    @Override
+    public List<MutationRecord> getRecords() {
+        return Collections.singletonList(this);
+    }
+
+    @Override
+    public int getNotRetainedCount() {
+        return 0;
+    }
+
+    @Override
+    public @Nullable MutationRecord lastExplicit() {
+        return kind.isConvention() ? null : this;
+    }
+
+    @Override
+    public @Nullable MutationRecord lastConvention() {
+        return kind.isConvention() ? this : null;
+    }
+
+    @Override
+    public String describeForMessage() {
+        return isAttributed() ? " It was last " + describe() + "." : "";
     }
 
     @Override

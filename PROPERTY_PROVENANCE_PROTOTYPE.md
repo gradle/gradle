@@ -280,8 +280,13 @@ same benchmark with the two provenance fields stripped out of `AbstractProperty`
 |---|---|---|
 | Baseline (no provenance code) | 3.4 | 63.8 B unset / 80.1 B set |
 | Provenance compiled in, flag **off** | 5.1 (**+1.7**) | 72.2 B unset / 88.1 B set (**+8 B**) |
-| Flag **on** | 12.7 (**+9.3**) | 168.1 B set (**+88 B**) |
+| Flag **on**, one mutation | 13.7 (**+10**) | **+1 B** |
+| Flag **on**, two or more mutations | 13.7 | +80 B, then ~4–5 B per record |
 | Locations on | + ~800–1200 ns per capture, capped at 2000 captures | unchanged |
+
+A single mutation is held as the interned `MutationRecord` itself, so it costs no allocation
+at all; only a second mutation promotes to a `MutationTrace`. That matters because the
+average configured property in the gradle/gradle build is mutated 1.18 times.
 
 To turn that into build impact, a 30-subproject `java-library` build running `assemble`
 performs **1,951 property mutations** and creates **4,480 properties** (measured with
@@ -326,8 +331,8 @@ Applying the measured rates:
 | | added heap |
 |---|---|
 | The two fields, whether or not the flag is on | ~2.2 MB |
-| Flag on, current eager `MutationTrace` | **~6.9 MB** |
-| Flag on, first record held in the existing field | **~1.2 MB** |
+| Flag on, **as implemented** | **~1.2 MB** |
+| Flag on, had the trace been allocated eagerly | ~6.9 MB |
 | Flag on, one record per mutation (locations on every record) | ~14.3 MB |
 
 Time is ~0.9 ms for all 100,485 mutations, against a configuration phase of over three
@@ -337,14 +342,17 @@ Two caveats. The 263,281 is properties *created* over the whole build, not simul
 live, so the 2.2 MB field cost is an upper bound. And a Gradle daemon running this build
 holds several GB, so even the unoptimised 6.9 MB is around a tenth of a percent of heap.
 
-The interesting number is the third row. Because the average trace is 1.18 records, holding
-the first record directly in the property's existing field and only allocating a trace on
-the second mutation removes about 85% of the cost — the eager `ArrayList` is paying for a
-list that almost never has more than one element.
+The second and third rows are the same design measured before and after holding the first
+record directly in the property's existing field. Because the average trace is 1.18 records,
+that removes about 85% of the cost: the eager `ArrayList` was paying for a list that almost
+never gets a second element. Total for gradle/gradle with the flag on is therefore about
+**3.4 MB**, of which 2.2 MB is paid whether the flag is on or not.
 
 ### What a full trace would cost
 
-The numbers above are for the bounded diagnostics trace. Collaborative mode needs the
+The numbers below were measured before the single-record optimisation, so the first row is
+now +1 B rather than +81 B; the per-additional-record rates are unchanged and are the point
+of the table. Collaborative mode needs the
 *complete ordered* update trace retained while the property is still mutable, so it is worth
 knowing how the cost scales with trace length. Measured over 200,000 live properties, as
 bytes per property above an untracked baseline of 87.6 B:
@@ -390,11 +398,11 @@ Two mitigations the specification already allows:
   closure it can be released, so this is peak configuration-time memory, not permanent
   retention.
 
-And one container change worth making before any of this ships: hold the first record
-directly in the property's existing field and only allocate a trace on the second mutation.
-Most properties are configured once, so that takes the common case from +81 B to zero, and
-a collaborative trace should then be an `int[]` of interned record IDs rather than an
-`ArrayList<MutationRecord>`.
+The first of those container changes is now implemented: the first record is held directly
+in the property's existing field, so the common case allocates nothing. A collaborative
+trace should additionally be an `int[]` of interned record IDs rather than an
+`ArrayList<MutationRecord>`, which would take the multi-record case from ~80 B to ~40 B plus
+4 B per record.
 
 ## Measured gaps
 
@@ -430,13 +438,12 @@ rather than a flag.
 
 ## Follow-ups if this graduates
 
-1. Hold a single `MutationRecord` until a second mutation arrives, instead of allocating a
-   `MutationTrace` eagerly: measured at 88 B per configured property, and most properties
-   are configured once.
-2. Persist provenance across the configuration cache, without which the feature is blank in
+1. Persist provenance across the configuration cache, without which the feature is blank in
    any build that uses it.
-3. Attach provenance to collection contributions, which unlocks the ordered update trace
+2. Attach provenance to collection contributions, which unlocks the ordered update trace
    that collaborative mode validates.
+3. Give `UserCodeSource.Script` a role rather than a boolean, so init and settings scripts
+   stop being classified as the build author.
 
 ## Tests
 

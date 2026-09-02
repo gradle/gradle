@@ -26,11 +26,12 @@ import java.util.List;
 /**
  * The ordered mutations that produced a property's current configuration.
  * <p>
- * Allocated only for properties whose host tracks provenance, and bounded, so that a property mutated in a
- * loop cannot grow without limit. Mutations are kept even once superseded by a replacing {@code set}: for
- * diagnostics, "plugin A set it and then the build script overwrote it" is the interesting fact.
+ * Allocated only once a property is mutated a <em>second</em> time; a single mutation is represented by the
+ * interned {@link MutationRecord} itself. Bounded, so that a property mutated in a loop cannot grow without
+ * limit. Mutations are kept even once superseded by a replacing {@code set}: for diagnostics, "plugin A set it
+ * and then the build script overwrote it" is the interesting fact.
  */
-public final class MutationTrace {
+public final class MutationTrace implements MutationHistory {
 
     /**
      * Beyond this many mutations, later ones are counted but not retained.
@@ -51,6 +52,7 @@ public final class MutationTrace {
     /**
      * The mutations in the order they happened, oldest first.
      */
+    @Override
     public List<MutationRecord> getRecords() {
         return Collections.unmodifiableList(records);
     }
@@ -58,6 +60,7 @@ public final class MutationTrace {
     /**
      * How many mutations happened beyond the ones retained.
      */
+    @Override
     public int getNotRetainedCount() {
         return notRetained;
     }
@@ -69,6 +72,7 @@ public final class MutationTrace {
     /**
      * The last mutation of the explicit value, if any.
      */
+    @Override
     public @Nullable MutationRecord lastExplicit() {
         return last(false);
     }
@@ -76,6 +80,7 @@ public final class MutationTrace {
     /**
      * The last mutation of the convention, if any.
      */
+    @Override
     public @Nullable MutationRecord lastConvention() {
         return last(true);
     }
@@ -91,10 +96,10 @@ public final class MutationTrace {
     }
 
     /**
-     * Renders the trace as a sentence to append to a rejection message, or an empty string when nothing in it
-     * can be attributed. A single mutation reads as one sentence; several read as an ordered list.
+     * A single retained mutation reads as one sentence; several read as an ordered list.
      */
-    public String describe() {
+    @Override
+    public String describeForMessage() {
         List<MutationRecord> attributed = new ArrayList<>(records.size());
         for (MutationRecord record : records) {
             if (record.isAttributed()) {

@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.internal.provider.provenance.MutationTrace;
+import org.gradle.api.internal.provider.provenance.MutationHistory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -133,7 +133,7 @@ public abstract class ValueState<S> {
      * @param mutations the mutations that produced the current configuration, if known, so that a rejected
      * mutation can say who configured the property before.
      */
-    public abstract void beforeMutate(Describable displayName, @Nullable MutationTrace mutations);
+    public abstract void beforeMutate(Describable displayName, @Nullable MutationHistory mutations);
 
     /**
      * The host of this property, or null once the value is finalized and the host is no longer relevant.
@@ -151,8 +151,8 @@ public abstract class ValueState<S> {
      * Renders provenance as a sentence to append to a rejection message, or an empty string when the mutation
      * that produced the current value cannot be attributed.
      */
-    protected static String describeMutations(@Nullable MutationTrace mutations) {
-        return mutations == null ? "" : mutations.describe();
+    protected static String describeMutations(@Nullable MutationHistory mutations) {
+        return mutations == null ? "" : mutations.describeForMessage();
     }
 
     /**
@@ -271,7 +271,7 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void beforeMutate(Describable displayName, @Nullable MutationTrace mutations) {
+        public void beforeMutate(Describable displayName, @Nullable MutationHistory mutations) {
             if ((flags & DISALLOW_CHANGES) != 0) {
                 throw new IllegalStateException(String.format("The value for %s cannot be changed any further.%s", displayName.getDisplayName(), describeMutations(mutations)));
             } else if ((flags & WARN_ON_UPGRADED_PROPERTY_CHANGES) != 0) {
@@ -466,7 +466,7 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void beforeMutate(Describable displayName, @Nullable MutationTrace mutations) {
+        public void beforeMutate(Describable displayName, @Nullable MutationHistory mutations) {
             throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.%s", displayName.getDisplayName(), describeMutations(mutations)));
         }
 

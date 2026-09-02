@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.provenance.MutationHistory;
 import org.gradle.api.internal.provider.provenance.MutationKind;
 import org.gradle.api.internal.provider.provenance.MutationRecord;
 import org.gradle.api.internal.provider.provenance.MutationTrace;
@@ -58,7 +59,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private ValueState<S> state;
     private S value;
     private final boolean tracksProvenance;
-    private @Nullable MutationTrace mutations;
+    private @Nullable MutationHistory mutations;
 
     @SuppressWarnings("ConstantValue")
     public AbstractProperty(PropertyHost host) {
@@ -443,15 +444,22 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             return;
         }
         if (mutations == null) {
-            mutations = new MutationTrace();
+            // The common case: one mutation, held as the interned record itself, so no allocation at all.
+            mutations = record;
+        } else if (mutations instanceof MutationTrace) {
+            ((MutationTrace) mutations).add(record);
+        } else {
+            MutationTrace trace = new MutationTrace();
+            trace.add((MutationRecord) mutations);
+            trace.add(record);
+            mutations = trace;
         }
-        mutations.add(record);
     }
 
     /**
-     * The ordered mutations that produced this property's configuration, if the host tracks provenance.
+     * What is known about how this property was configured, if the host tracks provenance.
      */
-    public @Nullable MutationTrace getMutationTrace() {
+    public @Nullable MutationHistory getMutationHistory() {
         return mutations;
     }
 
@@ -471,7 +479,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     protected void describeProvenance(TreeFormatter formatter) {
-        if (mutations == null || mutations.isEmpty()) {
+        if (mutations == null) {
             return;
         }
         List<MutationRecord> attributed = new ArrayList<>();

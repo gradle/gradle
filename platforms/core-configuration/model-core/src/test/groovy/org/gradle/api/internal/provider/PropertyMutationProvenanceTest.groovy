@@ -21,6 +21,7 @@ import org.gradle.api.internal.provider.provenance.MutationKind
 import org.gradle.api.internal.provider.provenance.MutationOrigin
 import org.gradle.api.internal.provider.provenance.MutationOriginRegistry
 import org.gradle.api.internal.provider.provenance.MutationRecord
+import org.gradle.api.internal.provider.provenance.MutationTrace
 import org.gradle.internal.Describables
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.state.ModelObject
@@ -231,9 +232,33 @@ This property was configured by, in order:
         40.times { property.set("value $it") }
 
         then:
-        property.mutationTrace.records.size() == 32
-        property.mutationTrace.notRetainedCount == 8
-        property.mutationTrace.describe().endsWith("and 8 later mutation(s) not retained.")
+        property.mutationHistory.records.size() == 32
+        property.mutationHistory.notRetainedCount == 8
+        property.mutationHistory.describeForMessage().endsWith("and 8 later mutation(s) not retained.")
+    }
+
+    def "a single mutation is held without allocating a trace"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.source = PLUGIN_WITH_ID
+
+        when:
+        property.set("once")
+
+        then:
+        // the interned record itself is the history: no per-property allocation
+        property.mutationHistory.is(registryRecord(MutationKind.SET_SOURCE))
+        property.mutationHistory.records == [registryRecord(MutationKind.SET_SOURCE)]
+
+        when:
+        property.set("twice")
+
+        then:
+        property.mutationHistory instanceof MutationTrace
+        property.mutationHistory.records.size() == 2
+    }
+
+    private MutationRecord registryRecord(MutationKind kind) {
+        host.registry.recordFor(PLUGIN_WITH_ID, kind)
     }
 
     def "renders the call site when a record carries one"() {
