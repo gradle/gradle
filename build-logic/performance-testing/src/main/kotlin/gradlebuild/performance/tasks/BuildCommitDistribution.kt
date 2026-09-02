@@ -195,7 +195,10 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "--no-daemon",
             if (gradleModeCompatibility == null) "--no-configuration-cache" else null,
             // TODO:isolated https://github.com/gradle/gradle/issues/36771
+            // Both names are needed: wrappers before Gradle 9.7 only understand the deprecated name,
+            // while 9.7+ wrappers prefer the current name when the checked-out commit enables IP with it.
             if (gradleModeCompatibility == "IP") null else "-Dorg.gradle.unsafe.isolated-projects=false",
+            if (gradleModeCompatibility == "IP") null else "-Dorg.gradle.isolated-projects=false",
             "--init-script",
             mirrorInitScript.absolutePath,
             PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY.let { name -> System.getProperty(name)?.let { "-D$name=$it" } },
