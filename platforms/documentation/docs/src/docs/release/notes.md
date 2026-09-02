@@ -193,27 +193,6 @@ See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in t
 
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the results of the configuration phase and reusing them in subsequent builds.
 
-#### TestKit API for asserting the Configuration Cache outcome
-
-Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored, reused, or discarded, an approach that broke whenever the wording of the console messages changed.
-
-The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly, making it easier and more reliable to test Configuration Cache compatibility:
-
-```groovy
-def result = GradleRunner.create()
-    .withProjectDir(projectDir)
-    .withArguments("myTask", "--configuration-cache")
-    .build()
-
-assert result.configurationCacheOutcome == ConfigurationCacheOutcome.STORED
-```
-
-See [`ConfigurationCacheOutcome`](javadoc/org/gradle/testkit/runner/ConfigurationCacheOutcome.html) for the possible outcomes.
-
-The outcome is also available to any Tooling API client through a new [`CONFIGURATION_CACHE`](javadoc/org/gradle/tooling/events/OperationType.html#CONFIGURATION_CACHE) progress event type.
-
-See the [Testing with the Configuration Cache](userguide/test_kit.html#sub:test-kit-configuration-cache) section in the Gradle User Manual for more details.
-
 ### Core plugin and plugin authoring enhancements
 
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
