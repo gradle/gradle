@@ -18,6 +18,8 @@ package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.hamcrest.Matchers.matchesRegex as matchesRegexp
+
 /**
  * Property mutation provenance: reporting which plugin, script plugin or build script configured a property.
  */
@@ -256,6 +258,58 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains("It was last set by script 'other.gradle'.")
+    }
+
+    def "reports the chain of contributors when a property was configured more than once"() {
+        withProvenanceEnabled()
+        pluginWithId("""
+            project.tasks.register("show", com.example.Show) {
+                it.prop.convention("plugin default")
+                it.prop.set("from plugin")
+            }
+        """)
+        buildFile """
+            plugins { id("com.example.feature") }
+
+            tasks.named("show") {
+                prop = "from build script"
+                doLast { prop.set("other") }
+            }
+        """
+
+        when:
+        fails("show")
+
+        then:
+        failureCauseContains("""The value for task ':show' property 'prop' is final and cannot be changed any further.
+It was configured by, in order:
+  1. given its convention by plugin 'com.example.feature'
+  2. set by plugin 'com.example.feature'
+  3. set by build file 'build.gradle'""")
+    }
+
+    def "reports the call site of each mutation when locations are enabled"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
+        pluginWithId("""
+            project.tasks.register("show", com.example.Show) {
+                it.prop.set("from plugin")
+            }
+        """)
+        buildFile """
+            plugins { id("com.example.feature") }
+
+            tasks.named("show") {
+                prop = "from build script"
+                doLast { prop.set("other") }
+            }
+        """
+
+        when:
+        fails("show")
+
+        then:
+        failure.assertThatCause(matchesRegexp("(?s).*set by plugin 'com\\.example\\.feature' at FeaturePlugin\\.groovy:\\d+.*"))
+        failure.assertThatCause(matchesRegexp("(?s).*set by build file 'build\\.gradle' at build\\.gradle:\\d+.*"))
     }
 
     def "reports provenance when a property has no value"() {

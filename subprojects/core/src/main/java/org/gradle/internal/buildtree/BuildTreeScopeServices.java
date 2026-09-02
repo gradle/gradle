@@ -113,6 +113,12 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
      */
     private static final InternalOption<Boolean> PROPERTY_PROVENANCE = InternalOptions.ofBoolean("org.gradle.internal.property-provenance", false);
 
+    /**
+     * Capturing the call site of each mutation costs a bounded stack walk and defeats record interning, so it
+     * is a second, narrower switch. Implies {@link #PROPERTY_PROVENANCE}.
+     */
+    private static final InternalOption<Boolean> PROPERTY_PROVENANCE_LOCATIONS = InternalOptions.ofBoolean("org.gradle.internal.property-provenance.locations", false);
+
 
     private final BuildActionModelRequirements buildActionRequirements;
     private final BuildModelParameters buildModelParameters;
@@ -191,7 +197,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected MutationOriginRegistry createMutationOriginRegistry(InternalOptions internalOptions) {
-        return new MutationOriginRegistry(internalOptions.getBoolean(PROPERTY_PROVENANCE));
+        boolean locations = internalOptions.getBoolean(PROPERTY_PROVENANCE_LOCATIONS);
+        return new MutationOriginRegistry(locations || internalOptions.getBoolean(PROPERTY_PROVENANCE), locations);
     }
 
     @Provides

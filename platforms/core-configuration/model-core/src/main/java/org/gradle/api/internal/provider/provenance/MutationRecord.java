@@ -17,6 +17,8 @@
 
 package org.gradle.api.internal.provider.provenance;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A single property mutation: who did it, and what they did.
  * <p>
@@ -28,10 +30,23 @@ public final class MutationRecord {
 
     private final MutationOrigin origin;
     private final MutationKind kind;
+    private final @Nullable String location;
 
     public MutationRecord(MutationOrigin origin, MutationKind kind) {
+        this(origin, kind, null);
+    }
+
+    public MutationRecord(MutationOrigin origin, MutationKind kind, @Nullable String location) {
         this.origin = origin;
         this.kind = kind;
+        this.location = location;
+    }
+
+    /**
+     * The call site that performed the mutation, as {@code file:line}, when locations are being captured.
+     */
+    public @Nullable String getLocation() {
+        return location;
     }
 
     public MutationOrigin getOrigin() {
@@ -54,7 +69,8 @@ public final class MutationRecord {
      * A phrase of the form {@code set by plugin 'com.example.feature'}.
      */
     public String describe() {
-        return kind.getVerb() + " by " + origin.getDisplayName();
+        String described = kind.getVerb() + " by " + origin.getDisplayName();
+        return location != null ? described + " at " + location : described;
     }
 
     @Override

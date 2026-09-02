@@ -47,4 +47,11 @@ public enum MutationKind {
     public String getVerb() {
         return verb;
     }
+
+    /**
+     * Does this mutate the convention rather than the explicit value?
+     */
+    public boolean isConvention() {
+        return this == SET_CONVENTION || this == UNSET_CONVENTION;
+    }
 }

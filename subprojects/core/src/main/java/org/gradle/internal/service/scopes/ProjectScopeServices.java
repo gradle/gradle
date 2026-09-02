@@ -61,6 +61,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.provenance.MutationOriginRegistry;
+import org.gradle.internal.problems.BoundedCallerStackCapturer;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
@@ -322,8 +323,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PropertyHost createPropertyHost(UserCodeApplicationContext userCodeApplicationContext, MutationOriginRegistry originRegistry) {
-        return new ProjectBackedPropertyHost(project, userCodeApplicationContext, originRegistry);
+    protected PropertyHost createPropertyHost(UserCodeApplicationContext userCodeApplicationContext, MutationOriginRegistry originRegistry, BoundedCallerStackCapturer callerStackCapturer) {
+        return new ProjectBackedPropertyHost(project, userCodeApplicationContext, originRegistry, callerStackCapturer);
     }
 
     @Provides

@@ -38,6 +38,26 @@ Execution failed for task ':show'.
   This property was last set by plugin 'com.example.feature'.
 ```
 
+When a property was configured more than once, the whole chain is reported in order:
+
+```
+* What went wrong:
+Execution failed for task ':show'.
+> The value for task ':show' property 'prop' is final and cannot be changed any further.
+  It was configured by, in order:
+    1. given its convention by plugin 'com.example.feature'
+    2. set by plugin 'com.example.feature'
+    3. set by build file 'build.gradle'
+```
+
+With `-Dorg.gradle.internal.property-provenance.locations=true`, each entry carries its call
+site:
+
+```
+  1. set by plugin 'com.example.feature' at FeaturePlugin.groovy:11
+  2. set by build file 'build.gradle' at build.gradle:7
+```
+
 The contributor is named the same way whether it is a plugin ID, a plugin class, a build
 script or a script plugin:
 
@@ -175,6 +195,49 @@ The last two are wrong answers rather than absent ones — see finding 5 above.
 Not probed, and expected to need work: tooling model builders, worker actions, build
 services, flow actions, and `beforeProject`/`afterProject` from init scripts.
 
+## The mutation chain
+
+`MutationTrace` is an append-only list of records on the property, allocated only when the
+host tracks provenance. Mutations are kept **even once superseded** by a replacing `set`:
+for diagnostics, "the plugin set it and then the build script overwrote it" is the
+interesting fact, and the specification (§7) explicitly permits keeping it.
+
+The trace is bounded at 32 records so a property mutated in a loop cannot grow without
+limit; anything beyond that is counted and reported as "and N later mutation(s) not
+retained". A single mutation still renders as one sentence rather than a list of one.
+
+This also replaced the two separate fields the first version kept: `getExplicitMutation()`
+and `getConventionMutation()` are now derived by scanning the trace backwards, which only
+happens when a message is actually rendered.
+
+## Call sites
+
+Locations are a second, narrower switch
+(`-Dorg.gradle.internal.property-provenance.locations=true`) because they cost a stack walk
+per mutation and defeat record interning — a location is per call site, not per
+contributor, so a located record has to be allocated. They are capped at 2000 captures per
+build, mirroring the cap `DefaultProblemDiagnosticsFactory` puts on its own stack captures.
+
+The walk itself is **not** `BoundedCallerStackCapturer.captureCallerStack()`, which is tuned
+for problem reporting: it stops at the first Gradle frame below a user frame. A Groovy
+property assignment (`prop = "x"`) puts a generated, line-less accessor frame for the
+decorated task directly above Gradle's dynamic dispatch, so that walk terminates before
+reaching the script and yields no location at all — measured, not assumed. Property
+mutation needs a walk that *steps over* synthetic user frames and keeps going, which is
+added alongside it as `BoundedCallerStackCapturer.captureCallSite()`.
+
+With that, all three DSL shapes resolve:
+
+| Mutation | Location |
+|---|---|
+| `prop = "x"` (Groovy assignment) | `build.gradle:4` |
+| `prop.set("x")` (explicit call) | `build.gradle:5` |
+| inside a plugin | `FeaturePlugin.groovy:11` |
+
+Note this is a raw stack frame, not a `Location` resolved through `RegisteredScripts`:
+`DefaultProblemLocationAnalyzer.tryGetLocation` returns a location **only** for registered
+scripts, so reusing it would have covered build scripts and dropped plugin call sites.
+
 ## Deliberately not implemented
 
 This is the ordinary-diagnostics slice. Each of the following is a documented seam in the
@@ -199,12 +262,45 @@ specification, not an oversight:
   `AbstractProperty`, so it records nothing. `DirectoryProperty` and `RegularFileProperty`
   are covered, since they extend `DefaultProperty`.
 - **Settings-scope and worker-scope properties.** These are created with
-  `PropertyHost.NO_OP` and record nothing.
+  `PropertyHost.NO_OP` and record nothing. Measured: a property created in `settings.gradle`
+  reports no provenance at all.
 - **Per-script identity for build authors.** `ContributorKey.BUILD_AUTHOR` collapses every
   build script to one contributor, per spec §4, so `lib/build.gradle` and the root
   `build.gradle` are distinguished in the message text but not in identity. If
   collaborative authorization ever needs to tell them apart, the script URI is already on
   `UserCodeSource.Script` and is simply discarded for this case.
+
+## Measured gaps
+
+Probed against real builds rather than reasoned about:
+
+| Case | Result |
+|---|---|
+| Kotlin DSL build script | works — `set by build file 'build.gradle.kts'` |
+| Managed property on an extension | works |
+| Task property under the **configuration cache** | **no provenance at all**, on the store run as well as a cache hit |
+| Property created in `settings.gradle` | **nothing** — settings scope uses `PropertyHost.NO_OP` |
+| `ConfigurableFileCollection` | **nothing** — not an `AbstractProperty` |
+| Collection built by several `add` calls | only the last contribution is named |
+| Init script | reads well (`set by initialization script 'init.gradle'`) but its **identity** is `BUILD_AUTHOR` |
+| `settings.gradle` mutating a project property | reads well (`set by settings file 'settings.gradle'`) but its **identity** is `BUILD_AUTHOR` |
+
+Two of these deserve attention beyond this slice:
+
+**The configuration cache erases provenance.** With `--configuration-cache`, a task property
+observed at execution time has no provenance even on the store run, because the property is
+recreated by `PropertyCodec` during deserialization rather than by the user code that
+configured it. Since the configuration cache is on by default in an increasing number of
+builds, a provenance feature that silently goes blank under it is close to useless in
+practice. Persisting the origin table (spec §10) is not optional polish.
+
+**Init and settings scripts are misclassified.** `ContributorKey.of` maps any
+`topLevelScript` to `BUILD_AUTHOR`, and `DefaultInitScriptProcessor` and
+`ScriptEvaluatingSettingsProcessor` both pass `topLevelScript = true`. An init script is
+usually the *environment* speaking, not the build author, and conflating them would let an
+init script inherit whatever authority the build author has in collaborative mode. The
+boolean should be a role (`BUILD_SCRIPT`, `SETTINGS_SCRIPT`, `INIT_SCRIPT`, `SCRIPT_PLUGIN`)
+rather than a flag.
 
 ## Follow-ups if this graduates
 

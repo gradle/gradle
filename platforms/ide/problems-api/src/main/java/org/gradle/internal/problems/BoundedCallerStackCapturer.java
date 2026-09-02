@@ -39,4 +39,16 @@ public interface BoundedCallerStackCapturer {
      */
     @Nullable
     Throwable captureCallerStack();
+
+    /**
+     * Returns the nearest calling frame that has a source line, as {@code file:line}, or {@code null} if there
+     * is none within the walk cap.
+     *
+     * <p>Unlike {@link #captureCallerStack()}, this steps over synthetic user frames rather than stopping at
+     * the Gradle boundary below them. A Groovy property assignment (<code>prop = "x"</code>) puts a generated,
+     * line-less accessor frame directly above Gradle's dynamic dispatch, so a walk that stops there never
+     * reaches the script that performed the assignment.</p>
+     */
+    @Nullable
+    String captureCallSite();
 }

@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Interns mutation origins and records for the build tree.
@@ -40,12 +41,25 @@ public class MutationOriginRegistry {
 
     private static final int KIND_COUNT = MutationKind.values().length;
 
+    /**
+     * Budget for located records, mirroring the cap the problem diagnostics factory puts on stack captures.
+     * Locations past it are dropped rather than slowing the build down further.
+     */
+    static final int MAX_LOCATED_RECORDS = 2000;
+
     private final boolean enabled;
+    private final boolean capturingLocations;
     private final Map<UserCodeSource, MutationRecord[]> recordsBySource = new ConcurrentHashMap<>();
     private final MutationRecord[] unattributedRecords = new MutationRecord[KIND_COUNT];
+    private final AtomicInteger locationBudget = new AtomicInteger(MAX_LOCATED_RECORDS);
 
     public MutationOriginRegistry(boolean enabled) {
+        this(enabled, false);
+    }
+
+    public MutationOriginRegistry(boolean enabled, boolean capturingLocations) {
         this.enabled = enabled;
+        this.capturingLocations = capturingLocations;
         for (MutationKind kind : MutationKind.values()) {
             unattributedRecords[kind.ordinal()] = new MutationRecord(MutationOrigin.UNKNOWN, kind);
         }
@@ -57,6 +71,32 @@ public class MutationOriginRegistry {
      */
     public boolean isEnabled() {
         return enabled;
+    }
+
+    /**
+     * Should the call site of each mutation be captured as well as its contributor?
+     */
+    public boolean isCapturingLocations() {
+        return capturingLocations;
+    }
+
+    /**
+     * Is there budget left to capture a call site? Locations cannot be interned, so they are both allocating
+     * and stack-walking, and are capped for the build.
+     */
+    public boolean claimLocationBudget() {
+        return locationBudget.getAndDecrement() > 0;
+    }
+
+    /**
+     * Returns a record carrying the call site that performed the mutation. Unlike the interned records, this
+     * allocates: a location is per call site, not per contributor.
+     */
+    public MutationRecord recordFor(@Nullable UserCodeSource source, MutationKind kind, @Nullable String location) {
+        if (location == null) {
+            return recordFor(source, kind);
+        }
+        return new MutationRecord(MutationOrigin.of(source), kind, location);
     }
 
     /**

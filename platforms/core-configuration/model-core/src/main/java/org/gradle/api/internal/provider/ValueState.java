@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.internal.provider.provenance.MutationRecord;
+import org.gradle.api.internal.provider.provenance.MutationTrace;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -130,10 +130,10 @@ public abstract class ValueState<S> {
     }
 
     /**
-     * @param lastMutation provenance of the mutation that produced the current value, if known, so that a
-     * rejected mutation can say who configured the property before.
+     * @param mutations the mutations that produced the current configuration, if known, so that a rejected
+     * mutation can say who configured the property before.
      */
-    public abstract void beforeMutate(Describable displayName, @Nullable MutationRecord lastMutation);
+    public abstract void beforeMutate(Describable displayName, @Nullable MutationTrace mutations);
 
     /**
      * The host of this property, or null once the value is finalized and the host is no longer relevant.
@@ -151,11 +151,8 @@ public abstract class ValueState<S> {
      * Renders provenance as a sentence to append to a rejection message, or an empty string when the mutation
      * that produced the current value cannot be attributed.
      */
-    protected static String describeLastMutation(@Nullable MutationRecord lastMutation) {
-        if (lastMutation == null || !lastMutation.isAttributed()) {
-            return "";
-        }
-        return " It was last " + lastMutation.describe() + ".";
+    protected static String describeMutations(@Nullable MutationTrace mutations) {
+        return mutations == null ? "" : mutations.describe();
     }
 
     /**
@@ -274,9 +271,9 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void beforeMutate(Describable displayName, @Nullable MutationRecord lastMutation) {
+        public void beforeMutate(Describable displayName, @Nullable MutationTrace mutations) {
             if ((flags & DISALLOW_CHANGES) != 0) {
-                throw new IllegalStateException(String.format("The value for %s cannot be changed any further.%s", displayName.getDisplayName(), describeLastMutation(lastMutation)));
+                throw new IllegalStateException(String.format("The value for %s cannot be changed any further.%s", displayName.getDisplayName(), describeMutations(mutations)));
             } else if ((flags & WARN_ON_UPGRADED_PROPERTY_CHANGES) != 0) {
                 String shownDisplayName = displayName.getDisplayName();
                 DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
@@ -469,8 +466,8 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void beforeMutate(Describable displayName, @Nullable MutationRecord lastMutation) {
-            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.%s", displayName.getDisplayName(), describeLastMutation(lastMutation)));
+        public void beforeMutate(Describable displayName, @Nullable MutationTrace mutations) {
+            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.%s", displayName.getDisplayName(), describeMutations(mutations)));
         }
 
         @Override

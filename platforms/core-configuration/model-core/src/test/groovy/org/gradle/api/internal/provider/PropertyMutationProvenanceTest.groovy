@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.internal.provider.provenance.ContributorKey
 import org.gradle.api.internal.provider.provenance.MutationKind
+import org.gradle.api.internal.provider.provenance.MutationOrigin
 import org.gradle.api.internal.provider.provenance.MutationOriginRegistry
 import org.gradle.api.internal.provider.provenance.MutationRecord
 import org.gradle.internal.Describables
@@ -180,6 +181,74 @@ class PropertyMutationProvenanceTest extends Specification {
         def e = thrown(IllegalStateException)
         e.message == "The value for this property is final and cannot be changed any further."
         property.explicitMutation == null
+    }
+
+    def "reports the chain when a property was configured more than once"() {
+        def property = new DefaultProperty<String>(host, String)
+
+        when:
+        host.source = PLUGIN_WITH_ID
+        property.convention("default")
+        host.source = SCRIPT_PLUGIN
+        property.set("from script plugin")
+        host.source = BUILD_SCRIPT
+        property.set("from build script")
+        property.finalizeValue()
+        property.set("too late")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == """The value for this property is final and cannot be changed any further.
+It was configured by, in order:
+  1. given its convention by plugin 'com.example.feature'
+  2. set by script 'other.gradle'
+  3. set by build file 'build.gradle'"""
+    }
+
+    def "reports the chain when a property with no value is queried"() {
+        def property = new DefaultProperty<String>(host, String)
+
+        when:
+        host.source = PLUGIN_WITH_ID
+        property.set("value")
+        host.source = BUILD_SCRIPT
+        property.set(Providers.notDefined())
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == """Cannot query the value of this property because it has no value available.
+This property was configured by, in order:
+  - set by plugin 'com.example.feature'
+  - set by build file 'build.gradle'"""
+    }
+
+    def "bounds the retained trace"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.source = PLUGIN_WITH_ID
+
+        when:
+        40.times { property.set("value $it") }
+
+        then:
+        property.mutationTrace.records.size() == 32
+        property.mutationTrace.notRetainedCount == 8
+        property.mutationTrace.describe().endsWith("and 8 later mutation(s) not retained.")
+    }
+
+    def "renders the call site when a record carries one"() {
+        def record = new MutationRecord(MutationOrigin.of(PLUGIN_WITH_ID), MutationKind.SET_SOURCE, "FeaturePlugin.groovy:42")
+
+        expect:
+        record.describe() == "set by plugin 'com.example.feature' at FeaturePlugin.groovy:42"
+    }
+
+    def "a located record is allocated rather than interned"() {
+        expect:
+        registry.recordFor(PLUGIN_WITH_ID, MutationKind.SET_SOURCE, null)
+            .is(registry.recordFor(PLUGIN_WITH_ID, MutationKind.SET_SOURCE))
+        !registry.recordFor(PLUGIN_WITH_ID, MutationKind.SET_SOURCE, "build.gradle:1")
+            .is(registry.recordFor(PLUGIN_WITH_ID, MutationKind.SET_SOURCE, "build.gradle:1"))
     }
 
     static class TrackingPropertyHost implements PropertyHost {

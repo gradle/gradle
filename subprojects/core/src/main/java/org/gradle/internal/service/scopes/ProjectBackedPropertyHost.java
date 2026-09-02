@@ -23,6 +23,8 @@ import org.gradle.api.internal.provider.provenance.MutationKind;
 import org.gradle.api.internal.provider.provenance.MutationOriginRegistry;
 import org.gradle.api.internal.provider.provenance.MutationRecord;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.BoundedCallerStackCapturer;
 import org.gradle.internal.state.ModelObject;
 import org.jspecify.annotations.Nullable;
 
@@ -30,15 +32,18 @@ class ProjectBackedPropertyHost implements PropertyHost {
     private final ProjectInternal project;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final MutationOriginRegistry originRegistry;
+    private final BoundedCallerStackCapturer callerStackCapturer;
 
     public ProjectBackedPropertyHost(
         ProjectInternal project,
         UserCodeApplicationContext userCodeApplicationContext,
-        MutationOriginRegistry originRegistry
+        MutationOriginRegistry originRegistry,
+        BoundedCallerStackCapturer callerStackCapturer
     ) {
         this.project = project;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.originRegistry = originRegistry;
+        this.callerStackCapturer = callerStackCapturer;
     }
 
     @Nullable
@@ -66,6 +71,21 @@ class ProjectBackedPropertyHost implements PropertyHost {
     @Override
     public MutationRecord currentMutation(MutationKind kind) {
         UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
-        return originRegistry.recordFor(application != null ? application.getSource() : null, kind);
+        UserCodeSource source = application != null ? application.getSource() : null;
+        return originRegistry.recordFor(source, kind, currentLocation());
+    }
+
+    /**
+     * The call site performing the mutation, as {@code file:line}, or null when locations are not being
+     * captured, the budget is spent, or no user frame with a line is on the stack.
+     * <p>
+     * Reuses the bounded stack walk the problems infrastructure already performs for the same purpose: it
+     * stops at the first registered script rather than materialising a whole stack trace.
+     */
+    private @Nullable String currentLocation() {
+        if (!originRegistry.isCapturingLocations() || !originRegistry.claimLocationBudget()) {
+            return null;
+        }
+        return callerStackCapturer.captureCallSite();
     }
 }
