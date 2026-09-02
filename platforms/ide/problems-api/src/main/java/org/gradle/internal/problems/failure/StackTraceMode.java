@@ -13,30 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.build.event.types;
+package org.gradle.internal.problems.failure;
 
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Whether a converted failure's description carries the stack frames of the original exception.
+ * Whether a converted failure carries the stack frames of the original exception.
  * <p>
- * A failure carries its stack trace as text inside its description, so the frames dominate both the cost of converting
- * it and the size of what is sent to the client. {@link #OMIT} drops them, leaving the headers and the failure
- * structure.
+ * Stack frames dominate both the cost of converting a failure and the size of its serialized description.
+ * {@link #OMIT} leaves the failure headers and structure intact without reading, copying, or classifying frames.
  *
- * @see DefaultFailure
+ * @see FailureFactory
  */
 @NullMarked
 public enum StackTraceMode {
 
     /**
-     * Describe each failure the way {@link Throwable#printStackTrace()} would, frames included.
+     * Convert each failure with all of its stack frames.
      */
     INCLUDE,
 
     /**
-     * Describe failures and their suppressed exceptions without rendering stack frames, so neither a frame line nor the
-     * "... n more" line that elides a common frame tail appears anywhere in the failure tree.
+     * Convert failures and their suppressed exceptions without stack frames.
      */
     OMIT
 }

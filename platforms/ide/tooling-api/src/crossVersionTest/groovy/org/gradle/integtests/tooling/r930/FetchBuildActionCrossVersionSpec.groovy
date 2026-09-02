@@ -77,13 +77,16 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     def "can request unknown model"() {
         when:
-        def causes = succeeds {
+        def result = succeeds {
             action(new FetchUnknownModelAction())
                 .run()
         }
 
         then:
-        causes == ["No builders are available to build a model of type 'org.gradle.integtests.tooling.r930.UnknownModel'."]
+        result.causes == ["No builders are available to build a model of type 'org.gradle.integtests.tooling.r930.UnknownModel'."]
+        if (targetVersion >= GradleVersion.version("9.9")) {
+            assert !containsRenderedStackTrace(result.failureDescription)
+        }
     }
 
     def "can request a custom model with #dsl DSL"() {
@@ -330,5 +333,9 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
             """
+    }
+
+    private static boolean containsRenderedStackTrace(String text) {
+        return text.readLines().any { it ==~ /\t+(at .+|\.\.\. \d+ more)/ }
     }
 }

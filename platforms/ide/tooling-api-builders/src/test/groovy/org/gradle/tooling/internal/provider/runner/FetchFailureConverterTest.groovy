@@ -32,7 +32,7 @@ class FetchFailureConverterTest extends Specification {
         def throwable = new RuntimeException("top", new IllegalStateException("bottom"))
 
         when:
-        def converted = converter.convert(failureOf(throwable))
+        def converted = converter.convertWithoutStackTrace(failureOf(throwable))
 
         then:
         converted.message == "top"
@@ -49,8 +49,8 @@ class FetchFailureConverterTest extends Specification {
         def throwable = new RuntimeException("boom")
 
         when:
-        def fromThrowable = converter.convert(throwable)
-        def fromFailure = converter.convert(failureOf(throwable))
+        def fromThrowable = converter.convertWithoutStackTrace(throwable)
+        def fromFailure = converter.convertWithoutStackTrace(failureOf(throwable))
 
         then: "the throwable and the failure wrapping it convert to the same instance"
         fromThrowable.is(fromFailure)
@@ -63,17 +63,29 @@ class FetchFailureConverterTest extends Specification {
         def throwable = new RuntimeException("boom")
 
         when:
-        def first = converter.convert(failureOf(throwable))
-        def second = converter.convert(failureOf(throwable))
+        def first = converter.convertWithoutStackTrace(failureOf(throwable))
+        def second = converter.convertWithoutStackTrace(failureOf(throwable))
 
         then:
         first.is(second)
     }
 
+    def "consults the identity cache before converting a throwable to a failure"() {
+        def throwable = new CauseAccessGuardException("boom")
+        def first = converter.convertWithoutStackTrace(failureOf(throwable))
+        throwable.causeAccessAllowed = false
+
+        when:
+        def second = converter.convertWithoutStackTrace(throwable)
+
+        then: "the factory is bypassed, so it never tries to inspect the throwable again"
+        second.is(first)
+    }
+
     def "converts failures with distinct originals into distinct instances"() {
         when:
-        def first = converter.convert(failureOf(new RuntimeException("one")))
-        def second = converter.convert(failureOf(new RuntimeException("two")))
+        def first = converter.convertWithoutStackTrace(failureOf(new RuntimeException("one")))
+        def second = converter.convertWithoutStackTrace(failureOf(new RuntimeException("two")))
 
         then:
         !first.is(second)
@@ -81,8 +93,8 @@ class FetchFailureConverterTest extends Specification {
 
     def "uses throwable identity rather than equality for cache keys"() {
         when:
-        def first = converter.convert(failureOf(new EqualException("one")))
-        def second = converter.convert(failureOf(new EqualException("two")))
+        def first = converter.convertWithoutStackTrace(failureOf(new EqualException("one")))
+        def second = converter.convertWithoutStackTrace(failureOf(new EqualException("two")))
 
         then:
         !first.is(second)
@@ -94,8 +106,8 @@ class FetchFailureConverterTest extends Specification {
         def shared = chainOfDepth(4)
 
         when:
-        def first = converter.convert(failureOf(shared))
-        def second = converter.convert(failureOf(shared))
+        def first = converter.convertWithoutStackTrace(failureOf(shared))
+        def second = converter.convertWithoutStackTrace(failureOf(shared))
 
         then:
         first.is(second)
@@ -108,8 +120,8 @@ class FetchFailureConverterTest extends Specification {
         def topB = new RuntimeException("project :b failed", sharedCause)
 
         when:
-        def a = converter.convert(failureOf(topA))
-        def b = converter.convert(failureOf(topB))
+        def a = converter.convertWithoutStackTrace(failureOf(topA))
+        def b = converter.convertWithoutStackTrace(failureOf(topB))
 
         then: "the per-project wrappers differ but the shared deep cause is converted once"
         !a.is(b)
@@ -126,7 +138,7 @@ class FetchFailureConverterTest extends Specification {
         def futures = (1..threads).collect {
             executor.submit({
                 start.await()
-                converter.convert(failureOf(shared))
+                converter.convertWithoutStackTrace(failureOf(shared))
             } as Callable)
         }
         start.countDown()
@@ -156,6 +168,23 @@ class FetchFailureConverterTest extends Specification {
         (1..(depth - 1)).each { t = new RuntimeException("level-$it", t) }
         t
     }
+
+    private static class CauseAccessGuardException extends RuntimeException {
+        boolean causeAccessAllowed = true
+
+        CauseAccessGuardException(String message) {
+            super(message)
+        }
+
+        @Override
+        synchronized Throwable getCause() {
+            if (!causeAccessAllowed) {
+                throw new AssertionError("cause should not be read after the throwable has been cached")
+            }
+            return super.getCause()
+        }
+    }
+
     private static class EqualException extends RuntimeException {
         EqualException(String message) {
             super(message)

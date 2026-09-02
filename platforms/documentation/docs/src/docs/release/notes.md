@@ -103,7 +103,9 @@ A resilient sync reports a failure for every model it fetches, and a single brok
 Until now each of those failures carried the full stack trace of the underlying exception, so the same trace was rendered and transferred once per model, delaying the moment an IDE could show the error.
 
 The failures returned by [`FetchModelResult.getFailures()`](javadoc/org/gradle/tooling/FetchModelResult.html) now describe themselves by message and cause chain only.
-Clients that need the stack traces read them from the failure the build reports when it fails at the end of the sync, which is unchanged.
+Gradle omits the frames when it first converts these failures, avoiding the cost of reading, copying, and classifying each repeated stack trace as well as rendering and transferring it.
+When the same underlying failure also fails the sync, clients can read its complete stack trace from the failure the build reports at the end.
+Failures reported only by a fetch result intentionally have no stack trace.
 
 See [`getModel`/`findModel` versus `fetch`](userguide/tooling_api.html#sec:embedding_get_find_vs_fetch) in the user manual.
 

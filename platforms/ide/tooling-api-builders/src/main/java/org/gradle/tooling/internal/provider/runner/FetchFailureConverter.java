@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.FailureCache;
-import org.gradle.internal.build.event.types.StackTraceMode;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -37,9 +36,9 @@ import java.util.concurrent.ConcurrentMap;
  * {@link FailureCache} for why this reuse matters). Its lifetime is this build tree, so it is freed when the model
  * phase ends and never retains failure graphs across syncs.
  * <p>
- * Fetch failures are converted without stack frames, which the client still receives from the failure the build fails
- * with. Holding that policy here is what keeps every value in this converter's cache rendered the same way (see
- * {@link DefaultFailure#fromFailure(Failure, java.util.function.Function, FailureCache, StackTraceMode)}).
+ * Fetch failures are converted without stack frames. When the same underlying failure also fails the operation as a
+ * whole, the client receives its complete stack trace from that terminal failure. Failures reported only by a fetch
+ * result intentionally have no full-stack equivalent.
  */
 @ServiceScope(Scope.BuildTree.class)
 @NullMarked
@@ -47,12 +46,12 @@ public class FetchFailureConverter implements FailureCache {
 
     private final ConcurrentMap<IdentityKey, InternalFailure> cache = new ConcurrentHashMap<>();
 
-    InternalFailure convert(Failure failure) {
-        return DefaultFailure.fromFailure(failure, FetchFailureConverter::noProblemDetails, this, StackTraceMode.OMIT);
+    InternalFailure convertWithoutStackTrace(Failure failure) {
+        return DefaultFailure.fromFailureWithoutStackTrace(failure, FetchFailureConverter::noProblemDetails, this);
     }
 
-    InternalFailure convert(Throwable throwable) {
-        return DefaultFailure.fromThrowable(throwable, FetchFailureConverter::noProblemDetails, this, StackTraceMode.OMIT);
+    InternalFailure convertWithoutStackTrace(Throwable throwable) {
+        return DefaultFailure.fromThrowableWithoutStackTrace(throwable, FetchFailureConverter::noProblemDetails, this);
     }
 
     @Nullable

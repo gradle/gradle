@@ -21,7 +21,11 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.integtests.tooling.r970.FetchFailureTreeAction
+import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.Failure
+import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.IntermediateResultHandler
 
 /**
@@ -35,6 +39,7 @@ import org.gradle.tooling.IntermediateResultHandler
 class ResilientFetchFailureStackTraceCrossVersionSpec extends ToolingApiSpecification {
 
     private FetchFailureTreeAction.Result fetchResult
+    private FetchStackTraceReadCountAction.Result stackTraceReadResult
 
     def setup() {
         settingsFile << """
@@ -106,6 +111,122 @@ class CustomPlugin implements Plugin<Project> {
         def cause = collectCauses(e).find { it.message?.contains("FAILURE(:b)") }
         cause != null
         cause.stackTrace.length > 0
+    }
+
+    def "fetch failure conversion does not read stack frames before final build failure reporting"() {
+        given:
+        file('b/build.gradle').text = ''
+        file('init.gradle').text = """
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+import java.util.concurrent.atomic.AtomicInteger
+import javax.inject.Inject
+
+gradle.lifecycle.beforeProject {
+    it.plugins.apply(StackTraceCountingPlugin)
+}
+
+class StackTraceCountingException extends RuntimeException {
+    static final AtomicInteger STACK_TRACE_READS = new AtomicInteger()
+
+    StackTraceCountingException(String message) {
+        super(message)
+    }
+
+    @Override
+    StackTraceElement[] getStackTrace() {
+        STACK_TRACE_READS.incrementAndGet()
+        return super.getStackTrace()
+    }
+}
+
+class StackTraceReadCountModel {
+    int getCount() {
+        return StackTraceCountingException.STACK_TRACE_READS.get()
+    }
+}
+
+class StackTraceCountingBuilder implements ToolingModelBuilder {
+    boolean canBuild(String modelName) {
+        return modelName in [
+            '${FetchStackTraceReadCountAction.FailingModel.name}',
+            '${FetchStackTraceReadCountAction.StackTraceReadCountModel.name}'
+        ]
+    }
+
+    Object buildAll(String modelName, Project project) {
+        if (modelName == '${FetchStackTraceReadCountAction.FailingModel.name}') {
+            throw new StackTraceCountingException('FRAME-COUNTED-FAILURE')
+        }
+        return new StackTraceReadCountModel()
+    }
+}
+
+class StackTraceCountingPlugin implements Plugin<Project> {
+    @Inject
+    StackTraceCountingPlugin(ToolingModelBuilderRegistry registry) {
+        registry.register(new StackTraceCountingBuilder())
+    }
+
+    void apply(Project project) {
+    }
+}
+"""
+
+        when:
+        fails {
+            action()
+                .buildFinished(new FetchStackTraceReadCountAction(), { stackTraceReadResult = it } as IntermediateResultHandler)
+                .build()
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then: "the client-facing failure is converted without materializing its frames"
+        def e = thrown(BuildException)
+        stackTraceReadResult != null
+        stackTraceReadResult.stackTraceReadsBeforeFinalFailure == 0
+        stackTraceReadResult.failureDescription.contains('FRAME-COUNTED-FAILURE')
+        !containsRenderedStackTrace(stackTraceReadResult.failureDescription)
+
+        and: "the original throwable is retained and still has frames when the build failure is reported"
+        def cause = collectCauses(e).find { it.message?.contains('FRAME-COUNTED-FAILURE') }
+        cause != null
+        cause.stackTrace.length > 0
+    }
+
+    static class FetchStackTraceReadCountAction implements BuildAction<FetchStackTraceReadCountAction.Result>, Serializable {
+
+        @Override
+        Result execute(BuildController controller) {
+            FetchModelResult<FailingModel> failed = controller.fetch(FailingModel)
+            assert failed.model == null
+            assert failed.failures.size() == 1
+            Failure failure = failed.failures.iterator().next()
+
+            FetchModelResult<StackTraceReadCountModel> count = controller.fetch(StackTraceReadCountModel)
+            assert count.failures.empty
+            StackTraceReadCountModel countModel = count.model
+            assert countModel != null
+            return new Result(failure.description, countModel.count)
+        }
+
+        interface FailingModel {
+        }
+
+        interface StackTraceReadCountModel {
+            int getCount()
+        }
+
+        static class Result implements Serializable {
+            final String failureDescription
+            final int stackTraceReadsBeforeFinalFailure
+
+            Result(String failureDescription, int stackTraceReadsBeforeFinalFailure) {
+                this.failureDescription = failureDescription
+                this.stackTraceReadsBeforeFinalFailure = stackTraceReadsBeforeFinalFailure
+            }
+        }
     }
 
     /**

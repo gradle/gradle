@@ -20,7 +20,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Deduplicates failure conversion by the identity of the original {@link Throwable}.
+ * Deduplicates stackless failure conversion by the identity of the original {@link Throwable}.
  * <p>
  * A failed Isolated Projects sync attaches the same configuration failure to every per-project fetch, so the same
  * {@code Throwable} (the whole tree or a shared deep cause) is converted many times. Keying by {@code Throwable}

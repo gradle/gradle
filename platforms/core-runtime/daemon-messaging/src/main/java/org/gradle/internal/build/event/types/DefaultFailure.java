@@ -19,7 +19,9 @@ import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.problems.failure.FailurePrinter;
+import org.gradle.internal.problems.failure.StackTraceMode;
 import org.gradle.tooling.internal.protocol.FailureDescriptionReconstructor;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalFailure;
@@ -110,26 +112,31 @@ public class DefaultFailure implements Serializable, InternalFailure {
         return fromThrowable(t, mapper, FailureCache.NONE, StackTraceMode.INCLUDE);
     }
 
-    public static InternalFailure fromThrowable(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache, StackTraceMode stackTraceMode) {
-        Failure failure = DefaultFailureFactory.withDefaultClassifier().create(t);
+    public static InternalFailure fromThrowableWithoutStackTrace(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache) {
+        return fromThrowable(t, mapper, cache, StackTraceMode.OMIT);
+    }
+
+    private static InternalFailure fromThrowable(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache, StackTraceMode stackTraceMode) {
+        InternalFailure cached = cache.get(t);
+        if (cached != null) {
+            return cached;
+        }
+        FailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier();
+        Failure failure = stackTraceMode == StackTraceMode.OMIT
+            ? failureFactory.createWithoutStackTrace(t)
+            : failureFactory.create(t);
         return fromFailure(failure, mapper, cache, stackTraceMode);
     }
 
     public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
-        return fromFailure(buildFailure, mapper, FailureCache.NONE);
+        return fromFailure(buildFailure, mapper, FailureCache.NONE, StackTraceMode.INCLUDE);
     }
 
-    public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache) {
-        return fromFailure(buildFailure, mapper, cache, StackTraceMode.INCLUDE);
+    public static InternalFailure fromFailureWithoutStackTrace(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache) {
+        return fromFailure(buildFailure, mapper, cache, StackTraceMode.OMIT);
     }
 
-    /**
-     * Converts a failure tree, rendering each node's own description with or without its stack frames.
-     * <p>
-     * A given {@code cache} must always be used with the same {@link StackTraceMode}: conversions are interned by the
-     * identity of the original throwable, so mixing modes would hand a caller the other mode's rendering.
-     */
-    public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache, StackTraceMode stackTraceMode) {
+    private static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache, StackTraceMode stackTraceMode) {
         // Reuse the conversion of a throwable already seen, e.g. a configuration failure shared across per-project fetches.
         InternalFailure cached = cache.get(buildFailure.getOriginal());
         if (cached != null) {

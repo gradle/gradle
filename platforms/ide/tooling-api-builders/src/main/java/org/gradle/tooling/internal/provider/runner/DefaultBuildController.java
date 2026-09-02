@@ -178,7 +178,7 @@ class DefaultBuildController implements
             List<InternalFailure> failures = toInternalFailures(resultInternal.getFailures());
             return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(resultInternal.getModel()), failures);
         } catch (Exception e) {
-            List<InternalFailure> failures = ImmutableList.of(failureConverter.convert(e));
+            List<InternalFailure> failures = ImmutableList.of(failureConverter.convertWithoutStackTrace(e));
             return new DefaultInternalFetchModelResult<>(null, failures);
         }
     }
@@ -186,7 +186,7 @@ class DefaultBuildController implements
     private List<InternalFailure> toInternalFailures(List<Failure> failures) {
         return failures
             .stream()
-            .map(failureConverter::convert)
+            .map(failureConverter::convertWithoutStackTrace)
             .collect(toImmutableList());
     }
 }

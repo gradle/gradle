@@ -124,7 +124,7 @@ class DefaultFailureTest extends Specification {
         def source = DefaultFailureFactory.withDefaultClassifier().create(deepChain())
 
         when:
-        def converted = DefaultFailure.fromFailure(source, { p -> null } as Function, FailureCache.NONE, StackTraceMode.OMIT)
+        def converted = DefaultFailure.fromFailureWithoutStackTrace(source, { p -> null } as Function, FailureCache.NONE)
 
         then: "the node's own description is its header, with nothing below it"
         converted.ownDescription == "java.lang.RuntimeException: root" + System.lineSeparator()
@@ -146,7 +146,7 @@ class DefaultFailureTest extends Specification {
             new DefaultMultiCauseException("multi", suppressing, new RuntimeException("two")))
 
         when:
-        def text = DefaultFailure.fromFailure(source, { p -> null } as Function, FailureCache.NONE, StackTraceMode.OMIT).getDescription()
+        def text = DefaultFailure.fromFailureWithoutStackTrace(source, { p -> null } as Function, FailureCache.NONE).getDescription()
 
         then:
         text.contains("Cause 1: java.lang.RuntimeException: outer")
@@ -159,7 +159,7 @@ class DefaultFailureTest extends Specification {
 
     def "omitting stack traces preserves messages and survives serialization"() {
         def source = DefaultFailureFactory.withDefaultClassifier().create(new RuntimeException("boom", new IllegalStateException("inner")))
-        def converted = DefaultFailure.fromFailure(source, { p -> null } as Function, FailureCache.NONE, StackTraceMode.OMIT)
+        def converted = DefaultFailure.fromFailureWithoutStackTrace(source, { p -> null } as Function, FailureCache.NONE)
 
         when:
         def restored = roundTrip(converted)

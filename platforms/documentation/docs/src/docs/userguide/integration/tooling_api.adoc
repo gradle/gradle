@@ -124,7 +124,8 @@ Each `fetch(...)` call returns a link:{javadocPath}/org/gradle/tooling/FetchMode
 
 Starting with Gradle 9.9, these failures describe themselves by message and cause chain, without stack traces.
 A resilient sync reports a failure per fetched model, and the same configuration failure is commonly attached to every one of them, so their stack traces would be rendered and transferred once per model.
-A client that needs the stack traces reads them from the failure the build reports when it fails at the end of the sync, which is unaffected.
+When the same underlying failure also fails the sync, a client can read its complete stack trace from the failure the build reports at the end.
+Failures reported only by a fetch result intentionally have no stack trace.
 
 Unlike `getModel`/`findModel`, `fetch(...)` does not throw when the build-side fails to produce the model.
 The build action can inspect the failures, decide whether to continue, and request more models.

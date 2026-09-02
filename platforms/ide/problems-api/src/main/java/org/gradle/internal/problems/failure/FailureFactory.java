@@ -30,6 +30,11 @@ public interface FailureFactory {
 
     Failure create(Throwable failure);
 
+    /**
+     * Converts an exception without reading or retaining its stack frames.
+     */
+    Failure createWithoutStackTrace(Throwable failure);
+
     Failure create(Throwable failure, ProblemLocator problemLocator);
 
 }
