@@ -122,6 +122,10 @@ Each `fetch(...)` call returns a link:{javadocPath}/org/gradle/tooling/FetchMode
 * The fetched model — accessible via `FetchModelResult.getModel()`, or `null` if the model could not be built.
 * Any failures encountered while building the model — accessible via `FetchModelResult.getFailures()` as a collection of link:{javadocPath}/org/gradle/tooling/Failure.html[`Failure`] values.
 
+Starting with Gradle 9.9, these failures describe themselves by message and cause chain, without stack traces.
+A resilient sync reports a failure per fetched model, and the same configuration failure is commonly attached to every one of them, so their stack traces would be rendered and transferred once per model.
+A client that needs the stack traces reads them from the failure the build reports when it fails at the end of the sync, which is unaffected.
+
 Unlike `getModel`/`findModel`, `fetch(...)` does not throw when the build-side fails to produce the model.
 The build action can inspect the failures, decide whether to continue, and request more models.
 This is the recommended API for IDEs and tools that want to deliver a partial sync result when part of the build is broken, rather than failing the whole operation on the first error:
@@ -163,6 +167,7 @@ Resilient sync requires Tooling API 9.3.0 or later and a target Gradle version t
 * Gradle 9.3.0: The `fetch(...)` methods and `FetchModelResult` are available.
 * Gradle 9.4.0: Partial build models, returned when a settings script or a settings plugin fails.
 * Gradle 9.7.0: Reporting a resilient sync that partially failed as a failed operation. In earlier versions, such an operation could complete successfully, with the failures reported only through `FetchModelResult.getFailures()`.
+* Gradle 9.9.0: Reporting the failures of a fetch result without stack traces. Earlier versions include the stack trace of every failure in its description.
 
 [[sec:embedding_phased_action_example]]
 === Reading intermediate models with a phased build action

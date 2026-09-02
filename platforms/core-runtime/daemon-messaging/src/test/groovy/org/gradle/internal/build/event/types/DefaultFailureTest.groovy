@@ -120,6 +120,57 @@ class DefaultFailureTest extends Specification {
         FailurePrinter.printToString(source).contains("INTERIOR-MULTI")
     }
 
+    def "omitting stack traces keeps the cause chain but renders no frames"() {
+        def source = DefaultFailureFactory.withDefaultClassifier().create(deepChain())
+
+        when:
+        def converted = DefaultFailure.fromFailure(source, { p -> null } as Function, FailureCache.NONE, StackTraceMode.OMIT)
+
+        then: "the node's own description is its header, with nothing below it"
+        converted.ownDescription == "java.lang.RuntimeException: root" + System.lineSeparator()
+
+        and: "the full description still walks the whole cause chain"
+        def text = converted.getDescription()
+        text.contains("java.lang.RuntimeException: root")
+        text.contains("Caused by: java.lang.RuntimeException: level1")
+        text.contains("Caused by: java.lang.RuntimeException: level2-DEEP")
+
+        and: "no frames anywhere, so no common tail elision either"
+        !containsRenderedStackTrace(text)
+    }
+
+    def "omitting stack traces renders multiple causes and drops the frames of suppressed exceptions"() {
+        def suppressing = new RuntimeException("outer")
+        suppressing.addSuppressed(new IllegalStateException("suppressed-one"))
+        def source = DefaultFailureFactory.withDefaultClassifier().create(
+            new DefaultMultiCauseException("multi", suppressing, new RuntimeException("two")))
+
+        when:
+        def text = DefaultFailure.fromFailure(source, { p -> null } as Function, FailureCache.NONE, StackTraceMode.OMIT).getDescription()
+
+        then:
+        text.contains("Cause 1: java.lang.RuntimeException: outer")
+        text.contains("Cause 2: java.lang.RuntimeException: two")
+        text.contains("Suppressed: java.lang.IllegalStateException: suppressed-one")
+
+        and:
+        !containsRenderedStackTrace(text)
+    }
+
+    def "omitting stack traces preserves messages and survives serialization"() {
+        def source = DefaultFailureFactory.withDefaultClassifier().create(new RuntimeException("boom", new IllegalStateException("inner")))
+        def converted = DefaultFailure.fromFailure(source, { p -> null } as Function, FailureCache.NONE, StackTraceMode.OMIT)
+
+        when:
+        def restored = roundTrip(converted)
+
+        then:
+        restored.message == "boom"
+        restored.causes[0].message == "inner"
+        restored.getDescription() == converted.getDescription()
+        !containsRenderedStackTrace(restored.getDescription())
+    }
+
     def "converted failure survives serialization and reconstructs its description"() {
         def source = DefaultFailureFactory.withDefaultClassifier().create(new RuntimeException("boom", new IllegalStateException("inner")))
         def expected = FailurePrinter.printToString(source)
@@ -131,6 +182,14 @@ class DefaultFailureTest extends Specification {
         then:
         restored.getOwnDescription() == converted.getOwnDescription()
         restored.getDescription() == expected
+    }
+
+    /**
+     * Whether the text renders a stack trace: a frame line, or the line that elides a tail of frames shared with the
+     * parent. Both are indented, and a suppressed exception's own lines carry one further level of indentation.
+     */
+    private static boolean containsRenderedStackTrace(String text) {
+        return text.readLines().any { it ==~ /\t+(at .+|\.\.\. \d+ more)/ }
     }
 
     private static InternalFailure roundTrip(InternalFailure failure) {

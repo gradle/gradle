@@ -107,8 +107,12 @@ public class DefaultFailure implements Serializable, InternalFailure {
     }
 
     public static InternalFailure fromThrowable(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
+        return fromThrowable(t, mapper, FailureCache.NONE, StackTraceMode.INCLUDE);
+    }
+
+    public static InternalFailure fromThrowable(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache, StackTraceMode stackTraceMode) {
         Failure failure = DefaultFailureFactory.withDefaultClassifier().create(t);
-        return fromFailure(failure, mapper);
+        return fromFailure(failure, mapper, cache, stackTraceMode);
     }
 
     public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
@@ -116,6 +120,16 @@ public class DefaultFailure implements Serializable, InternalFailure {
     }
 
     public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache) {
+        return fromFailure(buildFailure, mapper, cache, StackTraceMode.INCLUDE);
+    }
+
+    /**
+     * Converts a failure tree, rendering each node's own description with or without its stack frames.
+     * <p>
+     * A given {@code cache} must always be used with the same {@link StackTraceMode}: conversions are interned by the
+     * identity of the original throwable, so mixing modes would hand a caller the other mode's rendering.
+     */
+    public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache, StackTraceMode stackTraceMode) {
         // Reuse the conversion of a throwable already seen, e.g. a configuration failure shared across per-project fetches.
         InternalFailure cached = cache.get(buildFailure.getOriginal());
         if (cached != null) {
@@ -124,8 +138,8 @@ public class DefaultFailure implements Serializable, InternalFailure {
         // Build the failure tree in a single pass: each node carries only its own description. The full description (the
         // whole cause subtree) is reconstructed lazily from these on demand, so no node prints its subtree here. Children
         // are interned before the parent, so the cache is never re-entered while a single mapping is being computed.
-        String ownDescription = FailurePrinter.printNodeToString(buildFailure);
-        List<InternalFailure> causeFailures = convertCausesToFailures(buildFailure.getCauses(), mapper, cache);
+        String ownDescription = renderOwnDescription(buildFailure, stackTraceMode);
+        List<InternalFailure> causeFailures = convertCausesToFailures(buildFailure.getCauses(), mapper, cache, stackTraceMode);
         List<InternalBasicProblemDetailsVersion3> problemDetails = buildFailure.getProblems().stream()
             .map(mapper)
             .collect(toList());
@@ -134,10 +148,17 @@ public class DefaultFailure implements Serializable, InternalFailure {
         return cache.intern(buildFailure.getOriginal(), converted);
     }
 
+    private static String renderOwnDescription(Failure buildFailure, StackTraceMode stackTraceMode) {
+        return stackTraceMode == StackTraceMode.OMIT
+            ? FailurePrinter.printNodeWithoutFramesToString(buildFailure)
+            : FailurePrinter.printNodeToString(buildFailure);
+    }
+
     private static List<InternalFailure> convertCausesToFailures(
         List<Failure> causes,
         Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper,
-        FailureCache cache
+        FailureCache cache,
+        StackTraceMode stackTraceMode
     ) {
         return causes.stream()
             // Multi cause exceptions are dropped from the cause structure (the reason predates this code); for example
@@ -147,7 +168,7 @@ public class DefaultFailure implements Serializable, InternalFailure {
             .flatMap(cause -> cause.getOriginal() instanceof MultiCauseException
                 ? cause.getCauses().stream()
                 : Stream.of(cause))
-            .map(cause -> fromFailure(cause, mapper, cache))
+            .map(cause -> fromFailure(cause, mapper, cache, stackTraceMode))
             .collect(toList());
     }
 

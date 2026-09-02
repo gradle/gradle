@@ -28,6 +28,37 @@ class FetchFailureConverterTest extends Specification {
 
     def converter = new FetchFailureConverter()
 
+    def "converts without stack frames, keeping the messages and the cause chain"() {
+        def throwable = new RuntimeException("top", new IllegalStateException("bottom"))
+
+        when:
+        def converted = converter.convert(failureOf(throwable))
+
+        then:
+        converted.message == "top"
+        converted.causes[0].message == "bottom"
+
+        and:
+        def description = converted.description
+        description.contains("java.lang.RuntimeException: top")
+        description.contains("Caused by: java.lang.IllegalStateException: bottom")
+        !containsRenderedStackTrace(description)
+    }
+
+    def "converts a throwable without stack frames and interns it like a failure"() {
+        def throwable = new RuntimeException("boom")
+
+        when:
+        def fromThrowable = converter.convert(throwable)
+        def fromFailure = converter.convert(failureOf(throwable))
+
+        then: "the throwable and the failure wrapping it convert to the same instance"
+        fromThrowable.is(fromFailure)
+
+        and:
+        !containsRenderedStackTrace(fromThrowable.description)
+    }
+
     def "reuses the converted failure when two failures share the same original throwable"() {
         def throwable = new RuntimeException("boom")
 
@@ -46,6 +77,17 @@ class FetchFailureConverterTest extends Specification {
 
         then:
         !first.is(second)
+    }
+
+    def "uses throwable identity rather than equality for cache keys"() {
+        when:
+        def first = converter.convert(failureOf(new EqualException("one")))
+        def second = converter.convert(failureOf(new EqualException("two")))
+
+        then:
+        !first.is(second)
+        first.message == "one"
+        second.message == "two"
     }
 
     def "reuses the whole converted tree when two failures share the same throwable tree"() {
@@ -97,6 +139,14 @@ class FetchFailureConverterTest extends Specification {
         executor.shutdownNow()
     }
 
+    /**
+     * Whether the text renders a stack trace: a frame line, or the line that elides a tail of frames shared with the
+     * parent. Both are indented, and a suppressed exception's own lines carry one further level of indentation.
+     */
+    private static boolean containsRenderedStackTrace(String text) {
+        return text.readLines().any { it ==~ /\t+(at .+|\.\.\. \d+ more)/ }
+    }
+
     private static Failure failureOf(Throwable throwable) {
         DefaultFailureFactory.withDefaultClassifier().create(throwable)
     }
@@ -105,5 +155,20 @@ class FetchFailureConverterTest extends Specification {
         Throwable t = new RuntimeException("leaf")
         (1..(depth - 1)).each { t = new RuntimeException("level-$it", t) }
         t
+    }
+    private static class EqualException extends RuntimeException {
+        EqualException(String message) {
+            super(message)
+        }
+
+        @Override
+        boolean equals(Object other) {
+            return other instanceof EqualException
+        }
+
+        @Override
+        int hashCode() {
+            return 0
+        }
     }
 }
