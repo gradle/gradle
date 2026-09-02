@@ -59,6 +59,7 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.id.UniqueId;
@@ -85,14 +86,18 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.testfixtures.ProjectBuilder;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
@@ -101,8 +106,21 @@ public class ProjectBuilderImpl {
     private static @Nullable ServiceRegistry globalServices;
     private static @Nullable ServiceRegistry persistentGlobalServices;
     private static boolean legacyTypesInjected;
+    private static boolean persistentServicesShutdownHookRegistered;
+    private static final Set<RootProjectContext> ACTIVE_PROJECT_CONTEXTS =
+        Collections.newSetFromMap(new IdentityHashMap<>());
 
     private static final Logger LOGGER = Logging.getLogger(ProjectBuilderImpl.class);
+
+    private boolean usePersistentCaches;
+
+    public void usePersistentCaches() {
+        usePersistentCaches = true;
+    }
+
+    public boolean usesPersistentCaches() {
+        return usePersistentCaches;
+    }
 
     public Project createChildProject(String name, Project parent, @Nullable File inputProjectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
@@ -125,6 +143,10 @@ public class ProjectBuilderImpl {
     }
 
     public ProjectInternal createProject(String name, @Nullable File inputProjectDir, @Nullable File gradleUserHomeDir) {
+        return createProject(name, inputProjectDir, gradleUserHomeDir, false);
+    }
+
+    public ProjectInternal createProject(String name, @Nullable File inputProjectDir, @Nullable File gradleUserHomeDir, boolean usePersistentCaches) {
         // ProjectBuilder uses daemon classes, so it has the same JVM compatibility.
         UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
 
@@ -146,7 +168,9 @@ public class ProjectBuilderImpl {
         }
 
         final File projectDir = prepareProjectDir(inputProjectDir);
-        File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
+        File userHomeDir = gradleUserHomeDir == null
+            ? usePersistentCaches ? ProjectBuilder.getDefaultGradleUserHomeDir() : new File(projectDir, "userHome")
+            : FileUtils.canonicalize(gradleUserHomeDir);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
         startParameter.setCurrentDir(projectDir);
@@ -161,7 +185,7 @@ public class ProjectBuilderImpl {
             : NativeServicesMode.DISABLED;
         NativeServices.initializeOnDaemon(userHomeDir, nativeServicesMode);
 
-        final ServiceRegistry globalServices = getGlobalServices(gradleUserHomeDir != null);
+        final ServiceRegistry globalServices = getGlobalServices(usePersistentCaches);
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         File userActionRootDir = globalServices.get(BuildLayoutFactory.class).getLayoutFor(startParameter.toBuildLayoutConfiguration()).getRootDirectory();
@@ -219,7 +243,11 @@ public class ProjectBuilderImpl {
             crossBuildSessionState
         );
 
-        RootProjectContext.attach(project, new RootProjectContext(tearDown));
+        RootProjectContext context = new RootProjectContext(tearDown);
+        RootProjectContext.attach(project, context);
+        synchronized (ProjectBuilderImpl.class) {
+            ACTIVE_PROJECT_CONTEXTS.add(context);
+        }
 
         return project;
     }
@@ -252,7 +280,37 @@ public class ProjectBuilderImpl {
     }
 
     public static void stop(Project rootProject) {
-        RootProjectContext.obtain(rootProject).tearDown.stop();
+        RootProjectContext.obtain(rootProject).stop();
+    }
+
+    public synchronized static void releaseGlobalServices() {
+        if (globalServices == null && persistentGlobalServices == null && ACTIVE_PROJECT_CONTEXTS.isEmpty()) {
+            return;
+        }
+
+        ServiceRegistry services = globalServices;
+        ServiceRegistry persistentServices = persistentGlobalServices;
+        globalServices = null;
+        persistentGlobalServices = null;
+
+        CompositeStoppable resources = stoppable(new ArrayList<>(ACTIVE_PROJECT_CONTEXTS));
+        ACTIVE_PROJECT_CONTEXTS.clear();
+        resources
+            .add(globalServicesToStop(persistentServices))
+            .add(globalServicesToStop(services))
+            .stop();
+    }
+
+    private static synchronized void removeActiveProjectContext(RootProjectContext context) {
+        ACTIVE_PROJECT_CONTEXTS.remove(context);
+    }
+
+    private static CompositeStoppable globalServicesToStop(@Nullable ServiceRegistry services) {
+        if (services == null) {
+            return stoppable();
+        }
+        GradleUserHomeScopeServiceRegistry userHomeServices = services.get(GradleUserHomeScopeServiceRegistry.class);
+        return stoppable(userHomeServices, services);
     }
 
     private GradleUserHomeScopeServiceRegistry userHomeServicesOf(ServiceRegistry globalServices) {
@@ -268,6 +326,7 @@ public class ProjectBuilderImpl {
             if (persistentGlobalServices == null) {
                 persistentGlobalServices = createGlobalServices(true);
                 injectLegacyTypes(persistentGlobalServices);
+                registerPersistentServicesShutdownHook();
             }
             return persistentGlobalServices;
         }
@@ -276,6 +335,18 @@ public class ProjectBuilderImpl {
             injectLegacyTypes(globalServices);
         }
         return globalServices;
+    }
+
+    private static void registerPersistentServicesShutdownHook() {
+        if (persistentServicesShutdownHookRegistered) {
+            return;
+        }
+        try {
+            Runtime.getRuntime().addShutdownHook(new Thread(ProjectBuilderImpl::releaseGlobalServices, "ProjectBuilder persistent cache cleanup"));
+            persistentServicesShutdownHookRegistered = true;
+        } catch (SecurityException e) {
+            LOGGER.debug("Could not register ProjectBuilder shutdown hook.", e);
+        }
     }
 
     private static void injectLegacyTypes(ServiceRegistry services) {
@@ -377,9 +448,21 @@ public class ProjectBuilderImpl {
      * into a single operation. It also skips the Settings phase entirely, so settings-specific
      * services must be created and managed manually.
      */
-    private record RootProjectContext(
-        Stoppable tearDown
-    ) {
+    private static class RootProjectContext implements Stoppable {
+        private final Stoppable tearDown;
+        private final AtomicBoolean stopped = new AtomicBoolean();
+
+        private RootProjectContext(Stoppable tearDown) {
+            this.tearDown = tearDown;
+        }
+
+        @Override
+        public void stop() {
+            if (stopped.compareAndSet(false, true)) {
+                removeActiveProjectContext(this);
+                tearDown.stop();
+            }
+        }
 
         // The context is stored in the ProjectBuilder-created root project's extra properties.
         // We have to store it in the root project state because the API gives out the full instances of the `Project` to the user.

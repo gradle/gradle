@@ -21,13 +21,14 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.Problems
-import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.cache.internal.CacheFactory
+import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.ProjectBuilderImpl
+import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.gradle.util.internal.IncubationLogger
 import org.gradle.util.internal.Resources
 import org.junit.Rule
@@ -54,6 +55,7 @@ class ProjectBuilderTest extends Specification {
     }
 
     def cleanupSpec() {
+        ProjectBuilder.releaseGlobalServices()
         if (originalReuseUserHomeServices == null) {
             System.clearProperty(REUSE_USER_HOME_SERVICES)
         } else {
@@ -90,7 +92,37 @@ class ProjectBuilderTest extends Specification {
 
     def "can get the default Gradle user home directory"() {
         expect:
-        ProjectBuilder.getDefaultGradleUserHomeDir() == new BuildLayoutParameters().gradleUserHomeDir
+        ProjectBuilder.getDefaultGradleUserHomeDir() == new File(
+            System.getProperty("java.io.tmpdir"),
+            ".gradle-test-kit-${System.getProperty('user.name')}"
+        ).canonicalFile
+    }
+
+    def "does not enable persistent caches for an explicitly configured user home"() {
+        given:
+        def project = ProjectBuilder.builder()
+            .withGradleUserHomeDir(temporaryFolder.testDirectory.file("gradle-user-home"))
+            .build()
+
+        expect:
+        project.services.get(CacheFactory) instanceof TestInMemoryCacheFactory
+
+        cleanup:
+        ProjectBuilder.stop(project)
+    }
+
+    def "enables persistent caches explicitly and uses the dedicated default user home"() {
+        when:
+        def project = ProjectBuilder.builder()
+            .withPersistentCaches()
+            .build()
+
+        then:
+        project.gradle.gradleUserHomeDir == ProjectBuilder.getDefaultGradleUserHomeDir()
+        project.services.get(CacheFactory) instanceof DefaultCacheFactory
+
+        cleanup:
+        ProjectBuilder.stop(project)
     }
 
     private Project buildProject() {
@@ -283,6 +315,6 @@ class ProjectBuilderTest extends Specification {
         project.providers.gradleProperty("bar").getOrNull() == "two"
 
         cleanup:
-        ProjectBuilderImpl.stop(project)
+        ProjectBuilder.stop(project)
     }
 }
