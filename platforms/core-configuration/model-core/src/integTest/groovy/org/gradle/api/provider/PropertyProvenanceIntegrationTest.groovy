@@ -193,6 +193,47 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("It was last set by plugin class 'OuterPlugin'.")
     }
 
+    def "distinguishes build files in a multi-project build"() {
+        withProvenanceEnabled()
+        settingsFile """
+            include(":lib")
+            include(":app")
+        """
+        buildFile """
+            subprojects { p -> p.tasks.register("show", Show) }
+
+            // configuring another project from the root build file
+            project(":app") {
+                tasks.named("show") {
+                    prop = "set from root"
+                    doLast { prop.set("other") }
+                }
+            }
+        """
+        file("lib/build.gradle") << """
+            tasks.named("show") {
+                prop = "set from lib"
+                doLast { prop.set("other") }
+            }
+        """
+        // :app is configured entirely from the root build file
+        file("app/build.gradle") << ""
+
+        when:
+        fails(":lib:show")
+
+        then:
+        failureCauseContains("The value for task ':lib:show' property 'prop' is final and cannot be changed any further. It was last set by build file 'lib${File.separatorChar}build.gradle'.")
+
+        when:
+        withProvenanceEnabled()
+        fails(":app:show")
+
+        then:
+        // cross-project configuration: the root build file did it, not the app build file
+        failureCauseContains("The value for task ':app:show' property 'prop' is final and cannot be changed any further. It was last set by build file 'build.gradle'.")
+    }
+
     def "reports provenance for a script plugin"() {
         withProvenanceEnabled()
         file("other.gradle") << """

@@ -200,6 +200,11 @@ specification, not an oversight:
   are covered, since they extend `DefaultProperty`.
 - **Settings-scope and worker-scope properties.** These are created with
   `PropertyHost.NO_OP` and record nothing.
+- **Per-script identity for build authors.** `ContributorKey.BUILD_AUTHOR` collapses every
+  build script to one contributor, per spec §4, so `lib/build.gradle` and the root
+  `build.gradle` are distinguished in the message text but not in identity. If
+  collaborative authorization ever needs to tell them apart, the script URI is already on
+  `UserCodeSource.Script` and is simply discarded for this case.
 
 ## Follow-ups if this graduates
 
