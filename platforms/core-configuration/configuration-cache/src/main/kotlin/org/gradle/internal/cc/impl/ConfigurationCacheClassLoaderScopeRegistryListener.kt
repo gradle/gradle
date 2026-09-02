@@ -54,42 +54,52 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     val loaders = IdentityHashMap<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
     private
-    var disposed = false
+    var recording = false
 
+    /**
+     * Starts recording the [ClassLoaderScopeSpec]s of this build tree.
+     *
+     * Recording starts before any scope can be created, so that no scope is
+     * missed. A build that does not need the scope tree stops the recording
+     * again through [stopRecording].
+     */
     override fun afterBuildTreeStart() {
         synchronized(lock) {
-            assertNotDisposed("afterBuildTreeStart")
+            check(!recording) { "Recording has already started." }
             listenerManager.add(this)
+            recording = true
         }
     }
 
     /**
-     * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
+     * Stops recording and releases the recorded state. Does nothing if the
+     * recording was already stopped.
+     *
+     * TODO:configuration-cache make this unnecessary by deciding the cache strategy
+     *  early, so the listener is only attached when the entry is stored.
      */
-    fun dispose() {
+    fun stopRecording() {
         synchronized(lock) {
-            if (disposed) {
-                return
+            resetState()
+            if (recording) {
+                listenerManager.remove(this)
+                recording = false
             }
-            // TODO:configuration-cache find a way to make `dispose` unnecessary;
-            //  maybe by extracting an `ConfigurationCacheBuildDefinition` service
-            //  from DefaultConfigurationCacheHost so a decision based on the configured
-            //  configuration cache strategy (none, store or load) can be taken early on.
-            //  The listener only needs to be attached in the `store` state.
-            scopeSpecs.clear()
-            loaders.clear()
-            listenerManager.remove(this)
-            disposed = true
         }
     }
 
+    private
+    fun resetState() {
+        scopeSpecs.clear()
+        loaders.clear()
+    }
+
     override fun close() {
-        dispose()
+        stopRecording()
     }
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
         synchronized(lock) {
-            assertNotDisposed("scopeFor")
             // TODO:configuration-cache assert the spec can no longer change after it has been observed
             return loaders[classLoader]
         }
@@ -102,7 +112,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId, origin: ClassLoaderScopeOrigin?) {
         synchronized(lock) {
-            assertNotDisposed("childScopeCreated")
             if (scopeSpecs.containsKey(childId)) {
                 // scope is being reused
                 return
@@ -132,7 +141,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 "Please report this error, run './gradlew --stop' and try again."
         }
         synchronized(lock) {
-            assertNotDisposed("classloaderCreated")
             val spec = scopeSpecs[scopeId]
             check(spec != null) {
                 "Spec for ClassLoaderScope '$scopeId' not found!"
@@ -147,13 +155,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 spec.exportClassPath = classPath
             }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
-        }
-    }
-
-    private
-    fun assertNotDisposed(method: String) {
-        check(!disposed) {
-            "${javaClass.simpleName}.$method cannot be used after being disposed of."
         }
     }
 }
