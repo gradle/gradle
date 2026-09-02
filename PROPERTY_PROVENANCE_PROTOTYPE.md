@@ -270,6 +270,41 @@ specification, not an oversight:
   collaborative authorization ever needs to tell them apart, the script URI is already on
   `UserCodeSource.Script` and is simply discarded for this case.
 
+## Cost
+
+Measured on this branch, not estimated. Time is min-of-5 over 100,000 mutations of 20,000
+properties; retained size is a heap delta over 500,000 live properties. "Baseline" is the
+same benchmark with the two provenance fields stripped out of `AbstractProperty`.
+
+| | ns per mutation | retained per property |
+|---|---|---|
+| Baseline (no provenance code) | 3.4 | 63.8 B unset / 80.1 B set |
+| Provenance compiled in, flag **off** | 5.1 (**+1.7**) | 72.2 B unset / 88.1 B set (**+8 B**) |
+| Flag **on** | 12.7 (**+9.3**) | 168.1 B set (**+88 B**) |
+| Locations on | + ~800–1200 ns per capture, capped at 2000 captures | unchanged |
+
+To turn that into build impact, a 30-subproject `java-library` build running `assemble`
+performs **1,951 property mutations** and creates **4,480 properties** (measured with
+temporary counters): roughly 65 mutations and 150 properties per subproject.
+
+Extrapolating to a 1,000-subproject build (~65,000 mutations, ~150,000 properties):
+
+- **flag off**: ~0.1 ms of extra time, ~1.2 MB of extra heap;
+- **flag on**: ~0.6 ms of extra time, and a few MB of traces;
+- **locations on**: ~2 ms total, because the budget caps captures at 2,000.
+
+So **time is not the problem in any mode** — the whole feature is microseconds on a large
+build. The cost that matters is memory, and specifically the 88 B trace.
+
+That 88 B is `MutationTrace` + an `ArrayList` + its backing array, allocated on the first
+mutation. Most properties are mutated once, so the obvious fix is to hold a single
+`MutationRecord` reference directly and only promote to a list on the second mutation,
+which would take the common case to zero extra allocation. That is the first thing to do
+before considering default-on.
+
+The +1.7 ns and +8 B paid with the flag **off** are the price of compiling the feature in at
+all: one boolean field, one reference field, and a branch on the mutation path.
+
 ## Measured gaps
 
 Probed against real builds rather than reasoned about:
@@ -304,10 +339,11 @@ rather than a flag.
 
 ## Follow-ups if this graduates
 
-1. Pack the two record references into a single `long` of interned ints, per the
-   footprint constraint in spec §10.
-2. Measure the capture cost with the flag on and off before considering a default-on
-   rollout.
+1. Hold a single `MutationRecord` until a second mutation arrives, instead of allocating a
+   `MutationTrace` eagerly: measured at 88 B per configured property, and most properties
+   are configured once.
+2. Persist provenance across the configuration cache, without which the feature is blank in
+   any build that uses it.
 3. Attach provenance to collection contributions, which unlocks the ordered update trace
    that collaborative mode validates.
 
