@@ -305,6 +305,60 @@ before considering default-on.
 The +1.7 ns and +8 B paid with the flag **off** are the price of compiling the feature in at
 all: one boolean field, one reference field, and a branch on the mutation path.
 
+### What a full trace would cost
+
+The numbers above are for the bounded diagnostics trace. Collaborative mode needs the
+*complete ordered* update trace retained while the property is still mutable, so it is worth
+knowing how the cost scales with trace length. Measured over 200,000 live properties, as
+bytes per property above an untracked baseline of 87.6 B:
+
+| records per property | interned records | one record per mutation |
+|---|---|---|
+| 1 | +81 B | +152 B |
+| 2 | +81 B | +241 B |
+| 4 | +81 B | +369 B |
+| 8 | +104 B | +681 B |
+| 16 | +145 B | +1297 B |
+| 32 | +170 B (est.) | **OutOfMemoryError** |
+
+Two things fall out of this.
+
+**Interning is what makes a full trace affordable.** With records interned per
+(contributor, kind), a trace costs ~81 B for the first record and then roughly 4–5 B per
+additional one — it is a list of shared references, and the first four fit the `ArrayList`'s
+initial capacity. Without interning it is ~80 B *per record*, a 20× difference, and 200,000
+properties × 32 records exhausted the heap.
+
+**So the retained record must carry nothing per-occurrence.** Anything that varies per
+mutation — a call site, an `ApplicationId` — makes every record a distinct object and puts
+you in the right-hand column. This matters for the specification: §3 puts `applicationId` on
+the mutation occurrence rather than the interned origin, which is exactly what defeats
+interning. Since §4 also says the application ID is *not* used for contributor ordering, it
+should be left out of the retained trace, or held in a parallel `int[]` at 4 B per record,
+rather than turning every record into an object. Call-site locations are diagnostics and can
+stay budget-capped, as they are here.
+
+Applying the measured rates to a 1,000-subproject build extrapolated from the java-library
+measurement (~65,000 mutations, ~33,000 configured properties), a complete retained trace
+costs roughly **3 MB** with interned records and roughly **8 MB** without. The
+caveat is that this build is trivially small per project; a build with heavy plugins will
+have many times more mutations, and the rates above are what should be applied to it, not
+this total.
+
+Two mitigations the specification already allows:
+
+- §10 scopes the full ordered trace to *collaborative* properties; ordinary properties keep
+  only compact effective provenance, which is what this prototype does.
+- The trace is needed while the property is mutable and being validated. After lifecycle
+  closure it can be released, so this is peak configuration-time memory, not permanent
+  retention.
+
+And one container change worth making before any of this ships: hold the first record
+directly in the property's existing field and only allocate a trace on the second mutation.
+Most properties are configured once, so that takes the common case from +81 B to zero, and
+a collaborative trace should then be an `int[]` of interned record IDs rather than an
+`ArrayList<MutationRecord>`.
+
 ## Measured gaps
 
 Probed against real builds rather than reasoned about:
