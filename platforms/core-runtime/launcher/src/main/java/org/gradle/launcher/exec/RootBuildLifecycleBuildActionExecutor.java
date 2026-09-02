@@ -89,7 +89,7 @@ public class RootBuildLifecycleBuildActionExecutor {
 
         projectParallelExecutionController.startProjectExecution(buildModelParameters.isParallelProjectExecution());
         try {
-            lifecycleListener.afterStart();
+            lifecycleListener.afterBuildTreeStart();
             StartParameterInternal startParameter = action.getStartParameter();
             try {
                 initDeprecationLogging(startParameter);
@@ -100,7 +100,7 @@ public class RootBuildLifecycleBuildActionExecutor {
             } finally {
                 // Since continuous builds reuse the same StartParameter for multiple build trees.
                 startParameter.clearMutationListener();
-                lifecycleListener.beforeStop();
+                lifecycleListener.beforeBuildTreeStop();
             }
         } finally {
             projectParallelExecutionController.finishProjectExecution();

@@ -56,9 +56,9 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     private
     var disposed = false
 
-    override fun afterStart() {
+    override fun afterBuildTreeStart() {
         synchronized(lock) {
-            assertNotDisposed("afterStart")
+            assertNotDisposed("afterBuildTreeStart")
             listenerManager.add(this)
         }
     }
