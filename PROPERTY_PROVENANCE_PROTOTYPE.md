@@ -305,6 +305,43 @@ before considering default-on.
 The +1.7 ns and +8 B paid with the flag **off** are the price of compiling the feature in at
 all: one boolean field, one reference field, and a branch on the mutation path.
 
+### Measured on the gradle/gradle build
+
+A distribution was built from this branch with temporary counters and run against
+gradle/gradle itself (`gradle help`, 252 subprojects, isolated projects and the
+configuration cache disabled so every project is configured):
+
+```
+properties created  263,281
+properties with at least one recorded mutation   85,242
+mutations recorded  100,485
+```
+
+That is ~1,000 properties and ~400 mutations per subproject, and an average trace length of
+**1.18 records** — the overwhelming majority of configured properties are configured exactly
+once.
+
+Applying the measured rates:
+
+| | added heap |
+|---|---|
+| The two fields, whether or not the flag is on | ~2.2 MB |
+| Flag on, current eager `MutationTrace` | **~6.9 MB** |
+| Flag on, first record held in the existing field | **~1.2 MB** |
+| Flag on, one record per mutation (locations on every record) | ~14.3 MB |
+
+Time is ~0.9 ms for all 100,485 mutations, against a configuration phase of over three
+minutes.
+
+Two caveats. The 263,281 is properties *created* over the whole build, not simultaneously
+live, so the 2.2 MB field cost is an upper bound. And a Gradle daemon running this build
+holds several GB, so even the unoptimised 6.9 MB is around a tenth of a percent of heap.
+
+The interesting number is the third row. Because the average trace is 1.18 records, holding
+the first record directly in the property's existing field and only allocating a trace on
+the second mutation removes about 85% of the cost — the eager `ArrayList` is paying for a
+list that almost never has more than one element.
+
 ### What a full trace would cost
 
 The numbers above are for the bounded diagnostics trace. Collaborative mode needs the
