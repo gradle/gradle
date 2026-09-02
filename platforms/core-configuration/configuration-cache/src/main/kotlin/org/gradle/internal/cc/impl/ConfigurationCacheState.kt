@@ -641,7 +641,7 @@ class ConfigurationCacheState(
         withIsolate(IsolateOwners.OwnerFlowScope(gradle), userTypesCodec) {
             val buildState = gradle.owner
             if (buildState.isProjectsLoaded) {
-                // Grab the allprojects lock to serialize the flow actions.
+                // Grab the state lock of every project to serialize the flow actions.
                 // This is a workaround for parameters that may require dependency resolution under the hood.
                 buildState.projects.withMutableStateOfAllProjects {
                     runWriteOperation {

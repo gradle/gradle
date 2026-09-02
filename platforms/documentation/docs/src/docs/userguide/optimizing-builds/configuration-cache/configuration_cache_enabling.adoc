@@ -101,10 +101,11 @@ org.gradle.configuration-cache.max-problems=5
 [[config_cache:usage:parallel]]
 === Enabling Parallel Configuration Caching
 
-By default, Configuration Cache storing and loading are sequential.
-Enabling parallel storing and loading can improve performance, but not all builds are compatible with it.
+Loading a Configuration Cache entry is always parallel; this option concerns storing, which is sequential by default.
+Enabling parallel storing can improve performance, but not all builds are compatible with it.
+In general, if the project builds with `--parallel` without issues, it should not have problems with parallel storing.
 
-To enable parallel configuration caching at build time, use:
+To enable parallel storing at build time, use:
 
 [source,bash]
 ----
@@ -124,6 +125,8 @@ The parallel configuration caching feature is _incubating_, and some builds may 
 A common symptom of incompatibility is `ConcurrentModificationException` errors during the <<build_lifecycle_intermediate.adoc#sec:configuration,configuration phase>>.
 However, this feature is expected to work well for <<configuration_on_demand.adoc#sec:decoupled_projects,decoupled>> multi-project builds.
 ====
+
+NOTE: While incubating, this option delivers less than its full benefit unless parallel project execution is enabled with `--parallel` or `org.gradle.parallel=true`. See <<configuration_cache_status.adoc#config_cache:not_yet_implemented:parallel_store, Parallel Storing of Cache Entries Independent of Parallel Project Execution>>.
 
 [[config_cache:usage:read_only]]
 === Making the Configuration Cache Read-Only

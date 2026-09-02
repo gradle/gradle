@@ -134,6 +134,14 @@ class ConfigurationCacheStartParameter internal constructor(
     val isOffline
         get() = startParameter.isOffline
 
+    /**
+     * Whether the local Maven settings.xml applies to this build's Maven repositories. Part of the cache
+     * key rather than a fingerprint input: with the feature off nothing reads the settings, so there is no
+     * input to invalidate when it is turned on.
+     */
+    val isSharedMavenMirrorSettings
+        get() = startParameter.isSharedMavenMirrorSettings
+
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies
 

@@ -1,0 +1,25 @@
+<!-- tag::maven-settings[] -->
+<settings>
+    <mirrors>
+        <mirror>
+            <id>corp-mirror</id>
+            <name>Stands in for every repository the build declares</name>
+            <mirrorOf>*</mirrorOf>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </mirror>
+    </mirrors>
+    <!-- A mirror that needs authentication takes it from the <server> entry whose id
+         matches the mirror id, not the repository's. An encrypted password is decrypted
+         with the Maven master password. Maven Central needs neither, so this is shown
+         but commented out:
+
+    <servers>
+        <server>
+            <id>corp-mirror</id>
+            <username>build-user</username>
+            <password>{COQLCE6DU6GtcS5P=}</password>
+        </server>
+    </servers>
+    -->
+</settings>
+<!-- end::maven-settings[] -->

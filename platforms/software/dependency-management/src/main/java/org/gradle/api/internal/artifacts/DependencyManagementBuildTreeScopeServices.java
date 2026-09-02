@@ -18,7 +18,14 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenMirrorResolver;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
@@ -83,6 +90,7 @@ import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -170,6 +178,21 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
             ModuleDescriptorHashModuleSource.CODEC_ID, new ModuleDescriptorHashCodec()
         );
         return new ModuleSourcesSerializer(codecs);
+    }
+
+    @Provides
+    MavenFileLocations createMavenFileLocations() {
+        return new DefaultMavenFileLocations();
+    }
+
+    @Provides
+    MavenSettingsProvider createMavenSettingsProvider(MavenFileLocations mavenFileLocations, FileResourceListener fileResourceListener) {
+        return new DefaultMavenSettingsProvider(mavenFileLocations, fileResourceListener);
+    }
+
+    @Provides
+    MavenMirrorResolver createMavenMirrorResolver(MavenSettingsProvider mavenSettingsProvider, StartParameterInternal startParameter) {
+        return new DefaultMavenMirrorResolver(mavenSettingsProvider, startParameter);
     }
 
     @Provides

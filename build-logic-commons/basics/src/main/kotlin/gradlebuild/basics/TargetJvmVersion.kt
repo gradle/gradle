@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package gradlebuild.basics
 
-public interface TaskDependencyContainerInternal extends TaskDependencyInternal, TaskDependencyContainer {
-}
+/**
+ * The JVM version everything compiles to by default, and the minimum JVM the test
+ * tasks run on.
+ */
+const val DEFAULT_TARGET_JVM_VERSION: Int = 17

@@ -22,6 +22,8 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -260,6 +262,31 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         then:
         executes(finalized, finalizer)
+    }
+
+    def "finalizer of multiple entry tasks does not reorder an unrelated entry task"() {
+        Task finalizer = task("finalizer")
+        Task a = task("a", finalizedBy: [finalizer])
+        Task b = task("b")
+        Task c = task("c", finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate([a, b, c])
+
+        then:
+        executes(a, b, c, finalizer)
+    }
+
+    def "finalizer of an entry task does not reorder another entry task that depends on it"() {
+        Task finalizer = task("c")
+        Task dependency = task("b", finalizedBy: [finalizer])
+        Task dependent = task("a", dependsOn: [dependency])
+
+        when:
+        addToGraphAndPopulate([dependent, dependency])
+
+        then:
+        executes(dependency, dependent, finalizer)
     }
 
     def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
@@ -588,6 +615,28 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         then:
         executedTasks == [a, b, c]
+    }
+
+    def "should run after ordering is ignored when the cycle is discovered after other successors have been queued"() {
+        Task extraDependency = task("extraDependency")
+        Task shouldRunAfterSource = createTask("shouldRunAfterSource")
+        Task shouldRunAfterTarget = createTask("shouldRunAfterTarget")
+        Task cycleNode = createTask("cycleNode")
+        Task entry = createTask("entry")
+
+        relationships(entry, dependsOn: [shouldRunAfterSource])
+        relationships(shouldRunAfterSource, shouldRunAfter: [shouldRunAfterTarget])
+        relationships(shouldRunAfterTarget, dependsOn: [cycleNode])
+        // Successors are visited in name order, so "extraDependency" is queued before the cycle back to
+        // "shouldRunAfterSource" is discovered. The partially queued successors must be unwound along with
+        // the rest of the queue when the walked shouldRunAfter edge is removed.
+        relationships(cycleNode, dependsOn: [extraDependency, shouldRunAfterSource])
+
+        when:
+        addToGraphAndPopulate([entry, shouldRunAfterTarget])
+
+        then:
+        executedTasks == [shouldRunAfterSource, entry, extraDependency, cycleNode, shouldRunAfterTarget]
     }
 
     @Issue("GRADLE-3127")
@@ -1119,6 +1168,44 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         1 * listener.accept({ it.task == task2 })
         1 * listener.accept({ it.task == task3 })
         0 * listener._
+    }
+
+    def "can define entry nodes with a TaskDependencyContainer"() {
+        def taskA = task("a")
+        def taskB = task("b")
+        def taskC = task("c")
+        def taskD = task("d")
+
+        def work = Mock(TaskDependencyContainer)
+        def childA = Mock(TaskDependencyContainer)
+        def childB = Mock(TaskDependencyContainer)
+        def grandchild = Mock(TaskDependencyContainer)
+
+        when:
+        executionPlan.addEntryWork(work)
+        populateGraph()
+
+        then:
+        executes(taskA, taskB, taskC, taskD)
+
+        and:
+        1 * work.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(taskA)
+            context.add(childA)
+            context.add(childB)
+        }
+        1 * childA.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(taskB)
+            context.add(grandchild)
+        }
+        1 * childB.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(taskC)
+            context.add(grandchild)
+        }
+        // Even though childA and childB both depend on grandchild, grandchild is only executed once
+        1 * grandchild.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(taskD)
+        }
     }
 
     private Node requiredNode(Node... dependencies) {

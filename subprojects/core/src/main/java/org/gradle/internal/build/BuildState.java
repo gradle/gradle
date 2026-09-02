@@ -18,7 +18,6 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
@@ -38,21 +37,35 @@ import java.util.function.Function;
 @ServiceScope(Scope.Build.class)
 public interface BuildState {
 
-    DisplayName getDisplayName();
+    /**
+     * Returns the immutable identity of this build.
+     */
+    BuildIdentity getBuildIdentity();
+
+    /**
+     * Returns the display name of this build.
+     *
+     * @see BuildIdentity#getDisplayName()
+     */
+    default DisplayName getDisplayName() {
+        return getBuildIdentity();
+    }
 
     /**
      * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
      * <p>
-     * Prefer {@link #getIdentityPath()}.
+     * Prefer {@link #getBuildIdentity()} or plain {@link #getIdentityPath()}.
      */
     default BuildIdentifier getBuildIdentifier() {
-        return new DefaultBuildIdentifier(getIdentityPath());
+        return getBuildIdentity().getBuildIdentifier();
     }
 
     /**
      * Returns an identifying path for this build in the build tree. This path is fixed for the lifetime of the build.
      */
-    Path getIdentityPath();
+    default Path getIdentityPath() {
+        return getBuildIdentity().getBuildPath();
+    }
 
     /**
      * Get the parent build of this build, if any.

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.tooling.builders
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectOrderingUtil
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
@@ -30,6 +31,15 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
+
+
+/**
+ * Gradle property that restricts the set of scripts the model is built for.
+ * Deprecated for removal in Gradle 10, when the model will always be built for all scripts.
+ */
+@Suppress("DEPRECATION")
+internal
+const val SCRIPTS_GRADLE_PROPERTY_NAME = KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME
 
 
 internal
@@ -148,14 +158,28 @@ fun Project.resolveScriptsParameter(): List<File> =
 
 
 private
-fun Project.resolveExplicitScriptsParameter(): List<File>? =
-    (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
-        ?.split("|")
-        ?.asSequence()
-        ?.filter { it.isNotBlank() }
-        ?.map(::canonicalFile)
-        ?.filter { it.isFile }
-        ?.toList()
+fun Project.resolveExplicitScriptsParameter(): List<File>? {
+    val explicitScripts = findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) as? String ?: return null
+    nagUserAboutExplicitScriptsProperty()
+    return explicitScripts
+        .split("|")
+        .asSequence()
+        .filter { it.isNotBlank() }
+        .map(::canonicalFile)
+        .filter { it.isFile }
+        .toList()
+}
+
+
+private
+fun nagUserAboutExplicitScriptsProperty() {
+    DeprecationLogger.deprecateBehaviour(
+        "Requesting the KotlinDslScriptsModel for an explicit set of scripts using the '$SCRIPTS_GRADLE_PROPERTY_NAME' Gradle property."
+    )
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_scripts_model_explicit_scripts")
+        .nagUser()
+}
 
 
 // TODO:kotlin-dsl naive implementation for now, refine

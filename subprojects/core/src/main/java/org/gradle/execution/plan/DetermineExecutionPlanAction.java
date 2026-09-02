@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
@@ -37,12 +38,12 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.StringWriter;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,6 +70,7 @@ class DetermineExecutionPlanAction {
     private final Set<Node> entryNodes;
     private final Set<Node> finalizers;
 
+    // Uses a LinkedList because a finalizer must be inserted into the middle of the queue, which a Deque does not support
     private final LinkedList<NodeInVisitingSegment> nodeQueue = new LinkedList<>();
     private final HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
     private final Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
@@ -103,7 +105,7 @@ class DetermineExecutionPlanAction {
         }
 
         // Collect the finalizers and their dependencies so that each node is ordered before all of its dependencies
-        LinkedList<Node> nodes = new LinkedList<>();
+        ArrayList<Node> nodes = new ArrayList<>();
         Set<Node> visiting = new HashSet<>();
         Set<Node> visited = new HashSet<>();
         Deque<Node> queue = new ArrayDeque<>(finalizers);
@@ -122,11 +124,11 @@ class DetermineExecutionPlanAction {
                 // all of its dependencies)
                 visiting.remove(node);
                 visited.add(node);
-                nodes.addFirst(node);
+                nodes.add(node);
             }
         }
 
-        for (Node node : nodes) {
+        for (Node node : Lists.reverse(nodes)) {
             node.maybeInheritFinalizerGroups();
         }
     }
@@ -138,6 +140,7 @@ class DetermineExecutionPlanAction {
     }
 
     private void processNodeQueue() {
+        HeadInsertBuffer<NodeInVisitingSegment> successorBuffer = new HeadInsertBuffer<>();
         while (!nodeQueue.isEmpty()) {
             final NodeInVisitingSegment nodeInVisitingSegment = nodeQueue.peekFirst();
             final int currentSegment = nodeInVisitingSegment.visitingSegment;
@@ -169,7 +172,6 @@ class DetermineExecutionPlanAction {
                     addFinalizerToQueue(visitingSegmentCounter++, finalizer);
                 }
 
-                ListIterator<NodeInVisitingSegment> insertPoint = nodeQueue.listIterator();
                 for (Node successor : node.getAllSuccessors()) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
                         if (!walkedShouldRunAfterEdges.isEmpty()) {
@@ -179,6 +181,8 @@ class DetermineExecutionPlanAction {
                             TaskNode sourceTask = (TaskNode) toBeRemoved.from;
                             TaskNode targetTask = (TaskNode) toBeRemoved.to;
                             sourceTask.removeShouldSuccessor(targetTask);
+                            // The successors visited so far must be in the queue before it is restored
+                            successorBuffer.drainTo(nodeQueue);
                             restorePath(path, toBeRemoved);
                             restoreQueue(toBeRemoved);
                             restoreExecutionPlan(planBeforeVisiting, toBeRemoved);
@@ -187,8 +191,9 @@ class DetermineExecutionPlanAction {
                             onOrderingCycle(successor, node);
                         }
                     }
-                    insertPoint.add(new NodeInVisitingSegment(successor, currentSegment));
+                    successorBuffer.add(new NodeInVisitingSegment(successor, currentSegment));
                 }
+                successorBuffer.drainTo(nodeQueue);
                 path.push(node);
             } else {
                 // Have visited this node's dependencies - add it to the end of the plan

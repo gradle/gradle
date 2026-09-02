@@ -23,6 +23,7 @@ import org.gradle.test.preconditions.OsTestPreconditions
 
 import org.junit.Rule
 import spock.lang.Issue
+import org.gradle.internal.resource.local.FileResourceListener
 import spock.lang.Specification
 
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
@@ -41,7 +42,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     def setup() {
         locations = new SimpleMavenFileLocations()
-        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), mavenFileLocations, system)
+        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations, FileResourceListener.NO_OP), mavenFileLocations, system)
     }
 
     def "returns default location if no settings file exists"() {
@@ -235,5 +236,6 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         File globalMavenDir
         File userSettingsFile = tmpDir.file("userSettingsFile")
         File globalSettingsFile = tmpDir.file("globalSettingsFile")
+        File userSecuritySettingsFile = tmpDir.file("userSecuritySettingsFile")
     }
 }
