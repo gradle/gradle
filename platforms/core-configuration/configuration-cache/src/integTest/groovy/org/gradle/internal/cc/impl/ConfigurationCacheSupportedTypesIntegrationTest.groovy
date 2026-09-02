@@ -276,7 +276,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         type          | reference                         | output
         ImmutableList | "ImmutableList.of('a', 'b', 'c')" | "[a, b, c]"
         ImmutableSet  | "ImmutableSet.of('a', 'b', 'c')"  | "[a, b, c]"
-        ImmutableMap | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
+        ImmutableMap  | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
     }
 
     def "serializing a Guava #type.simpleName does not report a problem"() {
@@ -437,11 +437,15 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         outputContains("bean.value = ${output}")
 
         where:
-        type               | reference                                 | output
-        "Provider<String>" | "providers.provider { 'value' }"          | "value"
-        "Provider<String>" | "providers.provider { null }"             | "null"
-        "Provider<String>" | "objects.property(String).value('value')" | "value"
-        "Provider<String>" | "objects.property(String)"                | "null"
+        type                      | reference                                 | output
+        "Provider<String>"        | "providers.provider { 'value' }"          | "value"
+        "Provider<String>"        | "providers.provider { null }"             | "null"
+        "PresentProvider<String>" | "providers.some('value')"                 | "value"
+        "Provider<String>"        | "providers.none()"                        | "null"
+        "Provider<String>"        | "providers.maybe('value')"                | "value"
+        "Provider<String>"        | "providers.maybe(null)"                   | "null"
+        "Provider<String>"        | "objects.property(String).value('value')" | "value"
+        "Provider<String>"        | "objects.property(String)"                | "null"
     }
 
     def "restores task fields whose value is broken #type"() {

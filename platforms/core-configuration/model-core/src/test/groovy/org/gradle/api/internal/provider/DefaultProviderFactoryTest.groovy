@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Task
+import org.gradle.api.provider.PresentProvider
 import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -60,6 +61,72 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         Character | '\u1234'
         String    | 'hello'
         File      | TEST_FILE
+    }
+
+    def "none() returns a provider that has no value"() {
+        given:
+        def provider = providerFactory.none()
+
+        expect:
+        !provider.present
+        provider.getOrNull() == null
+
+        when:
+        provider.get()
+
+        then:
+        thrown(MissingValueException)
+    }
+
+    def "some() returns a fixed value provider for #value"() {
+        when:
+        def provider = providerFactory.some(value)
+
+        then:
+        provider instanceof Providers.FixedValueProvider
+        provider instanceof PresentProvider
+        provider.present
+        provider.get() == value
+        provider.getOrNull() == value
+
+        where:
+        value << [true, 4L, 'hello', TEST_FILE]
+    }
+
+    def "some() provider ignores orElse"() {
+        given:
+        def provider = providerFactory.some('value')
+
+        expect:
+        provider.orElse('other').is(provider)
+        provider.orElse(providerFactory.none()).is(provider)
+    }
+
+    def "cannot create some() provider for null value"() {
+        when:
+        providerFactory.some(null)
+
+        then:
+        def t = thrown(IllegalArgumentException)
+        t.message == 'Value cannot be null'
+    }
+
+    def "maybe() returns a provider with the given value when non-null"() {
+        given:
+        def provider = providerFactory.maybe('hello')
+
+        expect:
+        provider.present
+        provider.get() == 'hello'
+    }
+
+    def "maybe() returns a provider that has no value for null"() {
+        given:
+        def provider = providerFactory.maybe(null)
+
+        expect:
+        !provider.present
+        provider.getOrNull() == null
     }
 
     def "can zip two providers"() {
