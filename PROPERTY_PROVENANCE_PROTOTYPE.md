@@ -188,9 +188,12 @@ Verified by `PropertyProvenanceCallbackCoverageIntegrationTest`:
 | `configurations.configureEach { }` | the plugin |
 | A plugin's own thread or executor | `Unknown` |
 | User code a plugin stores itself and runs later | **whoever ran it** |
-| A mutation performed inside a `Provider` transform | **whoever evaluated it** |
+| A property mutated as a side effect inside a `Provider` transform | **whoever evaluated it** |
 
-The last two are wrong answers rather than absent ones — see finding 5 above.
+The last two are wrong answers rather than absent ones — see finding 5 above. The
+transform row is narrower than it sounds: setting a property to a mapped provider is
+attributed to whoever calls `set`, and reading a property records nothing. What
+misattributes is a lambda that mutates some *other* property while being evaluated.
 
 Not probed, and expected to need work: tooling model builders, worker actions, build
 services, flow actions, and `beforeProject`/`afterProject` from init scripts.
