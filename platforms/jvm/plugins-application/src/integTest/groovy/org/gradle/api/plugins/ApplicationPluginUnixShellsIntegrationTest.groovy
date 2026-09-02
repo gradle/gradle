@@ -17,11 +17,15 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.PluginTestPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import spock.lang.Issue
+
+import java.util.jar.JarOutputStream
 
 
 class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec {
@@ -45,6 +49,76 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
 
         then:
         outputContains('Hello World!')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25721")
+    @Requires([OsTestPreconditions.Unix, PluginTestPreconditions.BashAvailable])
+    def "can execute generated Unix start script with a Java executable extension"() {
+        given:
+        def javaHome = file("windows-java-home")
+        javaHome.file("bin/java.exe").createLink(Jvm.current().javaExecutable)
+        succeeds('installDist')
+
+        when:
+        runViaUnixStartScriptWithJavaHome("bash", javaHome.absolutePath)
+
+        then:
+        outputContains('Hello World!')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25721")
+    @Requires([OsTestPreconditions.Unix, PluginTestPreconditions.BashAvailable])
+    def "converts #pathOption path list when running Windows Java from WSL"() {
+        given:
+        def javaArgs = file("java-args.txt")
+        def wslpathCalls = file("wslpath-calls.txt")
+        def javaHome = file("windows-java-home")
+        def javaExecutable = javaHome.file("bin/java.exe") << """#!/bin/sh
+printf '%s\\n' "\$@" > '${javaArgs.absolutePath}'
+"""
+        javaExecutable.setExecutable(true)
+
+        def windowsInteropBin = file("windows-interop-bin")
+        def wslpath = windowsInteropBin.file("wslpath") << """#!/bin/sh
+[ "\$1" = "-m" ] || exit 1
+printf '%s\\n' "\$2" >> '${wslpathCalls.absolutePath}'
+printf 'windows/%s\\n' "\$2"
+"""
+        wslpath.setExecutable(true)
+
+        file("libs").createDir()
+        new JarOutputStream(file("libs/dependency.jar").newOutputStream()).close()
+        buildFile << """
+dependencies {
+    runtimeOnly files('libs/dependency.jar')
+}
+"""
+        if (modular) {
+            turnSampleProjectIntoModule()
+        }
+        succeeds('installDist')
+
+        when:
+        runViaUnixStartScriptWithJavaHome("bash", javaHome.absolutePath, [
+            PATH: "${windowsInteropBin.absolutePath}:${System.getenv('PATH')}",
+            WSL_DISTRO_NAME: "test-distro"
+        ])
+
+        then:
+        wslpathCalls.readLines().first() == file('build/install/sample').absolutePath
+        def args = javaArgs.readLines()
+        def pathOptionIndex = args.indexOf(pathOption)
+        pathOptionIndex >= 0
+        def convertedPaths = args[pathOptionIndex + 1].split(';')
+        convertedPaths.size() == expectedPathCount
+        convertedPaths.every { it.startsWith('windows/') }
+        convertedPaths.any { it.endsWith('/sample.jar') }
+        convertedPaths.any { it.endsWith('/dependency.jar') } == !modular
+
+        where:
+        modular | pathOption      | expectedPathCount
+        false   | '-classpath'    | 2
+        true    | '--module-path' | 1
     }
 
     @Requires([OsTestPreconditions.Unix, PluginTestPreconditions.DashAvailable])
@@ -219,6 +293,24 @@ task execStartScript(type: Exec) {
                 execStartScript.args "${args.join('", "')}"
             """
         }
+        return succeeds('execStartScript')
+    }
+
+    ExecutionResult runViaUnixStartScriptWithJavaHome(String shCommand, String javaHome, Map<String, String> additionalEnvironment = [:]) {
+        TestFile startScriptDir = file('build/install/sample/bin')
+        String additionalEnvironmentSetup = additionalEnvironment.collect { name, value ->
+            "    environment('${name}', '${value}')"
+        }.join('\n')
+        buildFile << """
+task execStartScript(type: Exec) {
+    workingDir '$startScriptDir.canonicalPath'
+    commandLine '${PluginTestPreconditions.locate(shCommand).absolutePath}'
+    args "./sample"
+    environment JAVA_HOME: "$javaHome"
+    environment.keySet().removeIf { it.equalsIgnoreCase('WSL_DISTRO_NAME') }
+$additionalEnvironmentSetup
+}
+"""
         return succeeds('execStartScript')
     }
 
