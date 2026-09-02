@@ -169,7 +169,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
             resolutions = ImmutableList.of(
                 "Declare a version for the dependency.",
                 "Use a platform or dependency constraint to provide the version.",
-                "If using mavenLocal(), declare it after other repositories or use content filtering to limit what is resolved from it."
+                "Ensure the repository providing the dependency also provides its Gradle module metadata, or put mavenLocal() after other repositories."
             );
             return;
         }

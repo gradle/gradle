@@ -17,10 +17,8 @@
 package org.gradle.api.testing.toolchains.internal;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.attributes.Category;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * A {@link JUnitPlatformTestToolchain} that uses the JUnit Jupiter test engine.
@@ -36,10 +34,6 @@ abstract public class JUnitJupiterTestToolchain extends JUnitPlatformTestToolcha
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        String version = getParameters().getJupiterVersion().get();
-        ExternalModuleDependency jupiter = getDependencyFactory().create(GROUP_NAME + ":" + version);
-        ExternalModuleDependency bom = getDependencyFactory().create("org.junit:junit-bom:" + version);
-        bom.attributes(attributes -> attributes.attribute(Category.CATEGORY_ATTRIBUTE, attributes.named(Category.class, Category.REGULAR_PLATFORM)));
-        return Arrays.asList(jupiter, bom);
+        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getJupiterVersion().get()));
     }
 }
