@@ -71,6 +71,8 @@ import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.FeatureFlagListener;
 import org.gradle.internal.buildoption.FeatureFlags;
+import org.gradle.api.internal.provider.provenance.MutationOriginRegistry;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ScopedListenerManager;
@@ -104,6 +106,13 @@ import java.util.List;
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
 public class BuildTreeScopeServices implements ServiceRegistrationProvider {
+
+    /**
+     * Prototype switch for property mutation provenance. When off, properties record nothing and every
+     * diagnostic message is exactly what it was before.
+     */
+    private static final InternalOption<Boolean> PROPERTY_PROVENANCE = InternalOptions.ofBoolean("org.gradle.internal.property-provenance", false);
+
 
     private final BuildActionModelRequirements buildActionRequirements;
     private final BuildModelParameters buildModelParameters;
@@ -178,6 +187,11 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected InternalOptions createInternalOptions(StartParameterInternal startParameter, BuildTreeLocations buildTreeLocations) {
         return InternalOptionsFactory.createInternalOptions(startParameter, buildTreeLocations.getBuildTreeRootDirectory());
+    }
+
+    @Provides
+    protected MutationOriginRegistry createMutationOriginRegistry(InternalOptions internalOptions) {
+        return new MutationOriginRegistry(internalOptions.getBoolean(PROPERTY_PROVENANCE));
     }
 
     @Provides

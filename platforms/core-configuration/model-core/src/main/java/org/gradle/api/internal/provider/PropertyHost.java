@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.internal.provider.provenance.MutationKind;
+import org.gradle.api.internal.provider.provenance.MutationRecord;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.state.ModelObject;
@@ -30,4 +32,26 @@ public interface PropertyHost {
      */
     @Nullable
     String beforeRead(@Nullable ModelObject producer);
+
+    /**
+     * Does this host attribute property mutations to the user code that performs them?
+     * <p>
+     * Asked once, when a property is created, so that a property whose host does not track provenance never
+     * calls back into the host while being mutated.
+     */
+    default boolean tracksMutationProvenance() {
+        return false;
+    }
+
+    /**
+     * Returns provenance for a mutation of the given kind happening right now, or null when the host does not
+     * track provenance. Hosts that do track it answer from the user code application that is currently running.
+     * <p>
+     * This is the one seam through which a property learns who is mutating it: the host is already handed to
+     * every property when it is created. Only called when {@link #tracksMutationProvenance()} is true.
+     */
+    @Nullable
+    default MutationRecord currentMutation(MutationKind kind) {
+        return null;
+    }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
+import org.gradle.api.internal.provider.provenance.MutationKind;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -186,7 +187,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     public void put(K key, V value) {
         Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
         Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
-        addExplicitCollector(new SingleEntry<>(key, value));
+        addExplicitCollector(new SingleEntry<>(key, value), MutationKind.PUT);
     }
 
     @Override
@@ -198,17 +199,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
                 Map.class.getName(), valueType.getName(), p.getType().getName()));
         }
-        addExplicitCollector(new EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
+        addExplicitCollector(new EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)), MutationKind.PUT);
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
-        addExplicitCollector(new EntriesFromMap<>(entries));
+        addExplicitCollector(new EntriesFromMap<>(entries), MutationKind.PUT_ALL);
     }
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        addExplicitCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
+        addExplicitCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)), MutationKind.PUT_ALL);
     }
 
     @Override
@@ -231,9 +232,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         withActualValue(() -> putAll(entries));
     }
 
-    private void addExplicitCollector(MapCollector<K, V> collector) {
+    private void addExplicitCollector(MapCollector<K, V> collector, MutationKind kind) {
         assertCanMutate();
-        setSupplier(withAppendedValue(collector));
+        setSupplier(withAppendedValue(collector), kind);
     }
 
     private MapSupplier<K, V> withAppendedValue(MapCollector<K, V> value) {

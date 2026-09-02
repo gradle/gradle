@@ -17,6 +17,8 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.provenance.MutationKind;
+import org.gradle.api.internal.provider.provenance.MutationRecord;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -52,9 +54,15 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private DisplayName displayName;
     private ValueState<S> state;
     private S value;
+    private final boolean tracksProvenance;
+    private @Nullable MutationRecord explicitMutation;
+    private @Nullable MutationRecord conventionMutation;
 
+    @SuppressWarnings("ConstantValue")
     public AbstractProperty(PropertyHost host) {
         state = ValueState.newState(host);
+        // Some tests construct properties without a host.
+        tracksProvenance = host != null && host.tracksMutationProvenance();
     }
 
     protected void init(S initialValue, S convention) {
@@ -283,13 +291,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected abstract S finalValue(EvaluationScopeContext context, S value, ValueConsumer consumer);
 
     protected void setSupplier(S supplier) {
+        setSupplier(supplier, MutationKind.SET_SOURCE);
+    }
+
+    protected void setSupplier(S supplier, MutationKind kind) {
         assertCanMutate();
         this.value = state.explicitValue(supplier);
+        recordExplicitMutation(kind);
     }
 
     protected void setConvention(S convention) {
         assertCanMutate();
         this.value = state.applyConvention(value, convention);
+        recordConventionMutation(MutationKind.SET_CONVENTION);
     }
 
     /**
@@ -340,6 +354,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             // otherwise, the convention will become the new value
             value = state.implicitValue(state.convention());
         }
+        recordExplicitMutation(MutationKind.UNSET);
     }
 
     /**
@@ -348,6 +363,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected void discardConvention() {
         assertCanMutate();
         value = state.applyConvention(value, getDefaultConvention());
+        recordConventionMutation(MutationKind.UNSET_CONVENTION);
     }
 
     @Override
@@ -371,6 +387,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected SupportsConvention setToConvention() {
         assertCanMutate();
         this.value = state.setToConvention();
+        recordExplicitMutation(MutationKind.SET_TO_CONVENTION);
         return this;
     }
 
@@ -384,7 +401,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected SupportsConvention setToConventionIfUnset() {
         assertCanMutate();
         if (!isDefaultConvention()) {
+            boolean wasExplicit = state.isExplicit();
             this.value = state.setToConventionIfUnset(value);
+            if (!wasExplicit) {
+                recordExplicitMutation(MutationKind.SET_TO_CONVENTION);
+            }
         }
         return this;
     }
@@ -399,7 +420,56 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected abstract boolean isDefaultConvention();
 
     protected void assertCanMutate() {
-        state.beforeMutate(this.getDisplayName());
+        state.beforeMutate(this.getDisplayName(), explicitMutation != null ? explicitMutation : conventionMutation);
+    }
+
+    /**
+     * Records who performed a mutation of the explicit value, if the host tracks provenance.
+     * <p>
+     * Called only after the mutation has succeeded, so a rejected mutation leaves no trace.
+     */
+    private void recordExplicitMutation(MutationKind kind) {
+        MutationRecord record = currentMutation(kind);
+        if (record != null) {
+            explicitMutation = record;
+        }
+    }
+
+    private void recordConventionMutation(MutationKind kind) {
+        MutationRecord record = currentMutation(kind);
+        if (record != null) {
+            conventionMutation = record;
+        }
+    }
+
+    private @Nullable MutationRecord currentMutation(MutationKind kind) {
+        if (!tracksProvenance) {
+            return null;
+        }
+        PropertyHost host = state.host();
+        return host != null ? host.currentMutation(kind) : null;
+    }
+
+    /**
+     * Provenance of the last mutation of this property's explicit value, if known.
+     */
+    public @Nullable MutationRecord getExplicitMutation() {
+        return explicitMutation;
+    }
+
+    /**
+     * Provenance of the last mutation of this property's convention, if known.
+     */
+    public @Nullable MutationRecord getConventionMutation() {
+        return conventionMutation;
+    }
+
+    @Override
+    protected void describeProvenance(TreeFormatter formatter) {
+        MutationRecord record = explicitMutation != null ? explicitMutation : conventionMutation;
+        if (record != null && record.isAttributed()) {
+            formatter.node("This property was last " + record.describe() + ".");
+        }
     }
 
     @Nullable

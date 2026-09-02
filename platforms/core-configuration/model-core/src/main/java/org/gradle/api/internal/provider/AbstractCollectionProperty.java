@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.internal.provider.provenance.MutationKind;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -141,29 +142,29 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void add(final T element) {
         Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", getCollectionType().getSimpleName());
-        addExplicitCollector(new SingleElement<>(element));
+        addExplicitCollector(new SingleElement<>(element), MutationKind.ADD);
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        addExplicitCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
+        addExplicitCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)), MutationKind.ADD);
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final void addAll(T... elements) {
-        addExplicitCollector(new ElementsFromArray<>(elements));
+        addExplicitCollector(new ElementsFromArray<>(elements), MutationKind.ADD_ALL);
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        addExplicitCollector(new ElementsFromCollection<>(elements));
+        addExplicitCollector(new ElementsFromCollection<>(elements), MutationKind.ADD_ALL);
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        addExplicitCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
+        addExplicitCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)), MutationKind.ADD_ALL);
     }
 
     @Override
@@ -203,9 +204,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      *
      * @param collector the collector to add
      */
-    private void addExplicitCollector(Collector<T> collector) {
+    private void addExplicitCollector(Collector<T> collector, MutationKind kind) {
         assertCanMutate();
-        setSupplier(withAppendedValue(collector));
+        setSupplier(withAppendedValue(collector), kind);
     }
 
     private CollectionSupplier<T, C> withAppendedValue(Collector<T> value) {

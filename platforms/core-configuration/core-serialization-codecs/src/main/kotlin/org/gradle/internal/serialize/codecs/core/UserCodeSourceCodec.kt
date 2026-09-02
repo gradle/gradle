@@ -38,6 +38,7 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
                 writeSmallInt(2)
                 writeString(value.displayName.displayName)
                 writeNullableString(value.uri?.toString())
+                writeBoolean(value.isTopLevelScript)
             }
 
             else -> error("Unexpected user code source type: ${value.javaClass.name}")
@@ -56,7 +57,8 @@ object UserCodeSourceCodec : Codec<UserCodeSource> {
             2 -> {
                 val displayName = readString()
                 val uri = readNullableString()?.let { URI.create(it) }
-                UserCodeSource.Script(Describables.of(displayName), uri)
+                val topLevelScript = readBoolean()
+                UserCodeSource.Script(Describables.of(displayName), uri, topLevelScript)
             }
 
             else -> error("Unexpected user code source type: $type")

@@ -206,7 +206,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             }
             formatter.endChildren();
         }
+        describeProvenance(formatter);
         return formatter.toString();
+    }
+
+    /**
+     * Adds what is known about who configured this value, for implementations that track mutation provenance.
+     * Does nothing by default: a plain provider is not mutated by anyone.
+     */
+    protected void describeProvenance(TreeFormatter formatter) {
     }
 
     /**

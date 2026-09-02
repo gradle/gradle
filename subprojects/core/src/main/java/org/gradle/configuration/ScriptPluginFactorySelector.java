@@ -106,7 +106,7 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
         scriptSourceListener.scriptSourceObserved(scriptSource);
         ScriptPlugin scriptPlugin = scriptPluginFactoryFor(scriptSource.getFileName())
             .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
-        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationRunner, userCodeApplicationContext);
+        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationRunner, userCodeApplicationContext, topLevelScript);
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {

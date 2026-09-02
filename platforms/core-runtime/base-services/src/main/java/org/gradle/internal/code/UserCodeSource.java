@@ -74,10 +74,16 @@ public interface UserCodeSource {
 
         private final Describable displayName;
         private final @Nullable URI uri;
+        private final boolean topLevelScript;
 
         public Script(Describable displayName, @Nullable URI uri) {
+            this(displayName, uri, false);
+        }
+
+        public Script(Describable displayName, @Nullable URI uri, boolean topLevelScript) {
             this.displayName = displayName;
             this.uri = uri;
+            this.topLevelScript = topLevelScript;
         }
 
         @Override
@@ -90,6 +96,17 @@ public interface UserCodeSource {
          */
         public @Nullable URI getUri() {
             return uri;
+        }
+
+        /**
+         * Is this a top-level script, that is, a build, settings or init script authored as part of the build,
+         * rather than a script plugin applied to some target?
+         * <p>
+         * The distinction matters for attribution: a top-level script is the build author speaking, while an
+         * applied script plugin is a separate contributor.
+         */
+        public boolean isTopLevelScript() {
+            return topLevelScript;
         }
 
     }

@@ -19,14 +19,26 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.provenance.MutationKind;
+import org.gradle.api.internal.provider.provenance.MutationOriginRegistry;
+import org.gradle.api.internal.provider.provenance.MutationRecord;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.state.ModelObject;
 import org.jspecify.annotations.Nullable;
 
 class ProjectBackedPropertyHost implements PropertyHost {
     private final ProjectInternal project;
+    private final UserCodeApplicationContext userCodeApplicationContext;
+    private final MutationOriginRegistry originRegistry;
 
-    public ProjectBackedPropertyHost(ProjectInternal project) {
+    public ProjectBackedPropertyHost(
+        ProjectInternal project,
+        UserCodeApplicationContext userCodeApplicationContext,
+        MutationOriginRegistry originRegistry
+    ) {
         this.project = project;
+        this.userCodeApplicationContext = userCodeApplicationContext;
+        this.originRegistry = originRegistry;
     }
 
     @Nullable
@@ -43,5 +55,17 @@ class ProjectBackedPropertyHost implements PropertyHost {
             }
         }
         return null;
+    }
+
+    @Override
+    public boolean tracksMutationProvenance() {
+        return originRegistry.isEnabled();
+    }
+
+    @Nullable
+    @Override
+    public MutationRecord currentMutation(MutationKind kind) {
+        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
+        return originRegistry.recordFor(application != null ? application.getSource() : null, kind);
     }
 }
