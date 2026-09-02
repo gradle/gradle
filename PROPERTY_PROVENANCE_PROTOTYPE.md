@@ -262,8 +262,9 @@ specification, not an oversight:
   `AbstractProperty`, so it records nothing. `DirectoryProperty` and `RegularFileProperty`
   are covered, since they extend `DefaultProperty`.
 - **Settings-scope and worker-scope properties.** These are created with
-  `PropertyHost.NO_OP` and record nothing. Measured: a property created in `settings.gradle`
-  reports no provenance at all.
+  `PropertyHost.NO_OP` and record nothing. Measured on gradle/gradle: 64% of all properties
+  and 65% of all mutations are outside project scope and therefore invisible. See
+  "Tracking coverage" above for what that population actually consists of.
 - **Per-script identity for build authors.** `ContributorKey.BUILD_AUTHOR` collapses every
   build script to one contributor, per spec §4, so `lib/build.gradle` and the root
   `build.gradle` are distinguished in the message text but not in identity. If
@@ -309,6 +310,66 @@ before considering default-on.
 
 The +1.7 ns and +8 B paid with the flag **off** are the price of compiling the feature in at
 all: one boolean field, one reference field, and a branch on the mutation path.
+
+### Tracking coverage on the gradle/gradle build
+
+Cost is only half the question; the other half is how much of the build is actually seen.
+Measured on the same run:
+
+```
+properties created with a tracking host      95,003   (36%)
+properties created with a non-tracking host 168,248   (64%)
+
+mutations attributed to a contributor        99,936   (35%)
+mutations tracked but unattributed              549   ( 0.2%)
+mutations on an untracked property          184,310   (65%)
+```
+
+**Only about one property mutation in three is visible.** The reason is structural rather
+than subtle: `ProjectScopeServices` is the *only* place that provides a tracking
+`PropertyHost`. Everything created outside a project — `BasicGlobalScopeServices` and the
+worker services both return `PropertyHost.NO_OP` — records nothing at all.
+
+Sampling where the untracked properties are created (first 60,000 creations, which the top
+entries almost entirely account for):
+
+| count | created by |
+|---|---|
+| 22,494 | `DefaultMutableAttributeContainer` via `DefaultAttributesFactory.mutable` |
+| 20,739 | `IsolatedManagedValue.isolate` — value isolation re-creating properties |
+| 6,922 | `DefaultManagedObjectRegistry.newInstance` |
+| 4,627 | `FreezableAttributeContainer` |
+| 1,449 | `DefaultDependencyLockingProvider` |
+| 600 | `DirectoryPropertyManagedFactory.fromState` via isolation |
+| 576 + 288 | a third-party plugin's extension calling `ObjectFactory.property` |
+| 414 + 138 | `DefaultCacheConfigurations` (settings scope) |
+| 272 + 139 | `DefaultDependencyResolutionManagement`, `DefaultResolutionStrategy` |
+
+That splits into three quite different populations:
+
+1. **Internal machinery that arguably should not be tracked** — attribute containers and the
+   managed object registry account for ~34,000 of the sample. These are not properties a
+   user configures.
+2. **Isolation and deserialization re-creating properties** — another ~21,000. Provenance
+   genuinely belongs to the original mutation, not to the copy. This is the same mechanism
+   that erases provenance under the configuration cache, now with a number attached.
+3. **Real user-facing configuration that is silently missed** — properties created from a
+   settings-scope, build-tree-scope or otherwise non-project `ObjectFactory`, including a
+   third-party plugin's own extension objects. These are exactly the ones a user would
+   expect to be attributed.
+
+The 549 tracked-but-unattributed mutations are a small population with a clear shape: 343 of
+them come from the Kotlin plugin mutating properties from its own asynchronous compiler
+runner — the "plugin's own thread" gap, showing up in a real build — and most of the rest
+are Gradle constructing internal objects with no user code on the stack.
+
+**What this means.** The headline "35% attributed" understates the useful coverage, because
+much of the remainder is machinery no one would want attributed. But population 3 is a
+genuine gap, and closing it is mostly a wiring change: settings and build scope need a
+tracking `PropertyHost` too, which is straightforward because `UserCodeApplicationContext` is
+cross-build-session scoped and does not need a project. The one obstacle is that
+`MutationOriginRegistry` is build-tree scoped while the global host is global scoped, so the
+registry would need to move or the host would need to be defined per build.
 
 ### Cost on the gradle/gradle build
 
