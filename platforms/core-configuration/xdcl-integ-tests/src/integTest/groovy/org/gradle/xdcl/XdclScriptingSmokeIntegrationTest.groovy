@@ -782,7 +782,7 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         // The plugin SHIPS its defaults AND binds its reactions from its single src/main/xdcl/<id>.xdcl
         // (xdcl-gradle-plugin generates the Plugin<Settings> carrier) — no hand-written plugin, no manual
         // gradlePlugin registration. The filename is the canonical plugin id ("components"). The
-        // templates are `with DefaultsContributor`, so a project's build.gradle.xdcl can host its own
+        // templates are `with Defaults`, so a project's build.gradle.xdcl can host its own
         // project-stratum `defaults [ ]` block.
         xdclFile 'build-logic/settings.gradle.xdcl', 'settings {}'
         buildFile 'build-logic/build.gradle', '''
@@ -801,11 +801,11 @@ class XdclScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
               version: String?
             }
 
-            template MyApplication with MyComponent & DefaultsContributor {
+            template MyApplication with MyComponent & Defaults {
               application {}
             }
 
-            template MyLibrary with MyComponent & DefaultsContributor {
+            template MyLibrary with MyComponent & Defaults {
               library {}
             }
         '''
