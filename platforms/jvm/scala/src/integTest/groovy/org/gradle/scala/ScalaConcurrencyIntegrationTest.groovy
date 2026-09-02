@@ -96,6 +96,9 @@ class ScalaConcurrencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds(":a:testClasses", ":b:testClasses", ":c:testClasses", ":d:testClasses")
 
         and:
-        succeeds("build", "--parallel", "--max-workers", "4")
+        // 8 workers, not 4: all four ':test' tasks must be in flight at once, so demanding
+        // exactly max-workers leaves zero tolerance for any other lease holder (e.g. ':a:jar').
+        // Headroom removes that ceiling; expectConcurrent still asserts all four run concurrently.
+        succeeds("build", "--parallel", "--max-workers", "8")
     }
 }
