@@ -65,6 +65,13 @@ public final class MutationTrace implements MutationHistory {
         return notRetained;
     }
 
+    /**
+     * How many mutations are retained.
+     */
+    public int size() {
+        return records.size();
+    }
+
     public boolean isEmpty() {
         return records.isEmpty();
     }

@@ -310,7 +310,53 @@ before considering default-on.
 The +1.7 ns and +8 B paid with the flag **off** are the price of compiling the feature in at
 all: one boolean field, one reference field, and a branch on the mutation path.
 
-### Measured on the gradle/gradle build
+### Cost on the gradle/gradle build
+
+A distribution was built from this branch with temporary counters and run against
+gradle/gradle itself (`gradle help`, 252 subprojects, isolated projects and the
+configuration cache disabled so every project configures):
+
+```
+properties created                       263,281
+properties configured at least once       85,242
+properties mutated more than once         13,703
+mutations recorded                       100,485
+longest trace                                  8 records
+mutations dropped by the 32-record cap         0
+```
+
+The longest trace on this build is 8 records and nothing hits the per-property cap, so
+**collaborative retention — every mutation kept, no cap — costs exactly the same here as the
+diagnostics mode does.** The distinction only starts to matter on a build that mutates one
+property more than 32 times.
+
+Combining those counts with the measured per-property rates:
+
+| | added heap | added time |
+|---|---|---|
+| No provenance in the codebase at all | 0 | 0 |
+| Compiled in, flag **off** | 2.2 MB | ~0.2 ms |
+| **Plugin-id-only, full retention** | **3.3 MB** | ~1 ms |
+| Line numbers as implemented (capped at 2,000 captures) | 3.5 MB | ~3 ms |
+| Line numbers on every mutation (uncapped) | **12 MB** | **~100 ms** |
+
+Reading the rows:
+
+- The 2.2 MB is the two extra fields on 263,281 properties, paid whether or not provenance
+  is switched on. It is an upper bound, since that is properties *created* over the build
+  rather than simultaneously live.
+- Plugin-id-only adds ~1.1 MB on top: 71,539 properties hold a single shared record and cost
+  nothing, and 13,703 traces cost 80 B each.
+- Uncapped line numbers add ~9.8 MB, because every one of the 100,485 mutations needs its own
+  record (~86 B including its location string) instead of a shared one. The **time** is the
+  real objection though: ~1 µs per bounded stack walk is ~100 ms of configuration, against a
+  memory cost that is still only a few MB.
+- Capping locations, as implemented, keeps both to noise.
+
+For scale, a daemon running this build holds several GB, so even the uncapped 12 MB is well
+under a percent of heap. Plugin-id-only provenance is, on this evidence, close to free.
+
+### Earlier measurement, before the single-record fix
 
 A distribution was built from this branch with temporary counters and run against
 gradle/gradle itself (`gradle help`, 252 subprojects, isolated projects and the

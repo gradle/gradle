@@ -50,6 +50,7 @@ public class MutationOriginRegistry {
     private final boolean enabled;
     private final boolean capturingLocations;
     private final Map<UserCodeSource, MutationRecord[]> recordsBySource = new ConcurrentHashMap<>();
+    private final Map<UserCodeSource, MutationOrigin> originsBySource = new ConcurrentHashMap<>();
     private final MutationRecord[] unattributedRecords = new MutationRecord[KIND_COUNT];
     private final AtomicInteger locationBudget = new AtomicInteger(MAX_LOCATED_RECORDS);
 
@@ -96,7 +97,15 @@ public class MutationOriginRegistry {
         if (location == null) {
             return recordFor(source, kind);
         }
-        return new MutationRecord(MutationOrigin.of(source), kind, location);
+        // Only the record varies per call site; the origin behind it is still shared.
+        return new MutationRecord(originFor(source), kind, location);
+    }
+
+    private MutationOrigin originFor(@Nullable UserCodeSource source) {
+        if (source == null) {
+            return MutationOrigin.UNKNOWN;
+        }
+        return originsBySource.computeIfAbsent(source, MutationOrigin::of);
     }
 
     /**
@@ -111,7 +120,7 @@ public class MutationOriginRegistry {
         MutationRecord record = byKind[kind.ordinal()];
         if (record == null) {
             // A benign race here produces two equivalent immutable records, one of which is discarded.
-            record = new MutationRecord(MutationOrigin.of(source), kind);
+            record = new MutationRecord(originFor(source), kind);
             byKind[kind.ordinal()] = record;
         }
         return record;
