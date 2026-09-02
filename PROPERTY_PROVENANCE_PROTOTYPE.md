@@ -134,10 +134,46 @@ Five things worth feeding back into the specification:
    that interaction outside those assertions and cuts the disabled-path cost to a field
    read. Any production implementation will hit the same wall, so this belongs in the
    specification as an implementation constraint.
-5. **`PropertyHost` is the right injection point.** It is already threaded into every
+5. **Silent mis-attribution is the real failure mode, not missing attribution** (spec §9).
+   Where propagation does not reach — user code a plugin stores itself, or a mutation
+   performed inside a `Provider` transform — the mutation is not left unattributed. It is
+   attributed to whoever happened to run it, which is a plausible and wrong answer. Only a
+   mutation with no user code context at all reports `Unknown`. This is the concrete reason
+   collaborative mode has to be fail-closed rather than trusting the recorded contributor.
+6. **`PropertyHost` is the right injection point.** It is already threaded into every
    property constructor, so provenance needed no change to any property constructor,
    `PropertyFactory`, or `ObjectFactory` signature. The only awkwardness is that some tests
    construct properties with a null host, which the constructor now tolerates.
+
+## Callback coverage
+
+Attribution rides on `UserCodeApplicationContext.Application.reapplyLater(...)`, which
+Gradle applies where it stores user code. So coverage is a property of the **registration
+boundary**, not of the kind of user code: a Groovy closure, a Java `Action` and a Kotlin
+lambda registered through the same API all behave identically. There is no separate
+"closure handling" to get right.
+
+Verified by `PropertyProvenanceCallbackCoverageIntegrationTest`:
+
+| Registration point | Attributed to |
+|---|---|
+| Direct mutation during plugin application | the plugin |
+| `tasks.register(name, type) { }` | the plugin |
+| `tasks.named(name) { }` / `.configure { }` | the plugin |
+| `tasks.withType(T).configureEach { }` | the plugin |
+| `project.afterEvaluate { }` | the plugin |
+| `gradle.projectsEvaluated { }` | the plugin |
+| `pluginManager.withPlugin(id) { }` | the plugin |
+| `gradle.taskGraph.whenReady { }` | the plugin |
+| `configurations.configureEach { }` | the plugin |
+| A plugin's own thread or executor | `Unknown` |
+| User code a plugin stores itself and runs later | **whoever ran it** |
+| A mutation performed inside a `Provider` transform | **whoever evaluated it** |
+
+The last two are wrong answers rather than absent ones — see finding 5 above.
+
+Not probed, and expected to need work: tooling model builders, worker actions, build
+services, flow actions, and `beforeProject`/`afterProject` from init scripts.
 
 ## Deliberately not implemented
 
@@ -177,8 +213,8 @@ specification, not an oversight:
 ## Tests
 
 ```
-./gradlew :model-core:test --tests "*PropertyMutationProvenanceTest*"     # 21 tests
-./gradlew :model-core:embeddedIntegTest --tests "*PropertyProvenanceIntegrationTest*"   # 8 tests
+./gradlew :model-core:test --tests "*PropertyMutationProvenanceTest*"      # 21 tests
+./gradlew :model-core:embeddedIntegTest --tests "*PropertyProvenance*"     # 20 tests
 ```
 
 Regression, since this touches the message text of two widely asserted errors and the
