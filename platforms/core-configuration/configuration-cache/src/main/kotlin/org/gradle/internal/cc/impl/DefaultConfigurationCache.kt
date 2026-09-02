@@ -19,7 +19,6 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
-import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -39,6 +38,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintStartParameters
+import org.gradle.internal.cc.impl.fingerprint.readFingerprintFrom
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
 import org.gradle.internal.cc.impl.models.BuildTreeModel
@@ -67,8 +67,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -716,9 +714,9 @@ class DefaultConfigurationCache internal constructor(
     fun ConfigurationCacheRepository.Layout.writeConfigurationCacheFingerprint(reusedProjects: Set<Path>) {
         // Collect fingerprint entries for any projects whose state was reused from cache
         if (reusedProjects.isNotEmpty()) {
-            readFingerprintFile(fileForRead(StateType.ProjectFingerprint)) { host ->
+            cacheIO.readFingerprintFrom(fileForRead(StateType.ProjectFingerprint), host) { fingerprintHost ->
                 cacheFingerprintController.run {
-                    collectFingerprintForReusedProjects(host, reusedProjects)
+                    collectFingerprintForReusedProjects(fingerprintHost, reusedProjects)
                 }
             }
         }
@@ -745,20 +743,6 @@ class DefaultConfigurationCache internal constructor(
             push(isolateOwnerHost, codecs.fingerprintTypesCodec())
         }
     }
-
-    private
-    fun <T> readFingerprintFile(
-        fingerprintFile: ConfigurationCacheStateFile,
-        action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
-    ): T =
-        cacheIO.withReadContextFor(fingerprintFile) { codecs ->
-            withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
-                action(object : ConfigurationCacheFingerprintController.Host {
-                    override val valueSourceProviderFactory: ValueSourceProviderFactory
-                        get() = host.service()
-                })
-            }
-        }
 
     private
     fun logBootstrapSummary(message: StructuredMessage) {

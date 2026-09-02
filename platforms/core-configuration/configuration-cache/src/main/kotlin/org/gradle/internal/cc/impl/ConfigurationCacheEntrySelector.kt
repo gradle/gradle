@@ -18,14 +18,13 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.properties.GradlePropertiesController
-import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
+import org.gradle.internal.cc.impl.fingerprint.readFingerprintFrom
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.serialize.FingerprintDeserializationException
 import org.gradle.internal.cc.operations.EntrySearchResult
@@ -33,9 +32,7 @@ import org.gradle.internal.cc.operations.withFingerprintCheckOperations
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.util.Path
 import java.io.File
@@ -166,21 +163,11 @@ internal class ConfigurationCacheEntrySelector(
         }
 
     private
-    val isolateOwnerHost: IsolateOwner by lazy { IsolateOwners.OwnerHost(host) }
-
-    private
     fun <T> readFingerprintFile(
         fingerprintFile: ConfigurationCacheStateFile,
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T =
-        cacheIO.withReadContextFor(fingerprintFile) { codecs ->
-            withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
-                action(object : ConfigurationCacheFingerprintController.Host {
-                    override val valueSourceProviderFactory: ValueSourceProviderFactory
-                        get() = host.service()
-                })
-            }
-        }
+        cacheIO.readFingerprintFrom(fingerprintFile, host, action)
 
     private
     fun buildPath(): Path =
