@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.provenance.MutationKind;
 import org.gradle.api.internal.provider.provenance.MutationOriginRegistry;
+import org.gradle.api.internal.provider.provenance.PropertyCallSites;
 import org.gradle.api.internal.provider.provenance.MutationRecord;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
@@ -83,7 +84,15 @@ class ProjectBackedPropertyHost implements PropertyHost {
      * stops at the first registered script rather than materialising a whole stack trace.
      */
     private @Nullable String currentLocation() {
-        if (!originRegistry.isCapturingLocations() || !originRegistry.claimLocationBudget()) {
+        if (!originRegistry.isCapturingLocations()) {
+            return null;
+        }
+        String instrumented = PropertyCallSites.current();
+        if (instrumented != null) {
+            // baked in at the call site, so it costs nothing and cannot fail to find a frame
+            return instrumented;
+        }
+        if (!originRegistry.isWalkingStackForLocations() || !originRegistry.claimLocationBudget()) {
             return null;
         }
         return callerStackCapturer.captureCallSite();

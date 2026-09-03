@@ -246,6 +246,73 @@ Note this is a raw stack frame, not a `Location` resolved through `RegisteredScr
 `DefaultProblemLocationAnalyzer.tryGetLocation` returns a location **only** for registered
 scripts, so reusing it would have covered build scripts and dropped plugin call sites.
 
+## Call sites from classpath instrumentation
+
+A call site is a compile-time constant, so build-logic instrumentation can hand it over for
+free rather than having it discovered by a stack walk. `PropertyMutationInterceptor` rewrites
+
+```java
+property.set(value)                       // in instrumented build logic
+```
+
+into a call carrying its own position, which `PropertyCallSites` publishes for exactly the
+duration of the mutation:
+
+```java
+PropertyCallSites.set(property, value, "FeaturePlugin.java", 12)
+```
+
+Three pieces, none of which needed the annotation processor:
+
+- `InstrumentingClassTransform` already tracked `sourceFileName` and `methodInsLineNumber`
+  for its instrumentation-time reporting listener. `CallSiteSource` just exposes them to
+  interceptors, so no interceptor signature changed.
+- `PropertyMutationInterceptor` matches `set` on anything `isInstanceOf` `Property` — the
+  hierarchy query matters, because `p.set(x)` on a `RegularFileProperty` compiles to
+  `INVOKEINTERFACE RegularFileProperty.set` — and emits the two constants inline. Inline
+  rather than through `DefaultBridgeMethodBuilder`, which would generate one synthetic
+  bridge method per distinct call site.
+- `PropertyCallSites` performs the mutation itself, so the position is published for that
+  mutation only. Publishing it *before* the call and clearing on read would leave a stale
+  position whenever the next mutation was not instrumented, and a wrong line is worse than
+  no line.
+
+Verified end to end with the stack walk **disabled**, so a location can only have come from
+an instrumented call site: a Java plugin in `buildSrc` reports
+`set by plugin 'com.example.feature' at FeaturePlugin.java:12`. Both `buildSrc` output and
+Kotlin DSL scripts are instrumented in an ordinary build, confirmed by checking that a
+`System.getProperty` call in each is tracked as a configuration cache input.
+
+### How much it actually covers
+
+Measured on the gradle/gradle build with locations on and the walk still enabled:
+
+```
+locations from instrumentation   2,817   ( 2.8%)
+locations from the stack walk   75,717   (75.4%)
+no location found               21,951   (21.9%)
+```
+
+2.8% is lower than it sounds, for two reasons that the mutation kind histogram separates:
+
+```
+SET_CONVENTION 69,482   SET_SOURCE 27,639   ADD_ALL 2,160   ADD 1,194   UNSET 8
+```
+
+- The interceptor currently matches only `set`, which is 27.5% of mutations. **69% are
+  conventions**, and widening to `convention`, `add` and `put` is straightforward.
+- More fundamentally, of the 27,639 `set` calls only about 10% originate in instrumented
+  build logic. The rest are Gradle's own plugins, and the distribution is not instrumented.
+
+That is the real shape of it: **instrumentation cannot cover mutations Gradle performs on
+the user's behalf, and those are the majority.** But it covers precisely the mutations a
+user writes, which are the ones worth pointing at — and for those it is free, exact, and
+never fails to find a frame. The stack walk remains the only option for everything else,
+which is why the two compose rather than compete.
+
+Groovy property assignment (`prop = "x"`) is not covered: it goes through dynamic dispatch
+rather than a plain JVM call site, and would need the Groovy interception path.
+
 ## Deliberately not implemented
 
 This is the ordinary-diagnostics slice. Each of the following is a documented seam in the

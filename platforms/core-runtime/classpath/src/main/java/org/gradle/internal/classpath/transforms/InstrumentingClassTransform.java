@@ -135,8 +135,13 @@ public class InstrumentingClassTransform implements ClassTransform {
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
         // TODO(mlopatkin) can we reuse interceptors in a bigger scope, not per class, but per artifact?
         List<JvmBytecodeCallInterceptor> interceptors = buildInterceptors(instrumentationMetadata);
+        PropertyMutationInterceptor propertyMutationInterceptor = new PropertyMutationInterceptor(instrumentationMetadata);
         if (interceptorFilter().matches(ADHOC_INTERCEPTORS)) {
-            interceptors = ImmutableList.<JvmBytecodeCallInterceptor>builderWithExpectedSize(interceptors.size() + 1).add(ADHOC_INTERCEPTORS).addAll(interceptors).build();
+            interceptors = ImmutableList.<JvmBytecodeCallInterceptor>builderWithExpectedSize(interceptors.size() + 2)
+                .add(ADHOC_INTERCEPTORS)
+                .add(propertyMutationInterceptor)
+                .addAll(interceptors)
+                .build();
         }
         return Pair.of(entry.getPath(),
             new InstrumentingVisitor(
@@ -344,7 +349,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         }
     }
 
-    private static class InstrumentingMethodVisitor extends MethodVisitorScope {
+    private static class InstrumentingMethodVisitor extends MethodVisitorScope implements CallSiteSource {
         private final InstrumentingVisitor owner;
         private final String className;
         private final Lazy<MethodNode> asNode;
@@ -373,6 +378,16 @@ public class InstrumentingClassTransform implements ClassTransform {
         public void visitLineNumber(int line, Label start) {
             methodInsLineNumber = line;
             super.visitLineNumber(line, start);
+        }
+
+        @Override
+        public @Nullable String getSourceFileName() {
+            return sourceFileName;
+        }
+
+        @Override
+        public int getLineNumber() {
+            return methodInsLineNumber;
         }
 
         @Override

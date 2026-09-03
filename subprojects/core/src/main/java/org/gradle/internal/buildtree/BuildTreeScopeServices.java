@@ -119,6 +119,12 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
      */
     private static final InternalOption<Boolean> PROPERTY_PROVENANCE_LOCATIONS = InternalOptions.ofBoolean("org.gradle.internal.property-provenance.locations", false);
 
+    /**
+     * Instrumented call sites are free; walking the stack is not. Turning the walk off leaves only the
+     * locations that instrumentation baked in, which is how a test tells the two apart.
+     */
+    private static final InternalOption<Boolean> PROPERTY_PROVENANCE_STACK_WALK = InternalOptions.ofBoolean("org.gradle.internal.property-provenance.locations.stack-walk", true);
+
 
     private final BuildActionModelRequirements buildActionRequirements;
     private final BuildModelParameters buildModelParameters;
@@ -198,7 +204,10 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected MutationOriginRegistry createMutationOriginRegistry(InternalOptions internalOptions) {
         boolean locations = internalOptions.getBoolean(PROPERTY_PROVENANCE_LOCATIONS);
-        return new MutationOriginRegistry(locations || internalOptions.getBoolean(PROPERTY_PROVENANCE), locations);
+        return new MutationOriginRegistry(
+            locations || internalOptions.getBoolean(PROPERTY_PROVENANCE),
+            locations,
+            internalOptions.getBoolean(PROPERTY_PROVENANCE_STACK_WALK));
     }
 
     @Provides

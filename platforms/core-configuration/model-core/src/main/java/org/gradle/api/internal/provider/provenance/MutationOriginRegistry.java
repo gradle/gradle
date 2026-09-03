@@ -49,18 +49,26 @@ public class MutationOriginRegistry {
 
     private final boolean enabled;
     private final boolean capturingLocations;
+    private final boolean walkingStackForLocations;
     private final Map<UserCodeSource, MutationRecord[]> recordsBySource = new ConcurrentHashMap<>();
     private final Map<UserCodeSource, MutationOrigin> originsBySource = new ConcurrentHashMap<>();
     private final MutationRecord[] unattributedRecords = new MutationRecord[KIND_COUNT];
     private final AtomicInteger locationBudget = new AtomicInteger(MAX_LOCATED_RECORDS);
 
     public MutationOriginRegistry(boolean enabled) {
-        this(enabled, false);
+        this(enabled, false, true);
     }
 
     public MutationOriginRegistry(boolean enabled, boolean capturingLocations) {
+        this(enabled, capturingLocations, true);
+    }
+
+    public MutationOriginRegistry(boolean enabled, boolean capturingLocations, boolean walkingStackForLocations) {
         this.enabled = enabled;
         this.capturingLocations = capturingLocations;
+        this.walkingStackForLocations = walkingStackForLocations;
+        // Instrumented build logic cannot reach this service, so the switch it reads is static.
+        PropertyCallSites.setEnabled(capturingLocations);
         for (MutationKind kind : MutationKind.values()) {
             unattributedRecords[kind.ordinal()] = new MutationRecord(MutationOrigin.UNKNOWN, kind);
         }
@@ -79,6 +87,15 @@ public class MutationOriginRegistry {
      */
     public boolean isCapturingLocations() {
         return capturingLocations;
+    }
+
+    /**
+     * Should a mutation with no instrumented call site fall back to walking the stack? Instrumentation covers
+     * build logic but not Gradle's own code, so the fallback is what makes locations general. Turning it off
+     * isolates what instrumentation alone provides.
+     */
+    public boolean isWalkingStackForLocations() {
+        return walkingStackForLocations;
     }
 
     /**
