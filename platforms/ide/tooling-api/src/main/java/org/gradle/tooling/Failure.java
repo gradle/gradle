@@ -48,6 +48,23 @@ public interface Failure {
     String getDescription();
 
     /**
+     * Returns a long description of this failure node alone. For example, the failure header, its stack frames, and
+     * any suppressed exceptions, but not the descriptions of the failures returned by {@link #getCauses()}.
+     * <p>
+     * Unlike {@link #getDescription()}, which may contain the text of the whole cause subtree, this method can be used
+     * to inspect the description of every node in a failure tree without processing cause descriptions repeatedly.
+     * <p>
+     * This information is not available from Gradle providers earlier than 9.7, in which case this method returns
+     * {@code null}.
+     *
+     * @return a long description of this failure node, or {@code null} if it is not available
+     * @since 9.8.0
+     */
+    @Nullable
+    @Incubating
+    String getOwnDescription();
+
+    /**
      * Returns the underlying causes for this failure, if any.
      *
      * @return the causes for this failure. Returns an empty list if this failure has no causes.

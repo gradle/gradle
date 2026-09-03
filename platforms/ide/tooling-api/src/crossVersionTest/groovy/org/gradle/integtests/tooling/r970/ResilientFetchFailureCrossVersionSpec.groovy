@@ -168,7 +168,7 @@ class CustomPlugin implements Plugin<Project> {
         result.rootDescriptionByProject['c'].contains("Caused by:")
     }
 
-    @ToolingApiVersion('>=9.9.0')
+    @ToolingApiVersion('>=9.8.0')
     @TargetGradleVersion('>=9.7.0')
     def "configure-on-demand wrappers preserve the identity of their shared included build cause"() {
         when:
