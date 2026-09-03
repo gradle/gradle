@@ -1,0 +1,19 @@
+plugins {
+    id("java-library")
+}
+
+repositories {
+    maven {
+        url = file("../repo")
+    }
+}
+
+// tag::prefix-version[]
+dependencies {
+    implementation("com.example:lib:1.+") {
+        attributes {
+            attribute(Attribute.of("org.gradle.status", String), "release")
+        }
+    }
+}
+// end::prefix-version[]
