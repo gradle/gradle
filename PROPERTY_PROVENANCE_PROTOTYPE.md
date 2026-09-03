@@ -355,9 +355,10 @@ specification, not an oversight:
 - **Configuration cache persistence of property provenance** (spec §10). `PropertyCodec`
   collapses a property to its provider, so the mutation record does not survive a cache
   round trip. `UserCodeSource` itself already round trips.
-- **Per-contribution provenance for collections.** Only the *last* explicit mutation is
-  kept, so a list built by five plugins names one of them. This is the natural next slice,
-  and collaborative mode needs it anyway.
+- **Telling a structural self-update from a replacement.** `p.set(p.map(f))` and
+  `p.set(unrelatedProvider)` both record `SET_SOURCE`. Collaborative mode has to treat the
+  first as a contribution and the second as a replacement to authorize or reject, which
+  means inspecting the provider plan for a self-reference rather than reading the kind.
 - **Collaborative fail-closed rejection** (spec §8, §9). Unattributed mutations are
   recorded as `Unknown` and simply omitted from messages.
 - **`ConfigurableFileCollection`.** It uses `ValueState` directly rather than extending

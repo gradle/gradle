@@ -131,6 +131,25 @@ class PropertyMutationProvenanceTest extends Specification {
         property.mutationHistory.records[0].describe() == "set by build file 'build.gradle'"
     }
 
+    def "each collection contribution is recorded separately"() {
+        def property = new DefaultListProperty<String>(host, String)
+
+        when:
+        host.source = PLUGIN_WITH_ID
+        property.add("from plugin")
+        host.source = SCRIPT_PLUGIN
+        property.add("from script plugin")
+        host.source = BUILD_SCRIPT
+        property.addAll(["from build script"])
+
+        then:
+        property.mutationHistory.records.collect { it.describe() } == [
+            "added to by plugin 'com.example.feature'",
+            "added to by script 'other.gradle'",
+            "added to by build file 'build.gradle'"
+        ]
+    }
+
     def "a rejected mutation leaves no trace"() {
         def property = new DefaultProperty<String>(host, String)
         host.source = PLUGIN_WITH_ID
