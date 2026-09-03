@@ -282,10 +282,10 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains("""The value for task ':show' property 'prop' is final and cannot be changed any further.
-It was configured by, in order:
-  1. given its convention by plugin 'com.example.feature'
-  2. set by plugin 'com.example.feature'
-  3. set by build file 'build.gradle'""")
+It was configured by:
+  given its convention by plugin 'com.example.feature'
+  -> set by plugin 'com.example.feature'
+  -> set by build file 'build.gradle'""")
     }
 
     def "reports the call site of a mutation the stack walk can reach"() {

@@ -106,7 +106,7 @@ class PropertyProvenanceInstrumentationIntegrationTest extends AbstractIntegrati
         then:
         // the contributor is still known; only the position is missing, because Groovy property
         // assignment goes through dynamic dispatch rather than a plain JVM call site
-        failureCauseContains("It was configured by, in order:")
+        failureCauseContains("It was configured by:")
         failureCauseContains("set by build file 'build.gradle'")
         !failure.output.contains("at build.gradle:")
     }

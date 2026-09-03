@@ -119,12 +119,14 @@ public final class MutationTrace implements MutationHistory {
         if (attributed.size() == 1 && notRetained == 0) {
             return " It was last " + attributed.get(0).describe() + ".";
         }
-        StringBuilder result = new StringBuilder("\nIt was configured by, in order:");
+        // A chain rather than a numbered list: the arrows show one contributor succeeding another,
+        // which is the thing the reader is trying to follow.
+        StringBuilder result = new StringBuilder("\nIt was configured by:");
         for (int i = 0; i < attributed.size(); i++) {
-            result.append("\n  ").append(i + 1).append(". ").append(attributed.get(i).describe());
+            result.append("\n  ").append(i == 0 ? "" : "-> ").append(attributed.get(i).describe());
         }
         if (notRetained > 0) {
-            result.append("\n  and ").append(notRetained).append(" later mutation(s) not retained.");
+            result.append("\n  -> and ").append(notRetained).append(" later mutation(s) not retained.");
         }
         return result.toString();
     }

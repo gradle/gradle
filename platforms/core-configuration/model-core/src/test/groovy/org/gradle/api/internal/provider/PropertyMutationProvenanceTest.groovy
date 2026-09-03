@@ -200,10 +200,10 @@ class PropertyMutationProvenanceTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == """The value for this property is final and cannot be changed any further.
-It was configured by, in order:
-  1. given its convention by plugin 'com.example.feature'
-  2. set by script 'other.gradle'
-  3. set by build file 'build.gradle'"""
+It was configured by:
+  given its convention by plugin 'com.example.feature'
+  -> set by script 'other.gradle'
+  -> set by build file 'build.gradle'"""
     }
 
     def "reports the chain when a property with no value is queried"() {
@@ -219,9 +219,9 @@ It was configured by, in order:
         then:
         def e = thrown(MissingValueException)
         e.message == """Cannot query the value of this property because it has no value available.
-This property was configured by, in order:
-  - set by plugin 'com.example.feature'
-  - set by build file 'build.gradle'"""
+This property was configured by:
+  set by plugin 'com.example.feature'
+  -> set by build file 'build.gradle'"""
     }
 
     def "bounds the retained trace"() {
@@ -234,7 +234,7 @@ This property was configured by, in order:
         then:
         property.mutationHistory.records.size() == 32
         property.mutationHistory.notRetainedCount == 8
-        property.mutationHistory.describeForMessage().endsWith("and 8 later mutation(s) not retained.")
+        property.mutationHistory.describeForMessage().endsWith("-> and 8 later mutation(s) not retained.")
     }
 
     def "a single mutation is held without allocating a trace"() {

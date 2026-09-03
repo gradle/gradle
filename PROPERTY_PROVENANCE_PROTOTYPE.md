@@ -51,18 +51,19 @@ When a property was configured more than once, the whole chain is reported in or
 * What went wrong:
 Execution failed for task ':show'.
 > The value for task ':show' property 'prop' is final and cannot be changed any further.
-  It was configured by, in order:
-    1. given its convention by plugin 'com.example.feature'
-    2. set by plugin 'com.example.feature'
-    3. set by build file 'build.gradle'
+  It was configured by:
+    given its convention by plugin 'com.example.feature'
+    -> set by plugin 'com.example.feature'
+    -> set by build file 'build.gradle'
 ```
 
 Where the mutation was written in instrumented build logic, the entry carries its call
 site:
 
 ```
-  1. set by plugin 'com.example.feature' at FeaturePlugin.java:12
-  2. set by build file 'build.gradle.kts' at build.gradle.kts:7
+  given its convention by plugin 'java-library'
+  -> set by plugin 'com.example.feature' at FeaturePlugin.java:12
+  -> set by build file 'build.gradle.kts' at build.gradle.kts:7
 ```
 
 The contributor is named the same way whether it is a plugin ID, a plugin class, a build
@@ -213,7 +214,7 @@ for diagnostics, "the plugin set it and then the build script overwrote it" is t
 interesting fact, and the specification (§7) explicitly permits keeping it.
 
 The trace is bounded at 32 records so a property mutated in a loop cannot grow without
-limit; anything beyond that is counted and reported as "and N later mutation(s) not
+limit; anything beyond that is counted and reported as "-> and N later mutation(s) not
 retained". A single mutation still renders as one sentence rather than a list of one.
 
 This also replaced the two separate fields the first version kept: `getExplicitMutation()`

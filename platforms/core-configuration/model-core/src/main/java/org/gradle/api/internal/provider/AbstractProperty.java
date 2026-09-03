@@ -495,12 +495,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             formatter.node("This property was last " + attributed.get(0).describe() + ".");
             return;
         }
-        formatter.node("This property was configured by, in order");
-        formatter.startChildren();
-        for (MutationRecord record : attributed) {
-            formatter.node(record.describe());
+        // Rendered as a chain rather than as tree children, so it reads the same way here as it does in a
+        // rejected mutation.
+        formatter.node("This property was configured by:");
+        for (int i = 0; i < attributed.size(); i++) {
+            formatter.node("  " + (i == 0 ? "" : "-> ") + attributed.get(i).describe());
         }
-        formatter.endChildren();
     }
 
     @Nullable
