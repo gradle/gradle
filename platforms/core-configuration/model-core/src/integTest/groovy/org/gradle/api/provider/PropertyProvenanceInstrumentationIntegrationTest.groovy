@@ -111,6 +111,25 @@ class PropertyProvenanceInstrumentationIntegrationTest extends AbstractIntegrati
         !failure.output.contains("at build.gradle:")
     }
 
+    def "reports the call site of a set in a Kotlin DSL build script"() {
+        featurePlugin('task.getProp().set("from plugin");')
+        file("settings.gradle.kts") << ""
+        file("build.gradle.kts") << '''
+            plugins { id("com.example.feature") }
+
+            tasks.named<com.example.Show>("show") {
+                prop.set("from build script")
+                doLast { prop.set("other") }
+            }
+        '''
+
+        when:
+        fails("show")
+
+        then:
+        failure.assertThatCause(matchesRegex(/(?s).*set by build file 'build\.gradle\.kts' at build\.gradle\.kts:\d+.*/))
+    }
+
     private void featurePlugin(String mutation) {
         file("buildSrc/src/main/java/com/example/FeaturePlugin.java") << """
             package com.example;

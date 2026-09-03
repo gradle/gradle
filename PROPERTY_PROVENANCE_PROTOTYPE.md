@@ -62,7 +62,7 @@ site:
 
 ```
   1. set by plugin 'com.example.feature' at FeaturePlugin.java:12
-  2. set by build file 'build.gradle'
+  2. set by build file 'build.gradle.kts' at build.gradle.kts:7
 ```
 
 The contributor is named the same way whether it is a plugin ID, a plugin class, a build
@@ -325,8 +325,19 @@ One practical note for anyone changing the interceptor: bump `DECORATION_FORMAT`
 `InstrumentingClassTransform`, and expect to clear instrumented-jar caches in a dev loop —
 the bump alone did not invalidate the integration test's transform cache here.
 
-Groovy property assignment (`prop = "x"`) is not covered: it goes through dynamic dispatch
-rather than a plain JVM call site, and would need the Groovy interception path.
+What is and is not covered is a question of **how the caller was compiled**, not of whether
+it is a script or a plugin:
+
+| Caller | Call site |
+|---|---|
+| Java plugin in `buildSrc` or a plugin jar | yes |
+| Kotlin DSL build script (`prop.set(x)`) | yes |
+| Groovy build script, either `prop = "x"` or `prop.set(x)` | no |
+| Gradle's own distribution code | no — not instrumented |
+
+Groovy is the odd one out because it compiles *both* forms through dynamic dispatch rather
+than a plain `INVOKEINTERFACE`, so there is no JVM call site to rewrite. Covering it needs
+the Groovy call interception path, which is a separate mechanism.
 
 ## Deliberately not implemented
 
