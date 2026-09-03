@@ -24,8 +24,11 @@ apply plugin: MirrorPlugin
 class MirrorPlugin implements Plugin<Gradle> {
     Map<String, String> mirrors = [:]
     MirrorPlugin() {
+        // The emergency mirror bypass leaves `mirrors` empty, which makes mirror() a no-op.
+        // See gradle/shared-with-buildSrc/mirrors.settings.gradle.kts.
+        def ignoreMirror = Boolean.parseBoolean(System.getenv("IGNORE_MIRROR"))
         def repoMirrorUrls = System.getenv("REPO_MIRROR_URLS")?.split(',')?.collectEntries { mirrorEntry -> mirrorEntry.split(":", 2) } as Map<String, String>
-        if (repoMirrorUrls) {
+        if (repoMirrorUrls && !ignoreMirror) {
             repoMirrorUrls.get('jcenter')?.with { mirrors.put(normalizeUrl('https://jcenter.bintray.com/'), it) }
             repoMirrorUrls.get('mavencentral')?.with { mirrors.put(normalizeUrl('https://repo.maven.apache.org/maven2/'), it) }
             repoMirrorUrls.get('google')?.with { mirrors.put(normalizeUrl('https://dl.google.com/dl/android/maven2/'), it) }

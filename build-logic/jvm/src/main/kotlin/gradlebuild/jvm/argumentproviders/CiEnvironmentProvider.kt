@@ -59,9 +59,17 @@ class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvide
 
     private
     fun collectMirrorUrls(): Map<String, String> =
-        // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
-        System.getenv("REPO_MIRROR_URLS")?.ifBlank { null }?.split(',')?.associate { nameToUrl ->
-            val (name, url) = nameToUrl.split(':', limit = 2)
-            name to url
-        } ?: emptyMap()
+        // The emergency mirror bypass, see gradle/shared-with-buildSrc/mirrors.settings.gradle.kts.
+        // Publishing no -Dorg.gradle.integtest.mirrors.* properties makes the whole test fixture layer
+        // (RepoScriptBlockUtil, the mirror init script, the plugin portal override AbstractGradleExecuter
+        // passes to nested builds) fall back to the upstream URLs.
+        if (System.getenv("IGNORE_MIRROR")?.toBoolean() == true) {
+            emptyMap()
+        } else {
+            // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
+            System.getenv("REPO_MIRROR_URLS")?.ifBlank { null }?.split(',')?.associate { nameToUrl ->
+                val (name, url) = nameToUrl.split(':', limit = 2)
+                name to url
+            } ?: emptyMap()
+        }
 }
