@@ -87,13 +87,14 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    variant('api1', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), custom: 'c1'])
+                    variant('api1', ['org.gradle.status': status, custom: 'c1'])
                 }
                 module('org:test:1.0') {
-                    variant('runtime2', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), custom2: 'c2'])
+                    variant('runtime2', ['org.gradle.status': status, custom2: 'c2'])
                 }
             }
         }
@@ -275,12 +276,13 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
   - org:test:1.0 variant runtime:
       - Incompatible because this component declares attribute 'custom' with value 'c2' and the consumer needed attribute 'custom' with value 'c1'""")
         } else {
+            String status = defaultStatus()
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge('org:test:1.0', 'org:test:1.0')
                     module('org:test:1.0') {
-                        maybeByConflictResolution()
-                        variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
+                        byConflictResolution("latest version of capability org.test:cap")
+                        variant('runtime', ['org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
                     }
                 }
             }
@@ -418,17 +420,18 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.1 and 1.0')
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact classifier: 'c2'
-                    artifact classifier: 'c3'
                 }
                 module('org:bar:1.0') {
                     module('org:foo:1.1') {
-                        variant('altruntime', [custom2: 'c3', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus()])
+                        variant('altruntime', [custom2: 'c3', 'org.gradle.status': status])
+                        artifact(classifier: 'c3')
                     }
                 }
             }
@@ -650,11 +653,12 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.1 and 1.0')
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact classifier: 'c2'
                 }
                 module('org:bar:1.0') {
@@ -698,14 +702,15 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', ['org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact()
                 }
                 module('org:foo:1.0') {
-                    variant('test-fixtures', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus()])
+                    variant('test-fixtures', ['org.gradle.status': status])
                     artifact classifier: 'test-fixtures'
                 }
             }
@@ -993,7 +998,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         applyRule << [true, false]
     }
 
-    static Closure<String> defaultStatus() {
-        { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
+    static String defaultStatus() {
+        GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
 }

@@ -67,14 +67,15 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', ['org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact()
                 }
                 module('org:foo:1.0') {
-                    variant('feature1', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('feature1', ['org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact classifier: 'feat1'
                 }
             }
@@ -175,14 +176,15 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', ['org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact()
                 }
                 module('org:foo:1.0') {
-                    variant('v2', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('v2', ['org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact classifier: 'feat1'
                     artifact classifier: 'feat3'
                 }
@@ -190,7 +192,7 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         }
     }
 
-    static Closure<String> defaultStatus() {
-        { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
+    static String defaultStatus() {
+        GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
 }

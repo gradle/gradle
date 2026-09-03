@@ -867,7 +867,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
                     project(":bar", "org:bar:1.1") {
                         variant('default')
                         noArtifacts()
-                        constraint("project ':foo'", "org:foo:1.1")
+                        constraint("project ':foo'", ":foo", "org:foo:1.1")
                     }
                 }
                 project(":bar", "org:bar:1.1") {

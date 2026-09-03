@@ -810,7 +810,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     selectedByRule()
                     byConflictResolution("between versions 3.0 and 2.0")
                 }
-                edge("org.utils:dep2:2.0", "org.utils:dep2:3.0")
+                edge("org.utils:dep2:2.0", ":dep2", "org.utils:dep2:3.0")
 
             }
         }
@@ -1436,7 +1436,7 @@ Required by:
                     variant('runtimeElements')
                     selectedByRule()
                 }
-                edge('foo:bar:1', 'org.test:sub:0.0.1')
+                edge('foo:bar:1', ':sub', 'org.test:sub:0.0.1')
             }
         }
     }

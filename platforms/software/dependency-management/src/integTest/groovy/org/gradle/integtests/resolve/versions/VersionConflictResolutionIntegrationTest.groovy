@@ -842,7 +842,9 @@ parentFirst
         resolve.expectGraph {
             root(":", "org:test:1.3") {
                 module("org:other:1.7") {
-                    edge("org:test:1.2", "org:test:1.3")
+                    edge("org:test:1.2", ":", "org:test:1.3") {
+                        variant("runtimeElements")
+                    }
                 }
             }
         }

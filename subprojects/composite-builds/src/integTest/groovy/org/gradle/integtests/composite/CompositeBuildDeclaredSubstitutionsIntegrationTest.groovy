@@ -331,9 +331,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 variant("testFixturesRuntimeElements")
                 compositeSubstitute()
-                artifact name: 'buildB'
                 artifact classifier: 'test-fixtures'
                 project(":buildB", "org.test:buildB:2.0") {
+                    variant("runtimeElements")
+                    artifact(name: 'buildB')
                 }
             }
         }
@@ -366,9 +367,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 variant("testFixturesRuntimeElements")
                 compositeSubstitute()
-                artifact name: 'buildB'
                 artifact classifier: 'test-fixtures'
                 project(":buildB", "org.test:buildB:2.0") {
+                    variant("runtimeElements")
+                    artifact(name: 'buildB')
                 }
             }
         }

@@ -412,7 +412,9 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         checkGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
                 compositeSubstitute()
-                edge("org.test:buildA:1.0", ":buildA", "org.test:buildA:1.0")
+                edge("org.test:buildA:1.0", ":", "org.test:buildA:1.0") {
+                    variant("graphElements")
+                }
             }
         }
     }
@@ -439,7 +441,9 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         checkGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
                 compositeSubstitute()
-                edge("org.test:buildA:1.0", ":buildA", "org.test:buildA:1.0")
+                edge("org.test:buildA:1.0", ":", "org.test:buildA:1.0") {
+                    variant("graphElements")
+                }
             }
         }
     }

@@ -505,7 +505,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             root(":a", "test:a:") {
                 project(":b", "test:b:") {
                     project(":c", "test:c:") {
-                        project(":a", "test:a:")
+                        project(":a", "test:a:") {
+                            variant("default")
+                        }
                     }
                 }
             }
@@ -714,11 +716,11 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 project(":a", "test:a:") {
                     variant("configOne")
                     artifact(fileName: "A1.jar")
-                    artifact(fileName: "A2.jar")
-                    artifact(fileName: "A3.jar")
                 }
                 project(":a", "test:a:") {
                     variant("configTwo")
+                    artifact(fileName: "A2.jar")
+                    artifact(fileName: "A3.jar")
                 }
             }
         }

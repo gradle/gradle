@@ -467,19 +467,22 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
                         if (transitiveDependencyVersion != resolvedVersion) {
                             byAncestor()
                         }
-                        maybeRequested()
-                        maybeByReason("didn't match version 1.3")
+                        if (rejectedVersion != null) {
+                            // A rejected candidate replaces the plain request as the reason
+                            notRequested()
+                            byReason("didn't match version $rejectedVersion")
+                        }
                     }
                 }
             }
         }
 
         where:
-        directDependencyVersion | transitiveDependencyVersion | listVersions | resolvedVersion
-        '[1.0,1.3]'             | '1.2'                       | true         | '1.3' // should probably choose 1.2 instead
-        '1.2'                   | '[1.0,1.3]'                 | false        | '1.2'
-        '[1.0,1.2]'             | '[1.0, 1.3]'                | true         | '1.2'
-        '[1.0,1.3]'             | '[1.0,1.2]'                 | true         | '1.3' // should probably choose 1.2 instead
+        directDependencyVersion | transitiveDependencyVersion | listVersions | resolvedVersion | rejectedVersion
+        '[1.0,1.3]'             | '1.2'                       | true         | '1.3'           | null // should probably choose 1.2 instead
+        '1.2'                   | '[1.0,1.3]'                 | false        | '1.2'           | null // no version listing, so nothing is rejected
+        '[1.0,1.2]'             | '[1.0, 1.3]'                | true         | '1.2'           | '1.3'
+        '[1.0,1.3]'             | '[1.0,1.2]'                 | true         | '1.3'           | null // should probably choose 1.2 instead
     }
 
     def "should not downgrade dependency version when a transitive dependency has strict version"() {

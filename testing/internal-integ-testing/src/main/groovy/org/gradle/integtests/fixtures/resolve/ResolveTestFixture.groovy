@@ -17,13 +17,13 @@
 package org.gradle.integtests.fixtures.resolve
 
 import com.google.common.base.Joiner
-import groovy.transform.Canonical
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Path
+import org.jspecify.annotations.Nullable
 import org.junit.ComparisonFailure
 
 /**
@@ -438,42 +438,60 @@ class ResolveTestFixture {
      * @param closure a closure containing DSL that configures the expected graph
      */
     void expectGraph(String path= ":", @DelegatesTo(GraphBuilder) Closure closure) {
-        def graph = new GraphBuilder()
+        def graphBuilder = new GraphBuilder()
         closure.resolveStrategy = Closure.DELEGATE_ONLY
-        closure.delegate = graph
+        closure.delegate = graphBuilder
         closure.call()
 
-        def root = graph.root
-        if (root == null) {
+        if (graphBuilder.root == null) {
             throw new IllegalArgumentException("No root node defined")
         }
 
         def configDetailsFile = getResultFile(Path.path(path))
         def configDetails = configDetailsFile.text.readLines()
 
+        Map<String, Set<Variant>> actualVariants = parseVariants(findLines(configDetails, 'variant'))
+        String rootVariantName = parseNodeId(findLines(configDetails, 'root-variant').first()).variantName
+        def graph = graphBuilder.normalize(actualVariants, rootVariantName)
+        NodeBuilder root = graph.root
+
+        Map<String, List<NodeBuilder>> nodesByComponent = graph.nodesByVariantId.values().groupBy { it.id }
+        Map<String, List<NodeBuilder>> constraintsByComponent = graph.constraintTargetsByComponentId.values().groupBy { it.id }
+        Set<String> expectedComponentIds = nodesByComponent.keySet() + constraintsByComponent.keySet()
+
         def actualRoot = findLines(configDetails, 'root').first()
-        def expectedRoot = "[${root.type}][id:${root.id}][mv:${root.moduleVersionId}][reason:${root.reason}]".toString()
+        def expectedRoot = "[${root.type}][id:${root.id}][mv:${root.moduleVersionId}][reason:${componentReasons(nodesByComponent[root.id], constraintsByComponent[root.id] ?: [], root).join('!!')}]".toString()
         assert actualRoot.startsWith(expectedRoot)
 
-        Map<String, Set<Variant>> actualVariants = parseVariants(findLines(configDetails, 'variant'))
-        List<String> actualComponents = findLines(configDetails, 'component')
-        List<ParsedComponent> expectedComponents = graph.nodes.collect { NodeBuilder baseNode ->
-            new ParsedComponent(type: baseNode.type,
-                id: baseNode.id,
-                module: baseNode.moduleVersionId,
-                reasons: baseNode.allReasons,
-                variants: baseNode.variants,
-                ignoreReasons: baseNode.ignoreReasons,
-                ignoreReasonPrefixes: baseNode.ignoreReasonPrefixes)
+        Map<String, Set<String>> ignoredReasonPrefixes = [:]
+        List<ParsedComponent> expectedComponents = expectedComponentIds.collect { String id ->
+            List<NodeBuilder> nodes = nodesByComponent[id]
+            assert nodes != null: "Component '$id' is only constrained, but has no hard edges targeting it."
+            Set<String> moduleVersions = nodes.collect { it.moduleVersionId } as Set
+            assert moduleVersions.size() == 1: "Component '$id' is declared with several module versions ${moduleVersions.sort()}."
+            Set<String> types = nodes.collect { it.type } as Set
+            assert types.size() == 1: "Component '$id' is declared with several types ${types.sort()}."
+
+            List<NodeBuilder> constrained = constraintsByComponent[id] ?: []
+            ignoredReasonPrefixes[id] = (nodes + constrained).collectMany { it.ignoreReasonPrefixes }.toSet()
+            new ParsedComponent(
+                types.first(),
+                id,
+                moduleVersions.first(),
+                componentReasons(nodes, constrained, root),
+                nodes.collect { it.variant }.toSet(),
+            )
         }
-        compareComponents("components in graph", parseComponents(actualComponents, actualVariants), expectedComponents)
+
+        def actualComponents = findLines(configDetails, 'component').collect { parseComponent(it, actualVariants, ignoredReasonPrefixes) }
+        compareComponents("components in graph", actualComponents, expectedComponents)
 
         def actualEdges = findLines(configDetails, 'dependency')
         def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
-        def expectedArtifacts = graph.artifactNodes.collect { "${it.fileName} (${it.componentId})" } + graph.files as List<String>
+        def expectedArtifacts = graph.artifactNodes.collect { "${it.fileName} (${it.componentId})" } + graph.fileDependencies as List<String>
 
         def actualArtifacts = findLines(configDetails, 'incoming-artifact-artifact')
         compare("incoming.artifacts.artifacts", actualArtifacts, expectedArtifacts)
@@ -580,8 +598,29 @@ class ResolveTestFixture {
         compare("lenient configuration artifact files", actualFiles, expectedArtifactOnlyFiles)
     }
 
+    private static Set<String> componentReasons(Collection<NodeBuilder> owned, Collection<NodeBuilder> constrained, NodeBuilder root) {
+        Set<String> reasons = (owned + constrained).collect { it.reasons }.flatten().toSet()
+        if (owned.any { it.is(root) }) {
+            reasons.add('root')
+        } else if (owned.any { it.requested }) {
+            reasons.add('requested')
+        }
+        return reasons
+    }
+
     List<String> findLines(List<String> lines, String prefix) {
         return lines.findAll { it.startsWith(prefix + ":") }.collect { it.substring(prefix.length() + 1) }
+    }
+
+    static record NodeId(
+        String componentId,
+        String variantName
+    ) { }
+
+    static NodeId parseNodeId(String value) {
+        List<String> parts = value.split('@@', -1) as List<String>
+        assert parts.size() == 2: "Malformed node ID '$value'"
+        return new NodeId(parts[0], parts[1])
     }
 
     /**
@@ -598,16 +637,13 @@ class ResolveTestFixture {
                 .findAll() // only keep non empty entries
                 .collectEntries { it.split('=', 2) as List }
             result.computeIfAbsent(parts[0]) { new LinkedHashSet<Variant>() }
-                .add(new Variant(name: parts[1], attributes: attributes))
+                .add(new Variant(parts[1], attributes))
         }
         return result
     }
 
-    List<ParsedComponent> parseComponents(List<String> components, Map<String, Set<Variant>> variants) {
-        components.collect { parseComponent(it, variants) }
-    }
 
-    ParsedComponent parseComponent(String line, Map<String, Set<Variant>> variants) {
+    ParsedComponent parseComponent(String line, Map<String, Set<Variant>> variants, Map<String, Set<String>> ignoredReasonPrefixes) {
         int start = 1
         // we look for ][ instead of just ], because of that one test that checks that we can have random characters in id
         // see IvyDynamicRevisionRemoteResolveIntegrationTest. uses latest version from version range with punctuation characters
@@ -633,54 +669,45 @@ class ResolveTestFixture {
         if (idx < 0) {
             throw new IllegalArgumentException("Missing reasons in '$line'")
         }
-        List<String> reasons = line.substring(start, idx).split('!!') as List<String>
+        // Reasons the expectation opted out of are dropped here.
+        Set<String> ignoredPrefixes = ignoredReasonPrefixes[id] ?: [] as Set<String>
+        Set<String> reasons = line.substring(start, idx).split('!!').findAll { String reason ->
+            !ignoredPrefixes.any { prefix -> reason.startsWith(prefix) }
+        } as Set<String>
         Set<Variant> ownedVariants = variants[id]
         assert ownedVariants != null: "Component '$id' is in the graph, but owns no variant"
-        new ParsedComponent(type: type, id: id, module: module, reasons: reasons, variants: ownedVariants)
+        new ParsedComponent(type, id, module, reasons, ownedVariants)
     }
 
-    static class ParsedComponent {
-        String type
-        String id
-        String module
-        Set<String> reasons
-        boolean ignoreRequested
-        Set<String> ignoreReasons
-        Set<String> ignoreReasonPrefixes
-        Set<Variant> variants = []
+    static record ParsedComponent(
+        String type,
+        String id,
+        String module,
+        Set<String> reasons,
+        Set<Variant> variants
+    ) {
 
         boolean diff(ParsedComponent actual, StringBuilder sb) {
             List<String> errors = []
             if (type != actual.type) {
-                errors << "Expected type '$type' but was: $actual.type"
+                errors.add("Expected type '$type' but was: $actual.type".toString())
             }
             if (id != actual.id) {
-                errors << "Expected ID '$id' but was: $actual.id"
+                errors.add("Expected ID '$id' but was: $actual.id".toString())
             }
             if (this.module != actual.module) {
-                errors << "Expected module '${this.module}' but was: $actual.module"
+                errors.add("Expected module '${this.module}' but was: $actual.module".toString())
             }
-            def actualReasons = actual.reasons.findAll {
-                if (it == "requested" && ignoreRequested) {
-                    false
-                } else if (ignoreReasons.contains(it)) {
-                    false
-                } else if (ignoreReasonPrefixes.any { prefix -> it.startsWith(prefix) }) {
-                    false
-                } else {
-                    true
-                }
-            }.toSet()
-            if (actualReasons != reasons) {
-                errors << "Expected reasons ${reasons} but was: ${actualReasons}"
+            if (actual.reasons != reasons) {
+                errors.add("Expected reasons ${reasons} but was: ${actual.reasons}".toString())
             }
             this.variants.each { variant ->
                 def actualVariant = actual.variants.find { it.name == variant.name }
                 if (!actualVariant) {
-                    errors << "Expected variant name $variant, but wasn't found in: $actual.variants.name"
+                    errors.add("Expected variant name $variant, but wasn't found in: ${actual.variants*.name}".toString())
                 } else {
                     if (variant.attributes != null && variant.attributes != actualVariant.attributes) {
-                        errors << "On variant $variant.name, expected attributes $variant.attributes, but was: $actualVariant.attributes"
+                        errors.add("On variant $variant.name, expected attributes $variant.attributes, but was: $actualVariant.attributes".toString())
                     }
                 }
             }
@@ -740,75 +767,15 @@ class ResolveTestFixture {
             def missingFromActual = Joiner.on("\n").join(expectedSorted - actualSorted)
             def missingFromExpected = Joiner.on("\n").join(actualSorted - expectedSorted)
 
-            throw new ComparisonFailure("Result contains unexpected $compType\n\nMissing from actual:\n" + missingFromActual + "\nMissing from expected:\n" + missingFromExpected + "\n\n", expectedFormatted, actualFormatted);
+            throw new ComparisonFailure("Result contains unexpected $compType (expected ${expectedSorted.size()}, was ${actualSorted.size()})\n\nMissing from actual:\n" + missingFromActual + "\nMissing from expected:\n" + missingFromExpected + "\n\nExpected:\n" + expectedFormatted + "\n\nActual:\n" + actualFormatted + "\n\n", expectedFormatted, actualFormatted);
         }
+
     }
 
     static class GraphBuilder {
-        private final Map<String, NodeBuilder> nodes = [:]
+
+        private final List<NodeBuilder> allDeclarations = []
         private NodeBuilder root
-
-        Collection<NodeBuilder> getNodes() {
-            return nodes.values()
-        }
-
-        Collection<NodeBuilder> getNodesWithoutRoot() {
-            Set<NodeBuilder> nodes = new HashSet<>()
-            visitDeps(this.root.deps, nodes, new HashSet<NodeBuilder>())
-            return nodes
-        }
-
-        private void visitDeps(List<EdgeBuilder> edges, Set<NodeBuilder> nodes, Set<NodeBuilder> seen) {
-            for (EdgeBuilder edge : edges) {
-                NodeBuilder selected = edge.selected
-                if (seen.add(selected)) {
-                    nodes.add(selected)
-                    visitDeps(selected.deps, nodes, seen)
-                }
-            }
-        }
-
-        Set<ExpectedArtifact> getArtifactNodes() {
-            Set<NodeBuilder> result = new LinkedHashSet<>()
-            visitNodes(this.root, result)
-            return result.collect { it.artifacts }.flatten()
-        }
-
-        Set<String> getFiles() {
-            Set<NodeBuilder> result = new LinkedHashSet<>()
-            result.add(this.root)
-            visitNodes(this.root, result)
-            return result.collect { node -> node.files }.flatten()
-        }
-
-        private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
-            Set<NodeBuilder> nodesToVisit = []
-            for (EdgeBuilder edge : node.deps) {
-                def targetNode = edge.selected
-                if (result.add(targetNode)) {
-                    nodesToVisit << targetNode
-                }
-            }
-            for (NodeBuilder child : nodesToVisit) {
-                visitNodes(child, result)
-            }
-        }
-
-        private getEdges() {
-            Set<EdgeBuilder> result = new LinkedHashSet<>()
-            Set<NodeBuilder> seen = []
-            visitEdges(this.root, seen, result)
-            return result
-        }
-
-        private visitEdges(NodeBuilder node, Set<NodeBuilder> seenNodes, Set<EdgeBuilder> edges) {
-            for (EdgeBuilder edge : node.deps) {
-                edges.add(edge)
-                if (seenNodes.add(edge.selected)) {
-                    visitEdges(edge.selected, seenNodes, edges)
-                }
-            }
-        }
 
         /**
          * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
@@ -872,43 +839,184 @@ class ResolveTestFixture {
         }
 
         NodeBuilder node(String type, String id, String moduleVersion, Map<String, String> attrs) {
-            def node = nodes[moduleVersion]
-            if (!node) {
-                node = new NodeBuilder(type, id, moduleVersion, attrs, this)
-                nodes[moduleVersion] = node
-            }
+            NodeBuilder node = new NodeBuilder(type, id, moduleVersion, attrs, this)
+            allDeclarations.add(node)
             if (attrs.variant) {
                 node.variant(attrs.variant)
             }
             return node
         }
+
+        /**
+         * Resolves the declarations into the nodes of the graph, merging together those that describe the same
+         * node or component and retargeting every edge to the merged representation. Nodes that declare no
+         * variant are normalized to the single variant of the component they belong to, if there is such
+         * a single variant.
+         */
+        NormalizedGraph normalize(Map<String, Set<Variant>> actualVariants, String rootVariantName) {
+            Map<NodeId, NodeBuilder> nodesById = [:]
+            Map<String, NodeBuilder> constraintTargetsByComponent = [:]
+            Map<NodeBuilder, NodeBuilder> normalizedCounterparts = new IdentityHashMap<>()
+
+            allDeclarations.groupBy { it.id }.each { String componentId, List<NodeBuilder> declarations ->
+                declarations.each { NodeBuilder declaration ->
+                    if (declaration.constraintTarget) {
+                        NodeBuilder targetNode = constraintTargetsByComponent[componentId] ?: declaration
+                        if (targetNode.is(declaration)) {
+                            constraintTargetsByComponent[componentId] = targetNode
+                        } else {
+                            targetNode.mergeFrom(declaration)
+                        }
+                        normalizedCounterparts.put(declaration, targetNode)
+                    } else {
+                        if (declaration.variant == null) {
+                            String resolvedVariant = declaration.is(root) ? rootVariantName : singleVariantOf(componentId, actualVariants).name
+                            declaration.variant(resolvedVariant)
+                        }
+                        Object key = new NodeId(componentId, declaration.variant.name)
+                        NodeBuilder normalizedNode = nodesById[key] ?: declaration
+                        if (normalizedNode.is(declaration)) {
+                            nodesById[key] = normalizedNode
+                        } else {
+                            normalizedNode.mergeFrom(declaration)
+                        }
+                        normalizedCounterparts.put(declaration, normalizedNode)
+                    }
+                }
+            }
+
+            // Retarget edges to the normalized from/to nodes.
+            nodesById.values().each { NodeBuilder node ->
+                node.deps.each { EdgeBuilder edge ->
+                    edge.from = normalizedCounterparts.get(edge.from)
+                    edge.selected = normalizedCounterparts.get(edge.selected)
+                }
+            }
+
+            new NormalizedGraph(
+                normalizedCounterparts.get(this.root),
+                nodesById,
+                constraintTargetsByComponent
+            )
+        }
+
+        private Variant singleVariantOf(String componentId, Map<String, Set<Variant>> actualVariants) {
+            Set<Variant> owned = actualVariants[componentId]
+            assert owned != null && !owned.isEmpty() : "Component '$componentId' is not in the resolved graph."
+            assert owned.size() == 1: "Component '$componentId' owns multiple variants ${owned.sort()}. Specify which one using `variant(...)`."
+            return owned.first()
+        }
+
+    }
+
+    static record NormalizedGraph(
+        NodeBuilder root,
+        Map<NodeId, NodeBuilder> nodesByVariantId,
+        Map<String, NodeBuilder> constraintTargetsByComponentId
+    ) {
+
+        Collection<NodeBuilder> getNodesWithoutRoot() {
+            Set<NodeBuilder> nodes = new HashSet<>()
+            visitDeps(this.root.deps, nodes, new HashSet<NodeBuilder>())
+            return nodes
+        }
+
+        private void visitDeps(List<EdgeBuilder> edges, Set<NodeBuilder> nodes, Set<NodeBuilder> seen) {
+            for (EdgeBuilder edge : edges) {
+                NodeBuilder selected = edge.selected
+                if (seen.add(selected)) {
+                    nodes.add(selected)
+                    visitDeps(selected.deps, nodes, seen)
+                }
+            }
+        }
+
+        /**
+         * The artifacts of the graph. The artifacts of a component are deduplicated across its variants, so an
+         * artifact declared by several nodes is expected once. A node that declares the same artifact several
+         * times expects it that many times, which can happen if multiple artifacts have the same name but different
+         * relative paths.
+         */
+        List<ExpectedArtifact> getArtifactNodes() {
+            Set<NodeBuilder> result = new LinkedHashSet<>()
+            visitNodes(this.root, result)
+            Map<ExpectedArtifact, Integer> counts = new LinkedHashMap<>()
+            result.each { NodeBuilder node ->
+                List<ExpectedArtifact> declared = (node.artifacts.empty && node.implicitArtifact)
+                    ? [new ExpectedArtifact(node.id, node.group, node.module, node.version, null, null, null, null, null, null, null)]
+                    : node.artifacts
+                declared.countBy { it }.each { ExpectedArtifact artifact, Integer count ->
+                    counts[artifact] = Math.max(counts[artifact] ?: 0, count)
+                }
+            }
+            return counts.collectMany { ExpectedArtifact artifact, Integer count -> [artifact] * count }
+        }
+
+        private Set<String> getFileDependencies() {
+            Set<NodeBuilder> result = new LinkedHashSet<>()
+            result.add(this.root)
+            visitNodes(this.root, result)
+            return result.collectMany { node -> node.files } as Set<String>
+        }
+
+        private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
+            Set<NodeBuilder> nodesToVisit = []
+            for (EdgeBuilder edge : node.deps) {
+                def targetNode = edge.selected
+                if (result.add(targetNode)) {
+                    nodesToVisit << targetNode
+                }
+            }
+            for (NodeBuilder child : nodesToVisit) {
+                visitNodes(child, result)
+            }
+        }
+
+        private getEdges() {
+            Set<EdgeBuilder> result = new LinkedHashSet<>()
+            Set<NodeBuilder> seen = []
+            visitEdges(this.root, seen, result)
+            return result
+        }
+
+        private visitEdges(NodeBuilder node, Set<NodeBuilder> seenNodes, Set<EdgeBuilder> edges) {
+            for (EdgeBuilder edge : node.deps) {
+                edges.add(edge)
+                if (seenNodes.add(edge.selected)) {
+                    visitEdges(edge.selected, seenNodes, edges)
+                }
+            }
+        }
+
     }
 
     private static class EdgeBuilder {
         final String requested
-        final NodeBuilder from
+        NodeBuilder from
         NodeBuilder selected
-        boolean constraint
+        final boolean constraint
 
-        EdgeBuilder(NodeBuilder from, String requested, NodeBuilder selected) {
+        EdgeBuilder(NodeBuilder from, String requested, NodeBuilder selected, boolean constraint) {
             this.from = from
             this.requested = requested
             this.selected = selected
+            this.constraint = constraint
         }
     }
 
-    static class ExpectedArtifact {
-        String componentId
-        String group
-        String module
-        String moduleVersion
-        String version
-        String classifier
-        String type
-        String extension
-        String name
-        String fileName
+    static record ExpectedArtifact(
+        String componentId,
+        String group,
+        String module,
+        String moduleVersion,
+        String version,
+        String classifier,
+        String type,
+        String extension,
+        String name,
+        String declaredFileName,
         String legacyName
+    ) {
 
         ModuleVersionIdentifier getModuleVersionId() {
             String effectiveVersion = moduleVersion ? moduleVersion : 'unspecified'
@@ -923,8 +1031,8 @@ class ResolveTestFixture {
         }
 
         String getFileName() {
-            if (fileName) {
-                return fileName
+            if (declaredFileName) {
+                return declaredFileName
             }
             return "${nameComponent}${versionComponent}${classifierComponent}${extensionComponent}"
         }
@@ -968,29 +1076,13 @@ class ResolveTestFixture {
                 return ""
             }
         }
+
     }
 
-    static class CheckTaskBuilder {
-        final Map<String, String> configs = [:]
-
-        void config(String config) {
-            configs.put(config, "check${config.capitalize()}")
-        }
-
-        void config(String config, String taskName) {
-            configs.put(config, taskName)
-        }
-    }
-
-    @Canonical
-    static class Variant {
-        String name
+    static record Variant(
+        String name,
         Map<String, String> attributes
-
-        String toString() {
-            "variant $name, variant attributes $attributes"
-        }
-    }
+    ) { }
 
     static class NodeBuilder {
         final List<EdgeBuilder> deps = []
@@ -1003,12 +1095,19 @@ class ResolveTestFixture {
         final String version
         private boolean implicitArtifact = true
         final List<String> files = []
-        private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
+        private final List<ExpectedArtifact> artifacts = []
         private final Set<String> reasons = new LinkedHashSet<String>()
-        private boolean ignoreRequested
-        private final Set<String> ignoreReasons = new HashSet<>()
+        private boolean notRequested
+        /**
+         * True if this NodeBuilder represents the target of a constraint edge.
+         * This would be better modeled by a separate ComponentBuilder.
+         */
+        private boolean constraintTarget
         private final Set<String> ignoreReasonPrefixes = new HashSet<>()
-        Set<Variant> variants = []
+        /**
+         * The variant this node represents or null if this declaration does not specify a variant.
+         */
+        private @Nullable Variant variant
 
         NodeBuilder(String type, String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
@@ -1018,102 +1117,91 @@ class ResolveTestFixture {
             this.moduleVersionId = moduleVersionId
             this.id = id
             this.type = type
-            reasons.add('requested')
-        }
-
-        Set<ExpectedArtifact> getArtifacts() {
-            return artifacts.empty && implicitArtifact ? [new ExpectedArtifact(componentId: id, group: this.group, module: this.module, moduleVersion: this.version)] : artifacts
-        }
-
-        String getReason() {
-            allReasons.join('!!')
-        }
-
-        Set<String> getAllReasons() {
-            if (this == graph.root) {
-                reasons.remove('requested')
-                reasons.add('root')
-            }
-            if (ignoreRequested) {
-                reasons.remove('requested')
-            }
-            return reasons
-        }
-
-        private NodeBuilder addNode(NodeBuilder node) {
-            deps << new EdgeBuilder(this, node.id, node)
-            return node
         }
 
         /**
-         * Defines a dependency on the given external module.
+         * Merges the given declaration into this one.
          */
-        NodeBuilder module(String moduleVersionId) {
-            return addNode(graph.moduleNode(moduleVersionId))
+        private void mergeFrom(NodeBuilder other) {
+            deps.addAll(other.deps)
+            artifacts.addAll(other.artifacts)
+            files.addAll(other.files)
+            reasons.addAll(other.reasons)
+            ignoreReasonPrefixes.addAll(other.ignoreReasonPrefixes)
+            notRequested |= other.notRequested
+            implicitArtifact &= other.implicitArtifact
+            if (other.variant != null) {
+                assert variant == null || variant.name == other.variant.name
+                variant = other.variant
+            }
+        }
+
+        boolean isRequested() {
+            return !notRequested
         }
 
         /**
-         * Defines a dependency on the given external module. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         * Defines an edge from the current node to the given external module node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        NodeBuilder module(String moduleVersionId, @DelegatesTo(NodeBuilder) Closure cl) {
-            def node = addNode(graph.moduleNode(moduleVersionId))
+        NodeBuilder module(String moduleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def node = graph.moduleNode(moduleVersionId)
+            addOutgoingEdge(node.id, node)
             applyTo(node, cl)
             return node
         }
 
         /**
-         * Defines a dependency on a unique snapshot module.
+         * Defines an edge from the current node to the given module node with a unique snapshot version.
          */
         NodeBuilder snapshot(String moduleVersionId, String timestamp, String requestedVersion = null) {
             def id = moduleVersionId + ":" + timestamp
             def parts = moduleVersionId.split(':')
             assert parts.length == 3
-            def (group, name, version) = parts
-            def attrs = [group: group, module: name, version: version]
+            String group = parts[0]
+            String name = parts[1]
+            String version = parts[2]
+            Map<String, String> attrs = [group: group, module: name, version: version]
             def node = graph.node("module:$moduleVersionId,$group:$name", id, moduleVersionId, attrs)
-            deps << new EdgeBuilder(this, requestedVersion ? "${group}:${name}:${requestedVersion}" : moduleVersionId, node)
+            addOutgoingEdge(requestedVersion ? "${group}:${name}:${requestedVersion}" : moduleVersionId, node)
             return node
         }
 
         /**
-         * Defines a dependency on the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         * Defines an edge from the current node to the given project node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
         NodeBuilder project(String projectIdentityPath, String moduleVersion, @DelegatesTo(NodeBuilder) Closure cl = {}) {
-            def node = addNode(graph.projectNode(projectIdentityPath, moduleVersion))
+            def node = graph.projectNode(projectIdentityPath, moduleVersion)
+            addOutgoingEdge(node.id, node)
             applyTo(node, cl)
             return node
         }
 
         /**
-         * Defines a link between nodes created through a dependency constraint.
+         * Defines a constraint edge that targets the given module component.
          */
         NodeBuilder constraint(String requested, String selectedModuleVersionId = requested, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.moduleNode(selectedModuleVersionId)
-            def edge = new EdgeBuilder(this, requested, node)
-            edge.constraint = true
-            deps << edge
+            addOutgoingEdge(requested, node, true)
             applyTo(node, cl)
             return node
         }
 
         /**
-         * Adds a constraint that selects the given project.
+         * Defines a constraint edge that targets the given project component.
          */
         NodeBuilder constraint(String requested, String selectedProjectIdentityPath, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.projectNode(selectedProjectIdentityPath, selectedModuleVersionId)
-            def edge = new EdgeBuilder(this, requested, node)
-            edge.constraint = true
-            deps << edge
+            addOutgoingEdge(requested, node, true)
             applyTo(node, cl)
             return node
         }
 
         /**
-         * Defines a dependency from the current node to the given module. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         * Defines an edge from the current node to the given module node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
         NodeBuilder edge(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.moduleNode(selectedModuleVersionId)
-            deps << new EdgeBuilder(this, requested, node)
+            addOutgoingEdge(requested, node)
             applyTo(node, cl)
             return node
         }
@@ -1129,19 +1217,31 @@ class ResolveTestFixture {
 
             def moduleVersionId = "${group}:${module}:${version}"
             def node = graph.node("module:${moduleVersionId},${group}:${module}", moduleVersionId, moduleVersionId, [group: group, module: module, version: version])
-            deps << new EdgeBuilder(this, "${requested.group}:${requested.module}:${requested.version}", node)
+            addOutgoingEdge("${requested.group}:${requested.module}:${requested.version}", node)
             applyTo(node, cl)
             return node
         }
 
         /**
-         * Defines a dependency from the current node to the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         * Defines an edge from the current node to the given project node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
         NodeBuilder edge(String requested, String selectedProjectIdentityPath, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.projectNode(selectedProjectIdentityPath, selectedModuleVersionId)
-            deps << new EdgeBuilder(this, requested, node)
+            addOutgoingEdge(requested, node)
             applyTo(node, cl)
             return node
+        }
+
+        private void addOutgoingEdge(String requested, NodeBuilder selected, boolean constraint = false) {
+            // Constraints target components, and only variants have outgoing edges.
+            assertNotConstraintTarget()
+            def edge = new EdgeBuilder(this, requested, selected, constraint)
+            if (constraint) {
+                assert selected.variant == null: "Cannot declare constraint targeting node with declared variant: " + selected.id
+                selected.constraintTarget = true
+                selected.implicitArtifact = false
+            }
+            deps.add(edge)
         }
 
         private static void applyTo(NodeBuilder node, Closure cl) {
@@ -1154,6 +1254,7 @@ class ResolveTestFixture {
          * Specifies that this node has no artifacts associated with it.
          */
         NodeBuilder noArtifacts() {
+            assertNotConstraintTarget()
             implicitArtifact = false
             return this
         }
@@ -1161,19 +1262,20 @@ class ResolveTestFixture {
         /**
          * Specifies an artifact for this node. A default is assumed when none specified
          */
-        NodeBuilder artifact(Map attributes = [:]) {
+        NodeBuilder artifact(Map<String, String> attributes = [:]) {
+            assertNotConstraintTarget()
             def artifact = new ExpectedArtifact(
-                componentId: id,
-                group: this.group,
-                module: this.module,
-                moduleVersion: this.version,
-                version: attributes.version,
-                name: attributes.name,
-                classifier: attributes.classifier,
-                type: attributes.type,
-                extension: attributes.extension, // defaults to the type, empty string means no extension
-                fileName: attributes.fileName, // overrides the expected file name, defaults to (name)-(version)-(classifier).(type)
-                legacyName: attributes.legacyName
+                id,
+                this.group,
+                this.module,
+                this.version,
+                attributes.version,
+                attributes.classifier,
+                attributes.type,
+                attributes.extension,
+                attributes.name,
+                attributes.fileName,
+                attributes.legacyName
             )
             artifacts << artifact
             return this
@@ -1228,33 +1330,13 @@ class ResolveTestFixture {
         }
 
         NodeBuilder notRequested() {
-            reasons.remove('requested')
-            this
-        }
-
-        NodeBuilder maybeRequested() {
-            ignoreRequested = true
-            ignoreReasons.add('requested')
+            assertNotConstraintTarget()
+            notRequested = true
             this
         }
 
         NodeBuilder maybeByConflictResolution() {
             ignoreReasonPrefixes.add("conflict resolution")
-            this
-        }
-
-        NodeBuilder maybeByConstraint() {
-            ignoreReasonPrefixes.add("constraint")
-            this
-        }
-
-        NodeBuilder maybeSelectedByRule() {
-            ignoreReasonPrefixes.add("selected by rule")
-            this
-        }
-
-        NodeBuilder maybeByReason(String reason) {
-            ignoreReasons.add(reason)
             this
         }
 
@@ -1283,13 +1365,17 @@ class ResolveTestFixture {
             this
         }
 
-        NodeBuilder variant(String name, Map<String, ?> attributes = null) {
-            Map<String, String> stringAttributes = attributes != null ? attributes.collectEntries { entry ->
-                [entry.key, entry.value instanceof Closure ? entry.value.call() : entry.value.toString()]
-            } : null
-            this.variants << new Variant(name: name, attributes: stringAttributes)
+        NodeBuilder variant(String name, Map<String, String> attributes = null) {
+            assertNotConstraintTarget()
+            assert variant == null : "Node '$id' already declares variant '${variant?.name}'."
+            this.variant = new Variant(name, attributes)
             this
         }
+
+        private void assertNotConstraintTarget() {
+            assert !constraintTarget: "Only a component can be described for the target of a constraint: " + id
+        }
+
     }
 
 }

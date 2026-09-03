@@ -66,8 +66,8 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
-                files << "main.jar"
-                files << "sub.jar"
+                files.add("main.jar")
+                files.add("sub.jar")
                 project(":sub", "main:sub:") {
                     variant("compile")
                     noArtifacts()
@@ -114,10 +114,10 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
-                files << "main-1.jar"
-                files << "main-2.jar"
-                files << "sub-1.jar"
-                files << "sub-2.jar"
+                files.add("main-1.jar")
+                files.add("main-2.jar")
+                files.add("sub-1.jar")
+                files.add("sub-2.jar")
                 project(":sub", "main:sub:") {
                     variant("compile")
                     noArtifacts()
@@ -201,8 +201,8 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
-                files << "main.jar"
-                files << "sub.jar"
+                files.add("main.jar")
+                files.add("sub.jar")
                 project(":sub", "main:sub:") {
                     variant("conf")
                     noArtifacts()
@@ -249,7 +249,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         executed ":jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
-                files << "main.jar"
+                files.add("main.jar")
                 project(":sub", "main:sub:") {
                     variant("compile")
                     noArtifacts()
@@ -294,7 +294,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         then:
         resolve.expectGraph {
             root(":", ":main:") {
-                files << "someDir"
+                files.add("someDir")
             }
         }
     }
