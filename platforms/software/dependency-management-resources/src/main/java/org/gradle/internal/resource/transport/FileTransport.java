@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource.transport.file;
+package org.gradle.internal.resource.transport;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
@@ -29,7 +29,6 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
-import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.jspecify.annotations.Nullable;
 

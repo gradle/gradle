@@ -29,6 +29,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.processServices)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementResources)
     api(projects.fileTemp)
     api(projects.graphSerialization)
     api(projects.loggingApi)
