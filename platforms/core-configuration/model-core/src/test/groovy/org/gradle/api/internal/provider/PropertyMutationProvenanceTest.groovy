@@ -115,6 +115,22 @@ class PropertyMutationProvenanceTest extends Specification {
         "map putAll"  | { new DefaultMapProperty<String, String>(it, String, String) } | { it.putAll([k: "v"]) } | MutationKind.PUT_ALL
     }
 
+    def "a chain of transforms is one mutation, not one entry per transform"() {
+        def upstream = new DefaultProperty<String>(host, String)
+        def property = new DefaultProperty<String>(host, String)
+
+        when:
+        host.source = PLUGIN_WITH_ID
+        upstream.set("base")
+        host.source = BUILD_SCRIPT
+        property.set(upstream.map { it + "!" }.map { it.toUpperCase() })
+
+        then:
+        // the transforms are a Provider plan, not mutations of this property
+        property.mutationHistory.records.size() == 1
+        property.mutationHistory.records[0].describe() == "set by build file 'build.gradle'"
+    }
+
     def "a rejected mutation leaves no trace"() {
         def property = new DefaultProperty<String>(host, String)
         host.source = PLUGIN_WITH_ID
