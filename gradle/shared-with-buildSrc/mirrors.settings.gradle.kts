@@ -34,6 +34,12 @@
  * Still pinned to repo.grdev.net and needing their own TeamCity parameter edits if those builds matter:
  *   - `env.YARNPKG_MIRROR_URL`       - JS/docs builds
  *   - `gradle.internal.repository.url` - publishing only, irrelevant to `check`
+ *
+ * Expect some flakiness while the bypass is on. Every agent then fetches from the upstream
+ * repositories directly, with no caching proxy in front of them, so sporadic
+ * "Could not GET ... > Read timed out" resolution failures are normal under full CI load and do
+ * not mean the switch is broken. Retry; if a whole stage is failing this way, the upstream
+ * repository is the bottleneck, not this script.
  */
 
 class Helper(private val providers: ProviderFactory) {
