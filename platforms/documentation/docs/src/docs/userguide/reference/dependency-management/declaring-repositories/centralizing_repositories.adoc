@@ -135,16 +135,12 @@ link:https://maven.apache.org/settings.html[the Settings Reference] for the file
 [[sec:maven-mirror-ids]]
 === Which id a repository is matched by
 
-A `mirrorOf` pattern matches repository *ids*, never URLs. Gradle repositories do not have Maven
-ids, so Gradle matches each repository by:
+A `mirrorOf` pattern matches repository *ids*. Gradle repositories do not have Maven ids, so Gradle matches each repository by name. This is the name set with `name =` in the repository block or the default name Gradle assigns.
 
-* `central`, if the repository URL is Maven Central's. This is the id Maven's Super POM gives that
-  URL, so an existing `<mirrorOf>central</mirrorOf>` keeps working for `mavenCentral()`.
-* the repository's Gradle name, for every other repository. This is the name set with
-  `name =` in the repository block, or the default name Gradle assigns.
+Maven Central is treated special. Maven uses the id `central` for Maven Central, so Gradle will match a repository with Maven Central's URL as if its name is `central`.
 
-The Gradle Plugin Portal is matched by the name `gradlePluginPortal()` gives it, `Gradle Central
-Plugin Repository`. Spaces are part of the id, and the match is exact:
+The Gradle Plugin Portal is matched by the name `Gradle Central
+Plugin Repository`. Spaces are part of the name, and the match must be exact:
 
 .Mirroring only the Gradle Plugin Portal
 [source,xml]
