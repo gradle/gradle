@@ -114,5 +114,11 @@ with(Helper(providers)) {
 
     gradle.settingsEvaluated {
         withMirrors(settings.pluginManagement.repositories)
+        if (ignoreMirrors) {
+            // The mirroring path deliberately leaves dependencyResolutionManagement repositories alone,
+            // but the bypass has to reach them: their `gradlePluginPortal()` carries the TeamCity
+            // `org.gradle.internal.plugins.portal.url.override` value, which points at repo.grdev.net.
+            withMirrors(settings.dependencyResolutionManagement.repositories)
+        }
     }
 }
