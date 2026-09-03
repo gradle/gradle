@@ -221,6 +221,11 @@ per mutation and defeat record interning — a location is per call site, not pe
 contributor, so a located record has to be allocated. They are capped at 2000 captures per
 build, mirroring the cap `DefaultProblemDiagnosticsFactory` puts on its own stack captures.
 
+The walk cost scales with the number of frames it must skip: about 0.9 µs when user code is
+adjacent, ~2.5 µs at 15 internal frames and ~5 µs at 30 in a microbenchmark, and 7.2 µs on
+average in a real build. A capture that finds nothing is the worst case, since it walks the
+whole 50-frame cap.
+
 The walk itself is **not** `BoundedCallerStackCapturer.captureCallerStack()`, which is tuned
 for problem reporting: it stops at the first Gradle frame below a user frame. A Groovy
 property assignment (`prop = "x"`) puts a generated, line-less accessor frame for the
@@ -286,7 +291,7 @@ same benchmark with the two provenance fields stripped out of `AbstractProperty`
 | Provenance compiled in, flag **off** | 5.1 (**+1.7**) | 72.2 B unset / 88.1 B set (**+8 B**) |
 | Flag **on**, one mutation | 13.7 (**+10**) | **+1 B** |
 | Flag **on**, two or more mutations | 13.7 | +80 B, then ~4–5 B per record |
-| Locations on | + ~800–1200 ns per capture, capped at 2000 captures | unchanged |
+| Locations on | + ~7 µs per capture, capped at 2000 captures | unchanged |
 
 A single mutation is held as the interned `MutationRecord` itself, so it costs no allocation
 at all; only a second mutation promotes to a `MutationTrace`. That matters because the
@@ -401,8 +406,8 @@ Combining those counts with the measured per-property rates:
 | No provenance in the codebase at all | 0 | 0 |
 | Compiled in, flag **off** | 2.2 MB | ~0.2 ms |
 | **Plugin-id-only, full retention** | **3.3 MB** | ~1 ms |
-| Line numbers as implemented (capped at 2,000 captures) | 3.5 MB | ~3 ms |
-| Line numbers on every mutation (uncapped) | **12 MB** | **~100 ms** |
+| Line numbers as implemented (capped at 2,000 captures) | 3.5 MB | ~14 ms |
+| Line numbers on every mutation (uncapped) | **12 MB** | **~720 ms** |
 
 Reading the rows:
 
@@ -413,8 +418,9 @@ Reading the rows:
   nothing, and 13,703 traces cost 80 B each.
 - Uncapped line numbers add ~9.8 MB, because every one of the 100,485 mutations needs its own
   record (~86 B including its location string) instead of a shared one. The **time** is the
-  real objection though: ~1 µs per bounded stack walk is ~100 ms of configuration, against a
-  memory cost that is still only a few MB.
+  real objection though. Measured with the budget lifted, all 100,485 captures cost **718 ms**
+  at a mean of **7.2 µs** each — far more than a microbenchmark suggests, because 22% of them
+  find no user frame at all and walk the full 50-frame cap for nothing.
 - Capping locations, as implemented, keeps both to noise.
 
 For scale, a daemon running this build holds several GB, so even the uncapped 12 MB is well
