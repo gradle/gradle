@@ -34,15 +34,16 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.configurationProblemsBase)
     implementation(projects.core)
-    implementation(projects.coreApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.logging)
+    implementation(projects.loggingApi)
     implementation(projects.modelReflect)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.groovy)
     implementation(libs.guava)
+    implementation(libs.kotlinReflect)
 
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.persistentCache))

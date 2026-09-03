@@ -97,6 +97,9 @@ class DefaultWriteContext(
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
         beanStateWriterLookup.beanStateWriterFor(beanType)
 
+    override fun codecForRuntimeType(type: Class<*>): Any? =
+        (getCodec() as? CodecLookup)?.encodingForType(type)
+
     override val isolate: WriteIsolate
         get() = getIsolate()
 
