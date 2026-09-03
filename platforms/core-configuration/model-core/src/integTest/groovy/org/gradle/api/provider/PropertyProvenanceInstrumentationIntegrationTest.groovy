@@ -23,14 +23,14 @@ import static org.hamcrest.Matchers.matchesRegex
 /**
  * Call sites baked into build logic by classpath instrumentation, rather than discovered by walking the stack.
  * <p>
- * Every test here runs with the stack walk disabled, so any location that appears can only have come from an
- * instrumented call site.
+ * Every test here runs with only provenance enabled, so the stack walk is off and any location that appears
+ * can only have come from an instrumented call site.
  */
 class PropertyProvenanceInstrumentationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
-        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations.stack-walk=false")
+        // Plain provenance: instrumented call sites come with it, and the stack walk is off by default.
+        executer.withArgument("-Dorg.gradle.internal.property-provenance=true")
 
         file("buildSrc/build.gradle") << """
             plugins { id 'java-library' }

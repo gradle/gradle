@@ -48,7 +48,6 @@ public class MutationOriginRegistry {
     static final int MAX_LOCATED_RECORDS = 2000;
 
     private final boolean enabled;
-    private final boolean capturingLocations;
     private final boolean walkingStackForLocations;
     private final Map<UserCodeSource, MutationRecord[]> recordsBySource = new ConcurrentHashMap<>();
     private final Map<UserCodeSource, MutationOrigin> originsBySource = new ConcurrentHashMap<>();
@@ -56,19 +55,14 @@ public class MutationOriginRegistry {
     private final AtomicInteger locationBudget = new AtomicInteger(MAX_LOCATED_RECORDS);
 
     public MutationOriginRegistry(boolean enabled) {
-        this(enabled, false, true);
+        this(enabled, false);
     }
 
-    public MutationOriginRegistry(boolean enabled, boolean capturingLocations) {
-        this(enabled, capturingLocations, true);
-    }
-
-    public MutationOriginRegistry(boolean enabled, boolean capturingLocations, boolean walkingStackForLocations) {
+    public MutationOriginRegistry(boolean enabled, boolean walkingStackForLocations) {
         this.enabled = enabled;
-        this.capturingLocations = capturingLocations;
         this.walkingStackForLocations = walkingStackForLocations;
         // Instrumented build logic cannot reach this service, so the switch it reads is static.
-        PropertyCallSites.setEnabled(capturingLocations);
+        PropertyCallSites.setEnabled(enabled);
         for (MutationKind kind : MutationKind.values()) {
             unattributedRecords[kind.ordinal()] = new MutationRecord(MutationOrigin.UNKNOWN, kind);
         }
@@ -83,16 +77,11 @@ public class MutationOriginRegistry {
     }
 
     /**
-     * Should the call site of each mutation be captured as well as its contributor?
-     */
-    public boolean isCapturingLocations() {
-        return capturingLocations;
-    }
-
-    /**
-     * Should a mutation with no instrumented call site fall back to walking the stack? Instrumentation covers
-     * build logic but not Gradle's own code, so the fallback is what makes locations general. Turning it off
-     * isolates what instrumentation alone provides.
+     * Should a mutation with no instrumented call site fall back to walking the stack?
+     * <p>
+     * Off by default. Instrumentation gives build logic its call site for free, which is where a user can act
+     * on it; a mutation Gradle performs on the user's behalf is named by its contributor alone. Walking the
+     * stack to put a position on those too costs microseconds each and is opt-in.
      */
     public boolean isWalkingStackForLocations() {
         return walkingStackForLocations;

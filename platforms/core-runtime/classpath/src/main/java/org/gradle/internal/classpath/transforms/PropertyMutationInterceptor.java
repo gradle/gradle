@@ -46,9 +46,9 @@ public class PropertyMutationInterceptor implements JvmBytecodeCallInterceptor {
     private static final String SET_VALUE_DESCRIPTOR = "(Ljava/lang/Object;)V";
     private static final String SET_PROVIDER_DESCRIPTOR = "(Lorg/gradle/api/provider/Provider;)V";
     private static final String INTERCEPT_VALUE_DESCRIPTOR =
-        "(Lorg/gradle/api/provider/Property;Ljava/lang/Object;Ljava/lang/String;I)V";
+        "(Lorg/gradle/api/provider/Property;Ljava/lang/Object;Ljava/lang/String;)V";
     private static final String INTERCEPT_PROVIDER_DESCRIPTOR =
-        "(Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/Provider;Ljava/lang/String;I)V";
+        "(Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/Provider;Ljava/lang/String;)V";
 
     private final InstrumentationMetadata metadata;
 
@@ -91,9 +91,10 @@ public class PropertyMutationInterceptor implements JvmBytecodeCallInterceptor {
             return false;
         }
 
-        // stack: receiver, value -> receiver, value, sourceFile, line
-        mv._LDC(sourceFileName);
-        mv._LDC(callSite.getLineNumber());
+        // One joined constant rather than a file and a line: it lands in the class constant pool, so the
+        // runtime neither concatenates nor allocates.
+        // stack: receiver, value -> receiver, value, callSite
+        mv._LDC(sourceFileName + ":" + callSite.getLineNumber());
         mv._INVOKESTATIC(CALL_SITES, "set", interceptorDescriptor);
         return true;
     }

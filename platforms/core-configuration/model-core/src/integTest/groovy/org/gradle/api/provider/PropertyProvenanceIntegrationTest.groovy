@@ -288,8 +288,8 @@ It was configured by, in order:
   3. set by build file 'build.gradle'""")
     }
 
-    def "reports the call site of each mutation when locations are enabled"() {
-        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
+    def "reports the call site of a mutation the stack walk can reach"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.stack-walk=true")
         pluginWithId("""
             project.tasks.register("show", com.example.Show) {
                 it.prop.set("from plugin")

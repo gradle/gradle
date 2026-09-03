@@ -41,20 +41,22 @@ public class PropertyCallSites {
     }
 
     /**
-     * Switched on for the build only when provenance is capturing locations. While off, an instrumented call is
-     * an ordinary {@code set} plus one boolean read.
+     * Switched on whenever provenance is enabled. Publishing an instrumented call site is cheap enough to need
+     * no separate switch: the position is a constant in the caller's constant pool, so this costs a thread
+     * local write and its restore. While off, an instrumented call is an ordinary {@code set} plus one boolean
+     * read.
      */
     public static void setEnabled(boolean enabled) {
         PropertyCallSites.enabled = enabled;
     }
 
-    public static void set(Property<Object> property, @Nullable Object value, String sourceFile, int line) {
+    public static void set(Property<Object> property, @Nullable Object value, String callSite) {
         if (!enabled) {
             property.set(value);
             return;
         }
         String previous = CURRENT.get();
-        CURRENT.set(sourceFile + ":" + line);
+        CURRENT.set(callSite);
         try {
             property.set(value);
         } finally {
@@ -62,13 +64,13 @@ public class PropertyCallSites {
         }
     }
 
-    public static void set(Property<Object> property, @Nullable Provider<Object> value, String sourceFile, int line) {
+    public static void set(Property<Object> property, @Nullable Provider<Object> value, String callSite) {
         if (!enabled) {
             property.set(value);
             return;
         }
         String previous = CURRENT.get();
-        CURRENT.set(sourceFile + ":" + line);
+        CURRENT.set(callSite);
         try {
             property.set(value);
         } finally {

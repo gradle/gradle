@@ -109,21 +109,16 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     /**
      * Prototype switch for property mutation provenance. When off, properties record nothing and every
-     * diagnostic message is exactly what it was before.
+     * diagnostic message is exactly what it was before. When on, build logic also gets the call site of its
+     * own mutations, because classpath instrumentation bakes those in for free.
      */
     private static final InternalOption<Boolean> PROPERTY_PROVENANCE = InternalOptions.ofBoolean("org.gradle.internal.property-provenance", false);
 
     /**
-     * Capturing the call site of each mutation costs a bounded stack walk and defeats record interning, so it
-     * is a second, narrower switch. Implies {@link #PROPERTY_PROVENANCE}.
+     * Additionally walk the stack to put a position on mutations that instrumentation does not cover, mostly
+     * the ones Gradle performs on the user's behalf. Costs microseconds per mutation, so it is opt-in.
      */
-    private static final InternalOption<Boolean> PROPERTY_PROVENANCE_LOCATIONS = InternalOptions.ofBoolean("org.gradle.internal.property-provenance.locations", false);
-
-    /**
-     * Instrumented call sites are free; walking the stack is not. Turning the walk off leaves only the
-     * locations that instrumentation baked in, which is how a test tells the two apart.
-     */
-    private static final InternalOption<Boolean> PROPERTY_PROVENANCE_STACK_WALK = InternalOptions.ofBoolean("org.gradle.internal.property-provenance.locations.stack-walk", true);
+    private static final InternalOption<Boolean> PROPERTY_PROVENANCE_STACK_WALK = InternalOptions.ofBoolean("org.gradle.internal.property-provenance.stack-walk", false);
 
 
     private final BuildActionModelRequirements buildActionRequirements;
@@ -203,11 +198,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected MutationOriginRegistry createMutationOriginRegistry(InternalOptions internalOptions) {
-        boolean locations = internalOptions.getBoolean(PROPERTY_PROVENANCE_LOCATIONS);
-        return new MutationOriginRegistry(
-            locations || internalOptions.getBoolean(PROPERTY_PROVENANCE),
-            locations,
-            internalOptions.getBoolean(PROPERTY_PROVENANCE_STACK_WALK));
+        boolean stackWalk = internalOptions.getBoolean(PROPERTY_PROVENANCE_STACK_WALK);
+        return new MutationOriginRegistry(stackWalk || internalOptions.getBoolean(PROPERTY_PROVENANCE), stackWalk);
     }
 
     @Provides

@@ -84,9 +84,6 @@ class ProjectBackedPropertyHost implements PropertyHost {
      * stops at the first registered script rather than materialising a whole stack trace.
      */
     private @Nullable String currentLocation() {
-        if (!originRegistry.isCapturingLocations()) {
-            return null;
-        }
         String instrumented = PropertyCallSites.current();
         if (instrumented != null) {
             // baked in at the call site, so it costs nothing and cannot fail to find a frame

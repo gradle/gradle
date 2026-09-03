@@ -16,7 +16,14 @@ Everything is behind an internal flag, **off by default**:
 ```
 
 With the flag off, nothing is captured and every message is byte-for-byte what it was
-before.
+before. With it on, build logic also gets the **call site** of its own mutations, because
+classpath instrumentation bakes those in as constants. Mutations Gradle performs on the
+user's behalf are named by their contributor alone — putting a position on those means
+walking the stack, which is a second, opt-in switch:
+
+```
+-Dorg.gradle.internal.property-provenance.stack-walk=true
+```
 
 ## What it does
 
@@ -50,12 +57,12 @@ Execution failed for task ':show'.
     3. set by build file 'build.gradle'
 ```
 
-With `-Dorg.gradle.internal.property-provenance.locations=true`, each entry carries its call
+Where the mutation was written in instrumented build logic, the entry carries its call
 site:
 
 ```
-  1. set by plugin 'com.example.feature' at FeaturePlugin.groovy:11
-  2. set by build file 'build.gradle' at build.gradle:7
+  1. set by plugin 'com.example.feature' at FeaturePlugin.java:12
+  2. set by build file 'build.gradle'
 ```
 
 The contributor is named the same way whether it is a plugin ID, a plugin class, a build
@@ -215,11 +222,11 @@ happens when a message is actually rendered.
 
 ## Call sites
 
-Locations are a second, narrower switch
-(`-Dorg.gradle.internal.property-provenance.locations=true`) because they cost a stack walk
-per mutation and defeat record interning — a location is per call site, not per
-contributor, so a located record has to be allocated. They are capped at 2000 captures per
-build, mirroring the cap `DefaultProblemDiagnosticsFactory` puts on its own stack captures.
+Locations from **instrumentation** are free and come with provenance itself. Locations from
+the **stack walk** are the opt-in switch, because they cost microseconds per mutation and
+defeat record interning — a location is per call site, not per contributor, so a located
+record has to be allocated. Walked locations are capped at 2000 captures per build,
+mirroring the cap `DefaultProblemDiagnosticsFactory` puts on its own stack captures.
 
 The walk cost scales with the number of frames it must skip: about 0.9 µs when user code is
 adjacent, ~2.5 µs at 15 internal frames and ~5 µs at 30 in a microbenchmark, and 7.2 µs on
@@ -307,8 +314,16 @@ SET_CONVENTION 69,482   SET_SOURCE 27,639   ADD_ALL 2,160   ADD 1,194   UNSET 8
 That is the real shape of it: **instrumentation cannot cover mutations Gradle performs on
 the user's behalf, and those are the majority.** But it covers precisely the mutations a
 user writes, which are the ones worth pointing at — and for those it is free, exact, and
-never fails to find a frame. The stack walk remains the only option for everything else,
-which is why the two compose rather than compete.
+never fails to find a frame.
+
+So the default policy is: **a line number for user code and external plugins, a contributor
+alone for everything else.** `java-library` set the convention; there is no line to show for
+that and no user action behind it. The stack walk stays available for the cases where a
+position on a Gradle-internal mutation is genuinely wanted, at microseconds each.
+
+One practical note for anyone changing the interceptor: bump `DECORATION_FORMAT` in
+`InstrumentingClassTransform`, and expect to clear instrumented-jar caches in a dev loop —
+the bump alone did not invalidate the integration test's transform cache here.
 
 Groovy property assignment (`prop = "x"`) is not covered: it goes through dynamic dispatch
 rather than a plain JVM call site, and would need the Groovy interception path.
