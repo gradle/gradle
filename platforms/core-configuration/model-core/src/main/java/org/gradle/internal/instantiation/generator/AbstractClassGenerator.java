@@ -54,6 +54,7 @@ import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
@@ -356,12 +357,35 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 propertyMetaData.field(property.getBackingField());
             }
         }
+        recordGetterDeclarations(classDetails, classMetaData);
         for (Method method : classDetails.getInstanceMethods()) {
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length == 1) {
                 PropertyMetadata propertyMetaData = classMetaData.getProperty(method.getName());
                 if (propertyMetaData != null) {
                     propertyMetaData.addSetMethod(method);
+                }
+            }
+        }
+    }
+
+    /**
+     * {@link ClassDetails} keeps a single declaration per getter signature, preferring the most concrete one, so a
+     * supertype getter that a subtype re-declares — directly, or via the bridge of a covariant override — is dropped.
+     * Record every declaration too, so that annotations on the dropped ones remain visible.
+     *
+     * <p>Mirrors how {@link ClassInspector} classifies methods into properties.
+     */
+    private void recordGetterDeclarations(ClassDetails classDetails, ClassMetadata classMetaData) {
+        for (Method method : classDetails.getAllMethods()) {
+            if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+            PropertyAccessorType accessorType = PropertyAccessorType.of(method);
+            if (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER) {
+                PropertyMetadata propertyMetaData = classMetaData.getProperty(accessorType.propertyNameFor(method));
+                if (propertyMetaData != null) {
+                    propertyMetaData.addGetterDeclaration(method);
                 }
             }
         }
@@ -378,9 +402,60 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
     }
 
+    /**
+     * Readable, has no setter of the property type, and the type is one we can create.
+     */
     private static boolean isManagedProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property::hasAnnotation));
+        return property.isReadableWithoutSetterOfPropertyType() && isManagedPropertyType(property);
+    }
+
+    /**
+     * The property type is one we can create, e.g. {@code Property} or {@code ConfigurableFileCollection}.
+     */
+    private static boolean isManagedPropertyType(PropertyMetadata property) {
+        return property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property::hasAnnotation);
+    }
+
+    /**
+     * A getter with a body reads state the author manages, so the property is not ours to implement. Bridge getters
+     * don't count: their compiler-generated body only delegates to the real getter.
+     */
+    private static boolean hasConcreteGetter(PropertyMetadata property) {
+        for (MethodMetadata getter : property.getters) {
+            if (getter.shouldImplement() && !getter.isAbstract()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasAbstractGetter(PropertyMetadata property) {
+        for (MethodMetadata getter : property.getters) {
+            if (getter.shouldImplement() && getter.isAbstract()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasConcreteSetter(PropertyMetadata property) {
+        for (Method setter : property.setters) {
+            if (!Modifier.isAbstract(setter.getModifiers())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A property upgraded to the Provider API that still declares the eager setter it replaced. Every getter being
+     * abstract is what makes the setter safe to keep: there is no backing field for it to manage, so it can only be
+     * writing through the getter.
+     */
+    private static boolean isUpgradedPropertyWithEagerSetter(PropertyMetadata property) {
+        return hasAbstractGetter(property)
+            && property.hasAnnotationOnAnyGetter(ReplacesEagerProperty.class)
+            && hasConcreteSetter(property);
     }
 
     private static boolean hasNestedAnnotation(Predicate<Class<? extends Annotation>> hasAnnotation) {
@@ -660,6 +735,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     protected static class PropertyMetadata {
         private final String name;
         private final List<MethodMetadata> getters = new ArrayList<>();
+        // Every declaration of every getter, including those ClassDetails discarded as duplicates of one another
+        private final List<Method> getterDeclarations = new ArrayList<>();
         private final List<MethodMetadata> overridableGetters = new ArrayList<>();
         private final List<Method> overridableSetters = new ArrayList<>();
         private final List<Method> setters = new ArrayList<>();
@@ -700,6 +777,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return findAnnotation(type) != null;
         }
 
+        /**
+         * A method annotation is not inherited by an override, so the annotation may sit on any
+         * declaration of this getter in the type hierarchy, not just on {@link #getMainGetter()}.
+         */
+        public boolean hasAnnotationOnAnyGetter(Class<? extends Annotation> type) {
+            for (Method getter : getterDeclarations) {
+                if (getter.isAnnotationPresent(type)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         @Nullable
         public <A extends Annotation> A findAnnotation(Class<A> type) {
             return ofNullable(backingFieldAnnotationOf(type)).orElseGet(() -> getterAnnotationOf(type));
@@ -723,6 +813,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         public List<Method> getOverridableSetters() {
             return overridableSetters;
+        }
+
+        public List<Method> getSetters() {
+            return setters;
         }
 
         @Nullable
@@ -761,6 +855,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // Prefer the most specialized type
                 mainGetter = metadata;
             }
+        }
+
+        public void addGetterDeclaration(Method method) {
+            getterDeclarations.add(method);
         }
 
         public void addSetter(Method method) {
@@ -1119,19 +1217,27 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         boolean claimPropertyImplementation(PropertyMetadata property) {
-            // Skip properties with non-abstract getter or setter implementations
-            for (MethodMetadata getter : property.getters) {
-                if (getter.shouldImplement() && !getter.isAbstract()) {
-                    return false;
-                }
-            }
-            for (Method setter : property.setters) {
-                if (!Modifier.isAbstract(setter.getModifiers())) {
-                    return false;
-                }
+            if (hasConcreteGetter(property)) {
+                return false;
             }
 
-            // Property is readable and all getters and setters are abstract
+            if (isUpgradedPropertyWithEagerSetter(property)) {
+                // The eager setter must keep its own body, and only the read-only treatment leaves setters alone.
+                // So the property is ours only if we can create it — whatever the setter's parameter type, which is
+                // the part isManagedProperty would additionally test.
+                if (!isManagedPropertyType(property)) {
+                    return false;
+                }
+                readOnlyProperties.add(property);
+                return true;
+            }
+
+            if (hasConcreteSetter(property)) {
+                // The setter manages its own state, including for a write-only property such as Task.setOnlyIf
+                return false;
+            }
+
+            // Property has no user-managed state
             if (isManagedProperty(property)) {
                 // Abstract read-only property with managed type
                 readOnlyProperties.add(property);
