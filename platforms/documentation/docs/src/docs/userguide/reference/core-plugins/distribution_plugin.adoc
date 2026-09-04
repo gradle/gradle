@@ -44,6 +44,13 @@ The files will be created at `__layout.buildDirectory.dir__("distributions/__${p
 
 You can run `gradle installDist` to assemble the uncompressed distribution into `__layout.buildDirectory.dir__("install/__${project.name}__")`.
 
+[NOTE]
+====
+Applying the plugin also wires `distZip` and `distTar` — along with the `__distributionName__DistZip` and `__distributionName__DistTar` tasks of any additional distributions — into the build-wide `assemble` task.
+As a result, running `assemble` (and therefore `build`) creates *all* distribution archives, not only the ones you request explicitly.
+To produce just one archive, run its task directly (for example `distZip` or `distTar`); to build a single distribution's archives without the others, run its `assembleDist` (or `assemble__DistributionName__Dist`) task; to run verification without building any distributions, use `check` instead of `build`.
+====
+
 [[sec:distribution_tasks]]
 == Tasks
 
