@@ -26,6 +26,7 @@ import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeElements
 import gradlebuild.docs.GradleUserManualPlugin
 import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
+import gradlebuild.identity.registerPomPropertiesTask
 import gradlebuild.docs.dsl.source.GenerateApiMapping
 import gradlebuild.docs.dsl.source.GenerateDefaultImports
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
@@ -48,7 +49,6 @@ import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.jar.Attributes
 
 /**
  * Apply this plugin to let a project build 'Gradle distributions'.
@@ -171,14 +171,9 @@ extensions.configure<InstrumentationMetadataExtension>(INSTRUMENTED_METADATA_EXT
 }
 
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
+val runtimeApiInfoPomProperties = registerPomPropertiesTask("generateRuntimeApiInfoPomProperties", runtimeApiJarName)
 val runtimeApiInfoJar = tasks.register<Jar>("runtimeApiInfoJar") {
     archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
-    manifest.attributes(
-        mapOf(
-            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
-        )
-    )
     archiveBaseName = runtimeApiJarName
     into("org/gradle/api/internal/runtimeshaded") {
         from(generateRelocatedPackageList)
@@ -189,6 +184,7 @@ val runtimeApiInfoJar = tasks.register<Jar>("runtimeApiInfoJar") {
     from(implementationPluginsManifest)
     from(instrumentedSuperTypesMergeTask)
     from(upgradedPropertiesMergeTask)
+    from(runtimeApiInfoPomProperties)
 }
 
 val kotlinDslSharedRuntime = configurations.dependencyScope("kotlinDslSharedRuntime")
@@ -298,17 +294,13 @@ val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtens
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
 }
 
+val gradleApiKotlinExtensionsPomProperties = registerPomPropertiesTask("generateGradleApiKotlinExtensionsPomProperties", "gradle-kotlin-dsl-extensions")
 val gradleApiKotlinExtensionsJar = tasks.register<Jar>("gradleApiKotlinExtensionsJar") {
     archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
-    manifest.attributes(
-        mapOf(
-            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
-        )
-    )
     archiveBaseName = "gradle-kotlin-dsl-extensions"
     from(gradleApiKotlinExtensions)
     from(compileGradleApiKotlinExtensions.flatMap { it.destinationDirectory })
+    from(gradleApiKotlinExtensionsPomProperties)
 }
 
 fun generateModulePropertiesFor(moduleJar: TaskProvider<Jar>, registryModuleName: String): TaskProvider<GenerateSingleModuleProperties> {
