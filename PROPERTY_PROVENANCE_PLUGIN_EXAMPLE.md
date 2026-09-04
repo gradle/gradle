@@ -1,8 +1,18 @@
-# Property provenance from a plugin
+# A multi-actor property provenance example
 
-This example uses a `buildSrc` plugin to configure a property directly. It then reads the
-missing explicit Provider from a task action, producing a trace back to the plugin. The
-example requires a Gradle distribution containing the property-provenance prototype.
+This example is intended to be small enough to paste into a demo while still showing why
+provenance is useful across plugin boundaries. Three actors take part:
+
+```text
+defaults plugin -- convention (shadowed) --\
+                                           property -- consumer plugin task action -- failure
+build author ---- explicit source (selected) /
+```
+
+The defaults plugin creates the property and supplies a convention. The consumer plugin
+registers the task that eventually reads it. Between those events, the build author binds
+a missing explicit Provider. The example requires a Gradle distribution containing the
+property-provenance prototype.
 
 `buildSrc/build.gradle.kts`:
 
@@ -13,15 +23,39 @@ plugins {
 
 gradlePlugin {
     plugins {
-        create("propertyProvenance") {
-            id = "com.example.property-provenance"
-            implementationClass = "com.example.PropertyProvenancePlugin"
+        create("propertyDefaults") {
+            id = "com.example.property-defaults"
+            implementationClass = "com.example.DefaultsPlugin"
+        }
+        create("propertyConsumer") {
+            id = "com.example.property-consumer"
+            implementationClass = "com.example.ConsumerPlugin"
         }
     }
 }
 ```
 
-`buildSrc/src/main/java/com/example/PropertyProvenancePlugin.java`:
+`buildSrc/src/main/java/com/example/PropertyProvenanceExtension.java`:
+
+```java
+package com.example;
+
+import org.gradle.api.provider.Property;
+
+public final class PropertyProvenanceExtension {
+    private final Property<String> value;
+
+    public PropertyProvenanceExtension(Property<String> value) {
+        this.value = value;
+    }
+
+    public Property<String> getValue() {
+        return value;
+    }
+}
+```
+
+`buildSrc/src/main/java/com/example/DefaultsPlugin.java`:
 
 ```java
 package com.example;
@@ -30,15 +64,37 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
 
-public final class PropertyProvenancePlugin implements Plugin<Project> {
+public final class DefaultsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         Property<String> value = project.getObjects().property(String.class);
-        value.convention("default");
-        value.set(project.getProviders().gradleProperty("missing-value"));
+        value.convention(project.getProviders().gradleProperty("missing-default"));
+        project.getExtensions().add(
+            PropertyProvenanceExtension.class,
+            "provenance",
+            new PropertyProvenanceExtension(value)
+        );
+    }
+}
+```
 
-        project.getTasks().register("showProvenance", task ->
-            task.doLast(ignored -> value.get())
+`buildSrc/src/main/java/com/example/ConsumerPlugin.java`:
+
+```java
+package com.example;
+
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+
+public final class ConsumerPlugin implements Plugin<Project> {
+    @Override
+    public void apply(Project project) {
+        project.getPluginManager().apply("com.example.property-defaults");
+        PropertyProvenanceExtension extension =
+            project.getExtensions().getByType(PropertyProvenanceExtension.class);
+
+        project.getTasks().register("shareProvenance", task ->
+            task.doLast(ignored -> extension.getValue().get())
         );
     }
 }
@@ -47,27 +103,41 @@ public final class PropertyProvenancePlugin implements Plugin<Project> {
 `build.gradle.kts`:
 
 ```kotlin
+import com.example.PropertyProvenanceExtension
+
 plugins {
-    id("com.example.property-provenance")
+    id("com.example.property-consumer")
 }
+
+extensions.getByType<PropertyProvenanceExtension>().value.set(
+    providers.gradleProperty("missing-explicit")
+)
 ```
 
 Run the failing task with provenance enabled:
 
 ```text
-./gradlew showProvenance -Dorg.gradle.internal.property-provenance=true
+./gradlew shareProvenance -Dorg.gradle.internal.property-provenance=true
 ```
 
 The relevant part of the failure is:
 
 ```text
 Failure trace to source:
-    at task ':showProvenance' action (PropertyProvenancePlugin.java:<line>) [get()]
-    at plugin 'com.example.property-provenance' (PropertyProvenancePlugin.java:<line>) [explicit source]
+    at task ':shareProvenance' action (ConsumerPlugin.java:<line>) [get()]
+    at build file 'build.gradle.kts' (build.gradle.kts:<line>) [explicit source]
 
 Shadowed configuration:
-    at plugin 'com.example.property-provenance' (PropertyProvenancePlugin.java:<line>) [convention]
+    at plugin 'com.example.property-defaults' (DefaultsPlugin.java:<line>) [convention]
 ```
 
-The same plugin attribution is retained when the `set` or `convention` call runs later in a
-callback registered by the plugin, such as a `tasks.register { ... }` configuration action.
+This is the longest meaningful effective trace in the current ordinary-property slice: the
+failed operation, the selected source, and a separately rendered shadowed convention. An
+additional ordinary `set` would replace the selected source and deliberately cut the old
+one from the effective trace. Likewise, `map` and `flatMap` describe Provider dependencies,
+not additional property contributions.
+
+A longer effective chain requires structural self-updates or the collaborative update
+pipeline. Those are intentionally outside this prototype slice; presenting either as if it
+already worked would blur the distinction between property provenance and Provider
+dependency metadata.

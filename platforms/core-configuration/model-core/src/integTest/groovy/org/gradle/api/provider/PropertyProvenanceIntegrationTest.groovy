@@ -124,6 +124,20 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(pluginTrace("deferredPluginValue"))
     }
 
+    def "multi-actor plugin example distinguishes the consumer selected source and defaults"() {
+        multiActorPluginBuild()
+
+        when:
+        fails("shareProvenance")
+
+        then:
+        failure.assertThatCause(matchesRegex("(?s).*Failure trace to source:\\R" +
+            "    at task ':shareProvenance' action \\(ConsumerPlugin\\.java:\\d+\\) \\[get\\(\\)\\]\\R" +
+            "    at build file 'build\\.gradle\\.kts' \\(build\\.gradle\\.kts:\\d+\\) \\[explicit source\\]\\R\\R" +
+            "Shadowed configuration:\\R" +
+            "    at plugin 'com\\.example\\.property-defaults' \\(DefaultsPlugin\\.java:\\d+\\) \\[convention\\].*"))
+    }
+
     def "Groovy DSL trace deliberately omits line-level call sites"() {
         file("build.gradle") << '''
             def value = objects.property(String)
@@ -219,6 +233,94 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id("com.example.property-provenance")
             }
+        '''
+    }
+
+    private void multiActorPluginBuild() {
+        file("settings.gradle.kts") << ""
+        file("buildSrc/settings.gradle.kts") << "rootProject.name = \"build-logic\""
+        file("buildSrc/build.gradle.kts") << '''
+            plugins {
+                `java-gradle-plugin`
+            }
+
+            gradlePlugin {
+                plugins {
+                    create("propertyDefaults") {
+                        id = "com.example.property-defaults"
+                        implementationClass = "com.example.DefaultsPlugin"
+                    }
+                    create("propertyConsumer") {
+                        id = "com.example.property-consumer"
+                        implementationClass = "com.example.ConsumerPlugin"
+                    }
+                }
+            }
+        '''
+        file("buildSrc/src/main/java/com/example/PropertyProvenanceExtension.java") << '''
+            package com.example;
+
+            import org.gradle.api.provider.Property;
+
+            public final class PropertyProvenanceExtension {
+                private final Property<String> value;
+
+                public PropertyProvenanceExtension(Property<String> value) {
+                    this.value = value;
+                }
+
+                public Property<String> getValue() {
+                    return value;
+                }
+            }
+        '''
+        file("buildSrc/src/main/java/com/example/DefaultsPlugin.java") << '''
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.Property;
+
+            public final class DefaultsPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    Property<String> value = project.getObjects().property(String.class);
+                    value.convention(project.getProviders().gradleProperty("missing-default"));
+                    project.getExtensions().add(
+                        PropertyProvenanceExtension.class,
+                        "provenance",
+                        new PropertyProvenanceExtension(value)
+                    );
+                }
+            }
+        '''
+        file("buildSrc/src/main/java/com/example/ConsumerPlugin.java") << '''
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public final class ConsumerPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getPluginManager().apply("com.example.property-defaults");
+                    PropertyProvenanceExtension extension = project.getExtensions().getByType(PropertyProvenanceExtension.class);
+                    project.getTasks().register("shareProvenance", task ->
+                        task.doLast(ignored -> extension.getValue().get())
+                    );
+                }
+            }
+        '''
+        file("build.gradle.kts") << '''
+            import com.example.PropertyProvenanceExtension
+
+            plugins {
+                id("com.example.property-consumer")
+            }
+
+            extensions.getByType<PropertyProvenanceExtension>().value.set(
+                providers.gradleProperty("missing-explicit")
+            )
         '''
     }
 
