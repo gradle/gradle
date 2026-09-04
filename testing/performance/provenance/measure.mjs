@@ -14,11 +14,14 @@ export function parseHistogram(text) {
     const total = text.match(/^Total\s+(\d+)\s+(\d+)\s*$/m);
     if (!total) throw new Error('Missing live histogram total');
     const provenance = [];
+    const properties = [];
     for (const line of text.split('\n')) {
         const match = line.match(/^\s*\d+:\s+(\d+)\s+(\d+)\s+((?:\[L)?org\.gradle\.api\.internal\.provider\.provenance\.\S+)/);
         if (match) provenance.push({ name: match[3], instances: Number(match[1]), shallowBytes: Number(match[2]) });
+        const property = line.match(/^\s*\d+:\s+(\d+)\s+(\d+)\s+(org\.gradle\.api\.internal\.(?:provider\.Default(?:Property|ListProperty|SetProperty|MapProperty)|file\.DefaultFilePropertyFactory\$Default(?:Directory|RegularFile)Var))(?:\s|$)/);
+        if (property) properties.push({ name: property[3], instances: Number(property[1]), shallowBytes: Number(property[2]) });
     }
-    return { liveInstances: Number(total[1]), liveBytes: Number(total[2]), provenance };
+    return { liveInstances: Number(total[1]), liveBytes: Number(total[2]), provenance, properties };
 }
 
 export function summarize(values) {
@@ -29,10 +32,10 @@ export function summarize(values) {
         min: sorted[0], max: sorted.at(-1) };
 }
 
-async function command(executable, args, cwd, log) {
+export async function command(executable, args, cwd, log, env = process.env) {
     const started = performance.now();
     return new Promise((resolve, reject) => {
-        const child = spawn(executable, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+        const child = spawn(executable, args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
         let stdout = '', stderr = '';
         child.stdout.on('data', data => { stdout += data; });
         child.stderr.on('data', data => { stderr += data; });

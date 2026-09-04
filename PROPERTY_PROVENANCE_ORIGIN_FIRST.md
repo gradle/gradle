@@ -173,6 +173,15 @@ roughly 0.13 / 0.64 MiB incremental origin-only live heap for the 10 / 50-projec
 Timing samples overlap and retain a warmup trend, so they do not establish a slowdown
 percentage or compiled-in-but-disabled cost.
 
+The subsequent [matching-baseline production experiment](testing/performance/provenance/PRODUCTION_RESULTS_2026-09-04.md)
+runs Gradle's own 253-project configuration build with three independent daemons per
+variant. The six measured property classes grow by 8 bytes each even when disabled
+(about 1.42 MiB at baseline instance counts). Whole-daemon median live heap increases
+by 1.77 MiB disabled and 6.33 MiB with origins relative to the no-provenance baseline.
+Timing differences change direction between JVM repetitions, so no precise slowdown
+claim follows. The eager nine-record-per-origin table is a concrete optimization
+candidate; no runtime optimization was made during measurement.
+
 `PropertyProvenanceBenchmark` compares disabled, origin-only, and optional-location modes
 for creation plus binding, repeated replacement, convention plus explicit binding, and
 binding/finalizing a three-property chain.
@@ -184,10 +193,11 @@ Use JMH's GC profiler for allocated bytes per operation as well as time:
 java -jar platforms/core-configuration/model-core/build/libs/*-jmh.jar PropertyProvenanceBenchmark -prof gc
 ```
 
-These are microbenchmarks, not a build-time estimate. A baseline with provenance fields
-removed is still needed to quantify disabled-mode object-layout overhead. Measure
-retained heap separately from allocation rate, and compare representative warm/cold,
-single/multi-project builds before publishing a percentage. Cache-hit performance is
+These are microbenchmarks, not a build-time estimate. They do not quantify the
+compiled-in-but-disabled object-layout overhead; the matching production experiment
+above measures that separately. Measure retained heap separately from allocation rate,
+and compare representative warm/cold, single/multi-project builds before publishing a
+percentage. Cache-hit performance is
 not representative until provenance is persisted correctly. The earlier semantics
 repository's measurements describe a different prototype and are not results for this
 increment.
@@ -243,8 +253,8 @@ report is `platforms/core-configuration/model-core/build/reports/property-proven
 ## Next milestones
 
 1. Expand concrete project-scoped callback/property-operation and cross-project cases.
-2. Extend the generated-build measurements to a selected production build, independent daemon
-   repetitions, and a matching baseline without the compiled-in provenance fields/interception.
+2. Reduce the eager per-origin record table, then separately evaluate removing the disabled
+   property-layout tax. Re-run the matching baseline and use more controlled timing repetitions.
 3. Add explicit source/target build identity and script roles when required by those cases.
 4. Treat collection contributions, causal provider tracing, and cache transport as separate workstreams.
 5. Defer settings-owned tracking and other new scopes until a concrete diagnostic needs them;

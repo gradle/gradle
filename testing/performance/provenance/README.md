@@ -8,6 +8,11 @@ containing this prototype. It uses no external npm dependencies or plugin reposi
 The [2026-09-04 exploratory results](RESULTS_2026-09-04.md) include timing ranges,
 configured-model live heap, and explicit limits on what the data establishes.
 
+For the matching no-provenance baseline and independently repeated production-build
+comparison, see [production measurements](PRODUCTION_MEASUREMENTS.md).
+The [production results](PRODUCTION_RESULTS_2026-09-04.md) quantify the disabled
+property-layout cost and include all three independent JVM repetitions.
+
 ```sh
 node --test testing/performance/provenance/measure.test.mjs
 ./gradlew :distributions-native:binInstallation

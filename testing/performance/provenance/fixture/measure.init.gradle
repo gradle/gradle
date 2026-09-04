@@ -23,7 +23,8 @@ if (gradle.parent == null) {
     gradle.taskGraph.whenReady { graph ->
         long configured = System.nanoTime()
         def sample = [configurationMs: (configured - started) / 1_000_000d,
-                      pid: ProcessHandle.current().pid(), tasks: graph.allTasks.size()]
+                      pid: ProcessHandle.current().pid(), tasks: graph.allTasks.size(),
+                      configuredProjects: gradle.rootProject.allprojects.size()]
         def histogram = gradle.startParameter.projectProperties.get('sampleHistogram')
         if (histogram != null) {
             // Default GC.class_histogram requests a full GC, unlike its -all form.
