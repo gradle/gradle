@@ -67,10 +67,11 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder setArgs(Iterable<?> args);
 
-    ClientExecHandleBuilder setExecutable(String executable);
+    ClientExecHandleBuilder setExecutable(@Nullable String executable);
 
-    void setExecutable(Object executable);
+    void setExecutable(@Nullable Object executable);
 
+    @Nullable
     String getExecutable();
 
     @Nullable

@@ -30,7 +30,10 @@ import java.util.concurrent.Executor;
 public class ForwardStdinStreamsHandler implements StreamsHandler {
     private final InputStream input;
     private final CountDownLatch completed = new CountDownLatch(1);
+    // The following fields are initialized by connectStreams(), which is called before start()
+    @SuppressWarnings("NullAway.Init")
     private Executor executor;
+    @SuppressWarnings("NullAway.Init")
     private ExecOutputHandleRunner standardInputWriter;
 
     public ForwardStdinStreamsHandler(InputStream input) {

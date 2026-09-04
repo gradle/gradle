@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +36,7 @@ public class ExecOutputHandleRunner implements Runnable {
     private final int bufferSize;
     private final Runnable onFinished;
     private volatile boolean closed;
-    private volatile BuildOperationRef associatedBuildOperation;
+    private volatile @Nullable BuildOperationRef associatedBuildOperation;
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, Runnable onFinished) {
         this(displayName, inputStream, outputStream, 8192, onFinished);
@@ -49,7 +50,7 @@ public class ExecOutputHandleRunner implements Runnable {
         this.onFinished = onFinished;
     }
 
-    public void associateBuildOperation(BuildOperationRef startupRef) {
+    public void associateBuildOperation(@Nullable BuildOperationRef startupRef) {
         this.associatedBuildOperation = startupRef;
     }
 
@@ -76,7 +77,7 @@ public class ExecOutputHandleRunner implements Runnable {
                 }
                 BuildOperationRef startupRef = this.associatedBuildOperation;
                 if (startupRef != null) {
-                    CurrentBuildOperationRef.instance().with(startupRef, () -> {
+                    CurrentBuildOperationRef.instance().<@Nullable Void, IOException>with(startupRef, () -> {
                         writeBuffer(buffer, nread);
                         return null;
                     });
