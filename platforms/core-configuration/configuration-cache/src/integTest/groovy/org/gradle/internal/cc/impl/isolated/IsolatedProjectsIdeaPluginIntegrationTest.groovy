@@ -16,8 +16,6 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.util.internal.ToBeImplemented
-
 class IsolatedProjectsIdeaPluginIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     def "can apply idea plugin"() {
@@ -46,7 +44,6 @@ class IsolatedProjectsIdeaPluginIntegrationTest extends AbstractIsolatedProjects
         fixture.assertStateLoaded()
     }
 
-    @ToBeImplemented
     def "can apply idea plugin and scala plugin"() {
         settingsFile << """
             include("sub")
@@ -62,10 +59,17 @@ class IsolatedProjectsIdeaPluginIntegrationTest extends AbstractIsolatedProjects
         """
 
         when:
-        withIsolatedProjects()
-        fails("help")
+        isolatedProjectsRun("help")
 
         then:
-        failureHasCause("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
+        fixture.assertStateStored {
+            projectsConfigured(":", ":sub")
+        }
+
+        when:
+        isolatedProjectsRun("help")
+
+        then:
+        fixture.assertStateLoaded()
     }
 }
