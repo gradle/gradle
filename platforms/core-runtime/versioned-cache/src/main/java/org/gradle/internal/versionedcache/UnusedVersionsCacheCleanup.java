@@ -24,6 +24,7 @@ import org.gradle.cache.internal.AbstractCacheCleanup;
 import org.gradle.cache.internal.CacheVersion;
 import org.gradle.cache.internal.NonReservedFileFilter;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.filefilter.FileFilterUtils.asFileFilter;
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 
@@ -49,7 +51,8 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     private final CacheVersionMapping cacheVersionMapping;
     private final UsedGradleVersions usedGradleVersions;
 
-    private Set<CacheVersion> usedVersions;
+    // Set by clean()
+    private @Nullable Set<CacheVersion> usedVersions;
 
     public static UnusedVersionsCacheCleanup create(String cacheName, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
         Pattern cacheNamePattern = Pattern.compile('^' + Pattern.quote(cacheName) + "-((?:\\d+" + Pattern.quote(CacheVersion.COMPONENT_SEPARATOR) + ")*\\d+)$");
@@ -90,7 +93,7 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
         Matcher matcher = cacheNamePattern.matcher(cacheDir.getName());
         if (matcher.matches()) {
             CacheVersion version = CacheVersion.parse(matcher.group(1));
-            return version.compareTo(cacheVersionMapping.getLatestVersion()) < 0 && !usedVersions.contains(version);
+            return version.compareTo(cacheVersionMapping.getLatestVersion()) < 0 && !requireNonNull(usedVersions).contains(version);
         }
         return false;
     }
