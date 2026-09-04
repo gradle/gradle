@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.internal.service.scopes.Scope;
@@ -26,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @ServiceScope(Scope.Build.class)
 public final class AdditionalDataBuilderFactory {
@@ -34,7 +34,7 @@ public final class AdditionalDataBuilderFactory {
     public AdditionalDataBuilderFactory() {
         additionalDataProviders.put(GeneralDataSpec.class, new DataTypeAndProvider(
             GeneralData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+            new Function<@Nullable AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
                 @Override
                 public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
                     return DefaultGeneralData.builder((GeneralData) instance);
@@ -42,7 +42,7 @@ public final class AdditionalDataBuilderFactory {
             }));
         additionalDataProviders.put(DeprecationDataSpec.class, new DataTypeAndProvider(
             DeprecationData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+            new Function<@Nullable AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
                 @Override
                 public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
                     return DefaultDeprecationData.builder((DeprecationData) instance);
@@ -50,7 +50,7 @@ public final class AdditionalDataBuilderFactory {
             }));
         additionalDataProviders.put(TypeValidationDataSpec.class, new DataTypeAndProvider(
             TypeValidationData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+            new Function<@Nullable AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
                 @Override
                 public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
                     return DefaultTypeValidationData.builder((TypeValidationData) instance);
@@ -58,7 +58,7 @@ public final class AdditionalDataBuilderFactory {
             }));
         additionalDataProviders.put(PropertyTraceDataSpec.class, new DataTypeAndProvider(
             PropertyTraceData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+            new Function<@Nullable AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
                 @Override
                 public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
                     return DefaultPropertyTraceData.builder((PropertyTraceData) instance);
@@ -72,7 +72,7 @@ public final class AdditionalDataBuilderFactory {
      * @param dataType The type of additional data to provide
      * @param provider The builder function, which will be called to create a builder for the given additional data type
      */
-    public void registerAdditionalDataProvider(Class<?> dataType, Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> provider) {
+    public void registerAdditionalDataProvider(Class<?> dataType, Function<@Nullable AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> provider) {
         if (additionalDataProviders.put(dataType, new DataTypeAndProvider(dataType, provider)) != null) {
             throw new IllegalArgumentException("Data type: '" + dataType + "' already has an additional data provider registered!");
         }
@@ -120,9 +120,9 @@ public final class AdditionalDataBuilderFactory {
 
     private static class DataTypeAndProvider {
         final Class<?> dataType;
-        final Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> builderProvider;
+        final Function<@Nullable AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> builderProvider;
 
-        private DataTypeAndProvider(Class<?> dataType, Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> builderProvider) {
+        private DataTypeAndProvider(Class<?> dataType, Function<@Nullable AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> builderProvider) {
             this.dataType = dataType;
             this.builderProvider = builderProvider;
         }

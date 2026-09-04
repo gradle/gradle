@@ -31,7 +31,7 @@ public class DefaultProblemGroup extends ProblemGroup implements Serializable {
 
     private final String name;
     private final String displayName;
-    private final ProblemGroup parent;
+    private final @Nullable ProblemGroup parent;
 
     public DefaultProblemGroup(String groupId, String displayName) {
         this(groupId, displayName, null);

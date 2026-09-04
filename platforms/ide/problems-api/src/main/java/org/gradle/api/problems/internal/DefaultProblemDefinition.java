@@ -34,7 +34,7 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
 
     private final ProblemId id;
     private final Severity severity;
-    private final DocLink documentationLink;
+    private final @Nullable DocLink documentationLink;
 
     @VisibleForTesting
     DefaultProblemDefinition(

@@ -31,13 +31,13 @@ import static com.google.common.base.Objects.equal;
 @NullMarked
 public class DefaultProblem implements Serializable, ProblemInternal {
     private final ProblemDefinition problemDefinition;
-    private final String contextualLabel;
+    private final @Nullable String contextualLabel;
     private final List<String> solutions;
     private final List<ProblemLocation> originLocations;
     private final List<ProblemLocation> contextualLocations;
-    private final String details;
-    private final Throwable exception;
-    private final AdditionalData additionalData;
+    private final @Nullable String details;
+    private final @Nullable Throwable exception;
+    private final @Nullable AdditionalData additionalData;
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
