@@ -180,13 +180,16 @@ import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelController;
+import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildToolingModelControllerFactory;
 import org.gradle.internal.build.BuildWorkGraphController;
 import org.gradle.internal.build.BuildWorkPreparer;
+import org.gradle.internal.build.DefaultBuildLifecycleController;
 import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkPreparer;
 import org.gradle.internal.build.DefaultPublicBuildPath;
@@ -207,6 +210,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
+import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -221,6 +225,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.model.CalculatedValueFactory;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -308,8 +313,27 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildLifecycleController createBuildLifecycleController(BuildLifecycleControllerFactory factory, BuildDefinition buildDefinition, ServiceRegistry buildServices) {
-        return factory.newInstance(buildDefinition, buildServices);
+    BuildLifecycleController createBuildLifecycleController(
+        GradleInternal gradle,
+        BuildModelController buildModelController,
+        ExceptionAnalyser exceptionAnalyser,
+        ListenerManager listenerManager,
+        BuildWorkPreparer buildWorkPreparer,
+        BuildWorkExecutor buildWorkExecutor,
+        BuildToolingModelControllerFactory buildToolingModelControllerFactory,
+        StateTransitionControllerFactory stateTransitionControllerFactory
+    ) {
+        return new DefaultBuildLifecycleController(
+            gradle,
+            buildModelController,
+            exceptionAnalyser,
+            gradle.getBuildListenerBroadcaster(),
+            listenerManager.getBroadcaster(BuildModelLifecycleListener.class),
+            buildWorkPreparer,
+            buildWorkExecutor,
+            buildToolingModelControllerFactory,
+            stateTransitionControllerFactory
+        );
     }
 
     @Provides
