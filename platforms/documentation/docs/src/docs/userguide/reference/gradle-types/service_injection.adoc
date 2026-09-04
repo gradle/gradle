@@ -101,6 +101,9 @@ The following services are available for injection in both project and settings 
 | <<buildfeatures,`BuildFeatures`>>
 | Reports whether features such as Configuration Cache and Isolated Projects are requested and active. Use it to branch plugin logic on whether the Configuration Cache or Isolated Projects is active.
 
+| <<configurationcacheinputtracking,`ConfigurationCacheInputTracking`>> incubating-label:[]
+| Suppresses automatic Configuration Cache input tracking for a narrow action. Use it only for volatile runtime state that cannot affect build configuration or the work Gradle executes.
+
 | <<flow_services,`FlowScope` and `FlowProviders`>> incubating-label:[]
 | Register dataflow actions that run on build lifecycle events such as build completion. Use them to run cleanup, notification, or reporting work at the end of every build.
 
@@ -522,6 +525,18 @@ include::{snippetsPath}/reference/plugin-development/reactingToBuildFeatures/gro
 <3> Use `getActive()` to read whether the feature is actually active in the current build, returning a non-empty `Provider<Boolean>`.
 
 You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:reacting_to_build_features,Implementing Binary Plugins guide>>.
+
+[[configurationcacheinputtracking]]
+== `ConfigurationCacheInputTracking` incubating-label:[]
+
+link:{javadocPath}/org/gradle/api/configuration/ConfigurationCacheInputTracking.html[`ConfigurationCacheInputTracking`] is a service that allows plugin infrastructure to run a narrow action without automatically recording the files, system properties, environment variables, or external processes it accesses as Configuration Cache inputs.
+
+This service is intended for volatile runtime state that cannot affect build configuration or the work Gradle executes.
+For example, a custom build cache implementation can use it to create and refresh a credentials provider that belongs to its non-serialized `BuildCacheService`.
+
+Calling `withInputTrackingDisabledUnsafe()` is unsafe when the observed value influences configuration.
+In that case, Gradle can reuse a Configuration Cache entry containing an incorrect task graph or other stale state.
+The scope affects only the current thread and does not disable instrumentation, file system watching, task input tracking, build cache key calculation, or serialization of returned values.
 
 [[flow_services]]
 == `FlowScope` and `FlowProviders` incubating-label:[]
