@@ -23,7 +23,7 @@ import java.util.List;
 
 public class DefaultStackTraceLocation implements StackTraceLocation {
 
-    private final FileLocation location;
+    private final @Nullable FileLocation location;
     private final List<StackTraceElement> stackTrace;
 
     public DefaultStackTraceLocation(@Nullable FileLocation location, List<StackTraceElement> stackTrace) {

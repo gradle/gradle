@@ -24,19 +24,21 @@ import org.jspecify.annotations.Nullable;
  */
 public class DefaultPluginIdLocation implements PluginIdLocation {
 
-    private final String pluginId;
+    private final @Nullable String pluginId;
 
     public DefaultPluginIdLocation(@Nullable String pluginId) {
         this.pluginId = pluginId;
     }
 
     @Override
+    // The location can be deserialized without a plugin ID, see ValidationProblemSerialization
+    @SuppressWarnings("NullAway")
     public String getPluginId() {
         return pluginId;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (!(o instanceof DefaultPluginIdLocation)) {
             return false;
         }
