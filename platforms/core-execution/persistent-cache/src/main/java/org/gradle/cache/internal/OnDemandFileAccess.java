@@ -19,6 +19,7 @@ import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockTimeoutException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.function.Supplier;
@@ -37,7 +38,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     @Override
-    public <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
+    public <T extends @Nullable Object> T readFile(Supplier<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
         FileLock lock = manager.lock(targetFile, mode(FileLockManager.LockMode.Shared), displayName);
         try {
             return lock.readFile(action);
