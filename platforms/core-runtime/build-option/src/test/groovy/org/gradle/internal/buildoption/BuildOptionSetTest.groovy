@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption
 
 
 import org.gradle.cli.CommandLineParser
+import org.jspecify.annotations.NonNull
 import spock.lang.Specification
 
 class BuildOptionSetTest extends Specification {
@@ -100,7 +101,7 @@ class BuildOptionSetTest extends Specification {
         }
 
         @Override
-        void applyTo(boolean value, Bean settings, Origin origin) {
+        void applyTo(boolean value, @NonNull Bean settings, Origin origin) {
             settings.flag = value
         }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildoption
 
+import org.jspecify.annotations.NonNull
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -82,7 +83,7 @@ class DeprecatedAliasDisableWinsBooleanBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(boolean value, TestSettings settings, Origin origin) {
+        void applyTo(boolean value, @NonNull TestSettings settings, Origin origin) {
             settings.applied = true
             settings.value = value
             settings.origin = origin
