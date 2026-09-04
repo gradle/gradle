@@ -17,7 +17,8 @@
       "Bash(wc *)",
       "Bash(date *)",
       "Read(.agents/**)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(.claude/skills/gradle-code-review/gradle-code-review.sh:*)"
     ],
     "deny": [
       "Bash(git push *)"
