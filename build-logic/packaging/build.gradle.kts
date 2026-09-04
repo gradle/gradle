@@ -7,6 +7,7 @@ description = "Provides a plugin for building Gradle distributions"
 dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
+    implementation("gradlebuild:publishing")
 
     implementation(projects.documentation) {
         // TODO turn this around: move corresponding code to this project and let docs depend on it
@@ -21,5 +22,9 @@ dependencies {
     implementation(buildLibs.gson)
     implementation(libs.asm)
     implementation(libs.maven3Model)
+
+    // The org.xdcl XDCL codegen plugin, substituted from the included sibling xdcl build, so
+    // the XDCL ecosystem conventions can apply `id("xdcl-gradle-plugin")` on behalf of the modules.
+    implementation("org.xdcl:xdcl-gradle-plugin:0.1.0-SNAPSHOT")
 
 }

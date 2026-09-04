@@ -1,0 +1,3 @@
+plugin {
+  reactions [ :org.gradle.xdcl.ecosystem.plugindev.XdclGradlePluginReaction, :org.gradle.xdcl.ecosystem.plugindev.XdclGradlePluginKotlinReaction ]
+}
