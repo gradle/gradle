@@ -34,8 +34,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Executor;
+
+import static java.util.Objects.requireNonNull;
 
 @NullMarked
 public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
@@ -48,16 +49,16 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     private final ProcessArgumentsSpec argumentsSpec;
     private final PathToFileResolver fileResolver;
 
-    private Map<String, Object> environment;
+    private @Nullable Map<String, Object> environment;
     private StreamsHandler inputHandler = DEFAULT_STDIN;
-    private String displayName;
+    private @Nullable String displayName;
     private boolean redirectErrorStream;
-    private StreamsHandler streamsHandler;
+    private @Nullable StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
     private final Executor executor;
-    private String executable;
-    private File workingDir;
+    private @Nullable String executable;
+    private @Nullable File workingDir;
 
     @SuppressWarnings("this-escape")
     public DefaultClientExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
@@ -158,12 +159,15 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public String getExecutable() {
+        if (executable == null) {
+            throw new IllegalStateException("No executable has been set.");
+        }
         return executable;
     }
 
     @Override
     public void setExecutable(Object executable) {
-        setExecutable(Objects.toString(executable));
+        setExecutable(executable.toString());
     }
 
     @Override
@@ -180,7 +184,8 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public OutputStream getErrorOutput() {
-        return streamsSpec.getErrorOutput();
+        // Always set by the constructor
+        return requireNonNull(streamsSpec.getErrorOutput());
     }
 
     @Override
@@ -190,7 +195,8 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public OutputStream getStandardOutput() {
-        return streamsSpec.getStandardOutput();
+        // Always set by the constructor
+        return requireNonNull(streamsSpec.getStandardOutput());
     }
 
     @Override
@@ -208,7 +214,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         if (environment == null) {
             setEnvironment(System.getenv());
         }
-        return environment;
+        return requireNonNull(environment);
     }
 
     @Override
@@ -229,10 +235,10 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public InputStream getStandardInput() {
-        return streamsSpec.getStandardInput();
+        // Always set by the constructor
+        return requireNonNull(streamsSpec.getStandardInput());
     }
 
-    @Nullable
     @Override
     public File getWorkingDir() {
         if (workingDir == null) {
@@ -242,13 +248,15 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public ClientExecHandleBuilder setWorkingDir(@Nullable File dir) {
+    public ClientExecHandleBuilder setWorkingDir(File dir) {
+        //TODO Remove the null check together with DefaultExecHandleBuilder in Gradle 10. Until then, callers outside NullAway's reach may pass null
         this.workingDir = dir == null ? null:  fileResolver.resolve(dir);
         return this;
     }
 
     @Override
-    public ClientExecHandleBuilder setWorkingDir(@Nullable Object dir) {
+    public ClientExecHandleBuilder setWorkingDir(Object dir) {
+        //TODO Remove the null check together with DefaultExecHandleBuilder in Gradle 10. Until then, callers outside NullAway's reach may pass null
         this.workingDir = dir == null ? null : fileResolver.resolve(dir);
         return this;
     }
@@ -266,9 +274,10 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
             return streamsHandler;
         }
         boolean shouldReadErrorStream = !redirectErrorStream;
+        // Both streams are always set by the constructor
         return new OutputStreamsForwarder(
-            streamsSpec.getStandardOutput(),
-            streamsSpec.getErrorOutput(),
+            requireNonNull(streamsSpec.getStandardOutput()),
+            requireNonNull(streamsSpec.getErrorOutput()),
             shouldReadErrorStream
         );
     }
@@ -292,9 +301,14 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         Map<String, String> effectiveEnvironment = getEffectiveEnvironment(getEnvironment());
         boolean effectiveRedirectErrorStream = isRedirectingErrorStream();
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, effectiveRedirectErrorStream);
+        File workingDir = getWorkingDir();
+        String executable = this.executable;
+        if (executable == null) {
+            throw new IllegalArgumentException("Cannot start a process with a null command.");
+        }
         return new DefaultExecHandle(
             displayName,
-            getWorkingDir(),
+            workingDir,
             executable,
             effectiveArguments,
             effectiveEnvironment,
