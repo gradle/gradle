@@ -18,9 +18,10 @@ Gradle can now [reuse Maven's mirror settings](#reusing-mirror-settings-from-mav
 
 [Build authoring](#build-authoring-improvements) gets less verbose, with Gradle's built-in services for working with files, objects, and processes now available directly in scripts and task actions, and copy destinations configurable lazily.
 
-For plugin authors, verifying compatibility with the [Configuration Cache](#configuration-cache-improvements) is easier and more reliable. The [Maven Publish Plugin](#core-plugin-and-plugin-authoring-enhancements) now takes part in up-to-date checks, so it no longer regenerates a POM that has not changed.
+For plugin authors, the [Maven Publish Plugin](#core-plugin-and-plugin-authoring-enhancements) now takes part in up-to-date checks, so it no longer regenerates a POM that has not changed.
+[Build failures](#cli-logging-and-problem-reporting) are easier to read and navigate, and more of Gradle's diagnostics are now available to tooling.
 
-[Build failures](#cli-logging-and-problem-reporting) are easier to read and navigate, and more of Gradle's diagnostics are now available to tooling. This release also includes [performance improvements](#performance-improvements) for Windows.
+This release also includes [performance improvements](#performance-improvements) for Windows.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Aman Gautam](https://github.com/Gautam-aman),
@@ -188,10 +189,6 @@ All of these are silently ignored on earlier Groovy versions, so they are safe t
 All new properties are [incubating](userguide/feature_lifecycle.html#feature_preview).
 
 See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in the DSL Reference for the full list of configuration options.
-
-### Configuration Cache improvements
-
-Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the results of the configuration phase and reusing them in subsequent builds.
 
 ### Core plugin and plugin authoring enhancements
 
