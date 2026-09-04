@@ -1,0 +1,1033 @@
+{
+  "date": "2026-09-04",
+  "beforeRevision": "f102c78d9a635d69c55f2e4340f194994fb07081",
+  "afterRegistryBlob": "edcda86c76939df69d46e09931fa753594ef7915",
+  "method": "COMPACT_REGISTRY_RESULTS_2026-09-04.md",
+  "jmh": {
+    "before": [
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceRegistryBenchmark.registerOrigins",
+        "params": {},
+        "jmhVersion": "1.36",
+        "jvm": "/usr/lib/jvm/java-25-openjdk-arm64/bin/java",
+        "jdkVersion": "25.0.4",
+        "jvmArgs": [
+          "-Xms256m",
+          "-Xmx256m"
+        ],
+        "forks": 2,
+        "warmupIterations": 3,
+        "warmupTime": "1 s",
+        "measurementIterations": 5,
+        "measurementTime": "1 s",
+        "nanoseconds": {
+          "score": 59.26172792979723,
+          "scoreError": 2.456481632667725,
+          "scoreConfidence": [
+            56.80524629712951,
+            61.718209562464956
+          ],
+          "scorePercentiles": {
+            "0.0": 58.410433034563766,
+            "50.0": 58.620833590345164,
+            "90.0": 63.31384755399422,
+            "95.0": 63.67907729414233,
+            "99.0": 63.67907729414233,
+            "99.9": 63.67907729414233,
+            "99.99": 63.67907729414233,
+            "99.999": 63.67907729414233,
+            "99.9999": 63.67907729414233,
+            "100.0": 63.67907729414233
+          },
+          "scoreUnit": "ns/op",
+          "rawData": [
+            [
+              59.045039790984646,
+              58.70915535882669,
+              58.532511821863636,
+              60.026779892661246,
+              58.73592618894143
+            ],
+            [
+              58.450350193261635,
+              58.410433034563766,
+              58.519768103199794,
+              58.50823761952721,
+              63.67907729414233
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 436.000024168507,
+          "scoreError": 0.0000010029585059493097,
+          "scoreConfidence": [
+            436.0000231655485,
+            436.00002517146555
+          ],
+          "scorePercentiles": {
+            "0.0": 436.00002381067986,
+            "50.0": 436.00002391121257,
+            "90.0": 436.00002582192593,
+            "95.0": 436.00002597026963,
+            "99.0": 436.00002597026963,
+            "99.9": 436.00002597026963,
+            "99.99": 436.00002597026963,
+            "99.999": 436.00002597026963,
+            "99.9999": 436.00002597026963,
+            "100.0": 436.00002597026963
+          },
+          "scoreUnit": "B/op",
+          "rawData": [
+            [
+              436.00002407140994,
+              436.00002394932886,
+              436.0000238730962,
+              436.0000244868328,
+              436.000023961121
+            ],
+            [
+              436.0000238306176,
+              436.00002381067986,
+              436.00002386371295,
+              436.0000238680015,
+              436.00002597026963
+            ]
+          ]
+        }
+      }
+    ],
+    "after": [
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceRegistryBenchmark.registerOrigins",
+        "params": {},
+        "jmhVersion": "1.36",
+        "jvm": "/usr/lib/jvm/java-25-openjdk-arm64/bin/java",
+        "jdkVersion": "25.0.4",
+        "jvmArgs": [
+          "-Xms256m",
+          "-Xmx256m"
+        ],
+        "forks": 2,
+        "warmupIterations": 3,
+        "warmupTime": "1 s",
+        "measurementIterations": 5,
+        "measurementTime": "1 s",
+        "nanoseconds": {
+          "score": 37.83595449495026,
+          "scoreError": 0.5203350318547548,
+          "scoreConfidence": [
+            37.3156194630955,
+            38.356289526805014
+          ],
+          "scorePercentiles": {
+            "0.0": 37.4392706817725,
+            "50.0": 37.69261263970863,
+            "90.0": 38.38702491568704,
+            "95.0": 38.397545132464124,
+            "99.0": 38.397545132464124,
+            "99.9": 38.397545132464124,
+            "99.99": 38.397545132464124,
+            "99.999": 38.397545132464124,
+            "99.9999": 38.397545132464124,
+            "100.0": 38.397545132464124
+          },
+          "scoreUnit": "ns/op",
+          "rawData": [
+            [
+              38.24301404550368,
+              37.58534782172315,
+              37.69248618497215,
+              37.4392706817725,
+              38.397545132464124
+            ],
+            [
+              38.29234296469328,
+              37.55168959621099,
+              37.6927390944451,
+              37.81396768765713,
+              37.65114174006052
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 176.0000154258468,
+          "scoreError": 2.0558577754739725e-7,
+          "scoreConfidence": [
+            176.00001522026105,
+            176.00001563143257
+          ],
+          "scorePercentiles": {
+            "0.0": 176.0000152557948,
+            "50.0": 176.00001537157704,
+            "90.0": 176.00001562348365,
+            "95.0": 176.00001562365975,
+            "99.0": 176.00001562365975,
+            "99.9": 176.00001562365975,
+            "99.99": 176.00001562365975,
+            "99.999": 176.00001562365975,
+            "99.9999": 176.00001562365975,
+            "100.0": 176.00001562365975
+          },
+          "scoreUnit": "B/op",
+          "rawData": [
+            [
+              176.00001559015143,
+              176.0000153255876,
+              176.00001537515377,
+              176.0000152557948,
+              176.00001562365975
+            ],
+            [
+              176.0000156218986,
+              176.00001531505777,
+              176.00001536800033,
+              176.0000154258627,
+              176.00001535730115
+            ]
+          ]
+        }
+      }
+    ],
+    "steadyAfter": [
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "params": {
+          "mode": "disabled"
+        },
+        "jmhVersion": "1.36",
+        "jvm": "/usr/lib/jvm/java-25-openjdk-arm64/bin/java",
+        "jdkVersion": "25.0.4",
+        "jvmArgs": [
+          "-Xms256m",
+          "-Xmx256m"
+        ],
+        "forks": 2,
+        "warmupIterations": 3,
+        "warmupTime": "1 s",
+        "measurementIterations": 5,
+        "measurementTime": "1 s",
+        "nanoseconds": {
+          "score": 13.291187467369838,
+          "scoreError": 0.2500473148854262,
+          "scoreConfidence": [
+            13.041140152484411,
+            13.541234782255264
+          ],
+          "scorePercentiles": {
+            "0.0": 13.066503792642774,
+            "50.0": 13.252173270181673,
+            "90.0": 13.567796379225905,
+            "95.0": 13.575449375132086,
+            "99.0": 13.575449375132086,
+            "99.9": 13.575449375132086,
+            "99.99": 13.575449375132086,
+            "99.999": 13.575449375132086,
+            "99.9999": 13.575449375132086,
+            "100.0": 13.575449375132086
+          },
+          "scoreUnit": "ns/op",
+          "rawData": [
+            [
+              13.247729008116382,
+              13.15957886593513,
+              13.066503792642774,
+              13.337025365816983,
+              13.256617532246965
+            ],
+            [
+              13.179508025348746,
+              13.430799574051743,
+              13.159743718337271,
+              13.575449375132086,
+              13.498919416070281
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000541956781,
+          "scoreError": 1.0313558831900328e-7,
+          "scoreConfidence": [
+            72.00000531643222,
+            72.0000055227034
+          ],
+          "scorePercentiles": {
+            "0.0": 72.00000532748821,
+            "50.0": 72.00000540073805,
+            "90.0": 72.00000553467196,
+            "95.0": 72.00000553791251,
+            "99.0": 72.00000553791251,
+            "99.9": 72.00000553791251,
+            "99.99": 72.00000553791251,
+            "99.999": 72.00000553791251,
+            "99.9999": 72.00000553791251,
+            "100.0": 72.00000553791251
+          },
+          "scoreUnit": "B/op",
+          "rawData": [
+            [
+              72.00000540122146,
+              72.0000053679496,
+              72.00000532748821,
+              72.0000054370371,
+              72.00000540025464
+            ],
+            [
+              72.00000537304159,
+              72.00000547808878,
+              72.00000536717728,
+              72.00000553791251,
+              72.00000550550695
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "params": {
+          "mode": "origins"
+        },
+        "jmhVersion": "1.36",
+        "jvm": "/usr/lib/jvm/java-25-openjdk-arm64/bin/java",
+        "jdkVersion": "25.0.4",
+        "jvmArgs": [
+          "-Xms256m",
+          "-Xmx256m"
+        ],
+        "forks": 2,
+        "warmupIterations": 3,
+        "warmupTime": "1 s",
+        "measurementIterations": 5,
+        "measurementTime": "1 s",
+        "nanoseconds": {
+          "score": 20.913226675139303,
+          "scoreError": 0.26066402449149223,
+          "scoreConfidence": [
+            20.65256265064781,
+            21.173890699630796
+          ],
+          "scorePercentiles": {
+            "0.0": 20.565389260768708,
+            "50.0": 20.90909997839796,
+            "90.0": 21.158372692560523,
+            "95.0": 21.165434297355773,
+            "99.0": 21.165434297355773,
+            "99.9": 21.165434297355773,
+            "99.99": 21.165434297355773,
+            "99.999": 21.165434297355773,
+            "99.9999": 21.165434297355773,
+            "100.0": 21.165434297355773
+          },
+          "scoreUnit": "ns/op",
+          "rawData": [
+            [
+              20.946337651264788,
+              20.871862305531135,
+              21.05900707294696,
+              20.825277174947043,
+              21.165434297355773
+            ],
+            [
+              20.859335056599665,
+              20.565389260768708,
+              20.795170665435577,
+              21.094818249403254,
+              20.949635017140142
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 96.0000085286994,
+          "scoreError": 1.0455669093444965e-7,
+          "scoreConfidence": [
+            96.0000084241427,
+            96.00000863325609
+          ],
+          "scorePercentiles": {
+            "0.0": 96.0000083884985,
+            "50.0": 96.0000085237467,
+            "90.0": 96.0000086260304,
+            "95.0": 96.00000862851672,
+            "99.0": 96.00000862851672,
+            "99.9": 96.00000862851672,
+            "99.99": 96.00000862851672,
+            "99.999": 96.00000862851672,
+            "99.9999": 96.00000862851672,
+            "100.0": 96.00000862851672
+          },
+          "scoreUnit": "B/op",
+          "rawData": [
+            [
+              96.00000853448108,
+              96.00000851301232,
+              96.00000858799058,
+              96.0000084956083,
+              96.00000862851672
+            ],
+            [
+              96.00000850652522,
+              96.0000083884985,
+              96.00000848262034,
+              96.00000860365341,
+              96.00000854608727
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "params": {
+          "mode": "locations"
+        },
+        "jmhVersion": "1.36",
+        "jvm": "/usr/lib/jvm/java-25-openjdk-arm64/bin/java",
+        "jdkVersion": "25.0.4",
+        "jvmArgs": [
+          "-Xms256m",
+          "-Xmx256m"
+        ],
+        "forks": 2,
+        "warmupIterations": 3,
+        "warmupTime": "1 s",
+        "measurementIterations": 5,
+        "measurementTime": "1 s",
+        "nanoseconds": {
+          "score": 33.4493931905872,
+          "scoreError": 1.3607404624261492,
+          "scoreConfidence": [
+            32.08865272816105,
+            34.81013365301335
+          ],
+          "scorePercentiles": {
+            "0.0": 32.39871679055025,
+            "50.0": 33.51789628482325,
+            "90.0": 34.420530115544246,
+            "95.0": 34.42643179324394,
+            "99.0": 34.42643179324394,
+            "99.9": 34.42643179324394,
+            "99.99": 34.42643179324394,
+            "99.999": 34.42643179324394,
+            "99.9999": 34.42643179324394,
+            "100.0": 34.42643179324394
+          },
+          "scoreUnit": "ns/op",
+          "rawData": [
+            [
+              32.90972704041332,
+              32.47656614971331,
+              32.39871679055025,
+              32.87884709195836,
+              32.409005717748386
+            ],
+            [
+              34.42643179324394,
+              34.367415016247,
+              34.21736008440217,
+              34.12606552923318,
+              34.283796692362095
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 152.00001364161034,
+          "scoreError": 5.531379403419689e-7,
+          "scoreConfidence": [
+            152.0000130884724,
+            152.00001419474827
+          ],
+          "scorePercentiles": {
+            "0.0": 152.00001321200438,
+            "50.0": 152.0000136720411,
+            "90.0": 152.00001404073677,
+            "95.0": 152.00001404413212,
+            "99.0": 152.00001404413212,
+            "99.9": 152.00001404413212,
+            "99.99": 152.00001404413212,
+            "99.999": 152.00001404413212,
+            "99.9999": 152.00001404413212,
+            "100.0": 152.00001404413212
+          },
+          "scoreUnit": "B/op",
+          "rawData": [
+            [
+              152.00001342239753,
+              152.00001324733304,
+              152.00001321200438,
+              152.00001341171736,
+              152.00001321827986
+            ],
+            [
+              152.00001404413212,
+              152.0000140101788,
+              152.0000139548428,
+              152.00001392168465,
+              152.00001397353256
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "production": {
+    "workloadRevision": "850edf55835529446bf63488489f6364ce5d2387",
+    "jvmArgs": "-Xms1536m -Xmx3300m -XX:MaxMetaspaceSize=768m -XX:+UseG1GC",
+    "readOnlyCache": "/home/agent/.gradle/caches",
+    "extraArgs": [
+      "help",
+      "--offline",
+      "-Pkotlin.compiler.execution.strategy=in-process"
+    ],
+    "variants": {
+      "baseline": {
+        "project": "/tmp/gradle-provenance-production-baseline-20260904",
+        "gradle": "/tmp/gradle-provenance-baseline-20260904/packaging/distributions-full/build/bin distribution/bin/gradle"
+      },
+      "disabled": {
+        "project": "/tmp/gradle-provenance-production-disabled-20260904",
+        "gradle": "/home/agent/projects/gradle-provenance-prototype-20260904/packaging/distributions-full/build/bin distribution/bin/gradle"
+      },
+      "origins": {
+        "project": "/tmp/gradle-provenance-production-originsx-20260904",
+        "gradle": "/home/agent/projects/gradle-provenance-prototype-20260904/packaging/distributions-full/build/bin distribution/bin/gradle"
+      }
+    },
+    "protocol": {
+      "modes": [
+        "origins",
+        "disabled"
+      ],
+      "daemonsPerMode": 1,
+      "warmupsPerMode": 4,
+      "heapSamplesPerMode": 2,
+      "timedBuilds": 0,
+      "locations": false,
+      "configurationCache": false,
+      "isolatedProjects": false,
+      "buildCache": false,
+      "watchFs": false,
+      "workers": 2
+    },
+    "historicalOriginsHeapSample": {
+      "mode": "origins",
+      "fork": 0,
+      "phase": "heap",
+      "iteration": 0,
+      "pid": 274875,
+      "configurationMs": 8014.040004,
+      "wallMs": 9218.698712000158,
+      "tasks": 1,
+      "configuredProjects": 253,
+      "liveBytes": 690217664,
+      "provenanceShallowBytes": 3762816,
+      "provenanceStates": 75263,
+      "provenanceRecords": 56961,
+      "origins": 6329,
+      "finalizedSnapshots": 1367,
+      "properties": [
+        {
+          "name": "org.gradle.api.internal.provider.DefaultProperty",
+          "instances": 100253,
+          "shallowBytes": 4812144
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+          "instances": 52062,
+          "shallowBytes": 2915472
+        },
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+          "instances": 19287,
+          "shallowBytes": 1080072
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+          "instances": 7867,
+          "shallowBytes": 377616
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultListProperty",
+          "instances": 4489,
+          "shallowBytes": 215472
+        },
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+          "instances": 2761,
+          "shallowBytes": 132528
+        }
+      ]
+    },
+    "samples": [
+      {
+        "mode": "origins",
+        "phase": "warmup",
+        "iteration": 0,
+        "configurationMs": 15891.224049,
+        "pid": 299795,
+        "tasks": 1,
+        "configuredProjects": 253
+      },
+      {
+        "mode": "origins",
+        "phase": "warmup",
+        "iteration": 1,
+        "configurationMs": 8887.136421,
+        "pid": 299795,
+        "tasks": 1,
+        "configuredProjects": 253
+      },
+      {
+        "mode": "origins",
+        "phase": "warmup",
+        "iteration": 2,
+        "configurationMs": 8299.484629,
+        "pid": 299795,
+        "tasks": 1,
+        "configuredProjects": 253
+      },
+      {
+        "mode": "origins",
+        "phase": "warmup",
+        "iteration": 3,
+        "configurationMs": 8712.564087,
+        "pid": 299795,
+        "tasks": 1,
+        "configuredProjects": 253
+      },
+      {
+        "mode": "origins",
+        "phase": "heap",
+        "iteration": 4,
+        "configurationMs": 8243.679295,
+        "pid": 299795,
+        "tasks": 1,
+        "configuredProjects": 253,
+        "liveInstances": 19069104,
+        "liveBytes": 689578648,
+        "provenance": [
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceState",
+            "instances": 75263,
+            "shallowBytes": 1806312
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord",
+            "instances": 12658,
+            "shallowBytes": 303792
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin",
+            "instances": 6329,
+            "shallowBytes": 151896
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords",
+            "instances": 6329,
+            "shallowBytes": 151896
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot",
+            "instances": 1367,
+            "shallowBytes": 32808
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;",
+            "instances": 1241,
+            "shallowBytes": 31176
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;",
+            "instances": 767,
+            "shallowBytes": 18432
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceKind",
+            "instances": 9,
+            "shallowBytes": 288
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation",
+            "instances": 5,
+            "shallowBytes": 160
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type",
+            "instances": 5,
+            "shallowBytes": 120
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;",
+            "instances": 1,
+            "shallowBytes": 56
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;",
+            "instances": 1,
+            "shallowBytes": 40
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry",
+            "instances": 1,
+            "shallowBytes": 24
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$$Lambda/0x0000000201994810",
+            "instances": 1,
+            "shallowBytes": 16
+          }
+        ],
+        "properties": [
+          {
+            "name": "org.gradle.api.internal.provider.DefaultProperty",
+            "instances": 100253,
+            "shallowBytes": 4812144
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+            "instances": 52080,
+            "shallowBytes": 2916480
+          },
+          {
+            "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+            "instances": 19287,
+            "shallowBytes": 1080072
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+            "instances": 7867,
+            "shallowBytes": 377616
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultListProperty",
+            "instances": 4489,
+            "shallowBytes": 215472
+          },
+          {
+            "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+            "instances": 2761,
+            "shallowBytes": 132528
+          }
+        ]
+      },
+      {
+        "mode": "origins",
+        "phase": "heap",
+        "iteration": 5,
+        "configurationMs": 8314.515379,
+        "pid": 299795,
+        "tasks": 1,
+        "configuredProjects": 253,
+        "liveInstances": 19073960,
+        "liveBytes": 689433560,
+        "provenance": [
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceState",
+            "instances": 75263,
+            "shallowBytes": 1806312
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord",
+            "instances": 12658,
+            "shallowBytes": 303792
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin",
+            "instances": 6329,
+            "shallowBytes": 151896
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords",
+            "instances": 6329,
+            "shallowBytes": 151896
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot",
+            "instances": 1367,
+            "shallowBytes": 32808
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;",
+            "instances": 1241,
+            "shallowBytes": 31176
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;",
+            "instances": 767,
+            "shallowBytes": 18432
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceKind",
+            "instances": 9,
+            "shallowBytes": 288
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation",
+            "instances": 5,
+            "shallowBytes": 160
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type",
+            "instances": 5,
+            "shallowBytes": 120
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;",
+            "instances": 1,
+            "shallowBytes": 56
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;",
+            "instances": 1,
+            "shallowBytes": 40
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry",
+            "instances": 1,
+            "shallowBytes": 24
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$$Lambda/0x0000000201994810",
+            "instances": 1,
+            "shallowBytes": 16
+          }
+        ],
+        "properties": [
+          {
+            "name": "org.gradle.api.internal.provider.DefaultProperty",
+            "instances": 100253,
+            "shallowBytes": 4812144
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+            "instances": 52062,
+            "shallowBytes": 2915472
+          },
+          {
+            "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+            "instances": 19287,
+            "shallowBytes": 1080072
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+            "instances": 7867,
+            "shallowBytes": 377616
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultListProperty",
+            "instances": 4489,
+            "shallowBytes": 215472
+          },
+          {
+            "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+            "instances": 2761,
+            "shallowBytes": 132528
+          }
+        ]
+      },
+      {
+        "mode": "disabled",
+        "phase": "warmup",
+        "iteration": 0,
+        "configurationMs": 15107.005799,
+        "pid": 301032,
+        "tasks": 1,
+        "configuredProjects": 253
+      },
+      {
+        "mode": "disabled",
+        "phase": "warmup",
+        "iteration": 1,
+        "configurationMs": 8789.244713,
+        "pid": 301032,
+        "tasks": 1,
+        "configuredProjects": 253
+      },
+      {
+        "mode": "disabled",
+        "phase": "warmup",
+        "iteration": 2,
+        "configurationMs": 8197.349962,
+        "pid": 301032,
+        "tasks": 1,
+        "configuredProjects": 253
+      },
+      {
+        "mode": "disabled",
+        "phase": "warmup",
+        "iteration": 3,
+        "configurationMs": 8656.925838,
+        "pid": 301032,
+        "tasks": 1,
+        "configuredProjects": 253
+      },
+      {
+        "mode": "disabled",
+        "phase": "heap",
+        "iteration": 4,
+        "configurationMs": 8313.395421,
+        "pid": 301032,
+        "tasks": 1,
+        "configuredProjects": 253,
+        "liveInstances": 18938417,
+        "liveBytes": 685382624,
+        "provenance": [
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceKind",
+            "instances": 9,
+            "shallowBytes": 288
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type",
+            "instances": 5,
+            "shallowBytes": 120
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;",
+            "instances": 1,
+            "shallowBytes": 56
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord",
+            "instances": 2,
+            "shallowBytes": 48
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;",
+            "instances": 1,
+            "shallowBytes": 40
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin",
+            "instances": 1,
+            "shallowBytes": 24
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry",
+            "instances": 1,
+            "shallowBytes": 24
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords",
+            "instances": 1,
+            "shallowBytes": 24
+          }
+        ],
+        "properties": [
+          {
+            "name": "org.gradle.api.internal.provider.DefaultProperty",
+            "instances": 100253,
+            "shallowBytes": 4812144
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+            "instances": 52066,
+            "shallowBytes": 2915696
+          },
+          {
+            "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+            "instances": 19287,
+            "shallowBytes": 1080072
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+            "instances": 7867,
+            "shallowBytes": 377616
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultListProperty",
+            "instances": 4489,
+            "shallowBytes": 215472
+          },
+          {
+            "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+            "instances": 2761,
+            "shallowBytes": 132528
+          }
+        ]
+      },
+      {
+        "mode": "disabled",
+        "phase": "heap",
+        "iteration": 5,
+        "configurationMs": 8800.320212,
+        "pid": 301032,
+        "tasks": 1,
+        "configuredProjects": 253,
+        "liveInstances": 18942585,
+        "liveBytes": 686104120,
+        "provenance": [
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceKind",
+            "instances": 9,
+            "shallowBytes": 288
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type",
+            "instances": 5,
+            "shallowBytes": 120
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;",
+            "instances": 1,
+            "shallowBytes": 56
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord",
+            "instances": 2,
+            "shallowBytes": 48
+          },
+          {
+            "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;",
+            "instances": 1,
+            "shallowBytes": 40
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin",
+            "instances": 1,
+            "shallowBytes": 24
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry",
+            "instances": 1,
+            "shallowBytes": 24
+          },
+          {
+            "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords",
+            "instances": 1,
+            "shallowBytes": 24
+          }
+        ],
+        "properties": [
+          {
+            "name": "org.gradle.api.internal.provider.DefaultProperty",
+            "instances": 100253,
+            "shallowBytes": 4812144
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+            "instances": 52080,
+            "shallowBytes": 2916480
+          },
+          {
+            "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+            "instances": 19287,
+            "shallowBytes": 1080072
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+            "instances": 7867,
+            "shallowBytes": 377616
+          },
+          {
+            "name": "org.gradle.api.internal.provider.DefaultListProperty",
+            "instances": 4489,
+            "shallowBytes": 215472
+          },
+          {
+            "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+            "instances": 2761,
+            "shallowBytes": 132528
+          }
+        ]
+      }
+    ]
+  }
+}

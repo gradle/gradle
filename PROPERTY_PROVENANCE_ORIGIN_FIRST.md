@@ -179,8 +179,12 @@ variant. The six measured property classes grow by 8 bytes each even when disabl
 (about 1.42 MiB at baseline instance counts). Whole-daemon median live heap increases
 by 1.77 MiB disabled and 6.33 MiB with origins relative to the no-provenance baseline.
 Timing differences change direction between JVM repetitions, so no precise slowdown
-claim follows. The eager nine-record-per-origin table is a concrete optimization
-candidate; no runtime optimization was made during measurement.
+claim follows. No runtime optimization was made during that measurement.
+The subsequent [compact-registry change](testing/performance/provenance/COMPACT_REGISTRY_RESULTS_2026-09-04.md)
+replaces the eager nine-record table with two successful-binding records per origin.
+Two follow-up enabled heap checkpoints confirm 1.21 MiB fewer live provenance objects
+and containers on the same workload. The separate disabled property-layout tax remains;
+this targeted footprint check does not establish a whole-build timing improvement.
 
 `PropertyProvenanceBenchmark` compares disabled, origin-only, and optional-location modes
 for creation plus binding, repeated replacement, convention plus explicit binding, and
@@ -253,8 +257,9 @@ report is `platforms/core-configuration/model-core/build/reports/property-proven
 ## Next milestones
 
 1. Expand concrete project-scoped callback/property-operation and cross-project cases.
-2. Reduce the eager per-origin record table, then separately evaluate removing the disabled
-   property-layout tax. Re-run the matching baseline and use more controlled timing repetitions.
+2. The per-origin record table is now compact. Separately evaluate removing the disabled
+   property-layout tax. Re-run the matching baseline and use more controlled timing repetitions
+   before claiming a whole-build performance improvement.
 3. Add explicit source/target build identity and script roles when required by those cases.
 4. Treat collection contributions, causal provider tracing, and cache transport as separate workstreams.
 5. Defer settings-owned tracking and other new scopes until a concrete diagnostic needs them;

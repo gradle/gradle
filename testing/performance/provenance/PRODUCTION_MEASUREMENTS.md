@@ -127,9 +127,11 @@ Keep the disabled object-layout tax separate from enabled state/record allocatio
 the histogram bytes per instance for the six principal scalar/collection/file property
 classes exposes this cost without attributing every daemon heap difference to it.
 
-The current registry also eagerly creates nine operation records per source. Successful
+The registry measured in the original experiment eagerly created nine operation records per source. Successful
 binding capture in `AbstractProperty` requests only `EXPLICIT_SOURCE` and `CONVENTION`;
 failure records are constructed separately by `failureFor`. The histogram ratio of
-records to origins can expose this eager-table cost. A smaller or lazy binding-record
-table is a candidate follow-up, not an optimization included in these measurements.
+records to origins exposed this eager-table cost. The subsequent
+[compact-registry follow-up](COMPACT_REGISTRY_RESULTS_2026-09-04.md) retains two binding
+records per source and measures the reduction separately; the original measurements
+remain unchanged.
 Changing the always-present property layout is a separate, more invasive design task.

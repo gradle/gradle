@@ -1,5 +1,10 @@
 # Matching-baseline production results: 2026-09-04
 
+Historical results before the record-table optimization. The
+[compact-registry follow-up](COMPACT_REGISTRY_RESULTS_2026-09-04.md) implements the
+first recommendation below and confirms a 1.21 MiB metadata reduction; these original
+measurements are preserved unchanged.
+
 The prototype has a measurable memory cost even when disabled. On this workload,
 the six measured property classes each grow by **8 bytes per instance**, accounting
 for approximately **1.42 MiB** at the baseline instance counts. Median whole-daemon

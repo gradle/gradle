@@ -21,9 +21,94 @@ import org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin
 import org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry
 import org.gradle.internal.Describables
 import org.gradle.internal.code.UserCodeSource
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class PropertyProvenanceRegistryTest extends Specification {
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CyclicBarrier
+
+class PropertyProvenanceRegistryTest extends ConcurrentSpec {
+    def "both successful binding kinds are shared for #description"() {
+        def registry = new PropertyProvenanceRegistry(true)
+
+        when:
+        def explicit = registry.recordFor(source, PropertyProvenanceKind.EXPLICIT_SOURCE, null)
+        def convention = registry.recordFor(source, PropertyProvenanceKind.CONVENTION, null)
+
+        then:
+        explicit.is(registry.recordFor(source, PropertyProvenanceKind.EXPLICIT_SOURCE, null))
+        convention.is(registry.recordFor(source, PropertyProvenanceKind.CONVENTION, null))
+        explicit.origin.is(convention.origin)
+        explicit.kind == PropertyProvenanceKind.EXPLICIT_SOURCE
+        convention.kind == PropertyProvenanceKind.CONVENTION
+
+        where:
+        description      | source
+        "unknown code"   | null
+        "a known plugin" | new UserCodeSource.Binary(Describables.of("plugin 'example'"), "ExamplePlugin", "example")
+    }
+
+    def "failed operation #kind cannot be interned as a successful binding"() {
+        def registry = new PropertyProvenanceRegistry(true)
+        def source = new UserCodeSource.Binary(Describables.of("plugin 'example'"), "ExamplePlugin", "example")
+
+        when:
+        registry.recordFor(source, kind, null)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message == "Not a successful binding kind: $kind"
+        registry.recordsBySource.isEmpty()
+
+        where:
+        kind << PropertyProvenanceKind.values().findAll { it != PropertyProvenanceKind.EXPLICIT_SOURCE && it != PropertyProvenanceKind.CONVENTION }
+    }
+
+    def "failure records are per occurrence with locations enabled = #locations"() {
+        def registry = new PropertyProvenanceRegistry(true, locations)
+
+        expect:
+        PropertyProvenanceKind.values().findAll { it != PropertyProvenanceKind.EXPLICIT_SOURCE && it != PropertyProvenanceKind.CONVENTION }.every { kind ->
+            def first = registry.failureFor("plugin 'example'", kind, "Plugin.java:10")
+            def second = registry.failureFor("plugin 'example'", kind, "Plugin.java:20")
+            !first.is(second) &&
+                first.formatFrame() == "at plugin 'example'${locations ? ' (Plugin.java:10)' : ''} [${kind.displayName}]" &&
+                second.formatFrame() == "at plugin 'example'${locations ? ' (Plugin.java:20)' : ''} [${kind.displayName}]"
+        }
+        registry.recordsBySource.isEmpty()
+
+        where:
+        locations << [false, true]
+    }
+
+    def "concurrent first access publishes one complete binding pair per source"() {
+        def registry = new PropertyProvenanceRegistry(true)
+        def source = new UserCodeSource.Binary(Describables.of("plugin 'example'"), "ExamplePlugin", "example")
+        def results = new CopyOnWriteArrayList()
+        def barrier = new CyclicBarrier(10)
+
+        when:
+        async {
+            10.times { n ->
+                start {
+                    barrier.await()
+                    def firstKind = n % 2 == 0 ? PropertyProvenanceKind.EXPLICIT_SOURCE : PropertyProvenanceKind.CONVENTION
+                    registry.recordFor(source, firstKind, null)
+                    results.add([
+                        registry.recordFor(source, PropertyProvenanceKind.EXPLICIT_SOURCE, null),
+                        registry.recordFor(source, PropertyProvenanceKind.CONVENTION, null)
+                    ])
+                }
+            }
+        }
+
+        then:
+        results.size() == 10
+        results.every { pair ->
+            pair[0].is(results[0][0]) && pair[1].is(results[0][1]) && pair[0].origin.is(pair[1].origin)
+        }
+        registry.recordsBySource.size() == 1
+    }
+
     def "plugin identity comes from source metadata rather than its display name"() {
         def registry = new PropertyProvenanceRegistry(true)
         def source = new UserCodeSource.Binary(Describables.of("a deliberately unrelated label"), "example.Plugin", pluginId)

@@ -29,12 +29,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @ServiceScope(Scope.BuildTree.class)
 public final class PropertyProvenanceRegistry {
-    private static final int KIND_COUNT = PropertyProvenanceKind.values().length;
-
     private final boolean enabled;
     private final boolean captureLocations;
-    private final Map<UserCodeSource, PropertyProvenanceRecord[]> recordsBySource = new ConcurrentHashMap<>();
-    private final PropertyProvenanceRecord[] unknownRecords = new PropertyProvenanceRecord[KIND_COUNT];
+    private final Map<UserCodeSource, BindingRecords> recordsBySource = new ConcurrentHashMap<>();
+    private final BindingRecords unknownRecords = new BindingRecords(PropertyProvenanceOrigin.UNKNOWN);
 
     public PropertyProvenanceRegistry(boolean enabled) {
         this(enabled, false);
@@ -43,9 +41,6 @@ public final class PropertyProvenanceRegistry {
     public PropertyProvenanceRegistry(boolean enabled, boolean captureLocations) {
         this.enabled = enabled;
         this.captureLocations = enabled && captureLocations;
-        for (PropertyProvenanceKind kind : PropertyProvenanceKind.values()) {
-            unknownRecords[kind.ordinal()] = new PropertyProvenanceRecord(PropertyProvenanceOrigin.UNKNOWN, kind, null);
-        }
     }
 
     public boolean isEnabled() {
@@ -57,32 +52,41 @@ public final class PropertyProvenanceRegistry {
     }
 
     /**
-     * Returns a shared record when there is no per-occurrence location.
+     * Returns a successful binding record, shared when there is no per-occurrence location.
+     * Failed operations must use {@link #failureFor(String, PropertyProvenanceKind, String)};
+     * their records are never interned.
      */
     public PropertyProvenanceRecord recordFor(
         @Nullable UserCodeSource source,
         PropertyProvenanceKind kind,
         @Nullable String location
     ) {
-        PropertyProvenanceRecord record = source == null ? unknownRecords[kind.ordinal()] : recordsFor(source)[kind.ordinal()];
+        if (kind != PropertyProvenanceKind.EXPLICIT_SOURCE && kind != PropertyProvenanceKind.CONVENTION) {
+            throw new IllegalArgumentException("Not a successful binding kind: " + kind);
+        }
+        BindingRecords records = source == null ? unknownRecords : recordsFor(source);
+        PropertyProvenanceRecord record = kind == PropertyProvenanceKind.EXPLICIT_SOURCE ? records.explicitSource : records.convention;
         return captureLocations && location != null ? new PropertyProvenanceRecord(record.getOrigin(), kind, location) : record;
     }
 
-    private PropertyProvenanceRecord[] recordsFor(UserCodeSource source) {
-        // Publish a complete immutable table: deferred callbacks may use the same origin in parallel.
+    private BindingRecords recordsFor(UserCodeSource source) {
+        // Publish a complete immutable pair: deferred callbacks may use the same origin in parallel.
         // One descriptor per application source, not per mutation or per property. Do not merge
         // applications merely because their plugin IDs or display names match.
-        return recordsBySource.computeIfAbsent(source, key -> {
-            PropertyProvenanceRecord[] result = new PropertyProvenanceRecord[KIND_COUNT];
-            PropertyProvenanceOrigin origin = PropertyProvenanceOrigin.from(key);
-            for (PropertyProvenanceKind operation : PropertyProvenanceKind.values()) {
-                result[operation.ordinal()] = new PropertyProvenanceRecord(origin, operation, null);
-            }
-            return result;
-        });
+        return recordsBySource.computeIfAbsent(source, key -> new BindingRecords(PropertyProvenanceOrigin.from(key)));
     }
 
     public PropertyProvenanceRecord failureFor(String originDisplayName, PropertyProvenanceKind kind, @Nullable String location) {
         return new PropertyProvenanceRecord(originDisplayName, kind, captureLocations ? location : null);
+    }
+
+    private static final class BindingRecords {
+        private final PropertyProvenanceRecord explicitSource;
+        private final PropertyProvenanceRecord convention;
+
+        private BindingRecords(PropertyProvenanceOrigin origin) {
+            explicitSource = new PropertyProvenanceRecord(origin, PropertyProvenanceKind.EXPLICIT_SOURCE, null);
+            convention = new PropertyProvenanceRecord(origin, PropertyProvenanceKind.CONVENTION, null);
+        }
     }
 }
