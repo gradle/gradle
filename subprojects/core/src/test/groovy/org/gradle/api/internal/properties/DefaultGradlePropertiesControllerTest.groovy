@@ -246,7 +246,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         controller.loadGradleProperties(rootBuildId, buildRootDir, true)
 
         then:
-        1 * systemPropertiesInstaller.setSystemPropertiesFrom(_) >> { GradleProperties props ->
+        1 * systemPropertiesInstaller.systemPropertiesFrom(_) >> { GradleProperties props ->
             assert props.properties == [
                 gradleHomeProp: "gradleHomeValue",
                 buildRootProp: "buildRootValue",
@@ -256,6 +256,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
                 // system properties are not installed from environment variables, (other) system properties or start-parameter properties
             ]
+            return [:]
         }
     }
 
@@ -277,8 +278,9 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         controller.loadGradleProperties(rootBuildId, buildRootDir, true)
 
         then:
-        1 * systemPropertiesInstaller.setSystemPropertiesFrom(_) >> { GradleProperties props ->
+        1 * systemPropertiesInstaller.systemPropertiesFrom(_) >> { GradleProperties props ->
             assert props.properties == [prop: expected]
+            return [:]
         }
 
         where:

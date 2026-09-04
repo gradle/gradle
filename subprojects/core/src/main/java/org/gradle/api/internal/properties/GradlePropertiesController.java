@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * Manages the lifecycle of {@link GradleProperties} for builds and projects within a build tree.
@@ -103,11 +104,17 @@ public interface GradlePropertiesController {
      * <li>{@code <build-root directory>/gradle.properties}</li>
      * <li>{@code <Gradle Home>/gradle.properties}</li>
      * </ul>
+     * <p>
+     * Returns the system properties that were installed, which is empty if {@code setSystemProperties} is
+     * false or the properties had already been loaded from the same directory.
+     * <p>
+     * Loading Gradle properties changes the system properties of the process, and that change has to be
+     * reproduced when a configuration cache entry is checked, so the caller gets to see what it was.
      *
      * @param buildRootDir directory containing the {@code gradle.properties} file
      * @param setSystemProperties whether to set system properties from loaded properties
      */
-    void loadGradleProperties(BuildIdentifier buildId, File buildRootDir, boolean setSystemProperties);
+    Map<String, String> loadGradleProperties(BuildIdentifier buildId, File buildRootDir, boolean setSystemProperties);
 
     /**
      * Unloads build-scoped properties.

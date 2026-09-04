@@ -26,6 +26,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelCreatorResult
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
@@ -42,6 +43,7 @@ import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintStartParameters
+import org.gradle.internal.cc.impl.fingerprint.FingerprintFileReader
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
@@ -98,6 +100,7 @@ class DefaultConfigurationCache internal constructor(
     private val inputsAccessListener: ConfigurationCacheInputsListener,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
+    private val modelParameters: BuildModelParameters,
     private val buildStateRegistry: BuildStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
@@ -809,11 +812,12 @@ class DefaultConfigurationCache internal constructor(
     fun ConfigurationCacheRepository.Layout.writeConfigurationCacheFingerprint(reusedProjects: Set<Path>) {
         // Collect fingerprint entries for any projects whose state was reused from cache
         if (reusedProjects.isNotEmpty()) {
-            readFingerprintFile(fileForRead(StateType.ProjectFingerprint)) { host ->
-                cacheFingerprintController.run {
-                    collectFingerprintForReusedProjects(host, reusedProjects)
-                }
-            }
+            cacheFingerprintController.collectFingerprintForReusedProjects(
+                fingerprintControllerHost,
+                fileForRead(StateType.ProjectFingerprint),
+                reusedProjects,
+                fingerprintFileReader
+            )
         }
         cacheFingerprintController.commitFingerprintTo(
             fileFor(StateType.BuildFingerprint),
@@ -870,6 +874,11 @@ class DefaultConfigurationCache internal constructor(
                 // so the Gradle properties files along with any Gradle property defining
                 // system properties and environment variables are added to the new fingerprint.
                 rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
+            } else {
+                // The entry is going to be reused as a whole, so the process has to end up with the system
+                // properties the build that stored it left behind. Checking the fingerprint does not apply
+                // them, exactly so that the rollback above has nothing to undo.
+                cacheFingerprintController.applyCheckedSystemProperties()
             }
         }
     }
@@ -890,10 +899,15 @@ class DefaultConfigurationCache internal constructor(
             when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
                 null -> {
                     // Build inputs are up-to-date, check project specific inputs
-                    CheckedFingerprint.Valid(
-                        candidateEntry.id,
-                        checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
-                    )
+                    val invalidProjects = checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
+                    when {
+                        // Partial invalidation only pays off when cached per-project models can be reused,
+                        // so an out-of-date project invalidates the entry as a whole otherwise
+                        invalidProjects == null || modelParameters.isCachingModelBuilding ->
+                            CheckedFingerprint.Valid(candidateEntry.id, invalidProjects)
+
+                        else -> CheckedFingerprint.Invalid(invalidProjects.first.buildPath, invalidProjects.first.reason)
+                    }
                 }
 
                 else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
@@ -912,12 +926,30 @@ class DefaultConfigurationCache internal constructor(
         }
 
     private
-    fun checkProjectScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile) =
-        readFingerprintFile(fingerprintFile) { host ->
-            cacheFingerprintController.run {
-                checkProjectScopedFingerprint(host)
+    fun checkProjectScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint.InvalidProjects? =
+        cacheFingerprintController.checkProjectScopedFingerprint(
+            fingerprintControllerHost,
+            fingerprintFile,
+            fingerprintFileReader
+        )
+
+    private
+    val fingerprintControllerHost = object : ConfigurationCacheFingerprintController.Host {
+        override val valueSourceProviderFactory: ValueSourceProviderFactory
+            get() = host.service()
+    }
+
+    /**
+     * Reads a fingerprint file (the manifest or one of the per-project files) within the fingerprint isolate.
+     */
+    private
+    val fingerprintFileReader = FingerprintFileReader { fingerprintFile, action ->
+        cacheIO.withReadContextFor(fingerprintFile) { codecs ->
+            withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
+                action()
             }
         }
+    }
 
     private
     fun <T> readFingerprintFile(
@@ -926,10 +958,7 @@ class DefaultConfigurationCache internal constructor(
     ): T =
         cacheIO.withReadContextFor(fingerprintFile) { codecs ->
             withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
-                action(object : ConfigurationCacheFingerprintController.Host {
-                    override val valueSourceProviderFactory: ValueSourceProviderFactory
-                        get() = host.service()
-                })
+                action(fingerprintControllerHost)
             }
         }
 

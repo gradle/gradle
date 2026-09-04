@@ -255,7 +255,7 @@ class ConfigurationCacheFingerprintCheckerTest {
                 mock {
                     on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
                 },
-                ConfigurationCacheFingerprint.ValueSource(obtainedValue)
+                ConfigurationCacheFingerprint.ValueSource(obtainedValue, systemPropertiesVersion = 0)
             ),
             equalTo("my value source has changed")
         )
@@ -294,7 +294,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         }
 
         val checkedFingerprint = readContext.runReadOperation {
-            ConfigurationCacheFingerprintChecker(host).run {
+            ConfigurationCacheFingerprintChecker(host, VersionedSystemProperties(System.getProperties())).run {
                 checkBuildScopedFingerprint()
             }
         }

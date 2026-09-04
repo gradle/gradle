@@ -51,6 +51,7 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
     implementation(projects.classpath)
+    implementation(projects.collections)
     implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.dependencyManagementSerializationCodecs)

@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.properties;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
@@ -33,28 +34,33 @@ public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstall
     }
 
     @Override
-    public void setSystemPropertiesFrom(GradleProperties gradleProperties) {
+    public Map<String, String> systemPropertiesFrom(GradleProperties gradleProperties) {
         // TODO:configuration-cache What happens when a system property is set from a Gradle property and
         //    that same system property is then used to set a Gradle property from an included build?
         //    e.g., included-build/gradle.properties << systemProp.org.gradle.project.fromSystemProp=42
-        setSystemPropertiesFromGradleProperties(gradleProperties);
-        setSystemPropertiesFromStartParameter();
+        ImmutableMap.Builder<String, String> result = systemPropertiesFromGradleProperties(gradleProperties);
+        // The start parameter wins over the Gradle properties, matching the order the two used to be applied in.
+        result.putAll(startParameter.getSystemPropertiesArgs());
+        return result.buildKeepingLast();
     }
 
-    private void setSystemPropertiesFromStartParameter() {
-        Map<String, String> systemPropertiesArgs = startParameter.getSystemPropertiesArgs();
-        System.getProperties().putAll(systemPropertiesArgs);
+    @Override
+    public void applySystemProperties(Map<String, String> systemProperties) {
+        for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+            System.setProperty(entry.getKey(), uncheckedNonnullCast(entry.getValue()));
+        }
     }
 
-    private static void setSystemPropertiesFromGradleProperties(GradleProperties properties) {
+    private static ImmutableMap.Builder<String, String> systemPropertiesFromGradleProperties(GradleProperties properties) {
         String prefix = Project.SYSTEM_PROP_PREFIX + '.';
         int prefixLength = prefix.length();
         Map<String, String> prefixedProperties = properties.getPropertiesWithPrefix(prefix);
+        ImmutableMap.Builder<String, String> result = ImmutableMap.builderWithExpectedSize(prefixedProperties.size());
         for (Map.Entry<String, String> entry : prefixedProperties.entrySet()) {
             String prefixedPropertyName = entry.getKey();
             String systemPropertyKey = prefixedPropertyName.substring(prefixLength);
-            String propertyValue = entry.getValue();
-            System.setProperty(systemPropertyKey, uncheckedNonnullCast(propertyValue));
+            result.put(systemPropertyKey, entry.getValue());
         }
+        return result;
     }
 }
