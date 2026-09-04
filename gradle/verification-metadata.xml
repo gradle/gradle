@@ -525,6 +525,14 @@
          <trusted-key id="F3A90E6B10E809F851AB4FC54CC08E7F47C3EC76" group="com.zaxxer" name="HikariCP"/>
          <trusted-key id="F3D15B8FF9902805DE4BE6B18DC6F3D0ABDBD017" group="org.codehaus.plexus" name="plexus-sec-dispatcher"/>
          <trusted-key id="F3D9FF1EE50634CC57D1E380C2952540150670BE" group="org.scala-lang.modules" name="scala-xml_2.13"/>
+         <trusted-key id="F3FF33E96F18AA62DD580F9651FBF517CE6D6B80">
+            <trusting group="io.github.gradle" name="gradle-org-conventions-plugin"/>
+            <trusting group="net.rubygrapefruit"/>
+            <trusting group="org.gradle"/>
+            <trusting group="org.gradle.exemplar"/>
+            <trusting group="org.gradle.profiler"/>
+            <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3" group="net.bytebuddy"/>
          <trusted-key id="F44F648ECAD30325AED69BBDA8538F26D55EA9A3" group="org.testng" name="testng"/>
          <trusted-key id="F4DD59C90148BDC52BEB90A4530AA5F25C25011F">
