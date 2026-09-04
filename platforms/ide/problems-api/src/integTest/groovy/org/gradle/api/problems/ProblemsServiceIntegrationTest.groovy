@@ -21,6 +21,7 @@ import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.fixtures.problems.ProblemsReportFixture
 import spock.lang.Issue
 
 import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
@@ -427,6 +428,39 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 solutions == ["solution"]
             }
         }
+    }
+
+    def "problems report carries the reported problems and the build context"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.contextualLabel("Some problem")
+                    .details("Some details")
+                    .solution("Some solution")
+            }
+        """
+
+        when:
+        executer.withArgument("--problems-report")
+        run("reportProblem")
+
+        then:
+        def report = new ProblemsReportFixture(testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName))
+
+        report.summary.requestedTasks == "reportProblem"
+        report.summary.documentationLink.toString().contains("reporting_problems")
+
+        report.problemIds == ["generic.type"]
+        verifyAll(report.problems[0]) {
+            it['severity'] == "WARNING"
+            it['contextualLabel'] == "Some problem"
+            it['problemDetails'] == "Some details"
+            it['solutions'] == ["Some solution"]
+        }
+
+        and:
+        receivedProblem != null
     }
 
     def "problem report can be disabled"() {
