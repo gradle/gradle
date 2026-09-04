@@ -1,0 +1,6 @@
+> Task :printAppInfo
+App: my-app
+Jar: my-app.jar
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed

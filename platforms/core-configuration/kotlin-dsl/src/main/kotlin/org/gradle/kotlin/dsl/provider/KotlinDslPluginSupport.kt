@@ -26,6 +26,5 @@ object KotlinDslPluginSupport {
             "-Xjsr305=strict",
             "-Xjspecify-annotations=strict",
             "-Xsam-conversions=class",
-            "-Xuse-fir-lt=false",
         )
 }

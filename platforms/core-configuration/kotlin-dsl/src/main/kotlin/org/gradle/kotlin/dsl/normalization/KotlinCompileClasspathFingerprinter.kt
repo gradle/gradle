@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:OptIn(ExperimentalBuildToolsApi::class)
-
 package org.gradle.kotlin.dsl.normalization
 
 import com.google.common.collect.ImmutableMultimap
@@ -33,22 +31,15 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
-import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
-import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
-import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
-import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
-import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
-import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.support.BtaClasspathSnapshotter
 import java.io.File
 
 
 internal
 class KotlinCompileClasspathFingerprinter(
-    private val classpathSnapshotHashesCache: KotlinDslCompileAvoidanceClasspathHashCache
+    private val cache: KotlinDslClasspathEntrySnapshotCache
 ) : FileCollectionFingerprinter {
-
-    private val snapshotter by lazy { Snapshotter() }
 
     override fun getNormalizer(): FileNormalizer {
         throw UnsupportedOperationException("Not implemented")
@@ -68,10 +59,14 @@ class KotlinCompileClasspathFingerprinter(
                 return@accept SnapshotVisitResult.CONTINUE
             }
 
-            val fingerprint = classpathSnapshotHashesCache.getHash(snapshot.hash) {
-                computeHashForFile(File(snapshot.absolutePath))
+            // Shared with BTA incremental compilation via the content-addressed snapshot store:
+            // whichever layer asks first runs the snapshotting pass, the other reuses its by-products.
+            // Avoidance reads only the tiny ABI sidecar (served from memory when hot); the snapshot
+            // file itself is never deserialized here, nor regenerated if cleanup already reclaimed it.
+            val abiHash = cache.abiHashFor(snapshot.hash) { snapshotPath ->
+                BtaClasspathSnapshotter.snapshot(File(snapshot.absolutePath).toPath(), snapshotPath)
             }
-            fingerprints[snapshot.absolutePath] = fingerprint
+            fingerprints[snapshot.absolutePath] = abiHash
 
             // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
             SnapshotVisitResult.SKIP_SUBTREE
@@ -81,24 +76,6 @@ class KotlinCompileClasspathFingerprinter(
             fingerprints.isEmpty() -> EmptyCurrentFileCollectionFingerprint(COMPILE_CLASSPATH_IDENTIFIER)
             else -> CurrentFileCollectionFingerprintImpl(fingerprints)
         }
-    }
-
-    private
-    fun computeHashForFile(file: File): HashCode {
-        val snapshots = snapshotter.snapshot(file)
-        return hash(snapshots)
-    }
-
-    private
-    fun hash(snapshots: Map<String, ClassSnapshot>): HashCode {
-        val hasher = Hashing.newHasher()
-        snapshots.entries.stream()
-            .filter { it.value is AccessibleClassSnapshot }
-            .map { (it.value as AccessibleClassSnapshot).classAbiHash }
-            .forEach {
-                hasher.putLong(it)
-            }
-        return hasher.hash()
     }
 
     override fun empty(): CurrentFileCollectionFingerprint {
@@ -145,23 +122,5 @@ class CurrentFileCollectionFingerprintImpl(private val fingerprints: Map<String,
 
     override fun wasCreatedWithStrategy(strategy: FingerprintingStrategy): Boolean {
         throw UnsupportedOperationException("Not implemented")
-    }
-}
-
-private class Snapshotter {
-
-    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
-
-    private val buildSession = toolchains.createBuildSession()
-
-    private val jvmToolchains = toolchains.getToolchain(JvmPlatformToolchain::class.java)
-
-    fun snapshot(file: File): Map<String, ClassSnapshot> {
-        val snapshotOperation = jvmToolchains.classpathSnapshottingOperationBuilder(file.toPath())
-            .apply {
-                this[JvmClasspathSnapshottingOperation.GRANULARITY] = ClassSnapshotGranularity.CLASS_LEVEL
-                this[JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES] = true
-            }.build()
-        return buildSession.executeOperation(snapshotOperation).classSnapshots
     }
 }

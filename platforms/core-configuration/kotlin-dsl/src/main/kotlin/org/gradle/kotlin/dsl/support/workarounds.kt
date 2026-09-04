@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,17 @@
 
 package org.gradle.kotlin.dsl.support
 
-import kotlin.reflect.KClass
+import kotlin.script.experimental.api.SourceCode
+import kotlin.script.experimental.host.FileBasedScriptSource
 
 
 /**
- * Associates a script template with the type of its implicit receiver
- * which must match the type of the given [KotlinScriptHost.target].
+ * [SourceCode.text] on file-based sources opens a stream it never closes (KT-88453),
+ * holding a file handle in the compiler process until GC; read the file directly instead.
  */
 internal
-annotation class ImplicitReceiver(val type: KClass<*>)
+fun textOf(script: SourceCode): String =
+    when (script) {
+        is FileBasedScriptSource -> script.file.readText().removePrefix("\uFEFF")
+        else -> script.text
+    }
