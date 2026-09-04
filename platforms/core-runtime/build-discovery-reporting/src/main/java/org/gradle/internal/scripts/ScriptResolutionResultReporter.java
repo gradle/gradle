@@ -30,7 +30,8 @@ public class ScriptResolutionResultReporter {
     }
 
     public void reportResolutionProblemsOf(ScriptResolutionResult result) {
-        if (result.getSelectedCandidate() == null || result.getIgnoredCandidates().isEmpty()) {
+        File selectedCandidate = result.getSelectedCandidate();
+        if (selectedCandidate == null || result.getIgnoredCandidates().isEmpty()) {
             return;
         }
 
@@ -49,7 +50,7 @@ public class ScriptResolutionResultReporter {
                     "Multiple %s script files were found in directory '%s'. Selected '%s', and ignoring %s.",
                     result.getBasename(),
                     result.getDirectory(),
-                    result.getSelectedCandidate().getName(),
+                    selectedCandidate.getName(),
                     ignoredCandidateList
                 )
             ).solution(
