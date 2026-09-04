@@ -15,8 +15,10 @@
  */
 package org.gradle.internal.remote.internal;
 
+import org.jspecify.annotations.Nullable;
+
 public class ConnectException extends RuntimeException {
-    public ConnectException(String message, Throwable cause) {
+    public ConnectException(String message, @Nullable Throwable cause) {
         super(message, cause);
     }
 }

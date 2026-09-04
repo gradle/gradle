@@ -17,10 +17,13 @@ package org.gradle.internal.dispatch;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+
+import static java.util.Objects.requireNonNull;
 
 public class MethodInvocation {
     private static final Object[] ZERO_ARGS = new Object[0];
@@ -45,7 +48,7 @@ public class MethodInvocation {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (obj == this) {
             return true;
         }
@@ -76,7 +79,7 @@ public class MethodInvocation {
             method.setAccessible(true);
             method.invoke(target, arguments);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            throw UncheckedException.throwAsUncheckedException(requireNonNull(e.getCause()));
         } catch (Throwable throwable) {
             throw UncheckedException.throwAsUncheckedException(throwable);
         }
