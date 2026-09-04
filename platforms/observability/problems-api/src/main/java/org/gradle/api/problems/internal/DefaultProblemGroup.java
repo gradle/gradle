@@ -42,8 +42,7 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
         this.name = TextUtil.replaceLineSeparatorsOf(name, "");
         this.displayName = TextUtil.replaceLineSeparatorsOf(displayName, "");
         // a foreign parent chain is copied here, so that every Gradle-owned group has a Gradle-owned parent chain
-        ProblemGroup owned = owned(parent);
-        this.parent = owned == null ? null : ProblemGroupInternal.of(owned);
+        this.parent = parent == null ? null : ProblemGroupInternal.of(owned(parent));
     }
 
     /**
@@ -51,9 +50,8 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
      * of its parent chain. Gradle-owned groups keep their description, their identity and their serialized form; foreign
      * implementations are copied so that only known, serializable types are stored and reported.
      */
-    @Nullable
-    public static ProblemGroup owned(@Nullable ProblemGroup group) {
-        if (group == null || group instanceof ProblemGroupInternal) {
+    public static ProblemGroup owned(ProblemGroup group) {
+        if (group instanceof ProblemGroupInternal) {
             return group;
         }
         // the constructor copies the parent chain

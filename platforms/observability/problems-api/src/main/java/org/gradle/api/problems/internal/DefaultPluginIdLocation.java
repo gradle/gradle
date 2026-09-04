@@ -26,7 +26,7 @@ public class DefaultPluginIdLocation implements PluginIdLocation {
 
     private final String pluginId;
 
-    public DefaultPluginIdLocation(@Nullable String pluginId) {
+    public DefaultPluginIdLocation(String pluginId) {
         this.pluginId = pluginId;
     }
 
@@ -36,7 +36,7 @@ public class DefaultPluginIdLocation implements PluginIdLocation {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (!(o instanceof DefaultPluginIdLocation)) {
             return false;
         }
