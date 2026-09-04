@@ -82,10 +82,6 @@ class ConfigurationCacheCleanupIntegrationTest
         return configurationCacheDir.file('gc.properties')
     }
 
-    private TestFile getConfigurationCacheDir() {
-        return file('.gradle/configuration-cache')
-    }
-
     private static List<TestFile> subDirsOf(TestFile dir) {
         dir.listFiles().findAll { it.directory }
     }
