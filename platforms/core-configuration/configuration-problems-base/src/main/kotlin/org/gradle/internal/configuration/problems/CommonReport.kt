@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging.getLogger
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.cc.impl.problems.HtmlReportWriter
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -31,14 +30,15 @@ import org.gradle.internal.hash.HashingOutputStream
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.problems.internal.report.model.JsonSource
+import org.gradle.problems.internal.report.HtmlReportWriter
+import org.gradle.problems.internal.report.model.JsReportDiagnostic
+import org.gradle.problems.internal.report.model.JsReportSummary
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
-import kotlinx.serialization.json.Json
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -66,14 +66,9 @@ class CommonReport(
     private
     val documentationRegistry = DocumentationRegistry()
 
-
-    private
-    val json = Json { }
-
-
     sealed class State {
 
-        open fun onDiagnostic(problem: JsonSource): State =
+        open fun onDiagnostic(problem: JsReportDiagnostic): State =
             illegalState()
 
         /**
@@ -84,7 +79,7 @@ class CommonReport(
          */
         open fun commitReportTo(
             outputDirectory: File,
-            details: JsonSource
+            summary: JsReportSummary
         ): Pair<State, File?> =
             illegalState()
 
@@ -96,7 +91,7 @@ class CommonReport(
             error("Operation is not valid in ${javaClass.simpleName} state.")
 
         class Idle(
-            private val onFirstDiagnostic: (problem: JsonSource) -> State
+            private val onFirstDiagnostic: (problem: JsReportDiagnostic) -> State
         ) : State() {
 
             /**
@@ -104,11 +99,11 @@ class CommonReport(
              */
             override fun commitReportTo(
                 outputDirectory: File,
-                details: JsonSource
+                summary: JsReportSummary
             ): Pair<State, File?> =
                 this to null
 
-            override fun onDiagnostic(problem: JsonSource): State =
+            override fun onDiagnostic(problem: JsReportDiagnostic): State =
                 onFirstDiagnostic(problem)
 
             override fun close(): State =
@@ -119,8 +114,7 @@ class CommonReport(
             spoolFileProvider: TemporaryFileProvider,
             private val reportFileName: String,
             val executor: ManagedExecutor,
-            private val distinctReports: Boolean,
-            private val json: Json
+            private val distinctReports: Boolean
         ) : State() {
 
             private
@@ -130,7 +124,7 @@ class CommonReport(
             val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
 
             private
-            val writer = createHtmlReportWriter(hashingStream)
+            val writer = HtmlReportWriter(hashingStream.writer())
 
             init {
                 executor.submit {
@@ -138,28 +132,22 @@ class CommonReport(
                 }
             }
 
-            private fun createHtmlReportWriter(hashingStream: HashingOutputStream): HtmlReportWriter {
-                val htmlReportTemplateLoader = HtmlReportTemplateLoader().load()
-                val hashingWriter = hashingStream.writer()
-                return HtmlReportWriter(hashingWriter, htmlReportTemplateLoader)
-            }
-
-            override fun onDiagnostic(problem: JsonSource): State {
+            override fun onDiagnostic(problem: JsReportDiagnostic): State {
                 executor.submit {
-                    writer.writeDiagnostic(problem.toJson(json))
+                    writer.writeDiagnostic(problem)
                 }
                 return this
             }
 
             override fun commitReportTo(
                 outputDirectory: File,
-                details: JsonSource
+                summary: JsReportSummary
             ): Pair<State, File?> {
 
                 val reportFile = try {
                     executor
                         .submit(Callable {
-                            closeHtmlReport(details)
+                            closeHtmlReport(summary)
                             moveSpoolFileTo(outputDirectory)
                         })
                         .get(30, TimeUnit.SECONDS)
@@ -182,8 +170,8 @@ class CommonReport(
             }
 
             private
-            fun closeHtmlReport(details: JsonSource) {
-                writer.endHtmlReport(details.toJson(json))
+            fun closeHtmlReport(summary: JsReportSummary) {
+                writer.endHtmlReport(summary)
                 writer.close()
             }
 
@@ -248,8 +236,7 @@ class CommonReport(
             temporaryFileProvider,
             reportFileName,
             executorFactory.create("${reportContext.capitalized()} writer", 1),
-            distinctReports,
-            json
+            distinctReports
         ).onDiagnostic(problem)
     }
 
@@ -260,7 +247,7 @@ class CommonReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem, diagnosticKind: DiagnosticKind): JsonSource {
+    fun decorateProblem(problem: PropertyProblem, diagnosticKind: DiagnosticKind): JsReportDiagnostic {
         val failure = problem.stackTracingFailure
         val link = problem.documentationSection?.let { section ->
             this.documentationRegistry.documentationLinkFor(section)
@@ -322,7 +309,7 @@ class CommonReport(
         onProblem(decorateProblem(problem, kind))
     }
 
-    fun onProblem(decoratedProblem: JsonSource) {
+    fun onProblem(decoratedProblem: JsReportDiagnostic) {
         modifyState {
             onDiagnostic(decoratedProblem)
         }
@@ -335,10 +322,10 @@ class CommonReport(
      * see [HtmlReportWriter].
      */
 
-    fun writeReportFileTo(outputDirectory: File, details: JsonSource): File? {
+    fun writeReportFileTo(outputDirectory: File, summary: JsReportSummary): File? {
         var reportFile: File?
         modifyState {
-            val (newState, outputFile) = commitReportTo(outputDirectory, details)
+            val (newState, outputFile) = commitReportTo(outputDirectory, summary)
             reportFile = outputFile
             newState
         }
