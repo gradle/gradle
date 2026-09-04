@@ -19,15 +19,25 @@ package org.gradle.internal.service.scopes
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.execution.WorkExecutionTracker
+import org.gradle.internal.problems.BoundedCallerStackCapturer
 import org.gradle.internal.state.ModelObject
 import spock.lang.Specification
 
 class ProjectBackedPropertyHostTest extends Specification {
     def state = new ProjectStateInternal()
     def project = Stub(ProjectInternal)
-    def host = new ProjectBackedPropertyHost(project)
+    def host = new ProjectBackedPropertyHost(
+        project,
+        Mock(UserCodeApplicationContext),
+        new PropertyProvenanceRegistry(false),
+        Mock(BoundedCallerStackCapturer),
+        Mock(WorkExecutionTracker)
+    )
 
     def setup() {
         _ * project.displayName >> "<project>"

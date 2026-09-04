@@ -60,6 +60,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
@@ -81,11 +82,13 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.problems.BoundedCallerStackCapturer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
@@ -321,8 +324,13 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PropertyHost createPropertyHost() {
-        return new ProjectBackedPropertyHost(project);
+    protected PropertyHost createPropertyHost(
+        UserCodeApplicationContext userCodeApplicationContext,
+        PropertyProvenanceRegistry provenanceRegistry,
+        BoundedCallerStackCapturer callerStackCapturer,
+        WorkExecutionTracker workExecutionTracker
+    ) {
+        return new ProjectBackedPropertyHost(project, userCodeApplicationContext, provenanceRegistry, callerStackCapturer, workExecutionTracker);
     }
 
     @Provides

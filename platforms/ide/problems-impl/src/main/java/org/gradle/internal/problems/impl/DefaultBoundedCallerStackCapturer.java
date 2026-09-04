@@ -67,6 +67,35 @@ class DefaultBoundedCallerStackCapturer implements BoundedCallerStackCapturer {
         return reducedStack == null ? null : new BoundedStackHolder(reducedStack);
     }
 
+    @Nullable
+    @Override
+    public String captureCallSite() {
+        return WALKER.walk(DefaultBoundedCallerStackCapturer::firstLocatedUserFrame);
+    }
+
+    @VisibleForTesting
+    static @Nullable String firstLocatedUserFrame(Stream<StackFrame> frames) {
+        Iterator<StackFrame> iterator = frames.iterator();
+        for (int depth = 0; depth < MAX_DEPTH && iterator.hasNext(); depth++) {
+            StackFrame frame = iterator.next();
+            if (InternalStackTraceClassifier.isInternal(frame.getClassName())) {
+                continue;
+            }
+            StackTraceElement element = frame.toStackTraceElement();
+            String fileName = element.getFileName();
+            if (fileName == null || element.getLineNumber() <= 0) {
+                continue;
+            }
+            return simpleFileName(fileName) + ":" + element.getLineNumber();
+        }
+        return null;
+    }
+
+    private static String simpleFileName(String fileName) {
+        int lastSeparator = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'));
+        return lastSeparator < 0 ? fileName : fileName.substring(lastSeparator + 1);
+    }
+
     @VisibleForTesting
     StackTraceElement @Nullable [] reduceStack(Stream<StackFrame> frames) {
         BoundedWalk walk = new BoundedWalk();

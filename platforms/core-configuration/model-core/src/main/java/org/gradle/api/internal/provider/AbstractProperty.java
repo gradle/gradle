@@ -17,6 +17,9 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceKind;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceState;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -52,9 +55,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private DisplayName displayName;
     private ValueState<S> state;
     private S value;
+    private final @Nullable PropertyHost provenanceHost;
+    private @Nullable PropertyProvenanceState provenance;
 
+    @SuppressWarnings("ConstantValue")
     public AbstractProperty(PropertyHost host) {
         state = ValueState.newState(host);
+        // Some unit tests construct a property without a host.
+        provenanceHost = host != null && host.tracksPropertyProvenance() ? host : null;
     }
 
     protected void init(S initialValue, S convention) {
@@ -285,10 +293,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected void setSupplier(S supplier) {
         assertCanMutate();
         this.value = state.explicitValue(supplier);
+        if (provenance != null) {
+            provenance.selectExplicit();
+        }
     }
 
     protected void setConvention(S convention) {
-        assertCanMutate();
+        state.beforeMutate(this.getDisplayName());
         this.value = state.applyConvention(value, convention);
     }
 
@@ -340,14 +351,20 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             // otherwise, the convention will become the new value
             value = state.implicitValue(state.convention());
         }
+        if (provenance != null) {
+            provenance.selectConvention();
+        }
     }
 
     /**
      * Discards the convention of this property.
      */
     protected void discardConvention() {
-        assertCanMutate();
+        state.beforeMutate(this.getDisplayName());
         value = state.applyConvention(value, getDefaultConvention());
+        if (provenance != null) {
+            provenance.discardConvention();
+        }
     }
 
     @Override
@@ -399,7 +416,64 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected abstract boolean isDefaultConvention();
 
     protected void assertCanMutate() {
-        state.beforeMutate(this.getDisplayName());
+        assertCanMutate(PropertyProvenanceKind.SET);
+    }
+
+    private void assertCanMutate(PropertyProvenanceKind operation) {
+        if (provenanceHost == null) {
+            state.beforeMutate(this.getDisplayName());
+            return;
+        }
+        try {
+            state.beforeMutate(this.getDisplayName());
+        } catch (IllegalStateException failure) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(failure.getMessage());
+            PropertyProvenanceState current = provenance == null ? new PropertyProvenanceState() : provenance;
+            current.describeFailure(formatter, provenanceHost.currentPropertyFailure(operation));
+            throw new IllegalStateException(formatter.toString());
+        }
+    }
+
+    /**
+     * Retains the origin of a successful explicit binding. Called by ordinary scalar properties only, after
+     * their mutation has completed.
+     */
+    protected final void recordExplicitSource() {
+        PropertyProvenanceRecord record = currentBinding(PropertyProvenanceKind.EXPLICIT_SOURCE);
+        if (record != null) {
+            provenance().explicitSource(record);
+        }
+    }
+
+    /**
+     * Retains the origin of a successful convention binding.
+     */
+    protected final void recordConvention() {
+        PropertyProvenanceRecord record = currentBinding(PropertyProvenanceKind.CONVENTION);
+        if (record != null) {
+            provenance().convention(record);
+        }
+    }
+
+    private @Nullable PropertyProvenanceRecord currentBinding(PropertyProvenanceKind kind) {
+        return provenanceHost == null ? null : provenanceHost.currentPropertyBinding(kind);
+    }
+
+    private PropertyProvenanceState provenance() {
+        if (provenance == null) {
+            provenance = new PropertyProvenanceState();
+        }
+        return provenance;
+    }
+
+    @Override
+    protected void describeFailureProvenance(TreeFormatter formatter) {
+        if (provenanceHost == null) {
+            return;
+        }
+        PropertyProvenanceState current = provenance == null ? new PropertyProvenanceState() : provenance;
+        current.describeFailure(formatter, provenanceHost.currentPropertyFailure(PropertyProvenanceKind.GET));
     }
 
     @Nullable
@@ -488,6 +562,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             try (EvaluationScopeContext context = openScope()) {
                 return calculateValueFrom(context, copiedValue, consumer);
             }
+        }
+
+        @Override
+        protected void describeFailureProvenance(TreeFormatter formatter) {
+            AbstractProperty.this.describeFailureProvenance(formatter);
         }
 
         @Override

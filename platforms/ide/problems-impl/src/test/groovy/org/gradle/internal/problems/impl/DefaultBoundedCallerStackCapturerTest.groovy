@@ -155,6 +155,25 @@ class DefaultBoundedCallerStackCapturerTest extends Specification {
         capturer.reduceStack(allInternal.stream()) == null
     }
 
+    def "call site skips internal and line-less frames"() {
+        given:
+        def internal = frame('org.gradle.api.internal.provider.AbstractProperty', 'get', 1, ste('org.gradle.api.internal.provider.AbstractProperty', 'get', 'AbstractProperty.java', 100))
+        def lineLess = frame('com.example.Generated', 'invoke', 1, ste('com.example.Generated', 'invoke', 'Generated.kt', -1))
+        def kotlinDsl = frame('Build_gradle', 'invoke', 1, ste('Build_gradle', 'invoke', '/tmp/build.gradle.kts', 17))
+
+        expect:
+        DefaultBoundedCallerStackCapturer.firstLocatedUserFrame([internal, lineLess, kotlinDsl].stream()) == 'build.gradle.kts:17'
+    }
+
+    def "call site is absent when the bounded stack has no located user frame"() {
+        given:
+        def internal = frame('org.gradle.api.internal.provider.AbstractProperty', 'get', 1, ste('org.gradle.api.internal.provider.AbstractProperty', 'get', 'AbstractProperty.java', 100))
+        def lineLess = frame('com.example.Generated', 'invoke', 1, ste('com.example.Generated', 'invoke', 'Generated.kt', -1))
+
+        expect:
+        DefaultBoundedCallerStackCapturer.firstLocatedUserFrame([internal, lineLess].stream()) == null
+    }
+
     private StackFrame frame(String className, String methodName, int bci, StackTraceElement element) {
         Stub(StackFrame) {
             getClassName() >> className

@@ -39,4 +39,11 @@ public interface BoundedCallerStackCapturer {
      */
     @Nullable
     Throwable captureCallerStack();
+
+    /**
+     * Returns the nearest user-code frame with a source line as {@code file:line}, or {@code null} when no
+     * such frame is found within the bounded walk.
+     */
+    @Nullable
+    String captureCallSite();
 }

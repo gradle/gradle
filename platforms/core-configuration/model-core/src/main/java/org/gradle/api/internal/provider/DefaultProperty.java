@@ -83,6 +83,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
             discardValue();
         } else {
             setSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
+            recordExplicitSource();
         }
     }
 
@@ -116,6 +117,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         Preconditions.checkArgument(provider != null, "Cannot set the value of a property using a null provider.");
         ProviderInternal<? extends T> p = Providers.internal(provider);
         setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
+        recordExplicitSource();
     }
 
     @Override
@@ -125,6 +127,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         } else {
             setConvention(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
+        recordConvention();
         return this;
     }
 
@@ -132,6 +135,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     public Property<T> convention(Provider<? extends T> provider) {
         Preconditions.checkArgument(provider != null, "Cannot set the convention of a property using a null provider.");
         setConvention(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer));
+        recordConvention();
         return this;
     }
 

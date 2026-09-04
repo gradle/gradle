@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceKind;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.state.ModelObject;
@@ -30,4 +32,30 @@ public interface PropertyHost {
      */
     @Nullable
     String beforeRead(@Nullable ModelObject producer);
+
+    /**
+     * Is property provenance enabled for properties created by this host?
+     *
+     * <p>This is queried once when a property is created. A disabled property does not consult its host while
+     * being mutated or while formatting its existing failures.</p>
+     */
+    default boolean tracksPropertyProvenance() {
+        return false;
+    }
+
+    /**
+     * Returns the origin of a successful binding at the current call site.
+     */
+    @Nullable
+    default PropertyProvenanceRecord currentPropertyBinding(PropertyProvenanceKind kind) {
+        return null;
+    }
+
+    /**
+     * Returns a failure frame for the operation being reported. Callers must not retain the result.
+     */
+    @Nullable
+    default PropertyProvenanceRecord currentPropertyFailure(PropertyProvenanceKind kind) {
+        return null;
+    }
 }

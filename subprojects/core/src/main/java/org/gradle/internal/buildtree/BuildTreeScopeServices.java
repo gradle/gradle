@@ -39,6 +39,7 @@ import org.gradle.api.internal.properties.GradlePropertiesListener;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -71,6 +72,7 @@ import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.FeatureFlagListener;
 import org.gradle.internal.buildoption.FeatureFlags;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ScopedListenerManager;
@@ -104,6 +106,9 @@ import java.util.List;
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
 public class BuildTreeScopeServices implements ServiceRegistrationProvider {
+
+    private static final InternalOption<Boolean> PROPERTY_PROVENANCE =
+        InternalOptions.ofBoolean("org.gradle.internal.property-provenance", false);
 
     private final BuildActionModelRequirements buildActionRequirements;
     private final BuildModelParameters buildModelParameters;
@@ -178,6 +183,11 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected InternalOptions createInternalOptions(StartParameterInternal startParameter, BuildTreeLocations buildTreeLocations) {
         return InternalOptionsFactory.createInternalOptions(startParameter, buildTreeLocations.getBuildTreeRootDirectory());
+    }
+
+    @Provides
+    protected PropertyProvenanceRegistry createPropertyProvenanceRegistry(InternalOptions internalOptions) {
+        return new PropertyProvenanceRegistry(internalOptions.getBoolean(PROPERTY_PROVENANCE));
     }
 
     @Provides

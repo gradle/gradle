@@ -77,7 +77,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 38;
+    private static final int DECORATION_FORMAT = 39;
 
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
@@ -136,7 +136,11 @@ public class InstrumentingClassTransform implements ClassTransform {
         // TODO(mlopatkin) can we reuse interceptors in a bigger scope, not per class, but per artifact?
         List<JvmBytecodeCallInterceptor> interceptors = buildInterceptors(instrumentationMetadata);
         if (interceptorFilter().matches(ADHOC_INTERCEPTORS)) {
-            interceptors = ImmutableList.<JvmBytecodeCallInterceptor>builderWithExpectedSize(interceptors.size() + 1).add(ADHOC_INTERCEPTORS).addAll(interceptors).build();
+            interceptors = ImmutableList.<JvmBytecodeCallInterceptor>builderWithExpectedSize(interceptors.size() + 2)
+                .add(ADHOC_INTERCEPTORS)
+                .add(new PropertyCallSiteInterceptor(instrumentationMetadata))
+                .addAll(interceptors)
+                .build();
         }
         return Pair.of(entry.getPath(),
             new InstrumentingVisitor(
@@ -344,7 +348,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         }
     }
 
-    private static class InstrumentingMethodVisitor extends MethodVisitorScope {
+    private static class InstrumentingMethodVisitor extends MethodVisitorScope implements CallSiteSource {
         private final InstrumentingVisitor owner;
         private final String className;
         private final Lazy<MethodNode> asNode;
@@ -373,6 +377,16 @@ public class InstrumentingClassTransform implements ClassTransform {
         public void visitLineNumber(int line, Label start) {
             methodInsLineNumber = line;
             super.visitLineNumber(line, start);
+        }
+
+        @Override
+        public @Nullable String getSourceFileName() {
+            return sourceFileName;
+        }
+
+        @Override
+        public int getLineNumber() {
+            return methodInsLineNumber;
         }
 
         @Override

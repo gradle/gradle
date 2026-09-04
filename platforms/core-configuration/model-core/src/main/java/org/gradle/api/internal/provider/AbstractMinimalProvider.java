@@ -206,7 +206,24 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
             }
             formatter.endChildren();
         }
+        describeFailureProvenance(formatter);
         return formatter.toString();
+    }
+
+    /**
+     * Adds property provenance to a missing-value failure. Plain providers have no retained configuration
+     * source, so the default is intentionally empty.
+     */
+    protected void describeFailureProvenance(TreeFormatter formatter) {
+    }
+
+    /**
+     * Allows a provider derived from another provider to preserve that provider's provenance in a failure.
+     */
+    protected final void describeFailureProvenanceOf(ProviderInternal<?> provider, TreeFormatter formatter) {
+        if (provider instanceof AbstractMinimalProvider) {
+            ((AbstractMinimalProvider<?>) provider).describeFailureProvenance(formatter);
+        }
     }
 
     /**
