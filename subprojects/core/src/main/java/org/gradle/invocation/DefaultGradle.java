@@ -95,6 +95,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private @Nullable List<IncludedBuildInternal> includedBuilds;
+    private @Nullable ListenerBroadcast<BuildListener> pendingSettingsEvaluated;
     private @Nullable GradleLifecycle lifecycle;
     private @Nullable Supplier<? extends ClassLoaderScope> classLoaderScope;
     private @Nullable ClassLoaderScope baseProjectClassLoaderScope;
@@ -380,12 +381,36 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void settingsEvaluated(@SuppressWarnings("rawtypes") Closure closure) {
-        registerBuildListener("settingsEvaluated", closure);
+        settingsEvaluatedListeners().add(new ClosureBackedMethodInvocationDispatch("settingsEvaluated", closure));
     }
 
     @Override
     public void settingsEvaluated(Action<? super Settings> action) {
-        buildListenerBroadcast.add("settingsEvaluated", action);
+        settingsEvaluatedListeners().add("settingsEvaluated", action);
+    }
+
+    /**
+     * Returns the broadcast that {@code settingsEvaluated} callbacks should currently be registered with. While the
+     * {@code settingsEvaluated} event is being fired, new callbacks are collected in a pending batch that is fired
+     * before {@link #notifySettingsEvaluated(SettingsInternal)} returns, so callbacks can register further callbacks.
+     */
+    private ListenerBroadcast<BuildListener> settingsEvaluatedListeners() {
+        return pendingSettingsEvaluated != null ? pendingSettingsEvaluated : buildListenerBroadcast;
+    }
+
+    @Override
+    public void notifySettingsEvaluated(SettingsInternal settings) {
+        pendingSettingsEvaluated = new ListenerBroadcast<>(BuildListener.class);
+        try {
+            buildListenerBroadcast.getSource().settingsEvaluated(settings);
+            while (!pendingSettingsEvaluated.isEmpty()) {
+                ListenerBroadcast<BuildListener> batch = pendingSettingsEvaluated;
+                pendingSettingsEvaluated = new ListenerBroadcast<>(BuildListener.class);
+                batch.getSource().settingsEvaluated(settings);
+            }
+        } finally {
+            pendingSettingsEvaluated = null;
+        }
     }
 
     @Override
