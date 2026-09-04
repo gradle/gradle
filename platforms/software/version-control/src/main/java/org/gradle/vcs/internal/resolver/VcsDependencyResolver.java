@@ -146,7 +146,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
         return PluginRequests.of(
             requests.stream()
-                .map(original -> new DefaultPluginRequest(DefaultPluginId.of(original.getId()), true, PluginRequestInternal.Origin.AUTO_APPLIED, null, null, null, null, null, null))
+                .map(original -> new DefaultPluginRequest(DefaultPluginId.of(original.getId()), true, PluginRequestInternal.Origin.AUTO_APPLIED, null, null, null, null, null, null, null))
                 .collect(Collectors.toList())
         );
     }

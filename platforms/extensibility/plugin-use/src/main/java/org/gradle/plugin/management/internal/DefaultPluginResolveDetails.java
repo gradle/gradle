@@ -49,7 +49,8 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
             targetPluginRequest.getVersion(),
             USE_MODULE_NOTATION_PARSER.parseNotation(notation),
             targetPluginRequest,
-            targetPluginRequest.getAlternativeCoordinates().orElse(null)
+            targetPluginRequest.getAlternativeCoordinates().orElse(null),
+            null
         );
     }
 
@@ -64,7 +65,8 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
             version,
             targetPluginRequest.getSelector(),
             targetPluginRequest,
-            targetPluginRequest.getAlternativeCoordinates().orElse(null)
+            targetPluginRequest.getAlternativeCoordinates().orElse(null),
+            null
         );
     }
 
