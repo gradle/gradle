@@ -44,6 +44,10 @@ public interface FetchModelResult<M> {
 
     /**
      * Returns the failures that occurred during the fetch operation.
+     * <p>
+     * From Gradle 9.9 onwards, failure descriptions keep their messages and cause structure but omit stack frames. If
+     * the same underlying failure also fails the operation as a whole, its complete stack trace is available from the
+     * failure the operation reports. A failure reported only by this fetch result has no companion stack trace.
      *
      * @return a collection of failures, empty if the fetch operation was successful
      * @since 9.3.0

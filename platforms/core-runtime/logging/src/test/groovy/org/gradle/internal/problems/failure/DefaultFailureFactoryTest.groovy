@@ -114,4 +114,43 @@ class DefaultFailureFactoryTest extends Specification {
         failure.causes.empty
     }
 
+    def "omitting stack traces does not read or classify frames anywhere in the failure tree"() {
+        def cause = new StackTraceReadCountingException("cause")
+        def suppressed = new StackTraceReadCountingException("suppressed")
+        def root = new StackTraceReadCountingException("root", cause)
+        root.addSuppressed(suppressed)
+        def classifier = Mock(StackTraceClassifier)
+
+        when:
+        def failure = new DefaultFailureFactory(classifier).createWithoutStackTrace(root)
+
+        then:
+        root.stackTraceReads == 0
+        cause.stackTraceReads == 0
+        suppressed.stackTraceReads == 0
+        0 * classifier._
+
+        and:
+        failure.stackTrace.empty
+        failure.causes[0].stackTrace.empty
+        failure.suppressed[0].stackTrace.empty
+        failure.header == "${StackTraceReadCountingException.name}: root"
+        failure.causes[0].header == "${StackTraceReadCountingException.name}: cause"
+        failure.suppressed[0].header == "${StackTraceReadCountingException.name}: suppressed"
+    }
+
+    private static class StackTraceReadCountingException extends RuntimeException {
+        int stackTraceReads
+
+        StackTraceReadCountingException(String message, Throwable cause = null) {
+            super(message, cause)
+        }
+
+        @Override
+        StackTraceElement[] getStackTrace() {
+            stackTraceReads++
+            return super.getStackTrace()
+        }
+    }
+
 }

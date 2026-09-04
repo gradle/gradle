@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.problems.failure;
 
-import org.gradle.api.problems.internal.ProblemLocator;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
 /**
- * Converts exceptions to their content-based {@link Failure} representation.
+ * Whether a converted failure carries the stack frames of the original exception.
+ * <p>
+ * Stack frames dominate both the cost of converting a failure and the size of its serialized description.
+ * {@link #OMIT} leaves the failure headers and structure intact without reading, copying, or classifying frames.
  *
- * @see Failure
+ * @see FailureFactory
  */
-@ServiceScope(Scope.Global.class)
-public interface FailureFactory {
-
-    Failure create(Throwable failure);
+@NullMarked
+public enum StackTraceMode {
 
     /**
-     * Converts an exception without reading or retaining its stack frames.
+     * Convert each failure with all of its stack frames.
      */
-    Failure createWithoutStackTrace(Throwable failure);
+    INCLUDE,
 
-    Failure create(Throwable failure, ProblemLocator problemLocator);
-
+    /**
+     * Convert failures and their suppressed exceptions without stack frames.
+     */
+    OMIT
 }

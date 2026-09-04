@@ -35,15 +35,23 @@ import java.util.concurrent.ConcurrentMap;
  * {@link InternalFailure} values, interning by {@link Throwable} identity at every recursion step (see
  * {@link FailureCache} for why this reuse matters). Its lifetime is this build tree, so it is freed when the model
  * phase ends and never retains failure graphs across syncs.
+ * <p>
+ * Fetch failures are converted without stack frames. When the same underlying failure also fails the operation as a
+ * whole, the client receives its complete stack trace from that terminal failure. Failures reported only by a fetch
+ * result intentionally have no full-stack equivalent.
  */
 @ServiceScope(Scope.BuildTree.class)
 @NullMarked
 public class FetchFailureConverter implements FailureCache {
 
-    private final ConcurrentMap<Throwable, InternalFailure> cache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<IdentityKey, InternalFailure> cache = new ConcurrentHashMap<>();
 
-    InternalFailure convert(Failure failure) {
-        return DefaultFailure.fromFailure(failure, FetchFailureConverter::noProblemDetails, this);
+    InternalFailure convertWithoutStackTrace(Failure failure) {
+        return DefaultFailure.fromFailureWithoutStackTrace(failure, FetchFailureConverter::noProblemDetails, this);
+    }
+
+    InternalFailure convertWithoutStackTrace(Throwable throwable) {
+        return DefaultFailure.fromThrowableWithoutStackTrace(throwable, FetchFailureConverter::noProblemDetails, this);
     }
 
     @Nullable
@@ -54,12 +62,30 @@ public class FetchFailureConverter implements FailureCache {
     @Override
     @Nullable
     public InternalFailure get(Throwable original) {
-        return cache.get(original);
+        return cache.get(new IdentityKey(original));
     }
 
     @Override
     public InternalFailure intern(Throwable original, InternalFailure converted) {
-        InternalFailure previous = cache.putIfAbsent(original, converted);
+        InternalFailure previous = cache.putIfAbsent(new IdentityKey(original), converted);
         return previous != null ? previous : converted;
+    }
+
+    private static final class IdentityKey {
+        private final Throwable throwable;
+
+        private IdentityKey(Throwable throwable) {
+            this.throwable = throwable;
+        }
+
+        @Override
+        public boolean equals(@Nullable Object other) {
+            return this == other || (other instanceof IdentityKey && throwable == ((IdentityKey) other).throwable);
+        }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(throwable);
+        }
     }
 }

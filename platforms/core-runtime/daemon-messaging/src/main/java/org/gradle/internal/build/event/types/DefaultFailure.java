@@ -19,7 +19,9 @@ import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.problems.failure.FailurePrinter;
+import org.gradle.internal.problems.failure.StackTraceMode;
 import org.gradle.tooling.internal.protocol.FailureDescriptionReconstructor;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalFailure;
@@ -107,15 +109,34 @@ public class DefaultFailure implements Serializable, InternalFailure {
     }
 
     public static InternalFailure fromThrowable(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
-        Failure failure = DefaultFailureFactory.withDefaultClassifier().create(t);
-        return fromFailure(failure, mapper);
+        return fromThrowable(t, mapper, FailureCache.NONE, StackTraceMode.INCLUDE);
+    }
+
+    public static InternalFailure fromThrowableWithoutStackTrace(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache) {
+        return fromThrowable(t, mapper, cache, StackTraceMode.OMIT);
+    }
+
+    private static InternalFailure fromThrowable(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache, StackTraceMode stackTraceMode) {
+        InternalFailure cached = cache.get(t);
+        if (cached != null) {
+            return cached;
+        }
+        FailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier();
+        Failure failure = stackTraceMode == StackTraceMode.OMIT
+            ? failureFactory.createWithoutStackTrace(t)
+            : failureFactory.create(t);
+        return fromFailure(failure, mapper, cache, stackTraceMode);
     }
 
     public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
-        return fromFailure(buildFailure, mapper, FailureCache.NONE);
+        return fromFailure(buildFailure, mapper, FailureCache.NONE, StackTraceMode.INCLUDE);
     }
 
-    public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache) {
+    public static InternalFailure fromFailureWithoutStackTrace(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache) {
+        return fromFailure(buildFailure, mapper, cache, StackTraceMode.OMIT);
+    }
+
+    private static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper, FailureCache cache, StackTraceMode stackTraceMode) {
         // Reuse the conversion of a throwable already seen, e.g. a configuration failure shared across per-project fetches.
         InternalFailure cached = cache.get(buildFailure.getOriginal());
         if (cached != null) {
@@ -124,8 +145,8 @@ public class DefaultFailure implements Serializable, InternalFailure {
         // Build the failure tree in a single pass: each node carries only its own description. The full description (the
         // whole cause subtree) is reconstructed lazily from these on demand, so no node prints its subtree here. Children
         // are interned before the parent, so the cache is never re-entered while a single mapping is being computed.
-        String ownDescription = FailurePrinter.printNodeToString(buildFailure);
-        List<InternalFailure> causeFailures = convertCausesToFailures(buildFailure.getCauses(), mapper, cache);
+        String ownDescription = renderOwnDescription(buildFailure, stackTraceMode);
+        List<InternalFailure> causeFailures = convertCausesToFailures(buildFailure.getCauses(), mapper, cache, stackTraceMode);
         List<InternalBasicProblemDetailsVersion3> problemDetails = buildFailure.getProblems().stream()
             .map(mapper)
             .collect(toList());
@@ -134,10 +155,17 @@ public class DefaultFailure implements Serializable, InternalFailure {
         return cache.intern(buildFailure.getOriginal(), converted);
     }
 
+    private static String renderOwnDescription(Failure buildFailure, StackTraceMode stackTraceMode) {
+        return stackTraceMode == StackTraceMode.OMIT
+            ? FailurePrinter.printNodeWithoutFramesToString(buildFailure)
+            : FailurePrinter.printNodeToString(buildFailure);
+    }
+
     private static List<InternalFailure> convertCausesToFailures(
         List<Failure> causes,
         Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper,
-        FailureCache cache
+        FailureCache cache,
+        StackTraceMode stackTraceMode
     ) {
         return causes.stream()
             // Multi cause exceptions are dropped from the cause structure (the reason predates this code); for example
@@ -147,7 +175,7 @@ public class DefaultFailure implements Serializable, InternalFailure {
             .flatMap(cause -> cause.getOriginal() instanceof MultiCauseException
                 ? cause.getCauses().stream()
                 : Stream.of(cause))
-            .map(cause -> fromFailure(cause, mapper, cache))
+            .map(cause -> fromFailure(cause, mapper, cache, stackTraceMode))
             .collect(toList());
     }
 

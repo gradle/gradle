@@ -127,7 +127,7 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
                 } catch (Throwable t) {
                     // Safety net for an unexpected throw; the resilient controller normally
                     // captures configuration failures into the result itself.
-                    return ToolingModelBuilderResultInternal.of(ImmutableList.of(failureFactory.create(t)));
+                    return ToolingModelBuilderResultInternal.of(ImmutableList.of(failureFactory.createWithoutStackTrace(t)));
                 }
             })
             .collect(toList());

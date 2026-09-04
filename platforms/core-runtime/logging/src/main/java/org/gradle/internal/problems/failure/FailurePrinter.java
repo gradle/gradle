@@ -47,8 +47,20 @@ public class FailurePrinter {
      * The node's own frames are printed as if it had no parent, so no common tail elision is applied to them.
      */
     public static String printNodeToString(Failure failure) {
+        return printNodeToString(failure, true);
+    }
+
+    /**
+     * Prints a single node like {@link #printNodeToString(Failure)}, but without any stack frames: only its header and
+     * any suppressed exceptions, themselves printed without frames.
+     */
+    public static String printNodeWithoutFramesToString(Failure failure) {
+        return printNodeToString(failure, false);
+    }
+
+    private static String printNodeToString(Failure failure, boolean printFrames) {
         StringBuilder output = new StringBuilder();
-        new Job(output, FailurePrinterListener.NO_OP).printNode(failure);
+        new Job(output, FailurePrinterListener.NO_OP, printFrames).printNode(failure);
         return output.toString();
     }
 
@@ -57,11 +69,17 @@ public class FailurePrinter {
         private final FailurePrinterListener listener;
 
         private final Appendable builder;
+        private final boolean printFrames;
         private final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         private Job(Appendable builder, FailurePrinterListener listener) {
+            this(builder, listener, true);
+        }
+
+        private Job(Appendable builder, FailurePrinterListener listener, boolean printFrames) {
             this.listener = listener;
             this.builder = builder;
+            this.printFrames = printFrames;
         }
 
         public void print(Failure failure) {
@@ -116,6 +134,10 @@ public class FailurePrinter {
         }
 
         private void appendFrames(String prefix, @Nullable Failure parent, Failure failure) throws IOException {
+            if (!printFrames) {
+                return;
+            }
+
             List<StackTraceElement> stackTrace = failure.getStackTrace();
 
             int commonTailSize = parent == null ? 0 : countCommonTailFrames(stackTrace, parent.getStackTrace());

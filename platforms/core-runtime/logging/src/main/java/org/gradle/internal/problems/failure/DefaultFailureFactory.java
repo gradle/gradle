@@ -50,32 +50,42 @@ public class DefaultFailureFactory implements FailureFactory {
 
     @Override
     public Failure create(Throwable failure) {
-        return new Job(stackTraceClassifier, ProblemLocator.EMPTY_LOCATOR)
+        return create(failure, ProblemLocator.EMPTY_LOCATOR, StackTraceMode.INCLUDE);
+    }
+
+    @Override
+    public Failure createWithoutStackTrace(Throwable failure) {
+        return create(failure, ProblemLocator.EMPTY_LOCATOR, StackTraceMode.OMIT);
+    }
+
+    private Failure create(Throwable failure, ProblemLocator problemLocator, StackTraceMode stackTraceMode) {
+        return new Job(stackTraceClassifier, problemLocator, stackTraceMode)
             .convert(failure);
     }
 
     @Override
     public Failure create(Throwable failure, ProblemLocator problemLocator) {
-        return new Job(stackTraceClassifier, problemLocator)
-            .convert(failure);
+        return create(failure, problemLocator, StackTraceMode.INCLUDE);
     }
 
     private static final class Job {
 
         private final StackTraceClassifier stackTraceClassifier;
         private final ProblemLocator problemLocator;
+        private final StackTraceMode stackTraceMode;
 
         private final Set<Throwable> seen;
 
         private final Function<Throwable, Failure> recursiveConverter = this::convertRecursively;
 
-        private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator) {
-            this(stackTraceClassifier, problemLocator, null);
+        private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator, StackTraceMode stackTraceMode) {
+            this(stackTraceClassifier, problemLocator, stackTraceMode, null);
         }
 
-        private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator, @Nullable Set<Throwable> parentSeen) {
+        private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator, StackTraceMode stackTraceMode, @Nullable Set<Throwable> parentSeen) {
             this.stackTraceClassifier = stackTraceClassifier;
             this.problemLocator = problemLocator;
+            this.stackTraceMode = stackTraceMode;
             this.seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
             if (parentSeen != null) {
                 this.seen.addAll(parentSeen);
@@ -93,12 +103,18 @@ public class DefaultFailureFactory implements FailureFactory {
             }
             if (!seen.add(failure)) {
                 Throwable replacement = new Throwable("[CIRCULAR REFERENCE: " + failure + "]");
-                replacement.setStackTrace(failure.getStackTrace());
+                replacement.setStackTrace(
+                    stackTraceMode == StackTraceMode.INCLUDE ? failure.getStackTrace() : new StackTraceElement[0]
+                );
                 failure = replacement;
             }
 
-            ImmutableList<StackTraceElement> stackTrace = ImmutableList.copyOf(failure.getStackTrace());
-            List<StackTraceRelevance> relevances = classify(stackTrace, stackTraceClassifier);
+            ImmutableList<StackTraceElement> stackTrace = stackTraceMode == StackTraceMode.INCLUDE
+                ? ImmutableList.copyOf(failure.getStackTrace())
+                : ImmutableList.of();
+            List<StackTraceRelevance> relevances = stackTraceMode == StackTraceMode.INCLUDE
+                ? classify(stackTrace, stackTraceClassifier)
+                : ImmutableList.of();
             SuppressedAndCauses suppressedAndCauses = getSuppressedAndCauses(failure);
             List<Failure> suppressed = convertSuppressed(suppressedAndCauses);
             List<Failure> causes = convertCauses(suppressedAndCauses);
@@ -181,7 +197,7 @@ public class DefaultFailureFactory implements FailureFactory {
         }
 
         private Failure multiChildTransformer(Throwable throwable) {
-            return new Job(stackTraceClassifier, problemLocator, seen).convert(throwable);
+            return new Job(stackTraceClassifier, problemLocator, stackTraceMode, seen).convert(throwable);
         }
 
         private static class SuppressedAndCauses {

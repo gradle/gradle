@@ -87,7 +87,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     private static ToolingModelScopeResult configurationFailureResult(FailureFactory failureFactory, Throwable clientFailure, Throwable buildFailure, @Nullable Object model) {
-        ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failureFactory.create(clientFailure)));
+        ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failureFactory.createWithoutStackTrace(clientFailure)));
         return ToolingModelScopeResult.withConfigurationFailure(clientResult, buildFailure);
     }
 
@@ -141,7 +141,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
                 if (failure instanceof UnknownModelException) {
                     throw (UnknownModelException) failure;
                 }
-                ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.create(failure)));
+                ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.createWithoutStackTrace(failure)));
                 return ToolingModelScopeResult.withModelBuilderFailure(clientResult, failure);
             });
         }
@@ -180,7 +180,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         @Override
         public ToolingModelScopeResult getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
             return Try.ofFailable(() -> buildScopeResult(parameter)).getOrMapFailure(failure -> {
-                ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.create(failure)));
+                ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.of(null, ImmutableList.of(failureFactory.createWithoutStackTrace(failure)));
                 return ToolingModelScopeResult.withModelBuilderFailure(clientResult, failure);
             });
         }

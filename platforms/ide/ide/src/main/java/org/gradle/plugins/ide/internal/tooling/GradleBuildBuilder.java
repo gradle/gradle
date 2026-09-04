@@ -125,7 +125,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             try {
                 target.ensureProjectsLoaded();
             } catch (GradleException e) {
-                failures.add(failureFactory.create(e));
+                // The failure retains the original exception, which the tooling model controller reports at the build boundary.
+                failures.add(failureFactory.createWithoutStackTrace(e));
             }
         }
 

@@ -91,6 +91,57 @@ class FailurePrinterTest extends Specification {
         !node.contains(cause.stackTrace[0].toString())
     }
 
+    def "printNodeWithoutFramesToString prints only the node header"() {
+        def cause = SimulatedJavaException.simulateDeeperException()
+        def e = new RuntimeException("BOOM", cause)
+        def f = toFailure(e)
+
+        when:
+        def node = FailurePrinter.printNodeWithoutFramesToString(f)
+
+        then:
+        node == "java.lang.RuntimeException: BOOM" + System.lineSeparator()
+
+        and:
+        !containsRenderedStackTrace(node)
+        !node.contains("Caused by:")
+    }
+
+    def "printNodeWithoutFramesToString keeps suppressed exceptions but drops their frames"() {
+        def e = new RuntimeException("BOOM")
+        e.addSuppressed(new RuntimeException("SUPPRESSED", SimulatedJavaException.simulateDeeperException()))
+        def f = toFailure(e)
+
+        when:
+        def node = FailurePrinter.printNodeWithoutFramesToString(f)
+
+        then:
+        node.contains("java.lang.RuntimeException: BOOM")
+        node.contains("\tSuppressed: java.lang.RuntimeException: SUPPRESSED")
+        node.contains("\tCaused by: ")
+
+        and:
+        !containsRenderedStackTrace(node)
+    }
+
+    def "printNodeWithoutFramesToString does not read the frames it would not print"() {
+        // The point of the frameless print is to skip the frame work, not to render frames and then drop the result.
+        def failure = Mock(Failure) {
+            getHeader() >> "java.lang.RuntimeException: BOOM"
+            getSuppressed() >> []
+        }
+
+        when:
+        def node = FailurePrinter.printNodeWithoutFramesToString(failure)
+
+        then:
+        node == "java.lang.RuntimeException: BOOM" + System.lineSeparator()
+
+        and:
+        0 * failure.getStackTrace()
+        0 * failure.getStackTraceRelevance(_)
+    }
+
     def "notifies the listener"() {
         def e = new RuntimeException("BOOM")
         def firstFrame = e.stackTrace[0]
@@ -110,6 +161,14 @@ class FailurePrinterTest extends Specification {
         1 * listener.beforeFrames()
         1 * listener.beforeFrame(firstFrame, USER_CODE)
         1 * listener.afterFrames()
+    }
+
+    /**
+     * Whether the text renders a stack trace: a frame line, or the line that elides a tail of frames shared with the
+     * parent. Both are indented, and a suppressed exception's own lines carry one further level of indentation.
+     */
+    private static boolean containsRenderedStackTrace(String text) {
+        return text.readLines().any { it ==~ /\t+(at .+|\.\.\. \d+ more)/ }
     }
 
     private static Failure toFailure(Throwable t) {

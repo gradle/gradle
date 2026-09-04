@@ -28,32 +28,86 @@ class FetchFailureConverterTest extends Specification {
 
     def converter = new FetchFailureConverter()
 
+    def "converts without stack frames, keeping the messages and the cause chain"() {
+        def throwable = new RuntimeException("top", new IllegalStateException("bottom"))
+
+        when:
+        def converted = converter.convertWithoutStackTrace(failureOf(throwable))
+
+        then:
+        converted.message == "top"
+        converted.causes[0].message == "bottom"
+
+        and:
+        def description = converted.description
+        description.contains("java.lang.RuntimeException: top")
+        description.contains("Caused by: java.lang.IllegalStateException: bottom")
+        !containsRenderedStackTrace(description)
+    }
+
+    def "converts a throwable without stack frames and interns it like a failure"() {
+        def throwable = new RuntimeException("boom")
+
+        when:
+        def fromThrowable = converter.convertWithoutStackTrace(throwable)
+        def fromFailure = converter.convertWithoutStackTrace(failureOf(throwable))
+
+        then: "the throwable and the failure wrapping it convert to the same instance"
+        fromThrowable.is(fromFailure)
+
+        and:
+        !containsRenderedStackTrace(fromThrowable.description)
+    }
+
     def "reuses the converted failure when two failures share the same original throwable"() {
         def throwable = new RuntimeException("boom")
 
         when:
-        def first = converter.convert(failureOf(throwable))
-        def second = converter.convert(failureOf(throwable))
+        def first = converter.convertWithoutStackTrace(failureOf(throwable))
+        def second = converter.convertWithoutStackTrace(failureOf(throwable))
 
         then:
         first.is(second)
     }
 
+    def "consults the identity cache before converting a throwable to a failure"() {
+        def throwable = new CauseAccessGuardException("boom")
+        def first = converter.convertWithoutStackTrace(failureOf(throwable))
+        throwable.causeAccessAllowed = false
+
+        when:
+        def second = converter.convertWithoutStackTrace(throwable)
+
+        then: "the factory is bypassed, so it never tries to inspect the throwable again"
+        second.is(first)
+    }
+
     def "converts failures with distinct originals into distinct instances"() {
         when:
-        def first = converter.convert(failureOf(new RuntimeException("one")))
-        def second = converter.convert(failureOf(new RuntimeException("two")))
+        def first = converter.convertWithoutStackTrace(failureOf(new RuntimeException("one")))
+        def second = converter.convertWithoutStackTrace(failureOf(new RuntimeException("two")))
 
         then:
         !first.is(second)
+    }
+
+    def "uses throwable identity rather than equality for cache keys"() {
+        when:
+        def first = converter.convertWithoutStackTrace(failureOf(new EqualException("one")))
+        def second = converter.convertWithoutStackTrace(failureOf(new EqualException("two")))
+
+        then:
+        !first.is(second)
+        first.message == "one"
+        second.message == "two"
     }
 
     def "reuses the whole converted tree when two failures share the same throwable tree"() {
         def shared = chainOfDepth(4)
 
         when:
-        def first = converter.convert(failureOf(shared))
-        def second = converter.convert(failureOf(shared))
+        def first = converter.convertWithoutStackTrace(failureOf(shared))
+        def second = converter.convertWithoutStackTrace(failureOf(shared))
 
         then:
         first.is(second)
@@ -66,8 +120,8 @@ class FetchFailureConverterTest extends Specification {
         def topB = new RuntimeException("project :b failed", sharedCause)
 
         when:
-        def a = converter.convert(failureOf(topA))
-        def b = converter.convert(failureOf(topB))
+        def a = converter.convertWithoutStackTrace(failureOf(topA))
+        def b = converter.convertWithoutStackTrace(failureOf(topB))
 
         then: "the per-project wrappers differ but the shared deep cause is converted once"
         !a.is(b)
@@ -84,7 +138,7 @@ class FetchFailureConverterTest extends Specification {
         def futures = (1..threads).collect {
             executor.submit({
                 start.await()
-                converter.convert(failureOf(shared))
+                converter.convertWithoutStackTrace(failureOf(shared))
             } as Callable)
         }
         start.countDown()
@@ -97,6 +151,14 @@ class FetchFailureConverterTest extends Specification {
         executor.shutdownNow()
     }
 
+    /**
+     * Whether the text renders a stack trace: a frame line, or the line that elides a tail of frames shared with the
+     * parent. Both are indented, and a suppressed exception's own lines carry one further level of indentation.
+     */
+    private static boolean containsRenderedStackTrace(String text) {
+        return text.readLines().any { it ==~ /\t+(at .+|\.\.\. \d+ more)/ }
+    }
+
     private static Failure failureOf(Throwable throwable) {
         DefaultFailureFactory.withDefaultClassifier().create(throwable)
     }
@@ -105,5 +167,37 @@ class FetchFailureConverterTest extends Specification {
         Throwable t = new RuntimeException("leaf")
         (1..(depth - 1)).each { t = new RuntimeException("level-$it", t) }
         t
+    }
+
+    private static class CauseAccessGuardException extends RuntimeException {
+        boolean causeAccessAllowed = true
+
+        CauseAccessGuardException(String message) {
+            super(message)
+        }
+
+        @Override
+        synchronized Throwable getCause() {
+            if (!causeAccessAllowed) {
+                throw new AssertionError("cause should not be read after the throwable has been cached")
+            }
+            return super.getCause()
+        }
+    }
+
+    private static class EqualException extends RuntimeException {
+        EqualException(String message) {
+            super(message)
+        }
+
+        @Override
+        boolean equals(Object other) {
+            return other instanceof EqualException
+        }
+
+        @Override
+        int hashCode() {
+            return 0
+        }
     }
 }

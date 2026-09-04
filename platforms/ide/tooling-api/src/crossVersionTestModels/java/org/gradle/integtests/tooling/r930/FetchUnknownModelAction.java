@@ -21,17 +21,30 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.FetchModelResult;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class FetchUnknownModelAction implements BuildAction<List<String>> {
+class FetchUnknownModelAction implements BuildAction<FetchUnknownModelAction.Result> {
     @Override
-    public List<String> execute(BuildController controller) {
+    public Result execute(BuildController controller) {
         FetchModelResult<UnknownModel> result = controller.fetch(null, UnknownModel.class, null, null);
         assert result.getModel() == null;
-        return result.getFailures().stream()
-            .flatMap(f -> f.getCauses().stream())
+        assert result.getFailures().size() == 1;
+        Failure failure = result.getFailures().iterator().next();
+        List<String> causes = failure.getCauses().stream()
             .map(Failure::getMessage)
             .collect(Collectors.toList());
+        return new Result(causes, failure.getDescription());
+    }
+
+    public static class Result implements Serializable {
+        public final List<String> causes;
+        public final String failureDescription;
+
+        public Result(List<String> causes, String failureDescription) {
+            this.causes = causes;
+            this.failureDescription = failureDescription;
+        }
     }
 }
