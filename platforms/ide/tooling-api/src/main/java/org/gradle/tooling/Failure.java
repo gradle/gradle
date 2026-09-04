@@ -39,8 +39,8 @@ public interface Failure {
     String getMessage();
 
     /**
-     * Returns a long description of the failure. For example, a stack trace. This method is intended to be called on
-     * the root failure, as the description may include the descriptions of the failures returned by {@link #getCauses()}.
+     * Returns a long description of the failure. For example, a stack trace. Call this method on the root failure
+     * only: the description may include the full text of the failures returned by {@link #getCauses()}.
      * When inspecting every node in a failure tree, use {@link #getOwnDescription()} to avoid processing cause
      * descriptions repeatedly.
      *
@@ -51,7 +51,7 @@ public interface Failure {
     String getDescription();
 
     /**
-     * Returns a long description of this failure node alone. For example, the failure header, its stack frames, and
+     * Returns a long description of this failure node, excluding the descriptions of its causes. For example, the failure header, its stack frames, and
      * any suppressed exceptions, but not the descriptions of the failures returned by {@link #getCauses()}.
      * <p>
      * Unlike {@link #getDescription()}, which may contain the text of the whole cause subtree, this method can be used
