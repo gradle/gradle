@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.normalization.MetaInfNormalization;
 import org.gradle.normalization.PropertiesFileNormalization;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -100,6 +101,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
         }
     }
 
+    @Nullable
     @Override
     public CachedState computeCachedState() {
         DefaultCachedState cachedState = new DefaultCachedState(resourceFilter, manifestAttributeResourceFilter, propertyFileFilters);
@@ -127,7 +129,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     }
 
     private static class EvaluatableFilter<T> {
-        private T value;
+        private @Nullable T value;
         private final Supplier<T> valueSupplier;
         private final ImmutableSet.Builder<String> builder;
 
@@ -167,7 +169,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
 
     private static class DefaultPropertiesFileFilter implements PropertiesFileFilter {
         private final Map<String, EvaluatableFilter<ResourceEntryFilter>> propertyFilters = new HashMap<>();
-        private Map<String, ResourceEntryFilter> finalPropertyFilters;
+        private @Nullable Map<String, ResourceEntryFilter> finalPropertyFilters;
 
         DefaultPropertiesFileFilter() {
             propertyFilters.put(PropertiesFileFilter.ALL_PROPERTIES, filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING));
