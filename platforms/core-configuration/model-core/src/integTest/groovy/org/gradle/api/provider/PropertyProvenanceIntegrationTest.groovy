@@ -104,6 +104,26 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
             "    at build file 'build\\.gradle\\.kts' \\(build\\.gradle\\.kts:\\d+\\) \\[explicit source\\].*"))
     }
 
+    def "Java plugin reports direct configuration as the selected source"() {
+        javaPluginBuild()
+
+        when:
+        fails("directPluginValue")
+
+        then:
+        failure.assertThatCause(pluginTrace("directPluginValue"))
+    }
+
+    def "Java plugin attribution survives a deferred task configuration callback"() {
+        javaPluginBuild()
+
+        when:
+        fails("deferredPluginValue")
+
+        then:
+        failure.assertThatCause(pluginTrace("deferredPluginValue"))
+    }
+
     def "Groovy DSL trace deliberately omits line-level call sites"() {
         file("build.gradle") << '''
             def value = objects.property(String)
@@ -147,5 +167,66 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
                 $configuration
             }
         """
+    }
+
+    private void javaPluginBuild() {
+        file("settings.gradle.kts") << ""
+        file("buildSrc/settings.gradle.kts") << "rootProject.name = \"build-logic\""
+        file("buildSrc/build.gradle.kts") << '''
+            plugins {
+                `java-gradle-plugin`
+            }
+
+            gradlePlugin {
+                plugins {
+                    create("propertyProvenance") {
+                        id = "com.example.property-provenance"
+                        implementationClass = "com.example.PropertyProvenancePlugin"
+                    }
+                }
+            }
+        '''
+        file("buildSrc/src/main/java/com/example/PropertyProvenancePlugin.java") << '''
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.Property;
+
+            public final class PropertyProvenancePlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    Property<String> direct = missingProperty(project);
+                    project.getTasks().register("directPluginValue", task ->
+                        task.doLast(ignored -> direct.get())
+                    );
+
+                    project.getTasks().register("deferredPluginValue", task -> {
+                        Property<String> deferred = missingProperty(project);
+                        task.doLast(ignored -> deferred.get());
+                    });
+                }
+
+                private static Property<String> missingProperty(Project project) {
+                    Property<String> value = project.getObjects().property(String.class);
+                    value.convention(project.getProviders().gradleProperty("missing-convention"));
+                    value.set(project.getProviders().gradleProperty("missing-explicit"));
+                    return value;
+                }
+            }
+        '''
+        file("build.gradle.kts") << '''
+            plugins {
+                id("com.example.property-provenance")
+            }
+        '''
+    }
+
+    private static def pluginTrace(String taskName) {
+        matchesRegex("(?s).*Failure trace to source:\\R" +
+            "    at task ':${taskName}' action \\(PropertyProvenancePlugin\\.java:\\d+\\) \\[get\\(\\)\\]\\R" +
+            "    at plugin 'com\\.example\\.property-provenance' \\(PropertyProvenancePlugin\\.java:\\d+\\) \\[explicit source\\]\\R\\R" +
+            "Shadowed configuration:\\R" +
+            "    at plugin 'com\\.example\\.property-provenance' \\(PropertyProvenancePlugin\\.java:\\d+\\) \\[convention\\].*")
     }
 }
