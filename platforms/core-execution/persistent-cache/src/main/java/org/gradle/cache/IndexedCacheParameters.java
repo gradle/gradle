@@ -25,7 +25,7 @@ public class IndexedCacheParameters<K, V> {
     private final String cacheName;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
-    private final CacheDecorator cacheDecorator;
+    private final @Nullable CacheDecorator cacheDecorator;
 
     public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, null);
