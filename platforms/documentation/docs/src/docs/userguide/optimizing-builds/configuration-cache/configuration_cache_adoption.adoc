@@ -343,7 +343,6 @@ If your task fits this pattern, plan for the following:
 Run your plugin's integration tests with the Configuration Cache enabled.
 Either pass `--configuration-cache` to your TestKit `GradleRunner` invocations, or set `org.gradle.configuration-cache=true` in the test project's `gradle.properties`.
 The rewrite is CC-compatible on the tested Gradle version if those tests pass on a clean run and on a repeated run (verifying both the CC store and the CC hit).
-See <<test_kit.adoc#sub:test-kit-configuration-cache, TestKit and the Configuration Cache>> for setup details on the TestKit side.
 
 If your plugin's existing tests use a *self-application pattern* (applying the plugin's own published version to test itself), those tests exercise whatever is published, not the local source — so they will not validate a local rewrite until a new version is published.
 Convert the affected tests to a TestKit-based integration test suite that builds and applies the plugin under test directly.

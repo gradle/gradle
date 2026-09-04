@@ -69,6 +69,7 @@ objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objene
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version = "2.0.24" } # Flexmark 0.34.60 brings in a vulnerable version of pdfbox
 plexusUtils = { module = "org.codehaus.plexus:plexus-utils", version = "3.6.1" } # CVE-2025-67030 on lower versions
 proguard = { module = "com.guardsquare:proguard-base", version = "7.9.1" }
+pomPropertiesPlugin = { module = "org.gradle.pom-properties:org.gradle.pom-properties.gradle.plugin", version = "0.1.0" }
 publishPlugin = { module = "com.gradle.publish:plugin-publish-plugin", version = "2.1.1" }
 qdox = { module = "com.thoughtworks.qdox:qdox", version = "2.2.0" }
 spock = { group = "org.spockframework", name = "spock-core", version.ref = "spock" }
