@@ -109,6 +109,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     private static final InternalOption<Boolean> PROPERTY_PROVENANCE =
         InternalOptions.ofBoolean("org.gradle.internal.property-provenance", false);
+    private static final InternalOption<Boolean> PROPERTY_PROVENANCE_LOCATIONS =
+        InternalOptions.ofBoolean("org.gradle.internal.property-provenance.locations", false);
 
     private final BuildActionModelRequirements buildActionRequirements;
     private final BuildModelParameters buildModelParameters;
@@ -187,7 +189,10 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected PropertyProvenanceRegistry createPropertyProvenanceRegistry(InternalOptions internalOptions) {
-        return new PropertyProvenanceRegistry(internalOptions.getBoolean(PROPERTY_PROVENANCE));
+        return new PropertyProvenanceRegistry(
+            internalOptions.getBoolean(PROPERTY_PROVENANCE),
+            internalOptions.getBoolean(PROPERTY_PROVENANCE_LOCATIONS)
+        );
     }
 
     @Provides

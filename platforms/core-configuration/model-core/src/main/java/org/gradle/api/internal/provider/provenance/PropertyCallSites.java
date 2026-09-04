@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.provenance;
 
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
@@ -25,25 +26,28 @@ import org.jspecify.annotations.Nullable;
  */
 public final class PropertyCallSites {
     private static final ThreadLocal<String> CURRENT = new ThreadLocal<>();
-    private static volatile boolean enabled;
 
     private PropertyCallSites() {
     }
 
-    public static void setEnabled(boolean enabled) {
-        PropertyCallSites.enabled = enabled;
-    }
-
     public static void set(Property<Object> property, @Nullable Object value, String callSite) {
+        if (!capturesLocations(property)) {
+            property.set(value);
+            return;
+        }
         runAt(callSite, () -> property.set(value));
     }
 
     public static void set(Property<Object> property, Provider<Object> value, String callSite) {
+        if (!capturesLocations(property)) {
+            property.set(value);
+            return;
+        }
         runAt(callSite, () -> property.set(value));
     }
 
     public static Property<Object> convention(Property<Object> property, @Nullable Object value, String callSite) {
-        if (!enabled) {
+        if (!capturesLocations(property)) {
             return property.convention(value);
         }
         String previous = CURRENT.get();
@@ -56,7 +60,7 @@ public final class PropertyCallSites {
     }
 
     public static Property<Object> convention(Property<Object> property, Provider<Object> value, String callSite) {
-        if (!enabled) {
+        if (!capturesLocations(property)) {
             return property.convention(value);
         }
         String previous = CURRENT.get();
@@ -69,14 +73,14 @@ public final class PropertyCallSites {
     }
 
     public static @Nullable String current() {
-        return enabled ? CURRENT.get() : null;
+        return CURRENT.get();
+    }
+
+    private static boolean capturesLocations(Property<?> property) {
+        return property instanceof PropertyInternal<?> && ((PropertyInternal<?>) property).capturesPropertyCallSites();
     }
 
     private static void runAt(String callSite, Runnable operation) {
-        if (!enabled) {
-            operation.run();
-            return;
-        }
         String previous = CURRENT.get();
         CURRENT.set(callSite);
         try {

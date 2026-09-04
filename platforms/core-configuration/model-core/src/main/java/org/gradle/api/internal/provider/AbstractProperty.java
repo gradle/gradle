@@ -80,6 +80,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return state.isFinalized();
     }
 
+    @Override
+    public final boolean capturesPropertyCallSites() {
+        return provenanceHost != null && provenanceHost.capturesPropertyCallSites();
+    }
+
     public boolean isDisallowChanges() {
         return state.isDisallowChanges();
     }
@@ -300,7 +305,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     protected void setConvention(S convention) {
-        state.beforeMutate(this.getDisplayName());
+        assertCanMutate(PropertyProvenanceKind.SET_CONVENTION);
         this.value = state.applyConvention(value, convention);
     }
 
@@ -343,7 +348,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      * Discards the value of this property, and uses its convention.
      */
     protected void discardValue() {
-        assertCanMutate();
+        discardValue(PropertyProvenanceKind.SET);
+    }
+
+    private void discardValue(PropertyProvenanceKind operation) {
+        assertCanMutate(operation);
         if (isDefaultConvention()) {
             // special case: discarding value without a convention restores the initial state
             state.implicitValue(getDefaultConvention());
@@ -361,7 +370,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      * Discards the convention of this property.
      */
     protected void discardConvention() {
-        state.beforeMutate(this.getDisplayName());
+        assertCanMutate(PropertyProvenanceKind.UNSET_CONVENTION);
         value = state.applyConvention(value, getDefaultConvention());
         if (provenance != null) {
             provenance.discardConvention();
@@ -376,7 +385,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public SupportsConvention unset() {
-        discardValue();
+        discardValue(PropertyProvenanceKind.UNSET);
         return this;
     }
 
@@ -387,8 +396,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      * the effect of invoking it is similar to invoking {@link #unset()}.
      */
     protected SupportsConvention setToConvention() {
-        assertCanMutate();
+        assertCanMutate(PropertyProvenanceKind.SET_TO_CONVENTION);
         this.value = state.setToConvention();
+        if (provenance != null) {
+            provenance.promoteConvention();
+        }
         return this;
     }
 
@@ -400,9 +412,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      * or if an explicit value has already been set, it has no effect.
      */
     protected SupportsConvention setToConventionIfUnset() {
-        assertCanMutate();
+        assertCanMutate(PropertyProvenanceKind.SET_TO_CONVENTION_IF_UNSET);
         if (!isDefaultConvention()) {
+            boolean wasExplicit = state.isExplicit();
             this.value = state.setToConventionIfUnset(value);
+            if (!wasExplicit && provenance != null) {
+                provenance.promoteConvention();
+            }
         }
         return this;
     }
@@ -431,7 +447,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(failure.getMessage());
             describePropertyFailure(formatter, provenanceHost.currentPropertyFailure(operation));
-            throw new IllegalStateException(formatter.toString());
+            throw new IllegalStateException(formatter.toString(), failure);
         }
     }
 
@@ -483,13 +499,18 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
-        if (!trace.enter(this)) {
+        if (provenanceHost == null || !trace.enter(this)) {
             return;
         }
-        PropertyProvenanceState current = provenance == null ? new PropertyProvenanceState() : provenance;
-        trace.property(current);
-        if (value instanceof ProviderInternal<?>) {
-            collectFailureProvenanceOf((ProviderInternal<?>) value, trace);
+        collectSupplierProvenance(trace, provenance, value);
+    }
+
+    private void collectSupplierProvenance(PropertyProvenanceTrace trace, @Nullable PropertyProvenanceState source, S supplier) {
+        if (source != null) {
+            trace.property(source);
+        }
+        if (supplier instanceof ProviderInternal<?>) {
+            collectFailureProvenanceOf((ProviderInternal<?>) supplier, trace);
         }
     }
 
@@ -559,6 +580,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         // the value of "value" is immutable but the field is not, so copy it
         // (but use a different owner)
         private final S copiedValue = value;
+        private final @Nullable PropertyProvenanceState copiedProvenance = provenance == null ? null : provenance.copy();
 
         @Override
         public ValueProducer getProducer() {
@@ -583,12 +605,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         protected void describeFailureProvenance(TreeFormatter formatter) {
-            AbstractProperty.this.describeFailureProvenance(formatter);
+            if (provenanceHost == null) {
+                return;
+            }
+            PropertyProvenanceTrace trace = new PropertyProvenanceTrace();
+            collectFailureProvenance(trace);
+            trace.describeFailure(formatter, provenanceHost.currentPropertyFailure(PropertyProvenanceKind.GET));
         }
 
         @Override
         protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
-            AbstractProperty.this.collectFailureProvenance(trace);
+            if (provenanceHost != null && trace.enter(this)) {
+                collectSupplierProvenance(trace, copiedProvenance, copiedValue);
+            }
         }
 
         @Override

@@ -47,8 +47,9 @@ public final class PropertyProvenanceTrace {
         if (selected != null) {
             selectedSources.add(selected);
         }
-        if (state.isExplicitSelected() && state.getConvention() != null) {
-            shadowedConventions.add(state.getConvention());
+        PropertyProvenanceRecord convention = state.getConvention();
+        if (state.hasShadowedConvention() && convention != null) {
+            shadowedConventions.add(convention);
         }
     }
 

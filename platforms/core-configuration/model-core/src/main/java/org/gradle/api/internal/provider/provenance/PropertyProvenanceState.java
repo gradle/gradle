@@ -28,22 +28,47 @@ public final class PropertyProvenanceState {
     private @Nullable PropertyProvenanceRecord explicitSource;
     private @Nullable PropertyProvenanceRecord convention;
     private boolean explicitSelected;
+    private boolean conventionPromoted;
 
     public void explicitSource(PropertyProvenanceRecord source) {
         explicitSource = source;
         explicitSelected = true;
+        conventionPromoted = false;
     }
 
     public void convention(PropertyProvenanceRecord source) {
         convention = source;
+        // Even an interned record from the same origin represents a new binding occurrence.
+        conventionPromoted = false;
     }
 
     public void selectExplicit() {
         explicitSelected = true;
+        conventionPromoted = false;
     }
 
     public void selectConvention() {
         explicitSelected = false;
+        explicitSource = null;
+        conventionPromoted = false;
+    }
+
+    /**
+     * Promoting a convention freezes its binding, even if a different convention is supplied later.
+     */
+    public void promoteConvention() {
+        explicitSource = convention;
+        explicitSelected = true;
+        conventionPromoted = true;
+    }
+
+    public PropertyProvenanceState copy() {
+        PropertyProvenanceState copy = new PropertyProvenanceState();
+        copy.explicitSource = explicitSource;
+        copy.convention = convention;
+        copy.explicitSelected = explicitSelected;
+        copy.conventionPromoted = conventionPromoted;
+        return copy;
     }
 
     public void discardConvention() {
@@ -60,5 +85,9 @@ public final class PropertyProvenanceState {
 
     public boolean isExplicitSelected() {
         return explicitSelected;
+    }
+
+    public boolean hasShadowedConvention() {
+        return explicitSelected && convention != null && !conventionPromoted;
     }
 }

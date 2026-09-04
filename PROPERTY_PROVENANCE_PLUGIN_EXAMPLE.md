@@ -170,16 +170,26 @@ The relevant part of the failure is:
 
 ```text
 Failure trace to source:
-    at task ':shareProvenance' action (ConsumerPlugin.java:<line>) [get()]
-    at build file 'build.gradle.kts' (build.gradle.kts:<line>) [explicit source]
-    at plugin 'com.example.property-normalizer' (NormalizerPlugin.java:<line>) [explicit source]
-    at plugin 'com.example.property-defaults' (DefaultsPlugin.java:<line>) [convention]
+    at task ':shareProvenance' action [get()]
+    at build file 'build.gradle.kts' [explicit source]
+    at plugin 'com.example.property-normalizer' [explicit source]
+    at plugin 'com.example.property-defaults' [convention]
 
 Shadowed configuration:
-    at plugin 'com.example.property-consumer' (ConsumerPlugin.java:<line>) [convention]
+    at plugin 'com.example.property-consumer' [convention]
 ```
+
+Origins are the default. To add the prototype's optional Java/Kotlin source locations,
+also pass `-Dorg.gradle.internal.property-provenance.locations=true`. Full Groovy DSL
+line capture is not implemented. The location option has no effect when provenance
+is disabled. See [the origin-first coverage plan](PROPERTY_PROVENANCE_ORIGIN_FIRST.md)
+for supported cases and known limitations.
 
 Traversal happens only while Gradle formats the failure. It uses the already assembled
 Provider graph, does not evaluate a Provider or execute either mapping function, and stops
 if it encounters a repeated node. An ordinary replacement `set` still cuts the previous
 source chain, while conventions shadowed by an explicit binding remain outside the trace.
+
+This example uses missing values propagated through a linear property/map chain.
+The traversal is not yet a general causal failure trace for branching providers or
+transformations that themselves return no value.

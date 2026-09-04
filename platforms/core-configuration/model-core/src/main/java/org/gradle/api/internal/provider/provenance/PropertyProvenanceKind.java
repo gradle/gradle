@@ -23,7 +23,12 @@ public enum PropertyProvenanceKind {
     EXPLICIT_SOURCE("explicit source"),
     CONVENTION("convention"),
     GET("get()"),
-    SET("set()");
+    SET("set()"),
+    SET_CONVENTION("convention()"),
+    UNSET("unset()"),
+    UNSET_CONVENTION("unsetConvention()"),
+    SET_TO_CONVENTION("setToConvention()"),
+    SET_TO_CONVENTION_IF_UNSET("setToConventionIfUnset()");
 
     private final String displayName;
 

@@ -72,17 +72,26 @@ class ProjectBackedPropertyHost implements PropertyHost {
         return provenanceRegistry.isEnabled();
     }
 
+    @Override
+    public boolean capturesPropertyCallSites() {
+        return provenanceRegistry.capturesLocations();
+    }
+
     @Nullable
     @Override
     public PropertyProvenanceRecord currentPropertyBinding(PropertyProvenanceKind kind) {
-        return provenanceRegistry.recordFor(currentUserCodeSource(), kind, usableLocation(PropertyCallSites.current()));
+        String location = capturesPropertyCallSites() ? usableLocation(PropertyCallSites.current()) : null;
+        return provenanceRegistry.recordFor(currentUserCodeSource(), kind, location);
     }
 
     @Nullable
     @Override
     public PropertyProvenanceRecord currentPropertyFailure(PropertyProvenanceKind kind) {
-        String location = PropertyCallSites.current();
-        if (location == null) {
+        String location = null;
+        if (capturesPropertyCallSites()) {
+            location = PropertyCallSites.current();
+        }
+        if (capturesPropertyCallSites() && location == null) {
             // Failed operations are rare, so walking here is both cheaper and more complete than retaining
             // a stack or operation context for every successful get/set.
             location = callerStackCapturer.captureCallSite();

@@ -44,6 +44,13 @@ public interface PropertyHost {
     }
 
     /**
+     * Whether optional source locations should be captured in addition to origins.
+     */
+    default boolean capturesPropertyCallSites() {
+        return false;
+    }
+
+    /**
      * Returns the origin of a successful binding at the current call site.
      */
     @Nullable

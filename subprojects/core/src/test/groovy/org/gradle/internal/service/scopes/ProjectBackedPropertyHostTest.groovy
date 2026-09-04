@@ -20,9 +20,13 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceKind
+import org.gradle.internal.Describables
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.problems.BoundedCallerStackCapturer
 import org.gradle.internal.state.ModelObject
@@ -42,6 +46,61 @@ class ProjectBackedPropertyHostTest extends Specification {
     def setup() {
         _ * project.displayName >> "<project>"
         _ * project.state >> state
+    }
+
+    def "origin-only capture preserves nested plugin context without walking the stack"() {
+        def context = new DefaultUserCodeApplicationContext()
+        def stack = Mock(BoundedCallerStackCapturer)
+        def work = Stub(WorkExecutionTracker) {
+            getCurrentTask() >> Optional.empty()
+        }
+        def trackingHost = new ProjectBackedPropertyHost(project, context, new PropertyProvenanceRegistry(true), stack, work)
+        def outer = new UserCodeSource.Binary(Describables.of("plugin 'outer'"), "OuterPlugin", "outer")
+        def inner = new UserCodeSource.Binary(Describables.of("plugin 'inner'"), "InnerPlugin", "inner")
+        def origins = []
+
+        when:
+        context.apply(outer) {
+            origins << trackingHost.currentPropertyBinding(PropertyProvenanceKind.EXPLICIT_SOURCE).formatFrame()
+            context.apply(inner) {
+                origins << trackingHost.currentPropertyBinding(PropertyProvenanceKind.EXPLICIT_SOURCE).formatFrame()
+            }
+            origins << trackingHost.currentPropertyFailure(PropertyProvenanceKind.GET).formatFrame()
+        }
+        origins << trackingHost.currentPropertyFailure(PropertyProvenanceKind.GET).formatFrame()
+
+        then:
+        origins == [
+            "at plugin 'outer' [explicit source]",
+            "at plugin 'inner' [explicit source]",
+            "at plugin 'outer' [get()]",
+            "at unknown code [get()]"
+        ]
+        !trackingHost.capturesPropertyCallSites()
+        0 * stack._
+    }
+
+    def "location capture is opt-in and walks only while reporting a failure"() {
+        def context = new DefaultUserCodeApplicationContext()
+        def stack = Mock(BoundedCallerStackCapturer)
+        def work = Stub(WorkExecutionTracker) {
+            getCurrentTask() >> Optional.empty()
+        }
+        def trackingHost = new ProjectBackedPropertyHost(project, context, new PropertyProvenanceRegistry(true, true), stack, work)
+
+        when:
+        def binding = trackingHost.currentPropertyBinding(PropertyProvenanceKind.EXPLICIT_SOURCE)
+
+        then:
+        binding.location == null
+        0 * stack._
+
+        when:
+        def failure = trackingHost.currentPropertyFailure(PropertyProvenanceKind.GET)
+
+        then:
+        1 * stack.captureCallSite() >> "Plugin.java:12"
+        failure.location == "Plugin.java:12"
     }
 
     def "disallows read before completion when property has no producer"() {

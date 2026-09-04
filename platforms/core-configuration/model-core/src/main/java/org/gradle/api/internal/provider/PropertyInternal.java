@@ -33,4 +33,11 @@ public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurabl
      * @return {@code true} if this property has been finalized, {@code false} otherwise
      */
     boolean isFinalized();
+
+    /**
+     * Used by instrumented mutation calls. Origin-only and untracked properties need no call-site context.
+     */
+    default boolean capturesPropertyCallSites() {
+        return false;
+    }
 }

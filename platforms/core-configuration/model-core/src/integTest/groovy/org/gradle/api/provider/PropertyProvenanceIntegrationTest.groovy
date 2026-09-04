@@ -29,7 +29,67 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("-Dorg.gradle.internal.property-provenance=true")
     }
 
+    def "origin-only Java plugin trace survives #taskName without source locations"() {
+        javaPluginBuild()
+
+        when:
+        fails(taskName)
+
+        then:
+        failure.assertHasCause("""Cannot query the value of this property because it has no value available.
+The value of this property is derived from:
+  - Gradle property 'missing-explicit'
+Failure trace to source:
+    at task ':${taskName}' action [get()]
+    at plugin 'com.example.property-provenance' [explicit source]
+
+Shadowed configuration:
+    at plugin 'com.example.property-provenance' [convention]""")
+
+        where:
+        taskName << ["directPluginValue", "deferredPluginValue"]
+    }
+
+    def "origin-only multi-actor trace keeps the selected plugin chain and shadowed convention"() {
+        multiActorPluginBuild()
+
+        when:
+        fails("shareProvenance")
+
+        then:
+        failure.assertHasCause("""Cannot query the value of this property because it has no value available.
+The value of this property is derived from:
+  - Gradle property 'missing-default'
+Failure trace to source:
+    at task ':shareProvenance' action [get()]
+    at build file 'build.gradle.kts' [explicit source]
+    at plugin 'com.example.property-normalizer' [explicit source]
+    at plugin 'com.example.property-defaults' [convention]
+
+Shadowed configuration:
+    at plugin 'com.example.property-consumer' [convention]""")
+    }
+
+    def "origin-only plugin applied by class falls back to its implementation name"() {
+        javaPluginBuild(false)
+
+        when:
+        fails("deferredPluginValue")
+
+        then:
+        failure.assertHasCause("""Cannot query the value of this property because it has no value available.
+The value of this property is derived from:
+  - Gradle property 'missing-explicit'
+Failure trace to source:
+    at task ':deferredPluginValue' action [get()]
+    at plugin class 'com.example.PropertyProvenancePlugin' [explicit source]
+
+Shadowed configuration:
+    at plugin class 'com.example.PropertyProvenancePlugin' [convention]""")
+    }
+
     def "Kotlin DSL get failure has an exact operation line and convention source line"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         file("settings.gradle.kts") << ""
         file("build.gradle.kts") << '''
             val value = objects.property<String>()
@@ -47,6 +107,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "task action get failure is attributed to the executing task"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         kotlinTaskBuild('''
             value.convention("default")
             value.set(providers.gradleProperty("not-defined"))
@@ -65,6 +126,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "indirect mapped Provider evaluation retains the property source and outer get site"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         kotlinTaskBuild('''
             value.set(providers.gradleProperty("not-defined"))
             val derived = value.map { it.uppercase() }
@@ -81,6 +143,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "finalized property set reports the task action call site without retaining the attempt"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         file("settings.gradle.kts") << ""
         file("build.gradle.kts") << '''
             abstract class Show : DefaultTask() {
@@ -105,6 +168,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "Java plugin reports direct configuration as the selected source"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         javaPluginBuild()
 
         when:
@@ -115,6 +179,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "Java plugin attribution survives a deferred task configuration callback"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         javaPluginBuild()
 
         when:
@@ -125,6 +190,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "multi-actor plugin example follows upstream property sources"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         multiActorPluginBuild()
 
         when:
@@ -141,6 +207,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "Groovy DSL trace deliberately omits line-level call sites"() {
+        executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         file("build.gradle") << '''
             def value = objects.property(String)
             value.convention(providers.gradleProperty("not-defined"))
@@ -185,7 +252,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void javaPluginBuild() {
+    private void javaPluginBuild(boolean applyById = true) {
         file("settings.gradle.kts") << ""
         file("buildSrc/settings.gradle.kts") << "rootProject.name = \"build-logic\""
         file("buildSrc/build.gradle.kts") << '''
@@ -231,11 +298,11 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
-        file("build.gradle.kts") << '''
+        file("build.gradle.kts") << (applyById ? '''
             plugins {
                 id("com.example.property-provenance")
             }
-        '''
+        ''' : 'apply<com.example.PropertyProvenancePlugin>()')
     }
 
     private void multiActorPluginBuild() {

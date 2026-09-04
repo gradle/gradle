@@ -210,6 +210,171 @@ Shadowed configuration:
         missing.message == "Cannot query the value of this property because it has no value available."
     }
 
+    def "a shallow copy retains its binding and conventions after the original is replaced"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'original-default'"
+        property.convention("fallback")
+        host.bindingOrigin = "plugin 'original-source'"
+        property.set(Providers.notDefined())
+        def copy = property.shallowCopy()
+        host.bindingOrigin = "plugin 'replacement'"
+        property.set("present")
+        property.convention("new default")
+
+        when:
+        copy.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("at plugin 'original-source' [explicit source]")
+        failure.message.contains("at plugin 'original-default' [convention]")
+        !failure.message.contains("replacement")
+        property.get() == "present"
+    }
+
+    def "a shallow copy follows its copied supplier but upstream properties remain live"() {
+        def upstream = new DefaultProperty<String>(host, String)
+        upstream.set("present")
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'binding'"
+        property.set(upstream)
+        def copy = property.shallowCopy()
+        host.bindingOrigin = "plugin 'replacement'"
+        property.set("replacement value")
+        host.bindingOrigin = "plugin 'upstream'"
+        upstream.set(Providers.notDefined())
+
+        when:
+        copy.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("at plugin 'binding' [explicit source]")
+        failure.message.contains("at plugin 'upstream' [explicit source]")
+        !failure.message.contains("replacement")
+    }
+
+    def "a copy made before configuration does not acquire later origins"() {
+        def property = new DefaultProperty<String>(host, String)
+        def copy = property.shallowCopy()
+        host.bindingOrigin = "plugin 'later'"
+        property.set("present")
+
+        when:
+        copy.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        !failure.message.contains("plugin 'later'")
+    }
+
+    def "#operation freezes the convention origin when promoting its binding"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'original-default'"
+        property.convention(new DefaultProvider<String>({ null }))
+        property."$operation"()
+        host.bindingOrigin = "plugin 'later-default'"
+        property.convention("present")
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains(TextUtil.toPlatformLineSeparators("""at plugin 'original-default' [convention]
+
+Shadowed configuration:
+    at plugin 'later-default' [convention]"""))
+
+        where:
+        operation << ["setToConvention", "setToConventionIfUnset"]
+    }
+
+    def "promoting a convention replaces the previous explicit origin without duplicating the convention"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'default'"
+        property.convention(Providers.notDefined())
+        host.bindingOrigin = "plugin 'replaced'"
+        property.set("present")
+        property.setToConvention()
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("at plugin 'default' [convention]")
+        !failure.message.contains("replaced")
+        !failure.message.contains("Shadowed configuration")
+    }
+
+    def "conditional convention promotion leaves an explicit binding unchanged"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'default'"
+        property.convention("present")
+        host.bindingOrigin = "plugin 'explicit'"
+        property.set(Providers.notDefined())
+        property.setToConventionIfUnset()
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("at plugin 'explicit' [explicit source]")
+        failure.message.contains("Shadowed configuration")
+    }
+
+    def "rejected #operation reports the attempted operation without retaining it"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'accepted'"
+        property.set("present")
+        property.finalizeValue()
+        host.bindingOrigin = "plugin 'rejected'"
+        host.failureOrigin = "plugin 'attempt'"
+
+        when:
+        mutation(property)
+
+        then:
+        def failure = thrown(IllegalStateException)
+        failure.message.contains("at plugin 'attempt' [$operation]")
+        failure.message.contains("at plugin 'accepted' [explicit source]")
+        !failure.message.contains("plugin 'rejected'")
+        failure.cause.message == "The value for this property is final and cannot be changed any further."
+
+        when:
+        host.failureOrigin = "plugin 'next-attempt'"
+        property.set("too late")
+
+        then:
+        def nextFailure = thrown(IllegalStateException)
+        !nextFailure.message.contains("plugin 'attempt'")
+        nextFailure.message.contains("plugin 'accepted'")
+
+        where:
+        operation                       | mutation
+        "convention()"                  | { it.convention("new default") }
+        "unset()"                       | { it.unset() }
+        "unsetConvention()"             | { it.unsetConvention() }
+        "setToConvention()"             | { it.setToConvention() }
+        "setToConventionIfUnset()"      | { it.setToConventionIfUnset() }
+    }
+
+    def "disabled provenance does not consult the host on mutations copies or failures"() {
+        def disabledHost = Mock(PropertyHost)
+        def property = new DefaultProperty<String>(disabledHost, String)
+
+        when:
+        property.convention("default")
+        property.set(Providers.notDefined())
+        property.shallowCopy().get()
+
+        then:
+        thrown(MissingValueException)
+        0 * disabledHost._
+    }
+
     def "disabled provenance preserves an existing finalized-set message byte for byte"() {
         def property = new DefaultProperty<String>(new TrackingHost(enabled: false), String)
         property.set("first")

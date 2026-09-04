@@ -32,12 +32,17 @@ public final class PropertyProvenanceRegistry {
     private static final int KIND_COUNT = PropertyProvenanceKind.values().length;
 
     private final boolean enabled;
+    private final boolean captureLocations;
     private final Map<UserCodeSource, PropertyProvenanceRecord[]> recordsBySource = new ConcurrentHashMap<>();
     private final PropertyProvenanceRecord[] unknownRecords = new PropertyProvenanceRecord[KIND_COUNT];
 
     public PropertyProvenanceRegistry(boolean enabled) {
+        this(enabled, false);
+    }
+
+    public PropertyProvenanceRegistry(boolean enabled, boolean captureLocations) {
         this.enabled = enabled;
-        PropertyCallSites.setEnabled(enabled);
+        this.captureLocations = enabled && captureLocations;
         for (PropertyProvenanceKind kind : PropertyProvenanceKind.values()) {
             unknownRecords[kind.ordinal()] = new PropertyProvenanceRecord("unknown code", kind, null);
         }
@@ -45,6 +50,10 @@ public final class PropertyProvenanceRegistry {
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public boolean capturesLocations() {
+        return captureLocations;
     }
 
     /**
@@ -55,23 +64,26 @@ public final class PropertyProvenanceRegistry {
         PropertyProvenanceKind kind,
         @Nullable String location
     ) {
-        if (location != null) {
+        if (captureLocations && location != null) {
             return new PropertyProvenanceRecord(displayNameOf(source), kind, location);
         }
         if (source == null) {
             return unknownRecords[kind.ordinal()];
         }
-        PropertyProvenanceRecord[] records = recordsBySource.computeIfAbsent(source, ignored -> new PropertyProvenanceRecord[KIND_COUNT]);
-        PropertyProvenanceRecord record = records[kind.ordinal()];
-        if (record == null) {
-            record = new PropertyProvenanceRecord(displayNameOf(source), kind, null);
-            records[kind.ordinal()] = record;
-        }
-        return record;
+        // Publish a complete immutable table: deferred callbacks may use the same origin in parallel.
+        PropertyProvenanceRecord[] records = recordsBySource.computeIfAbsent(source, key -> {
+            PropertyProvenanceRecord[] result = new PropertyProvenanceRecord[KIND_COUNT];
+            String displayName = displayNameOf(key);
+            for (PropertyProvenanceKind operation : PropertyProvenanceKind.values()) {
+                result[operation.ordinal()] = new PropertyProvenanceRecord(displayName, operation, null);
+            }
+            return result;
+        });
+        return records[kind.ordinal()];
     }
 
     public PropertyProvenanceRecord failureFor(String originDisplayName, PropertyProvenanceKind kind, @Nullable String location) {
-        return new PropertyProvenanceRecord(originDisplayName, kind, location);
+        return new PropertyProvenanceRecord(originDisplayName, kind, captureLocations ? location : null);
     }
 
     private static String displayNameOf(@Nullable UserCodeSource source) {
