@@ -57,7 +57,6 @@ In Gradle 10, the property will be ignored, and the model will always be built f
 ==== Deprecation of the Kotlin DSL `zipTo` and `unzipTo` functions
 
 The `zipTo` and `unzipTo` functions in the `org.gradle.kotlin.dsl.support` package have been deprecated and will be removed in Gradle 10.
-They were never intended as public API.
 
 To create an archive, use the link:{javadocPath}/org/gradle/api/tasks/bundling/Zip.html[`Zip`] task type:
 
@@ -72,7 +71,7 @@ tasks.register<Zip>("packageDistribution") {
 }
 ----
 
-To unpack an archive, use link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:zipTree(java.lang.Object)[`Project.zipTree`] with a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`] task:
+To unpack an archive in a build script, call `zipTree` inside a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`] task:
 
 [source,kotlin]
 .build.gradle.kts
