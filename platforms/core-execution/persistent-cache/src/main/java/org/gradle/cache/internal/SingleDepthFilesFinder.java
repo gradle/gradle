@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -59,6 +60,7 @@ public class SingleDepthFilesFinder implements FilesFinder {
             this.targetSize = depth + 1;
         }
 
+        @Nullable
         @Override
         protected File computeNext() {
             advanceIfNecessary();

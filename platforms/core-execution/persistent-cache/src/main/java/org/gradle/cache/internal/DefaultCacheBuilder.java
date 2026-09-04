@@ -22,6 +22,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
@@ -34,10 +35,10 @@ public class DefaultCacheBuilder implements CacheBuilder {
     private final CacheFactory factory;
     private final File baseDir;
     private Map<String, ?> properties = Collections.emptyMap();
-    private Consumer<? super PersistentCache> initializer;
+    private @Nullable Consumer<? super PersistentCache> initializer;
     private CacheCleanupStrategy cacheCleanupStrategy = CacheCleanupStrategy.NO_CLEANUP;
     private LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
-    private String displayName;
+    private @Nullable String displayName;
 
     public DefaultCacheBuilder(CacheFactory factory, File baseDir) {
         this.factory = factory;

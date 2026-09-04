@@ -16,13 +16,18 @@
 
 package org.gradle.cache;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A persistent store containing an object of type T.
  */
 public interface ObjectHolder<T> {
     /**
      * Fetches the value from this cache. A shared or exclusive lock is held while fetching the value, depending on implementation.
+     *
+     * @return the value, or {@code null} if no value has been stored yet.
      */
+    @Nullable
     T get();
 
     /**
@@ -39,7 +44,7 @@ public interface ObjectHolder<T> {
     T update(UpdateAction<T> updateAction);
 
     interface UpdateAction<T> {
-        T update(T oldValue);
+        T update(@Nullable T oldValue);
     }
 
     /**

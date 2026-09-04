@@ -18,6 +18,7 @@ package org.gradle.cache.internal.btree;
 
 import com.google.common.io.CountingInputStream;
 import org.gradle.internal.file.RandomAccessFileInputStream;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -25,13 +26,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Allows a stream of bytes to be read from a particular location of some backing byte stream.
  */
 class ByteInput {
     private final RandomAccessFile file;
     private final ResettableBufferedInputStream bufferedInputStream;
-    private CountingInputStream countingInputStream;
+    private @Nullable CountingInputStream countingInputStream;
 
     public ByteInput(RandomAccessFile file) {
         this.file = file;
@@ -52,7 +55,7 @@ class ByteInput {
      * Returns the number of bytes read since {@link #start(long)} was called.
      */
     public long getBytesRead() {
-        return countingInputStream.getCount();
+        return requireNonNull(countingInputStream, "Reading has not been started").getCount();
     }
 
     /**

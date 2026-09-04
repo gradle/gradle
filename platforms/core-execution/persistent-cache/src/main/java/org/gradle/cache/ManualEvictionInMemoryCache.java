@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 
 public class ManualEvictionInMemoryCache<K, V> implements Cache<K, V> {
     // Use 256 as initial size to start out with enough concurrency.
@@ -30,6 +31,7 @@ public class ManualEvictionInMemoryCache<K, V> implements Cache<K, V> {
         return map.computeIfAbsent(key, factory);
     }
 
+    @Nullable
     @Override
     public V getIfPresent(K key) {
         return map.get(key);
