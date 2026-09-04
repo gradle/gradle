@@ -87,6 +87,21 @@ properties created by the settings plugin's injected settings object factory rem
 untracked. The modern lifecycle test uses existing action isolation/context propagation;
 it does not add provenance serialization or configuration-cache persistence.
 
+### Cross-project attribution
+
+`CrossProjectPropertyProvenanceIntegrationTest` covers root-script and sibling-script
+bindings, a root plugin's deferred callback on another project's plugin manager,
+context restoration after that callback, a finalized chain spanning projects, and
+independent applications of the same consumer plugin with serial/parallel task execution.
+The selected frame belongs to the code binding the property, not its owning project.
+Upstream convention frames survive the project boundary. The opaque source deliberately
+counts evaluations: reporting does not evaluate it again, successful evaluation is silent,
+and disabled failures retain their original cause.
+
+No runtime changes were needed for these cases. This does not establish cross-build
+identity or isolated-project compatibility: the fixture deliberately uses ordinary
+cross-project configuration, and identical plugin IDs still have identical report labels.
+
 ## Coverage inventory
 
 The rows below are a roadmap, not a declaration that every case is implemented.
@@ -96,6 +111,7 @@ The rows below are a roadmap, not a declaration that every case is implemented.
 | Project-owned objects | Extension, task, nested managed and directly created properties | Project host is wired; expand object-factory coverage tests |
 | Settings-owned properties | Script/plugin extension properties and nested objects | Deliberately untracked; defer until a concrete settings-property diagnostic warrants expansion |
 | Settings-origin project configuration | Settings plugin beforeProject and lifecycle.beforeProject, including nested task callbacks | Covered with project-owned properties, without adding a settings tracking host |
+| Cross-project configuration | Root/sibling script, deferred root plugin, upstream/finalized chain, repeated plugin applications | Covered within one build, including serial/parallel task execution; not isolated-project support |
 | Init / Gradle lifecycle | Init scripts, settings/project callbacks | Audit callback attribution and service lifetimes before adding tracking |
 | Multiple builds | Included builds, build logic, duplicate IDs/paths | Add stable build identity and tests; source and target builds can differ |
 | Services | Shared build-service parameters and runtime state | Audit ownership, lifetime and recreation |
@@ -147,6 +163,15 @@ Finalized snapshots reuse the local explicit-source storage slot, so snapshot su
 does not add another field to each property's metadata. Already-fixed terminal suppliers
 need no graph snapshot. Finalizing a non-terminal supplier adds bounded traversal and
 array allocations; benchmark this separately from mutation overhead.
+
+The [build-measurement harness](testing/performance/provenance/README.md) adds generated
+multi-project Java workloads, rotating disabled/origin/location mode timings, and separate
+post-GC configured-model live-heap histograms. It distinguishes whole-daemon live bytes
+from shallow provenance metadata and does not treat either as a dominator analysis.
+The [2026-09-04 results](testing/performance/provenance/RESULTS_2026-09-04.md) measured
+roughly 0.13 / 0.64 MiB incremental origin-only live heap for the 10 / 50-project fixtures.
+Timing samples overlap and retain a warmup trend, so they do not establish a slowdown
+percentage or compiled-in-but-disabled cost.
 
 `PropertyProvenanceBenchmark` compares disabled, origin-only, and optional-location modes
 for creation plus binding, repeated replacement, convention plus explicit binding, and
@@ -218,7 +243,8 @@ report is `platforms/core-configuration/model-core/build/reports/property-proven
 ## Next milestones
 
 1. Expand concrete project-scoped callback/property-operation and cross-project cases.
-2. Measure representative builds, including compiled-in-but-disabled overhead and retained heap.
+2. Extend the generated-build measurements to a selected production build, independent daemon
+   repetitions, and a matching baseline without the compiled-in provenance fields/interception.
 3. Add explicit source/target build identity and script roles when required by those cases.
 4. Treat collection contributions, causal provider tracing, and cache transport as separate workstreams.
 5. Defer settings-owned tracking and other new scopes until a concrete diagnostic needs them;
