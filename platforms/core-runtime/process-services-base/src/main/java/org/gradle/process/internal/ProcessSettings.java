@@ -16,12 +16,15 @@
 
 package org.gradle.process.internal;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 public interface ProcessSettings {
 
+    @Nullable
     File getDirectory();
 
     String getCommand();

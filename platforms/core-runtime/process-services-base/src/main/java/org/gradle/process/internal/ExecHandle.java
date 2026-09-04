@@ -27,6 +27,7 @@ import java.util.Optional;
 
 public interface ExecHandle extends Describable {
 
+    @Nullable
     File getDirectory();
 
     String getCommand();
