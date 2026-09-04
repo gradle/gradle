@@ -23,7 +23,6 @@ import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
-import org.gradle.internal.buildtree.BuildTreeLifecycleListener
 import org.gradle.internal.cc.impl.serialize.ClassLoaderRole
 import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
 import org.gradle.internal.cc.impl.serialize.ScopeLookup
@@ -42,7 +41,7 @@ import java.util.IdentityHashMap
 internal
 class ConfigurationCacheClassLoaderScopeRegistryListener(
     private val listenerManager: ClassLoaderScopeRegistryListenerManager
-) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeLifecycleListener, Closeable {
+) : ClassLoaderScopeRegistryListener, ScopeLookup, Closeable {
 
     private
     val lock = Any()
@@ -54,42 +53,47 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     val loaders = IdentityHashMap<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
     private
-    var disposed = false
+    var recording = false
 
-    override fun afterStart() {
+    /**
+     * Starts recording the [ClassLoaderScopeSpec]s, discarding anything
+     * recorded so far.
+     */
+    fun startRecording() {
         synchronized(lock) {
-            assertNotDisposed("afterStart")
-            listenerManager.add(this)
+            resetState()
+            if (!recording) {
+                listenerManager.add(this)
+                recording = true
+            }
         }
     }
 
     /**
-     * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
+     * Stops recording and releases any recorded state.
      */
-    fun dispose() {
+    fun stopRecording() {
         synchronized(lock) {
-            if (disposed) {
-                return
+            resetState()
+            if (recording) {
+                listenerManager.remove(this)
+                recording = false
             }
-            // TODO:configuration-cache find a way to make `dispose` unnecessary;
-            //  maybe by extracting an `ConfigurationCacheBuildDefinition` service
-            //  from DefaultConfigurationCacheHost so a decision based on the configured
-            //  configuration cache strategy (none, store or load) can be taken early on.
-            //  The listener only needs to be attached in the `store` state.
-            scopeSpecs.clear()
-            loaders.clear()
-            listenerManager.remove(this)
-            disposed = true
         }
     }
 
+    private
+    fun resetState() {
+        scopeSpecs.clear()
+        loaders.clear()
+    }
+
     override fun close() {
-        dispose()
+        stopRecording()
     }
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
         synchronized(lock) {
-            assertNotDisposed("scopeFor")
             // TODO:configuration-cache assert the spec can no longer change after it has been observed
             return loaders[classLoader]
         }
@@ -102,7 +106,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId, origin: ClassLoaderScopeOrigin?) {
         synchronized(lock) {
-            assertNotDisposed("childScopeCreated")
             if (scopeSpecs.containsKey(childId)) {
                 // scope is being reused
                 return
@@ -132,7 +135,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 "Please report this error, run './gradlew --stop' and try again."
         }
         synchronized(lock) {
-            assertNotDisposed("classloaderCreated")
             val spec = scopeSpecs[scopeId]
             check(spec != null) {
                 "Spec for ClassLoaderScope '$scopeId' not found!"
@@ -147,13 +149,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 spec.exportClassPath = classPath
             }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
-        }
-    }
-
-    private
-    fun assertNotDisposed(method: String) {
-        check(!disposed) {
-            "${javaClass.simpleName}.$method cannot be used after being disposed of."
         }
     }
 }
