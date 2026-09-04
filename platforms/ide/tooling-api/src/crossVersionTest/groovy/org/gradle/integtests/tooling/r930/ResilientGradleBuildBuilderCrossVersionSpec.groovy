@@ -35,6 +35,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
     static final String BROKEN_SETTINGS_CONTENT = "broken settings file content!!!"
     static final String BROKEN_BUILD_CONTENT = "broken build file content!!!"
     static final String ISOLATED_PROJECTS_FLAG = "-Dorg.gradle.internal.isolated-projects.tooling=true"
+    // Only passed to <9.7 targets, which understand only the deprecated property name
     static final String UNSAFE_ISOLATED_PROJECTS_FLAG = "-Dorg.gradle.unsafe.isolated-projects=true"
 
     def setup() {
