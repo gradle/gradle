@@ -16,6 +16,8 @@
 
 import gradlebuild.basics.gradleProperty
 import gradlebuild.identity.extension.GradleModuleExtension
+import org.gradle.api.credentials.HttpHeaderCredentials
+import org.gradle.authentication.http.HttpHeaderAuthentication
 
 plugins {
     id("publishing")
@@ -24,11 +26,8 @@ plugins {
 val artifactoryUrl
     get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
 
-val artifactoryUserName
-    get() = project.providers.gradleProperty("artifactoryUserName").orNull
-
-val artifactoryUserPassword
-    get() = project.providers.gradleProperty("artifactoryUserPassword").orNull
+val artifactoryToken
+    get() = project.providers.gradleProperty("artifactoryToken").orNull
 
 tasks.withType<AbstractPublishToMaven>().configureEach {
     val noUpload = project.gradleProperty("noUpload")
@@ -40,18 +39,14 @@ tasks.withType<AbstractPublishToMaven>().configureEach {
     }
 }
 
-@Suppress("ThrowsCount")
 fun Project.failEarlyIfUrlOrCredentialsAreNotSet(publish: Task) {
     gradle.taskGraph.whenReady {
         if (hasTask(publish)) {
             if (artifactoryUrl.isEmpty()) {
                 throw GradleException("artifactoryUrl is not set!")
             }
-            if (artifactoryUserName.isNullOrEmpty()) {
-                throw GradleException("artifactoryUserName is not set!")
-            }
-            if (artifactoryUserPassword.isNullOrEmpty()) {
-                throw GradleException("artifactoryUserPassword is not set!")
+            if (artifactoryToken.isNullOrEmpty()) {
+                throw GradleException("artifactoryToken is not set!")
             }
         }
     }
@@ -63,9 +58,12 @@ publishing {
             name = "remote"
             val libsType = the<GradleModuleExtension>().identity.snapshot.map { if (it) "snapshots" else "releases" }
             url = uri("$artifactoryUrl/libs-${libsType.get()}-local")
-            credentials {
-                username = artifactoryUserName
-                password = artifactoryUserPassword
+            credentials(HttpHeaderCredentials::class) {
+                name = "Authorization"
+                value = "Bearer $artifactoryToken"
+            }
+            authentication {
+                create<HttpHeaderAuthentication>("header")
             }
         }
     }
@@ -86,7 +84,7 @@ publishing {
             developers {
                 developer {
                     name = "The Gradle team"
-                    organization = "Gradle Technologies"
+                    organization = "Gradle Inc."
                     organizationUrl = "https://gradle.org"
                 }
             }

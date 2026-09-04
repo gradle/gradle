@@ -68,6 +68,7 @@ class RuntimeShadedJarCreator {
 
     private static final int ADDITIONAL_PROGRESS_STEPS = 2;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
+    private static final String GRADLE_MAVEN_METADATA_PREFIX = "META-INF/maven/org.gradle";
     private static final String CLASS_DESC = "Ljava/lang/Class;";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarCreator.class);
@@ -263,6 +264,12 @@ class RuntimeShadedJarCreator {
         if (name.startsWith("LICENSE") || name.startsWith("license")) {
             return;
         }
+        // Distribution jars carry a Maven pom.properties naming their own module. Bundled into the
+        // shaded gradle-api jar those coordinates resolve to nothing, so drop them rather than have
+        // gradleApi()/TestKit advertise ~150 phantom org.gradle artifacts to SBOM/vulnerability scanners.
+        if (isGradleModulePomProperties(name)) {
+            return;
+        }
 
         if (name.endsWith(".class")) {
             processClassFile(builder, entry);
@@ -275,6 +282,11 @@ class RuntimeShadedJarCreator {
 
     private static boolean isModuleInfoClass(String name) {
         return "module-info".equals(name);
+    }
+
+    private static boolean isGradleModulePomProperties(String name) {
+        return name.endsWith("/pom.properties")
+            && (name.startsWith(GRADLE_MAVEN_METADATA_PREFIX + "/") || name.startsWith(GRADLE_MAVEN_METADATA_PREFIX + "."));
     }
 
     private void processServiceDescriptor(InputFile inputFile, ClasspathEntryVisitor.Entry entry) throws IOException {
