@@ -21,6 +21,7 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 // todo - stream serialised value to file
 // todo - handle hash collisions (properly, this time)
@@ -54,6 +57,7 @@ public class BTreePersistentIndexedCache<K, V> {
     private final short maxChildIndexEntries;
     private final int minIndexChildNodes;
     private final StateCheckBlockStore store;
+    @SuppressWarnings("NullAway.Init") // initialized by doOpen(), which is called from the constructor
     private HeaderBlock header;
 
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
@@ -121,6 +125,7 @@ public class BTreePersistentIndexedCache<K, V> {
         header = store.readFirst(HeaderBlock.class);
     }
 
+    @Nullable
     public V get(K key) {
         try {
             try {
@@ -178,7 +183,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
-    private IndexBlock load(BlockPointer pos, IndexRoot root, IndexBlock parent, int index) {
+    private IndexBlock load(BlockPointer pos, IndexRoot root, @Nullable IndexBlock parent, int index) {
         IndexBlock block = store.read(pos, IndexBlock.class);
         block.root = root;
         block.parent = parent;
@@ -366,8 +371,9 @@ public class BTreePersistentIndexedCache<K, V> {
         private final List<IndexEntry> entries = new ArrayList<IndexEntry>();
         private BlockPointer tailPos = BlockPointer.start();
         // Transient fields
-        private IndexBlock parent;
+        private @Nullable IndexBlock parent;
         private int parentEntryIndex;
+        @SuppressWarnings("NullAway.Init") // set by load()
         private IndexRoot root;
 
         @Override
@@ -461,6 +467,7 @@ public class BTreePersistentIndexedCache<K, V> {
             maybeSplit();
         }
 
+        @Nullable
         public DataBlock get(K key) throws Exception {
             Lookup lookup = find(key);
             if (lookup.entry == null) {
@@ -575,6 +582,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
 
         private void mergeFrom(IndexBlock right) throws Exception {
+            IndexBlock parent = requireNonNull(this.parent, "The root block cannot be merged");
             IndexEntry newChildEntry = parent.entries.remove(parentEntryIndex);
             if (right.getPos().equals(parent.tailPos)) {
                 parent.tailPos = getPos();
@@ -592,6 +600,7 @@ public class BTreePersistentIndexedCache<K, V> {
             store.remove(right);
         }
 
+        @Nullable
         private IndexBlock getNext(IndexBlock indexBlock) throws Exception {
             int index = indexBlock.parentEntryIndex + 1;
             if (index > entries.size()) {
@@ -603,6 +612,7 @@ public class BTreePersistentIndexedCache<K, V> {
             return load(entries.get(index).childIndexBlock, root, this, index);
         }
 
+        @Nullable
         private IndexBlock getPrevious(IndexBlock indexBlock) throws Exception {
             int index = indexBlock.parentEntryIndex - 1;
             if (index < 0) {
@@ -621,7 +631,10 @@ public class BTreePersistentIndexedCache<K, V> {
 
     private static class IndexEntry implements Comparable<IndexEntry> {
         long hashCode;
+        // Populated by the owning IndexBlock; search keys created via IndexEntry(long) never use these
+        @SuppressWarnings("NullAway.Init")
         BlockPointer dataBlock;
+        @SuppressWarnings("NullAway.Init")
         BlockPointer childIndexBlock;
 
         private IndexEntry() {
@@ -645,9 +658,9 @@ public class BTreePersistentIndexedCache<K, V> {
 
     private class Lookup {
         final IndexBlock indexBlock;
-        final IndexEntry entry;
+        final @Nullable IndexEntry entry;
 
-        private Lookup(IndexBlock indexBlock, IndexEntry entry) {
+        private Lookup(IndexBlock indexBlock, @Nullable IndexEntry entry) {
             this.indexBlock = indexBlock;
             this.entry = entry;
         }
@@ -655,8 +668,8 @@ public class BTreePersistentIndexedCache<K, V> {
 
     private class DataBlock extends BlockPayload {
         private int size;
-        private StreamByteBuffer buffer;
-        private V value;
+        private @Nullable StreamByteBuffer buffer;
+        private @Nullable V value;
 
         private DataBlock() {
         }
@@ -664,7 +677,7 @@ public class BTreePersistentIndexedCache<K, V> {
         public DataBlock(V value) throws Exception {
             this.value = value;
             setValue(value);
-            size = buffer.totalBytesUnread();
+            size = requireNonNull(buffer).totalBytesUnread();
         }
 
         public DataBlock(V value, StreamByteBuffer buffer) throws Exception {
@@ -682,7 +695,7 @@ public class BTreePersistentIndexedCache<K, V> {
 
         public V getValue() throws Exception {
             if (value == null) {
-                value = serializer.read(new KryoBackedDecoder(buffer.getInputStream()));
+                value = serializer.read(new KryoBackedDecoder(requireNonNull(buffer).getInputStream()));
                 buffer = null;
             }
             return value;
@@ -707,14 +720,16 @@ public class BTreePersistentIndexedCache<K, V> {
 
         @Override
         public void write(DataOutputStream outstr) throws Exception {
+            StreamByteBuffer buffer = requireNonNull(this.buffer);
             outstr.writeInt(size);
             outstr.writeInt(buffer.totalBytesUnread());
             buffer.writeTo(outstr);
-            buffer = null;
+            this.buffer = null;
         }
 
         public DataBlockUpdateResult useNewValue(V value) throws Exception {
             setValue(value);
+            StreamByteBuffer buffer = requireNonNull(this.buffer);
             boolean ok = buffer.totalBytesUnread() <= size;
             if (ok) {
                 this.value = value;
@@ -729,9 +744,9 @@ public class BTreePersistentIndexedCache<K, V> {
     private static class DataBlockUpdateResult {
         private static final DataBlockUpdateResult SUCCESS = new DataBlockUpdateResult(true, null);
         private final boolean success;
-        private final StreamByteBuffer serializedValue;
+        private final @Nullable StreamByteBuffer serializedValue;
 
-        private DataBlockUpdateResult(boolean success, StreamByteBuffer serializedValue) {
+        private DataBlockUpdateResult(boolean success, @Nullable StreamByteBuffer serializedValue) {
             this.success = success;
             this.serializedValue = serializedValue;
         }
@@ -749,7 +764,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
 
         public StreamByteBuffer getSerializedValue() {
-            return serializedValue;
+            return requireNonNull(serializedValue, "Only available for failed updates");
         }
     }
 }

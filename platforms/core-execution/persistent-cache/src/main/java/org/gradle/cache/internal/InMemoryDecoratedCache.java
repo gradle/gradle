@@ -22,12 +22,15 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+
+import static java.util.Objects.requireNonNull;
 
 class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V>, InMemoryCacheController {
     private final static Logger LOG = LoggerFactory.getLogger(InMemoryDecoratedCache.class);
@@ -49,6 +52,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         return "{in-memory-cache cache: " + delegate + "}";
     }
 
+    @Nullable
     @Override
     public V get(final K key) {
         Object value;
@@ -58,7 +62,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                 return out == null ? NULL : out;
             });
         } catch (UncheckedExecutionException | ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            throw UncheckedException.throwAsUncheckedException(requireNonNull(e.getCause()));
         }
         if (value == NULL) {
             return null;
@@ -68,6 +72,8 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
     }
 
     @Override
+    // The NULL sentinel cannot be produced by the loader below, so the null-returning branch is unreachable
+    @SuppressWarnings("NullAway")
     public V get(final K key, final Function<? super K, ? extends V> producer, final Runnable completion) {
         final AtomicReference<Runnable> completionRef = new AtomicReference<>(completion);
         Object value;
@@ -92,7 +98,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                 return generatedValue;
             });
         } catch (UncheckedExecutionException | ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            throw UncheckedException.throwAsUncheckedException(requireNonNull(e.getCause()));
         } finally {
             completionRef.get().run();
         }

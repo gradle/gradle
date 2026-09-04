@@ -58,6 +58,7 @@ import java.util.function.Supplier;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Uses file system locks on a lock file per target file.
@@ -179,8 +180,8 @@ public class DefaultFileLockManager implements FileLockManager {
         private final String displayName;
         private final String operationDisplayName;
         private final LockStateAccess lockStateAccess;
-        private java.nio.channels.FileLock lock;
-        private LockFileAccess lockFileAccess;
+        private java.nio.channels.@Nullable FileLock lock;
+        private @Nullable LockFileAccess lockFileAccess;
         private LockState lockState;
         private final int port;
         private final long lockId;
@@ -223,7 +224,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 throw t;
             }
 
-            this.mode = lock.isShared() ? LockMode.Shared : LockMode.Exclusive;
+            this.mode = requireNonNull(lock).isShared() ? LockMode.Shared : LockMode.Exclusive;
             this.isUseCrossVersionImplementation = options.isUseCrossVersionImplementation();
         }
 
@@ -268,9 +269,9 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             try {
-                lockState = lockFileAccess.markDirty(lockState);
+                lockState = lockFileAccess().markDirty(lockState);
                 action.run();
-                lockState = lockFileAccess.markClean(lockState);
+                lockState = lockFileAccess().markClean(lockState);
             } catch (Throwable t) {
                 throw throwAsUncheckedException(t);
             }
@@ -280,6 +281,10 @@ public class DefaultFileLockManager implements FileLockManager {
             if (lock == null) {
                 throw new IllegalStateException("This lock has been closed.");
             }
+        }
+
+        private LockFileAccess lockFileAccess() {
+            return requireNonNull(lockFileAccess, "This lock has been closed.");
         }
 
         private void assertOpenAndIntegral() {
@@ -410,7 +415,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     // We have an exclusive lock (whether we asked for it or not).
 
                     // Update the state region
-                    lockState = lockFileAccess.ensureLockState();
+                    lockState = lockFileAccess().ensureLockState();
 
                     // Acquire an exclusive lock on the information region and write our details there
                     FileLockOutcome informationRegionLockOutcome = lockInformationRegion(LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
@@ -419,13 +424,13 @@ public class DefaultFileLockManager implements FileLockManager {
                     }
                     // check that the length of the reserved region is enough for storing our content
                     try {
-                        lockFileAccess.writeLockInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
+                        lockFileAccess().writeLockInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
                     } finally {
                         informationRegionLockOutcome.getFileLock().release();
                     }
                 } else {
                     // Just read the state region
-                    lockState = lockFileAccess.readLockState();
+                    lockState = lockFileAccess().readLockState();
                 }
                 LOGGER.debug("Lock acquired on {}.", displayName);
                 lock = stateRegionLock;
@@ -456,7 +461,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
             } else {
                 try {
-                    out = lockFileAccess.readLockInfo();
+                    out = lockFileAccess().readLockInfo();
                 } finally {
                     lockOutcome.getFileLock().release();
                 }
@@ -480,7 +485,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
                 @Override
                 public ExponentialBackoff.Result<FileLockOutcome> run() throws IOException, InterruptedException {
-                    FileLockOutcome lockOutcome = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
+                    FileLockOutcome lockOutcome = lockFileAccess().tryLockState(lockMode == LockMode.Shared);
                     if (lockOutcome.isLockWasAcquired()) {
                         return ExponentialBackoff.Result.successful(lockOutcome);
                     }
@@ -507,7 +512,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private FileLockOutcome lockInformationRegion(final LockMode lockMode, ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff) throws IOException, InterruptedException {
             return backoff.retryUntil(() -> {
-                FileLockOutcome lockOutcome = lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
+                FileLockOutcome lockOutcome = lockFileAccess().tryLockInfo(lockMode == LockMode.Shared);
                 if (lockOutcome.isLockWasAcquired()) {
                     return ExponentialBackoff.Result.successful(lockOutcome);
                 } else {
