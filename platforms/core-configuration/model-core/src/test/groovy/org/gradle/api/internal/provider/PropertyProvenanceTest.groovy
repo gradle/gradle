@@ -194,7 +194,11 @@ Failure trace to source:
     at plugin 'com.example.defaults' (DefaultsPlugin.java:10) [convention]
 
 Shadowed configuration:
-    at plugin 'com.example.consumer' (ConsumerPlugin.java:16) [convention]""")
+    at plugin 'com.example.consumer' (ConsumerPlugin.java:16) [convention]
+
+Trace limitations:
+    map() dependencies are shown, not a proven causal failure path.
+    Upstream provenance is unavailable beyond an opaque or unsupported provider boundary.""")
         evaluations == 1
     }
 
@@ -208,6 +212,289 @@ Shadowed configuration:
         then:
         def missing = thrown(MissingValueException)
         missing.message == "Cannot query the value of this property because it has no value available."
+    }
+
+    def "#finalization preserves the upstream origins without freezing the upstream property"() {
+        def evaluations = 0
+        def upstream = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'original'"
+        upstream.convention(new DefaultProvider<String>({ evaluations++; null }))
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'consumer'"
+        property.set(upstream)
+        if (finalization == "finalizeValue") {
+            property.finalizeValue()
+        } else {
+            property.finalizeValueOnRead()
+            assert property.orNull == null
+        }
+        def copy = property.shallowCopy()
+        host.bindingOrigin = "plugin 'later'"
+        upstream.set("present")
+
+        when:
+        copy.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("plugin 'original' [convention]")
+        failure.message.contains("plugin 'consumer' [explicit source]")
+        !failure.message.contains("plugin 'later'")
+        evaluations == 1
+        upstream.get() == "present"
+
+        when:
+        property.set("rejected")
+
+        then:
+        def rejected = thrown(IllegalStateException)
+        rejected.message.contains("plugin 'original' [convention]")
+        rejected.message.contains("[set()]")
+        evaluations == 1
+
+        where:
+        finalization << ["finalizeValue", "finalizeValueOnRead"]
+    }
+
+    def "failed finalization does not retain a provisional trace and can be retried"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'failed-source'"
+        property.set(new DefaultProvider<String>({ throw new IllegalArgumentException("broken") }))
+
+        when:
+        property.finalizeValue()
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message == "broken"
+        !property.finalized
+
+        when:
+        host.bindingOrigin = "plugin 'replacement'"
+        property.set(Providers.notDefined())
+        property.finalizeValue()
+        property.get()
+
+        then:
+        def missing = thrown(MissingValueException)
+        missing.message.contains("plugin 'replacement'")
+        !missing.message.contains("failed-source")
+    }
+
+    def "a rejected set on a finalized present value retains the original upstream origin"() {
+        def upstream = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'original'"
+        upstream.set("first")
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'consumer'"
+        property.set(upstream)
+        property.finalizeValue()
+        host.bindingOrigin = "plugin 'later'"
+        upstream.set("second")
+
+        when:
+        property.set("rejected")
+
+        then:
+        def failure = thrown(IllegalStateException)
+        failure.message.contains("plugin 'original' [explicit source]")
+        failure.message.contains("plugin 'consumer' [explicit source]")
+        !failure.message.contains("plugin 'later'")
+        property.get() == "first"
+    }
+
+    def "nested finalization snapshots do not duplicate sources or retain earlier failed operations"() {
+        def upstream = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'source'"
+        upstream.set(Providers.notDefined())
+        upstream.finalizeValueOnRead()
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'consumer'"
+        property.set(upstream)
+        host.failureOrigin = "task ':first' action"
+
+        when:
+        property.get()
+
+        then:
+        thrown(MissingValueException)
+
+        when:
+        property.finalizeValue()
+        host.failureOrigin = "task ':second' action"
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.count("plugin 'source'") == 1
+        failure.message.count("plugin 'consumer'") == 1
+        failure.message.contains("task ':second' action")
+        !failure.message.contains("task ':first' action")
+    }
+
+    def "disabled finalization through a provider chain does not capture provenance"() {
+        def disabledHost = Mock(PropertyHost)
+        def upstream = new DefaultProperty<String>(disabledHost, String)
+        def property = new DefaultProperty<String>(disabledHost, String)
+        upstream.set(Providers.notDefined())
+        property.set(upstream)
+
+        when:
+        property.finalizeValue()
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message == "Cannot query the value of this property because it has no value available."
+        0 * disabledHost._
+    }
+
+    def "an untracked upstream property is an explicit trace boundary"() {
+        def upstream = new DefaultProperty<String>(PropertyHost.NO_OP, String)
+        upstream.set(Providers.notDefined())
+        def property = new DefaultProperty<String>(host, String)
+        property.set(upstream)
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("Upstream provenance is unavailable beyond an untracked property.")
+    }
+
+    def "replace retains the copied source while a later replacement cuts it"() {
+        def evaluations = 0
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'original'"
+        property.set(new DefaultProvider<String>({ evaluations++; null }))
+        host.bindingOrigin = "plugin 'update'"
+        property.replace { previous -> previous.map { it.trim() } }
+        assert evaluations == 0
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.indexOf("plugin 'update'") < failure.message.indexOf("plugin 'original'")
+        failure.message.contains("plugin 'original'")
+        evaluations == 1
+
+        when:
+        host.bindingOrigin = "plugin 'replacement'"
+        property.set(Providers.notDefined())
+        property.get()
+
+        then:
+        def replaced = thrown(MissingValueException)
+        !replaced.message.contains("plugin 'original'")
+        !replaced.message.contains("plugin 'update'")
+        evaluations == 1
+    }
+
+    def "#operation clears the explicit origin and selects the convention"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'default'"
+        property.convention(Providers.notDefined())
+        host.bindingOrigin = "plugin 'explicit'"
+        property.set("present")
+        mutation(property)
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("plugin 'default' [convention]")
+        !failure.message.contains("plugin 'explicit'")
+        !failure.message.contains("Shadowed configuration")
+
+        where:
+        operation       | mutation
+        "set(null)"     | { it.set((String) null) }
+        "value(null)"   | { it.value((String) null) }
+        "replace(null)" | { it.replace { null } }
+    }
+
+    def "removing a shadowed convention leaves only the selected explicit source"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'default'"
+        property.convention("default")
+        host.bindingOrigin = "plugin 'explicit'"
+        property.set(Providers.notDefined())
+        property.unsetConvention()
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("plugin 'explicit'")
+        !failure.message.contains("plugin 'default'")
+        !failure.message.contains("Shadowed configuration")
+    }
+
+    def "a missing map result is not presented as an established upstream failure"() {
+        def upstream = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'healthy-source'"
+        upstream.set("present")
+        def transforms = 0
+
+        when:
+        upstream.map { transforms++; null }.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("plugin 'healthy-source'")
+        failure.message.contains("map() dependencies are shown, not a proven causal failure path.")
+        transforms == 1
+    }
+
+    def "a branching provider reports a boundary without evaluating again to choose a branch"() {
+        def evaluations = 0
+        def property = new DefaultProperty<String>(host, String)
+        property.set(new DefaultProvider<String>({ evaluations++; null }).orElse(Providers.notDefined()))
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("Upstream provenance is unavailable beyond an opaque or unsupported provider boundary.")
+        evaluations == 1
+    }
+
+    def "rejected mutation on a cyclic property graph still reports a bounded trace"() {
+        def property = new DefaultProperty<String>(host, String)
+        property.set(property)
+        property.disallowChanges()
+
+        when:
+        property.set("rejected")
+
+        then:
+        def failure = thrown(IllegalStateException)
+        failure.message.contains("Trace stopped at a repeated provider node.")
+    }
+
+    def "rejected mutation on a long graph truncates provenance without evaluating it"() {
+        def property = new DefaultProperty<String>(host, String)
+        property.set(Providers.notDefined())
+        200.times {
+            def next = new DefaultProperty<String>(host, String)
+            next.set(property)
+            property = next
+        }
+        property.disallowChanges()
+
+        when:
+        property.set("rejected")
+
+        then:
+        def failure = thrown(IllegalStateException)
+        failure.message.contains("Trace truncated at the diagnostic traversal limit.")
+        failure.message.count("[explicit source]") == 128
     }
 
     def "a shallow copy retains its binding and conventions after the original is replaced"() {

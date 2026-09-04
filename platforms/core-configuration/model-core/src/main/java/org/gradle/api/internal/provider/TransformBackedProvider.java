@@ -105,12 +105,15 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
 
     @Override
     protected void describeFailureProvenance(TreeFormatter formatter) {
-        describeFailureProvenanceOf(provider, formatter);
+        PropertyProvenanceTrace trace = new PropertyProvenanceTrace();
+        collectFailureProvenance(trace);
+        trace.describeFailure(formatter);
     }
 
     @Override
     protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
         if (trace.enter(this)) {
+            trace.limitation(PropertyProvenanceTrace.Limitation.MAPPING);
             collectFailureProvenanceOf(provider, trace);
         }
     }

@@ -103,6 +103,35 @@ class ProjectBackedPropertyHostTest extends Specification {
         failure.location == "Plugin.java:12"
     }
 
+    def "a throwing deferred callback restores the triggering plugin and then clears context"() {
+        def context = new DefaultUserCodeApplicationContext()
+        def source = new UserCodeSource.Binary(Describables.of("plugin 'registrant'"), "Registrant", "registrant")
+        def trigger = new UserCodeSource.Binary(Describables.of("plugin 'trigger'"), "Trigger", "trigger")
+        def callback
+        def observed = []
+        context.apply(source) {
+            callback = context.reapplyCurrentLater {
+                observed << context.current().source
+                throw new IllegalStateException("callback failed")
+            }
+        }
+
+        when:
+        context.apply(trigger) {
+            try {
+                callback.execute(null)
+            } finally {
+                observed << context.current().source
+            }
+        }
+
+        then:
+        def failure = thrown(IllegalStateException)
+        failure.message == "callback failed"
+        observed == [source, trigger]
+        context.current() == null
+    }
+
     def "disallows read before completion when property has no producer"() {
         expect:
         host.beforeRead(null) == "configuration of <project> has not completed yet"

@@ -177,6 +177,10 @@ Failure trace to source:
 
 Shadowed configuration:
     at plugin 'com.example.property-consumer' [convention]
+
+Trace limitations:
+    map() dependencies are shown, not a proven causal failure path.
+    Upstream provenance is unavailable beyond an opaque or unsupported provider boundary.
 ```
 
 Origins are the default. To add the prototype's optional Java/Kotlin source locations,
@@ -185,9 +189,10 @@ line capture is not implemented. The location option has no effect when provenan
 is disabled. See [the origin-first coverage plan](PROPERTY_PROVENANCE_ORIGIN_FIRST.md)
 for supported cases and known limitations.
 
-Traversal happens only while Gradle formats the failure. It uses the already assembled
+Traversal happens while Gradle formats the failure or snapshots a successfully finalized
+property. It uses the already assembled
 Provider graph, does not evaluate a Provider or execute either mapping function, and stops
-if it encounters a repeated node. An ordinary replacement `set` still cuts the previous
+at repeated nodes or the diagnostic traversal limit. An ordinary replacement `set` still cuts the previous
 source chain, while conventions shadowed by an explicit binding remain outside the trace.
 
 This example uses missing values propagated through a linear property/map chain.

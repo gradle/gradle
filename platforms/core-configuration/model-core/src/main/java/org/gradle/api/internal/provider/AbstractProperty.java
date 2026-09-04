@@ -326,7 +326,15 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     private void finalizeNow(EvaluationScopeContext context, ValueConsumer consumer) {
         try {
-            value = finalValue(context, value, state.forUpstream(consumer));
+            S finalizedValue = finalValue(context, value, state.forUpstream(consumer));
+            if (provenanceHost != null && value instanceof ProviderInternal<?> && !Providers.isFixedValue((ProviderInternal<?>) value)) {
+                // Snapshot after successful evaluation but before discarding the supplier graph.
+                // Upstream properties may themselves have finalized during that evaluation.
+                PropertyProvenanceTrace trace = new PropertyProvenanceTrace();
+                collectFailureProvenance(trace);
+                provenance().finalizeProvenance(trace.snapshot());
+            }
+            value = finalizedValue;
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
@@ -499,7 +507,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
-        if (provenanceHost == null || !trace.enter(this)) {
+        if (provenanceHost == null) {
+            trace.limitation(PropertyProvenanceTrace.Limitation.UNTRACKED);
+            return;
+        }
+        trace.host(provenanceHost);
+        if (!trace.enter(this)) {
             return;
         }
         collectSupplierProvenance(trace, provenance, value);
@@ -507,10 +520,17 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     private void collectSupplierProvenance(PropertyProvenanceTrace trace, @Nullable PropertyProvenanceState source, S supplier) {
         if (source != null) {
+            PropertyProvenanceTrace.Snapshot snapshot = source.getFinalizedSnapshot();
+            if (snapshot != null) {
+                trace.append(snapshot);
+                return;
+            }
             trace.property(source);
         }
         if (supplier instanceof ProviderInternal<?>) {
             collectFailureProvenanceOf((ProviderInternal<?>) supplier, trace);
+        } else {
+            trace.limitation(PropertyProvenanceTrace.Limitation.OPAQUE);
         }
     }
 
@@ -615,7 +635,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
-            if (provenanceHost != null && trace.enter(this)) {
+            if (provenanceHost == null) {
+                trace.limitation(PropertyProvenanceTrace.Limitation.UNTRACKED);
+            } else if (trace.enter(this)) {
+                trace.host(provenanceHost);
                 collectSupplierProvenance(trace, copiedProvenance, copiedValue);
             }
         }

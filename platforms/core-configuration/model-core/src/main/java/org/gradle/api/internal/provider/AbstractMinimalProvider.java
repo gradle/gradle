@@ -219,26 +219,20 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     /**
-     * Allows a provider derived from another provider to preserve that provider's provenance in a failure.
-     */
-    protected final void describeFailureProvenanceOf(ProviderInternal<?> provider, TreeFormatter formatter) {
-        if (provider instanceof AbstractMinimalProvider) {
-            ((AbstractMinimalProvider<?>) provider).describeFailureProvenance(formatter);
-        }
-    }
-
-    /**
      * Collects selected property sources reachable through this Provider without evaluating it.
      */
     protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+        trace.limitation(PropertyProvenanceTrace.Limitation.OPAQUE);
     }
 
     /**
-     * Allows inspectable Provider wrappers to continue a failure-only provenance traversal.
+     * Allows inspectable Provider wrappers to continue a diagnostic provenance traversal.
      */
     protected final void collectFailureProvenanceOf(ProviderInternal<?> provider, PropertyProvenanceTrace trace) {
         if (provider instanceof AbstractMinimalProvider) {
             ((AbstractMinimalProvider<?>) provider).collectFailureProvenance(trace);
+        } else {
+            trace.limitation(PropertyProvenanceTrace.Limitation.OPAQUE);
         }
     }
 

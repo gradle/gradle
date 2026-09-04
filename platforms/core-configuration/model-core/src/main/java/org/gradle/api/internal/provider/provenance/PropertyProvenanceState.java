@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.provenance;
 
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace.Snapshot;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -25,13 +26,15 @@ import org.jspecify.annotations.Nullable;
  * and a convention is shown outside the source trace while an explicit source is selected.</p>
  */
 public final class PropertyProvenanceState {
-    private @Nullable PropertyProvenanceRecord explicitSource;
+    // A PropertyProvenanceRecord while mutable, or a Snapshot after finalization. Reuse the slot
+    // so finalization support does not add a reference to every unfinalized property's metadata.
+    private @Nullable Object explicitSourceOrSnapshot;
     private @Nullable PropertyProvenanceRecord convention;
     private boolean explicitSelected;
     private boolean conventionPromoted;
 
     public void explicitSource(PropertyProvenanceRecord source) {
-        explicitSource = source;
+        explicitSourceOrSnapshot = source;
         explicitSelected = true;
         conventionPromoted = false;
     }
@@ -49,7 +52,7 @@ public final class PropertyProvenanceState {
 
     public void selectConvention() {
         explicitSelected = false;
-        explicitSource = null;
+        explicitSourceOrSnapshot = null;
         conventionPromoted = false;
     }
 
@@ -57,18 +60,28 @@ public final class PropertyProvenanceState {
      * Promoting a convention freezes its binding, even if a different convention is supplied later.
      */
     public void promoteConvention() {
-        explicitSource = convention;
+        explicitSourceOrSnapshot = convention;
         explicitSelected = true;
         conventionPromoted = true;
     }
 
     public PropertyProvenanceState copy() {
         PropertyProvenanceState copy = new PropertyProvenanceState();
-        copy.explicitSource = explicitSource;
+        copy.explicitSourceOrSnapshot = explicitSourceOrSnapshot;
         copy.convention = convention;
         copy.explicitSelected = explicitSelected;
         copy.conventionPromoted = conventionPromoted;
         return copy;
+    }
+
+    public void finalizeProvenance(PropertyProvenanceTrace.Snapshot snapshot) {
+        explicitSourceOrSnapshot = snapshot;
+        // The snapshot contains the local binding as well as the upstream bindings.
+        convention = null;
+    }
+
+    public @Nullable Snapshot getFinalizedSnapshot() {
+        return explicitSourceOrSnapshot instanceof Snapshot ? (Snapshot) explicitSourceOrSnapshot : null;
     }
 
     public void discardConvention() {
@@ -76,7 +89,7 @@ public final class PropertyProvenanceState {
     }
 
     public @Nullable PropertyProvenanceRecord getExplicitSource() {
-        return explicitSource;
+        return explicitSourceOrSnapshot instanceof PropertyProvenanceRecord ? (PropertyProvenanceRecord) explicitSourceOrSnapshot : null;
     }
 
     public @Nullable PropertyProvenanceRecord getConvention() {

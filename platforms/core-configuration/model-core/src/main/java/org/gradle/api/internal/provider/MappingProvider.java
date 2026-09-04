@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -76,6 +77,13 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
 
     @Override
     protected void beforeRead(EvaluationScopeContext context) {}
+
+    @Override
+    protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+        if (trace.enter(this)) {
+            collectFailureProvenanceOf(provider, trace);
+        }
+    }
 
     @Override
     protected String toStringNoReentrance() {

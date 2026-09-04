@@ -116,4 +116,18 @@ public class PropertyProvenanceBenchmark {
             return created;
         });
     }
+
+    @Benchmark
+    public DefaultProperty<Object> bindAndFinalizeChain() {
+        return application.reapply(() -> {
+            DefaultProperty<Object> source = new DefaultProperty<>(host, Object.class);
+            PropertyCallSites.set(source, supplier, "SourcePlugin.java:12");
+            DefaultProperty<Object> middle = new DefaultProperty<>(host, Object.class);
+            PropertyCallSites.set(middle, source, "MiddlePlugin.java:12");
+            DefaultProperty<Object> target = new DefaultProperty<>(host, Object.class);
+            PropertyCallSites.set(target, middle, "TargetPlugin.java:12");
+            target.finalizeValue();
+            return target;
+        });
+    }
 }

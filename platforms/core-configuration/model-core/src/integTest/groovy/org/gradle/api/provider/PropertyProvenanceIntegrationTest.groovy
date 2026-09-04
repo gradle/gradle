@@ -88,6 +88,58 @@ Shadowed configuration:
     at plugin class 'com.example.PropertyProvenancePlugin' [convention]""")
     }
 
+    def "origin-only attribution survives #boundary registered by a plugin"() {
+        javaPluginBuild(true, """
+            Property<String> value = project.getObjects().property(String.class);
+            value.convention("callback did not run");
+            project.getTasks().register("callbackValue", task -> task.doLast(ignored -> value.get()));
+            $registration
+        """)
+        file("build.gradle.kts") << '''
+            apply(plugin = "base")
+            configurations.create("later")
+        '''
+
+        when:
+        fails("callbackValue")
+
+        then:
+        failure.assertThatCause(matchesRegex("(?s).*Failure trace to source:\\R" +
+            "    at task ':callbackValue' action \\[get\\(\\)\\]\\R" +
+            "    at plugin 'com\\.example\\.property-provenance' \\[explicit source\\].*"))
+        !failure.error.contains("at plugin 'base' [explicit source]")
+        !failure.error.contains("at build file 'build.gradle.kts' [explicit source]")
+
+        where:
+        boundary                  | registration
+        "withPlugin"              | 'project.getPluginManager().withPlugin("base", ignored -> value.set(project.getProviders().gradleProperty("missing-callback")));'
+        "tasks.named.configure"   | 'project.getTasks().named("callbackValue").configure(ignored -> value.set(project.getProviders().gradleProperty("missing-callback")));'
+        "tasks.configureEach"     | 'project.getTasks().withType(org.gradle.api.DefaultTask.class).configureEach(ignored -> value.set(project.getProviders().gradleProperty("missing-callback")));'
+        "container.configureEach" | 'project.getConfigurations().configureEach(ignored -> value.set(project.getProviders().gradleProperty("missing-callback")));'
+        "afterEvaluate"           | 'project.afterEvaluate(ignored -> value.set(project.getProviders().gradleProperty("missing-callback")));'
+        "projectsEvaluated"       | 'project.getGradle().projectsEvaluated(ignored -> value.set(project.getProviders().gradleProperty("missing-callback")));'
+        "taskGraph.whenReady"     | 'project.getGradle().getTaskGraph().whenReady((org.gradle.api.Action<org.gradle.api.execution.TaskExecutionGraph>) ignored -> value.set(project.getProviders().gradleProperty("missing-callback")));'
+        "nested deferred action"  | 'project.afterEvaluate(ignored -> project.getTasks().named("callbackValue").configure(task -> value.set(project.getProviders().gradleProperty("missing-callback"))));'
+    }
+
+    def "finalization retains the multi-plugin source chain after upstream replacement"() {
+        multiActorPluginBuild()
+        file("build.gradle.kts") << '''
+            provenance.value.finalizeValue()
+            provenance.normalized.set("replacement")
+        '''
+
+        when:
+        fails("shareProvenance")
+
+        then:
+        failure.assertThatCause(matchesRegex("(?s).*Failure trace to source:\\R" +
+            "    at task ':shareProvenance' action \\[get\\(\\)\\]\\R" +
+            "    at build file 'build\\.gradle\\.kts' \\[explicit source\\]\\R" +
+            "    at plugin 'com\\.example\\.property-normalizer' \\[explicit source\\]\\R" +
+            "    at plugin 'com\\.example\\.property-defaults' \\[convention\\].*"))
+    }
+
     def "Kotlin DSL get failure has an exact operation line and convention source line"() {
         executer.withArgument("-Dorg.gradle.internal.property-provenance.locations=true")
         file("settings.gradle.kts") << ""
@@ -252,7 +304,7 @@ Shadowed configuration:
         """
     }
 
-    private void javaPluginBuild(boolean applyById = true) {
+    private void javaPluginBuild(boolean applyById = true, String callbackRegistration = "") {
         file("settings.gradle.kts") << ""
         file("buildSrc/settings.gradle.kts") << "rootProject.name = \"build-logic\""
         file("buildSrc/build.gradle.kts") << '''
@@ -288,6 +340,7 @@ Shadowed configuration:
                         Property<String> deferred = missingProperty(project);
                         task.doLast(ignored -> deferred.get());
                     });
+                    // CALLBACK
                 }
 
                 private static Property<String> missingProperty(Project project) {
@@ -297,7 +350,7 @@ Shadowed configuration:
                     return value;
                 }
             }
-        '''
+        '''.replace("// CALLBACK", callbackRegistration)
         file("build.gradle.kts") << (applyById ? '''
             plugins {
                 id("com.example.property-provenance")

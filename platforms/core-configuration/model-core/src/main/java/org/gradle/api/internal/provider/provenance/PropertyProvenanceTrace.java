@@ -16,28 +16,67 @@
 
 package org.gradle.api.internal.provider.provenance;
 
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Failure-only traversal state for selected sources across an ordinary scalar property chain.
+ * Temporary traversal state for failure reporting and finalization snapshots.
  *
  * <p>The identity set prevents malformed or opaque provider graphs from turning diagnostics into
  * recursion. Provider nodes are never evaluated while this trace is assembled.</p>
  */
 public final class PropertyProvenanceTrace {
+    private static final int MAX_NODES = 128;
+    private static final PropertyProvenanceRecord[] NO_RECORDS = new PropertyProvenanceRecord[0];
+    private static final Limitation[] NO_LIMITATIONS = new Limitation[0];
     private final Set<Object> visited = Collections.newSetFromMap(new IdentityHashMap<>());
     private final List<PropertyProvenanceRecord> selectedSources = new ArrayList<>();
     private final List<PropertyProvenanceRecord> shadowedConventions = new ArrayList<>();
+    private final Set<Limitation> limitations = EnumSet.noneOf(Limitation.class);
+    private @Nullable PropertyHost host;
+
+    public enum Limitation {
+        MAPPING("map() dependencies are shown, not a proven causal failure path."),
+        OPAQUE("Upstream provenance is unavailable beyond an opaque or unsupported provider boundary."),
+        UNTRACKED("Upstream provenance is unavailable beyond an untracked property."),
+        CYCLE("Trace stopped at a repeated provider node."),
+        LIMIT("Trace truncated at the diagnostic traversal limit.");
+
+        private final String message;
+
+        Limitation(String message) {
+            this.message = message;
+        }
+    }
+
+    public void host(PropertyHost host) {
+        if (this.host == null) {
+            this.host = host;
+        }
+    }
+
+    public void limitation(Limitation limitation) {
+        limitations.add(limitation);
+    }
 
     public boolean enter(Object node) {
-        return visited.add(node);
+        if (visited.size() >= MAX_NODES) {
+            limitation(Limitation.LIMIT);
+            return false;
+        }
+        if (!visited.add(node)) {
+            limitation(Limitation.CYCLE);
+            return false;
+        }
+        return true;
     }
 
     public void property(PropertyProvenanceState state) {
@@ -45,11 +84,54 @@ public final class PropertyProvenanceTrace {
             ? state.getExplicitSource()
             : state.getConvention();
         if (selected != null) {
-            selectedSources.add(selected);
+            addBounded(selectedSources, selected);
         }
         PropertyProvenanceRecord convention = state.getConvention();
         if (state.hasShadowedConvention() && convention != null) {
-            shadowedConventions.add(convention);
+            addBounded(shadowedConventions, convention);
+        }
+    }
+
+    private void addBounded(List<PropertyProvenanceRecord> records, PropertyProvenanceRecord record) {
+        if (records.size() < MAX_NODES) {
+            records.add(record);
+        } else {
+            limitation(Limitation.LIMIT);
+        }
+    }
+
+    public Snapshot snapshot() {
+        return new Snapshot(this);
+    }
+
+    public void append(Snapshot snapshot) {
+        for (PropertyProvenanceRecord record : snapshot.selectedSources) {
+            addBounded(selectedSources, record);
+        }
+        for (PropertyProvenanceRecord record : snapshot.shadowedConventions) {
+            addBounded(shadowedConventions, record);
+        }
+        Collections.addAll(limitations, snapshot.limitations);
+    }
+
+    /**
+     * Immutable descriptors only: never retain the visited providers, property host, or failed operation.
+     */
+    public static final class Snapshot {
+        private final PropertyProvenanceRecord[] selectedSources;
+        private final PropertyProvenanceRecord[] shadowedConventions;
+        private final Limitation[] limitations;
+
+        private Snapshot(PropertyProvenanceTrace trace) {
+            selectedSources = trace.selectedSources.toArray(NO_RECORDS);
+            shadowedConventions = trace.shadowedConventions.toArray(NO_RECORDS);
+            limitations = trace.limitations.toArray(NO_LIMITATIONS);
+        }
+    }
+
+    public void describeFailure(TreeFormatter formatter) {
+        if (host != null) {
+            describeFailure(formatter, host.currentPropertyFailure(PropertyProvenanceKind.GET));
         }
     }
 
@@ -71,6 +153,13 @@ public final class PropertyProvenanceTrace {
             formatter.node("Shadowed configuration:");
             for (PropertyProvenanceRecord convention : shadowedConventions) {
                 formatter.node("    " + convention.formatFrame());
+            }
+        }
+        if (!limitations.isEmpty()) {
+            formatter.blankLine();
+            formatter.node("Trace limitations:");
+            for (Limitation limitation : limitations) {
+                formatter.node("    " + limitation.message);
             }
         }
     }

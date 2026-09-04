@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -32,6 +33,10 @@ import java.util.function.Supplier;
 
 public class Providers {
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
+
+    static boolean isFixedValue(ProviderInternal<?> provider) {
+        return provider instanceof FixedValueProvider<?> || provider instanceof NoValueProvider<?>;
+    }
 
     public static final Provider<Boolean> TRUE = of(true);
     public static final Provider<Boolean> FALSE = of(false);
@@ -183,6 +188,10 @@ public class Providers {
     }
 
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {
+        @Override
+        protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+            // A known terminal source, not an unsupported dependency boundary.
+        }
         protected final T value;
 
         FixedValueProvider(T value) {
@@ -244,6 +253,10 @@ public class Providers {
     }
 
     private static class NoValueProvider<T> extends AbstractMinimalProvider<T> {
+        @Override
+        protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+            // A known missing terminal source.
+        }
         private final Value<? extends T> value;
 
         public NoValueProvider(Value<? extends T> value) {
