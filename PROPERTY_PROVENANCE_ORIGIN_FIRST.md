@@ -49,14 +49,43 @@ their class display name. Scripts retain the existing user-code source display n
 and absent context is reported as `unknown code`.
 
 Origin, application identity, target scope, operation, and optional location are separate
-concepts. This increment still uses display-only records. Stable typed descriptors,
-explicit script roles, build identity, and persistence remain follow-up work; display
-strings are not contributor authorization identities.
+concepts. Successful binding records now share a `PropertyProvenanceOrigin` descriptor:
+plugin ID, plugin-class fallback, script URI when available, a display-only fallback,
+or unknown. IDs come from `UserCodeSource` metadata, never from parsing display text.
+The original display text is preserved so this representation change does not alter
+report wording. Failure task frames remain ephemeral display-only descriptors.
+
+Descriptors contain only an enum and strings, not plugin instances, application objects,
+or class loaders. Each application source shares its descriptor across operations and
+optional call-site occurrences. The record replaces its display-name reference with a
+descriptor reference, adding no field to individual properties or binding records.
+The registry does not merge different application sources just because their plugin
+IDs or display names match.
+
+These are not globally unique contributor keys or authorization identities. Explicit
+script roles, source/target build identity, and persistence remain follow-up work. A
+script named `settings.gradle.kts` is not necessarily a settings script; roles must come
+from application boundaries. URI normalization is lexical, not filesystem resolution,
+and does not yet provide relocatable build-relative identity.
 
 Gradle-managed deferred callbacks should preserve the registrant's context. Private
 plugin callback stores, arbitrary executors, and side-effecting provider transforms
 are not fully covered: ambient context may describe the invoker rather than the author.
 This limitation must not become an authorization mechanism.
+
+### Settings-origin configuration, not settings-owned properties
+
+The MVP remains project-scoped regardless of where configuration originates. A settings
+plugin can register `gradle.beforeProject` or `gradle.lifecycle.beforeProject`, create a
+property using the callback's project object factory, and configure it directly or in a
+nested task callback. Its origin remains the settings plugin ID. The project's property
+host owns tracking; no settings property host is required.
+
+`SettingsOriginPropertyProvenanceIntegrationTest` covers those callback variants, project
+script replacement, successful silence, disabled messages, and a negative control:
+properties created by the settings plugin's injected settings object factory remain
+untracked. The modern lifecycle test uses existing action isolation/context propagation;
+it does not add provenance serialization or configuration-cache persistence.
 
 ## Coverage inventory
 
@@ -65,7 +94,8 @@ The rows below are a roadmap, not a declaration that every case is implemented.
 | Dimension | Cases | Current boundary / next step |
 |---|---|---|
 | Project-owned objects | Extension, task, nested managed and directly created properties | Project host is wired; expand object-factory coverage tests |
-| Settings | Script, plugin, extensions and nested objects | Not tracked by this increment; introduce a suitable host and explicit script role |
+| Settings-owned properties | Script/plugin extension properties and nested objects | Deliberately untracked; defer until a concrete settings-property diagnostic warrants expansion |
+| Settings-origin project configuration | Settings plugin beforeProject and lifecycle.beforeProject, including nested task callbacks | Covered with project-owned properties, without adding a settings tracking host |
 | Init / Gradle lifecycle | Init scripts, settings/project callbacks | Audit callback attribution and service lifetimes before adding tracking |
 | Multiple builds | Included builds, build logic, duplicate IDs/paths | Add stable build identity and tests; source and target builds can differ |
 | Services | Shared build-service parameters and runtime state | Audit ownership, lifetime and recreation |
@@ -139,6 +169,9 @@ increment.
 
 ### Development measurements: 2026-09-04
 
+These measurements describe the finalization increment (`125b5479ef8`), before the
+typed-origin descriptor change.
+
 Linux AArch64, OpenJDK 25.0.4, 256 MiB heap, JMH 1.36, two forks, three one-second
 warmups and five one-second measurements per fork. No Gradle test build was running
 alongside this measurement. Times below are means with JMH's 99.9% error estimates;
@@ -172,10 +205,21 @@ java -jar platforms/core-configuration/model-core/build/libs/gradle-model-core-9
   -rf json -rff platforms/core-configuration/model-core/build/reports/property-provenance-benchmark.json
 ```
 
+### Typed-origin allocation smoke check
+
+After introducing shared descriptors, a shorter `createAndBind` run on the same JVM
+and heap (one fork, two one-second warmups, three one-second measurements, GC profiler)
+still measured 72 / 96 / 152 allocated bytes per operation for disabled / origins /
+locations. This checks steady-state binding allocation only: the source descriptor is
+created during benchmark setup, so its per-source cost and retained heap are not included.
+This smoke check is not evidence of unchanged whole-build performance. Its local JSON
+report is `platforms/core-configuration/model-core/build/reports/property-provenance-origin-descriptors.json`.
+
 ## Next milestones
 
-1. Complete project-scoped origin correctness and callback/property-operation coverage.
-2. Introduce stable origin descriptors and explicit source/target build and script roles.
-3. Add settings/init and other hosts with correct service lifetimes, one boundary at a time.
-4. Cover collection contributions and cache/isolation transport as explicit workstreams.
-5. Complete causal provider tracing and then extend optional location detail.
+1. Expand concrete project-scoped callback/property-operation and cross-project cases.
+2. Measure representative builds, including compiled-in-but-disabled overhead and retained heap.
+3. Add explicit source/target build identity and script roles when required by those cases.
+4. Treat collection contributions, causal provider tracing, and cache transport as separate workstreams.
+5. Defer settings-owned tracking and other new scopes until a concrete diagnostic needs them;
+   optional source-location expansion is not a prerequisite for any of the above.

@@ -22,18 +22,26 @@ import org.jspecify.annotations.Nullable;
  * The diagnostic origin of one successful property binding or one currently failing operation.
  */
 public final class PropertyProvenanceRecord {
-    private final String originDisplayName;
+    private final PropertyProvenanceOrigin origin;
     private final PropertyProvenanceKind kind;
     private final @Nullable String location;
 
     public PropertyProvenanceRecord(String originDisplayName, PropertyProvenanceKind kind, @Nullable String location) {
-        this.originDisplayName = originDisplayName;
+        this(PropertyProvenanceOrigin.description(originDisplayName), kind, location);
+    }
+
+    public PropertyProvenanceRecord(PropertyProvenanceOrigin origin, PropertyProvenanceKind kind, @Nullable String location) {
+        this.origin = origin;
         this.kind = kind;
         this.location = location;
     }
 
     public String getOriginDisplayName() {
-        return originDisplayName;
+        return origin.getDisplayName();
+    }
+
+    public PropertyProvenanceOrigin getOrigin() {
+        return origin;
     }
 
     public PropertyProvenanceKind getKind() {
@@ -45,6 +53,7 @@ public final class PropertyProvenanceRecord {
     }
 
     public String formatFrame() {
+        String originDisplayName = origin.getDisplayName();
         String locatedOrigin = location == null
             ? originDisplayName
             : originDisplayName + " (" + location + ")";

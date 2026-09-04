@@ -44,7 +44,7 @@ public final class PropertyProvenanceRegistry {
         this.enabled = enabled;
         this.captureLocations = enabled && captureLocations;
         for (PropertyProvenanceKind kind : PropertyProvenanceKind.values()) {
-            unknownRecords[kind.ordinal()] = new PropertyProvenanceRecord("unknown code", kind, null);
+            unknownRecords[kind.ordinal()] = new PropertyProvenanceRecord(PropertyProvenanceOrigin.UNKNOWN, kind, null);
         }
     }
 
@@ -64,29 +64,25 @@ public final class PropertyProvenanceRegistry {
         PropertyProvenanceKind kind,
         @Nullable String location
     ) {
-        if (captureLocations && location != null) {
-            return new PropertyProvenanceRecord(displayNameOf(source), kind, location);
-        }
-        if (source == null) {
-            return unknownRecords[kind.ordinal()];
-        }
+        PropertyProvenanceRecord record = source == null ? unknownRecords[kind.ordinal()] : recordsFor(source)[kind.ordinal()];
+        return captureLocations && location != null ? new PropertyProvenanceRecord(record.getOrigin(), kind, location) : record;
+    }
+
+    private PropertyProvenanceRecord[] recordsFor(UserCodeSource source) {
         // Publish a complete immutable table: deferred callbacks may use the same origin in parallel.
-        PropertyProvenanceRecord[] records = recordsBySource.computeIfAbsent(source, key -> {
+        // One descriptor per application source, not per mutation or per property. Do not merge
+        // applications merely because their plugin IDs or display names match.
+        return recordsBySource.computeIfAbsent(source, key -> {
             PropertyProvenanceRecord[] result = new PropertyProvenanceRecord[KIND_COUNT];
-            String displayName = displayNameOf(key);
+            PropertyProvenanceOrigin origin = PropertyProvenanceOrigin.from(key);
             for (PropertyProvenanceKind operation : PropertyProvenanceKind.values()) {
-                result[operation.ordinal()] = new PropertyProvenanceRecord(displayName, operation, null);
+                result[operation.ordinal()] = new PropertyProvenanceRecord(origin, operation, null);
             }
             return result;
         });
-        return records[kind.ordinal()];
     }
 
     public PropertyProvenanceRecord failureFor(String originDisplayName, PropertyProvenanceKind kind, @Nullable String location) {
         return new PropertyProvenanceRecord(originDisplayName, kind, captureLocations ? location : null);
-    }
-
-    private static String displayNameOf(@Nullable UserCodeSource source) {
-        return source == null ? "unknown code" : source.getDisplayName().getDisplayName();
     }
 }

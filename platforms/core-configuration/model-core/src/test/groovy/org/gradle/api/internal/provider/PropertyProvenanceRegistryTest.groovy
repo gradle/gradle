@@ -17,12 +17,88 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.internal.provider.provenance.PropertyProvenanceKind
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin
 import org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry
 import org.gradle.internal.Describables
 import org.gradle.internal.code.UserCodeSource
 import spock.lang.Specification
 
 class PropertyProvenanceRegistryTest extends Specification {
+    def "plugin identity comes from source metadata rather than its display name"() {
+        def registry = new PropertyProvenanceRegistry(true)
+        def source = new UserCodeSource.Binary(Describables.of("a deliberately unrelated label"), "example.Plugin", pluginId)
+
+        when:
+        def record = registry.recordFor(source, PropertyProvenanceKind.EXPLICIT_SOURCE, null)
+
+        then:
+        record.origin.type == type
+        record.origin.identifier == identifier
+        record.formatFrame() == "at a deliberately unrelated label [explicit source]"
+
+        where:
+        pluginId      | type                                      | identifier
+        "example.id"  | PropertyProvenanceOrigin.Type.PLUGIN_ID    | "example.id"
+        null          | PropertyProvenanceOrigin.Type.PLUGIN_CLASS | "example.Plugin"
+    }
+
+    def "operations and locations share an origin descriptor but not their occurrence records"() {
+        def registry = new PropertyProvenanceRegistry(true, true)
+        def source = new UserCodeSource.Binary(Describables.of("plugin 'example'"), "ExamplePlugin", "example")
+
+        when:
+        def convention = registry.recordFor(source, PropertyProvenanceKind.CONVENTION, null)
+        def binding = registry.recordFor(source, PropertyProvenanceKind.EXPLICIT_SOURCE, "Plugin.java:10")
+        def later = registry.recordFor(source, PropertyProvenanceKind.EXPLICIT_SOURCE, "Plugin.java:20")
+
+        then:
+        convention.origin.is(binding.origin)
+        later.origin.is(binding.origin)
+        !binding.is(later)
+        binding.location == "Plugin.java:10"
+        later.location == "Plugin.java:20"
+    }
+
+    def "matching plugin IDs do not merge different application sources"() {
+        def registry = new PropertyProvenanceRegistry(true)
+        def first = new UserCodeSource.Binary(Describables.of("plugin 'example'"), "ExamplePlugin", "example")
+        def second = new UserCodeSource.Binary(Describables.of("plugin 'example'"), "ExamplePlugin", "example")
+
+        when:
+        def firstRecord = registry.recordFor(first, PropertyProvenanceKind.EXPLICIT_SOURCE, null)
+        def secondRecord = registry.recordFor(second, PropertyProvenanceKind.EXPLICIT_SOURCE, null)
+
+        then:
+        firstRecord.origin.identifier == secondRecord.origin.identifier
+        !firstRecord.origin.is(secondRecord.origin)
+        !firstRecord.is(secondRecord)
+    }
+
+    def "script descriptors preserve metadata without guessing a role from the filename"() {
+        def registry = new PropertyProvenanceRegistry(true)
+        def source = new UserCodeSource.Script(Describables.of("script display name"), uri)
+
+        when:
+        def record = registry.recordFor(source, PropertyProvenanceKind.CONVENTION, null)
+
+        then:
+        record.origin.type == PropertyProvenanceOrigin.Type.SCRIPT
+        record.origin.identifier == identifier
+        record.formatFrame() == "at script display name [convention]"
+
+        where:
+        uri                                              | identifier
+        new URI("file:/build/sub/../settings.gradle.kts") | "file:/build/settings.gradle.kts"
+        null                                             | null
+    }
+
+    def "unidentified sources are explicitly unknown"() {
+        def registry = new PropertyProvenanceRegistry(true)
+
+        expect:
+        registry.recordFor(null, PropertyProvenanceKind.CONVENTION, null).origin.is(PropertyProvenanceOrigin.UNKNOWN)
+    }
+
     def "origin-only bindings share records and ignore any ambient location"() {
         def registry = new PropertyProvenanceRegistry(true)
         def source = new UserCodeSource.Binary(Describables.of("plugin 'example'"), "ExamplePlugin", "example")
