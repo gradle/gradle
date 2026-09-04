@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+}
+
+repositories {
+    mavenCentral()
+}
+
+testing {
+    suites {
+        test {
+            useJUnitJupiter()
+        }
+        integrationTest(JvmTestSuite) {
+            useJUnitJupiter()
+            dependencies {
+                implementation project()
+            }
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// tag::multi-test-suites[]
+def testTasks = tasks.withType(Test)
+
+def testCoverageData = files()
+testTasks.configureEach {
+    def jacocoExt = extensions.getByType(JacocoTaskExtension)
+    testCoverageData.from(provider { jacocoExt.destinationFile })
+}
+
+tasks.register('codeCoverageReport', JacocoReport) {
+    dependsOn testTasks              // run every test suite first
+    executionData testCoverageData   // collect each suite's coverage data
+    sourceSets sourceSets.main
+}
+// end::multi-test-suites[]
