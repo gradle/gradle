@@ -492,9 +492,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter usingInitScript(File initScript) {
-        if (RepoScriptBlockUtil.isMirrorEnabled()) {
-            initScripts.add(initScript);
-        }
+        // Must not be gated on IGNORE_MIRROR: this is the public API for every fixture
+        // init script, not just the repository-mirror one. Skip mirrors in withRepositoryMirrors().
+        initScripts.add(initScript);
         return this;
     }
 
@@ -952,12 +952,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withRepositoryMirrors() {
-        beforeExecute(gradleExecuter -> usingInitScript(RepoScriptBlockUtil.createMirrorInitScript()));
+        if (RepoScriptBlockUtil.isMirrorEnabled()) {
+            beforeExecute(gradleExecuter -> usingInitScript(RepoScriptBlockUtil.createMirrorInitScript()));
+        }
         return this;
     }
 
     @Override
     public GradleExecuter withGlobalRepositoryMirrors() {
+        if (!RepoScriptBlockUtil.isMirrorEnabled()) {
+            return this;
+        }
         beforeExecute(gradleExecuter -> {
             TestFile userHome = testDirectoryProvider.getTestDirectory().file("user-home");
             withGradleUserHomeDir(userHome);

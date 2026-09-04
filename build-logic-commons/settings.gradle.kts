@@ -16,6 +16,20 @@
 
 pluginManagement {
     includeBuild("../build-logic-settings")
+    repositories {
+        // The implicit default for pluginManagement, made explicit so the emergency mirror bypass
+        // (IGNORE_MIRROR) can undo the plugin portal URL override TeamCity injects. This block is
+        // resolved before gradle/shared-with-buildSrc/mirrors.settings.gradle.kts can be applied.
+        // See that script for the full runbook.
+        gradlePluginPortal()
+        if (System.getenv("IGNORE_MIRROR")?.toBoolean() == true) {
+            all {
+                if (name == "Gradle Central Plugin Repository" && this is MavenArtifactRepository) {
+                    setUrl("https://plugins.gradle.org/m2")
+                }
+            }
+        }
+    }
 }
 
 dependencyResolutionManagement {
@@ -53,3 +67,5 @@ include("gradle-plugin")
 include("publishing")
 
 rootProject.name = "build-logic-commons"
+
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")

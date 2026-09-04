@@ -14,6 +14,33 @@
  * limitations under the License.
  */
 
+/*
+ * Redirects the repositories declared by this build to the caching mirrors on repo.grdev.net when running on CI.
+ *
+ * EMERGENCY BYPASS (repo.grdev.net / Artifactory outage)
+ * -----------------------------------------------------
+ * Set the TeamCity parameter `env.IGNORE_MIRROR` = `true` on the root `Gradle` project. It takes effect on the
+ * next build; no code change and no `.teamcity` configuration regeneration is needed. Remove the parameter once
+ * the mirror is healthy again.
+ *
+ * `env.IGNORE_MIRROR` is deliberately NOT declared in the `.teamcity` Kotlin DSL: a build-configuration-level
+ * parameter would take precedence over the project-level one and would therefore block the emergency flip.
+ *
+ * `env.REPO_MIRROR_URLS` must stay set while the bypass is on. The bypass works by mapping mirror URLs back to
+ * their upstream URLs, so it needs that variable to recognise which URLs are mirror URLs. That reverse mapping
+ * is also what undoes `-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%`, which
+ * TeamCity bakes into the Gradle command line of essentially every build step.
+ *
+ * Still pinned to repo.grdev.net and needing their own TeamCity parameter edits if those builds matter:
+ *   - `env.YARNPKG_MIRROR_URL`       - JS/docs builds
+ *   - `gradle.internal.repository.url` - publishing only, irrelevant to `check`
+ *
+ * Expect some flakiness while the bypass is on. Every agent then fetches from the upstream
+ * repositories directly, with no caching proxy in front of them, so sporadic
+ * "Could not GET ... > Read timed out" resolution failures are normal under full CI load and do
+ * not mean the switch is broken. Retry; if a whole stage is failing this way, the upstream
+ * repository is the bottleneck, not this script.
+ */
 
 class Helper(private val providers: ProviderFactory) {
     val originalUrls: Map<String, String> = mapOf(
@@ -38,7 +65,18 @@ class Helper(private val providers: ProviderFactory) {
             }
             ?: emptyMap()
 
-    fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").orNull?.toBoolean() == true
+    val ignoreMirrors: Boolean = providers.environmentVariable("IGNORE_MIRROR").orNull?.toBoolean() == true
+
+    /**
+     * Normalized mirror URL -> upstream URL, for the mirrors this build actually declares repositories for.
+     * Used by the emergency bypass to map a repository that already points at a mirror back to upstream,
+     * regardless of whether it was rewritten by this script or handed to us already mirrored (as the
+     * `gradlePluginPortal()` URL is, via the `org.gradle.internal.plugins.portal.url.override` system property).
+     */
+    val upstreamUrlsByMirrorUrl: Map<String, String> =
+        originalUrls.mapNotNull { (name, originalUrl) ->
+            mirrorUrls[name]?.let { mirrorUrl -> normalizeUrl(mirrorUrl) to originalUrl }
+        }.toMap()
 
     fun isCI() = providers.environmentVariable("CI").isPresent()
 
@@ -51,9 +89,13 @@ class Helper(private val providers: ProviderFactory) {
                 // see https://github.com/gradle/gradle/issues/37612
                 @Suppress("USELESS_ELVIS")
                 val currentUrl = this.url?.toString() ?: return@all
-                originalUrls.forEach { name, originalUrl ->
-                    if (normalizeUrl(originalUrl) == normalizeUrl(currentUrl) && mirrorUrls.containsKey(name)) {
-                        mirrorUrls.get(name)?.let { this.setUrl(it) }
+                if (ignoreMirrors) {
+                    upstreamUrlsByMirrorUrl[normalizeUrl(currentUrl)]?.let { this.setUrl(it) }
+                } else {
+                    originalUrls.forEach { name, originalUrl ->
+                        if (normalizeUrl(originalUrl) == normalizeUrl(currentUrl) && mirrorUrls.containsKey(name)) {
+                            mirrorUrls.get(name)?.let { this.setUrl(it) }
+                        }
                     }
                 }
             }
@@ -78,5 +120,11 @@ with(Helper(providers)) {
 
     gradle.settingsEvaluated {
         withMirrors(settings.pluginManagement.repositories)
+        if (ignoreMirrors) {
+            // The mirroring path deliberately leaves dependencyResolutionManagement repositories alone,
+            // but the bypass has to reach them: their `gradlePluginPortal()` carries the TeamCity
+            // `org.gradle.internal.plugins.portal.url.override` value, which points at repo.grdev.net.
+            withMirrors(settings.dependencyResolutionManagement.repositories)
+        }
     }
 }
