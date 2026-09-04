@@ -36,6 +36,7 @@ import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -45,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@NullMarked
 public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInternal> {
 
     private static final List<BuildOption<StartParameterInternal>> OPTIONS = Arrays.asList(
