@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.provider.provenance.PropertyProvenanceKind;
 import org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;
 import org.gradle.api.internal.provider.provenance.PropertyProvenanceState;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -429,8 +430,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         } catch (IllegalStateException failure) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(failure.getMessage());
-            PropertyProvenanceState current = provenance == null ? new PropertyProvenanceState() : provenance;
-            current.describeFailure(formatter, provenanceHost.currentPropertyFailure(operation));
+            describePropertyFailure(formatter, provenanceHost.currentPropertyFailure(operation));
             throw new IllegalStateException(formatter.toString());
         }
     }
@@ -472,8 +472,25 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         if (provenanceHost == null) {
             return;
         }
+        describePropertyFailure(formatter, provenanceHost.currentPropertyFailure(PropertyProvenanceKind.GET));
+    }
+
+    private void describePropertyFailure(TreeFormatter formatter, @Nullable PropertyProvenanceRecord failure) {
+        PropertyProvenanceTrace trace = new PropertyProvenanceTrace();
+        collectFailureProvenance(trace);
+        trace.describeFailure(formatter, failure);
+    }
+
+    @Override
+    protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+        if (!trace.enter(this)) {
+            return;
+        }
         PropertyProvenanceState current = provenance == null ? new PropertyProvenanceState() : provenance;
-        current.describeFailure(formatter, provenanceHost.currentPropertyFailure(PropertyProvenanceKind.GET));
+        trace.property(current);
+        if (value instanceof ProviderInternal<?>) {
+            collectFailureProvenanceOf((ProviderInternal<?>) value, trace);
+        }
     }
 
     @Nullable
@@ -567,6 +584,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Override
         protected void describeFailureProvenance(TreeFormatter formatter) {
             AbstractProperty.this.describeFailureProvenance(formatter);
+        }
+
+        @Override
+        protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+            AbstractProperty.this.collectFailureProvenance(trace);
         }
 
         @Override

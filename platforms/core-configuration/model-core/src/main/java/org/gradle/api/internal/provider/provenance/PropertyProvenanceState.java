@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider.provenance;
 
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -61,30 +60,5 @@ public final class PropertyProvenanceState {
 
     public boolean isExplicitSelected() {
         return explicitSelected;
-    }
-
-    /**
-     * Adds a failure-only frame followed by the selected configuration source. The failure frame is supplied
-     * by the caller and is never retained in this state.
-     */
-    public void describeFailure(TreeFormatter formatter, @Nullable PropertyProvenanceRecord failure) {
-        PropertyProvenanceRecord selected = explicitSelected ? explicitSource : convention;
-        if (failure == null && selected == null) {
-            return;
-        }
-
-        formatter.node("Failure trace to source:");
-        if (failure != null) {
-            formatter.node("    " + failure.formatFrame());
-        }
-        if (selected != null) {
-            formatter.node("    " + selected.formatFrame());
-        }
-
-        if (explicitSelected && convention != null) {
-            formatter.blankLine();
-            formatter.node("Shadowed configuration:");
-            formatter.node("    " + convention.formatFrame());
-        }
     }
 }

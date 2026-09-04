@@ -69,9 +69,13 @@ Failure trace to source:
     }
 
     def "a replacing set reports only the selected explicit source"() {
+        def upstream = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'com.example.upstream'"
+        upstream.set(Providers.notDefined())
+
         def property = new DefaultProperty<String>(host, String)
         host.bindingOrigin = "plugin 'com.example.first'"
-        property.set(Providers.notDefined())
+        property.set(upstream)
         host.bindingOrigin = "plugin 'com.example.second'"
         property.set(Providers.notDefined())
         host.failureOrigin = "task ':show' action"
@@ -83,6 +87,7 @@ Failure trace to source:
         def failure = thrown(MissingValueException)
         failure.message.contains("at plugin 'com.example.second' [explicit source]")
         !failure.message.contains("com.example.first")
+        !failure.message.contains("com.example.upstream")
     }
 
     def "unsetting an explicit source selects the retained convention"() {
@@ -148,6 +153,49 @@ Failure trace to source:
         def failure = thrown(MissingValueException)
         failure.message.contains("at task ':show' action (Show.kt:31) [get()]")
         failure.message.contains("at plugin 'com.example.feature' [explicit source]")
+    }
+
+    def "failure trace follows selected sources across an upstream property chain"() {
+        def evaluations = 0
+        def source = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'com.example.defaults'"
+        host.bindingLocation = "DefaultsPlugin.java:10"
+        source.convention(new DefaultProvider<String>({
+            evaluations++
+            null
+        }))
+
+        def normalized = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'com.example.normalizer'"
+        host.bindingLocation = "NormalizerPlugin.java:14"
+        normalized.set(source.map { it.trim() })
+
+        def report = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'com.example.consumer'"
+        host.bindingLocation = "ConsumerPlugin.java:16"
+        report.convention("fallback")
+        host.bindingOrigin = "build file 'build.gradle.kts'"
+        host.bindingLocation = "build.gradle.kts:8"
+        report.set(normalized.map { "value=$it" })
+
+        host.failureOrigin = "task ':shareProvenance' action"
+        host.failureLocation = "ConsumerPlugin.java:19"
+
+        when:
+        report.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of this property because it has no value available.
+Failure trace to source:
+    at task ':shareProvenance' action (ConsumerPlugin.java:19) [get()]
+    at build file 'build.gradle.kts' (build.gradle.kts:8) [explicit source]
+    at plugin 'com.example.normalizer' (NormalizerPlugin.java:14) [explicit source]
+    at plugin 'com.example.defaults' (DefaultsPlugin.java:10) [convention]
+
+Shadowed configuration:
+    at plugin 'com.example.consumer' (ConsumerPlugin.java:16) [convention]""")
+        evaluations == 1
     }
 
     def "disabled provenance preserves existing messages byte for byte"() {

@@ -124,7 +124,7 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(pluginTrace("deferredPluginValue"))
     }
 
-    def "multi-actor plugin example distinguishes the consumer selected source and defaults"() {
+    def "multi-actor plugin example follows upstream property sources"() {
         multiActorPluginBuild()
 
         when:
@@ -133,9 +133,11 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertThatCause(matchesRegex("(?s).*Failure trace to source:\\R" +
             "    at task ':shareProvenance' action \\(ConsumerPlugin\\.java:\\d+\\) \\[get\\(\\)\\]\\R" +
-            "    at build file 'build\\.gradle\\.kts' \\(build\\.gradle\\.kts:\\d+\\) \\[explicit source\\]\\R\\R" +
+            "    at build file 'build\\.gradle\\.kts' \\(build\\.gradle\\.kts:\\d+\\) \\[explicit source\\]\\R" +
+            "    at plugin 'com\\.example\\.property-normalizer' \\(NormalizerPlugin\\.java:\\d+\\) \\[explicit source\\]\\R" +
+            "    at plugin 'com\\.example\\.property-defaults' \\(DefaultsPlugin\\.java:\\d+\\) \\[convention\\]\\R\\R" +
             "Shadowed configuration:\\R" +
-            "    at plugin 'com\\.example\\.property-defaults' \\(DefaultsPlugin\\.java:\\d+\\) \\[convention\\].*"))
+            "    at plugin 'com\\.example\\.property-consumer' \\(ConsumerPlugin\\.java:\\d+\\) \\[convention\\].*"))
     }
 
     def "Groovy DSL trace deliberately omits line-level call sites"() {
@@ -250,6 +252,10 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
                         id = "com.example.property-defaults"
                         implementationClass = "com.example.DefaultsPlugin"
                     }
+                    create("propertyNormalizer") {
+                        id = "com.example.property-normalizer"
+                        implementationClass = "com.example.NormalizerPlugin"
+                    }
                     create("propertyConsumer") {
                         id = "com.example.property-consumer"
                         implementationClass = "com.example.ConsumerPlugin"
@@ -263,10 +269,26 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.provider.Property;
 
             public final class PropertyProvenanceExtension {
+                private final Property<String> source;
+                private final Property<String> normalized;
                 private final Property<String> value;
 
-                public PropertyProvenanceExtension(Property<String> value) {
+                public PropertyProvenanceExtension(
+                    Property<String> source,
+                    Property<String> normalized,
+                    Property<String> value
+                ) {
+                    this.source = source;
+                    this.normalized = normalized;
                     this.value = value;
+                }
+
+                public Property<String> getSource() {
+                    return source;
+                }
+
+                public Property<String> getNormalized() {
+                    return normalized;
                 }
 
                 public Property<String> getValue() {
@@ -284,13 +306,32 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
             public final class DefaultsPlugin implements Plugin<Project> {
                 @Override
                 public void apply(Project project) {
-                    Property<String> value = project.getObjects().property(String.class);
-                    value.convention(project.getProviders().gradleProperty("missing-default"));
+                    Property<String> source = project.getObjects().property(String.class);
+                    source.convention(project.getProviders().gradleProperty("missing-default"));
                     project.getExtensions().add(
                         PropertyProvenanceExtension.class,
                         "provenance",
-                        new PropertyProvenanceExtension(value)
+                        new PropertyProvenanceExtension(
+                            source,
+                            project.getObjects().property(String.class),
+                            project.getObjects().property(String.class)
+                        )
                     );
+                }
+            }
+        '''
+        file("buildSrc/src/main/java/com/example/NormalizerPlugin.java") << '''
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public final class NormalizerPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getPluginManager().apply("com.example.property-defaults");
+                    PropertyProvenanceExtension extension = project.getExtensions().getByType(PropertyProvenanceExtension.class);
+                    extension.getNormalized().set(extension.getSource().map(String::trim));
                 }
             }
         '''
@@ -303,8 +344,9 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
             public final class ConsumerPlugin implements Plugin<Project> {
                 @Override
                 public void apply(Project project) {
-                    project.getPluginManager().apply("com.example.property-defaults");
+                    project.getPluginManager().apply("com.example.property-normalizer");
                     PropertyProvenanceExtension extension = project.getExtensions().getByType(PropertyProvenanceExtension.class);
+                    extension.getValue().convention("consumer fallback");
                     project.getTasks().register("shareProvenance", task ->
                         task.doLast(ignored -> extension.getValue().get())
                     );
@@ -318,9 +360,8 @@ class PropertyProvenanceIntegrationTest extends AbstractIntegrationSpec {
                 id("com.example.property-consumer")
             }
 
-            extensions.getByType<PropertyProvenanceExtension>().value.set(
-                providers.gradleProperty("missing-explicit")
-            )
+            val provenance = extensions.getByType<PropertyProvenanceExtension>()
+            provenance.value.set(provenance.normalized.map { "normalized=$it" })
         '''
     }
 

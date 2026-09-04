@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -223,6 +224,21 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     protected final void describeFailureProvenanceOf(ProviderInternal<?> provider, TreeFormatter formatter) {
         if (provider instanceof AbstractMinimalProvider) {
             ((AbstractMinimalProvider<?>) provider).describeFailureProvenance(formatter);
+        }
+    }
+
+    /**
+     * Collects selected property sources reachable through this Provider without evaluating it.
+     */
+    protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+    }
+
+    /**
+     * Allows inspectable Provider wrappers to continue a failure-only provenance traversal.
+     */
+    protected final void collectFailureProvenanceOf(ProviderInternal<?> provider, PropertyProvenanceTrace trace) {
+        if (provider instanceof AbstractMinimalProvider) {
+            ((AbstractMinimalProvider<?>) provider).collectFailureProvenance(trace);
         }
     }
 

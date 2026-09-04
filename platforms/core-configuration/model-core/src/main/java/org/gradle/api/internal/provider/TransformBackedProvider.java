@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.NonNull;
@@ -105,6 +106,13 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     @Override
     protected void describeFailureProvenance(TreeFormatter formatter) {
         describeFailureProvenanceOf(provider, formatter);
+    }
+
+    @Override
+    protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+        if (trace.enter(this)) {
+            collectFailureProvenanceOf(provider, trace);
+        }
     }
 
     @Override
