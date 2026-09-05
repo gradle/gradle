@@ -102,6 +102,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 def outputDir = file("build/dir1").toPath()
                 inputs.file(inputFile)
                 inputs.dir(inputDir)
+                inputs.files(Path.of("file1.txt")).withPropertyName("inputFiles")
                 outputs.file(outputFile)
                 outputs.dir(outputDir)
                 doLast {
@@ -196,7 +197,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduledInOrder(any(':b:jar', ':b:otherJar'), ':a:doStuff')
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/38330")
+    @Issue(["https://github.com/gradle/gradle/issues/38330", "https://github.com/gradle/gradle/issues/38410"])
     def "optional runtime input declared via #description with an absent provider source is ignored"() {
         buildFile """
             task myTask {
@@ -215,14 +216,14 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":myTask")
 
         where:
-        description                                | declaration
-        "inputs.files(fileProperty)"               | 'inputs.files(objects.fileProperty()).optional().withPropertyName("inputProp")'
-        "inputs.files(fileProperty, fileProperty)" | 'inputs.files([objects.fileProperty()]).withPropertyName("inputProp")'
-        "inputs.file(fileProperty)"                | 'inputs.file(objects.fileProperty()).optional().withPropertyName("inputProp")'
-        "inputs.property(property)"                | 'inputs.property("inputProp", objects.property(String)).optional(true)'
+        description                    | declaration
+        "inputs.files(fileProperty)"   | 'inputs.files(objects.fileProperty()).optional().withPropertyName("inputProp")'
+        "inputs.files([fileProperty])" | 'inputs.files([objects.fileProperty()]).optional().withPropertyName("inputProp")'
+        "inputs.file(fileProperty)"    | 'inputs.file(objects.fileProperty()).optional().withPropertyName("inputProp")'
+        "inputs.property(property)"    | 'inputs.property("inputProp", objects.property(String)).optional(true)'
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/38330")
+    @Issue(["https://github.com/gradle/gradle/issues/38330", "https://github.com/gradle/gradle/issues/38410"])
     def "required runtime input declared via #description with an absent provider source fails"() {
         buildFile """
             task myTask {
@@ -249,30 +250,13 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        description                  | declaration
-        "inputs.files(fileProperty)" | 'inputs.files(objects.fileProperty()).withPropertyName("inputProp")'
-        "inputs.file(fileProperty)"  | 'inputs.file(objects.fileProperty()).withPropertyName("inputProp")'
-        "inputs.property(property)"  | 'inputs.property("inputProp", objects.property(String))'
+        description                                | declaration
+        "inputs.files(fileProperty)"               | 'inputs.files(objects.fileProperty()).withPropertyName("inputProp")'
+        "inputs.files([fileProperty])"             | 'inputs.files([objects.fileProperty()]).withPropertyName("inputProp")'
+        "inputs.files(fileProperty, fileProperty)" | 'inputs.files(objects.fileProperty(), objects.fileProperty()).withPropertyName("inputProp")'
+        "inputs.files(file, fileProperty)"         | 'inputs.files(file("input.txt"), objects.fileProperty()).withPropertyName("inputProp")'
+        "inputs.file(fileProperty)"                | 'inputs.file(objects.fileProperty()).withPropertyName("inputProp")'
+        "inputs.property(property)"                | 'inputs.property("inputProp", objects.property(String))'
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/38330")
-    def "required runtime input declared via files() with an absent provider in a list source is ignored"() {
-        buildFile """
-            task myTask {
-                inputs.files([objects.fileProperty()]).withPropertyName("inputProp")
-
-                doLast {
-                    println("inputs = \${inputs.files.files}")
-                }
-            }
-        """
-
-        enableProblemsApiCheck()
-
-        when:
-        run "myTask"
-
-        then:
-        outputContains("inputs = []")
-    }
 }
