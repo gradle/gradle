@@ -14,6 +14,7 @@ set -e
 #   GITHUB_TOKEN    - GitHub bot token
 #   TRIGGERED_BY    - Optional. If it's "Release - Final", version will be from version-info-final-release/version-info.properties
 #                     If it's "Release - Release Candidate", version will be from version-info-release-candidate/version-info.properties
+#                     If it's "Release - Milestone", version will be from version-info-milestone/version-info.properties
 
 post() {
     local endpoint="$1"
@@ -50,6 +51,9 @@ main() {
         export WRAPPER_VERSION="$promotedVersion"
     elif [[ "$TRIGGERED_BY" == *"Release - Release Candidate"* ]]; then
         source version-info-release-candidate/promote-projects/gradle/build/version-info.properties
+        export WRAPPER_VERSION="$promotedVersion"
+    elif [[ "$TRIGGERED_BY" == *"Release - Milestone"* ]]; then
+        source version-info-milestone/promote-projects/gradle/build/version-info.properties
         export WRAPPER_VERSION="$promotedVersion"
     fi
 
