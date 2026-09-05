@@ -41,5 +41,11 @@ public enum Architecture {
      * 64-bit reduced instruction set computer (RISC) architectures, including "aarch64", "arm64".
      * @since 7.6
      */
-    AARCH64
+    AARCH64,
+
+    /**
+     * 64-bit very long instruction word (VLIW) architecture with explicitly parallel instruction computing (EPIC), including "e2k".
+     * @since 9.8
+     */
+    E2K
 }
