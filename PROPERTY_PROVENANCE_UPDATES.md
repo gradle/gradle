@@ -97,9 +97,10 @@ work on a proposed clean-baseline branch; this slice remains a reference impleme
 1. Complete shared milestones S0–S3: baseline, contract scenarios, attribution/storage
    and effective source/update metadata. The collaborative projection is tested without
    requiring a production collaborative mode.
-2. Choose diagnostics, collaboration or both. Diagnostics includes explicit Java/Kotlin
-   and Groovy line-number milestones D2/D3; these are not collaboration prerequisites.
-3. If choosing collaboration, first complete D1 origin-only reporting before C1 and D5
+2. Choose diagnostics, collaboration or both. Diagnostics includes Java/Kotlin line
+   numbers at D2 and Groovy line numbers last at D6, after initial rollout at D5;
+   these line-number milestones are not collaboration prerequisites.
+3. If choosing collaboration, first complete D1 origin-only reporting before C1 and D4
    diagnostic transport before C3. Reuse those components rather than requiring all
    diagnostic milestones or implementing duplicate reporting/transport.
 
