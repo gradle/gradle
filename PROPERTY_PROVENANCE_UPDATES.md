@@ -94,12 +94,14 @@ It is a design contract, not a claim that collaboration has been implemented.
 The [implementation plan](PROPERTY_PROVENANCE_IMPLEMENTATION_PLAN.md) places the next
 work on a proposed clean-baseline branch; this slice remains a reference implementation.
 
-1. Make the source-selection/update-occurrence scenarios executable for both modes;
-   adapt the supported ordinary scalar path to the same effective-provenance contract.
-2. Introduce contributor keys and explicit context integration without treating existing
-   diagnostic origins as authority. Use the same occurrences for collaboration validation.
-3. Extend supported semantic operations and transport against the contract. Diagnostic
-   provider traversal remains an optional explanation, not the correctness trace.
+1. Complete shared milestones S0–S3: baseline, contract scenarios, attribution/storage
+   and effective source/update metadata. The collaborative projection is tested without
+   requiring a production collaborative mode.
+2. Choose diagnostics, collaboration or both. Diagnostics includes explicit Java/Kotlin
+   and Groovy line-number milestones D2/D3; these are not collaboration prerequisites.
+3. If choosing collaboration, first complete D1 origin-only reporting before C1 and D5
+   diagnostic transport before C3. Reuse those components rather than requiring all
+   diagnostic milestones or implementing duplicate reporting/transport.
 
 Collaboration will additionally need an explicit source/update context, a complete
 accepted-update trace, source rebinding that retains its update pipeline, and order

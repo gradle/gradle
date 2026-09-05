@@ -8,8 +8,8 @@ engine or an unrelated standalone project. Preserve this prototype as the refere
 The prototype has answered useful questions: project-host wiring and many callback
 origins work; useful plugin/script diagnostics do not require lines; copies and
 finalization need explicit attention; apparently small metadata choices affect every
-property and the JVM's read path. Continuing to add isolated diagnostic cases here
-would bring diminishing returns for the shared contribution-model goal.
+property and the JVM's read path. Further isolated experiments should now be tied to an explicit
+shared, diagnostics or collaboration milestone rather than one combined sequence.
 
 The next implementation should start with the
 [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md), not retrofit collaborative
@@ -19,8 +19,8 @@ unmodified baseline. It does not mean throwing away the tests or lessons.
 
 This is a reviewability and sequencing recommendation, not proof that the prototype
 cannot be refactored. If the goal were only a few more ordinary diagnostics, continuing
-here would be cheaper. For a shared implementation with correctness consumers, a small
-clean foundation is now more valuable than further incremental diagnostic experiments.
+here would be cheaper. For a foundation that can support either consumer, a small clean start makes the
+shared guarantees easier to review without committing to finish both product paths.
 
 This is a proposed execution plan, not authorization to create a branch, rewrite
 history, push changes, or start another performance campaign. The current branch and
@@ -40,7 +40,7 @@ commit `28a6c007668`; the last runtime increment is `7260de1a7b5`.
 | Performance harnesses, raw samples and workload fixtures | Port independently from runtime changes; keep old measurements tied to their revisions |
 | Bounded provider traversal and finalized diagnostic snapshots | Optional diagnostic adapters only, never the complete contribution trace |
 | Internal replace/map classifier | A reference case for one mutation versus several transforms; not general self-reference handling or authorization |
-| Prototype line interception | Defer initially. Do not bring optional instrumentation into every build merely to prepare for future lines |
+| Prototype line interception | Revisit in diagnostics D2/D3, with explicit language and cache-key tests; not part of shared milestones or a collaboration prerequisite |
 
 Do not cherry-pick the entire prototype as the new baseline. Port coherent tests and
 implementation ideas in reviewable increments. Do not erase the original evidence.
@@ -69,271 +69,404 @@ performance guarantee follows. The later semantic update work was not benchmarke
 
 ## Scope and architecture to carry forward
 
-One foundation serves both consumers:
+One foundation serves both consumers: contributor/origin descriptors, semantic
+operations, distinct mutation occurrences, and read-only effective-provenance views.
+The shared contract also defines the complete accepted-update trace collaboration
+will need; ordinary properties need not allocate mandatory collaboration state.
 
-- Shared contributor/origin descriptors, semantic operations and distinct accepted
-  mutation occurrences.
-- An effective-provenance view for both modes and one stacktrace-like renderer.
-- A complete local update trace for collaboration; it may share storage with the
-  effective update sequence. A bounded diagnostic view is not its substitute.
-- Ordinary replacement cuts its displaced update chain. Collaborative source binding
-  preserves updates. The mode, not the renderer, owns that difference.
-- Collaborative updates compose immediately into one existing Provider pipeline.
-  Contributor order is checked before observation/lifecycle closure. No update replay,
-  automatic reordering, general callback-body analysis or second evaluator is planned.
+The foundation is not a combined product roadmap that requires finishing both paths.
+After the shared milestones, we may deliver **diagnostics only**, **collaboration
+only with its named diagnostic prerequisites**, or both. Neither path is a commitment
+to finish the other. A diagnostic dependency is implemented and accepted first, then
+reused; it is not reimplemented privately in the collaboration path.
 
 Start with project-owned scalar properties and origin-only metadata. Settings plugins
 configuring project-owned properties stay in scope; settings-owned properties do not.
-No new concurrency guarantee follows. Line numbers, full history, new ownership scopes
-and `ConfigurableFileCollection` are separate later decisions.
+No new concurrency guarantee follows. Full history, new ownership scopes and
+`ConfigurableFileCollection` remain separate scope decisions. Line numbers are explicit
+diagnostics milestones below, not a prerequisite for the shared foundation.
 
-## Milestone overview
+## Milestone overview and dependency rules
 
-All milestones below are **planned**, not completed by the existing prototype.
-Dependencies are sequential unless a bounded independent test/fixture task is clear.
+All milestones are **planned**, not completed by the prototype. S milestones form
+the common foundation; D and C milestones belong to independently deliverable paths.
 
-| Milestone | Deliverable | Exit decision |
+| Milestone | Deliverable | Prerequisites |
 |---|---|---|
-| M0 | Clean baseline, scope decisions and comparison controls | We can identify and compare the exact runtime/workload without prototype changes |
-| M1 | Executable shared contract and representation choice | One set of facts explains both mode projections without depending on diagnostic traversal |
-| M2 | Attribution and opt-in runtime storage | Correct origin/identity boundaries with the ordinary disabled path protected |
-| M3 | Ordinary scalar provenance using the shared contract | Useful diagnostics, copies and finalization work without semantic changes |
-| M4 | Supported previous-plan operation integration | Real provider plans produce semantic update occurrences without eager evaluation |
-| M5 | Real scalar collaborative vertical slice | Source rebind, authority and ordering work together on the same metadata and renderer |
-| M6 | Required operation and user-facing coverage | Each supported operation/boundary has functional and growth tests; unsupported cases remain explicit |
-| M7 | Isolation and configuration-cache transport | Store and hit preserve required metadata and correctness, without attributing recreation |
-| M8 | Production readiness and opt-in rollout | Representative-build correctness and performance gates pass on supported configurations |
+| S0 | Clean baseline, scope and performance controls | Agreed baseline revision |
+| S1 | Executable shared contract and representation | S0 |
+| S2 | Attribution and opt-in runtime storage | S1 |
+| S3 | Effective source/update metadata and lifecycle integration | S2 |
+| D1 | Useful origin-only scalar failure and explanation reports | S3 |
+| D2 | Java/Kotlin and Kotlin DSL source line numbers | D1 |
+| D3 | Groovy DSL and Groovy build-logic line numbers | D2 location contract |
+| D4 | Broader ordinary diagnostic operations and failure coverage | D1 |
+| D5 | Diagnostic provenance through isolation/configuration cache | D1 |
+| D6 | Diagnostics production validation and rollout | D4 + D5; D2/D3 for advertised line coverage |
+| C1 | Real scalar collaborative slice with authority and ordering | S3 + **D1** |
+| C2 | Collaborative operator and integration coverage | C1 |
+| C3 | Collaborative correctness through isolation/configuration cache | C1 + **D5** |
+| C4 | Collaboration production validation and rollout | C2 + C3 |
 
-M3 is a useful ordinary-diagnostics checkpoint. M5 is the decisive proof of the shared
-design. M7 is required before broad claims about normal cache-enabled builds. Do not
-wait for full diagnostic coverage or line numbers to attempt M5.
+**The choice point is after S3.** S1 tests both mode projections, but completing S3
+does not require implementing Declarative Gradle authority, ordering or collaborative
+source rebinding. It also does not require full user-facing diagnostics or lines.
 
-## M0 — Establish the new implementation boundary
+The cross-path dependencies are deliberate:
 
-**Work.** Choose and record an agreed clean Gradle revision when implementation starts.
-Use a separate worktree/branch; do not reset this one. Build an unmodified distribution
-and pin workload sources independently of engine sources. Preserve the historical
-`850edf55835529446bf63488489f6364ce5d2387` baseline only for reproducing old experiments;
-it is not automatically the right baseline for new Gradle development.
+- Before C1, implement D1's origin-only renderer and failure integration. Reuse its
+  frames and effective view for collaboration errors, adding ordering-specific detail.
+- Before C3, implement D5's descriptor/occurrence transport. C3 extends it with the
+  complete correctness trace, constraints and validation handling.
+- C1–C4 do **not** depend on D2, D3, D4 or D6. D5 depends on D1, not the line milestones.
+  Collaboration can therefore ship without implementing general ordinary diagnostic
+  coverage, line numbers or a diagnostics product rollout.
+- D1–D6 have **no C dependencies**. Diagnostics do not require collaborative activation,
+  authorization, order validation or new self-assignment semantics.
+- If implementation reveals another genuine dependency, name the smallest diagnostic
+  deliverable and complete it first. Do not silently make one path depend on all of
+  the other, or introduce a second renderer/codec to avoid the dependency.
 
-Confirm the shared contract, initial scalar/project scope, origin-only default, and
-which Declarative Gradle boundary will eventually activate collaborative mode. Name
-the owner of decisions about contributor domain, global order and permitted source
-contexts. M1 can use explicit fixture-supplied policies while real integration is
-being decided; M5 cannot pretend that fixture policy is production integration.
+Example execution choices after S3:
 
-**Functional exit.** Clean baseline tests and distributions are reproducible. The
-prototype's passing tests are inventoried by contract scenario, not counted as new
-implementation coverage. Required tests/fixtures can run without optional line hooks.
+- **Diagnostics:** D1, D2, D3, D4, D5, D6. D4/D5 may be scheduled before the line work;
+  origin-only diagnostics are already useful at D1.
+- **Collaboration:** D1, C1, C2, D5, C3, C4. This intentionally includes only the two
+  diagnostic prerequisites. No line-number milestone is hidden in that sequence.
+- **Both:** complete each shared/prerequisite milestone once, then schedule either
+  path's remaining work according to demand.
 
-**Performance exit.** Record baseline object layouts, construction/binding/read
-allocations, and a short repeatability check for the chosen workloads. Agree timing
-and memory review budgets before assessing feature results; see the gate policy below.
-No expensive repeated-build campaign is needed merely to create the branch.
+## S0 — Establish the clean baseline and controls
 
-## M1 — Make the shared contract executable
+**Work.** Select and record a clean Gradle revision when implementation starts. Use
+a separate worktree/branch; do not reset this prototype. Build the unmodified engine
+and pin workload sources independently. The historical
+`850edf55835529446bf63488489f6364ce5d2387` remains useful for old experiments, not an
+automatic choice for new implementation.
 
-**Work.** Add focused contract tests for shared descriptors, occurrence identity,
-source selection and effective views, using explicit ordinary/collaborative policies.
-Start with SC-01–04, SC-14 and the projection part of SC-15. Test a convention, update A,
-source rebind, update B: ordinary ends at `S → B`, collaborative at `S → A → B`.
-Test repeated A contributions, compound transforms as one mutation, and missing explicit
-sources that do not fall back to conventions.
+Agree the scalar/project scope, origin-only starting mode and shared contributor
+domain contract. Note the future Declarative integration decisions, but do not require
+choosing global contributor order or activation to proceed with diagnostics.
 
-Select the representation only after these tests: metadata on structural nodes, an
-immutable shared sequence, or a compact side trace. Keep mutable implementation state
-private behind read-only views. Distinguish captured roots, live convention roots and
-collaborative source selection. Prototype fields/classes are not the contract.
+**Functional exit.** Baseline distributions/tests are reproducible, and prototype
+tests are inventoried by contract scenario rather than counted as new coverage.
 
-**Functional exit.** The same occurrence/origin model supports both projections and
-one renderer. Local updates cannot be confused with upstream dependencies. Unknown
-classification cannot be treated as authorized replacement. Add a descriptor-only
-round-trip fixture to expose runtime-object leakage early; it is not a cache codec.
-This milestone is a contract test model, not a working collaborative property.
+**Performance exit.** Record object layouts and construction/binding/read allocations;
+check workload repeatability and agree review budgets. No long production campaign
+is needed merely to establish the branch.
 
-**Performance exit.** Analyze and test storage growth: descriptors shared by origin;
-occurrences kept distinct; updates not copied wholesale on every append. Use small
-allocation/growth probes at 0, 1, 8, 128 and thousands of updates to detect accidental
-quadratic bookkeeping. No full production-build measurement yet.
+## S1 — Make the shared contract executable
 
-**Decision gate.** If the representation requires a second executable Provider graph,
-full ordinary mutation history, or diagnostic traversal for correctness, revise it
-here rather than building more runtime integrations around it.
+**Work.** Define shared descriptors, logical occurrence identity, semantic operations
+and effective-provenance views. Make SC-01–04, SC-14 and projection SC-15 executable
+with test policies: after convention, update A, source rebind and update B, ordinary
+projects `S → B`, while collaborative projects `S → A → B`. Test one compound
+mutation versus repeated mutations, and explicit-missing versus convention selection.
 
-## M2 — Integrate attribution and optional storage
+Choose metadata on structural nodes or a compact shared sequence behind read-only
+views. Keep provider dependencies distinct from local contributions. Model captured
+roots and live roots explicitly; no second executable Provider graph is required.
 
-**Work.** Introduce the project-scoped mutation seam and mode-aware state selection.
-Keep contributor keys distinct from diagnostic origins, application details and target
-scope. Establish build/applied/settings/init script roles at application boundaries.
-Reuse Gradle-managed callback context restoration; do not infer authority from it.
+**Functional exit.** Both projections consume the same facts. Unknown classification
+is not proof of replacement or authority. A descriptor-only round-trip test excludes
+runtime objects. The collaborative policy here is a contract test, not a runtime mode.
 
-Port plugin-by-ID/class, nested application, deferred/nested callbacks, root/sibling
-project and settings-origin project fixtures. Preserve distinct application/occurrence
-identity without accidentally giving every application a different contributor key.
-Explicitly mark unresolved cross-build identities rather than inventing string rules.
+**Performance exit.** Probe allocation/growth at 0, 1, 8, 128 and thousands of updates.
+Appending must not copy the entire history; descriptor sharing must not merge distinct
+occurrences. No full ordinary history or duplicate pipeline is introduced.
 
-**Functional exit.** SC-03, diagnostic SC-05/09, and initial SC-14/16 hold for the declared
-scope. Unknown ordinary attribution is honest. Successful binding metadata is recorded
-after acceptance; rejected attempts remain report-local. No settings host or general
-global-factory opt-in is introduced.
+## S2 — Integrate attribution and optional storage
 
-**Performance exit.** Ordinary disabled property and state layouts match the clean
-baseline on the measured JVM. No per-property diagnostic holder or successful-read
-allocation is introduced when disabled. Check first-origin registration separately
-from steady-state mutation; avoid eager tables of unused operation records. Check
-mixed-state read dispatch before committing to a state hierarchy.
+**Work.** Wire the project mutation boundary and enabled-only metadata storage. Keep
+contributor keys, diagnostic origins, runtime applications and target scope separate.
+Establish script roles at application boundaries. Reuse existing deferred context
+propagation without treating ambient context as authority.
 
-## M3 — Deliver ordinary scalar diagnostics on the shared foundation
+Port plugin-ID/class, nested application, deferred/nested callback, cross-project and
+settings-origin project tests. Mark unresolved cross-build identity explicitly.
 
-**Work.** Implement explicit/convention selection, replacement, unset/promotion,
-shadowed configuration, copy and finalization metadata. Render both failure and
-explicitly requested configuration views. Start with missing-value queries and
-rejected lifecycle mutations; preserve the original causes and disabled messages.
-Use the shared effective view instead of making provider traversal the source of truth.
-Optional upstream expansion remains clearly qualified and bounded.
+**Functional exit.** Shared attribution facts are available at accepted mutations;
+failed attempts stay report-local. Unknown attribution is honest. No new settings
+host or indiscriminate global-factory tracking is introduced (SC-03/05/09/14/16,
+within the declared diagnostic scope).
 
-**Functional exit.** SC-04/06/10/15/16 hold for the supported ordinary paths. A copy
-preserves local occurrences while upstream values remain live where the API requires.
-Finalization retains explanations without retaining discarded suppliers through
-metadata; failure/retry does not commit a success snapshot. Reporting never re-evaluates
-providers, prints their values or mistakes missing explicit input for convention fallback.
+**Performance exit.** Ordinary disabled property/state footprint matches baseline;
+no per-property diagnostic holder or successful-read diagnostic allocation appears.
+Check first-origin versus steady-state costs and mixed mutable/finalized read dispatch.
+Do not create every operation record eagerly for every origin.
 
-**Performance exit.** Run targeted binding/replacement/copy/finalization allocation
-checks, including unbound properties and missing values. Check retention after source
-replacement and finalization. Do the first matched ordinary baseline/disabled/origins
-production smoke comparison here; escalate to profiling only if it exposes a signal.
+## S3 — Integrate effective source/update metadata and lifecycle
 
-**Usable checkpoint.** This can be an opt-in ordinary diagnostic feature, explicitly
-without cache transport or full failure coverage. It is not yet collaboration.
+**Work.** Maintain the shared effective view for ordinary scalar bindings, conventions,
+selection changes and existing supported previous-plan updates, initially the internal
+replace/map case. Produce a semantic occurrence at acceptance, not from rendered
+provider frames. Integrate copying and finalization so shared metadata preserves
+occurrence identity, correct roots and existing live-upstream semantics.
 
-## M4 — Integrate semantic previous-plan updates
+The shared operation interface permits a future collaborative producer of the same
+records, but does not implement its authority, source-rebinding pipeline or ordering.
+Likewise, `p.set(p.map(f))` is not made safe by adding metadata. The existing replace
+snapshot must not be changed into a live convention root.
 
-**Work.** Implement a supported previous-plan operation primitive in the real Provider
-path, initially map. It must yield a semantic mutation occurrence at acceptance, not
-infer one later from rendered provider frames. The existing internal replace boundary
-can be an integration reference, but does not define the new collaboration API.
+**Functional exit.** SC-02/03/04/06/10/16 hold for supported ordinary operations;
+SC-11's existing captured-root behavior is covered, with proposed live-root semantics
+still explicit. Unrelated replacement cuts updates. No eager evaluation, producer loss
+or invented contribution occurs. Both contract projections remain compatible with
+the runtime record/view types.
 
-Assignment-shaped `p.set(p.map(f))` support is a separately explicit semantic change,
-not a consequence of recording metadata. Before claiming that syntax, implement its
-structural substitution/previous-plan rules, live convention roots, sharing and cycle
-tests from the [self-reference specification](https://github.com/asodja/gradle-provider-api-semantics/blob/0a695690ac2a4852b7d455a31b1adf830345076c/SELF_REFERENCE_SPEC.md).
-Preserve internal replace's existing
-captured-root behavior. A classifier must distinguish supported evidence from unknown;
-an opaque self-read remains unsupported, not a dynamically scoped previous value.
+**Performance exit.** Check binding/replacement/copy/finalization allocations and
+retention, plus small/long update chains. Metadata must not prolong discarded supplier
+graphs, copy an entire history per append, or allocate mandatory collaboration state
+on ordinary properties.
 
-**Functional exit.** Real updates satisfy SC-02/03/06/10/11 for their declared API.
-One assigned chain of transforms is one occurrence. No eager transform execution,
-dependency/producer loss, shared-provider mutation or accidental fallback is introduced.
-Ordinary unrelated replacement still cuts updates. Any unsupported syntax remains
-explicitly unsupported; tests do not silently substitute an internal method for it.
+**Shared completion gate.** The foundation is usable by either consumer. Choose a
+path now; do not keep enlarging the shared phase until both products are implemented.
 
-**Performance exit.** Measure small and long update chains, shared subgraphs and source
-replacement. Metadata append must not scan/copy the whole accepted history each time.
-Separate structural plan-inspection/substitution cost from metadata cost; a diagnostic
-node limit must not become a correctness rule. Avoid retaining callbacks in descriptors.
+## Diagnostics path
 
-## M5 — Implement one real collaborative scalar property
+This path explains ordinary Gradle behavior. It does not require C milestones or
+change ordinary source-replacement/self-reference semantics.
 
-**Work.** Integrate explicit source-binding/contributor-update contexts at an actual
-Declarative Gradle entry point. Establish activation, contributor domain, default order
-and source permissions for this slice. Use the proposal's convention/explicit source,
-update pipeline, complete trace, local constraints and validation state.
+### D1 — Deliver useful origin-only diagnostics
 
-Compose each authorized map update immediately. A source rebind changes only the source.
-Validate nondecreasing contributor order before `get`, `getOrNull`, `isPresent` and
-lifecycle closure; do not reorder or replay. Add local constraints and invalidation,
-including constraints declared after updates. Preserve authority across supported
-deferred callbacks, without lending an invoker's authority to privately stored code.
+**Prerequisite:** S3.
 
-**Functional exit.** A real two-plugin plus build-author fixture satisfies SC-01–10,
-the collaboration part of SC-12, and SC-15 for map-only scalar properties. It proves:
+**Work.** Implement the shared stacktrace-like renderer and ordinary scalar missing-value
+and rejected-mutation integration. Offer `Failure trace to source` and requested
+`Configuration trace to source`; keep shadowed conventions separate. Optional upstream
+expansion is bounded and qualified, not the source of local contribution facts.
+Expose reusable rendering/failure integration so C1 adds conflict detail, not a new
+reporting system.
 
-- Valid updates compute the expected result before and after a source rebind.
-- Invalid order identifies the first conflicting occurrences without evaluating values.
-- A local constraint can change validity without rebuilding/replaying accepted updates.
-- Unknown/unauthorized mutation changes neither plan nor accepted trace.
-- Successful reads permit later accepted changes until normal lifecycle closure.
-- Turning off optional diagnostics cannot disable correctness checks.
+**Functional exit.** Reports preserve the original problem/cause, distinguish unknown,
+unconfigured and explicit-missing sources, survive copies/finalization, and do not
+evaluate providers or print values. Successful builds are silent unless explanation
+was requested; disabled messages remain byte-for-byte unchanged (SC-04/06/10/15/16).
 
-**Performance exit.** Check append growth, O(1) clean-validation checks, dirty-validation
-cost against update/constraint counts, and repeated update/query alternation. Allow a
-complete linear scan when order/constraints require it; measure aggregate cost rather
-than asserting all such workloads are linear. Keep full mutable correctness state,
-even if console rendering truncates. Benchmark mandatory collaboration metadata
-separately from optional diagnostics. Never call a collaboration variant with validation
-removed a supported no-provenance baseline.
+**Performance exit.** Successful execution performs no diagnostic formatting or stack
+capture. Measure failure rendering separately from normal reads. Run the first matched
+ordinary baseline/disabled/origins smoke build, profiling only a repeatable signal.
 
-**Decision gate.** This is the principal continue/revise decision. If source selection
-and updates cannot share a trustworthy representation with diagnostics, or correctness
-requires replay/eager evaluation, revisit the integration before adding more operators.
-Do not expand the prototype indefinitely to avoid this test.
+**Usable checkpoint:** origin-only scalar diagnostics, explicitly without cache or line
+coverage. This is the diagnostic prerequisite for C1, not a commitment to D2–D6.
 
-## M6 — Expand the declared functional envelope
+### D2 — Capture Java/Kotlin and Kotlin DSL line numbers
 
-**Work.** Add flatMap and zip, then the collection append/remove operations needed by
-the collaborative proposal. Keep arbitrary List/Set/Map contribution APIs explicit
-sub-increments, not automatic coverage inferred from factory wiring. Each operation
-must preserve values, missingness, producers, dependencies and occurrence boundaries.
+**Prerequisite:** D1. **Not required by collaboration.**
 
-Also expand ordinary diagnostic coverage to managed
-extension/nested/task properties, Java/Kotlin/Groovy and precompiled/applied plugins,
-required task-input validation, unsafe reads and transform exceptions. A complete
-causal failure trace is not required to report an honest effective configuration trace.
-Cross-build identity must be defined before claiming included-build coverage.
+**Work.** Implement an optional location contract and eligible call-site instrumentation
+for Java/Kotlin build logic and Kotlin DSL. Cover successful source/convention mutations
+and the outer failed operation: direct calls, Kotlin assignment/accessors, deferred
+callbacks, task actions, indirect Provider evaluation and finalized-property `set()`.
+Test applied/precompiled scripts and compiled plugins according to their available
+debug/source mapping; do not guess original lines from generated code.
 
-**Functional exit.** Each newly supported operation/boundary adds conformance and
-negative tests. Branching dependencies do not become target contributions. An ordinary
-unknown boundary stays explicit; collaboration does not accept unsupported structural
-updates by treating them as source replacements. Settings-owned tracking and
-`ConfigurableFileCollection` still require separate scope decisions.
+Locations on accepted bindings are retained only after success. Failure frames and any
+stack-based fallback are created only while reporting a failure. If instrumentation
+scopes a lightweight call-site token around an operation, restore it in `finally`;
+never retain a successful `get()` history or a rejected attempt in accepted provenance.
+Map creation and callback registration lines must not masquerade as mutation lines.
 
-**Performance exit.** Test branching, fan-out, shared inputs, many contributor identities,
-long histories and invalid constraints. Measure occurrence/constraint growth and
-registry lifetimes; do not deduplicate distinct updates to save memory. New common
-failure hooks must leave successful execution free of diagnostic formatting/capture.
+**Functional exit.** Exact line assertions pass for the declared eligible paths,
+including nested calls and context restoration on exceptions. Missing debug information
+or unsupported interception falls back to origin-only output, not a fabricated line.
+Locations never determine contributor identity, authority or order. Version the
+instrumentation/cache behavior when toggling modes.
 
-## M7 — Preserve the contract through isolation and configuration cache
+**Performance exit.** Compare clean baseline, diagnostics-disabled, origins-only and
+locations-enabled modes. Keep location work out of origins-only operation; measure
+classpath instrumentation/preparation separately from warm mutation and failure costs.
+No mandatory per-mutation stack walking. Check per-located-occurrence allocation and
+ensure any instrumentation helper cost when disabled is measured and reviewed.
 
-**Work.** Implement actual managed-object/isolation/cache codecs for stable descriptors,
-effective source/update metadata and mandatory correctness state. Preserve occurrence
-relationships without recording deserialization as new contributions. Do not serialize
-authority tokens, plugin instances or class loaders. Restore or recompute validation
-against the restored order and constraints.
+If D5 is already complete, extending its optional location payload and cache flag
+compatibility tests is part of D2; location capture must not silently disappear on hits.
 
-**Functional exit.** SC-10/13/14 hold on cache store and hit, including task properties,
-copies, finalized values, missing-value reports and ordering failures. Source relocation
-and supported included-build identity are tested. No task-execution authority is
-invented by rehydration. Origin/line diagnostic flag changes cannot reuse an incompatible
-entry silently; cache compatibility/invalidation behavior is explicit.
+### D3 — Capture Groovy DSL and Groovy build-logic line numbers
 
-**Performance exit.** Measure entry-size growth, serialization/deserialization allocation
-and time, cache-hit live heap, and any class-loader retention. Compare mandatory state
-and optional location/history payload separately. Cache-hit measurements are not valid
-before metadata and validation survive the round trip correctly.
+**Prerequisite:** D2's location representation and lifecycle rules.
+**Not required by collaboration or origin-only diagnostics.**
 
-## M8 — Validate production use and decide rollout
+**Work.** Add the Groovy dynamic-dispatch/interception path for property assignment,
+explicit `set`/`convention` and the other declared mutation/query forms. Cover build
+and applied scripts, Groovy plugins, delegated closures, task actions and indirect
+queries. Reuse D2's location format and shared renderer; JVM interception alone is
+not evidence that Groovy assignment is covered.
 
-**Work.** Run the supported feature on a small corpus: a configuration-heavy multi-project
-build, a task-execution-heavy plugin build, a representative collaborative model, and
-cache store/hit variants. Include supported parallel execution without claiming new
-concurrent property mutation guarantees. Document unsupported cases and migration.
+**Functional exit.** Dedicated Groovy fixtures assert the actual user operation line,
+including rejected finalized sets and nested/deferred calls. Test script roles,
+delegation/overloads and absence of stale call sites. Unsupported reflective/custom
+dispatch and missing line metadata have documented origin-only fallback. A bounded
+failure-time fallback must not be labeled exact if it identifies only an approximate
+caller. Do not claim every Groovy call shape from one successful script test.
 
-**Functional exit.** Required conformance cases pass on real runtimes, not just fixture
-models. Reports remain actionable and honest. Scopes, activation, failure behavior,
-cache compatibility and public/internal API boundaries are reviewed. Keep opt-in rollout
-until correctness and performance gates are satisfied; default enablement is a separate
-product decision.
+**Performance exit.** Measure dynamic-dispatch overhead with provenance disabled,
+origins-only and locations enabled; check allocation/capture counts under many mutations.
+Keep successful Groovy execution free of provenance stack walks. Run the relevant
+D5 location round-trip tests if transport is already implemented.
 
-**Performance exit.** Use repeated independent daemons, matching workloads and enough
-warmup to check stability. Compare the selected supported JDKs/platforms; do not reuse
-the prototype's aarch64 sizes as universal constants. Resolve or explicitly accept
-remaining regressions against agreed budgets. No unresolved disabled-path signal is
-silently described as zero overhead.
+This is planned Groovy line support, not a request to implement it in the current
+prototype or a prerequisite for the other product path.
 
-Optional source locations can follow as their own milestone with instrumentation,
-cache-key and language-coverage design. No mandatory stack walking is part of the
-origin-first foundation. Do not make complete Groovy line capture a prerequisite for
-either useful diagnostics or the collaborative model.
+### D4 — Expand ordinary diagnostic coverage
+
+**Prerequisite:** D1; no dependency on D2/D3 or any C milestone.
+
+**Work.** Extend managed extension/nested/task properties, Java/Kotlin/Groovy and
+precompiled/applied plugin fixtures, required task-input validation, unsafe reads and
+transform exceptions. Add collection contributions and supported provider-boundary
+explanations in explicit sub-increments. Define cross-build identity before claiming
+included-build coverage. This is diagnostic attribution, not permission to change
+ordinary self-reference semantics.
+
+**Functional exit.** Each advertised operation and failure path has positive/negative
+tests. Upstream/branching dependencies are not target contributions; unknown boundaries
+and causal limitations are explicit. Locations are asserted only when that language's
+D2/D3 support exists. Settings-owned properties and `ConfigurableFileCollection` remain
+separate scope decisions.
+
+**Performance exit.** Check branching/fan-out, many origins, replacement retention and
+failure formatting. New failure hooks must not introduce eager provider evaluation
+or successful-operation formatting/capture.
+
+### D5 — Persist diagnostic descriptors and effective provenance
+
+**Prerequisite:** D1 only. D2/D3/D4 are **not** required.
+
+**Work.** Implement descriptor/occurrence and effective-view codecs through managed
+object recreation, isolation and configuration-cache store/hit. Start with the D1
+origin-only scope. Preserve copying/finalization identities; deserialization is not a
+new mutation. Establish reusable transport seams that C3 can extend.
+
+**Functional exit.** Diagnostic SC-10/13/14 pass on store and hit, including task
+execution failures and relocation within the supported identity scheme. No provider,
+host, plugin instance or class loader enters descriptor payloads. Diagnostic mode
+changes have explicit compatibility/invalidation behavior. If D2/D3 exist, preserve
+their optional locations too; otherwise encode absence honestly. Extending D4 coverage
+later must extend its transport tests alongside it.
+
+**Performance exit.** Measure entry growth, encode/decode time/allocation, cache-hit
+live heap and retention. Test origin-only transport independently of any location
+payload. No cache-hit performance claim before the provenance actually survives.
+
+This is the diagnostic prerequisite for C3. It does not store ordering constraints,
+validate contributions or serialize authority tokens.
+
+### D6 — Validate and roll out diagnostics
+
+**Prerequisites:** D4 + D5 for the declared release scope; D2/D3 for the line coverage
+advertised in that release. An explicitly origin-only release can omit line support.
+
+**Work and functional exit.** Validate ordinary diagnostics on configuration-heavy
+and task-execution-heavy builds with cache store/hit. Publish a language/operation/
+line-coverage matrix, fallback behavior and opt-in policy. The full diagnostics path
+includes D2 and D3; narrower releases must say which are deferred. No collaboration
+milestone is needed to deliver it.
+
+**Performance exit.** Run matched baseline/disabled/origins comparisons and a separate
+location-mode comparison where shipped, with independent daemons and supported JVMs.
+Resolve or explicitly accept regressions against agreed budgets before rollout;
+default enablement is a separate decision.
+
+## Collaboration path
+
+This path implements Declarative Gradle collaborative semantics using the shared
+foundation. Complete its named D prerequisites first; do not require the rest of the
+diagnostics product. It can remain origin-only throughout.
+
+### C1 — Deliver a real scalar collaborative slice
+
+**Prerequisites:** S3 + D1. Implement and accept D1 **before** this milestone.
+
+**Work.** Integrate explicit source-binding/contributor-update contexts at a real
+Declarative entry point. Decide activation, contributor domain, default order and
+source permissions. Implement one map update over the previous plan using the existing
+Provider primitives, immediate composition, separate source selection, a complete update
+trace, local constraints and cached validation.
+
+A source rebind preserves accepted updates. Validate nondecreasing contributor order
+before `get`, `getOrNull`, `isPresent` and lifecycle closure. Constraints may change
+while mutable, including after updates; invalidate validation rather than reorder or
+replay the pipeline. Preserve supported deferred authority without lending the invoker's
+authority to arbitrary privately stored callbacks.
+
+Any supported assignment-shaped syntax must implement its structural previous-plan,
+live-root and cycle semantics from the
+[self-reference specification](https://github.com/asodja/gradle-provider-api-semantics/blob/0a695690ac2a4852b7d455a31b1adf830345076c/SELF_REFERENCE_SPEC.md).
+Do not reinterpret S3's bounded diagnostic classifier or internal replace snapshot as
+that implementation. New semantics are explicit and mode-scoped; ordinary behavior
+remains unchanged.
+
+**Functional exit.** Real plugins and build-author configuration prove SC-01–10,
+collaborative SC-12 and SC-15 for the supported scalar/map scope: rebinding preserves
+updates, invalid order fails without value evaluation, a local constraint changes
+validity without replay, rejected mutations commit nothing, and successful queries
+do not close mutations. Reuse D1's renderer and append required-order/first-conflict
+details using exact occurrence positions. Lines are not required.
+
+**Performance exit.** Check append growth, O(1) clean validation, dirty scans against
+update/constraint counts and repeated update/query alternation. Keep the mutable trace
+complete even when diagnostics are off or output is truncated. Measure mandatory
+collaboration state separately from optional reporting. A validation-disabled variant
+is not a compliant baseline.
+
+**Decision gate:** if this requires a second evaluator, replay or diagnostic traversal
+for correctness, revise the design before extending the collaboration path.
+
+### C2 — Expand collaborative operations and integration
+
+**Prerequisite:** C1. No dependency on D2, D3 or D4.
+
+**Work.** Add flatMap/zip, then required append/remove and collection contributions in
+explicit sub-increments. Extend Declarative/callback and source/target scope coverage
+with defined identities and authority boundaries. Reuse shared operation records and
+D1's generic renderer; collaboration-specific conflict tests belong here, not in D4.
+
+**Functional exit.** Each operation preserves value/missingness, producer/dependency
+metadata, contribution boundaries, source-rebind behavior and order validation. Unknown
+structure cannot authorize a replacement. Complete correctness traces never incorporate
+upstream properties' updates as local contributions.
+
+**Performance exit.** Test long sequences, branching/shared inputs, many contributors,
+constraints and rejected operations. Avoid copying/scanning the accepted history merely
+to append metadata; measure unavoidable validation/substitution separately.
+
+### C3 — Persist collaborative correctness state
+
+**Prerequisites:** C1 + D5. Complete D5 **first**, even if no other diagnostics work
+beyond D1 is selected.
+
+**Work.** Extend D5's descriptor/occurrence transport with the complete collaborative
+trace, effective source/update relationships, constraints and order identity. Restore
+or safely recompute validation. Do not serialize authority capabilities or attribute
+rehydration as a contribution; execution boundaries establish any required authority.
+Reuse codecs rather than implementing a parallel collaboration-only origin format.
+
+**Functional exit.** Collaborative SC-10/13/14 pass on store and hit: valid plans retain
+results, invalid order still fails before evaluation, occurrence identity survives
+copies, and toggling optional diagnostics cannot remove mandatory correctness state.
+Cover the C2 operations included in the eventual release. Neither line capture nor
+broad ordinary failure coverage is necessary.
+
+**Performance exit.** Measure mandatory trace/constraint entry growth, serialization
+and restoration allocation/time, cache-hit heap and class-loader retention. Compare
+optional diagnostic/location payloads separately if present.
+
+### C4 — Validate and roll out collaboration
+
+**Prerequisites:** C2 + C3. No dependency on D2, D3, D4 or D6.
+
+**Work and functional exit.** Run representative Declarative plugin/model builds and
+cache store/hit scenarios, including supported parallel execution without inventing
+concurrent property-mutation guarantees. Review activation, authority, supported
+operators/scopes and API boundaries. Ship the D1-origin-based failure explanations
+and first-conflict detail with explicit opt-in/default policy.
+
+**Performance exit.** Validate mandatory state, clean/dirty reads, realistic and long
+update traces, cache costs and disabled ordinary compatibility across supported JVMs.
+A manually composed equivalent Provider plan may be a diagnostic benchmark reference,
+not a replacement for the correctness rules. Resolve or explicitly accept budget
+tradeoffs before rollout. Collaboration does not wait for diagnostic line numbers.
 
 ## Performance policy across milestones
 
@@ -377,8 +510,12 @@ normal hot-path benchmarks; measure report formatting separately.
 - Each milestone: correctness tests, layout/retention checks when state changes, and
   focused allocation/scaling probes for the changed path. Do not run a whole production
   campaign after every small edit.
-- M3/M5: representative smoke builds and targeted profiles only when needed to explain
-  a repeatable signal. M7 adds cache-specific checks. M8 performs the full comparison.
+- D1/C1: representative smoke builds and targeted profiles for repeatable signals.
+  D2/D3 add line-capture and instrumentation checks; D5/C3 add the respective cache
+  checks. D6/C4 perform independent release comparisons for the selected path.
+- After shared completion, run only the selected path's checks and its explicit
+  prerequisites. A diagnostics release does not need a collaborative workload, and a
+  collaboration release does not need a Groovy line-capture campaign.
 - Keep engine/workload revisions, feature flags, JDK/JVM options, instrumentation state,
   environment, raw samples and per-daemon summaries. Warm compilation/caches separately;
   do not time build-logic recompilation or heap profiling as feature overhead.
@@ -388,7 +525,7 @@ normal hot-path benchmarks; measure report formatting separately.
   analysis when investigating why objects survive; neither measure alone is peak or
   exclusive retained memory. Count metadata moved outside its nominal package.
 
-**Budget policy:** structural gates above are the initial hard requirements. M0 must
+**Budget policy:** structural gates above are the initial hard requirements. S0 must
 also record per-workload timing/memory regression budgets and the baseline noise needed
 to interpret them. A suggested initial *review trigger*, not an accepted overhead
 allowance, is a repeatable disabled configuration/wall regression of 1% or more once
@@ -397,7 +534,7 @@ require investigation. Failure to detect a regression is not proof of zero cost.
 
 Enabled ordinary and collaborative budgets must be separate. Set limits in terms of
 bytes per tracked property/origin/update, absolute workload heap and configuration/read
-time at the expected scale. Establish the collaborative scale/budget with the M5 pilot,
+time at the expected scale. Establish the collaborative scale/budget with the C1 pilot,
 before declaring it production-ready. Do not invent a universal percentage from the
 prototype's ordinary configuration workload. A breached budget pauses expansion for
 targeted investigation or an explicit tradeoff decision; it does not trigger an open-ended
@@ -409,12 +546,15 @@ and tested for the new storage representation before trusting its output.
 
 ## Concrete next action
 
-Review this plan and the shared contract, then authorize a separate clean Gradle
-worktree/branch and its baseline revision. The first implementation deliverable is
-M0 plus M1: reproducible controls and executable two-mode contract scenarios. Do not
-start by porting all runtime code, adding more line capture, or measuring the old
-prototype again.
+Review the shared contract and this dependency plan, then authorize a separate clean
+Gradle worktree/branch and its baseline revision. Begin with S0/S1 and proceed through
+S2/S3. At shared completion, explicitly choose diagnostics, collaboration, or both.
 
-Keep one reviewable change per milestone sub-increment, with tests and evidence beside
-it. M1 and M5 are explicit design checkpoints. This preserves what we learned while
-giving the shared provenance/contribution implementation a coherent starting point.
+For diagnostics, proceed to D1 and the selected D milestones, including D2/D3 for line
+numbers. For collaboration, complete D1 before C1 and D5 before C3; do not automatically
+schedule all diagnostic work. Reuse each completed prerequisite once.
+
+Keep one reviewable change per milestone sub-increment, with tests and evidence
+beside it. The shared completion gate, D1 usability checkpoint and C1 correctness
+checkpoint let us stop or change direction without an unfinished implementation of
+the other product. This document does not start runtime changes or measurements.

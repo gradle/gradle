@@ -288,15 +288,15 @@ The [clean-baseline plan](PROPERTY_PROVENANCE_IMPLEMENTATION_PLAN.md) is the pro
 execution roadmap. The priorities below describe the technical direction, not a decision
 to keep expanding this prototype or a claim that the milestones have been implemented.
 
-1. Implement focused conformance tests from the [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md),
-   then adapt the ordinary scalar path to its effective-source/update view. Contributor
-   contexts and further operation support follow the same contract. See the
+1. Complete shared S0–S3 milestones using the [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md),
+   then choose diagnostics, collaboration or both. See the
    [first map-update slice and its limits](PROPERTY_PROVENANCE_UPDATES.md) for current support.
-2. Keep collaboration authority, complete ordering state and source rebinding semantics
-   separate from best-effort diagnostic graph traversal. No authorization is inferred from origins.
-3. Add source/target build identity and transport when implementing those boundaries;
-   collection contributions and general causal provider tracing remain separate workstreams.
-4. Defer settings-owned tracking and other new scopes until a concrete diagnostic needs them;
-   source-location expansion is not a prerequisite for the shared foundation.
+2. Diagnostics D1–D6 includes origin reports, Java/Kotlin lines (D2), Groovy lines (D3),
+   broader coverage, transport and its own rollout; it requires no collaboration milestones.
+3. Collaboration C1–C4 reuses D1 reporting and D5 transport, completing each prerequisite
+   first. It does not require line capture or the rest of the diagnostics path. Authority,
+   ordering and source rebinding remain separate from diagnostic provider traversal.
+4. Defer settings-owned tracking and other new scopes until a concrete use case warrants them;
+   neither path expands ownership scope just by adding metadata or source locations.
 5. Performance investigation is paused. The historical results above, including unresolved
    timing signals, remain documented rather than being treated as resolved.

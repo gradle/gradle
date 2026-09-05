@@ -1,8 +1,10 @@
 # Shared property-provenance contract
 
 See the [from-scratch implementation plan](PROPERTY_PROVENANCE_IMPLEMENTATION_PLAN.md)
-for the recommended clean-baseline restart, milestones and performance gates. This
-document defines the contract those milestones must satisfy.
+for the recommended clean-baseline restart, shared milestones and independent diagnostics
+and collaboration paths. Named diagnostic prerequisites are completed before their
+collaboration consumers; line-number capture belongs to diagnostics. This document
+defines the contract those milestones must satisfy, not a requirement to implement both paths.
 
 ## Status and purpose
 
