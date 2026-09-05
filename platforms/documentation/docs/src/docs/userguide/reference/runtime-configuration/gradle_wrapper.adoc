@@ -14,7 +14,7 @@
 
 [[gradle_wrapper]]
 = Gradle Wrapper
-:keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url, retries, retry-back-off-ms
+:keywords: wrapper, distributionUrl, wrapperJarUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-wrapper-jar-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url, retries, retry-back-off-ms
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
 
@@ -73,7 +73,7 @@ To make the Wrapper files available to other developers and execution environmen
 
 Wrapper files, including the JAR file, are small.
 Adding the JAR file to version control is expected.
-Some organizations do not allow projects to submit binary files to version control, and there is no workaround available.
+If your organization does not allow binary files in version control, you can omit `gradle/wrapper/gradle-wrapper.jar`: the `gradlew` and `gradlew.bat` scripts download it on demand from the `wrapperJarUrl` in `gradle/wrapper/gradle-wrapper.properties` (or derive it from `distributionUrl` for standard distributions), similar to the Maven Wrapper.
 ====
 
 The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties`, stores the information about the Gradle distribution:
@@ -126,6 +126,12 @@ The default value is `bin`.
 The full URL pointing to the Gradle distribution ZIP file.
 This option makes `--gradle-version` and `--distribution-type` obsolete, as the URL already contains this information.
 This option is valuable if you want to host the Gradle distribution inside your company's network.
+The URL is validated before it is written to the properties file.
+
+`--gradle-wrapper-jar-url`::
+The full URL pointing to the `gradle-wrapper.jar` file.
+By default it is derived from the distribution URL (preserving a custom host when it uses the standard `-bin.zip`/`-all.zip` layout) or from the official Gradle distribution location for the given Gradle version.
+The `gradlew` and `gradlew.bat` scripts use it to download a missing wrapper JAR, so the JAR does not have to be checked into version control.
 The URL is validated before it is written to the properties file.
 
 `--gradle-distribution-sha256-sum`::
@@ -213,12 +219,15 @@ The following list explains their purpose:
 
 `gradle-wrapper.jar`::
 The Wrapper JAR file containing code for downloading the Gradle distribution.
+It can be omitted from version control: in that case `gradlew`/`gradlew.bat` download it on demand from `wrapperJarUrl` (see below).
 
 `gradle-wrapper.properties`::
 A properties file responsible for configuring the Wrapper runtime behavior e.g. the Gradle version compatible with this version. Note that more generic settings, like <<networking.adoc#sec:accessing_the_web_via_a_proxy,configuring the Wrapper to use a proxy>>, need to go into a <<build_environment.adoc#sec:gradle_configuration_properties,different file>>.
+It also contains `wrapperJarUrl`, used by the scripts to download a missing `gradle-wrapper.jar`.
 
 `gradlew`, `gradlew.bat`::
 A shell script and a Windows batch script for executing the build with the Wrapper.
+If `gradle-wrapper.jar` is missing, the scripts download it first (using `curl`/`wget` on Unix, `curl`/PowerShell on Windows), so the JAR does not have to be checked into version control.
 
 You can go ahead and <<#sec:using_wrapper,execute the build with the Wrapper>> without installing the Gradle runtime.
 If the project you are working on does not contain those Wrapper files, you will need to <<#sec:adding_wrapper,generate them>>.
@@ -312,6 +321,22 @@ However, organizational policies, security constraints or personal preferences m
 
 Thankfully, the built-in `wrapper` task exposes numerous options to bend the runtime behavior to your needs.
 Most configuration options are exposed by the underlying task type link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper].
+
+[[sec:omitting_wrapper_jar]]
+=== Omitting the Wrapper JAR from version control
+
+If your organization does not allow binary files in version control, you can omit `gradle/wrapper/gradle-wrapper.jar` (for example via `.gitignore`):
+
+[source,text]
+----
+gradle/wrapper/gradle-wrapper.jar
+----
+
+The generated `gradlew`/`gradlew.bat` scripts detect a missing JAR and download it on demand from `wrapperJarUrl` in `gradle/wrapper/gradle-wrapper.properties`.
+When `wrapperJarUrl` is not set explicitly (via `--gradle-wrapper-jar-url`), it is derived from `distributionUrl` for standard `-bin.zip`/`-all.zip` distributions, preserving a custom distribution host.
+This works similar to the Maven Wrapper: only the scripts and the properties file have to be checked in.
+
+TIP: After upgrading to a Gradle version that generates the download logic, run the `wrapper` task once so the scripts and `wrapperJarUrl` are up to date, then remove the JAR from version control.
 
 Let's assume you grew tired of defining the `-all` distribution type on the command line every time you upgrade the Wrapper.
 You can save yourself some keyboard strokes by re-configuring the `wrapper` task.
@@ -450,6 +475,11 @@ The Wrapper JAR is a binary file that will be executed on the computers of devel
 As with all such files, you should ensure it's trustworthy before executing it.
 
 Since the Wrapper JAR is usually checked into a project's version control system, there is the potential for a malicious actor to replace the original JAR with a modified one by submitting a pull request that only upgrades the Gradle version.
+
+NOTE: When `gradle-wrapper.jar` is omitted from version control (see <<#sec:omitting_wrapper_jar>>), the Wrapper scripts download it on demand from `wrapperJarUrl` over HTTPS.
+Make sure `wrapperJarUrl` points to a trusted location (by default `https://services.gradle.org`) and review changes to it like any other security-sensitive change.
+After the download you can verify the JAR with the same checksum steps below.
+Automatic validation by the Setup Gradle GitHub Action only applies to JARs checked into the repository.
 
 The link:https://github.com/gradle/actions/blob/main/docs/setup-gradle.md[Setup Gradle GitHub Action] automatically validates the Wrapper JAR as part of every build.
 As of v4, Wrapper validation is built in, no separate action is needed.

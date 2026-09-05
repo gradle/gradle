@@ -56,15 +56,19 @@ Validate the Wrapper JAR and distribution settings every time you upgrade Gradle
 
 When you update Gradle, two Wrapper files typically change:
 
-- `gradle/wrapper/gradle-wrapper.jar`
-- `gradle/wrapper/gradle-wrapper.properties` (`distributionUrl` and optionally `distributionSha256Sum`)
+- `gradle/wrapper/gradle-wrapper.jar` (unless it is omitted from version control, see below)
+- `gradle/wrapper/gradle-wrapper.properties` (`distributionUrl`, `wrapperJarUrl`, and optionally `distributionSha256Sum`)
 
 You should verify that:
 
 - The **Wrapper JAR** is the official binary published by Gradle (not tampered with).
 - The **Wrapper JAR checksum** matches one of the values published at link:https://gradle.org/release-checksums[gradle.org/release-checksums].
 - The **distribution URL** points to the expected Gradle release.
+- The **wrapper JAR URL** (`wrapperJarUrl`, when present) points to a trusted location, by default `https://services.gradle.org`.
 - The **distribution checksum** (if configured via `distributionSha256Sum`) matches the release you intend to use (also listed on link:https://gradle.org/release-checksums[gradle.org/release-checksums]).
+
+If `gradle-wrapper.jar` is omitted from version control, the Wrapper scripts download it on demand from `wrapperJarUrl` over HTTPS.
+Treat changes to `wrapperJarUrl` as security-sensitive as changes to the JAR itself, and verify a freshly downloaded JAR with the checksum steps in the Wrapper reference.
 
 Running an unverified Wrapper risks executing untrusted code before any of your build’s safeguards run.
 
@@ -72,6 +76,7 @@ Running an unverified Wrapper risks executing untrusted code before any of your 
 
 If you use the link:https://github.com/marketplace/actions/build-with-gradle#the-setup-gradle-action[`setup-gradle` action] (version v4 or newer) for link:https://github.com/features/actions[GitHub Actions], Wrapper validation will be performed automatically.
 The action validates the checksum of every `gradle-wrapper.jar` in your repository and fails the build if it finds any unknown Wrapper JAR.
+When the JAR is omitted from version control there is nothing to validate in the repository; ensure `wrapperJarUrl` points to a trusted location instead.
 
 If you use a different GitHub Actions setup, you can use the dedicated link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[Gradle Wrapper validation action] instead.
 
@@ -112,8 +117,8 @@ Review the project's wrapper and build scripts _before_ opening it in your IDE.
 
 ===== 2. Verify the Gradle Wrapper Files
 
-* **Checksum Verification:** Use <<validate_wrapper_checksum,checksum validation>> to ensure `gradle-wrapper.jar` hasn't been tampered with.
-* **Check the URL:** Open `gradle/wrapper/gradle-wrapper.properties` and ensure the `distributionUrl` points strictly to the official site: `https://services.gradle.org/`.
+* **Checksum Verification:** Use <<validate_wrapper_checksum,checksum validation>> to ensure `gradle-wrapper.jar` hasn't been tampered with (when the JAR is checked in; otherwise verify a freshly downloaded JAR the same way).
+* **Check the URLs:** Open `gradle/wrapper/gradle-wrapper.properties` and ensure the `distributionUrl` and `wrapperJarUrl` (when present) point strictly to the official site: `https://services.gradle.org/`.
 * **Regenerate the Wrapper:** If you have a trusted Gradle installation, delete the project's `gradlew`, `gradlew.bat`, and `gradle/wrapper/gradle-wrapper.jar`, then run `gradle wrapper` (not `./gradlew`).
 Compare the regenerated files against the originals, any differences indicate the project's wrapper may have been modified.
 

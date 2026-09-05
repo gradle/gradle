@@ -111,9 +111,9 @@ The following files are part of the Gradle Wrapper:
 ├── gradlew // <3>
 └── gradlew.bat // <4>
 ----
-<1> `gradle-wrapper.jar`: This is a small JAR file that contains the Gradle Wrapper code. It is responsible for downloading and installing the correct version of Gradle for a project if it's not already installed.
-<2> `gradle-wrapper.properties`: This file contains configuration properties for the Gradle Wrapper, such as the distribution URL (where to download Gradle from) and the distribution type (ZIP or TARBALL).
-<3> `gradlew`: This is a shell script (Unix-based systems) that acts as a wrapper around `gradle-wrapper.jar`. It is used to execute Gradle tasks on Unix-based systems without needing to manually install Gradle.
+<1> `gradle-wrapper.jar`: This is a small JAR file that contains the Gradle Wrapper code. It is responsible for downloading and installing the correct version of Gradle for a project if it's not already installed. It can be omitted from version control: in that case `gradlew`/`gradlew.bat` download it on demand from `wrapperJarUrl` in `gradle-wrapper.properties` (or derived from the distribution URL).
+<2> `gradle-wrapper.properties`: This file contains configuration properties for the Gradle Wrapper, such as the distribution URL (where to download Gradle from), the wrapper JAR URL (where to download a missing wrapper JAR from), and the distribution type (ZIP or TARBALL).
+<3> `gradlew`: This is a shell script (Unix-based systems) that acts as a wrapper around `gradle-wrapper.jar`. It downloads the JAR first if it is missing. It is used to execute Gradle tasks on Unix-based systems without needing to manually install Gradle.
 <4> `gradlew.bat`: This is a batch script (Windows) that serves the same purpose as `gradlew` but is used on Windows systems.
 
 IMPORTANT: You should never alter these files.

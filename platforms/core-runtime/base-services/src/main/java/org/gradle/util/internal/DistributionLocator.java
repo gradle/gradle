@@ -40,6 +40,10 @@ public class DistributionLocator {
         return getDistribution(getDistributionRepository(version), version, "gradle", type);
     }
 
+    public URI getWrapperFor(GradleVersion version) {
+        return getWrapper(getDistributionRepository(version), version);
+    }
+
     private String getDistributionRepository(GradleVersion version) {
         if (version.isSnapshot()) {
             return getBaseUrl() + SNAPSHOT_REPOSITORY;
@@ -54,6 +58,14 @@ public class DistributionLocator {
     ) {
         try {
             return new URI(repositoryUrl + "/" + archiveName + "-" + version.getVersion() + "-" + archiveClassifier + ".zip");
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private URI getWrapper(String repositoryUrl, GradleVersion version) {
+        try {
+            return new URI(repositoryUrl + "/gradle-" + version.getVersion() + "-wrapper.jar");
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
