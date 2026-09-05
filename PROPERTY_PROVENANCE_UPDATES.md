@@ -88,12 +88,16 @@ self-reference behavior is unchanged.
 
 ## Next shared steps
 
-1. Introduce an explicit effective-source/update representation that does not rely on
-   diagnostic traversal. Keep semantic update occurrences distinct from provider nodes.
-2. Define contributor keys and script roles separately from diagnostic origins, runtime
-   applications and source/target scope. Ambient attribution is not authority.
-3. Extend structural operation classification alongside the actual supported provider
-   plan semantics, with an explicit unknown result at unsupported boundaries.
+The [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md) now defines the facts,
+consumer views, mode-specific transitions and conformance scenarios for both consumers.
+It is a design contract, not a claim that collaboration has been implemented.
+
+1. Make the source-selection/update-occurrence scenarios executable for both modes;
+   adapt the supported ordinary scalar path to the same effective-provenance contract.
+2. Introduce contributor keys and explicit context integration without treating existing
+   diagnostic origins as authority. Use the same occurrences for collaboration validation.
+3. Extend supported semantic operations and transport against the contract. Diagnostic
+   provider traversal remains an optional explanation, not the correctness trace.
 
 Collaboration will additionally need an explicit source/update context, a complete
 accepted-update trace, source rebinding that retains its update pipeline, and order

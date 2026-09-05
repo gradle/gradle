@@ -1,5 +1,9 @@
 # Origin-first property provenance
 
+For the proposed foundation shared by diagnostics and collaborative properties, see
+the [shared provenance contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md). This document
+continues to describe the implemented ordinary-property prototype and its boundaries.
+
 ## Scope of this increment
 
 Keep ordinary project-scoped property semantics unchanged. Retain successful source
@@ -277,9 +281,10 @@ report is `platforms/core-configuration/model-core/build/reports/property-proven
 
 ## Next milestones
 
-1. Prioritize the shared diagnostic/contribution foundation: explicit effective source/update
-   state, contributor identities and script roles, then more semantic operations. See the
-   [first map-update slice and its limits](PROPERTY_PROVENANCE_UPDATES.md).
+1. Implement focused conformance tests from the [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md),
+   then adapt the ordinary scalar path to its effective-source/update view. Contributor
+   contexts and further operation support follow the same contract. See the
+   [first map-update slice and its limits](PROPERTY_PROVENANCE_UPDATES.md) for current support.
 2. Keep collaboration authority, complete ordering state and source rebinding semantics
    separate from best-effort diagnostic graph traversal. No authorization is inferred from origins.
 3. Add source/target build identity and transport when implementing those boundaries;
