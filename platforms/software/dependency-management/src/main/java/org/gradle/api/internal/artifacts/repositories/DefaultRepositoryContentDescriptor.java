@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.repositories;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -43,6 +45,15 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorInternal {
+    /**
+     * Rules are commonly declared identically on every repository of every project, which without
+     * sharing costs one {@code ContentSpec} per rule per repository. Since a spec is an immutable
+     * value, one instance can serve every descriptor declaring that rule. The interner is weak, so
+     * an entry is collected once the last descriptor referencing it is gone and nothing accumulates
+     * across builds in the daemon.
+     */
+    private static final Interner<ContentSpec> SPEC_INTERNER = Interners.newWeakInterner();
+
     private enum MatcherKind {
         SIMPLE,
         REGEX,
@@ -91,7 +102,10 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             // no filtering in place
             return Actions.doNothing();
         }
-        cachedAction = new RepositoryFilterAction(createSpecMatchers(includeSpecs), createSpecMatchers(excludeSpecs));
+        cachedAction = new RepositoryFilterAction(
+            createSpecMatchers(includeSpecs, versionSelectorScheme, versionSelectors),
+            createSpecMatchers(excludeSpecs, versionSelectorScheme, versionSelectors)
+        );
         return cachedAction;
     }
 
@@ -117,12 +131,16 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Nullable
-    private static ImmutableList<SpecMatcher> createSpecMatchers(@Nullable Set<ContentSpec> specs) {
+    private static ImmutableList<SpecMatcher> createSpecMatchers(
+        @Nullable Set<ContentSpec> specs,
+        VersionSelectorScheme versionSelectorScheme,
+        ConcurrentHashMap<String, VersionSelector> versionSelectors
+    ) {
         ImmutableList<SpecMatcher> matchers = null;
         if (specs != null) {
             ImmutableList.Builder<SpecMatcher> builder = ImmutableList.builderWithExpectedSize(specs.size());
             for (ContentSpec spec : specs) {
-                builder.add(spec.toMatcher());
+                builder.add(spec.toMatcher(versionSelectorScheme, versionSelectors));
             }
             matchers = builder.build();
         }
@@ -188,7 +206,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         if (includeSpecs == null) {
             includeSpecs = new HashSet<>();
         }
-        includeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, true));
+        includeSpecs.add(SPEC_INTERNER.intern(new ContentSpec(matcherKind, group, moduleName, version, true)));
     }
 
     @Override
@@ -244,7 +262,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         if (excludeSpecs == null) {
             excludeSpecs = new HashSet<>();
         }
-        excludeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, false));
+        excludeSpecs.add(SPEC_INTERNER.intern(new ContentSpec(matcherKind, group, moduleName, version, false)));
     }
 
     @Override
@@ -328,23 +346,25 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         this.requiredAttributes = requiredAttributes;
     }
 
+    /**
+     * A rule declared on a descriptor. This is a pure value: it carries no state belonging to the
+     * descriptor that created it, so equal specs are interchangeable and a single instance can be
+     * shared by every descriptor declaring that rule. The version selector scheme and the selector
+     * cache are supplied by the owning descriptor when the matcher is created.
+     */
     private static class ContentSpec {
         private final MatcherKind matcherKind;
         private final String group;
         private final String module;
         private final String version;
-        private final VersionSelectorScheme versionSelectorScheme;
-        private final ConcurrentHashMap<String, VersionSelector> versionSelectors;
         private final boolean inclusive;
         private final int hashCode;
 
-        private ContentSpec(MatcherKind matcherKind, String group, @Nullable String module, @Nullable String version, VersionSelectorScheme versionSelectorScheme, ConcurrentHashMap<String, VersionSelector> versionSelectors, boolean inclusive) {
+        private ContentSpec(MatcherKind matcherKind, String group, @Nullable String module, @Nullable String version, boolean inclusive) {
             this.matcherKind = matcherKind;
             this.group = group;
             this.module = module;
             this.version = version;
-            this.versionSelectorScheme = versionSelectorScheme;
-            this.versionSelectors = versionSelectors;
             this.inclusive = inclusive;
             this.hashCode = Objects.hashCode(matcherKind, group, module, version, inclusive);
         }
@@ -371,7 +391,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             return hashCode;
         }
 
-        SpecMatcher toMatcher() {
+        SpecMatcher toMatcher(VersionSelectorScheme versionSelectorScheme, ConcurrentHashMap<String, VersionSelector> versionSelectors) {
             switch (matcherKind) {
                 case SIMPLE:
                 case SUB_GROUP:
