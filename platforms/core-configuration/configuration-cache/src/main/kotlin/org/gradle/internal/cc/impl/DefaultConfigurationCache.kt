@@ -229,6 +229,11 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun initializeCacheEntrySideEffects(cacheAction: ConfigurationCacheAction) {
+        if (cacheAction.isReadOnly) {
+            // The scope tree is only needed to store an entry, and recording it
+            // has already started for this build tree.
+            scopeRegistryListener.stopRecording()
+        }
         when (cacheAction) {
             is Load -> {
                 val entryDetails = readEntryDetails()
@@ -303,6 +308,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeConfigurationCache.LoadRequestedTasksResult {
+        scopeRegistryListener.stopRecording()
         return loadWorkGraph(graph, graphBuilder, true)
     }
 
@@ -403,7 +409,7 @@ class DefaultConfigurationCache internal constructor(
         try {
             cacheFingerprintController.stop()
         } finally {
-            scopeRegistryListener.dispose()
+            scopeRegistryListener.stopRecording()
         }
     }
 
@@ -650,9 +656,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun loadModel(): Any = runAtConfigurationTime {
-        // No need to record the `ClassLoaderScope` tree when loading
-        scopeRegistryListener.dispose()
-
         buildOperationRunner.withModelLoadOperation {
             val storeLoadResult = entryStore.useForStateLoad(StateType.Model) { stateFile: ConfigurationCacheStateFile ->
                 cacheIO.readModelFrom(stateFile)
@@ -668,10 +671,6 @@ class DefaultConfigurationCache internal constructor(
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
     ): BuildTreeConfigurationCache.LoadRequestedTasksResult = runAtConfigurationTime {
-
-        // No need to record the `ClassLoaderScope` tree
-        // when loading the task graph.
-        scopeRegistryListener.dispose()
 
         val finalizedGraph = buildOperationRunner.withWorkGraphLoadOperation {
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
