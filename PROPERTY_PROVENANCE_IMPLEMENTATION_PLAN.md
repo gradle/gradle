@@ -1,5 +1,22 @@
 # Property provenance and collaboration: implementation from a clean baseline
 
+## Design context and reading order
+
+The upstream [Gradle Provider API semantics repository](https://github.com/asodja/gradle-provider-api-semantics)
+provides the broader design context. Before implementation, read:
+
+1. [Provider API foundations](https://github.com/asodja/gradle-provider-api-semantics/blob/main/PROVIDER_API_FOUNDATIONS.md).
+2. [Property provenance](https://github.com/asodja/gradle-provider-api-semantics/blob/main/PROPERTY_PROVENANCE.md).
+3. [Property provenance implementation notes](https://github.com/asodja/gradle-provider-api-semantics/blob/main/PROPERTY_PROVENANCE_IMPLEMENTATION.md).
+4. [Collaborative property updates](https://github.com/asodja/gradle-provider-api-semantics/blob/main/COLLABORATIVE_PROPERTY_UPDATES.md).
+5. The local [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md) and this milestone plan.
+
+The upstream documents include proposed semantics, not just existing Gradle behavior.
+The `main` links above are navigation links; the shared contract records its reviewed
+semantics revision. At S0, review any changes since that revision, reconcile relevant
+differences explicitly, and pin the chosen semantics revision alongside the Gradle
+baseline. Do not silently expand the implementation scope by following newer proposals.
+
 ## Recommendation
 
 **Start a fresh implementation branch in the Gradle repository, not a new Provider
@@ -552,6 +569,13 @@ is a reusable starting point. Its class parsers and negative controls must be up
 and tested for the new storage representation before trusting its output.
 
 ## Concrete next action
+
+Prefer a new implementation session in the separately authorized clean Gradle worktree.
+This is a workflow recommendation, not a technical requirement. Carry this plan, the
+shared contract and links to the prototype tests/performance evidence into that session;
+do not rely on conversation history or copy the prototype runtime wholesale. Start
+with S0/S1 only, reporting the selected baseline, specification revision, contract tests
+and performance controls before proceeding to runtime integration.
 
 Review the shared contract and this dependency plan, then authorize a separate clean
 Gradle worktree/branch and its baseline revision. Begin with S0/S1 and proceed through
