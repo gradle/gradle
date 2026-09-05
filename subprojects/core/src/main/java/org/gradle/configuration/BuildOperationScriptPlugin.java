@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
@@ -26,6 +27,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -62,7 +64,8 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
         } else {
             URI uri = resource.getFile() != null ? resource.getFile().toURI() : resource.getLocation().getURI();
             UserCodeSource source = new UserCodeSource.Script(getSource().getShortDisplayName(), uri);
-            userCodeApplicationContext.apply(source, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
+            UserCodeApplicationContext.Target projectIdentityPath = getApplicationTargetFor(target);
+            userCodeApplicationContext.apply(source, projectIdentityPath, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     decorated.apply(target);
@@ -83,6 +86,14 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
                 }
             }));
         }
+    }
+
+    private static UserCodeApplicationContext.Target getApplicationTargetFor(Object target) {
+        if (target instanceof ProjectInternal) {
+            Path projectIdentityPath = ((ProjectInternal) target).getProjectIdentity().getBuildTreePath();
+            return new UserCodeApplicationContext.Target.Project(projectIdentityPath);
+        }
+        return UserCodeApplicationContext.Target.Other.INSTANCE;
     }
 
     private static class OperationDetails implements ApplyScriptPluginBuildOperationType.Details {

@@ -58,6 +58,7 @@ import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -164,6 +165,11 @@ public class ProjectBuilderImpl {
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         File userActionRootDir = globalServices.get(BuildLayoutFactory.class).getLayoutFor(startParameter.toBuildLayoutConfiguration()).getRootDirectory();
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter, userActionRootDir);
+
+        // User code applications require a recording to be in progress. ProjectBuilder has no
+        // lifecycle, so the recording is started here and never stopped.
+        crossBuildSessionState.getServices().get(UserCodeApplicationContext.class).startRecording();
+
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         RunTasksRequirements buildActionRequirements = new RunTasksRequirements(startParameter);

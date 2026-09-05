@@ -52,6 +52,9 @@ public interface BuildEventListenerRegistryInternal extends BuildEventsListenerR
 
     /**
      * Subscribes the given listener to build operation completion events. Note that no start events are forwarded to the listener.
+     *
+     * This internal API is used by gradle-profiler to listen to build operations from plugins:
+     * @see <a href="https://github.com/gradle/gradle-profiler/blob/7b43fdd311c52b081da53dfcecf1dd794d30abee/subprojects/build-operations/src/main/java/org/gradle/trace/buildops/BuildOperationTrace.java#L52">link</a>
      */
     void onOperationCompletion(Provider<? extends BuildOperationListener> provider);
 

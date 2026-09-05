@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.service.scopes;
 
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
@@ -43,6 +42,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultResourceLockStatistics;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.DefaultWorkerLimits;
@@ -98,7 +98,7 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
 
     @Provides
     UserCodeApplicationContext createUserCodeApplicationContext() {
-        return new DefaultUserCodeApplicationContext();
+        return new DefaultUserCodeApplicationContext(Time::nanoTime);
     }
 
     @Provides
