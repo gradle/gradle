@@ -22,6 +22,7 @@ import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemDefinition
+import org.gradle.api.problems.internal.DefaultTaskLocation
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.util.ConcurrentSpecification
 
@@ -39,6 +40,25 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
             [],
             'description',
             new RuntimeException('cause'),
+            null
+        )
+    }
+
+    // Builds problems that are equal in content (no exception, so hashCode collides) but differ only
+    // by the task location. This isolates the task path as the distinguishing factor for deduplication.
+    private static createTestProblemFromTask(String id, String taskPath) {
+        new DefaultProblem(
+            new DefaultProblemDefinition(
+                ProblemId.create('message', "displayName", ProblemGroup.create(id, "Generic")),
+                Severity.ERROR,
+                Documentation.userManual('id')
+            ),
+            null,
+            [],
+            [],
+            [new DefaultTaskLocation(taskPath)],
+            'description',
+            null,
             null
         )
     }
@@ -64,5 +84,27 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
         results.size() == repeatitions * parallelExecutions
         results.findAll { it == true }.size() == repeatitions
         results.findAll { it == false }.size() == repeatitions * (parallelExecutions - 1)
+    }
+
+    def "identical problems reported from different tasks are both emitted"() {
+        given:
+        def strategy = new SummarizerStrategy(4)
+        def fromDebug = createTestProblemFromTask("id", ":compileDebugKotlin")
+        def fromRelease = createTestProblemFromTask("id", ":compileReleaseKotlin")
+
+        expect:
+        strategy.shouldEmit(fromDebug)
+        strategy.shouldEmit(fromRelease)
+    }
+
+    def "identical problems reported from the same task are deduplicated"() {
+        given:
+        def strategy = new SummarizerStrategy(4)
+        def first = createTestProblemFromTask("id", ":compileDebugKotlin")
+        def second = createTestProblemFromTask("id", ":compileDebugKotlin")
+
+        expect:
+        strategy.shouldEmit(first)
+        !strategy.shouldEmit(second)
     }
 }
