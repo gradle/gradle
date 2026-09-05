@@ -20,12 +20,13 @@ import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties systemProperties
@@ -35,16 +36,16 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        System.setProperty(REUSE_USER_HOME_SERVICES, "false")
         file("settings.gradle") << """
             rootProject.name = 'test'
         """
     }
 
     def cleanup() {
-        // unstopped instances of ProjectBuilderImpl projects leak build operations
-        // causing other integration tests to sporadically fail.
+        // Unstopped ProjectBuilder projects leak build operations and can retain cache locks.
         if (project != null) {
-            ProjectBuilderImpl.stop(project)
+            ProjectBuilder.stop(project)
         }
     }
 
@@ -75,6 +76,53 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         runtimeFiles.size() == 1
     }
 
+    def "reuses dependency cache from the configured Gradle user home"() {
+        def repo = new MavenHttpRepository(server, mavenRepo)
+        repo.module("org.gradle", "a", "1.0").publish().allowAll()
+        server.start()
+        def gradleUserHome = temporaryFolder.createDir('gradle-user-home')
+        def cacheLock = new File(gradleUserHome, 'caches/modules-2/modules-2.lock')
+
+        when:
+        project = ProjectBuilder.builder()
+            .withGradleUserHomeDir(gradleUserHome)
+            .withPersistentCaches()
+            .build()
+        project.repositories {
+            maven { url = repo.uri }
+        }
+        project.configurations {
+            compile
+        }
+        project.dependencies {
+            compile "org.gradle:a:1.0"
+        }
+        def firstResolution = project.configurations.compile.files
+        def cacheLockCreated = cacheLock.isFile()
+        ProjectBuilder.stop(project)
+
+        project = ProjectBuilder.builder()
+            .withGradleUserHomeDir(gradleUserHome)
+            .withPersistentCaches()
+            .build()
+        project.gradle.startParameter.offline = true
+        project.repositories {
+            maven { url = repo.uri }
+        }
+        project.configurations {
+            compile
+        }
+        project.dependencies {
+            compile "org.gradle:a:1.0"
+        }
+        def secondResolution = project.configurations.compile.files
+
+        then:
+        firstResolution.size() == 1
+        secondResolution.size() == 1
+        cacheLockCreated
+    }
+
     def "can provide custom Gradle user home"() {
         given:
         File customGradleUserHome = temporaryFolder.createDir('gradle-user-home')
@@ -100,7 +148,7 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
                 try {
                     doneSignal.countDown()
                 } finally {
-                    ProjectBuilderImpl.stop(spawnedProject)
+                    ProjectBuilder.stop(spawnedProject)
                 }
 
             }).start()

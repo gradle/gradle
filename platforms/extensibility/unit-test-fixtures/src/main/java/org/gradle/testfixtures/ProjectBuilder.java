@@ -15,11 +15,14 @@
  */
 package org.gradle.testfixtures;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+
+import static org.gradle.internal.FileUtils.canonicalize;
 
 /**
  * <p>Creates dummy instances of {@link org.gradle.api.Project} which you can use in testing custom task and plugin
@@ -69,6 +72,20 @@ public class ProjectBuilder {
     }
 
     /**
+     * Returns the default Gradle user home directory used when persistent caches are enabled.
+     *
+     * <p>The directory is located under the system temporary directory and is shared by ProjectBuilder instances
+     * for the current user. It is not the user's regular Gradle user home directory.</p>
+     *
+     * @return The default Gradle user home directory
+     * @since 9.9.0
+     */
+    @Incubating
+    public static File getDefaultGradleUserHomeDir() {
+        return canonicalize(new File(System.getProperty("java.io.tmpdir"), ".gradle-test-kit-" + System.getProperty("user.name")));
+    }
+
+    /**
      * Specifies the project directory for the project to build.
      *
      * @param dir The project directory
@@ -81,14 +98,32 @@ public class ProjectBuilder {
     }
 
     /**
-     * Specifies the Gradle user home for the builder. If not set, an empty directory under the project directory
-     * will be used.
+     * Specifies the Gradle user home for the builder. This only controls the location of the Gradle user home.
+     * Persistent caches are enabled separately by calling {@link #withPersistentCaches()}.
+     * If not set, an empty directory under the project directory will be used.
+     * When persistent caches are enabled, using a directory shared with other Gradle processes can cause file-lock
+     * contention.
      *
      * @return The builder
      * @since 3.0
      */
     public ProjectBuilder withGradleUserHomeDir(@Nullable File dir) {
         gradleUserHomeDir = dir;
+        return this;
+    }
+
+    /**
+     * Enables persistent Gradle caches for projects created by this builder.
+     *
+     * <p>When no Gradle user home is specified, {@link #getDefaultGradleUserHomeDir()} is used. Call
+     * {@link #withGradleUserHomeDir(File)} to select a specific cache location.</p>
+     *
+     * @return The builder
+     * @since 9.9.0
+     */
+    @Incubating
+    public ProjectBuilder withPersistentCaches() {
+        impl.usePersistentCaches();
         return this;
     }
 
@@ -126,6 +161,33 @@ public class ProjectBuilder {
         if (parent != null) {
             return impl.createChildProject(name, parent, projectDir);
         }
-        return impl.createProject(name, projectDir, gradleUserHomeDir);
+        return impl.createProject(name, projectDir, gradleUserHomeDir, impl.usesPersistentCaches());
+    }
+
+    /**
+     * Stops a project created by this builder and releases its services.
+     *
+     * <p>The project must no longer be used after this method returns. This is especially important for projects
+     * using persistent caches, as their services may hold file locks.</p>
+     *
+     * @param project The project to stop
+     * @since 9.9.0
+     */
+    @Incubating
+    public static void stop(Project project) {
+        ProjectBuilderImpl.stop(project.getRootProject());
+    }
+
+    /**
+     * Releases all services created by ProjectBuilder.
+     *
+     * <p>Use this after all ProjectBuilder projects in the process have been stopped, typically from an
+     * {@code @AfterAll} or {@code cleanupSpec} method.</p>
+     *
+     * @since 9.9.0
+     */
+    @Incubating
+    public static void releaseGlobalServices() {
+        ProjectBuilderImpl.releaseGlobalServices();
     }
 }
