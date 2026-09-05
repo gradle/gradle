@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceKind;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -114,10 +115,14 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     public void set(Provider<? extends T> provider) {
+        setProvider(provider, PropertyProvenanceKind.EXPLICIT_SOURCE);
+    }
+
+    private void setProvider(Provider<? extends T> provider, PropertyProvenanceKind operation) {
         Preconditions.checkArgument(provider != null, "Cannot set the value of a property using a null provider.");
         ProviderInternal<? extends T> p = Providers.internal(provider);
         setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
-        recordExplicitSource();
+        recordExplicitSource(operation);
     }
 
     @Override
@@ -184,9 +189,12 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     public void replace(Transformer<? extends @Nullable Provider<? extends T>, ? super Provider<T>> transformation) {
-        Provider<? extends T> newValue = transformation.transform(shallowCopy());
+        Provider<T> previous = shallowCopy();
+        Provider<? extends T> newValue = transformation.transform(previous);
         if (newValue != null) {
-            set(newValue);
+            PropertyProvenanceKind operation = tracksPropertyProvenance() && PropertyUpdateClassifier.isMapUpdate(newValue, previous)
+                ? PropertyProvenanceKind.MAP_UPDATE : PropertyProvenanceKind.EXPLICIT_SOURCE;
+            setProvider(newValue, operation);
         } else {
             set((T) null);
         }

@@ -60,14 +60,35 @@ class PropertyProvenanceRegistryTest extends ConcurrentSpec {
         registry.recordsBySource.isEmpty()
 
         where:
-        kind << PropertyProvenanceKind.values().findAll { it != PropertyProvenanceKind.EXPLICIT_SOURCE && it != PropertyProvenanceKind.CONVENTION }
+        kind << PropertyProvenanceKind.values().findAll { it != PropertyProvenanceKind.EXPLICIT_SOURCE && it != PropertyProvenanceKind.CONVENTION && it != PropertyProvenanceKind.MAP_UPDATE }
+    }
+
+    def "semantic updates share the source origin and retain their operation with locations enabled = #locations"() {
+        def registry = new PropertyProvenanceRegistry(true, locations)
+        def source = new UserCodeSource.Binary(Describables.of("plugin 'example'"), "ExamplePlugin", "example")
+
+        when:
+        def binding = registry.recordFor(source, PropertyProvenanceKind.EXPLICIT_SOURCE, null)
+        def first = registry.recordFor(source, PropertyProvenanceKind.MAP_UPDATE, "Plugin.java:10")
+        def second = registry.recordFor(source, PropertyProvenanceKind.MAP_UPDATE, "Plugin.java:20")
+
+        then:
+        first.origin.is(binding.origin)
+        second.origin.is(binding.origin)
+        first.kind == PropertyProvenanceKind.MAP_UPDATE
+        second.kind == PropertyProvenanceKind.MAP_UPDATE
+        first.location == (locations ? "Plugin.java:10" : null)
+        second.location == (locations ? "Plugin.java:20" : null)
+
+        where:
+        locations << [false, true]
     }
 
     def "failure records are per occurrence with locations enabled = #locations"() {
         def registry = new PropertyProvenanceRegistry(true, locations)
 
         expect:
-        PropertyProvenanceKind.values().findAll { it != PropertyProvenanceKind.EXPLICIT_SOURCE && it != PropertyProvenanceKind.CONVENTION }.every { kind ->
+        PropertyProvenanceKind.values().findAll { it != PropertyProvenanceKind.EXPLICIT_SOURCE && it != PropertyProvenanceKind.CONVENTION && it != PropertyProvenanceKind.MAP_UPDATE }.every { kind ->
             def first = registry.failureFor("plugin 'example'", kind, "Plugin.java:10")
             def second = registry.failureFor("plugin 'example'", kind, "Plugin.java:20")
             !first.is(second) &&

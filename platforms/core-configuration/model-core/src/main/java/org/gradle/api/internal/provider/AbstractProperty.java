@@ -453,10 +453,18 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      * their mutation has completed.
      */
     protected final void recordExplicitSource() {
-        PropertyProvenanceRecord record = currentBinding(PropertyProvenanceKind.EXPLICIT_SOURCE);
+        recordExplicitSource(PropertyProvenanceKind.EXPLICIT_SOURCE);
+    }
+
+    protected final void recordExplicitSource(PropertyProvenanceKind operation) {
+        PropertyProvenanceRecord record = currentBinding(operation);
         if (record != null) {
             state.recordExplicitProvenance(record);
         }
+    }
+
+    protected final boolean tracksPropertyProvenance() {
+        return state.getProvenanceHost() != null;
     }
 
     /**

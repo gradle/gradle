@@ -41,6 +41,13 @@ Failed finalization does not commit a snapshot. This describes the selected grap
 evaluation; mutations performed as side effects inside opaque providers/transforms remain
 outside the causal-attribution guarantee.
 
+The [semantic update increment](PROPERTY_PROVENANCE_UPDATES.md) now classifies a
+supported map chain rooted at the previous-plan copy of internal scalar `replace()`
+as one `MAP_UPDATE`. Repeated replacements retain distinct update frames through
+copies and finalization; ordinary source replacement still cuts them. This is a first
+shared operation for diagnostics and future collaboration, not a complete correctness
+trace or assignment-shaped self-reference support.
+
 ## Attribution contract
 
 The origin is the plugin/script binding a property, not the property creator or the
@@ -121,7 +128,7 @@ The rows below are a roadmap, not a declaration that every case is implemented.
 | Plugin application | By ID, by class, nested application, context restoration | ID and class fallback integration tests; existing user-code context is reused |
 | Deferred callbacks | Task registration/configuration, containers, listeners, withPlugin | Integration tests cover named/configureEach, withPlugin, afterEvaluate, projectsEvaluated, taskGraph.whenReady and nested deferred actions; throwing callback context restoration is unit-tested |
 | Languages | Java, Kotlin, Groovy, precompiled and applied scripts | Origins must be language-independent; no new Groovy line interception |
-| Scalar/file operations | set/value, convention, unset/null, unsetConvention, promotion | Selected binding/copy, replace, null assignment, convention removal and rejected lifecycle-operation coverage |
+| Scalar/file operations | set/value, convention, unset/null, unsetConvention, promotion | Selected binding/copy, null assignment, convention removal and rejected lifecycle-operation coverage; internal scalar replace classifies proven map updates |
 | Collections | List/set/map replacement and individual contributions | Contribution provenance not implemented; keep repeated contributions distinct |
 | Provider evaluation | map, flatMap, zip, orElse, filter, opaque providers | Property/map traversal is explicitly qualified as structural; unsupported boundaries and diagnostic limits are reported |
 | Lifecycle | Copy, replace, finalization, finalize-on-read | Successful finalization preserves bounded descriptor-only snapshots; failure/retry and nested finalization are tested |
@@ -270,11 +277,14 @@ report is `platforms/core-configuration/model-core/build/reports/property-proven
 
 ## Next milestones
 
-1. Expand concrete project-scoped callback/property-operation and cross-project cases.
-2. The record table is compact and the measured disabled property-layout tax is removed.
-   Profile the remaining disabled timing signal, whole-daemon costs and enabled finalization allocation separately;
-   use more controlled timing repetitions/builds before claiming a small overhead percentage.
-3. Add explicit source/target build identity and script roles when required by those cases.
-4. Treat collection contributions, causal provider tracing, and cache transport as separate workstreams.
-5. Defer settings-owned tracking and other new scopes until a concrete diagnostic needs them;
-   optional source-location expansion is not a prerequisite for any of the above.
+1. Prioritize the shared diagnostic/contribution foundation: explicit effective source/update
+   state, contributor identities and script roles, then more semantic operations. See the
+   [first map-update slice and its limits](PROPERTY_PROVENANCE_UPDATES.md).
+2. Keep collaboration authority, complete ordering state and source rebinding semantics
+   separate from best-effort diagnostic graph traversal. No authorization is inferred from origins.
+3. Add source/target build identity and transport when implementing those boundaries;
+   collection contributions and general causal provider tracing remain separate workstreams.
+4. Defer settings-owned tracking and other new scopes until a concrete diagnostic needs them;
+   source-location expansion is not a prerequisite for the shared foundation.
+5. Performance investigation is paused. The historical results above, including unresolved
+   timing signals, remain documented rather than being treated as resolved.

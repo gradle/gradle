@@ -52,7 +52,8 @@ public final class PropertyProvenanceRegistry {
     }
 
     /**
-     * Returns a successful binding record, shared when there is no per-occurrence location.
+     * Returns a successful mutation record. Source bindings are shared without locations; structural
+     * updates share the origin descriptor but get their operation record only when used.
      * Failed operations must use {@link #failureFor(String, PropertyProvenanceKind, String)};
      * their records are never interned.
      */
@@ -61,10 +62,13 @@ public final class PropertyProvenanceRegistry {
         PropertyProvenanceKind kind,
         @Nullable String location
     ) {
-        if (kind != PropertyProvenanceKind.EXPLICIT_SOURCE && kind != PropertyProvenanceKind.CONVENTION) {
+        if (kind != PropertyProvenanceKind.EXPLICIT_SOURCE && kind != PropertyProvenanceKind.CONVENTION && kind != PropertyProvenanceKind.MAP_UPDATE) {
             throw new IllegalArgumentException("Not a successful binding kind: " + kind);
         }
         BindingRecords records = source == null ? unknownRecords : recordsFor(source);
+        if (kind == PropertyProvenanceKind.MAP_UPDATE) {
+            return new PropertyProvenanceRecord(records.explicitSource.getOrigin(), kind, captureLocations ? location : null);
+        }
         PropertyProvenanceRecord record = kind == PropertyProvenanceKind.EXPLICIT_SOURCE ? records.explicitSource : records.convention;
         return captureLocations && location != null ? new PropertyProvenanceRecord(record.getOrigin(), kind, location) : record;
     }

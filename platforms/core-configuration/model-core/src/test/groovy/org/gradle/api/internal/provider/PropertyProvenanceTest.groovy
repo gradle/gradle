@@ -378,6 +378,7 @@ Trace limitations:
         then:
         def failure = thrown(MissingValueException)
         failure.message.indexOf("plugin 'update'") < failure.message.indexOf("plugin 'original'")
+        failure.message.contains("plugin 'update' [map update]")
         failure.message.contains("plugin 'original'")
         evaluations == 1
 
@@ -391,6 +392,240 @@ Trace limitations:
         !replaced.message.contains("plugin 'original'")
         !replaced.message.contains("plugin 'update'")
         evaluations == 1
+    }
+
+    def "each accepted replace is one update even with nested maps and the same plugin origin"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'source'"
+        property.set(Providers.notDefined())
+        host.bindingOrigin = "plugin 'updates'"
+        property.replace { previous -> previous.map { it.trim() }.map { it.toUpperCase() } }
+        property.replace { previous -> previous.map { "value=$it" } }
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.count("plugin 'updates' [map update]") == 2
+        failure.message.count("plugin 'source' [explicit source]") == 1
+        !failure.message.contains("plugin 'updates' [explicit source]")
+    }
+
+    def "semantic update frames survive #boundary"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'source'"
+        property.set(Providers.notDefined())
+        host.bindingOrigin = "plugin 'first'"
+        property.replace { previous -> previous.map { it.trim() } }
+        host.bindingOrigin = "plugin 'second'"
+        property.replace { previous -> previous.map { it.toUpperCase() } }
+        def observed = prepare(property)
+
+        when:
+        observed.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("""    at plugin 'second' [map update]
+    at plugin 'first' [map update]
+    at plugin 'source' [explicit source]""".replace("\n", System.lineSeparator()))
+
+        where:
+        boundary               | prepare
+        "copy"                 | { it.shallowCopy() }
+        "finalization"         | { it.finalizeValue(); it }
+        "finalize on read"     | { it.finalizeValueOnRead(); it }
+        "copy of final value"  | { it.finalizeValue(); it.shallowCopy() }
+    }
+
+    def "update classification preserves live upstream providers and does not execute maps"() {
+        def source = new DefaultProperty<String>(host, String)
+        source.set("first")
+        def property = new DefaultProperty<String>(host, String)
+        property.set(source)
+        def transformations = 0
+
+        when:
+        property.replace { previous -> previous.map { transformations++; it.toUpperCase() } }
+
+        then:
+        transformations == 0
+        property.get() == "FIRST"
+        transformations == 1
+
+        when:
+        source.set("second")
+
+        then:
+        property.get() == "SECOND"
+        transformations == 2
+    }
+
+    def "replace returning an unrelated map is a binding and cuts the previous chain"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'old-source'"
+        property.set("value")
+        host.bindingOrigin = "plugin 'old-update'"
+        property.replace { previous -> previous.map { it.trim() } }
+        host.bindingOrigin = "plugin 'replacement'"
+
+        when:
+        property.replace { Providers.notDefined().map { it } }
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("plugin 'replacement' [explicit source]")
+        !failure.message.contains("map update")
+        !failure.message.contains("old-source")
+        !failure.message.contains("old-update")
+    }
+
+    def "a convention-rooted replace keeps its existing snapshot semantics and separates a later convention"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'original-default'"
+        property.convention(Providers.notDefined())
+        host.bindingOrigin = "plugin 'update'"
+        property.replace { previous -> previous.map { it.trim() } }
+        host.bindingOrigin = "plugin 'later-default'"
+        property.convention("later fallback")
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        def sections = failure.message.split("Shadowed configuration:")
+        sections[0].contains("plugin 'update' [map update]")
+        sections[0].contains("plugin 'original-default' [convention]")
+        !sections[0].contains("later-default")
+        sections[1].contains("plugin 'later-default' [convention]")
+        !sections[1].contains("original-default")
+    }
+
+    def "returning null from replace clears the accepted update chain"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'default'"
+        property.convention(Providers.notDefined())
+        host.bindingOrigin = "plugin 'source'"
+        property.set("present")
+        host.bindingOrigin = "plugin 'update'"
+        property.replace { previous -> previous.map { it.trim() } }
+
+        when:
+        property.replace { null }
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("plugin 'default' [convention]")
+        !failure.message.contains("plugin 'source'")
+        !failure.message.contains("plugin 'update'")
+        !failure.message.contains("Shadowed configuration")
+    }
+
+    def "a map update producing missing does not blame a healthy source or run again for reporting"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'healthy-source'"
+        property.set("present")
+        host.bindingOrigin = "plugin 'update'"
+        def transforms = 0
+        property.replace { previous -> previous.map { transforms++; null } }
+
+        when:
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message.contains("plugin 'update' [map update]")
+        failure.message.contains("plugin 'healthy-source' [explicit source]")
+        failure.message.contains("map() dependencies are shown, not a proven causal failure path.")
+        transforms == 1
+    }
+
+    def "a rejected map update does not change accepted provenance"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'source'"
+        property.set(Providers.notDefined())
+        host.bindingOrigin = "plugin 'accepted'"
+        property.replace { previous -> previous.map { it } }
+        property.disallowChanges()
+        host.bindingOrigin = "plugin 'rejected'"
+        host.failureOrigin = "plugin 'rejected'"
+
+        when:
+        property.replace { previous -> previous.map { it } }
+
+        then:
+        def rejected = thrown(IllegalStateException)
+        rejected.message.contains("plugin 'rejected' [set()]")
+        rejected.message.contains("plugin 'accepted' [map update]")
+        !rejected.message.contains("plugin 'rejected' [map update]")
+
+        when:
+        host.failureOrigin = "task ':read' action"
+        property.get()
+
+        then:
+        def missing = thrown(MissingValueException)
+        missing.message.contains("plugin 'accepted' [map update]")
+        !missing.message.contains("plugin 'rejected'")
+    }
+
+    def "a throwing replace callback does not record an update"() {
+        def property = new DefaultProperty<String>(host, String)
+        host.bindingOrigin = "plugin 'source'"
+        property.set(Providers.notDefined())
+        host.bindingOrigin = "plugin 'throwing'"
+        def problem = new RuntimeException("callback failed")
+
+        when:
+        property.replace { throw problem }
+
+        then:
+        def failure = thrown(RuntimeException)
+        failure.is(problem)
+
+        when:
+        property.get()
+
+        then:
+        def missing = thrown(MissingValueException)
+        missing.message.contains("plugin 'source' [explicit source]")
+        !missing.message.contains("plugin 'throwing'")
+    }
+
+    def "an update records its semantic operation origin and location in one lookup after acceptance"() {
+        def trackingHost = Mock(PropertyHost)
+        def binding = new PropertyProvenanceRecord("plugin 'update'", PropertyProvenanceKind.MAP_UPDATE, "Update.java:10")
+
+        when:
+        def property = new DefaultProperty<String>(trackingHost, String)
+        property.replace { previous -> previous.map { it } }
+        property.get()
+
+        then:
+        1 * trackingHost.tracksPropertyProvenance() >> true
+        1 * trackingHost.currentPropertyBinding(PropertyProvenanceKind.MAP_UPDATE) >> binding
+        1 * trackingHost.currentPropertyFailure(PropertyProvenanceKind.GET) >> null
+        0 * trackingHost._
+        def failure = thrown(MissingValueException)
+        failure.message.contains("plugin 'update' (Update.java:10) [map update]")
+    }
+
+    def "disabled replace preserves the missing-value message and does not consult the host"() {
+        def disabledHost = Mock(PropertyHost)
+        def property = new DefaultProperty<String>(disabledHost, String)
+
+        when:
+        property.replace { previous -> previous.map { it } }
+        property.get()
+
+        then:
+        def failure = thrown(MissingValueException)
+        failure.message == "Cannot query the value of this property because it has no value available."
+        0 * disabledHost._
     }
 
     def "#operation clears the explicit origin and selects the convention"() {

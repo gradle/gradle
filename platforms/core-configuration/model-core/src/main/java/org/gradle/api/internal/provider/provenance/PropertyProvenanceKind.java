@@ -22,6 +22,7 @@ package org.gradle.api.internal.provider.provenance;
 public enum PropertyProvenanceKind {
     EXPLICIT_SOURCE("explicit source"),
     CONVENTION("convention"),
+    MAP_UPDATE("map update"),
     GET("get()"),
     SET("set()"),
     SET_CONVENTION("convention()"),
