@@ -69,6 +69,12 @@ public interface ResolvedComponentResult extends ComponentResult {
      * Returns the module version which this component belongs to, if any. A component will belong to a module version if it was found in some repository, or if the
      * module version for the component has been declared, usually by declaring how the component should be published.
      *
+     * <p>
+     * For a project component, this identifies the project in the resolved graph, including projects from included builds.
+     * It is independent of the artifact file name and of the capabilities declared on the selected variant.
+     * Map {@link ResolutionResult#getRootComponent()} to task inputs to read these coordinates lazily,
+     * after the producer project has been configured, including when using Isolated Projects.
+     *
      * @return the module version of the component, or {@code null} if this component has no associated module version.
      * @since 1.10
      */
