@@ -91,6 +91,8 @@ self-reference behavior is unchanged.
 The [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md) now defines the facts,
 consumer views, mode-specific transitions and conformance scenarios for both consumers.
 It is a design contract, not a claim that collaboration has been implemented.
+The [implementation plan](PROPERTY_PROVENANCE_IMPLEMENTATION_PLAN.md) places the next
+work on a proposed clean-baseline branch; this slice remains a reference implementation.
 
 1. Make the source-selection/update-occurrence scenarios executable for both modes;
    adapt the supported ordinary scalar path to the same effective-provenance contract.

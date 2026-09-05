@@ -3,6 +3,9 @@
 For the proposed foundation shared by diagnostics and collaborative properties, see
 the [shared provenance contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md). This document
 continues to describe the implemented ordinary-property prototype and its boundaries.
+The [from-scratch implementation plan](PROPERTY_PROVENANCE_IMPLEMENTATION_PLAN.md)
+recommends preserving this prototype as a reference and starting the shared implementation
+from a clean Gradle baseline, with functional and performance gates at each milestone.
 
 ## Scope of this increment
 
@@ -280,6 +283,10 @@ This smoke check is not evidence of unchanged whole-build performance. Its local
 report is `platforms/core-configuration/model-core/build/reports/property-provenance-origin-descriptors.json`.
 
 ## Next milestones
+
+The [clean-baseline plan](PROPERTY_PROVENANCE_IMPLEMENTATION_PLAN.md) is the proposed
+execution roadmap. The priorities below describe the technical direction, not a decision
+to keep expanding this prototype or a claim that the milestones have been implemented.
 
 1. Implement focused conformance tests from the [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md),
    then adapt the ordinary scalar path to its effective-source/update view. Contributor

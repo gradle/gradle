@@ -1,5 +1,9 @@
 # Shared property-provenance contract
 
+See the [from-scratch implementation plan](PROPERTY_PROVENANCE_IMPLEMENTATION_PLAN.md)
+for the recommended clean-baseline restart, milestones and performance gates. This
+document defines the contract those milestones must satisfy.
+
 ## Status and purpose
 
 Proposed internal contract, version 1. This document defines the shared foundation
