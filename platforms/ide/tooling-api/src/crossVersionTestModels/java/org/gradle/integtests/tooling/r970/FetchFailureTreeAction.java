@@ -25,6 +25,7 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +49,15 @@ public class FetchFailureTreeAction implements BuildAction<FetchFailureTreeActio
         GradleBuild gradleBuild = controller.fetch(GradleBuild.class).getModel();
         assert gradleBuild != null;
         Result result = new Result();
-        collect(controller, gradleBuild, result);
+        IdentityHashMap<Failure, FailureNode> snapshots = new IdentityHashMap<Failure, FailureNode>();
+        collect(controller, gradleBuild, result, snapshots);
         for (GradleBuild includedBuild : gradleBuild.getEditableBuilds()) {
-            collect(controller, includedBuild, result);
+            collect(controller, includedBuild, result, snapshots);
         }
         return result;
     }
 
-    private void collect(BuildController controller, GradleBuild gradleBuild, Result result) {
+    private void collect(BuildController controller, GradleBuild gradleBuild, Result result, IdentityHashMap<Failure, FailureNode> snapshots) {
         for (BasicGradleProject project : gradleBuild.getProjects()) {
             FetchModelResult<?> fetched = controller.fetch(project, modelType);
             if (fetched.getFailures().isEmpty() && fetched.getModel() != null) {
@@ -64,17 +66,22 @@ public class FetchFailureTreeAction implements BuildAction<FetchFailureTreeActio
                 result.failedToQueryProjects.add(project.getName());
                 Failure failure = fetched.getFailures().iterator().next();
                 result.rootDescriptionByProject.put(project.getName(), failure.getDescription());
-                result.failureTreeByProject.put(project.getName(), snapshot(failure));
+                result.failureTreeByProject.put(project.getName(), snapshot(failure, snapshots));
             }
         }
     }
 
-    private static FailureNode snapshot(Failure failure) {
-        List<FailureNode> causes = new ArrayList<FailureNode>();
-        for (Failure cause : failure.getCauses()) {
-            causes.add(snapshot(cause));
+    private static FailureNode snapshot(Failure failure, IdentityHashMap<Failure, FailureNode> snapshots) {
+        FailureNode existing = snapshots.get(failure);
+        if (existing != null) {
+            return existing;
         }
-        return new FailureNode(failure.getMessage(), causes);
+        FailureNode node = new FailureNode(failure.getMessage(), new ArrayList<FailureNode>());
+        snapshots.put(failure, node);
+        for (Failure cause : failure.getCauses()) {
+            node.causes.add(snapshot(cause, snapshots));
+        }
+        return node;
     }
 
     public static class Result implements Serializable {
