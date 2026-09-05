@@ -84,6 +84,9 @@ The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties
 * Optionally, a *timeout* in ms used when downloading the Gradle distribution.
 * Optionally, a *boolean* to set the *validation of the distribution* URL.
 
+When the `wrapper` task regenerates an existing `gradle-wrapper.properties` file, values already present in that file are preserved unless the corresponding task properties are explicitly configured.
+See <<#sec:preserving_wrapper_properties,Preserving Existing Wrapper Properties>> for details.
+
 The following is an example of the generated distribution URL in `gradle/wrapper/gradle-wrapper.properties`:
 
 [source,properties,subs="attributes"]
@@ -329,6 +332,18 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion
 ----
 
 Check out the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[API documentation] for a more detailed description of the available configuration options. You can also find various samples for configuring the Wrapper in the Gradle distribution.
+
+[[sec:preserving_wrapper_properties]]
+=== Preserving Existing Wrapper Properties
+
+When the `wrapper` task regenerates an existing `gradle-wrapper.properties` file, values already present in that file are preserved unless the corresponding task properties are explicitly configured.
+Preserved properties are `distributionBase`, `distributionPath`, `zipStoreBase`, `zipStorePath`, `networkTimeout`, `validateDistributionUrl`, `retries`, and `retryBackOffMs`.
+
+Explicit task configuration takes precedence over existing values in the file.
+
+The `distributionUrl` is regenerated for the configured Gradle version.
+Its distribution type is inferred from the filename of an existing `-bin.zip` or `-all.zip` URL when the task does not configure one.
+The host and any other URL components are not preserved.
 
 [[sec:authenticated_download]]
 === Authenticated Gradle Distribution Download
