@@ -45,23 +45,25 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
 
     public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
-        recordPossibleResolution(attemptedLocations);
+        recordPossibleResolution(selector, attemptedLocations);
     }
 
     public ModuleVersionNotFoundException(ModuleVersionIdentifier id, Collection<String> attemptedLocations) {
         super(id, format(id, attemptedLocations));
-        recordPossibleResolution(attemptedLocations);
+        recordPossibleResolution(id, attemptedLocations);
     }
 
     public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations) {
         super(selector, format(selector, attemptedLocations));
-        recordPossibleResolution(attemptedLocations);
+        recordPossibleResolution(selector, attemptedLocations);
     }
 
     private static Factory<String> format(ModuleComponentSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
         return () -> {
             TreeFormatter builder = new TreeFormatter();
-            if (unmatchedVersions.isEmpty() && rejectedVersions.isEmpty()) {
+            if (isVersionless(selector)) {
+                builder.node(String.format("Could not find %s because no version was specified.", selector));
+            } else if (unmatchedVersions.isEmpty() && rejectedVersions.isEmpty()) {
                 builder.node(String.format("Could not find any matches for %s as no versions of %s:%s are available.", selector, selector.getGroup(), selector.getModule()));
             } else {
                 builder.node(String.format("Could not find any version that matches %s.", selector));
@@ -110,10 +112,20 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     private static Factory<String> format(ModuleComponentSelector selector, Collection<String> locations) {
         return () -> {
             TreeFormatter builder = new TreeFormatter();
-            builder.node(String.format("Could not find any version that matches %s.", selector));
+            if (isVersionless(selector)) {
+                builder.node(String.format("Could not find %s because no version was specified.", selector));
+            } else {
+                builder.node(String.format("Could not find any version that matches %s.", selector));
+            }
             addLocations(builder, locations);
             return builder.toString();
         };
+    }
+
+    private static boolean isVersionless(ModuleComponentSelector selector) {
+        return selector.getVersionConstraint().getRequiredVersion().isEmpty()
+            && selector.getVersionConstraint().getPreferredVersion().isEmpty()
+            && selector.getVersionConstraint().getStrictVersion().isEmpty();
     }
 
     private static void appendSizeLimited(TreeFormatter builder, Collection<?> values) {
@@ -152,7 +164,15 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
      * source should be configured. At this stage, this information is lost, so we do a best effort
      * based on the file locations.
      */
-    private void recordPossibleResolution(Collection<String> locations) {
+    private void recordPossibleResolution(Object selector, Collection<String> locations) {
+        if (selector instanceof ModuleComponentSelector && isVersionless((ModuleComponentSelector) selector)) {
+            resolutions = ImmutableList.of(
+                "Declare a version for the dependency.",
+                "Use a platform or dependency constraint to provide the version.",
+                "Ensure the repository providing the dependency also provides its Gradle module metadata, or put mavenLocal() after other repositories."
+            );
+            return;
+        }
         if (locations.size() == 1) {
             String singleLocation = locations.iterator().next();
             String format = getFormatName(singleLocation);
