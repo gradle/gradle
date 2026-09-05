@@ -18,10 +18,8 @@ package org.gradle.composite.internal;
 
 import com.google.common.base.MoreObjects;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
@@ -103,7 +101,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private void addBuild(BuildState build) {
         BuildState before = buildsByPath.put(build.getIdentityPath(), build);
         if (before != null) {
-            throw new IllegalArgumentException("Build is already registered: " + build.getBuildIdentifier());
+            throw new IllegalArgumentException("Build is already registered: " + build.getBuildIdentity());
         }
         buildAddedBroadcaster.buildAdded(build);
         maybeAddBuildSrcBuild(build);
@@ -137,17 +135,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     @Override
     public Collection<IncludedBuildState> getIncludedBuilds() {
         return includedBuildsByRootDir.values();
-    }
-
-    @Override
-    public BuildState getBuild(BuildIdentifier buildIdentifier) {
-        return getBuild(((DefaultBuildIdentifier) buildIdentifier).getIdentityPath());
-    }
-
-    @Nullable
-    @Override
-    public BuildState findBuild(BuildIdentifier buildIdentifier) {
-        return findBuild(((DefaultBuildIdentifier) buildIdentifier).getIdentityPath());
     }
 
     @Override

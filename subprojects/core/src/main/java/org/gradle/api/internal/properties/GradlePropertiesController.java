@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.properties;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -33,7 +33,7 @@ import java.io.File;
  * This is useful when the properties need to be injected as a service in the corresponding scope.
  * Accessing the values of the unloaded properties, however, will result in an exception.
  * <p>
- * After the build properties have been loaded, it is possible to {@link #unloadGradleProperties(BuildIdentifier) unload} them.
+ * After the build properties have been loaded, it is possible to {@link #unloadGradleProperties(BuildIdentity) unload} them.
  * It is only possible to unload build properties before any project properties have been loaded.
  * The support for unloading is currently required by Configuration Cache, where properties are loaded before checking
  * the fingerprint and unloaded in case the fingerprint is rejected.
@@ -55,10 +55,10 @@ public interface GradlePropertiesController {
      * </ul>
      * <p>
      * The instance of {@code GradleProperties} can be obtained before the corresponding properties
-     * have been {@link #loadGradleProperties(BuildIdentifier, File, boolean) loaded}.
+     * have been {@link #loadGradleProperties(BuildIdentity, File, boolean) loaded}.
      * However, accessing of property values will fail with an exception if the properties have not been loaded by then.
      */
-    GradleProperties getGradleProperties(BuildIdentifier buildId);
+    GradleProperties getGradleProperties(BuildIdentity buildId);
 
     /**
      * Returns project-scoped {@link GradleProperties} for the specified project.
@@ -81,7 +81,7 @@ public interface GradlePropertiesController {
      * as the one in the build root directory.
      * <p>
      * The instance of {@code GradleProperties} can be obtained before the corresponding properties
-     * have been {@link #loadGradleProperties(BuildIdentifier, File, boolean) loaded}.
+     * have been {@link #loadGradleProperties(BuildIdentity, File, boolean) loaded}.
      * However, accessing of property values will fail with an exception if the properties have not been loaded by then.
      */
     GradleProperties getGradleProperties(ProjectIdentity projectId);
@@ -94,7 +94,7 @@ public interface GradlePropertiesController {
     /**
      * Loads build-scoped {@link GradleProperties} from the specified build root directory.
      * <p>
-     * See {@link #getGradleProperties(BuildIdentifier) build-scoped properties} on which sources are considered.
+     * See {@link #getGradleProperties(BuildIdentity) build-scoped properties} on which sources are considered.
      * <p>
      * If {@code setSystemProperties} is true, properties with {@code systemProp.} prefix are set as system properties.
      * However, the <strong>system properties are only sourced from {@code gradle.properties} files</strong>:
@@ -107,18 +107,18 @@ public interface GradlePropertiesController {
      * @param buildRootDir directory containing the {@code gradle.properties} file
      * @param setSystemProperties whether to set system properties from loaded properties
      */
-    void loadGradleProperties(BuildIdentifier buildId, File buildRootDir, boolean setSystemProperties);
+    void loadGradleProperties(BuildIdentity buildId, File buildRootDir, boolean setSystemProperties);
 
     /**
      * Unloads build-scoped properties.
      * <p>
-     * Subsequent calls to {@link #loadGradleProperties(BuildIdentifier, File, boolean)} will
+     * Subsequent calls to {@link #loadGradleProperties(BuildIdentity, File, boolean)} will
      * reload properties and re-evaluate system property assignments.
      * <p>
      * Build-scoped properties can't be unloaded if any {@link #loadGradleProperties(ProjectIdentity, File) project-scoped}
      * properties have been loaded.
      */
-    void unloadGradleProperties(BuildIdentifier buildId);
+    void unloadGradleProperties(BuildIdentity buildId);
 
     /**
      * Loads project-scoped {@link GradleProperties} from the specified project directory.
@@ -134,7 +134,7 @@ public interface GradlePropertiesController {
     /**
      * Unloads all project-scoped and build-scoped properties.
      * <p>
-     * Subsequent calls to {@link #loadGradleProperties(BuildIdentifier, File, boolean)} will
+     * Subsequent calls to {@link #loadGradleProperties(BuildIdentity, File, boolean)} will
      * reload properties and re-evaluate system property assignments.
      */
     void unloadAll();

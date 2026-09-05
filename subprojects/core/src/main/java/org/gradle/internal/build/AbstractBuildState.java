@@ -16,7 +16,9 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
@@ -38,6 +40,7 @@ import java.util.function.Function;
 public abstract class AbstractBuildState implements BuildState, Closeable {
 
     private final BuildIdentity buildIdentity;
+    private final BuildIdentifier buildIdentifier;
     private final @Nullable BuildState parent;
     private final CloseableServiceRegistry buildServices;
     private final Lazy<BuildLifecycleController> buildLifecycleController;
@@ -47,6 +50,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     @SuppressWarnings("this-escape")
     public AbstractBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, Path identityPath, @Nullable BuildState parent) {
         this.buildIdentity = new BuildIdentity(identityPath);
+        this.buildIdentifier = new DefaultBuildIdentifier(identityPath);
         this.parent = parent;
 
         buildServices = ServiceRegistryBuilder.builder()
@@ -78,6 +82,11 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     @Override
     public BuildIdentity getBuildIdentity() {
         return buildIdentity;
+    }
+
+    @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
     }
 
     @Override
@@ -119,7 +128,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
 
     @Override
     public BuildProjectRegistry getProjects() {
-        return getProjectStateRegistry().projectsFor(getBuildIdentifier());
+        return getProjectStateRegistry().projectsFor(getBuildIdentity());
     }
 
     protected BuildLifecycleController getBuildController() {
@@ -133,12 +142,12 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
 
     @Override
     public boolean isProjectsLoaded() {
-        return getProjectStateRegistry().findProjectsFor(getBuildIdentifier()) != null;
+        return getProjectStateRegistry().findProjectsFor(getBuildIdentity()) != null;
     }
 
     @Override
     public boolean isProjectsCreated() {
-        BuildProjectRegistry projectsForThisBuild = getProjectStateRegistry().findProjectsFor(getBuildIdentifier());
+        BuildProjectRegistry projectsForThisBuild = getProjectStateRegistry().findProjectsFor(getBuildIdentity());
         return projectsForThisBuild != null && projectsForThisBuild.getRootProject().isCreated();
     }
 

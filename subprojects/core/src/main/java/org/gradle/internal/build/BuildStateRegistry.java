@@ -16,7 +16,6 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.classpath.ClassPath;
@@ -55,21 +54,6 @@ public interface BuildStateRegistry {
      * Returns all included builds.
      */
     Collection<? extends IncludedBuildState> getIncludedBuilds();
-
-    /**
-     * Locates a build. Fails if not present.
-     * <p>
-     * Prefer {@link #getBuild(Path)}.
-     */
-    BuildState getBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
-
-    /**
-     * Finds a build. Returns null if there's no build with the given identifier.
-     * <p>
-     * Prefer {@link #findBuild(Path)}.
-     */
-    @Nullable
-    BuildState findBuild(BuildIdentifier buildIdentifier);
 
     /**
      * Locates a build. Fails if not present.

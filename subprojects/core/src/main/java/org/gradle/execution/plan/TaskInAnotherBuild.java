@@ -17,13 +17,13 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
@@ -38,7 +38,7 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         TaskInternal task,
         BuildTreeWorkGraphController taskGraph
     ) {
-        BuildIdentifier targetBuild = buildIdentifierOf(task);
+        BuildIdentity targetBuild = buildIdentityOf(task);
         TaskIdentifier taskIdentifier = new TaskIdentifier(targetBuild, task);
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
         return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild) {
@@ -62,10 +62,10 @@ public abstract class TaskInAnotherBuild extends TaskNode {
      */
     public static Restored restored(
         String taskPath,
-        BuildIdentifier targetBuild,
+        BuildIdentity targetBuild,
         BuildTreeWorkGraphController taskGraph
     ) {
-        Path taskIdentityPath = Path.path(targetBuild.getBuildPath()).append(Path.path(taskPath));
+        Path taskIdentityPath = targetBuild.getBuildPath().append(Path.path(taskPath));
         return new Restored(taskIdentityPath, taskPath, targetBuild, taskGraph);
     }
 
@@ -82,7 +82,7 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         private Restored(
             Path taskIdentityPath,
             String taskPath,
-            BuildIdentifier targetBuild,
+            BuildIdentity targetBuild,
             BuildTreeWorkGraphController taskGraph
         ) {
             super(taskIdentityPath, taskPath, targetBuild);
@@ -115,15 +115,15 @@ public abstract class TaskInAnotherBuild extends TaskNode {
     private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Scheduled;
     private final Path taskIdentityPath;
     private final String taskPath;
-    private final BuildIdentifier targetBuild;
+    private final BuildIdentity targetBuild;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild) {
+    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentity targetBuild) {
         this.taskIdentityPath = taskIdentityPath;
         this.taskPath = taskPath;
         this.targetBuild = targetBuild;
     }
 
-    public BuildIdentifier getTargetBuild() {
+    public BuildIdentity getTargetBuild() {
         return targetBuild;
     }
 
@@ -242,8 +242,8 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         // This node does not do anything itself
     }
 
-    private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentifier();
+    private static BuildIdentity buildIdentityOf(TaskInternal task) {
+        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentity();
     }
 
     protected abstract IncludedBuildTaskResource getTarget();

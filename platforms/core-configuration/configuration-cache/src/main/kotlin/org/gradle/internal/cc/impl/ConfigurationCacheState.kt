@@ -47,6 +47,7 @@ import org.gradle.initialization.BuildStructureOperationProject
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.internal.Actions
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildState
@@ -344,7 +345,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeBuildsInTree(buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
-        val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentifier }
+        val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentity }
         val builds = mutableMapOf<BuildState, BuildToStore>()
         val scheduledWorkPerBuild = mutableMapOf<BuildIdentifier, ScheduledWork>()
         host.visitBuilds { state ->
@@ -488,7 +489,7 @@ class ConfigurationCacheState(
     suspend fun WriteContext.writeBuildSrcBuild(state: StandAloneNestedBuild, buildTreeState: StoredBuildTreeState) {
         val gradle = state.mutableModel
         withGradleIsolate(gradle, userTypesCodec) {
-            write(state.owner.buildIdentifier)
+            write(state.owner.buildIdentity)
         }
         // Encode the build state using the contextualized IO service for the nested build
         gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
@@ -502,8 +503,8 @@ class ConfigurationCacheState(
     private
     suspend fun ReadContext.readBuildSrcBuild(rootBuild: ConfigurationCacheBuild): CachedBuildState {
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
-            val ownerIdentifier = readNonNull<BuildIdentifier>()
-            rootBuild.getBuildSrcOf(ownerIdentifier)
+            val ownerIdentity = readNonNull<BuildIdentity>()
+            rootBuild.getBuildSrcOf(ownerIdentity)
         }
         return readNestedBuildState(build)
     }
@@ -674,7 +675,7 @@ class ConfigurationCacheState(
     private
     suspend fun WriteContext.writeRequiredBuildServicesOf(build: BuildState, buildTreeState: StoredBuildTreeState) {
         withGradleIsolate(build.mutableModel, userTypesCodec) {
-            val providers = buildTreeState.requiredBuildServicesPerBuild[build.buildIdentifier] ?: emptyList()
+            val providers = buildTreeState.requiredBuildServicesPerBuild[build.buildIdentity] ?: emptyList()
             writeCollection(providers) { listener ->
                 writeBuildEventListenerSubscription(listener)
             }
@@ -1060,13 +1061,13 @@ class ConfigurationCacheState(
 
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
-        Path.path(provider.buildIdentifier.buildPath).name != BUILD_SRC
+        provider.buildIdentity.buildPath.name != BUILD_SRC
 }
 
 
 internal
 class StoredBuildTreeState(
-    val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>,
+    val requiredBuildServicesPerBuild: Map<BuildIdentity, List<BuildServiceProvider<*, *>>>,
     private val scheduledWorkPerBuild: Map<BuildIdentifier, ScheduledWork>,
     val idForNode: IdForNode,
     val transformedProjectsPerBuild: Map<BuildIdentifier, Set<Path>>

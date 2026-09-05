@@ -18,7 +18,6 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
@@ -144,7 +143,7 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
                 // TODO: This check should not be necessary. `ensureProjectsConfigured` should
                 //       be able to handle the case where the source build ensures that itself is configured, but
                 //       at the moment it deadlocks in that case.
-                BuildState buildState = buildStateRegistry.getBuild(new DefaultBuildIdentifier(targetBuild));
+                BuildState buildState = buildStateRegistry.getBuild(targetBuild);
                 buildState.ensureProjectsConfigured();
             }
             configuredBuilds.add(targetBuild);
