@@ -44,6 +44,9 @@ public interface FetchModelResult<M> {
 
     /**
      * Returns the failures that occurred during the fetch operation.
+     * <p>
+     * Gradle attempts to reuse the same {@link Failure} instance when the same underlying failure is reported by multiple
+     * fetches in one build action. Clients can use reference identity to avoid processing such shared failures repeatedly.
      *
      * @return a collection of failures, empty if the fetch operation was successful
      * @since 9.3.0
